@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+     <!--
+        Note: Exclusion definition exists in multiple places.
+        - In file ${findbugs.excludeFilterFile} defined at top of pom.xml
+        - In file conf/checkstyle/onos_suppressions.xml (this file)
+        - maven-pmd-plugin configuration in pom.xml
+          (under build and reporting)
+     -->
+
+    <suppress files=".*" checks="FinalParametersCheck"/>
+    <suppress files=".*" checks="MagicNumbersCheck"/>
+    <suppress files=".*" checks="DesignForExtensionCheck"/>
+    <suppress files=".*" checks="TodoCommentCheck"/>
+    <suppress files=".*" checks="AvoidInlineConditionalsCheck"/>
+    <suppress files=".*" checks="OperatorWrapCheck"/>
+</suppressions>
+

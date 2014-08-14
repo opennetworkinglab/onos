@@ -1,0 +1,18 @@
+<FindBugsFilter>
+     <!--
+        Note: Exclusion definition exists in multiple places.
+        - In file ${findbugs.excludeFilterFile} defined at top of pom.xml (this file)
+        - In file conf/checkstyle/onos_suppressions.xml
+        - maven-pmd-plugin configuration in pom.xml
+          (under build and reporting)
+     -->
+     <Match>
+       <Class name="~net\.onrc\.onos\.core\.datastore\.serializers\..*" />
+     </Match>
+     <Match>
+       <Class name="~.*edu\.stanford\..*"/>
+     </Match>
+     <Match>
+       <Class name="~.org\.projectfloodlight\..*"/>
+     </Match>
+</FindBugsFilter>
