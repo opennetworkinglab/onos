@@ -9,7 +9,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.text.MessageFormat;
+
 import org.hamcrest.Matchers;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.hash.HashCode;
@@ -17,6 +22,9 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 
 public class U128Test {
+    private Triple[] triples;
+
+
     @Test
     public void testPositiveRaws() {
         assertThat(U128.of(0, 0).getMsb(), equalTo(0L));
@@ -24,6 +32,22 @@ public class U128Test {
 
         assertThat(U128.of(1, 2).getMsb(), equalTo(1L));
         assertThat(U128.of(1, 2).getLsb(), equalTo(2L));
+    }
+
+    @Test
+    public void testReadBytes() {
+        ChannelBuffer empty = ChannelBuffers.wrappedBuffer(new byte[16]);
+        U128 uEmpty = U128.read16Bytes(empty);
+        assertThat(uEmpty.getMsb(), equalTo(0L));
+        assertThat(uEmpty.getLsb(), equalTo(0L));
+
+        ChannelBuffer value = ChannelBuffers.wrappedBuffer(
+                new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, (byte) 0x88,
+                        (byte) 0x99, (byte) 0xaa, (byte) 0xbb, (byte) 0xcc, (byte) 0xdd,
+                        (byte) 0xee, (byte) 0xff, 0x11 });
+        U128 uValue = U128.read16Bytes(value);
+        assertThat(uValue.getMsb(), equalTo(0x1122334455667788L));
+        assertThat(uValue.getLsb(), equalTo(0x99aabbccddeeff11L));
     }
 
     @Test
@@ -123,6 +147,80 @@ public class U128Test {
         }
     }
 
+    public static class Triple {
+        U128 a, b, c;
+
+        public Triple(U128 a, U128 b, U128 c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+
+        public static Triple of(U128 a, U128 b, U128 c) {
+            return new Triple(a, b, c);
+        }
+
+        public String msg(String string) {
+            return MessageFormat.format(string, a,b,c);
+        }
+    }
+
+    @Before
+    public void setup() {
+        U128 u0_0 = U128.of(0, 0);
+        U128 u0_1 = U128.of(0, 1);
+        U128 u1_0 = U128.of(1, 0);
+        U128 u1_1 = U128.of(1, 1);
+
+        U128 u0_2 = U128.of(0, 2);
+        U128 u2_0 = U128.of(2, 0);
+
+        U128 u0_f = U128.of(0, -1L);
+        U128 uf_0 = U128.of(-1L, 0);
+
+        triples = new Triple[] {
+              Triple.of(u0_0, u0_0, u0_0),
+              Triple.of(u0_0, u0_1, u0_1),
+              Triple.of(u0_0, u1_0, u1_0),
+              Triple.of(u0_1, u1_0, u1_1),
+
+              Triple.of(u0_1, u0_1, u0_2),
+              Triple.of(u1_0, u1_0, u2_0),
+
+              Triple.of(u0_1, u0_f, u1_0),
+
+              Triple.of(u0_1, u0_f, u1_0),
+              Triple.of(u0_f, u0_f, U128.of(1, 0xffff_ffff_ffff_fffeL)),
+              Triple.of(uf_0, u0_f, U128.of(-1, -1)),
+              Triple.of(uf_0, u1_0, U128.ZERO),
+
+              Triple.of(U128.of(0x1234_5678_9abc_def1L, 0x1234_5678_9abc_def1L),
+                        U128.of(0xedcb_a987_6543_210eL, 0xedcb_a987_6543_210fL),
+                        U128.ZERO)
+        };
+    }
+
+    @Test
+    public void testAddSubtract() {
+        for(Triple t: triples) {
+            assertThat(t.msg("{0} + {1} = {2}"), t.a.add(t.b), equalTo(t.c));
+            assertThat(t.msg("{1} + {0} = {2}"), t.b.add(t.a), equalTo(t.c));
+
+            assertThat(t.msg("{2} - {0} = {1}"), t.c.subtract(t.a), equalTo(t.b));
+            assertThat(t.msg("{2} - {1} = {0}"), t.c.subtract(t.b), equalTo(t.a));
+        }
+    }
+
+    @Test
+    public void testAddSubtractBuilder() {
+        for(Triple t: triples) {
+            assertThat(t.msg("{0} + {1} = {2}"), t.a.builder().add(t.b).build(), equalTo(t.c));
+            assertThat(t.msg("{1} + {0} = {2}"), t.b.builder().add(t.a).build(), equalTo(t.c));
+
+            assertThat(t.msg("{2} - {0} = {1}"), t.c.builder().subtract(t.a).build(), equalTo(t.b));
+            assertThat(t.msg("{2} - {1} = {0}"), t.c.builder().subtract(t.b).build(), equalTo(t.a));
+        }
+    }
 
     @Test
     public void testCompare() {
@@ -163,20 +261,25 @@ public class U128Test {
     }
 
     @Test
-    public void testCombine() {
-        long key = 0x1234567890abcdefL;
-        long val = 0xdeafbeefdeadbeefL;
-        U128 hkey = U128.of(key, key*2);
-        U128 hVal = U128.of(val, val/2);
+    public void testBitwiseOperators() {
+        U128 one =   U128.of(0x5, 0x8);
+        U128 two = U128.of(0x7, 0x3);
 
-        assertThat(hkey.combineWithValue(hVal, 0), equalTo(hkey.xor(hVal)));
-        assertThat(hkey.combineWithValue(hVal, 64), equalTo(U128.of(hkey.getMsb(), hkey.getLsb() ^ hVal.getLsb())));
-        assertThat(hkey.combineWithValue(hVal, 128), equalTo(hkey));
+        assertThat(one.inverse(), equalTo(U128.of(0xfffffffffffffffaL, 0xfffffffffffffff7L)));
+        assertThat(one.and(two), equalTo(U128.of(0x5L, 0x0L)));
+        assertThat(one.or(two), equalTo(U128.of(0x7L, 0xbL)));
+        assertThat(one.xor(two), equalTo(U128.of(0x2L, 0xbL)));
+    }
 
-        long mask8 = 0xFF00_0000_0000_0000L;
+    @Test
+    public void testBitwiseOperatorsBuilder() {
+        U128 one =   U128.of(0x5, 0x8);
+        U128 two = U128.of(0x7, 0x3);
 
-        assertThat(hkey.combineWithValue(hVal, 8), equalTo(U128.of(hkey.getMsb() & mask8 |  hkey.getMsb() ^ hVal.getMsb() & ~mask8,
-                                                                   hkey.getLsb() ^ hVal.getLsb() )));
+        assertThat(one.builder().invert().build(), equalTo(U128.of(0xfffffffffffffffaL, 0xfffffffffffffff7L)));
+        assertThat(one.builder().and(two).build(), equalTo(U128.of(0x5L, 0x0L)));
+        assertThat(one.builder().or(two).build(), equalTo(U128.of(0x7L, 0xbL)));
+        assertThat(one.builder().xor(two).build(), equalTo(U128.of(0x2L, 0xbL)));
     }
 
 }

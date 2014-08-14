@@ -232,6 +232,9 @@ public class MatchField<F extends OFValueType<F>> {
     public final static MatchField<U16> BSN_TCP_FLAGS =
             new MatchField<U16>("bsn_tcp_flags", MatchFields.BSN_TCP_FLAGS);
 
+    public final static MatchField<ClassId> BSN_VLAN_XLATE_PORT_GROUP_ID =
+            new MatchField<ClassId>("bsn_vlan_xlate_port_group_id", MatchFields.BSN_VLAN_XLATE_PORT_GROUP_ID);
+
     public String getName() {
         return name;
     }

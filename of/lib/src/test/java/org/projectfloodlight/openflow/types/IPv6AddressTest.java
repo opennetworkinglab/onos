@@ -198,6 +198,79 @@ public class IPv6AddressTest {
         }
     }
 
+    private static void testOfCidrMaskLengthHelper(
+            int cidrMaskLength, String ipStr) throws UnknownHostException {
+        byte[] ba0 = IPv6Address.ofCidrMaskLength(cidrMaskLength).getBytes();
+        byte[] ba1 = Inet6Address.getByName(ipStr).getAddress();
+        assertArrayEquals(ba0, ba1);
+    }
+
+    @Test
+    public void testOfCidrMaskLength() throws UnknownHostException {
+        for (int i = 0; i <= 128; i++) {
+            assertTrue(IPv6Address.ofCidrMaskLength(i).isCidrMask());
+            assertEquals(IPv6Address.ofCidrMaskLength(i).asCidrMaskLength(), i);
+        }
+        testOfCidrMaskLengthHelper(0, "::");
+        testOfCidrMaskLengthHelper(1, "8000::");
+        testOfCidrMaskLengthHelper(2, "c000::");
+        testOfCidrMaskLengthHelper(8, "ff00::");
+        testOfCidrMaskLengthHelper(16, "ffff::");
+        testOfCidrMaskLengthHelper(17, "ffff:8000::");
+        testOfCidrMaskLengthHelper(31, "ffff:fffe::");
+        testOfCidrMaskLengthHelper(32, "ffff:ffff::");
+        testOfCidrMaskLengthHelper(33, "ffff:ffff:8000::");
+        testOfCidrMaskLengthHelper(46, "ffff:ffff:fffc::");
+        testOfCidrMaskLengthHelper(48, "ffff:ffff:ffff::");
+        testOfCidrMaskLengthHelper(55, "ffff:ffff:ffff:fe00::");
+        testOfCidrMaskLengthHelper(56, "ffff:ffff:ffff:ff00::");
+        testOfCidrMaskLengthHelper(59, "ffff:ffff:ffff:ffe0::");
+        testOfCidrMaskLengthHelper(63, "ffff:ffff:ffff:fffe::");
+        testOfCidrMaskLengthHelper(64, "ffff:ffff:ffff:ffff::");
+        testOfCidrMaskLengthHelper(65, "ffff:ffff:ffff:ffff:8000::");
+        testOfCidrMaskLengthHelper(67, "ffff:ffff:ffff:ffff:e000::");
+        testOfCidrMaskLengthHelper(100, "ffff:ffff:ffff:ffff:ffff:ffff:f000::");
+        testOfCidrMaskLengthHelper(101, "ffff:ffff:ffff:ffff:ffff:ffff:f800::");
+        testOfCidrMaskLengthHelper(126, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffc");
+        testOfCidrMaskLengthHelper(127, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe");
+        testOfCidrMaskLengthHelper(128, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+    }
+
+    @Test
+    public void testWithMask() throws Exception {
+        // Sanity tests for the withMask*() syntactic sugars
+
+        IPv6Address original = IPv6Address.of("fd12:3456:ABCD:7890::1");
+        IPv6Address expectedValue = IPv6Address.of("fd12:3456:ABCD::");
+        IPv6Address expectedMask = IPv6Address.of("ffff:ffff:ffff::");
+
+        IPv6AddressWithMask v;
+
+        v = original.withMask(IPv6Address.of(new byte[] {
+                -1, -1, -1, -1, -1, -1, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0 }));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        v = original.withMask(IPv6Address.of(
+                0xFFFF_FFFF_FFFF_0000L, 0x0000_0000_0000_0000L));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        v = original.withMask(IPv6Address.of("ffff:ffff:ffff::"));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        Inet6Address i6a = (Inet6Address) InetAddress.getByName("ffff:ffff:ffff::");
+        v = original.withMask(IPv6Address.of(i6a));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        v = original.withMaskOfLength(48);
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+    }
+
     @Test
     public void testReadFrom() throws OFParseError, UnknownHostException {
         for(int i=0; i < testStrings.length; i++ ) {
@@ -309,6 +382,18 @@ public class IPv6AddressTest {
             IPv6AddressWithMask.of(IPv6Address.of("10:10::0"),
                                    IPv6Address.of("ffff:0:ffff::"))
                                    .getSubnetBroadcastAddress();
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            IPv6Address.ofCidrMaskLength(-1);
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            IPv6Address.ofCidrMaskLength(129);
             fail("Should have thrown IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertNotNull(e.getMessage());

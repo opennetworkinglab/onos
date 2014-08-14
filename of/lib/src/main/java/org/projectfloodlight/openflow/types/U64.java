@@ -151,6 +151,16 @@ public class U64 implements Writeable, OFValueType<U64>, HashValue<U64> {
         return U64.of(raw ^ other.raw);
     }
 
+    @Override
+    public U64 add(U64 other) {
+        return U64.of(this.raw + other.raw);
+    }
+
+    @Override
+    public U64 subtract(U64 other) {
+        return U64.of(this.raw - other.raw);
+    }
+
     /** return the "numBits" highest-order bits of the hash.
      *  @param numBits number of higest-order bits to return [0-32].
      *  @return a numberic value of the 0-32 highest-order bits.
@@ -158,11 +168,6 @@ public class U64 implements Writeable, OFValueType<U64>, HashValue<U64> {
     @Override
     public int prefixBits(int numBits) {
         return HashValueUtils.prefixBits(raw, numBits);
-    }
-
-    @Override
-    public U64 combineWithValue(U64 value, int keyBits) {
-        return U64.of(HashValueUtils.combineWithValue(this.raw, value.raw, keyBits));
     }
 
     public final static Reader READER = new Reader();
@@ -174,5 +179,59 @@ public class U64 implements Writeable, OFValueType<U64>, HashValue<U64> {
         }
     }
 
+    @Override
+    public HashValue.Builder<U64> builder() {
+        return new U64Builder(raw);
+    }
+
+    static class U64Builder implements Builder<U64> {
+        long raw;
+
+        public U64Builder(long raw) {
+            this.raw = raw;
+        }
+
+        @Override
+        public Builder<U64> add(U64 other) {
+            raw += other.raw;
+            return this;
+        }
+
+        @Override
+        public Builder<U64> subtract(
+                U64 other) {
+            raw -= other.raw;
+            return this;
+        }
+
+        @Override
+        public Builder<U64> invert() {
+            raw = ~raw;
+            return this;
+        }
+
+        @Override
+        public Builder<U64> or(U64 other) {
+            raw |= other.raw;
+            return this;
+        }
+
+        @Override
+        public Builder<U64> and(U64 other) {
+            raw &= other.raw;
+            return this;
+        }
+
+        @Override
+        public Builder<U64> xor(U64 other) {
+            raw ^= other.raw;
+            return this;
+        }
+
+        @Override
+        public U64 build() {
+            return U64.of(raw);
+        }
+    }
 
 }

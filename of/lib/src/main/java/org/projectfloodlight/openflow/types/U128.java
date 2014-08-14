@@ -123,15 +123,100 @@ public class U128 implements OFValueType<U128>, HashValue<U128> {
     }
 
     @Override
+    public U128 add(U128 other) {
+        long newRaw2 = this.raw2 + other.raw2;
+        long newRaw1 = this.raw1 + other.raw1;
+        if(UnsignedLongs.compare(newRaw2, this.raw2) < 0) {
+            // raw2 overflow
+            newRaw1+=1;
+        }
+        return U128.of(newRaw1, newRaw2);
+    }
+
+    @Override
+    public U128 subtract(U128 other) {
+        long newRaw2 = this.raw2 - other.raw2;
+        long newRaw1 = this.raw1 - other.raw1;
+        if(UnsignedLongs.compare(this.raw2, other.raw2) < 0) {
+            newRaw1 -= 1;
+        }
+        return U128.of(newRaw1, newRaw2);
+    }
+    @Override
     public int prefixBits(int numBits) {
         return HashValueUtils.prefixBits(this.raw1, numBits);
     }
 
     @Override
-    public U128 combineWithValue(U128 value, int keyBits) {
-        return U128.of(
-                HashValueUtils.combineWithValue(this.raw1, value.raw1, Math.min(64, keyBits)),
-                HashValueUtils.combineWithValue(this.raw2, value.raw2, Math.max(0,keyBits-64))
-        );
+    public HashValue.Builder<U128> builder() {
+        return new U128Builder(raw1, raw2);
     }
+
+    static class U128Builder implements HashValue.Builder<U128> {
+        private long raw1, raw2;
+
+        public U128Builder(long raw1, long raw2) {
+            this.raw1 = raw1;
+            this.raw2 = raw2;
+        }
+
+        @Override
+        public Builder<U128> add(U128 other) {
+            raw2 += other.raw2;
+            raw1 += other.raw1;
+            if(UnsignedLongs.compare(raw2, other.raw2) < 0) {
+                // raw2 overflow
+                raw1+=1;
+            }
+            return this;
+        }
+
+        @Override
+        public Builder<U128> subtract(
+                U128 other) {
+            if(UnsignedLongs.compare(this.raw2, other.raw2) >= 0) {
+                raw2 -= other.raw2;
+                raw1 -= other.raw1;
+            } else {
+                // raw2 overflow
+                raw2 -= other.raw2;
+                raw1 = this.raw1 - other.raw1 - 1;
+            }
+            return this;
+        }
+
+        @Override
+        public Builder<U128> invert() {
+            raw1 = ~raw1;
+            raw2 = ~raw2;
+            return this;
+        }
+
+        @Override
+        public Builder<U128> or(U128 other) {
+            raw1 |= other.raw1;
+            raw2 |= other.raw2;
+            return this;
+        }
+
+        @Override
+        public Builder<U128> and(U128 other) {
+            raw1 &= other.raw1;
+            raw2 &= other.raw2;
+            return this;
+        }
+
+        @Override
+        public Builder<U128> xor(U128 other) {
+            raw1 ^= other.raw1;
+            raw2 ^= other.raw2;
+            return this;
+        }
+
+        @Override
+        public U128 build() {
+            return U128.of(raw1, raw2);
+        }
+    }
+
 }

@@ -10,6 +10,11 @@ import com.google.common.base.Preconditions;
 
 public abstract class IPAddress<F extends IPAddress<F>> implements OFValueType<F> {
 
+    /**
+     * Returns the Internet Protocol (IP) version of this object
+     *
+     * @return  the Internet Protocol (IP) version of this object
+     */
     public abstract IPVersion getIpVersion();
 
     /**
@@ -55,6 +60,52 @@ public abstract class IPAddress<F extends IPAddress<F>> implements OFValueType<F
      */
     public abstract F not();
 
+    /**
+     * Returns an {@code IPAddressWithMask<F>} object that represents this
+     * IP address masked by the given IP address mask.
+     *
+     * @param mask  the {@code F} object that represents the mask
+     * @return      an {@code IPAddressWithMask<F>} object that represents this
+     *              IP address masked by the given mask
+     * @throws NullPointerException  if the given mask was {@code null}
+     */
+    @Nonnull
+    public abstract IPAddressWithMask<F> withMask(@Nonnull final F mask);
+
+    /**
+     * Returns an {@code IPAddressWithMask<F>} object that represents this
+     * IP address masked by the CIDR subnet mask of the given prefix length.
+     *
+     * @param cidrMaskLength  the prefix length of the CIDR subnet mask
+     *                        (i.e. the number of leading one-bits),
+     *                        where <code>
+     *                        0 <= cidrMaskLength <= (F.getLength() * 8)
+     *                        </code>
+     * @return                an {@code IPAddressWithMask<F>} object that
+     *                        represents this IP address masked by the CIDR
+     *                        subnet mask of the given prefix length
+     * @throws IllegalArgumentException  if the given prefix length was invalid
+     * @see #ofCidrMaskLength(int)
+     */
+    @Nonnull
+    public abstract IPAddressWithMask<F> withMaskOfLength(
+            final int cidrMaskLength);
+
+    /**
+     * Returns the raw IP address of this {@code IPAddress} object. The result
+     * is in network byte order: the highest order byte of the address is in
+     * {@code getBytes()[0]}.
+     * <p>
+     * Similar to {@link InetAddress#getAddress()}
+     *
+     * @return  the raw IP address of this object
+     * @see InetAddress#getAddress()
+     */
+    public abstract byte[] getBytes();
+
+    @Override
+    public abstract String toString();
+
     @Override
     public abstract boolean equals(Object other);
 
@@ -88,14 +139,26 @@ public abstract class IPAddress<F extends IPAddress<F>> implements OFValueType<F
      * @throws NullPointerException if address is null
      */
     @Nonnull
-    public static IPAddress<?> fromInetAddress(@Nonnull InetAddress address) {
+    public static IPAddress<?> of(@Nonnull InetAddress address) {
         Preconditions.checkNotNull(address, "address must not be null");
-        byte [] bytes = address.getAddress();
         if(address instanceof Inet4Address)
-            return IPv4Address.of(bytes);
+            return IPv4Address.of((Inet4Address) address);
         else if (address instanceof Inet6Address)
-            return IPv6Address.of(bytes);
+            return IPv6Address.of((Inet6Address) address);
         else
             return IPAddress.of(address.getHostAddress());
+    }
+
+    /**
+     * Factory function for InetAddress values.
+     * @param address the InetAddress you wish to parse into an IPAddress object.
+     * @return the IPAddress object.
+     * @throws NullPointerException if address is null
+     * @deprecated  replaced by {@link #of(InetAddress)}
+     */
+    @Deprecated
+    @Nonnull
+    public static IPAddress<?> fromInetAddress(@Nonnull InetAddress address) {
+        return of(address);
     }
 }

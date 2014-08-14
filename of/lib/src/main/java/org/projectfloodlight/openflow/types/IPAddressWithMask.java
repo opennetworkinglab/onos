@@ -1,5 +1,7 @@
 package org.projectfloodlight.openflow.types;
 
+import com.google.common.base.Preconditions;
+
 
 public abstract class IPAddressWithMask<F extends IPAddress<F>> extends Masked<F> {
 
@@ -8,6 +10,8 @@ public abstract class IPAddressWithMask<F extends IPAddress<F>> extends Masked<F
     }
 
     public abstract IPVersion getIpVersion();
+    
+    public abstract boolean contains(IPAddress<?> ip);
 
     public F getSubnetBroadcastAddress() {
         if (!mask.isCidrMask()) {
@@ -22,9 +26,8 @@ public abstract class IPAddressWithMask<F extends IPAddress<F>> extends Masked<F
     }
 
     public static IPAddressWithMask<?> of(String ip) {
-        if (ip == null) {
-            throw new NullPointerException("String ip must not be null");
-        }
+        Preconditions.checkNotNull(ip, "string ip must not be null");
+
         if (ip.indexOf('.') != -1)
             return IPv4AddressWithMask.of(ip);
         else if (ip.indexOf(':') != -1)
@@ -49,5 +52,4 @@ public abstract class IPAddressWithMask<F extends IPAddress<F>> extends Masked<F
 
         return res.toString();
     }
-
 }

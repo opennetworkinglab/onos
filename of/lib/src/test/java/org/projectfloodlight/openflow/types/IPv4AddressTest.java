@@ -9,6 +9,9 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+
 import org.hamcrest.CoreMatchers;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
@@ -224,6 +227,83 @@ public class IPv4AddressTest {
     }
 
     @Test
+    public void testOfCidrMaskLength() {
+        for (int i = 0; i <= 32; i++) {
+            assertEquals(IPv4Address.ofCidrMaskLength(i).asCidrMaskLength(), i);
+        }
+
+        assertEquals(IPv4Address.ofCidrMaskLength(0).getInt(), 0x0000_0000);
+
+        assertEquals(IPv4Address.ofCidrMaskLength(1).getInt(), 0x8000_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(2).getInt(), 0xC000_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(3).getInt(), 0xE000_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(4).getInt(), 0xF000_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(5).getInt(), 0xF800_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(6).getInt(), 0xFC00_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(7).getInt(), 0xFE00_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(8).getInt(), 0xFF00_0000);
+
+        assertEquals(IPv4Address.ofCidrMaskLength(9).getInt(), 0xFF80_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(10).getInt(), 0xFFC0_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(11).getInt(), 0xFFE0_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(12).getInt(), 0xFFF0_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(13).getInt(), 0xFFF8_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(14).getInt(), 0xFFFC_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(15).getInt(), 0xFFFE_0000);
+        assertEquals(IPv4Address.ofCidrMaskLength(16).getInt(), 0xFFFF_0000);
+
+        assertEquals(IPv4Address.ofCidrMaskLength(17).getInt(), 0xFFFF_8000);
+        assertEquals(IPv4Address.ofCidrMaskLength(18).getInt(), 0xFFFF_C000);
+        assertEquals(IPv4Address.ofCidrMaskLength(19).getInt(), 0xFFFF_E000);
+        assertEquals(IPv4Address.ofCidrMaskLength(20).getInt(), 0xFFFF_F000);
+        assertEquals(IPv4Address.ofCidrMaskLength(21).getInt(), 0xFFFF_F800);
+        assertEquals(IPv4Address.ofCidrMaskLength(22).getInt(), 0xFFFF_FC00);
+        assertEquals(IPv4Address.ofCidrMaskLength(23).getInt(), 0xFFFF_FE00);
+        assertEquals(IPv4Address.ofCidrMaskLength(24).getInt(), 0xFFFF_FF00);
+
+        assertEquals(IPv4Address.ofCidrMaskLength(25).getInt(), 0xFFFF_FF80);
+        assertEquals(IPv4Address.ofCidrMaskLength(26).getInt(), 0xFFFF_FFC0);
+        assertEquals(IPv4Address.ofCidrMaskLength(27).getInt(), 0xFFFF_FFE0);
+        assertEquals(IPv4Address.ofCidrMaskLength(28).getInt(), 0xFFFF_FFF0);
+        assertEquals(IPv4Address.ofCidrMaskLength(29).getInt(), 0xFFFF_FFF8);
+        assertEquals(IPv4Address.ofCidrMaskLength(30).getInt(), 0xFFFF_FFFC);
+        assertEquals(IPv4Address.ofCidrMaskLength(31).getInt(), 0xFFFF_FFFE);
+        assertEquals(IPv4Address.ofCidrMaskLength(32).getInt(), 0xFFFF_FFFF);
+    }
+
+    @Test
+    public void testWithMask() throws Exception {
+        // Sanity tests for the withMask*() syntactic sugars
+
+        IPv4Address original = IPv4Address.of("192.168.1.101");
+        IPv4Address expectedValue = IPv4Address.of("192.168.1.0");
+        IPv4Address expectedMask = IPv4Address.of("255.255.255.0");
+
+        IPv4AddressWithMask v;
+
+        v = original.withMask(IPv4Address.of(new byte[] {-1, -1, -1, 0}));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        v = original.withMask(IPv4Address.of(0xFFFF_FF00));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        v = original.withMask(IPv4Address.of("255.255.255.0"));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        Inet4Address i4a = (Inet4Address) InetAddress.getByName("255.255.255.0");
+        v = original.withMask(IPv4Address.of(i4a));
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+
+        v = original.withMaskOfLength(24);
+        assertEquals(v.getValue(), expectedValue);
+        assertEquals(v.getMask(), expectedMask);
+    }
+
+    @Test
     public void testReadFrom() throws OFParseError {
         for(int i=0; i < testAddresses.length; i++ ) {
             IPv4Address ip = IPv4Address.read4Bytes(ChannelBuffers.copiedBuffer(testAddresses[i]));
@@ -363,6 +443,18 @@ public class IPv4AddressTest {
             IPv4AddressWithMask.of(IPv4Address.of("10.10.10.0"),
                                    IPv4Address.of("255.0.255.0"))
                                    .getSubnetBroadcastAddress();
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            IPv4Address.ofCidrMaskLength(-1);
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            IPv4Address.ofCidrMaskLength(33);
             fail("Should have thrown IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertNotNull(e.getMessage());

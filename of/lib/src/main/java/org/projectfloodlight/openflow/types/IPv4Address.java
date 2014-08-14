@@ -1,11 +1,14 @@
 package org.projectfloodlight.openflow.types;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.Arrays;
 
 import javax.annotation.Nonnull;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
+import com.google.common.base.Preconditions;
 import com.google.common.hash.PrimitiveSink;
 import com.google.common.primitives.UnsignedInts;
 
@@ -78,19 +81,17 @@ public class IPv4Address extends IPAddress<IPv4Address> {
 
     @Override
     public IPv4Address and(IPv4Address other) {
-        if (other == null) {
-            throw new NullPointerException("Other IP Address must not be null");
-        }
-        IPv4Address otherIp = (IPv4Address) other;
+        Preconditions.checkNotNull(other, "other must not be null");
+
+        IPv4Address otherIp = other;
         return IPv4Address.of(rawValue & otherIp.rawValue);
     }
 
     @Override
     public IPv4Address or(IPv4Address other) {
-        if (other == null) {
-            throw new NullPointerException("Other IP Address must not be null");
-        }
-        IPv4Address otherIp = (IPv4Address) other;
+        Preconditions.checkNotNull(other, "other must not be null");
+
+        IPv4Address otherIp = other;
         return IPv4Address.of(rawValue | otherIp.rawValue);
     }
 
@@ -99,13 +100,30 @@ public class IPv4Address extends IPAddress<IPv4Address> {
         return IPv4Address.of(~rawValue);
     }
 
-    public static IPv4Address of(final byte[] address) {
-        if (address == null) {
-            throw new NullPointerException("Address must not be null");
-        }
+    /**
+     * Returns an {@code IPv4Address} object that represents the given
+     * IP address. The argument is in network byte order: the highest
+     * order byte of the address is in {@code address[0]}.
+     * <p>
+     * The address byte array must be 4 bytes long (32 bits long).
+     * <p>
+     * Similar to {@link InetAddress#getByAddress(byte[])}.
+     *
+     * @param address  the raw IP address in network byte order
+     * @return         an {@code IPv4Address} object that represents the given
+     *                 raw IP address
+     * @throws NullPointerException      if the given address was {@code null}
+     * @throws IllegalArgumentException  if the given address was of an invalid
+     *                                   byte array length
+     * @see InetAddress#getByAddress(byte[])
+     */
+    @Nonnull
+    public static IPv4Address of(@Nonnull final byte[] address) {
+        Preconditions.checkNotNull(address, "address must not be null");
+
         if (address.length != LENGTH) {
             throw new IllegalArgumentException(
-                    "Invalid byte array length for IPv4Address address: " + address.length);
+                    "Invalid byte array length for IPv4 address: " + address.length);
         }
 
         int raw =
@@ -114,30 +132,37 @@ public class IPv4Address extends IPAddress<IPv4Address> {
         return IPv4Address.of(raw);
     }
 
-    /** construct an IPv4Address from a 32-bit integer value.
+    /**
+     * Returns an {@code IPv4Address} object that represents the given
+     * IP address.
      *
-     * @param raw the IPAdress represented as a 32-bit integer
-     * @return the constructed IPv4Address
+     * @param raw  the raw IP address represented as a 32-bit integer
+     * @return     an {@code IPv4Address} object that represents the given
+     *             raw IP address
      */
+    @Nonnull
     public static IPv4Address of(final int raw) {
         if(raw == NONE_VAL)
             return NONE;
         return new IPv4Address(raw);
     }
 
-    /** parse an IPv4Address from the canonical dotted-quad representation
-     * (1.2.3.4).
+    /**
+     * Returns an {@code IPv4Address} object that represents the given
+     * IP address. The argument is in the canonical quad-dotted notation.
+     * For example, {@code 1.2.3.4}.
      *
-     * @param string an IPv4 address in dotted-quad representation
-     * @return the parsed IPv4 address
-     * @throws NullPointerException if string is null
-     * @throws IllegalArgumentException if string is not a valid IPv4Address
+     * @param string  the IP address in the canonical quad-dotted notation
+     * @return        an {@code IPv4Address} object that represents the given
+     *                IP address
+     * @throws NullPointerException      if the given string was {@code null}
+     * @throws IllegalArgumentException  if the given string was not a valid
+     *                                   IPv4 address
      */
     @Nonnull
     public static IPv4Address of(@Nonnull final String string) throws IllegalArgumentException {
-        if (string == null) {
-            throw new NullPointerException("String must not be null");
-        }
+        Preconditions.checkNotNull(string, "string must not be null");
+
         int start = 0;
         int shift = 24;
 
@@ -161,12 +186,90 @@ public class IPv4Address extends IPAddress<IPv4Address> {
         return IPv4Address.of(raw);
     }
 
+    /**
+     * Returns an {@code IPv4Address} object that represents the given
+     * IP address. The argument is given as an {@code Inet4Address} object.
+     *
+     * @param address  the IP address as an {@code Inet4Address} object
+     * @return         an {@code IPv4Address} object that represents the
+     *                 given IP address
+     * @throws NullPointerException  if the given {@code Inet4Address} was
+     *                               {@code null}
+     */
+    @Nonnull
+    public static IPv4Address of(@Nonnull final Inet4Address address) {
+        Preconditions.checkNotNull(address, "address must not be null");
+        return IPv4Address.of(address.getAddress());
+    }
+
+    /**
+     * Returns an {@code IPv4Address} object that represents the
+     * CIDR subnet mask of the given prefix length.
+     *
+     * @param cidrMaskLength  the prefix length of the CIDR subnet mask
+     *                        (i.e. the number of leading one-bits),
+     *                        where {@code 0 <= cidrMaskLength <= 32}
+     * @return                an {@code IPv4Address} object that represents the
+     *                        CIDR subnet mask of the given prefix length
+     * @throws IllegalArgumentException  if the given prefix length was invalid
+     */
+    @Nonnull
+    public static IPv4Address ofCidrMaskLength(final int cidrMaskLength) {
+        Preconditions.checkArgument(
+                cidrMaskLength >= 0 && cidrMaskLength <= 32,
+                "Invalid IPv4 CIDR mask length: %s", cidrMaskLength);
+
+        if (cidrMaskLength == 32) {
+            return IPv4Address.NO_MASK;
+        } else if (cidrMaskLength == 0) {
+            return IPv4Address.FULL_MASK;
+        } else {
+            int mask = (-1) << (32 - cidrMaskLength);
+            return IPv4Address.of(mask);
+        }
+    }
+
+    /**
+     * Returns an {@code IPv4AddressWithMask} object that represents this
+     * IP address masked by the given IP address mask.
+     *
+     * @param mask  the {@code IPv4Address} object that represents the mask
+     * @return      an {@code IPv4AddressWithMask} object that represents this
+     *              IP address masked by the given mask
+     * @throws NullPointerException  if the given mask was {@code null}
+     */
+    @Nonnull
+    @Override
+    public IPv4AddressWithMask withMask(@Nonnull final IPv4Address mask) {
+        return IPv4AddressWithMask.of(this, mask);
+    }
+
+    /**
+     * Returns an {@code IPv4AddressWithMask} object that represents this
+     * IP address masked by the CIDR subnet mask of the given prefix length.
+     *
+     * @param cidrMaskLength  the prefix length of the CIDR subnet mask
+     *                        (i.e. the number of leading one-bits),
+     *                        where {@code 0 <= cidrMaskLength <= 32}
+     * @return                an {@code IPv4AddressWithMask} object that
+     *                        represents this IP address masked by the CIDR
+     *                        subnet mask of the given prefix length
+     * @throws IllegalArgumentException  if the given prefix length was invalid
+     * @see #ofCidrMaskLength(int)
+     */
+    @Nonnull
+    @Override
+    public IPv4AddressWithMask withMaskOfLength(final int cidrMaskLength) {
+        return this.withMask(IPv4Address.ofCidrMaskLength(cidrMaskLength));
+    }
+
     public int getInt() {
         return rawValue;
     }
 
     private volatile byte[] bytesCache = null;
 
+    @Override
     public byte[] getBytes() {
         if (bytesCache == null) {
             synchronized (this) {
