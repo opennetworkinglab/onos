@@ -196,53 +196,8 @@
           <charset>UTF-8</charset>
           <locale>en</locale>
           <author>false</author>
-          <excludePackageNames>net.floodlightcontroller.*:net.onrc.onos.core.datastore.serializers</excludePackageNames>
         </configuration>
       </plugin>
-<!-- Remove me when we're sure that system test no longer need JaCoCo
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.6.3.201306030806</version>
-        <executions>
-          <execution>
-            <id>jacoco-initialize</id>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>jacoco-site</id>
-            <phase>package</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
--->
-      <!-- Uncomment when publishing javadoc to github in the future.
-      <plugin>
-        <groupId>com.github.github</groupId>
-        <artifactId>site-maven-plugin</artifactId>
-        <version>0.8</version>
-        <configuration>
-          <message>Creating site for ${project.version}</message>
-          <dryRun>true</dryRun>
-          <repositoryName>ONOS</repositoryName>
-          <repositoryOwner>OPENNETWORKINGLAB</repositoryOwner>
-          <path>javadoc/${project.version}/</path>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-             <goal>site</goal>
-            </goals>
-            <phase>site</phase>
-          </execution>
-        </executions>
-      </plugin>
-      -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>
@@ -299,10 +254,6 @@
             <ignores>
               <ignore>org.slf4j.*</ignore>
             </ignores>
-            <excludes>
-              <exclude>edu/stanford/ramcloud/**/*.class</exclude>
-              <exclude>net/floodlightcontroller/**/web/**/*.class</exclude>
-            </excludes>
           </instrumentation>
           <quiet>true</quiet>
         </configuration>
@@ -345,13 +296,8 @@
             - maven-pmd-plugin configuration in pom.xml
               (under build and reporting)
           -->
-          <excludes>
-            <exclude>**/datastore/serializers/**</exclude>
-            <exclude>**/edu/stanford/**</exclude>
-            <exclude>**/net/floodlightcontroller/**</exclude>
-          </excludes>
           <rulesets>
-            <ruleset>${basedir}/conf/pmd/onos_ruleset.xml</ruleset>
+            <ruleset>${basedir}/conf/pmd/ruleset.xml</ruleset>
           </rulesets>
         </configuration>
         <executions>
