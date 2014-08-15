@@ -7,8 +7,8 @@
   <packaging>pom</packaging>
   <modelVersion>4.0.0</modelVersion>
 
-  <name>OpenFlow library and IO</name>
-  <description>The OpenFlow library and IO</description>
+  <name>OpenFlow controller</name>
+  <description>This module contains the OpenFlow library and its associated IO loop</description>
 
   
   <modules>

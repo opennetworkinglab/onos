@@ -1,49 +1,19 @@
-<!--
-  ~ Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
-  ~
-  ~ This program and the accompanying materials are made available under the
-  ~ terms of the Eclipse Public License v1.0 which accompanies this distribution,
-  ~ and is available at http://www.eclipse.org/legal/epl-v10.html
-  -->
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  
+  <groupId>net.onrc.onos</groupId>
+  <artifactId>onos</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modelVersion>4.0.0</modelVersion>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <name>ONOS distributed controller</name>
+  <description>ONOS</description>
 
-    <groupId>net.onrc.onos</groupId>
-    <artifactId>onos-features</artifactId>
-    <packaging>jar</packaging>
-    <version>1.0.0-SNAPSHOT</version>
-
-    <name>onos-features</name>
-    <description>Apache Karaf features repository</description>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.3</version>
-                <executions>
-                    <execution>
-                        <id>attach-artifacts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>features.xml</file>
-                                    <type>xml</type>
-                                    <classifier>features</classifier>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+  
+  <modules>
+    <module>of</module>
+  </modules>
+  
 
 </project>
