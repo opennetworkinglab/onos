@@ -127,7 +127,7 @@ public interface IDebugCounterService {
     /**
      * Flush all thread-local counter values (from the current thread)
      * to the global counter store. This method is not intended for use by any
-     * module. It's typical usage is from floodlight core and it is meant
+     * module. It's typical usage is from core and it is meant
      * to flush those counters that are updated in the packet-processing pipeline,
      * typically with the 'updateCounterNoFlush" methods in IDebugCounter.
      */

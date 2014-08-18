@@ -785,7 +785,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * description stats message, we:
          *    - use the switch driver to bind the switch and get an IOFSwitch instance
          *    - setup the IOFSwitch instance
-         *    - add switch to FloodlightProvider(Controller) and send the initial role
+         *    - add switch controller and send the initial role
          *      request to the switch.
          * Next state: WAIT_INITIAL_ROLE
          *      In the typical case, where switches support role request messages

@@ -144,8 +144,8 @@ public class Controller {
                     + "activated: dpid {}. Found in activeMaster: {} "
                     + "Found in activeEqual: {}. Aborting ..", new Object[] {
                             HexString.toHexString(dpid),
-                            (activeMasterSwitches.get(dpid) == null) ? 'Y' : 'N',
-                            (activeEqualSwitches.get(dpid) == null) ? 'Y' : 'N'});
+                            (activeMasterSwitches.get(dpid) == null) ? 'N' : 'Y',
+                            (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y'});
             counters.switchWithSameDpidActivated.updateCounterWithFlush();
             return false;
         }
@@ -372,16 +372,12 @@ public class Controller {
                     HexString.toHexString(dpidLong));
             return;
         }
-        if (h.controlRequested) {
+        if (registryService != null && h.controlRequested) {
+            //TODO the above is not good for testing need to change controlrequest to method call.
             registryService.releaseControl(dpidLong);
         }
     }
 
-
-
-    // ***************
-    // IFloodlightProviderService
-    // ***************
 
     // FIXME: remove this method
     public Map<Long, IOFSwitch> getSwitches() {
@@ -469,11 +465,6 @@ public class Controller {
 
     public long getSystemStartTime() {
         return (this.systemStartTime);
-    }
-
-
-    public void setAlwaysClearFlowsOnSwAdd(boolean value) {
-        this.alwaysClearFlowsOnSwAdd = value;
     }
 
 
@@ -587,15 +578,6 @@ public class Controller {
         this.counters = new Counters();
         this.multiCacheLock = new Object();
 
-
-        String option = configParams.get("flushSwitchesOnReconnect");
-        if (option != null && option.equalsIgnoreCase("true")) {
-            this.setAlwaysClearFlowsOnSwActivate(true);
-            log.info("Flush switches on reconnect -- Enabled.");
-        } else {
-            this.setAlwaysClearFlowsOnSwActivate(false);
-            log.info("Flush switches on reconnect -- Disabled");
-        }
     }
 
     /**
@@ -818,12 +800,6 @@ public class Controller {
     // **************
     // Utility methods
     // **************
-
-
-    public void setAlwaysClearFlowsOnSwActivate(boolean value) {
-        //this.alwaysClearFlowsOnSwActivate = value;
-        // XXX S need to be a little more careful about this
-    }
 
     public Map<String, Long> getMemory() {
         Map<String, Long> m = new HashMap<String, Long>();

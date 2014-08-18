@@ -69,8 +69,6 @@ public interface IOFSwitch {
 
     /**
      * Writes to the OFMessage to the output stream.
-     * The message will be handed to the floodlightProvider for possible filtering
-     * and processing by message listeners
      *
      * @param m
      * @param bc
@@ -80,8 +78,6 @@ public interface IOFSwitch {
 
     /**
      * Writes the list of messages to the output stream.
-     * The message will be handed to the floodlightProvider for possible filtering
-     * and processing by message listeners.
      *
      * @param msglist
      * @param bc
@@ -333,8 +329,7 @@ public interface IOFSwitch {
 
     /**
      * Add or modify a switch port. This is called by the core controller
-     * code in response to a OFPortStatus message. It should not typically be
-     * called by other floodlight applications.
+     * code in response to a OFPortStatus message.
      *
      * OFPPR_MODIFY and OFPPR_ADD will be treated as equivalent. The OpenFlow
      * spec is not clear on whether portNames are portNumbers are considered
@@ -401,29 +396,6 @@ public interface IOFSwitch {
      */
     public OrderedCollection<PortChangeEvent>
             setPorts(Collection<OFPortDesc> ports);
-
-//  XXX S The odd use of providing an API call to 'set ports' (above) would
-//  logically suggest that there should be a way to delete or unset the ports.
-//  Right now we forbid this. We should probably not use setPorts too.
-//
-//  /**
-//   * Delete a port for the switch. This is called by the core controller
-//   * code in response to a OFPortStatus message. It should not typically be
-//   * called by other floodlight applications.
-//   *
-//   * @param portNumber
-//   */
-//  public void deletePort(short portNumber);
-//
-//  /**
-//   * Delete a port for the switch. This is called by the core controller
-//   * code in response to a OFPortStatus message. It should not typically be
-//   * called by other floodlight applications.
-//   *
-//   * @param portName
-//   */
-//  public void deletePort(String portName);
-
 
     //*******************************************
     //  IOFSwitch object attributes

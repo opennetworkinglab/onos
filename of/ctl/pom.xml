@@ -174,7 +174,6 @@
                  https://issues.jboss.org/browse/JASSIST-228 -->
           <argLine>-XX:MaxPermSize=256m -XX:-UseSplitVerifier</argLine>
           <redirectTestOutputToFile>false</redirectTestOutputToFile>
-          <excludedGroups>net.onrc.onos.core.util.IntegrationTest</excludedGroups>
         </configuration>
       </plugin>
       <!-- TODO exec:java no longer used remove at some point? -->
