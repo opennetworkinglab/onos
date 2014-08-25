@@ -4,19 +4,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.onrc.onos</groupId>
+    <groupId>org.onlab.onos</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>onos</name>
-    <description>Open Networking Operating System Root Project</description>
+    <description>Open Networking Operating System root project</description>
 
     <modules>
-        <!--
+        <module>tools/build/conf</module>
+        <module>utils</module>
+        <module>net</module>
+        <module>web</module>
+        <module>cli</module>
+        <module>providers</module>
         <module>of</module>
-                <module>net</module>
-        -->
         <module>features</module>
     </modules>
 
@@ -30,36 +32,100 @@
         </license>
     </licenses>
 
-    <repositories>
-        <!-- TODO: We should have our own artifact repo (Artifactory|Nexus) -->
-        <!-- TODO: for now we should avoid specifying repos here and instead rely on settings.xml instead -->
-        <repository>
-            <id>central</id>
-            <name>Maven Central repository</name>
-            <url>https://repo1.maven.org/maven2</url>
-        </repository>
-        <repository>
-            <id>maven-restlet</id>
-            <name>Public online Restlet repository</name>
-            <url>http://maven.restlet.org</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>sonatype-oss-snapshot</id>
-            <name>Sonatype OSS snapshot repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-    </repositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+                <scope>test</scope>
+            </dependency>
 
-    <properties>
-        <slf4j.version>1.7.5</slf4j.version>
-        <jacoco.version>0.7.0.201403182114</jacoco.version>
-    </properties>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.6</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>1.7.6</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>17.0</version>
+            </dependency>
+
+            <!-- Web related -->
+            <dependency>
+                <groupId>com.sun.jersey</groupId>
+                <artifactId>jersey-servlet</artifactId>
+                <version>1.18.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.4.2</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.4.2</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- OSGi related -->
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.core</artifactId>
+                <version>4.3.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.scr.annotations</artifactId>
+                <version>1.9.8</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.karaf.shell</groupId>
+                <artifactId>org.apache.karaf.shell.console</artifactId>
+                <version>3.0.1</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- ONOS related -->
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
+                <artifactId>onos-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
+                <artifactId>onos-of-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+        </dependency>
+    </dependencies>
 
     <build>
         <pluginManagement>
@@ -95,6 +161,12 @@
                 </plugin>
 
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.6</version>
+                </plugin>
+
+                <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>2.3.7</version>
@@ -122,16 +194,105 @@
                 </plugin>
 
 
-                <!-- TODO: add checkstyle plugin -->
-
-                <!-- TODO: add javadoc plugin for aggregate docs; for explicit invocation only -->
                 <!-- TODO: add jacoco plugin for unit test coverage; for explicit invocation only -->
+
                 <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
                 <!-- TODO: add sonarqube plugin for code analysis; for explicit invocation only -->
 
             </plugins>
-
         </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.12.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.onlab.tools</groupId>
+                        <artifactId>onos-build-conf</artifactId>
+                        <version>1.0</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>onos/checkstyle.xml</configLocation>
+                    <suppressionsLocation>onos/suppressions.xml
+                    </suppressionsLocation>
+                    <failsOnError>false</failsOnError>
+                    <logViolationsToConsole>true</logViolationsToConsole>
+                    <includeTestSourceDirectory>true
+                    </includeTestSourceDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate-checkstyle</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <docfilessubdirs>true</docfilessubdirs>
+                    <doctitle>ONOS Java API</doctitle>
+                    <groups>
+                        <group>
+                            <title>Network Model &amp; Services</title>
+                            <packages>
+                                org.onlab.onos.net:org.onlab.onos.net.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Core Subsystems</title>
+                            <packages>
+                                org.onlab.onos.net.impl:org.onlab.onos.net.*.impl
+                            </packages>
+                        </group>
+                        <group>
+                            <title>OpenFlow Providers &amp; Controller
+                            </title>
+                            <packages>
+                                org.onlab.onos.provider.of:org.onlab.onos.provider.of.*:org.onlab.onos.of.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Utilities</title>
+                            <packages>
+                                org.onlab.util:org.onlab.util.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>GUI, REST &amp; Command-Line</title>
+                            <packages>
+                                org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli:org.onlab.onos.gui.*:org.onlab.onos.rest.*:org.onlab.onos.cli.*
+                            </packages>
+                        </group>
+                    </groups>
+                </configuration>
+            </plugin>
+
+        </plugins>
     </build>
+
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.12.1</version>
+                <configuration>
+                    <configLocation>onos/checkstyle.xml</configLocation>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </reporting>
 
 </project>

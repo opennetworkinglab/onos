@@ -1,23 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-  
+
     <parent>
-        <groupId>net.onrc.onos</groupId>
+        <groupId>org.onlab.onos</groupId>
         <artifactId>onos</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-     <artifactId>onos-of</artifactId>
-     <packaging>pom</packaging>
+    <artifactId>onos-of</artifactId>
+    <packaging>pom</packaging>
 
-     <name>onos-of</name>
-     <description>ONOS OpenFlow Protocol Library &amp; IO</description>
+    <description>ONOS OpenFlow Protocol subsystem</description>
 
-     <modules>
-          <module>lib</module>
-          <module>ctl</module>
-     </modules>
+    <modules>
+        <module>lib</module>
+        <module>api</module>
+        <module>ctl</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

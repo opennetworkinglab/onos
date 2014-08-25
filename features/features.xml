@@ -1,22 +1,65 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
-          name="net.onrc.onos-1.0.0">
-    <repository>mvn:net.onrc.onos/onos-features/1.0.0-SNAPSHOT/xml/features</repository>
+          name="onos-1.0.0">
+    <repository>mvn:org.onlab.onos/onos-features/1.0.0-SNAPSHOT/xml/features</repository>
 
-    <feature name="onos-thirdparty" version="1.0.0"
+    <feature name="onos-thirdparty-base" version="1.0.0"
              description="ONOS 3rd party dependencies">
-        <bundle>mvn:com.google.code.findbugs/annotations/2.0.2</bundle>
+        <bundle>mvn:com.google.guava/guava/17.0</bundle>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
-        <bundle>mvn:com.google.guava/guava/17.0</bundle>  
-        <bundle>mvn:com.google.guava/guava/15.0</bundle>  
     </feature>
 
-    <feature name="onos-of-ctl" version="1.0.0"
-            description="ONOS OpenFlow Libraries &amp; Controller">
+    <feature name="onos-thirdparty-web" version="1.0.0"
+             description="ONOS 3rd party dependencies">
+        <feature>war</feature>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.4.2</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.4.2</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.4.2</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-core/1.18.1</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-server/1.18.1</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-servlet/1.18.1</bundle>
+    </feature>
+
+    <feature name="onos-core" version="1.0.0"
+             description="ONOS core components">
         <feature>scr</feature>
-        <feature>thirdparty</feature>
-        <bundle>mvn:net.onrc.onos.sb/onos-sb/0.0.1</bundle>
-        <bundle>mvn:org.projectfloodlight/openflowj/0.3.6-SNAPSHOT</bundle>
+        <feature>onos-thirdparty-base</feature>
+        <bundle>mvn:org.onlab.onos/onos-utils-osgi/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-utils-rest/1.0.0-SNAPSHOT</bundle>
+
+        <bundle>mvn:org.onlab.onos/onos-api/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-core/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+    <feature name="onos-rest" version="1.0.0"
+             description="ONOS REST API components">
+        <feature>onos-core</feature>
+        <feature>onos-thirdparty-web</feature>
+        <bundle>mvn:org.onlab.onos/onos-rest/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+    <feature name="onos-gui" version="1.0.0"
+             description="ONOS GUI console components">
+        <feature>onos-core</feature>
+        <feature>onos-thirdparty-web</feature>
+        <bundle>mvn:org.onlab.onos/onos-gui/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+    <feature name="onos-cli" version="1.0.0"
+             description="ONOS admin command console components">
+        <feature>onos-core</feature>
+        <bundle>mvn:org.onlab.onos/onos-cli/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+    <feature name="onos-openflow" version="1.0.0"
+            description="ONOS OpenFlow API, Controller &amp; Providers">
+        <feature>onos-core</feature>
+        <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
+        <bundle>mvn:com.google.guava/guava/15.0</bundle>
+
+        <bundle>mvn:org.onlab.onos/openflow-api/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/openflow-ctl/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-of-providers/1.0.0-SNAPSHOT</bundle>
     </feature>
 
 </features>

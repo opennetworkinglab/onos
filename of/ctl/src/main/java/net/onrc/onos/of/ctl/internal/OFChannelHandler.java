@@ -1,3 +1,4 @@
+//CHECKSTYLE:OFF
 package net.onrc.onos.of.ctl.internal;
 
 import java.io.IOException;

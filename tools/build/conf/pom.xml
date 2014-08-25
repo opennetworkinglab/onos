@@ -1,0 +1,7 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.onlab.tools</groupId>
+  <artifactId>onos-build-conf</artifactId>
+  <version>1.0</version>
+</project>
+

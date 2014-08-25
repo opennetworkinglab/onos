@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.onrc.onos.of.ctl.debugcounter.DebugCounter.DebugCounterInfo;
 
+//CHECKSTYLE:OFF
 public class NullDebugCounter implements IDebugCounterService {
 
     @Override

@@ -1,0 +1,10 @@
+*~
+*.class
+.classpath
+.project
+.pydevproject
+.settings
+.javacp*
+target
+*.iml
+.idea

@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
  * system. For counters based on traffic-type, see ICounterStoreService.
  *
  */
+//CHECKSTYLE:OFF
 public class DebugCounter implements IDebugCounterService {
     protected static final Logger log = LoggerFactory.getLogger(DebugCounter.class);
 
