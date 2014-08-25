@@ -17,7 +17,6 @@
     <description>ONOS OpenFlow Protocol subsystem</description>
 
     <modules>
-        <module>lib</module>
         <module>api</module>
         <module>ctl</module>
     </modules>
