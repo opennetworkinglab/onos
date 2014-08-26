@@ -1,9 +1,10 @@
 package org.onlab.onos.event;
 
 /**
- * Abstraction of a mechanism capable of accepting and dispatching events.
- * Whether the events are accepted and the dispatched synchronously or
- * asynchronously is unspecified.
+ * Abstraction of a mechanism capable of accepting and dispatching events to
+ * appropriate event sinks. Where the event sinks are obtained is unspecified.
+ * Similarly, whether the events are accepted and dispatched synchronously
+ * or asynchronously is unspecified as well.
  */
 public interface EventDispatcher<E extends Event> {
 

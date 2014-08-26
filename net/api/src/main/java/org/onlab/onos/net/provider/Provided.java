@@ -10,6 +10,6 @@ public interface Provided {
      *
      * @return provider identification
      */
-    ProviderId id();
+    ProviderId providerId();
 
 }
