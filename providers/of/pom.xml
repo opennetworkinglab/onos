@@ -18,6 +18,8 @@
 
     <modules>
         <module>device</module>
+        <module>link</module>
+        <module>host</module>
     </modules>
 
     <dependencies>

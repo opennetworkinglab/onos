@@ -1,15 +1,14 @@
-package org.onlab.onos.provider.of.device.impl;
+package org.onlab.onos.provider.of.host.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderBroker;
-import org.onlab.onos.net.device.DeviceProviderService;
+import org.onlab.onos.net.Host;
+import org.onlab.onos.net.host.HostProvider;
+import org.onlab.onos.net.host.HostProviderBroker;
+import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.slf4j.Logger;
@@ -17,27 +16,26 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Device provider which uses an OpenFlow controller to detect network
- * infrastructure devices.
+ * end-station hosts.
  */
 @Component
-public class OpenFlowDeviceProvider extends AbstractProvider implements DeviceProvider {
+public class OpenFlowHostProvider extends AbstractProvider implements HostProvider {
 
-    private final Logger log = LoggerFactory.getLogger(OpenFlowDeviceProvider.class);
+    private final Logger log = LoggerFactory.getLogger(OpenFlowHostProvider.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceProviderBroker providerBroker;
+    protected HostProviderBroker providerBroker;
 
-    private DeviceProviderService providerService;
+    private HostProviderService providerService;
 
 //    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
 //    protected OpenFlowController controller;
 
-
     /**
-     * Creates an OpenFlow device provider.
+     * Creates an OpenFlow host provider.
      */
-    public OpenFlowDeviceProvider() {
-        super(new ProviderId("org.onlab.onos.provider.of.device"));
+    public OpenFlowHostProvider() {
+        super(new ProviderId("org.onlab.onos.provider.of.host"));
     }
 
     @Activate
@@ -54,13 +52,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     @Override
-    public void triggerProbe(Device device) {
-        log.info("Triggering probe on device {}", device.id());
+    public void triggerProbe(Host host) {
+        log.info("Triggering probe on device {}", host);
     }
-
-    @Override
-    public void roleChanged(Device device, MastershipRole newRole) {
-        log.info("Accepting mastership role change fordevice {}", device.id());
-    }
-
 }

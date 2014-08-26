@@ -19,14 +19,19 @@
         <bundle>mvn:com.sun.jersey/jersey-servlet/1.18.1</bundle>
     </feature>
 
-    <feature name="onos-core" version="1.0.0"
-             description="ONOS core components">
+    <feature name="onos-api" version="1.0.0"
+             description="ONOS services and model API">
         <feature>scr</feature>
         <feature>onos-thirdparty-base</feature>
         <bundle>mvn:org.onlab.onos/onos-utils-osgi/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-utils-rest/1.0.0-SNAPSHOT</bundle>
 
         <bundle>mvn:org.onlab.onos/onos-api/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+    <feature name="onos-core" version="1.0.0"
+             description="ONOS core components">
+        <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-core/1.0.0-SNAPSHOT</bundle>
     </feature>
 
@@ -60,6 +65,8 @@
         <bundle>mvn:org.onlab.onos/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
 
         <bundle>mvn:org.onlab.onos/onos-of-provider-device/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-of-provider-link/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-of-provider-host/1.0.0-SNAPSHOT</bundle>
     </feature>
 
 </features>
