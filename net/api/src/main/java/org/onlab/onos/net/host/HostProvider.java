@@ -1,7 +1,7 @@
 package org.onlab.onos.net.host;
 
 import org.onlab.onos.net.Host;
-import org.onlab.onos.provider.Provider;
+import org.onlab.onos.net.provider.Provider;
 
 /**
  * Provider of information about hosts and their location on the network.

@@ -1,4 +1,4 @@
-package org.onlab.onos.provider;
+package org.onlab.onos.net.provider;
 
 /**
  * Abstraction of a provider of information about network environment.

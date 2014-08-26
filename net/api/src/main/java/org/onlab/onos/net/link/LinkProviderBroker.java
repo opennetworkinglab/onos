@@ -1,6 +1,6 @@
 package org.onlab.onos.net.link;
 
-import org.onlab.onos.provider.ProviderBroker;
+import org.onlab.onos.net.provider.ProviderBroker;
 
 /**
  * Abstraction of an infrastructure link provider brokerage.

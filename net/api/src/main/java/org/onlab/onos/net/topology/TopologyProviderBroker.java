@@ -1,6 +1,6 @@
 package org.onlab.onos.net.topology;
 
-import org.onlab.onos.provider.ProviderBroker;
+import org.onlab.onos.net.provider.ProviderBroker;
 
 /**
  * Abstraction of a network topology provider brokerage.

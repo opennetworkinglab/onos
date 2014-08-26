@@ -1,6 +1,6 @@
 package org.onlab.onos.net.flow;
 
-import org.onlab.onos.provider.ProviderService;
+import org.onlab.onos.net.provider.ProviderService;
 
 /**
  * Service through which flowrule providers can inject flowrule information into

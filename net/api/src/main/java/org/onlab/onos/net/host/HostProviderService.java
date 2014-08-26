@@ -1,6 +1,6 @@
 package org.onlab.onos.net.host;
 
-import org.onlab.onos.provider.ProviderService;
+import org.onlab.onos.net.provider.ProviderService;
 
 /**
  * Means of conveying host information to the core.

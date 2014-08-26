@@ -1,7 +1,7 @@
 package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.provider.ProviderService;
+import org.onlab.onos.net.provider.ProviderService;
 
 import java.util.List;
 

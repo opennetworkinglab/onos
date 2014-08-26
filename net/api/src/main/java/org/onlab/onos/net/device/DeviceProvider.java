@@ -2,7 +2,7 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.provider.Provider;
+import org.onlab.onos.net.provider.Provider;
 
 /**
  * Abstraction of a device information provider.

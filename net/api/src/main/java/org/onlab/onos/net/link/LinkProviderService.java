@@ -1,6 +1,6 @@
 package org.onlab.onos.net.link;
 
-import org.onlab.onos.provider.ProviderService;
+import org.onlab.onos.net.provider.ProviderService;
 
 /**
  * Means for injecting link information into the core.

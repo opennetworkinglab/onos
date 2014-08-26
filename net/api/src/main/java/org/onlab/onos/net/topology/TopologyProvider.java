@@ -1,6 +1,6 @@
 package org.onlab.onos.net.topology;
 
-import org.onlab.onos.provider.Provider;
+import org.onlab.onos.net.provider.Provider;
 
 /**
  * Means for injecting topology information into the core.

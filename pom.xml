@@ -261,7 +261,7 @@
                             <title>OpenFlow Providers &amp; Controller
                             </title>
                             <packages>
-                                org.onlab.onos.provider.of:org.onlab.onos.provider.of.*:org.onlab.onos.of.*
+                                org.onlab.onos.net.provider.of:org.onlab.onos.net.provider.of.*:org.onlab.onos.of.*
                             </packages>
                         </group>
                         <group>
