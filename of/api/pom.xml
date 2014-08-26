@@ -22,6 +22,11 @@
             <artifactId>openflowj</artifactId>
             <version>0.3.8-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.9.0.Final</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -50,6 +55,18 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Export-Package>
+                            org.projectfloodlight.openflow.*
+                        </Export-Package>
+                    </instructions>
+                </configuration>
             </plugin>
         </plugins>
     </build>
