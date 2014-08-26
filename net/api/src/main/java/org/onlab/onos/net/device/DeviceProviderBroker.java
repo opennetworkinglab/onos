@@ -1,6 +1,6 @@
 package org.onlab.onos.net.device;
 
-import org.onlab.onos.net.ProviderBroker;
+import org.onlab.onos.provider.ProviderBroker;
 
 /**
  * Abstraction of a device provider brokerage.

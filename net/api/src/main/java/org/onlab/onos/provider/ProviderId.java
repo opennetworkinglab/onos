@@ -1,4 +1,4 @@
-package org.onlab.onos.net;
+package org.onlab.onos.provider;
 
 /**
  * Notion of provider identity.

@@ -1,4 +1,4 @@
-package org.onlab.onos.net;
+package org.onlab.onos.provider;
 
 /**
  * Broker used for registering/unregistering information providers with the core.

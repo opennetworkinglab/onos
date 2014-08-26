@@ -193,9 +193,7 @@
                     </configuration>
                 </plugin>
 
-
                 <!-- TODO: add jacoco plugin for unit test coverage; for explicit invocation only -->
-
                 <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
                 <!-- TODO: add sonarqube plugin for code analysis; for explicit invocation only -->
 
@@ -203,6 +201,11 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>

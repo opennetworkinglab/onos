@@ -1,6 +1,7 @@
 package org.onlab.onos.net.device;
 
-import org.onlab.onos.net.ProviderService;
+import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.provider.ProviderService;
 
 import java.util.List;
 
@@ -16,8 +17,9 @@ public interface DeviceProviderService extends ProviderService {
      * Signals the core that a device has connected or has been detected somehow.
      *
      * @param deviceDescription information about network device
+     * @return mastership role chosen by the provider service
      */
-    void deviceConnected(DeviceDescription deviceDescription);
+    MastershipRole deviceConnected(DeviceDescription deviceDescription);
 
     /**
      * Signals the core that a device has disconnected or is no longer reachable.

@@ -1,6 +1,6 @@
 package org.onlab.onos.net.link;
 
-import org.onlab.onos.net.Provider;
+import org.onlab.onos.provider.Provider;
 
 /**
  * Abstraction of an entity providing information about infrastructure links

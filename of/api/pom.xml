@@ -16,4 +16,42 @@
 
     <description>ONOS OpenFlow controller subsystem API</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.projectfloodlight</groupId>
+            <artifactId>openflowj</artifactId>
+            <version>0.3.8-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>io.netty:netty</exclude>
+                            <exclude>com.google.guava:guava</exclude>
+                            <exclude>org.slf4j:slfj-api</exclude>
+                            <exclude>ch.qos.logback:logback-core</exclude>
+                            <exclude>ch.qos.logback:logback-classic</exclude>
+                            <exclude>com.google.code.findbugs:annotations</exclude>
+                        </excludes>
+                    </artifactSet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

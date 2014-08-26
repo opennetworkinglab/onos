@@ -1,4 +1,4 @@
-package org.onlab.onos.net;
+package org.onlab.onos.provider;
 
 /**
  * Abstraction of a service through which providers can inject information
