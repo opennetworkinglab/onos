@@ -1,4 +1,4 @@
-package net.onrc.onos.of.ctl.internal;
+package org.onlab.onos.of.controller.impl.internal;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -12,11 +12,11 @@ import java.util.concurrent.RejectedExecutionException;
 import net.onrc.onos.of.ctl.IOFSwitch;
 import net.onrc.onos.of.ctl.IOFSwitch.PortChangeEvent;
 import net.onrc.onos.of.ctl.Role;
-import net.onrc.onos.of.ctl.annotations.LogMessageDoc;
-import net.onrc.onos.of.ctl.annotations.LogMessageDocs;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService.CounterException;
-import net.onrc.onos.of.ctl.internal.Controller.Counters;
-import net.onrc.onos.of.ctl.internal.OFChannelHandler.ChannelState.RoleReplyInfo;
+import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
+import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService.CounterException;
+import org.onlab.onos.of.controller.impl.internal.Controller.Counters;
+import org.onlab.onos.of.controller.impl.internal.OFChannelHandler.ChannelState.RoleReplyInfo;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;

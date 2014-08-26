@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService.CounterException;
-import net.onrc.onos.of.ctl.util.OrderedCollection;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService.CounterException;
+import org.onlab.onos.of.controller.impl.util.OrderedCollection;
 
 import org.jboss.netty.channel.Channel;
 import org.projectfloodlight.openflow.protocol.OFActionType;

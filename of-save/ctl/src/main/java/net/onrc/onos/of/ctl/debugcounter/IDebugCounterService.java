@@ -1,10 +1,10 @@
-package net.onrc.onos.of.ctl.debugcounter;
+package org.onlab.onos.of.controller.impl.debugcounter;
 
 
 
 import java.util.List;
 
-import net.onrc.onos.of.ctl.debugcounter.DebugCounter.DebugCounterInfo;
+import org.onlab.onos.of.controller.impl.debugcounter.DebugCounter.DebugCounterInfo;
 
 public interface IDebugCounterService {
 

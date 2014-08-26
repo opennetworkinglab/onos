@@ -1,4 +1,4 @@
-package net.onrc.onos.of.ctl.internal;
+package org.onlab.onos.of.controller.impl.internal;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -20,9 +20,9 @@ import java.util.Set;
 
 import net.onrc.onos.of.ctl.IOFSwitch;
 import net.onrc.onos.of.ctl.Role;
-import net.onrc.onos.of.ctl.debugcounter.DebugCounter;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService;
-import net.onrc.onos.of.ctl.internal.OFChannelHandler.RoleRecvStatus;
+import org.onlab.onos.of.controller.impl.debugcounter.DebugCounter;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService;
+import org.onlab.onos.of.controller.impl.internal.OFChannelHandler.RoleRecvStatus;
 
 import org.easymock.Capture;
 import org.easymock.CaptureType;

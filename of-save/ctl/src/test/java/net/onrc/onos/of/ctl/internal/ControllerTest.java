@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package net.onrc.onos.of.ctl.internal;
+package org.onlab.onos.of.controller.impl.internal;
 
 import junit.framework.TestCase;
 import net.onrc.onos.of.ctl.IOFSwitch;

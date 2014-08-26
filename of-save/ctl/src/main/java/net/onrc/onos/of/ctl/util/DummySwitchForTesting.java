@@ -1,4 +1,4 @@
-package net.onrc.onos.of.ctl.util;
+package org.onlab.onos.of.controller.impl.util;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import net.onrc.onos.of.ctl.IOFSwitch;
 import net.onrc.onos.of.ctl.Role;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService.CounterException;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService.CounterException;
 
 public class DummySwitchForTesting implements IOFSwitch {
 

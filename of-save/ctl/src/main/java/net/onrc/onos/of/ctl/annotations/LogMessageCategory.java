@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package net.onrc.onos.of.ctl.annotations;
+package org.onlab.onos.of.controller.impl.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

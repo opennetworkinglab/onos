@@ -248,7 +248,7 @@
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>
-                                org.onlab.onos.net:org.onlab.onos.net.*
+                                org.onlab.onos.*
                             </packages>
                         </group>
                         <group>

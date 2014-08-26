@@ -2,7 +2,7 @@ package net.onrc.onos.of.ctl;
 
 import org.projectfloodlight.openflow.protocol.OFVersion;
 
-import net.onrc.onos.of.ctl.registry.IControllerRegistry;
+import org.onlab.onos.of.controller.impl.registry.IControllerRegistry;
 
 /**
  * Interface to passed to controller class in order to allow

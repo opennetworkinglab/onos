@@ -1,4 +1,4 @@
-package net.onrc.onos.of.ctl.debugcounter;
+package org.onlab.onos.of.controller.impl.debugcounter;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package net.onrc.onos.of.ctl.internal;
+package org.onlab.onos.of.controller.impl.internal;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -31,20 +31,20 @@ import java.util.concurrent.Executors;
 
 import net.onrc.onos.of.ctl.IOFSwitchManager;
 import net.onrc.onos.of.ctl.Role;
-import net.onrc.onos.of.ctl.annotations.LogMessageDoc;
-import net.onrc.onos.of.ctl.annotations.LogMessageDocs;
-import net.onrc.onos.of.ctl.debugcounter.DebugCounter;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounter;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService.CounterException;
-import net.onrc.onos.of.ctl.debugcounter.IDebugCounterService.CounterType;
-import net.onrc.onos.of.ctl.internal.OFChannelHandler.RoleRecvStatus;
-import net.onrc.onos.of.ctl.registry.IControllerRegistry;
-import net.onrc.onos.of.ctl.registry.RegistryException;
-import net.onrc.onos.of.ctl.registry.IControllerRegistry.ControlChangeCallback;
-import net.onrc.onos.of.ctl.util.Dpid;
-import net.onrc.onos.of.ctl.util.DummySwitchForTesting;
-import net.onrc.onos.of.ctl.util.InstanceId;
+import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
+import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
+import org.onlab.onos.of.controller.impl.debugcounter.DebugCounter;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounter;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService.CounterException;
+import org.onlab.onos.of.controller.impl.debugcounter.IDebugCounterService.CounterType;
+import org.onlab.onos.of.controller.impl.internal.OFChannelHandler.RoleRecvStatus;
+import org.onlab.onos.of.controller.impl.registry.IControllerRegistry;
+import org.onlab.onos.of.controller.impl.registry.RegistryException;
+import org.onlab.onos.of.controller.impl.registry.IControllerRegistry.ControlChangeCallback;
+import org.onlab.onos.of.controller.impl.util.Dpid;
+import org.onlab.onos.of.controller.impl.util.DummySwitchForTesting;
+import org.onlab.onos.of.controller.impl.util.InstanceId;
 import net.onrc.onos.of.ctl.IOFSwitch;
 import net.onrc.onos.of.ctl.IOFSwitch.PortChangeType;
 
