@@ -41,11 +41,13 @@ public class SimpleDeviceManager implements DeviceProviderBroker {
 
     @Override
     public DeviceProviderService register(DeviceProvider provider) {
+        log.info("Registering provider {}", provider.id());
         return broker.register(provider);
     }
 
     @Override
     public void unregister(DeviceProvider provider) {
+        log.info("Unregistering provider {}", provider.id());
         broker.unregister(provider);
     }
 
