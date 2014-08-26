@@ -1,5 +1,6 @@
 package org.onlab.onos.net.device;
 
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.ProviderService;
 
@@ -19,28 +20,31 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      * @param deviceDescription information about network device
      * @return mastership role chosen by the provider service
      */
-    MastershipRole deviceConnected(DeviceDescription deviceDescription);
+    MastershipRole deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription);
 
     /**
      * Signals the core that a device has disconnected or is no longer reachable.
      *
-     * @param deviceDescription device to be removed
+     * @param deviceId identity of the device to be removed
      */
-    void deviceDisconnected(DeviceDescription deviceDescription);
+    void deviceDisconnected(DeviceId deviceId);
 
     /**
      * Sends information about all ports of a device. It is up to the core to
      * determine what has changed.
+     * <p/>
      *
+     * @param deviceId identity of the device
      * @param ports list of device ports
      */
-    void updatePorts(List<PortDescription> ports);
+    void updatePorts(DeviceId deviceId, List<PortDescription> ports);
 
     /**
      * Used to notify the core about port status change of a single port.
      *
+     * @param deviceId identity of the device
      * @param port description of the port that changed
      */
-    void portStatusChanged(PortDescription port);
+    void portStatusChanged(DeviceId deviceId, PortDescription port);
 
 }

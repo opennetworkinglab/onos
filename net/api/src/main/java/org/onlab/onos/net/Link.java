@@ -18,8 +18,9 @@ public interface Link extends Provided { // TODO: Also should extend graph Edge 
 
         /**
          * Signifies that this link is potentially comprised from multiple
-         * underlying segments or hops, e.g. optical links, tunnel links,
-         * multi-hop links spanning 'dark' switches
+         * underlying segments or hops, and as such should be used to tag
+         * links traversing optical paths, tunnels or intervening 'dark'
+         * switches.
          */
         INDIRECT
     }
