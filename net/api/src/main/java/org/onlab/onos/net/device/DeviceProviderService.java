@@ -9,7 +9,7 @@ import java.util.List;
  * Service through which device providers can inject device information into
  * the core.
  */
-public interface DeviceProviderService extends ProviderService {
+public interface DeviceProviderService extends ProviderService<DeviceProvider> {
 
     // TODO: define suspend and remove actions on the mezzanine administrative API
 

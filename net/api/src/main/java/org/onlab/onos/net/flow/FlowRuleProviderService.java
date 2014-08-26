@@ -6,7 +6,7 @@ import org.onlab.onos.net.provider.ProviderService;
  * Service through which flowrule providers can inject flowrule information into
  * the core.
  */
-public interface FlowRuleProviderService extends ProviderService {
+public interface FlowRuleProviderService extends ProviderService<FlowRuleProvider> {
 
     /**
      * Signals that a flow that was previously installed has been removed.

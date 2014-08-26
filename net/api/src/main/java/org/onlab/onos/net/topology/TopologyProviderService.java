@@ -5,7 +5,7 @@ import org.onlab.onos.net.provider.ProviderService;
 /**
  * Means for injecting topology information into the core.
  */
-public interface TopologyProviderService extends ProviderService {
+public interface TopologyProviderService extends ProviderService<TopologyProvider> {
 
     // What can be conveyed in a topology that isn't by individual
     // providers?

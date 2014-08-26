@@ -5,7 +5,7 @@ import org.onlab.onos.net.provider.ProviderService;
 /**
  * Means of conveying host information to the core.
  */
-public interface HostProviderService extends ProviderService {
+public interface HostProviderService extends ProviderService<HostProvider> {
 
     /**
      * Notifies the core when a host has been detected on a network along with

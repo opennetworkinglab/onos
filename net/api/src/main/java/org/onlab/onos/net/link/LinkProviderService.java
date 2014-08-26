@@ -5,7 +5,7 @@ import org.onlab.onos.net.provider.ProviderService;
 /**
  * Means for injecting link information into the core.
  */
-public interface LinkProviderService extends ProviderService {
+public interface LinkProviderService extends ProviderService<LinkProvider> {
 
     /**
      * Signals that an infrastructure link has been connected.

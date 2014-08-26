@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <P> type of the information provider
  * @param <S> type of the provider service
  */
-public abstract class AbstractProviderBroker<P extends Provider, S extends ProviderService>
+public abstract class AbstractProviderBroker<P extends Provider, S extends ProviderService<P>>
         implements ProviderBroker<P, S> {
 
     private final Map<ProviderId, S> services = new HashMap<>();
