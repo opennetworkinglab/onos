@@ -17,13 +17,10 @@
     <description>ONOS OpenFlow protocol adapters</description>
 
     <modules>
+        <module>device</module>
     </modules>
 
     <dependencies>
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-api</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onos-of-api</artifactId>

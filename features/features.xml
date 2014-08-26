@@ -55,9 +55,11 @@
         <feature>onos-core</feature>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
 
-        <bundle>mvn:org.onlab.onos/openflow-api/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/openflow-ctl/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-of-providers/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.projectfloodlight/openflowj/0.3.8-SNAPSHOT</bundle>
+        <!--bundle>mvn:org.onlab.onos/onos-of-api/1.0.0-SNAPSHOT</bundle-->
+        <bundle>mvn:org.onlab.onos/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
+
+        <bundle>mvn:org.onlab.onos/onos-of-provider-device/1.0.0-SNAPSHOT</bundle>
     </feature>
 
 </features>
