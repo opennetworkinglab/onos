@@ -12,16 +12,24 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
      * Type of device events.
      */
     public enum Type {
-        /** Signifies that a new device has been detected. */
+        /**
+         * Signifies that a new device has been detected.
+         */
         DEVICE_ADDED,
 
-        /** Signifies that a device has been removed. */
+        /**
+         * Signifies that a device has been removed.
+         */
         DEVICE_REMOVED,
 
-        /** Signifies that a device has been administratively suspended. */
+        /**
+         * Signifies that a device has been administratively suspended.
+         */
         DEVICE_SUSPENDED,
 
-        /** Signifies that a device has come online or has gone offline. */
+        /**
+         * Signifies that a device has come online or has gone offline.
+         */
         DEVICE_AVAILABILITY_CHANGED,
 
         /**
@@ -32,25 +40,25 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
     }
 
     /**
-     * Creates an event of a given type and for the specified subject and the
+     * Creates an event of a given type and for the specified device and the
      * current time.
      *
-     * @param type    event type
-     * @param subject event subject
+     * @param type   device event type
+     * @param device event device subject
      */
-    public DeviceEvent(Type type, Device subject) {
-        super(type, subject);
+    public DeviceEvent(Type type, Device device) {
+        super(type, device);
     }
 
     /**
-     * Creates an event of a given type and for the specified subject and time.
+     * Creates an event of a given type and for the specified device and time.
      *
-     * @param type    event type
-     * @param subject event subject
-     * @param time    occurrence time
+     * @param type   device event type
+     * @param device event device subject
+     * @param time   occurrence time
      */
-    public DeviceEvent(Type type, Device subject, long time) {
-        super(type, subject, time);
+    public DeviceEvent(Type type, Device device, long time) {
+        super(type, device, time);
     }
 
 }

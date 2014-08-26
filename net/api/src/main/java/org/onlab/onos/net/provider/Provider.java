@@ -5,6 +5,11 @@ package org.onlab.onos.net.provider;
  */
 public interface Provider {
 
+    /**
+     * Returns the provider identifier.
+     *
+     * @return provider identification
+     */
     ProviderId id();
 
 }

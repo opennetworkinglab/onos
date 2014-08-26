@@ -3,10 +3,10 @@ package org.onlab.onos.net.provider;
 /**
  * Broker used for registering/unregistering information providers with the core.
  *
- * @param <T> type of the information provider
+ * @param <P> type of the information provider
  * @param <S> type of the provider service
  */
-public interface ProviderBroker<T extends Provider, S extends ProviderService> {
+public interface ProviderBroker<P extends Provider, S extends ProviderService<P>> {
 
     /**
      * Registers the supplied provider with the core.
@@ -14,14 +14,15 @@ public interface ProviderBroker<T extends Provider, S extends ProviderService> {
      * @param provider provider to be registered
      * @return provider service for injecting information into core
      */
-    S register(T provider);
+    S register(P provider);
 
     /**
      * Unregisters the supplied provider. As a result the previously issued
-     * provider service will be invalidated.
+     * provider service will be invalidated and any subsequent invocations
+     * of its methods may throw {@link java.lang.IllegalStateException}.
      *
      * @param provider provider to be unregistered
      */
-    void unregister(T provider);
+    void unregister(P provider);
 
 }
