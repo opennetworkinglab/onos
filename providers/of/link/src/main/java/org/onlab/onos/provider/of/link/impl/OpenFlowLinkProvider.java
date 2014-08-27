@@ -14,10 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Device provider which uses an OpenFlow controller to detect network
+ * Provider which uses an OpenFlow controller to detect network
  * infrastructure links.
  */
-@Component
+@Component(immediate = true)
 public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvider {
 
     private final Logger log = LoggerFactory.getLogger(OpenFlowLinkProvider.class);

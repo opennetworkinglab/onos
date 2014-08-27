@@ -1,4 +1,4 @@
-package org.onlab.onos.net.impl;
+package org.onlab.onos.net.trivial.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;

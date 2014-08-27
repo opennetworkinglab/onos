@@ -1,4 +1,4 @@
-package org.onlab.onos.net.impl;
+package org.onlab.onos.net.trivial.impl;
 
 import org.junit.Test;
 import org.onlab.onos.net.GreetService;

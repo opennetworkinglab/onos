@@ -38,10 +38,9 @@ public abstract class AbstractProviderBroker<P extends Provider, S extends Provi
     public synchronized void unregister(P provider) {
         checkNotNull(provider, "Provider cannot be null");
         S service = services.get(provider);
-        checkArgument(service != null, "Provider %s not registered", provider.id());
-        if (service instanceof AbstractProviderService) {
+        if (service != null && service instanceof AbstractProviderService) {
             ((AbstractProviderService) service).invalidate();
+            services.remove(provider);
         }
-        services.remove(provider);
     }
 }

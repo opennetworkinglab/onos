@@ -12,9 +12,13 @@
     </parent>
 
     <artifactId>onos-core</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>pom</packaging>
 
     <description>ONOS network control core subsystems</description>
+
+    <modules>
+        <module>trivial</module>
+    </modules>
 
     <dependencies>
         <dependency>

@@ -16,10 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Device provider which uses an OpenFlow controller to detect network
+ * Provider which uses an OpenFlow controller to detect network
  * infrastructure devices.
  */
-@Component
+@Component(immediate = true)
 public class OpenFlowDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private final Logger log = LoggerFactory.getLogger(OpenFlowDeviceProvider.class);
@@ -60,7 +60,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {
-        log.info("Accepting mastership role change fordevice {}", device.id());
+        log.info("Accepting mastership role change for device {}", device.id());
     }
 
 }

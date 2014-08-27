@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Device provider which uses an OpenFlow controller to detect network
+ * Provider which uses an OpenFlow controller to detect network
  * end-station hosts.
  */
-@Component
+@Component(immediate = true)
 public class OpenFlowHostProvider extends AbstractProvider implements HostProvider {
 
     private final Logger log = LoggerFactory.getLogger(OpenFlowHostProvider.class);
@@ -55,4 +55,5 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
     public void triggerProbe(Host host) {
         log.info("Triggering probe on device {}", host);
     }
+
 }

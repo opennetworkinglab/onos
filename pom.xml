@@ -254,7 +254,7 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.net.impl:org.onlab.onos.net.*.impl
+                                org.onlab.onos.net.trivial.impl:org.onlab.onos.net.*.impl
                             </packages>
                         </group>
                         <group>
