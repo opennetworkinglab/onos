@@ -16,4 +16,11 @@
 
     <description>ONOS network control API</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-testlib</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

@@ -7,6 +7,7 @@ import java.net.URI;
  */
 public class DeviceId extends ElementId {
 
+    // TODO: Discuss whether we should just use ElementId for Device and Host alike
     /**
      * Creates a device id using the supplied URI.
      *

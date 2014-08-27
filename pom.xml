@@ -61,6 +61,14 @@
                 <version>17.0</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava-testlib</artifactId>
+                <version>17.0</version>
+                <scope>test</scope>
+            </dependency>
+
+
             <!-- Web related -->
             <dependency>
                 <groupId>com.sun.jersey</groupId>
