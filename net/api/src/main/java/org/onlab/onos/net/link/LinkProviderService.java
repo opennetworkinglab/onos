@@ -8,17 +8,17 @@ import org.onlab.onos.net.provider.ProviderService;
 public interface LinkProviderService extends ProviderService<LinkProvider> {
 
     /**
-     * Signals that an infrastructure link has been connected.
+     * Signals that an infrastructure link has been detected.
      *
      * @param linkDescription link information
      */
-    void linkConnected(LinkDescription linkDescription);
+    void linkDetected(LinkDescription linkDescription);
 
     /**
-     * Signals that an infrastructure link has been disconnected.
+     * Signals that an infrastructure link has disappeared.
      *
      * @param linkDescription link information
      */
-    void linkDisconnected(LinkDescription linkDescription);
+    void linkVanished(LinkDescription linkDescription);
 
 }

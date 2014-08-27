@@ -20,6 +20,6 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      *
      * @param hostDescription description of host
      */
-    void hostNotDetected(HostDescription hostDescription);
+    void hostVanished(HostDescription hostDescription);
 
 }
