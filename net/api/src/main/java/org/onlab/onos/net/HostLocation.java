@@ -12,6 +12,6 @@ public interface HostLocation extends ConnectPoint {
      *
      * @return timestamp in milliseconds since start of epoch
      */
-    long timestamp();
+    long time();
 
 }

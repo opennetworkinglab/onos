@@ -5,7 +5,8 @@ import org.onlab.onos.net.provider.Provided;
 /**
  * Abstraction of a network infrastructure link.
  */
-public interface Link extends Provided { // TODO: Also should extend graph Edge once the graph module is checked in
+public interface Link extends Provided {
+// TODO: Consider extending graph Edge<Element> once the graph module is available
 
     /**
      * Coarse representation of the link type.
