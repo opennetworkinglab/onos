@@ -22,7 +22,7 @@ public interface DeviceService {
     MastershipRole getRole(DeviceId deviceId);
 
     /**
-     * Returns an iterable collection of the currently known infrastructure
+     * Returns a collection of the currently known infrastructure
      * devices.
      *
      * @return collection of devices

@@ -17,4 +17,14 @@ public interface TopologyDescription extends Description {
      */
     Collection<Description> details();
 
+    // Default topology provider/computor should do the following:
+    // create graph
+    // search graph for SCC clusters (Tarjan)
+    // search graph for all pairs shortest paths based on hop-count
+    //      this means all shortest paths, between all pairs; not just one shortest path
+    // optionally use path results to produce destination-rooted broadcast trees
+
+    // provide description with the graph, clusters, paths and trees upwards
+
 }
+
