@@ -51,8 +51,13 @@ public class AbstractListenerManager<E extends Event, L extends EventListener<E>
         }
     }
 
-    @Override
-    public void reportProblem(E event, Throwable error) {
+    /**
+     * Reports a problem encountered while processing an event.
+     *
+     * @param event event being processed
+     * @param error error encountered while processing
+     */
+    protected void reportProblem(E event, Throwable error) {
         log.warn("Exception encountered while processing event " + event, error);
     }
 

@@ -12,12 +12,4 @@ public interface EventSink<E extends Event> {
      */
     void process(E event);
 
-    /**
-     * Reports a problem encountered while processing an event.
-     *
-     * @param event event being processed
-     * @param error error encountered while processing
-     */
-    void reportProblem(E event, Throwable error);
-
 }

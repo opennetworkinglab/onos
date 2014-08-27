@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Base implementation of event sink broker.
  */
-public class AbstractEventSinkBroker implements EventSinkBroker {
+public class DefaultEventSinkBroker implements EventSinkBroker {
 
     private final Map<Class<? extends Event>, EventSink<? extends Event>> sinks =
             new ConcurrentHashMap<>();
@@ -36,6 +36,7 @@ public class AbstractEventSinkBroker implements EventSinkBroker {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends Event> EventSink<E> getSink(Class<E> eventClass) {
+        // TODO: add implicit registration of descendant classes
         return (EventSink<E>) sinks.get(eventClass);
     }
 

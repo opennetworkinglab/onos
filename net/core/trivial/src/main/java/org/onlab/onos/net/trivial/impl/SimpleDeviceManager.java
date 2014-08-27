@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Provides basic implementation of the device SB & NB APIs.
+ * Provides basic implementation of the device SB &amp; NB APIs.
  */
 @Component(immediate = true)
 @Service

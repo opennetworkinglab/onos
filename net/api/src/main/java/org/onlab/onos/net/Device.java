@@ -1,11 +1,9 @@
 package org.onlab.onos.net;
 
-import org.onlab.onos.net.provider.Provided;
-
 /**
  * Representation of a network infrastructure device.
  */
-public interface Device extends Provided {
+public interface Device extends Element {
 
     /**
      * Coarse classification of the type of the infrastructure device.
