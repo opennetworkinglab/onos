@@ -36,13 +36,11 @@ public class SimpleLinkManager implements LinkProviderBroker {
 
     @Override
     public LinkProviderService register(LinkProvider provider) {
-        log.info("Registering provider {}", provider.id());
         return broker.register(provider);
     }
 
     @Override
     public void unregister(LinkProvider provider) {
-        log.info("Unregistering provider {}", provider.id());
         broker.unregister(provider);
     }
 

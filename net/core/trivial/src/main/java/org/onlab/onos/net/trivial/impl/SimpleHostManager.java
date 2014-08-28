@@ -36,13 +36,11 @@ public class SimpleHostManager implements HostProviderBroker {
 
     @Override
     public HostProviderService register(HostProvider provider) {
-        log.info("Registering provider {}", provider.id());
         return broker.register(provider);
     }
 
     @Override
     public void unregister(HostProvider provider) {
-        log.info("Unregistering provider {}", provider.id());
         broker.unregister(provider);
     }
 
