@@ -112,6 +112,12 @@
             <!-- ONOS related -->
             <dependency>
                 <groupId>org.onlab.onos</groupId>
+                <artifactId>onlab-misc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
                 <artifactId>onos-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -260,13 +266,13 @@
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>
-                                org.onlab.onos.*
+                                org.onlab.onos:org.onlab.onos.*
                             </packages>
                         </group>
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.net.trivial.impl:org.onlab.onos.net.*.impl
+                                org.onlab.onos.net.trivial.impl:org.onlab.onos.net.*.impl:org.onlab.onos.impl:org.onlab.onos.event.impl
                             </packages>
                         </group>
                         <group>

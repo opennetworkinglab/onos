@@ -3,6 +3,8 @@ package org.onlab.onos.net.trivial.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.AbstractListenerManager;
 import org.onlab.onos.event.EventDispatchService;
@@ -22,11 +24,11 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderBroker;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the device SB &amp; NB APIs.
@@ -42,24 +44,25 @@ public class SimpleDeviceManager
     public static final String DEVICE_DESCRIPTION_NULL = "Device description cannot be null";
     public static final String PORT_DESCRIPTION_NULL = "Port description cannot be null";
 
-    private Logger log = LoggerFactory.getLogger(SimpleDeviceManager.class);
+    private final Logger log = getLogger(getClass());
 
     private final AbstractListenerManager<DeviceEvent, DeviceListener>
             listenerManager = new AbstractListenerManager<>();
 
-    private EventDispatchService eventDispatcher;
-
     private final DeviceStore store = new DeviceStore();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private EventDispatchService eventDispatcher;
 
     @Activate
     public void activate() {
-//        eventDispatcher.addSink(DeviceEvent.class, listenerManager);
+        eventDispatcher.addSink(DeviceEvent.class, listenerManager);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-//        eventDispatcher.removeSink(DeviceEvent.class);
+        eventDispatcher.removeSink(DeviceEvent.class);
         log.info("Stopped");
     }
 

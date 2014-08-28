@@ -3,55 +3,55 @@ package org.onlab.onos.net.trivial.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.event.AbstractListenerManager;
+import org.onlab.onos.event.EventDispatchService;
 import org.onlab.onos.net.link.LinkDescription;
+import org.onlab.onos.net.link.LinkEvent;
+import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkProvider;
 import org.onlab.onos.net.link.LinkProviderBroker;
 import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.provider.AbstractProviderBroker;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the link SB &amp; NB APIs.
  */
 @Component(immediate = true)
 @Service
-public class SimpleLinkManager implements LinkProviderBroker {
+public class SimpleLinkManager
+        extends AbstractProviderBroker<LinkProvider, LinkProviderService>
+        implements LinkProviderBroker {
 
-    private Logger log = LoggerFactory.getLogger(SimpleLinkManager.class);
+    private final Logger log = getLogger(getClass());
 
-    private final LinkProviderBroker broker = new InternalBroker();
+    private final AbstractListenerManager<LinkEvent, LinkListener>
+            listenerManager = new AbstractListenerManager<>();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private EventDispatchService eventDispatcher;
 
     @Activate
     public void activate() {
+        eventDispatcher.addSink(LinkEvent.class, listenerManager);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(LinkEvent.class);
         log.info("Stopped");
     }
 
     @Override
-    public LinkProviderService register(LinkProvider provider) {
-        return broker.register(provider);
-    }
-
-    @Override
-    public void unregister(LinkProvider provider) {
-        broker.unregister(provider);
-    }
-
-    // Internal delegate for tracking various providers and issuing them a
-    // personalized provider service.
-    private class InternalBroker extends AbstractProviderBroker<LinkProvider, LinkProviderService>
-            implements LinkProviderBroker {
-        @Override
-        protected LinkProviderService createProviderService(LinkProvider provider) {
-            return new InternalLinkProviderService(provider);
-        }
+    protected LinkProviderService createProviderService(LinkProvider provider) {
+        return new InternalLinkProviderService(provider);
     }
 
     // Personalized link provider service issued to the supplied provider.

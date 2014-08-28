@@ -1,13 +1,13 @@
 package org.onlab.onos.event;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Base implementation of a manager capable of tracking listeners and
@@ -16,7 +16,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AbstractListenerManager<E extends Event, L extends EventListener<E>>
         implements EventSink<E> {
 
-    protected Logger log = LoggerFactory.getLogger(AbstractListenerManager.class);
+    private final Logger log = getLogger(getClass());
 
     private final Set<L> listeners = new CopyOnWriteArraySet<>();
 

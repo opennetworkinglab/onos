@@ -11,8 +11,10 @@ import org.onlab.onos.net.host.HostProviderBroker;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.of.controller.OpenFlowController;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -21,15 +23,15 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class OpenFlowHostProvider extends AbstractProvider implements HostProvider {
 
-    private final Logger log = LoggerFactory.getLogger(OpenFlowHostProvider.class);
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderBroker providerBroker;
 
-    private HostProviderService providerService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenFlowController controller;
 
-//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-//    protected OpenFlowController controller;
+    private HostProviderService providerService;
 
     /**
      * Creates an OpenFlow host provider.

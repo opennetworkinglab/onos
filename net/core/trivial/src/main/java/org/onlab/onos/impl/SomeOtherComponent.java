@@ -7,7 +7,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.GreetService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Example of a component that does not provide any service, but consumes one.
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class SomeOtherComponent {
 
-    private final Logger log = LoggerFactory.getLogger(SomeOtherComponent.class);
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GreetService service;

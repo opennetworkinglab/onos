@@ -7,12 +7,12 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.GreetService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Trivial implementation of the seed service to demonstrate component and
@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class GreetManager implements GreetService {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = getLogger(getClass());
 
     private final Set<String> names = new HashSet<>();
 
