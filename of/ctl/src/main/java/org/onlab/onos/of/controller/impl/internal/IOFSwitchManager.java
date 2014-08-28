@@ -1,8 +1,7 @@
-package org.onlab.onos.of.controller.impl;
+package org.onlab.onos.of.controller.impl.internal;
 
 import org.projectfloodlight.openflow.protocol.OFVersion;
 
-import org.onlab.onos.of.controller.impl.registry.IControllerRegistry;
 
 /**
  * Interface to passed to controller class in order to allow
@@ -22,12 +21,6 @@ public interface IOFSwitchManager {
      * @param ofv openflow version
      * @return A switch of type IOFSwitch.
      */
-    public IOFSwitch getSwitchImpl(String mfr, String hwDesc, String swDesc, OFVersion ofv);
-
-    /**
-     * Returns the mastership registry used during controller-switch role election.
-     * @return the registry
-     */
-    public IControllerRegistry getRegistry();
+    public AbstractOpenFlowSwitch getSwitchImpl(String mfr, String hwDesc, String swDesc, OFVersion ofv);
 
 }

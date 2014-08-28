@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl.util;
+package org.onlab.onos.of.controller;
 
 import org.projectfloodlight.openflow.util.HexString;
 

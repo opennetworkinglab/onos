@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl;
+package org.onlab.onos.of.controller;
 
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
 
@@ -10,27 +10,14 @@ import org.projectfloodlight.openflow.protocol.OFControllerRole;
  * to the OF1.3 enum, before role messages are sent to the switch.
  * See sendRoleRequestMessage method in OFSwitchImpl
  */
-public enum Role {
+public enum RoleState {
     EQUAL(OFControllerRole.ROLE_EQUAL),
     MASTER(OFControllerRole.ROLE_MASTER),
     SLAVE(OFControllerRole.ROLE_SLAVE);
 
-    private Role(OFControllerRole nxRole) {
+    private RoleState(OFControllerRole nxRole) {
         nxRole.ordinal();
     }
-    /*
-    private static Map<Integer,Role> nxRoleToEnum
-            = new HashMap<Integer,Role>();
-    static {
-        for(Role r: Role.values())
-            nxRoleToEnum.put(r.toNxRole(), r);
-    }
-    public int toNxRole() {
-        return nxRole;
-    }
-    // Return the enum representing the given nxRole or null if no
-    // such role exists
-    public static Role fromNxRole(int nxRole) {
-        return nxRoleToEnum.get(nxRole);
-    }*/
+
 }
+
