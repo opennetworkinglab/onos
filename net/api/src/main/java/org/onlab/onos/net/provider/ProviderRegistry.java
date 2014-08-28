@@ -1,5 +1,7 @@
 package org.onlab.onos.net.provider;
 
+import java.util.Set;
+
 /**
  * Registry for tracking information providers with the core.
  *
@@ -28,5 +30,12 @@ public interface ProviderRegistry<P extends Provider, S extends ProviderService<
      * @param provider provider to be unregistered
      */
     void unregister(P provider);
+
+    /**
+     * Returns a set of currently registered provider identities.
+     *
+     * @return set of provider identifiers
+     */
+    Set<ProviderId> getProviders();
 
 }

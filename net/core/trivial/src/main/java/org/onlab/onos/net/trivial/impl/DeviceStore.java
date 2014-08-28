@@ -2,6 +2,8 @@ package org.onlab.onos.net.trivial.impl;
 
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Port;
+import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.PortDescription;
@@ -64,6 +66,37 @@ public class DeviceStore {
      */
     public DeviceEvent updatePortStatus(DeviceId deviceId,
                                         PortDescription portDescription) {
+        return null;
+    }
+
+    /**
+     * Returns the device with the specified identifier.
+     *
+     * @param deviceId device identifier
+     * @return device
+     */
+    public Device getDevice(DeviceId deviceId) {
+        return null;
+    }
+
+    /**
+     * Returns the list of ports that belong to the specified device.
+     *
+     * @param deviceId device identifier
+     * @return list of device ports
+     */
+    public List<Port> getPorts(DeviceId deviceId) {
+        return null;
+    }
+
+    /**
+     * Returns the specified device port.
+     *
+     * @param deviceId   device identifier
+     * @param portNumber port number
+     * @return device port
+     */
+    public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         return null;
     }
 }

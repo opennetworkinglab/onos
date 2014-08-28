@@ -1,10 +1,13 @@
 package org.onlab.onos.net.provider;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Base implementation of provider registry.
@@ -28,7 +31,7 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
     @Override
     public synchronized S register(P provider) {
         checkNotNull(provider, "Provider cannot be null");
-        checkArgument(!services.containsKey(provider), "Provider %s already registered", provider.id());
+        checkState(!services.containsKey(provider.id()), "Provider %s already registered", provider.id());
         S service = createProviderService(provider);
         services.put(provider.id(), service);
         return service;
@@ -37,10 +40,16 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
     @Override
     public synchronized void unregister(P provider) {
         checkNotNull(provider, "Provider cannot be null");
-        S service = services.get(provider);
+        S service = services.get(provider.id());
         if (service != null && service instanceof AbstractProviderService) {
             ((AbstractProviderService) service).invalidate();
-            services.remove(provider);
+            services.remove(provider.id());
         }
     }
+
+    @Override
+    public synchronized Set<ProviderId> getProviders() {
+        return ImmutableSet.copyOf(services.keySet());
+    }
+
 }

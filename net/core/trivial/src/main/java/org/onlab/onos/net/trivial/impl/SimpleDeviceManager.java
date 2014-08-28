@@ -80,20 +80,20 @@ public class SimpleDeviceManager
     @Override
     public Device getDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        return null;
+        return store.getDevice(deviceId);
     }
 
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        return null;
+        return store.getPorts(deviceId);
     }
 
     @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(portNumber, PORT_NUMBER_NULL);
-        return null;
+        return store.getPort(deviceId, portNumber);
     }
 
     @Override
