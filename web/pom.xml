@@ -33,13 +33,13 @@
 
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-utils-osgi</artifactId>
+            <artifactId>onlab-osgi</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-utils-rest</artifactId>
+            <artifactId>onlab-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
 

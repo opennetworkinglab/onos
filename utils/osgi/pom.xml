@@ -6,15 +6,15 @@
 
     <parent>
         <groupId>org.onlab.onos</groupId>
-        <artifactId>onos-utils</artifactId>
+        <artifactId>onlab-utils</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-utils-osgi</artifactId>
+    <artifactId>onlab-osgi</artifactId>
     <packaging>bundle</packaging>
 
-    <description>OSGI utilities</description>
+    <description>ON.Lab OSGI utilities</description>
 
     <dependencies>
         <dependency>

@@ -6,15 +6,15 @@
 
     <parent>
         <groupId>org.onlab.onos</groupId>
-        <artifactId>onos-utils</artifactId>
+        <artifactId>onlab-utils</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-utils-rest</artifactId>
+    <artifactId>onlab-rest</artifactId>
     <packaging>bundle</packaging>
 
-    <description>JAX-RS utilities</description>
+    <description>ON.Lab JAX-RS utilities</description>
 
     <dependencies>
         <dependency>
@@ -36,7 +36,7 @@
 
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-utils-osgi</artifactId>
+            <artifactId>onlab-osgi</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
