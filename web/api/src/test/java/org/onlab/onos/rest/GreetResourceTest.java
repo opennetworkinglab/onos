@@ -4,8 +4,8 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.onlab.onos.net.GreetService;
-import org.onlab.onos.net.trivial.impl.GreetManager;
+import org.onlab.onos.GreetService;
+import org.onlab.onos.impl.GreetManager;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 

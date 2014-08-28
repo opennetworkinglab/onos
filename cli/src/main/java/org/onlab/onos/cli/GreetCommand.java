@@ -3,7 +3,7 @@ package org.onlab.onos.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import org.onlab.onos.net.GreetService;
+import org.onlab.onos.GreetService;
 
 /**
  * Simple command example to demonstrate use of Karaf shell extensions; shows

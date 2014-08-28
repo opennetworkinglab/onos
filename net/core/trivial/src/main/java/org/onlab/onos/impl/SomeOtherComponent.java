@@ -1,11 +1,11 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.GreetService;
+import org.onlab.onos.GreetService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

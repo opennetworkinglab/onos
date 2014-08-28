@@ -100,9 +100,8 @@
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
-                            org.onlab.osgi.*,
                             org.onlab.rest.*,
-                            org.onlab.onos.net.*
+                            org.onlab.onos.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

@@ -1,7 +1,7 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.impl;
 
 import org.junit.Test;
-import org.onlab.onos.net.GreetService;
+import org.onlab.onos.GreetService;
 
 import java.util.Iterator;
 

@@ -1,4 +1,4 @@
-package org.onlab.onos.net;
+package org.onlab.onos;
 
 /**
  * Example of a simple service that provides greetings and it

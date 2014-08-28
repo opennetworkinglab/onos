@@ -2,7 +2,7 @@ package org.onlab.onos.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.onos.net.GreetService;
+import org.onlab.onos.GreetService;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.DefaultValue;
