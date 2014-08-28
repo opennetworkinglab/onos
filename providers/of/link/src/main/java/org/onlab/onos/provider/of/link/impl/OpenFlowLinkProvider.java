@@ -6,7 +6,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderBroker;
+import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
@@ -25,7 +25,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkProviderBroker providerBroker;
+    protected LinkProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenFlowController controller;
@@ -41,13 +41,13 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
     @Activate
     public void activate() {
-        providerService = providerBroker.register(this);
+        providerService = providerRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        providerBroker.unregister(this);
+        providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
     }

@@ -8,13 +8,13 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests of the base listener manager.
  */
-public class AbstractListenerManagerTest {
+public class AbstractListenerRegistryTest {
 
     @Test
     public void basics() {
         TestListener listener = new TestListener();
         TestListener secondListener = new TestListener();
-        TestListenerManager manager = new TestListenerManager();
+        TestListenerRegistry manager = new TestListenerRegistry();
         manager.addListener(listener);
         manager.addListener(secondListener);
 
@@ -35,7 +35,7 @@ public class AbstractListenerManagerTest {
     public void badListener() {
         TestListener listener = new BrokenListener();
         TestListener secondListener = new TestListener();
-        TestListenerManager manager = new TestListenerManager();
+        TestListenerRegistry manager = new TestListenerRegistry();
         manager.addListener(listener);
         manager.addListener(secondListener);
 

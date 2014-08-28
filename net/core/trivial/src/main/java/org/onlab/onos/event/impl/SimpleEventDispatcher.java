@@ -5,9 +5,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.event.DefaultEventSinkBroker;
+import org.onlab.onos.event.DefaultEventSinkRegistry;
 import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventDispatchService;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.event.EventSink;
 import org.slf4j.Logger;
 
@@ -24,8 +24,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleEventDispatcher extends DefaultEventSinkBroker
-        implements EventDispatchService {
+public class SimpleEventDispatcher extends DefaultEventSinkRegistry
+        implements EventDeliveryService {
 
     private final Logger log = getLogger(getClass());
 

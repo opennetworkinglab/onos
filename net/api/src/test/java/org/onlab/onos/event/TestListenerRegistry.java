@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * Test event listener manager fixture.
  */
-public class TestListenerManager
-        extends AbstractListenerManager<TestEvent, TestListener> {
+public class TestListenerRegistry
+        extends AbstractListenerRegistry<TestEvent, TestListener> {
 
     public final List<Throwable> errors = new ArrayList<>();
 

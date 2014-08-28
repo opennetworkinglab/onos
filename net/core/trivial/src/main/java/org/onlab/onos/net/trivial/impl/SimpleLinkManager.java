@@ -6,15 +6,15 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.AbstractListenerManager;
-import org.onlab.onos.event.EventDispatchService;
+import org.onlab.onos.event.AbstractListenerRegistry;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderBroker;
+import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.provider.AbstractProviderBroker;
+import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
@@ -26,20 +26,20 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class SimpleLinkManager
-        extends AbstractProviderBroker<LinkProvider, LinkProviderService>
-        implements LinkProviderBroker {
+        extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
+        implements LinkProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerManager<LinkEvent, LinkListener>
-            listenerManager = new AbstractListenerManager<>();
+    private final AbstractListenerRegistry<LinkEvent, LinkListener>
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDispatchService eventDispatcher;
+    private EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
-        eventDispatcher.addSink(LinkEvent.class, listenerManager);
+        eventDispatcher.addSink(LinkEvent.class, listenerRegistry);
         log.info("Started");
     }
 

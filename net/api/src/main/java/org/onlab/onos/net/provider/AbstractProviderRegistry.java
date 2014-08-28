@@ -7,13 +7,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Base implementation of provider broker.
+ * Base implementation of provider registry.
  *
  * @param <P> type of the information provider
  * @param <S> type of the provider service
  */
-public abstract class AbstractProviderBroker<P extends Provider, S extends ProviderService<P>>
-        implements ProviderBroker<P, S> {
+public abstract class AbstractProviderRegistry<P extends Provider, S extends ProviderService<P>>
+        implements ProviderRegistry<P, S> {
 
     private final Map<ProviderId, S> services = new HashMap<>();
 

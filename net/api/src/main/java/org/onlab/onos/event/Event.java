@@ -1,7 +1,7 @@
 package org.onlab.onos.event;
 
 /**
- * Abstraction of an event.
+ * Abstraction of an of a time-stamped event pertaining to an arbitrary subject.
  */
 public interface Event<T extends Enum, S extends Object> {
 

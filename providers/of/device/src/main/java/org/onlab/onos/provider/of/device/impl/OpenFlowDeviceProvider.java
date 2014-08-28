@@ -8,7 +8,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderBroker;
+import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
@@ -27,7 +27,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceProviderBroker providerBroker;
+    protected DeviceProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenFlowController controller;
@@ -43,13 +43,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Activate
     public void activate() {
-        providerService = providerBroker.register(this);
+        providerService = providerRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        providerBroker.unregister(this);
+        providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
     }

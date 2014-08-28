@@ -7,7 +7,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.HostProviderBroker;
+import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
@@ -26,7 +26,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostProviderBroker providerBroker;
+    protected HostProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenFlowController controller;
@@ -42,13 +42,13 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
 
     @Activate
     public void activate() {
-        providerService = providerBroker.register(this);
+        providerService = providerRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        providerBroker.unregister(this);
+        providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
     }

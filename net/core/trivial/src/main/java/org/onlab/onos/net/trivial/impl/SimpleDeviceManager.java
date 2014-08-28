@@ -6,8 +6,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.AbstractListenerManager;
-import org.onlab.onos.event.EventDispatchService;
+import org.onlab.onos.event.AbstractListenerRegistry;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -17,11 +17,11 @@ import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderBroker;
+import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.provider.AbstractProviderBroker;
+import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
@@ -36,8 +36,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class SimpleDeviceManager
-        extends AbstractProviderBroker<DeviceProvider, DeviceProviderService>
-        implements DeviceService, DeviceProviderBroker {
+        extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
+        implements DeviceService, DeviceProviderRegistry {
 
     public static final String DEVICE_ID_NULL = "Device ID cannot be null";
     public static final String PORT_NUMBER_NULL = "Port number cannot be null";
@@ -46,17 +46,17 @@ public class SimpleDeviceManager
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerManager<DeviceEvent, DeviceListener>
-            listenerManager = new AbstractListenerManager<>();
+    private final AbstractListenerRegistry<DeviceEvent, DeviceListener>
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     private final DeviceStore store = new DeviceStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDispatchService eventDispatcher;
+    private EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
-        eventDispatcher.addSink(DeviceEvent.class, listenerManager);
+        eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
         log.info("Started");
     }
 
@@ -98,12 +98,12 @@ public class SimpleDeviceManager
 
     @Override
     public void addListener(DeviceListener listener) {
-        listenerManager.addListener(listener);
+        listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(DeviceListener listener) {
-        listenerManager.removeListener(listener);
+        listenerRegistry.removeListener(listener);
     }
 
     @Override

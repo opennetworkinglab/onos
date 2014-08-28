@@ -1,12 +1,12 @@
 package org.onlab.onos.net.provider;
 
 /**
- * Broker used for registering/unregistering information providers with the core.
+ * Registry for tracking information providers with the core.
  *
  * @param <P> type of the information provider
  * @param <S> type of the provider service
  */
-public interface ProviderBroker<P extends Provider, S extends ProviderService<P>> {
+public interface ProviderRegistry<P extends Provider, S extends ProviderService<P>> {
 
     /**
      * Registers the supplied provider with the core.

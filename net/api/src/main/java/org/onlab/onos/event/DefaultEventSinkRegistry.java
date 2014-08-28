@@ -10,12 +10,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Base implementation of event sink broker.
+ * Base implementation of event sink registry.
  */
-public class DefaultEventSinkBroker implements EventSinkBroker {
+public class DefaultEventSinkRegistry implements EventSinkRegistry {
 
-    private final Map<Class<? extends Event>, EventSink<? extends Event>> sinks =
-            new ConcurrentHashMap<>();
+    private final Map<Class<? extends Event>, EventSink<? extends Event>>
+            sinks = new ConcurrentHashMap<>();
 
     @Override
     public <E extends Event> void addSink(Class<E> eventClass, EventSink<E> sink) {

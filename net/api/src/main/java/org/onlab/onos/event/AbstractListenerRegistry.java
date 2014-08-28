@@ -10,10 +10,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Base implementation of a manager capable of tracking listeners and
- * dispatching events to them.
+ * Base implementation of an event sink and a registry capable of tracking
+ * listeners and dispatching events to them as part of event sink processing.
  */
-public class AbstractListenerManager<E extends Event, L extends EventListener<E>>
+public class AbstractListenerRegistry<E extends Event, L extends EventListener<E>>
         implements EventSink<E> {
 
     private final Logger log = getLogger(getClass());

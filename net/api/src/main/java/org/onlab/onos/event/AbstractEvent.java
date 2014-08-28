@@ -1,7 +1,7 @@
 package org.onlab.onos.event;
 
 /**
- * Base abstraction of an event.
+ * Base event implementation.
  */
 public class AbstractEvent<T extends Enum, S extends Object> implements Event<T, S> {
 

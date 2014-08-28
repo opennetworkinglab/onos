@@ -3,10 +3,10 @@ package org.onlab.onos.event;
 import java.util.Set;
 
 /**
- * Abstraction of an event sink broker capable of tracking sinks based on
+ * Abstraction of an event sink registry capable of tracking sinks based on
  * their event class.
  */
-public interface EventSinkBroker {
+public interface EventSinkRegistry {
 
     /**
      * Adds the specified sink for the given event class.

@@ -6,11 +6,11 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Tests of the default event sink broker.
+ * Tests of the default event sink registry.
  */
-public class DefaultEventSinkBrokerTest {
+public class DefaultEventSinkRegistryTest {
 
-    private DefaultEventSinkBroker broker;
+    private DefaultEventSinkRegistry registry;
 
     private static class FooEvent extends TestEvent {
         public FooEvent(String subject) { super(Type.FOO, subject); }
@@ -30,23 +30,23 @@ public class DefaultEventSinkBrokerTest {
 
     @Before
     public void setUp() {
-        broker = new DefaultEventSinkBroker();
+        registry = new DefaultEventSinkRegistry();
     }
 
     @Test
     public void basics() {
         FooSink fooSink = new FooSink();
         BarSink barSink = new BarSink();
-        broker.addSink(FooEvent.class, fooSink);
-        broker.addSink(BarEvent.class, barSink);
+        registry.addSink(FooEvent.class, fooSink);
+        registry.addSink(BarEvent.class, barSink);
 
-        assertEquals("incorrect sink count", 2, broker.getSinks().size());
-        assertEquals("incorrect sink", fooSink, broker.getSink(FooEvent.class));
-        assertEquals("incorrect sink", barSink, broker.getSink(BarEvent.class));
+        assertEquals("incorrect sink count", 2, registry.getSinks().size());
+        assertEquals("incorrect sink", fooSink, registry.getSink(FooEvent.class));
+        assertEquals("incorrect sink", barSink, registry.getSink(BarEvent.class));
 
-        broker.removeSink(FooEvent.class);
-        assertNull("incorrect sink", broker.getSink(FooEvent.class));
-        assertEquals("incorrect sink", barSink, broker.getSink(BarEvent.class));
+        registry.removeSink(FooEvent.class);
+        assertNull("incorrect sink", registry.getSink(FooEvent.class));
+        assertEquals("incorrect sink", barSink, registry.getSink(BarEvent.class));
 
     }
 }
