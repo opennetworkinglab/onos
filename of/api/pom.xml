@@ -63,7 +63,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            org.projectfloodlight.openflow.*
+                            org.onlab.onos.of.*,org.projectfloodlight.openflow.*
                         </Export-Package>
                     </instructions>
                 </configuration>

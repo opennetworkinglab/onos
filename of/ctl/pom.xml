@@ -38,6 +38,10 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-of-api</artifactId>
+        </dependency>
         <!-- ONOS's direct dependencies -->
         <dependency>
             <groupId>org.apache.felix</groupId>
