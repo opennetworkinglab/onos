@@ -34,17 +34,17 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      * determine what has changed.
      * <p/>
      *
-     * @param deviceId identity of the device
-     * @param ports list of device ports
+     * @param deviceId         identity of the device
+     * @param portDescriptions list of device ports
      */
-    void updatePorts(DeviceId deviceId, List<PortDescription> ports);
+    void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions);
 
     /**
      * Used to notify the core about port status change of a single port.
      *
-     * @param deviceId identity of the device
-     * @param port description of the port that changed
+     * @param deviceId        identity of the device
+     * @param portDescription description of the port that changed
      */
-    void portStatusChanged(DeviceId deviceId, PortDescription port);
+    void portStatusChanged(DeviceId deviceId, PortDescription portDescription);
 
 }

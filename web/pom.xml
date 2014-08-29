@@ -33,13 +33,13 @@
 
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-utils-osgi</artifactId>
+            <artifactId>onlab-osgi</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-utils-rest</artifactId>
+            <artifactId>onlab-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -100,9 +100,8 @@
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
-                            org.onlab.osgi.*,
                             org.onlab.rest.*,
-                            org.onlab.onos.net.*
+                            org.onlab.onos.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

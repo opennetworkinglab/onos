@@ -1,6 +1,6 @@
 package org.onlab.onos.gui;
 
-import org.onlab.onos.net.GreetService;
+import org.onlab.onos.GreetService;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.DefaultValue;

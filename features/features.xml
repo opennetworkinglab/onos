@@ -23,8 +23,9 @@
              description="ONOS services and model API">
         <feature>scr</feature>
         <feature>onos-thirdparty-base</feature>
-        <bundle>mvn:org.onlab.onos/onos-utils-osgi/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-utils-rest/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onlab-misc/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onlab-osgi/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onlab-rest/1.0.0-SNAPSHOT</bundle>
 
         <bundle>mvn:org.onlab.onos/onos-api/1.0.0-SNAPSHOT</bundle>
     </feature>

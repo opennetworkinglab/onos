@@ -6,13 +6,13 @@ package org.onlab.onos.event;
  * Similarly, whether the events are accepted and dispatched synchronously
  * or asynchronously is unspecified as well.
  */
-public interface EventDispatcher<E extends Event> {
+public interface EventDispatcher {
 
     /**
      * Posts the specified event for dispatching.
      *
      * @param event event to be posted
      */
-    void post(E event);
+    void post(Event event);
 
 }

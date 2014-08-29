@@ -112,6 +112,12 @@
             <!-- ONOS related -->
             <dependency>
                 <groupId>org.onlab.onos</groupId>
+                <artifactId>onlab-misc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
                 <artifactId>onos-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -152,6 +158,10 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.17</version>
+                    <configuration>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <printSummary>true</printSummary>
+                    </configuration>
                 </plugin>
 
                 <plugin>
@@ -246,6 +256,27 @@
             </plugin>
 
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.1.201405082137</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.9.1</version>
@@ -256,13 +287,13 @@
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>
-                                org.onlab.onos.*
+                                org.onlab.onos:org.onlab.onos.*
                             </packages>
                         </group>
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.net.trivial.impl:org.onlab.onos.net.*.impl
+                                org.onlab.onos.net.trivial.impl:org.onlab.onos.net.*.impl:org.onlab.onos.impl:org.onlab.onos.event.impl
                             </packages>
                         </group>
                         <group>
@@ -290,7 +321,6 @@
 
         </plugins>
     </build>
-
 
     <reporting>
         <plugins>

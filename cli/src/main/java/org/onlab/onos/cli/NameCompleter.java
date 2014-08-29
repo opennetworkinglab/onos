@@ -2,7 +2,7 @@ package org.onlab.onos.cli;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.net.GreetService;
+import org.onlab.onos.GreetService;
 
 import java.util.Iterator;
 import java.util.List;

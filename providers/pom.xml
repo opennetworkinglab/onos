@@ -24,7 +24,11 @@
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-misc</artifactId>
         </dependency>
 
         <dependency>

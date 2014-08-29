@@ -6,12 +6,14 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderBroker;
+import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.of.controller.OpenFlowController;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -20,15 +22,15 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvider {
 
-    private final Logger log = LoggerFactory.getLogger(OpenFlowLinkProvider.class);
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkProviderBroker providerBroker;
+    protected LinkProviderRegistry providerRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenFlowController controller;
 
     private LinkProviderService providerService;
-
-//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-//    protected OpenFlowController controller;
 
     /**
      * Creates an OpenFlow link provider.
@@ -39,13 +41,13 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
     @Activate
     public void activate() {
-        providerService = providerBroker.register(this);
+        providerService = providerRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        providerBroker.unregister(this);
+        providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
     }

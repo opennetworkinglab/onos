@@ -7,12 +7,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.HostProviderBroker;
+import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.of.controller.OpenFlowController;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -21,15 +23,15 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class OpenFlowHostProvider extends AbstractProvider implements HostProvider {
 
-    private final Logger log = LoggerFactory.getLogger(OpenFlowHostProvider.class);
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostProviderBroker providerBroker;
+    protected HostProviderRegistry providerRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenFlowController controller;
 
     private HostProviderService providerService;
-
-//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-//    protected OpenFlowController controller;
 
     /**
      * Creates an OpenFlow host provider.
@@ -40,13 +42,13 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
 
     @Activate
     public void activate() {
-        providerService = providerBroker.register(this);
+        providerService = providerRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        providerBroker.unregister(this);
+        providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
     }
