@@ -17,6 +17,7 @@ public class GraphTest {
     static final TestVertex F = new TestVertex("F");
     static final TestVertex G = new TestVertex("G");
     static final TestVertex H = new TestVertex("H");
+    static final TestVertex Z = new TestVertex("Z");
 
     protected Graph<TestVertex, TestEdge> g;
 

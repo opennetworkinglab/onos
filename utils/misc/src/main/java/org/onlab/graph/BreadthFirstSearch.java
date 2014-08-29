@@ -10,7 +10,8 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
         extends AbstractGraphPathSearch<V, E> {
 
     @Override
-    public Result<V, E> search(Graph<V, E> graph, V src, V dst, EdgeWeight<V, E> ew) {
+    public Result<V, E> search(Graph<V, E> graph, V src, V dst,
+                               EdgeWeight<V, E> weight) {
         checkArguments(graph, src, dst);
 
         // Prepare the graph result.
@@ -18,7 +19,7 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
 
         // Setup the starting frontier with the source as the sole vertex.
         Set<V> frontier = new HashSet<>();
-        result.costs.put(src, 0.0);
+        result.updateVertex(src, null, 0.0, true);
         frontier.add(src);
 
         boolean reachedEnd = false;
@@ -35,9 +36,8 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
                     V nextVertex = edge.dst();
                     if (!result.hasCost(nextVertex)) {
                         // If this vertex has not been visited yet, update it.
-                        result.updateVertex(nextVertex, edge,
-                                            cost + (ew == null ? 1.0 : ew.weight(edge)),
-                                            true);
+                        double newCost = cost + (weight == null ? 1.0 : weight.weight(edge));
+                        result.updateVertex(nextVertex, edge, newCost, true);
                         // If we have reached our intended destination, bail.
                         if (nextVertex.equals(dst)) {
                             reachedEnd = true;

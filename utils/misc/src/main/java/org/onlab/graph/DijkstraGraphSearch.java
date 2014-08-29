@@ -12,8 +12,9 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
         extends AbstractGraphPathSearch<V, E> {
 
     @Override
-    public Result<V, E> search(Graph<V, E> g, V src, V dst, EdgeWeight<V, E> ew) {
-        checkArguments(g, src, dst);
+    public Result<V, E> search(Graph<V, E> graph, V src, V dst,
+                               EdgeWeight<V, E> weight) {
+        checkArguments(graph, src, dst);
 
         // Use the default result to remember cumulative costs and parent
         // edges to each each respective vertex.
@@ -25,7 +26,7 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
         // Use the min priority queue to progressively find each nearest
         // vertex until we reach the desired destination, if one was given,
         // or until we reach all possible destinations.
-        Heap<V> minQueue = createMinQueue(g.getVertexes(),
+        Heap<V> minQueue = createMinQueue(graph.getVertexes(),
                                           new PathCostComparator(result));
         while (!minQueue.isEmpty()) {
             // Get the nearest vertex
@@ -38,8 +39,8 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
             double cost = result.cost(nearest);
             if (cost < Double.MAX_VALUE) {
                 // If the vertex is reachable, relax all its egress edges.
-                for (E e : g.getEdgesFrom(nearest)) {
-                    result.relaxEdge(e, cost, ew);
+                for (E e : graph.getEdgesFrom(nearest)) {
+                    result.relaxEdge(e, cost, weight);
                 }
             }
 
