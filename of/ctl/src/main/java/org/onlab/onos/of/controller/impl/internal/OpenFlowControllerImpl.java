@@ -24,12 +24,19 @@ import org.slf4j.LoggerFactory;
 @Service
 public class OpenFlowControllerImpl implements OpenFlowController {
 
-    protected ConcurrentHashMap<Long, OpenFlowSwitch> connectedSwitches;
-    protected ConcurrentHashMap<Long, OpenFlowSwitch> activeMasterSwitches;
-    protected ConcurrentHashMap<Long, OpenFlowSwitch> activeEqualSwitches;
+    private static final Logger log =
+            LoggerFactory.getLogger(OpenFlowControllerImpl.class);
+
+    protected ConcurrentHashMap<Long, OpenFlowSwitch> connectedSwitches =
+            new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    protected ConcurrentHashMap<Long, OpenFlowSwitch> activeMasterSwitches =
+            new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    protected ConcurrentHashMap<Long, OpenFlowSwitch> activeEqualSwitches =
+            new ConcurrentHashMap<Long, OpenFlowSwitch>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
-    protected ArrayList<OpenFlowSwitchListener> ofEventListener;
+    protected ArrayList<OpenFlowSwitchListener> ofEventListener =
+            new ArrayList<OpenFlowSwitchListener>();
 
     private final Controller ctrl = new Controller();
 
@@ -98,29 +105,17 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void write(Dpid dpid, OFMessage msg) {
-        this.getSwitch(dpid).write(msg);
+        this.getSwitch(dpid).sendMsg(msg);
     }
 
     @Override
     public void processPacket(OFMessage msg) {
+        log.info("Got message {}", msg);
     }
 
     @Override
     public void setRole(Dpid dpid, RoleState role) {
-        switch (role) {
-        case MASTER:
-            agent.transitionToMasterSwitch(dpid.value());
-            break;
-        case EQUAL:
-            agent.transitionToEqualSwitch(dpid.value());
-            break;
-        case SLAVE:
-            //agent.transitionToSlaveSwitch(dpid.value());
-            break;
-        default:
-            //WTF role is this?
-        }
-
+        ((AbstractOpenFlowSwitch) getSwitch(dpid)).setRole(role);
     }
 
     public class OpenFlowSwitchAgent {
@@ -189,6 +184,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                         return false;
                     }
                     activeEqualSwitches.put(dpid, sw);
+                    log.info("Added Activated EQUAL Switch {}", dpid);
                     return true;
             } finally {
                 switchLock.unlock();
@@ -203,6 +199,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         protected void transitionToMasterSwitch(long dpid) {
             switchLock.lock();
             try {
+                if (activeMasterSwitches.containsKey(dpid)) {
+                    return;
+                }
                 OpenFlowSwitch sw = activeEqualSwitches.remove(dpid);
                 if (sw == null) {
                     log.error("Transition to master called on sw {}, but switch "
@@ -224,6 +223,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         protected void transitionToEqualSwitch(long dpid) {
             switchLock.lock();
             try {
+                if (activeEqualSwitches.containsKey(dpid)) {
+                    return;
+                }
                 OpenFlowSwitch sw = activeMasterSwitches.remove(dpid);
                 if (sw == null) {
                     log.error("Transition to equal called on sw {}, but switch "

@@ -13,7 +13,7 @@ public interface OpenFlowSwitch {
      *
      * @param msg the message to write
      */
-    public void write(OFMessage msg);
+    public void sendMsg(OFMessage msg);
 
     /**
      * Handle a message from the switch.

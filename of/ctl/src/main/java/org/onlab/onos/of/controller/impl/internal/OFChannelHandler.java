@@ -230,12 +230,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 h.thisdpid = m.getDatapathId().getLong();
                 log.info("Received features reply for switch at {} with dpid {}",
                         h.getSwitchInfoString(), h.thisdpid);
-                //update the controller about this connected switch
-                boolean success = h.sw.addConnectedSwitch();
-                if (!success) {
-                    disconnectDuplicate(h);
-                    return;
-                }
 
                 h.featuresReply = m; //temp store
                 if (h.ofVersion == OFVersion.OF_10) {
@@ -419,7 +413,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                         h.channel.getRemoteAddress());
                 OFDescStatsReply drep = (OFDescStatsReply) m;
                 // Here is where we differentiate between different kinds of switches
-                h.sw = h.controller.getOFSwitchInstance(drep, h.ofVersion);
+                h.sw = h.controller.getOFSwitchInstance(h.thisdpid, drep, h.ofVersion);
+                boolean success = h.sw.addConnectedSwitch();
+                if (!success) {
+                    disconnectDuplicate(h);
+                    return;
+                }
                 // set switch information
                 h.sw.setOFVersion(h.ofVersion);
                 h.sw.setFeaturesReply(h.featuresReply);
@@ -433,7 +432,9 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 //Put switch in EQUAL mode until we hear back from the global registry
                 log.debug("Setting new switch {} to EQUAL and sending Role request",
                         h.sw.getStringId());
-                h.setSwitchRole(RoleState.EQUAL);
+                h.sw.addActivatedEqualSwitch();
+                //h.setSwitchRole(RoleState.EQUAL);
+                h.setSwitchRole(RoleState.MASTER);
                 h.sw.startDriverHandshake();
                 h.setState(WAIT_SWITCH_DRIVER_SUB_HANDSHAKE);
 
