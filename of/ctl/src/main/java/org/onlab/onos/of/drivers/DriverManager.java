@@ -1,7 +1,6 @@
 package org.onlab.onos.of.drivers;
 
 
-import java.util.List;
 
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.RoleState;
@@ -56,52 +55,39 @@ public final class DriverManager {
                 + "Assigning OFSwitchImplBase", desc);
         AbstractOpenFlowSwitch base = new AbstractOpenFlowSwitch(dpid) {
 
-            @Override
-            public void write(List<OFMessage> msgs) {
-                // TODO Auto-generated method stub
-            }
 
             @Override
             public void sendMsg(OFMessage m) {
-                // TODO Auto-generated method stub
+                channel.write(m);
             }
 
             @Override
             public Boolean supportNxRole() {
-                // TODO Auto-generated method stub
-                return null;
-            }
-
-            @Override
-            public void startDriverHandshake() {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void setFeaturesReply(OFFeaturesReply featuresReply) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void processDriverHandshakeMessage(OFMessage m) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public boolean isDriverHandshakeComplete() {
-                // TODO Auto-generated method stub
                 return false;
             }
 
             @Override
+            public void startDriverHandshake() {}
+
+            @Override
+            public void setFeaturesReply(OFFeaturesReply featuresReply) {
+                this.features = featuresReply;
+            }
+
+            @Override
+            public void processDriverHandshakeMessage(OFMessage m) {}
+
+            @Override
+            public boolean isDriverHandshakeComplete() {
+                return true;
+            }
+
+            @Override
             public RoleState getRole() {
-                // TODO Auto-generated method stub
-                return null;
+                return role;
             }
         };
         base.setSwitchDescription(desc);
-        // XXX S must set counter here - unidentified switch
         return base;
     }
 

@@ -65,7 +65,6 @@ import org.slf4j.LoggerFactory;
  */
 class OFChannelHandler extends IdleStateAwareChannelHandler {
     private static final Logger log = LoggerFactory.getLogger(OFChannelHandler.class);
-    private static final long DEFAULT_ROLE_TIMEOUT_MS = 2 * 1000; // 10 sec
     private final Controller controller;
     private AbstractOpenFlowSwitch sw;
     private long thisdpid; // channelHandler cached value of connected switch id
