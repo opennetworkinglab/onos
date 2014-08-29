@@ -2,7 +2,6 @@ package org.onlab.onos.of.controller.impl.internal;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.onlab.onos.of.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
@@ -50,7 +49,6 @@ class RoleManager {
 
     // the expectation set by the caller for the returned role
     private RoleRecvStatus expectation;
-    private AtomicInteger xidCounter;
     private AbstractOpenFlowSwitch sw;
 
 
@@ -58,7 +56,6 @@ class RoleManager {
         this.requestPending = false;
         this.pendingXid = -1;
         this.pendingRole = null;
-        this.xidCounter = new AtomicInteger(0);
         this.expectation = RoleRecvStatus.MATCHED_CURRENT_ROLE;
         this.sw = sw;
     }
@@ -85,7 +82,7 @@ class RoleManager {
             roleToSend = OFNiciraControllerRole.ROLE_SLAVE;
             log.warn("Sending Nx Role.SLAVE to switch {}.", sw);
         }
-        int xid = xidCounter.getAndIncrement();
+        int xid = sw.getNextTransactionId();
         OFExperimenter roleRequest = OFFactories.getFactory(OFVersion.OF_10)
                 .buildNiciraControllerRoleRequest()
                 .setXid(xid)
@@ -113,7 +110,7 @@ class RoleManager {
                     + " Should only be used for queries.", sw);
         }
 
-        int xid = xidCounter.getAndIncrement();
+        int xid = sw.getNextTransactionId();
         OFRoleRequest rrm = OFFactories.getFactory(OFVersion.OF_13)
                 .buildRoleRequest()
                 .setRole(roleToSend)
@@ -121,7 +118,7 @@ class RoleManager {
                 //FIXME fix below when we actually use generation ids
                 .setGenerationId(U64.ZERO)
                 .build();
-        sw.write(rrm);
+        sw.sendMsg(rrm);
         return xid;
     }
 

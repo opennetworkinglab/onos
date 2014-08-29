@@ -29,9 +29,11 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
 import org.onlab.onos.of.controller.impl.internal.OpenFlowControllerImpl.OpenFlowSwitchAgent;
+import org.onlab.onos.of.drivers.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
@@ -82,11 +84,6 @@ public class Controller {
     // ***************
     // Getters/Setters
     // ***************
-
-
-    public synchronized void setIOFSwitchManager(IOFSwitchManager swManager) {
-        this.switchManager = swManager;
-    }
 
     public OFFactory getOFMessageFactory10() {
         return FACTORY10;
@@ -201,18 +198,6 @@ public class Controller {
 
     }
 
-    /**
-     * Startup all of the controller's components.
-     */
-    @LogMessageDoc(message = "Waiting for storage source",
-            explanation = "The system database is not yet ready",
-            recommendation = "If this message persists, this indicates " +
-                    "that the system database has failed to start. " +
-                    LogMessageDoc.CHECK_CONTROLLER)
-    public synchronized void startupComponents() {
-        //TODO do something maybe
-    }
-
     // **************
     // Utility methods
     // **************
@@ -236,9 +221,10 @@ public class Controller {
      * @param desc
      * @return switch instance
      */
-    protected AbstractOpenFlowSwitch getOFSwitchInstance(OFDescStatsReply desc, OFVersion ofv) {
-        AbstractOpenFlowSwitch sw =  switchManager.getSwitchImpl(desc.getMfrDesc(), desc.getHwDesc(),
-                                            desc.getSwDesc(), ofv);
+    protected AbstractOpenFlowSwitch getOFSwitchInstance(long dpid,
+            OFDescStatsReply desc, OFVersion ofv) {
+        AbstractOpenFlowSwitch sw = DriverManager.getOFSwitchImpl(new Dpid(dpid),
+                desc, ofv);
         sw.setAgent(agent);
         return sw;
     }
@@ -247,7 +233,6 @@ public class Controller {
         log.info("Initialising OpenFlow Lib and IO");
         this.agent = ag;
         this.init(new HashMap<String, String>());
-        this.startupComponents();
         this.run();
     }
 
