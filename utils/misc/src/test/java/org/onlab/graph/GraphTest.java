@@ -1,7 +1,5 @@
 package org.onlab.graph;
 
-import com.google.common.collect.ImmutableSet;
-
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
@@ -24,11 +22,11 @@ public class GraphTest {
 
     protected EdgeWeight<TestVertex, TestEdge> weight =
             new EdgeWeight<TestVertex, TestEdge>() {
-        @Override
-        public double weight(TestEdge edge) {
-            return edge.weight();
-        }
-    };
+                @Override
+                public double weight(TestEdge edge) {
+                    return edge.weight();
+                }
+            };
 
     protected void printPaths(Set<Path<TestVertex, TestEdge>> paths) {
         for (Path p : paths) {

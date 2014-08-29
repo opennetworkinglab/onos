@@ -1,6 +1,5 @@
 package org.onlab.graph;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
@@ -8,7 +7,6 @@ import java.util.List;
 
 import static com.google.common.collect.ImmutableList.of;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * Test of the default path.
@@ -33,8 +31,8 @@ public class DefaultPathTest extends GraphTest {
 
     // Validates the path against expected attributes
     protected void validatePath(Path<TestVertex, TestEdge> p,
-                              TestVertex src, TestVertex dst,
-                              int length, double cost) {
+                                TestVertex src, TestVertex dst,
+                                int length, double cost) {
         assertEquals("incorrect path length", length, p.edges().size());
         assertEquals("incorrect source", src, p.src());
         assertEquals("incorrect destination", dst, p.dst());

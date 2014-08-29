@@ -2,8 +2,6 @@ package org.onlab.graph;
 
 import java.util.Objects;
 
-import static com.google.common.base.Objects.toStringHelper;
-
 /**
  * Test vertex.
  */

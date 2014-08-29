@@ -1,13 +1,11 @@
 package org.onlab.graph;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 
 import static com.google.common.collect.ImmutableList.of;
 import static org.junit.Assert.*;
