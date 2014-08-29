@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <V> vertex type
  * @param <E> edge type
  */
-public abstract class AbstractPathSearch<V extends Vertex, E extends Edge<V>>
+public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V>>
         implements GraphPathSearch<V, E> {
 
     private double samenessThreshold = 0.000000001;

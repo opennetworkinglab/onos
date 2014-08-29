@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
+import static com.google.common.collect.ImmutableSet.of;
+
 /**
  * Base class for various graph-related tests.
  */
@@ -35,16 +37,16 @@ public class GraphTest {
     }
 
     protected Set<TestVertex> vertices() {
-        return ImmutableSet.of(A, B, C, D, E, F, G, H);
+        return of(A, B, C, D, E, F, G, H);
     }
 
     protected Set<TestEdge> edges() {
-        return ImmutableSet.of(new TestEdge(A, B, 1), new TestEdge(A, C, 3),
-                               new TestEdge(B, D, 2), new TestEdge(B, C, 1),
-                               new TestEdge(B, E, 4), new TestEdge(C, E, 1),
-                               new TestEdge(D, H, 5), new TestEdge(D, E, 1),
-                               new TestEdge(E, F, 1), new TestEdge(F, D, 1),
-                               new TestEdge(F, G, 1), new TestEdge(F, H, 1));
+        return of(new TestEdge(A, B, 1), new TestEdge(A, C, 3),
+                  new TestEdge(B, D, 2), new TestEdge(B, C, 1),
+                  new TestEdge(B, E, 4), new TestEdge(C, E, 1),
+                  new TestEdge(D, H, 5), new TestEdge(D, E, 1),
+                  new TestEdge(E, F, 1), new TestEdge(F, D, 1),
+                  new TestEdge(F, G, 1), new TestEdge(F, H, 1));
     }
 
 }

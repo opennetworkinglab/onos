@@ -2,6 +2,8 @@ package org.onlab.graph;
 
 import java.util.Objects;
 
+import static com.google.common.base.Objects.toStringHelper;
+
 /**
  * Test edge.
  */
@@ -43,4 +45,11 @@ public class TestEdge extends AbstractEdge<TestVertex> {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this).add("src", src()).add("dst", dst()).
+                add("weight", weight).toString();
+    }
+
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import static com.google.common.collect.ImmutableList.of;
 import static org.junit.Assert.*;
 
 /**
@@ -17,25 +18,42 @@ import static org.junit.Assert.*;
 public class HeapTest {
 
     private ArrayList<Integer> data =
-            new ArrayList<>(ImmutableList.of(6, 4, 5, 9, 8, 3, 2, 1, 7, 0));
+            new ArrayList<>(of(6, 4, 5, 9, 8, 3, 2, 1, 7, 0));
 
-    private static final Comparator<Integer> ASCENDING = Ordering.natural().reverse();
-    private static final Comparator<Integer> DESCENDING = Ordering.natural();
+    private static final Comparator<Integer> MIN = Ordering.natural().reverse();
+    private static final Comparator<Integer> MAX = Ordering.natural();
 
     @Test
     public void equality() {
         new EqualsTester()
-                .addEqualityGroup(new Heap<>(data, ASCENDING),
-                                  new Heap<>(data, ASCENDING))
-                .addEqualityGroup(new Heap<>(data, DESCENDING))
+                .addEqualityGroup(new Heap<>(data, MIN),
+                                  new Heap<>(data, MIN))
+                .addEqualityGroup(new Heap<>(data, MAX))
                 .testEquals();
     }
 
     @Test
-    public void ascending() {
-        Heap<Integer> h = new Heap<>(data, ASCENDING);
+    public void empty() {
+        Heap<Integer> h = new Heap<>(new ArrayList<Integer>(), MIN);
+        assertTrue("should be empty", h.isEmpty());
+        assertEquals("incorrect size", 0, h.size());
+        assertNull("no item expected", h.extreme());
+        assertNull("no item expected", h.extractExtreme());
+    }
+
+    @Test
+    public void insert() {
+        Heap<Integer> h = new Heap<>(data, MIN);
         assertEquals("incorrect size", 10, h.size());
+        h.insert(3);
+        assertEquals("incorrect size", 11, h.size());
+    }
+
+    @Test
+    public void minQueue() {
+        Heap<Integer> h = new Heap<>(data, MIN);
         assertFalse("should not be empty", h.isEmpty());
+        assertEquals("incorrect size", 10, h.size());
         assertEquals("incorrect extreme", (Integer) 0, h.extreme());
 
         for (int i = 0, n = h.size(); i < n; i++) {
@@ -45,10 +63,10 @@ public class HeapTest {
     }
 
     @Test
-    public void descending() {
-        Heap<Integer> h = new Heap<>(data, DESCENDING);
-        assertEquals("incorrect size", 10, h.size());
+    public void maxQueue() {
+        Heap<Integer> h = new Heap<>(data, MAX);
         assertFalse("should not be empty", h.isEmpty());
+        assertEquals("incorrect size", 10, h.size());
         assertEquals("incorrect extreme", (Integer) 9, h.extreme());
 
         for (int i = h.size(); i > 0; i--) {
@@ -58,29 +76,9 @@ public class HeapTest {
     }
 
     @Test
-    public void empty() {
-        Heap<Integer> h = new Heap<>(new ArrayList<Integer>(), ASCENDING);
-        assertEquals("incorrect size", 0, h.size());
-        assertTrue("should be empty", h.isEmpty());
-        assertNull("no item expected", h.extreme());
-        assertNull("no item expected", h.extractExtreme());
-    }
-
-    @Test
-    public void insert() {
-        Heap<Integer> h = new Heap<>(data, ASCENDING);
-        assertEquals("incorrect size", 10, h.size());
-        h.insert(3);
-        assertEquals("incorrect size", 11, h.size());
-    }
-
-    @Test
     public void iterator() {
-        Heap<Integer> h = new Heap<>(data, ASCENDING);
-        Iterator<Integer> it = h.iterator();
-        while (it.hasNext()) {
-            int item = it.next();
-        }
+        Heap<Integer> h = new Heap<>(data, MIN);
+        assertTrue("should have next element", h.iterator().hasNext());
     }
 
 }

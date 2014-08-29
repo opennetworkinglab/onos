@@ -9,7 +9,7 @@ import java.util.Set;
  * one, but all shortest paths between the source and destinations.
  */
 public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
-        extends AbstractPathSearch<V, E> {
+        extends AbstractGraphPathSearch<V, E> {
 
     @Override
     public Result<V, E> search(Graph<V, E> g, V src, V dst, EdgeWeight<V, E> ew) {

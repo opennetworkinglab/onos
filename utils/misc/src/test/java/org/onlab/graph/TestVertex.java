@@ -16,11 +16,6 @@ public class TestVertex implements Vertex {
     }
 
     @Override
-    public String toString() {
-        return toStringHelper(this).add("name", name).toString();
-    }
-
-    @Override
     public int hashCode() {
         return Objects.hash(name);
     }
@@ -32,6 +27,11 @@ public class TestVertex implements Vertex {
             return Objects.equals(this.name, other.name);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
 }

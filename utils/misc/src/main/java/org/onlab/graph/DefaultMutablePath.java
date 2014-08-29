@@ -14,8 +14,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements MutablePath<V, E> {
 
-    private V src = null;
-    private V dst = null;
     private final List<E> edges = new ArrayList<>();
     private double cost = 0.0;
 
@@ -32,20 +30,18 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
      */
     public DefaultMutablePath(Path<V, E> path) {
         checkNotNull(path, "Path cannot be null");
-        this.src = path.src();
-        this.dst = path.dst();
         this.cost = path.cost();
         edges.addAll(path.edges());
     }
 
     @Override
     public V src() {
-        return src;
+        return edges.isEmpty() ? null : edges.get(0).src();
     }
 
     @Override
     public V dst() {
-        return dst;
+        return edges.isEmpty() ? null : edges.get(edges.size() - 1).dst();
     }
 
     @Override
@@ -69,28 +65,35 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
     }
 
     @Override
+    public void insertEdge(E edge) {
+        checkNotNull(edge, "Edge cannot be null");
+        checkArgument(edges.isEmpty() || src().equals(edge.dst()),
+                      "Edge destination must be the same as the current path source");
+        edges.add(0, edge);
+    }
+
+    @Override
     public void appendEdge(E edge) {
         checkNotNull(edge, "Edge cannot be null");
-        checkArgument(edges.isEmpty() || dst.equals(edge.src()),
+        checkArgument(edges.isEmpty() || dst().equals(edge.src()),
                       "Edge source must be the same as the current path destination");
-        dst = edge.dst();
         edges.add(edge);
     }
 
     @Override
-    public void insertEdge(E edge) {
-        checkNotNull(edge, "Edge cannot be null");
-        checkArgument(edges.isEmpty() || src.equals(edge.dst()),
-                      "Edge destination must be the same as the current path source");
-        src = edge.src();
-        edges.add(0, edge);
+    public void removeEdge(E edge) {
+        checkArgument(edge.src().equals(edge.dst()) ||
+                              edges.indexOf(edge) == 0 ||
+                              edges.lastIndexOf(edge) == edges.size() - 1,
+                      "Edge must be at start or end of path, or it must be a cyclic edge");
+        edges.remove(edge);
     }
 
     @Override
     public String toString() {
         return com.google.common.base.Objects.toStringHelper(this)
-                .add("src", src)
-                .add("dst", dst)
+                .add("src", src())
+                .add("dst", dst())
                 .add("cost", cost)
                 .add("edges", edges)
                 .toString();
@@ -98,19 +101,17 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
 
     @Override
     public int hashCode() {
-        return Objects.hash(src, dst, edges, cost);
+        return Objects.hash(edges, cost);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof DefaultMutablePath) {
             final DefaultMutablePath other = (DefaultMutablePath) obj;
-            return super.equals(obj) &&
-                    Objects.equals(this.src, other.src) &&
-                    Objects.equals(this.dst, other.dst) &&
-                    Objects.equals(this.cost, other.cost) &&
+            return Objects.equals(this.cost, other.cost) &&
                     Objects.equals(this.edges, other.edges);
         }
         return false;
     }
+
 }

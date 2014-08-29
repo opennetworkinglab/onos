@@ -22,22 +22,9 @@ public class AdjacencyListsGraphTest {
     private static final TestVertex G = new TestVertex("G");
 
     private final Set<TestEdge> edges =
-            ImmutableSet.of(new TestEdge(A, B, 1), new TestEdge(A, C, 1),
-                            new TestEdge(B, C, 1), new TestEdge(C, D, 1),
-                            new TestEdge(D, A, 1));
-
-    @Test
-    public void basics() {
-        Set<TestVertex> vertexes = ImmutableSet.of(A, B, C, D, E, F);
-        AdjacencyListsGraph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(vertexes, edges);
-        assertEquals("incorrect vertex count", 6, graph.getVertexes().size());
-        assertEquals("incorrect edge count", 5, graph.getEdges().size());
-
-        assertEquals("incorrect egress edge count", 2, graph.getEdgesFrom(A).size());
-        assertEquals("incorrect ingress edge count", 1, graph.getEdgesTo(A).size());
-        assertEquals("incorrect ingress edge count", 2, graph.getEdgesTo(C).size());
-        assertEquals("incorrect egress edge count", 1, graph.getEdgesFrom(C).size());
-    }
+            ImmutableSet.of(new TestEdge(A, B, 1), new TestEdge(B, C, 1),
+                            new TestEdge(C, D, 1), new TestEdge(D, A, 1),
+                            new TestEdge(B, D, 1));
 
     @Test
     public void equality() {
@@ -52,5 +39,19 @@ public class AdjacencyListsGraphTest {
                 .addEqualityGroup(graph, same)
                 .addEqualityGroup(different)
                 .testEquals();
+    }
+
+    @Test
+    public void basics() {
+        Set<TestVertex> vertexes = ImmutableSet.of(A, B, C, D, E, F);
+        AdjacencyListsGraph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(vertexes, edges);
+        assertEquals("incorrect vertex count", 6, graph.getVertexes().size());
+        assertEquals("incorrect edge count", 5, graph.getEdges().size());
+
+        assertEquals("incorrect egress edge count", 1, graph.getEdgesFrom(A).size());
+        assertEquals("incorrect ingress edge count", 1, graph.getEdgesTo(A).size());
+        assertEquals("incorrect ingress edge count", 1, graph.getEdgesTo(C).size());
+        assertEquals("incorrect egress edge count", 2, graph.getEdgesFrom(B).size());
+        assertEquals("incorrect ingress edge count", 2, graph.getEdgesTo(D).size());
     }
 }
