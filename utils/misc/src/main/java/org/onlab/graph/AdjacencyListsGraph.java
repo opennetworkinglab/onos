@@ -22,8 +22,6 @@ public class AdjacencyListsGraph<V extends Vertex, E extends Edge<V>> implements
     private final ImmutableSetMultimap<V, E> sources;
     private final ImmutableSetMultimap<V, E> destinations;
 
-    private final Set<E> noEdges = ImmutableSet.of();
-
     /**
      * Creates a graph comprising of the specified vertexes and edges.
      *

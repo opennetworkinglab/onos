@@ -25,9 +25,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Heap<T> {
 
-    private static final String E_HEAP_READONLY = "Heap iterator is read-only";
-    private static final String E_HEAP_END = "Heap iterator reached end of heap";
-
     private final List<T> data;
     private final Comparator<T> comparator;
 

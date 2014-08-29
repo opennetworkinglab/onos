@@ -21,8 +21,8 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
         result.costs.put(src, 0.0);
         frontier.add(src);
 
-        search:
-        while (!frontier.isEmpty()) {
+        boolean reachedEnd = false;
+        while (!reachedEnd && !frontier.isEmpty()) {
             // Prepare the next frontier.
             Set<V> next = new HashSet<>();
 
@@ -40,9 +40,14 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
                                             true);
                         // If we have reached our intended destination, bail.
                         if (nextVertex.equals(dst)) {
-                            break search;
+                            reachedEnd = true;
+                            break;
                         }
                         next.add(nextVertex);
+                    }
+
+                    if (reachedEnd) {
+                        break;
                     }
                 }
             }

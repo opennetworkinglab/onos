@@ -141,7 +141,6 @@ public class SimpleDeviceManager
         public void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescriptions, "Port descriptions list cannot be null");
-            // FIXME: fix the interface to accept DeviceId separately
             log.info("Device {} ports updated: {}", portDescriptions);
             List<DeviceEvent> events = store.updatePorts(deviceId, portDescriptions);
             for (DeviceEvent event : events) {
