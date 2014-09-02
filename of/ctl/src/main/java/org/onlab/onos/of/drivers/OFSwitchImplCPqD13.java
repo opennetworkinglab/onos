@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -60,7 +61,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
-    private static Logger log =
+    private Logger log =
             LoggerFactory.getLogger(OFSwitchImplCPqD13.class);
 
     private static final int VLAN_ID_OFFSET = 16;
@@ -95,7 +96,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
     private static final short MIN_PRIORITY = 0x0;
     private static final U64 METADATA_MASK = U64.of(Long.MAX_VALUE << 1 | 0x1);
 
-    ConcurrentHashMap<Integer, OFGroup> l2groups;
+    private Map<Integer, OFGroup> l2groups;
 
     private final boolean usePipeline13;
 
