@@ -256,6 +256,32 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/datastore/serializers/**</exclude>
+                        <exclude>**/edu/stanford/**</exclude>
+                        <exclude>**/net/floodlightcontroller/**</exclude>
+                    </excludes>
+                    <rulesets>
+                        <ruleset>onos/pmd.xml</ruleset>
+                    </rulesets>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate-pmd</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <!--  Uncomment this goal to make the build fail on pmd errors -->
+                            <!--<goal>check</goal>-->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.7.1.201405082137</version>
@@ -332,6 +358,23 @@
                     <configLocation>onos/checkstyle.xml</configLocation>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/datastore/serializers/**</exclude>
+                        <exclude>**/edu/stanford/**</exclude>
+                        <exclude>**/net/floodlightcontroller/**</exclude>
+                    </excludes>
+                    <rulesets>
+                        <ruleset>onos/pmd.xml</ruleset>
+                    </rulesets>
+                </configuration>
+            </plugin>
+
         </plugins>
 
     </reporting>
