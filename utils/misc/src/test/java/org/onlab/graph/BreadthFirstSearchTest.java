@@ -1,0 +1,66 @@
+package org.onlab.graph;
+
+import org.junit.Test;
+
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Test of the BFS and similar path search algorithms.
+ */
+public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
+
+    @Override
+    protected AbstractGraphPathSearch<TestVertex, TestEdge> graphSearch() {
+        return new BreadthFirstSearch<>();
+    }
+
+    @Test
+    public void defaultGraphTest() {
+        executeDefaultTest(7, 3, 8.0);
+    }
+
+    @Test
+    public void defaultHopCountWeight() {
+        weight = null;
+        executeDefaultTest(7, 3, 3.0);
+    }
+
+    // Executes the default test
+    protected void executeDefaultTest(int pathCount, int pathLength, double pathCost) {
+        g = new AdjacencyListsGraph<>(vertices(), edges());
+
+        GraphPathSearch<TestVertex, TestEdge> search = graphSearch();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(g, A, H, weight).paths();
+        assertEquals("incorrect paths count", 1, paths.size());
+
+        Path p = paths.iterator().next();
+        assertEquals("incorrect src", A, p.src());
+        assertEquals("incorrect dst", H, p.dst());
+        assertEquals("incorrect path length", pathLength, p.edges().size());
+        assertEquals("incorrect path cost", pathCost, p.cost(), 0.1);
+
+        paths = search.search(g, A, null, weight).paths();
+        printPaths(paths);
+        assertEquals("incorrect paths count", pathCount, paths.size());
+    }
+
+    // Executes the search and validates its results.
+    protected void executeSearch(GraphPathSearch<TestVertex, TestEdge> search,
+                                 Graph<TestVertex, TestEdge> graph,
+                                 TestVertex src, TestVertex dst,
+                                 EdgeWeight<TestVertex, TestEdge> weight,
+                                 int pathCount, double pathCost) {
+        GraphPathSearch.Result<TestVertex, TestEdge> result =
+                search.search(graph, src, dst, weight);
+        Set<Path<TestVertex, TestEdge>> paths = result.paths();
+        printPaths(paths);
+        assertEquals("incorrect paths count", pathCount, paths.size());
+        if (pathCount > 0) {
+            Path<TestVertex, TestEdge> path = paths.iterator().next();
+            assertEquals("incorrect path cost", pathCost, path.cost(), 0.1);
+        }
+    }
+
+}

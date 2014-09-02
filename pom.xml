@@ -306,7 +306,7 @@
                         <group>
                             <title>Utilities</title>
                             <packages>
-                                org.onlab.util:org.onlab.util.*
+                                org.onlab.*
                             </packages>
                         </group>
                         <group>

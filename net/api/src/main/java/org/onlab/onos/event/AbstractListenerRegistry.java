@@ -45,7 +45,7 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
         for (L listener : listeners) {
             try {
                 listener.event(event);
-            } catch (Throwable error) {
+            } catch (Exception error) {
                 reportProblem(event, error);
             }
         }

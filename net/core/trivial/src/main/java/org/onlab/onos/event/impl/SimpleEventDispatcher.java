@@ -82,7 +82,7 @@ public class SimpleEventDispatcher extends DefaultEventSinkRegistry
                         log.warn("No sink registered for event class {}",
                                  event.getClass());
                     }
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     log.warn("Error encountered while dispatching event:", e);
                 }
             }
