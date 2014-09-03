@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.impl;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -34,7 +34,7 @@ import org.onlab.onos.of.controller.driver.OpenFlowAgent;
 import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
-import org.onlab.onos.of.drivers.DriverManager;
+import org.onlab.onos.of.drivers.impl.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;

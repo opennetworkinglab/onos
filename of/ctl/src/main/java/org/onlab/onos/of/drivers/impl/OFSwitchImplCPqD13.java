@@ -1,4 +1,4 @@
-package org.onlab.onos.of.drivers;
+package org.onlab.onos.of.drivers.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;

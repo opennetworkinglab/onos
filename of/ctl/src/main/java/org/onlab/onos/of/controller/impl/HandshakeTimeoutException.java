@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.impl;
 
 /**
  * Exception is thrown when the handshake fails to complete.

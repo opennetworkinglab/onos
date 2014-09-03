@@ -1,5 +1,5 @@
 //CHECKSTYLE:OFF
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.impl;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -415,17 +415,18 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 OFDescStatsReply drep = (OFDescStatsReply) m;
                 // Here is where we differentiate between different kinds of switches
                 h.sw = h.controller.getOFSwitchInstance(h.thisdpid, drep, h.ofVersion);
+                h.sw.setOFVersion(h.ofVersion);
+                h.sw.setFeaturesReply(h.featuresReply);
+                h.sw.setPortDescReply(h.portDescReply);
+                h.sw.setConnected(true);
+                h.sw.setChannel(h.channel);
                 boolean success = h.sw.connectSwitch();
                 if (!success) {
                     disconnectDuplicate(h);
                     return;
                 }
                 // set switch information
-                h.sw.setOFVersion(h.ofVersion);
-                h.sw.setFeaturesReply(h.featuresReply);
-                h.sw.setPortDescReply(h.portDescReply);
-                h.sw.setConnected(true);
-                h.sw.setChannel(h.channel);
+
 
 
                 log.info("Switch {} bound to class {}, description {}",
