@@ -6,8 +6,9 @@ package org.onlab.onos.of.controller;
 public interface PacketListener {
 
     /**
-     * Handle the packet.
-     * @param pktCtx the packet context ({@link }
+     * Handles the packet.
+     *
+     * @param pktCtx the packet context
      */
     public void handlePacket(PacketContext pktCtx);
 }

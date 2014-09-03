@@ -45,7 +45,7 @@ public interface RoleHandler {
      *
      * @param role
      * @throws IOException
-     * @returns false if and only if the switch does not support role-request
+     * @return false if and only if the switch does not support role-request
      * messages, according to the switch driver; true otherwise.
      */
     public boolean sendRoleRequest(RoleState role, RoleRecvStatus exp)
@@ -53,8 +53,7 @@ public interface RoleHandler {
 
     /**
      * Extract the role information from an OF1.3 Role Reply Message.
-     * @param h
-     * @param rrmsg
+     * @param rrmsg role reply message
      * @return RoleReplyInfo object
      * @throws SwitchStateException
      */
