@@ -120,13 +120,12 @@ public class SimpleDeviceManager
         }
 
         @Override
-        public MastershipRole deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription) {
+        public void deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             log.info("Device {} connected: {}", deviceId, deviceDescription);
             DeviceEvent event = store.createOrUpdateDevice(deviceId, deviceDescription);
             post(event);
-            return MastershipRole.MASTER;
         }
 
         @Override
