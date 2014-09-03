@@ -1,4 +1,6 @@
-package org.onlab.onos.net.provider;
+package org.onlab.onos.net;
+
+import org.onlab.onos.net.provider.ProviderId;
 
 /**
  * Abstraction of an entity supplied by a provider.

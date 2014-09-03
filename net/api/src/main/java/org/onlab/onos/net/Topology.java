@@ -3,7 +3,7 @@ package org.onlab.onos.net;
 /**
  * Represents a network topology computation snapshot.
  */
-public interface Topology {
+public interface Topology extends Provided {
 
     /**
      * Returns the time, specified in milliseconds since start of epoch,

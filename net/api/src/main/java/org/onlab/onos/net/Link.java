@@ -1,7 +1,5 @@
 package org.onlab.onos.net;
 
-import org.onlab.onos.net.provider.Provided;
-
 /**
  * Abstraction of a network infrastructure link.
  */
