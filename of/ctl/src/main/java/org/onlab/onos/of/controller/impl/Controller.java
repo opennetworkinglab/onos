@@ -61,9 +61,6 @@ public class Controller {
     // It's only used by handleControllerNodeIPsChanged
     protected HashMap<String, String> controllerNodeIPsCache;
 
-
-    private IOFSwitchManager switchManager;
-
     private ChannelGroup cg;
 
     // Configuration options
