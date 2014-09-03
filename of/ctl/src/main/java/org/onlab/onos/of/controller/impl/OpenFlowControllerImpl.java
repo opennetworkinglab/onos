@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.impl;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +15,6 @@ import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.PacketListener;
 import org.onlab.onos.of.controller.RoleState;
-import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
 import org.onlab.onos.of.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.slf4j.Logger;
@@ -68,17 +67,18 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public OpenFlowSwitch getSwitch(Dpid dpid) {
-        return connectedSwitches.get(dpid.value());
+        return connectedSwitches.get(dpid);
     }
 
     @Override
     public OpenFlowSwitch getMasterSwitch(Dpid dpid) {
-        return activeMasterSwitches.get(dpid.value());
+        return activeMasterSwitches.get(dpid);
     }
 
     @Override
     public OpenFlowSwitch getEqualSwitch(Dpid dpid) {
-        return activeEqualSwitches.get(dpid.value());    }
+        return activeEqualSwitches.get(dpid);
+    }
 
     @Override
     public void addListener(OpenFlowSwitchListener listener) {
@@ -116,9 +116,15 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void setRole(Dpid dpid, RoleState role) {
-        ((AbstractOpenFlowSwitch) getSwitch(dpid)).setRole(role);
+        getSwitch(dpid).setRole(role);
     }
 
+    /**
+     * Implementation of an OpenFlow Agent which is responsible for
+     * keeping track of connected switches and the state in which
+     * they are.
+     *
+     */
     public class OpenFlowSwitchAgent implements OpenFlowAgent {
 
         private final Logger log = LoggerFactory.getLogger(OpenFlowSwitchAgent.class);
@@ -204,6 +210,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                             + "was not found in controller-cache", dpid);
                     return;
                 }
+                log.info("Transitioned switch {} to MASTER", dpid);
                 activeMasterSwitches.put(dpid, sw);
             } finally {
                 switchLock.unlock();
@@ -224,6 +231,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                             + "was not found in controller-cache", dpid);
                     return;
                 }
+                log.info("Transitioned switch {} to EQUAL", dpid);
                 activeEqualSwitches.put(dpid, sw);
             } finally {
                 switchLock.unlock();

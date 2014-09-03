@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.impl;
 
 import java.io.IOException;
 import java.util.Collections;

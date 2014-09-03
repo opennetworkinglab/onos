@@ -219,6 +219,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     @Override
     public void setRole(RoleState role) {
         try {
+            log.info("Sending role {} to switch {}", role, getStringId());
             if (this.roleMan.sendRoleRequest(role, RoleRecvStatus.MATCHED_SET_ROLE)) {
                 this.role = role;
             }

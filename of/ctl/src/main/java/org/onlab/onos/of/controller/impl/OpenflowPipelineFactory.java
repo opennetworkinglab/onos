@@ -15,7 +15,7 @@
 *    under the License.
 **/
 
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.impl;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
