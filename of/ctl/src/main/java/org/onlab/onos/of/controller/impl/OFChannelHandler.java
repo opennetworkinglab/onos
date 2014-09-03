@@ -435,8 +435,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 log.debug("Setting new switch {} to EQUAL and sending Role request",
                         h.sw.getStringId());
                 h.sw.activateEqualSwitch();
-                //h.setSwitchRole(RoleState.EQUAL);
-                h.setSwitchRole(RoleState.MASTER);
+                h.setSwitchRole(RoleState.EQUAL);
+
                 h.sw.startDriverHandshake();
                 h.setState(WAIT_SWITCH_DRIVER_SUB_HANDSHAKE);
 

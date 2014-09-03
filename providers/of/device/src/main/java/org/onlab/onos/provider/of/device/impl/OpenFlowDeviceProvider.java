@@ -1,5 +1,10 @@
 package org.onlab.onos.provider.of.device.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,14 +22,10 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
+import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.RoleState;
 import org.slf4j.Logger;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -93,16 +94,26 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private class InternalDeviceProvider implements OpenFlowSwitchListener {
         @Override
         public void switchAdded(Dpid dpid) {
+            if (providerService == null) {
+                return;
+            }
             URI uri = buildURI(dpid);
-            // TODO: fetch and provide switch desc information
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
+
             DeviceDescription description =
                     new DefaultDeviceDescription(buildURI(dpid), Device.Type.SWITCH,
-                                                 null, null, null, null);
+                            sw.manfacturerDescription(),
+                            sw.hardwareDescription(),
+                            sw.softwareDescription(),
+                            sw.softwareDescription());
             providerService.deviceConnected(new DeviceId(uri), description);
         }
 
         @Override
         public void switchRemoved(Dpid dpid) {
+            if (providerService == null) {
+                return;
+            }
             URI uri = buildURI(dpid);
             providerService.deviceDisconnected(new DeviceId(uri));
         }

@@ -70,6 +70,36 @@ public interface OpenFlowSwitch {
     public long getId();
 
     /**
+     * fetch the manufacturer description.
+     * @return the description
+     */
+    public String manfacturerDescription();
+
+    /**
+     * fetch the datapath description.
+     * @return the description
+     */
+    public String datapathDescription();
+
+    /**
+     * fetch the hardware description.
+     * @return the description
+     */
+    public String hardwareDescription();
+
+    /**
+     * fetch the software description.
+     * @return the description
+     */
+    public String softwareDescription();
+
+    /**
+     * fetch the serial number.
+     * @return the serial
+     */
+    public String serialNumber();
+
+    /**
      * Disconnects the switch by closing the TCP connection. Results in a call
      * to the channel handler's channelDisconnected method for cleanup
      */

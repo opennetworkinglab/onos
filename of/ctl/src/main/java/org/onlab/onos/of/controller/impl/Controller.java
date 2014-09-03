@@ -74,6 +74,8 @@ public class Controller {
     protected boolean alwaysClearFlowsOnSwAdd = false;
     private OpenFlowAgent agent;
 
+    private NioServerSocketChannelFactory execFactory;
+
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
     protected static final int BATCH_MAX_SIZE = 100;
@@ -155,16 +157,17 @@ public class Controller {
     }
 
     private ServerBootstrap createServerBootStrap() {
+
         if (workerThreads == 0) {
-            return new ServerBootstrap(
-                    new NioServerSocketChannelFactory(
-                            Executors.newCachedThreadPool(),
-                            Executors.newCachedThreadPool()));
+            execFactory =  new NioServerSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+            return new ServerBootstrap(execFactory);
         } else {
-            return new ServerBootstrap(
-                    new NioServerSocketChannelFactory(
-                            Executors.newCachedThreadPool(),
-                            Executors.newCachedThreadPool(), workerThreads));
+            execFactory = new NioServerSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool(), workerThreads);
+            return new ServerBootstrap(execFactory);
         }
     }
 
@@ -237,6 +240,7 @@ public class Controller {
 
 
     public void stop() {
+        execFactory.shutdown();
         cg.close();
     }
 

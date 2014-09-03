@@ -311,4 +311,31 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         return Collections.unmodifiableList(ports.getEntries());
     }
 
+    @Override
+    public String manfacturerDescription() {
+        return this.desc.getMfrDesc();
+    }
+
+
+    @Override
+    public String datapathDescription() {
+        return this.desc.getDpDesc();
+    }
+
+
+    @Override
+    public String hardwareDescription() {
+        return this.desc.getHwDesc();
+    }
+
+    @Override
+    public String softwareDescription() {
+        return this.desc.getSwDesc();
+    }
+
+    @Override
+    public String serialNumber() {
+        return this.desc.getSerialNum();
+    }
+
 }
