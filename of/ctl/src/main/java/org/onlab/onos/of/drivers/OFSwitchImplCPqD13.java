@@ -10,15 +10,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.RoleState;
-import org.onlab.onos.of.controller.impl.internal.AbstractOpenFlowSwitch;
-import org.onlab.onos.of.controller.impl.internal.SwitchDriverSubHandshakeAlreadyStarted;
-import org.onlab.onos.of.controller.impl.internal.SwitchDriverSubHandshakeCompleted;
-import org.onlab.onos.of.controller.impl.internal.SwitchDriverSubHandshakeNotStarted;
+import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
+import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
+import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeCompleted;
+import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.projectfloodlight.openflow.protocol.OFAsyncGetReply;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupFeaturesStatsReply;
@@ -61,11 +60,11 @@ import org.slf4j.LoggerFactory;
  */
 public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
-    private Logger log =
+    private final Logger log =
             LoggerFactory.getLogger(OFSwitchImplCPqD13.class);
 
     private static final int VLAN_ID_OFFSET = 16;
-    private AtomicBoolean driverHandshakeComplete;
+    private final AtomicBoolean driverHandshakeComplete;
     private OFFactory factory;
     private static final int OFPCML_NO_BUFFER = 0xffff;
     // Configuration of asynch messages to controller. We need different
@@ -96,7 +95,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
     private static final short MIN_PRIORITY = 0x0;
     private static final U64 METADATA_MASK = U64.of(Long.MAX_VALUE << 1 | 0x1);
 
-    private Map<Integer, OFGroup> l2groups;
+    private final Map<Integer, OFGroup> l2groups;
 
     private final boolean usePipeline13;
 
@@ -131,7 +130,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             // Send packet-in to controller if a packet misses the first table
             populateTableMissEntry(0, true, false, false, 0);
         } //else {
-            // configureSwitch();
+        // configureSwitch();
         //}
         sendBarrier(true);
     }
@@ -146,14 +145,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void processDriverHandshakeMessage(OFMessage m) {
-        if (!startDriverHandshakeCalled) {
-            throw new SwitchDriverSubHandshakeNotStarted();
-        }
-        if (driverHandshakeComplete.get()) {
-            throw new SwitchDriverSubHandshakeCompleted(m);
-        }
-
-        if (!startDriverHandshakeCalled) {
+        if (!startDriverHandshakeCalled || !startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeNotStarted();
         }
         if (driverHandshakeComplete.get()) {
@@ -168,29 +160,22 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             break;
 
         case ERROR:
-            log.error("Switch {} Error {}", getStringId(), (OFErrorMsg) m);
+            log.error("Switch {} Error {}", getStringId(), m);
             break;
 
-        case FEATURES_REPLY:
-            break;
-        case FLOW_REMOVED:
-            break;
         case GET_ASYNC_REPLY:
             OFAsyncGetReply asrep = (OFAsyncGetReply) m;
             decodeAsyncGetReply(asrep);
             break;
-
-        case PACKET_IN:
-            break;
-        case PORT_STATUS:
-            break;
-        case QUEUE_GET_CONFIG_REPLY:
-            break;
-        case ROLE_REPLY:
-            break;
-
         case STATS_REPLY:
             processStatsReply((OFStatsReply) m);
+            break;
+        case PACKET_IN:
+        case PORT_STATUS:
+        case QUEUE_GET_CONFIG_REPLY:
+        case ROLE_REPLY:
+        case FEATURES_REPLY:
+        case FLOW_REMOVED:
             break;
 
         default:
@@ -254,7 +239,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .build();
         msglist.add(getAC);
 
-        write(msglist);
+        sendMsg(msglist);
     }
 
     private void decodeAsyncGetReply(OFAsyncGetReply rep) {
@@ -327,7 +312,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             }
         }
         log.debug("Creating {} L2 groups in sw {}", msglist.size(), getStringId());
-        write(msglist);
+        sendMsg(msglist);
     }
 
     private int getVlanConfig(int portnum) {
@@ -405,9 +390,9 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
             List<OFAction> actions = new ArrayList<OFAction>();
             actions.add(decTtl); // decrement the IP TTL/do-checksum/check TTL
-                                 // and MTU
+            // and MTU
             actions.add(setVlan); // set the vlan-id of the exit-port (and
-                                  // l2group)
+            // l2group)
             actions.add(setSA); // set this routers mac address
             // make L3Unicast group setDA for known (configured) ports
             // that connect to other routers
@@ -428,7 +413,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .build();
             msglist.add(gmAdd);
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Creating {} L3 groups in sw {}", msglist.size(), getStringId());
     }
 
@@ -449,8 +434,8 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             // setDA will only be non-null for ports connected to routers
             if (setDA != null) {
                 OFGroup gl3 = OFGroup.of(0xa0000000 | portnum); // different id
-                                                                // for mpls
-                                                                // group
+                // for mpls
+                // group
                 OFAction group = factory.actions().buildGroup()
                         .setGroup(gl2).build();
                 OFOxmEthSrc srcAddr = factory.oxms().ethSrc(sAddr);
@@ -462,9 +447,9 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 OFAction decMplsTtl = factory.actions().decMplsTtl();
                 List<OFAction> actions = new ArrayList<OFAction>();
                 actions.add(decMplsTtl); // decrement the MPLS
-                                         // TTL/do-checksum/check TTL and MTU
+                // TTL/do-checksum/check TTL and MTU
                 actions.add(setVlan); // set the vlan-id of the exit-port (and
-                                      // l2group)
+                // l2group)
                 actions.add(setSA); // set this routers mac address
                 actions.add(setDA);
                 actions.add(group);
@@ -480,7 +465,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 msglist.add(gmAdd);
             }
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Creating {} MPLS groups in sw {}", msglist.size(), getStringId());
     }
 
@@ -586,7 +571,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                         .setMatch(match)
                         .setInstructions(instructions)
                         .setPriority(1000) // does not matter - all rules
-                                           // exclusive
+                        // exclusive
                         .setBufferId(OFBufferId.NO_BUFFER)
                         .setIdleTimeout(0)
                         .setHardTimeout(0)
@@ -597,7 +582,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         }
         // table-vlan has no table-miss entry, and so packets that miss are
         // essentially dropped
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Adding {} vlan-rules in sw {}", msglist.size(), getStringId());
     }
 
@@ -615,7 +600,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setMatch(matchIp)
                 .setInstructions(instructionsIp)
                 .setPriority(1000) // strict priority required lower than
-                                   // multicastMac
+                // multicastMac
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setIdleTimeout(0)
                 .setHardTimeout(0)
@@ -635,7 +620,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setMatch(matchMpls)
                 .setInstructions(instructionsMpls)
                 .setPriority(1001) // strict priority required lower than
-                                   // multicastMac
+                // multicastMac
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setIdleTimeout(0)
                 .setHardTimeout(0)
@@ -649,7 +634,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         List<OFMessage> msglist = new ArrayList<OFMessage>(2);
         msglist.add(ipEntry);
         msglist.add(mplsEntry);
-        write(msglist);
+        sendMsg(msglist);
     }
 
     private List<String> getMyIps() { // send to controller
@@ -712,13 +697,13 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         List<RouteEntry> routerNextHopIps = new ArrayList<RouteEntry>();
         if (getId() == 0x1) {
             routerNextHopIps
-                    .add(new RouteEntry("192.168.0.2", "255.255.255.255", 6, 102));
+            .add(new RouteEntry("192.168.0.2", "255.255.255.255", 6, 102));
             routerNextHopIps
-                    .add(new RouteEntry("192.168.0.3", "255.255.255.255", 6, 103));
+            .add(new RouteEntry("192.168.0.3", "255.255.255.255", 6, 103));
             routerNextHopIps.add(new RouteEntry("7.7.7.0", "255.255.255.0", 6, 103));
         }
         //if (getId() == 0x2) {
-            /* These are required for normal IP routing without labels.
+        /* These are required for normal IP routing without labels.
             routerNextHopIps.add(new RouteEntry("192.168.0.1","255.255.255.255",1));
             routerNextHopIps.add(new RouteEntry("192.168.0.3","255.255.255.255",2));
             routerNextHopIps.add(new RouteEntry("10.0.1.0","255.255.255.0",1));
@@ -728,9 +713,9 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         //}
         if (getId() == 0x3) {
             routerNextHopIps
-                    .add(new RouteEntry("192.168.0.2", "255.255.255.255", 2, 102));
+            .add(new RouteEntry("192.168.0.2", "255.255.255.255", 2, 102));
             routerNextHopIps
-                    .add(new RouteEntry("192.168.0.1", "255.255.255.255", 2, 101));
+            .add(new RouteEntry("192.168.0.1", "255.255.255.255", 2, 101));
             routerNextHopIps.add(new RouteEntry("10.0.1.0", "255.255.255.0", 2, 101));
             routerNextHopIps.add(new RouteEntry("10.0.2.0", "255.255.255.0", 2, 101));
             routerNextHopIps.add(new RouteEntry("10.0.3.0", "255.255.255.0", 2, 101));
@@ -794,7 +779,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setMatch(match)
                     .setInstructions(instructions)
                     .setPriority(MAX_PRIORITY) // highest priority for exact
-                                               // match
+                    // match
                     .setBufferId(OFBufferId.NO_BUFFER)
                     .setIdleTimeout(0)
                     .setHardTimeout(0)
@@ -802,7 +787,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .build();
             msglist.add(myIpEntry);
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Adding {} my-ip-rules in sw {}", msglist.size(), getStringId());
     }
 
@@ -844,7 +829,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .build();
             msglist.add(myIpEntry);
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Adding {} subnet-ip-rules in sw {}", msglist.size(), getStringId());
         msglist.clear();
     }
@@ -861,14 +846,14 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .ipv4DstMasked(
                             IPv4Address.of(routerNextHopIps.get(i).prefix),
                             IPv4Address.of(routerNextHopIps.get(i).mask)
-                    );
+                            );
             OFOxmList oxmListSlash32 = OFOxmList.of(ethTypeIp, ipPrefix);
             OFMatchV3 match = factory.buildMatchV3()
                     .setOxmList(oxmListSlash32).build();
             OFAction outg = factory.actions().buildGroup()
                     .setGroup(OFGroup.of(0xa0000000 | // mpls group id
                             routerNextHopIps.get(i).nextHopPort))
-                    .build();
+                            .build();
             // lots of actions before forwarding to mpls group, and
             // unfortunately
             // they need to be apply-actions
@@ -887,7 +872,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             writeActions.add(copyTtlOut); // matched in pseudo-table
             //writeActions.add(setlabelid); // bad support in cpqd
             //writeActions.add(setBos); no support in loxigen
-            */
+             */
 
             List<OFAction> applyActions = new ArrayList<OFAction>();
             applyActions.add(pushlabel);
@@ -896,7 +881,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setActions(applyActions).build();
             List<OFAction> writeActions = new ArrayList<OFAction>();
             writeActions.add(outg); // group will decr mpls-ttl, set mac-sa/da,
-                                    // vlan
+            // vlan
             OFInstruction writeInstr = factory.instructions().buildWriteActions()
                     .setActions(writeActions).build();
 
@@ -950,7 +935,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             OFAction outg2 = factory.actions().buildGroup()
                     .setGroup(OFGroup.of(routerNextHopIps.get(i).nextHopPort |
                             (192 << VLAN_ID_OFFSET)))
-                    .build();
+                            .build();
             writeActions2.add(outg2);
             OFInstruction writeInstr2 = factory.instructions().buildWriteActions()
                     .setActions(writeActions2).build();
@@ -989,7 +974,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             msglist.add(myMetaEntry);
 
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Adding {} next-hop-router-rules in sw {}", msglist.size(),
                 getStringId());
 
@@ -1022,7 +1007,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setField(dmac).build();
             outg = factory.actions().buildGroup()
                     .setGroup(OFGroup.of(0x20000000 | hostNextHopIps.get(i).nextHopPort)) // l3group
-                                                                                          // id
+                    // id
                     .build();
             List<OFAction> writeActions = new ArrayList<OFAction>();
             writeActions.add(setDmac);
@@ -1039,7 +1024,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setMatch(match)
                     .setInstructions(instructions)
                     .setPriority(MAX_PRIORITY) // highest priority for exact
-                                               // match
+                    // match
                     .setBufferId(OFBufferId.NO_BUFFER)
                     .setIdleTimeout(0)
                     .setHardTimeout(0)
@@ -1047,7 +1032,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .build();
             msglist.add(myIpEntry);
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Adding {} next-hop-host-rules in sw {}", msglist.size(), getStringId());
     }
 
@@ -1121,7 +1106,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .build();
             msglist.add(myMplsEntry);
         }
-        write(msglist);
+        sendMsg(msglist);
         log.debug("Adding {} mpls-forwarding-rules in sw {}", msglist.size(),
                 getStringId());
 
@@ -1190,7 +1175,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             // executed - if there is an action to output/group in the action
             // set
             // the packet will be sent there, otherwise it will be dropped.
-            instructions = (List<OFInstruction>) Collections.EMPTY_LIST;
+            instructions = Collections.EMPTY_LIST;
         }
 
         OFMessage tableMissEntry = factory.buildFlowAdd()
@@ -1219,20 +1204,19 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
     }
 
     @Override
-    public void sendMsg(OFMessage m) {
-        channel.write(m);
+    public Boolean supportNxRole() {
+        return false;
+    }
+
+    @Override
+    public void write(OFMessage msg) {
+        this.channel.write(msg);
+
     }
 
     @Override
     public void write(List<OFMessage> msgs) {
-        for (OFMessage m : msgs) {
-            channel.write(m);
-        }
-    }
-
-    @Override
-    public Boolean supportNxRole() {
-        return false;
+        this.channel.write(msgs);
     }
 
 }

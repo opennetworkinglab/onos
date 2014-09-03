@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.driver;
 
 /**
  * Base class for exception thrown by switch driver sub-handshake processing.

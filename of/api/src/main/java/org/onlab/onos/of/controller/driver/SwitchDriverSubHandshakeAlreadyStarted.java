@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.driver;
 
 /**
  * Thrown when IOFSwitch.startDriverHandshake() is called more than once.

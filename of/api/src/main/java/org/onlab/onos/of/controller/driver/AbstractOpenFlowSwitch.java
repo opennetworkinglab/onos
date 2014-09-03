@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.driver;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -24,11 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.RoleState;
-import org.onlab.onos.of.controller.impl.internal.OpenFlowControllerImpl.OpenFlowSwitchAgent;
-import org.onlab.onos.of.controller.impl.internal.RoleManager.RoleRecvStatus;
-import org.onlab.onos.of.controller.impl.internal.RoleManager.RoleReplyInfo;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
@@ -43,19 +39,22 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
+/**
+ * An abstract representation of an OpenFlow switch. Can be extended by others
+ * to serve as a base for their vendor specific representation of a switch.
+ */
+public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
     private static Logger log =
             LoggerFactory.getLogger(AbstractOpenFlowSwitch.class);
 
     protected Channel channel;
-    protected boolean startDriverHandshakeCalled = false;
 
     private boolean connected;
-    private Dpid dpid;
-    private OpenFlowSwitchAgent agent;
-    private AtomicInteger xidCounter = new AtomicInteger(0);
+    protected boolean startDriverHandshakeCalled = false;
+    private final Dpid dpid;
+    private OpenFlowAgent agent;
+    private final AtomicInteger xidCounter = new AtomicInteger(0);
 
     private OFVersion ofVersion;
 
@@ -63,12 +62,17 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
 
     protected boolean tableFull;
 
-    private final RoleManager roleMan = new RoleManager(this);
+    private RoleHandler roleMan;
 
     protected RoleState role;
 
     protected OFFeaturesReply features;
+    protected OFDescStatsReply desc;
 
+    /**
+     * Given a dpid build this switch.
+     * @param dp the dpid
+     */
     protected AbstractOpenFlowSwitch(Dpid dp) {
         this.dpid = dp;
     }
@@ -77,59 +81,38 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
     // Channel related
     //************************
 
-    /**
-     * Disconnects the switch by closing the TCP connection. Results in a call
-     * to the channel handler's channelDisconnected method for cleanup
-     * @throws IOException
-     */
+    @Override
     public final void disconnectSwitch() {
         this.channel.close();
     }
 
-    /**
-     * Writes to the OFMessage to the output stream.
-     *
-     * @param m the message to be written
-     */
-    public abstract void sendMsg(OFMessage m);
-
-    /**
-     * Writes to the OFMessage list to the output stream.
-     *
-     * @param msgs the messages to be written
-     */
-    public void write(List<OFMessage> msgs) {
-        this.channel.write(msgs);
+    @Override
+    public final void sendMsg(OFMessage m) {
+        this.write(m);
     }
 
+    @Override
+    public final void sendMsg(List<OFMessage> msgs) {
+        this.write(msgs);
+    }
 
-    /**
-     * Checks if the switch is still connected.
-     * Only call while holding processMessageLock
-     *
-     * @return whether the switch is still disconnected
-     */
+    @Override
+    public abstract void write(OFMessage msg);
+
+    @Override
+    public abstract void write(List<OFMessage> msgs);
+
+    @Override
     public final boolean isConnected() {
         return this.connected;
     }
 
-    /**
-     * Sets whether the switch is connected.
-     * Only call while holding modifySwitchLock
-     *
-     * @param connected whether the switch is connected
-     */
-    final void setConnected(boolean connected) {
+    @Override
+    public final void setConnected(boolean connected) {
         this.connected = connected;
     };
 
-    /**
-     * Sets the Netty Channel this switch instance is associated with.
-     * <p>
-     * Called immediately after instantiation
-     *
-     * @param channel the channel
-     */
+    @Override
     public final void setChannel(Channel channel) {
         this.channel = channel;
     };
@@ -138,41 +121,32 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
     // Switch features related
     //************************
 
-    /**
-     * Gets the datapathId of the switch.
-     *
-     * @return the switch buffers
-     */
+    @Override
     public final long getId() {
         return this.dpid.value();
     };
 
-    /**
-     * Gets a string version of the ID for this switch.
-     *
-     * @return string version of the ID
-     */
+    @Override
     public final String getStringId() {
         return this.dpid.toString();
     }
 
+    @Override
     public final void setOFVersion(OFVersion ofV) {
         this.ofVersion = ofV;
     }
 
-    void setTableFull(boolean full) {
+    @Override
+    public void setTableFull(boolean full) {
         this.tableFull = full;
     }
 
+    @Override
     public void setFeaturesReply(OFFeaturesReply featuresReply) {
         this.features = featuresReply;
     }
 
-    /**
-     * Let peoeple know if you support Nicira style role requests.
-     *
-     * @return support Nicira roles or not.
-     */
+    @Override
     public abstract Boolean supportNxRole();
 
     //************************
@@ -183,65 +157,80 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
      *
      * @param m the actual message
      */
+    @Override
     public final void handleMessage(OFMessage m) {
         this.agent.processMessage(m);
     }
 
+    @Override
     public RoleState getRole() {
         return role;
     };
 
-    final boolean addConnectedSwitch() {
-        return this.agent.addConnectedSwitch(this.getId(), this);
+    @Override
+    public final boolean connectSwitch() {
+        return this.agent.addConnectedSwitch(dpid, this);
     }
 
-    final boolean addActivatedMasterSwitch() {
-        return this.agent.addActivatedMasterSwitch(this.getId(), this);
+    @Override
+    public final boolean activateMasterSwitch() {
+        return this.agent.addActivatedMasterSwitch(dpid, this);
     }
 
-    final boolean addActivatedEqualSwitch() {
-        return this.agent.addActivatedEqualSwitch(this.getId(), this);
+    @Override
+    public final boolean activateEqualSwitch() {
+        return this.agent.addActivatedEqualSwitch(dpid, this);
     }
 
-    final void transitionToEqualSwitch() {
-        this.agent.transitionToEqualSwitch(this.getId());
+    @Override
+    public final void transitionToEqualSwitch() {
+        this.agent.transitionToEqualSwitch(dpid);
     }
 
-    final void transitionToMasterSwitch() {
-        this.agent.transitionToMasterSwitch(this.getId());
+    @Override
+    public final void transitionToMasterSwitch() {
+        this.agent.transitionToMasterSwitch(dpid);
     }
 
-    final void removeConnectedSwitch() {
-        this.agent.removeConnectedSwitch(this.getId());
+    @Override
+    public final void removeConnectedSwitch() {
+        this.agent.removeConnectedSwitch(dpid);
     }
 
-    protected OFFactory factory() {
+    @Override
+    public OFFactory factory() {
         return OFFactories.getFactory(ofVersion);
     }
 
+    @Override
     public void setPortDescReply(OFPortDescStatsReply portDescReply) {
         this.ports = portDescReply;
     }
 
+    @Override
     public abstract void startDriverHandshake();
 
+    @Override
     public abstract boolean isDriverHandshakeComplete();
 
+    @Override
     public abstract void processDriverHandshakeMessage(OFMessage m);
 
+    @Override
     public void setRole(RoleState role) {
         try {
             if (this.roleMan.sendRoleRequest(role, RoleRecvStatus.MATCHED_SET_ROLE)) {
                 this.role = role;
             }
         } catch (IOException e) {
-           log.error("Unable to write to switch {}.", this.dpid);
+            log.error("Unable to write to switch {}.", this.dpid);
         }
     }
 
     // Role Handling
 
-    void handleRole(OFMessage m) throws SwitchStateException {
+    @Override
+    public void handleRole(OFMessage m) throws SwitchStateException {
         RoleReplyInfo rri = roleMan.extractOFRoleReply((OFRoleReply) m);
         RoleRecvStatus rrs = roleMan.deliverRoleReply(rri);
         if (rrs == RoleRecvStatus.MATCHED_SET_ROLE) {
@@ -254,7 +243,8 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
         }
     }
 
-    void handleNiciraRole(OFMessage m) throws SwitchStateException {
+    @Override
+    public void handleNiciraRole(OFMessage m) throws SwitchStateException {
         RoleState r = this.roleMan.extractNiciraRoleReply((OFExperimenter) m);
         if (r == null) {
             // The message wasn't really a Nicira role reply. We just
@@ -274,7 +264,8 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
         }
     }
 
-    boolean handleRoleError(OFErrorMsg error) {
+    @Override
+    public boolean handleRoleError(OFErrorMsg error) {
         try {
             return RoleRecvStatus.OTHER_EXPECTATION != this.roleMan.deliverError(error);
         } catch (SwitchStateException e) {
@@ -283,25 +274,39 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitch {
         return true;
     }
 
-    void reassertRole() {
+    @Override
+    public void reassertRole() {
         if (this.getRole() == RoleState.MASTER) {
             this.setRole(RoleState.MASTER);
         }
     }
 
-    void setAgent(OpenFlowSwitchAgent ag) {
-        this.agent = ag;
+    @Override
+    public final void setAgent(OpenFlowAgent ag) {
+        if (this.agent == null) {
+            this.agent = ag;
+        }
     }
 
-    public void setSwitchDescription(OFDescStatsReply desc) {
-        // TODO Auto-generated method stub
+    @Override
+    public final void setRoleHandler(RoleHandler roleHandler) {
+        if (this.roleMan == null) {
+            this.roleMan = roleHandler;
+        }
     }
 
-    protected int getNextTransactionId() {
+    @Override
+    public void setSwitchDescription(OFDescStatsReply d) {
+        this.desc = d;
+    }
+
+    @Override
+    public int getNextTransactionId() {
         return this.xidCounter.getAndIncrement();
     }
 
-    protected List<OFPortDesc> getPorts() {
+    @Override
+    public List<OFPortDesc> getPorts() {
         return Collections.unmodifiableList(ports.getEntries());
     }
 

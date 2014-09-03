@@ -18,6 +18,8 @@ import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.onlab.onos.of.controller.RoleState;
+import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
+import org.onlab.onos.of.controller.driver.SwitchStateException;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
 import org.projectfloodlight.openflow.exceptions.OFParseError;
@@ -66,7 +68,7 @@ import org.slf4j.LoggerFactory;
 class OFChannelHandler extends IdleStateAwareChannelHandler {
     private static final Logger log = LoggerFactory.getLogger(OFChannelHandler.class);
     private final Controller controller;
-    private AbstractOpenFlowSwitch sw;
+    private OpenFlowSwitchDriver sw;
     private long thisdpid; // channelHandler cached value of connected switch id
     private Channel channel;
     // State needs to be volatile because the HandshakeTimeoutHandler
@@ -413,7 +415,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 OFDescStatsReply drep = (OFDescStatsReply) m;
                 // Here is where we differentiate between different kinds of switches
                 h.sw = h.controller.getOFSwitchInstance(h.thisdpid, drep, h.ofVersion);
-                boolean success = h.sw.addConnectedSwitch();
+                boolean success = h.sw.connectSwitch();
                 if (!success) {
                     disconnectDuplicate(h);
                     return;
@@ -431,7 +433,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 //Put switch in EQUAL mode until we hear back from the global registry
                 log.debug("Setting new switch {} to EQUAL and sending Role request",
                         h.sw.getStringId());
-                h.sw.addActivatedEqualSwitch();
+                h.sw.activateEqualSwitch();
                 //h.setSwitchRole(RoleState.EQUAL);
                 h.setSwitchRole(RoleState.MASTER);
                 h.sw.startDriverHandshake();
@@ -489,8 +491,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                         }
                     }
                 } else {
-                    if (m.getType() == OFType.EXPERIMENTER && 
-                            ((OFExperimenter) m).getExperimenter() == 
+                    if (m.getType() == OFType.EXPERIMENTER &&
+                            ((OFExperimenter) m).getExperimenter() ==
                             RoleManager.NICIRA_EXPERIMENTER) {
                         h.sw.handleNiciraRole(m);
                     } else {
@@ -848,8 +850,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 processOFQueueGetConfigReply(h, (OFQueueGetConfigReply) m);
                 break;
             case STATS_REPLY: // multipart_reply in 1.3
-            processOFStatisticsReply(h, (OFStatsReply) m);
-            break;
+                processOFStatisticsReply(h, (OFStatsReply) m);
+                break;
             case EXPERIMENTER:
                 processOFExperimenter(h, (OFExperimenter) m);
                 break;
@@ -916,12 +918,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             }
             OFFactory factory = (h.ofVersion == OFVersion.OF_13) ?
                     h.controller.getOFMessageFactory13() : h.controller.getOFMessageFactory10();
-            OFEchoReply reply = factory
-                    .buildEchoReply()
-                    .setXid(m.getXid())
-                    .setData(m.getData())
-                    .build();
-            h.channel.write(Collections.singletonList(reply));
+                    OFEchoReply reply = factory
+                            .buildEchoReply()
+                            .setXid(m.getXid())
+                            .setData(m.getData())
+                            .build();
+                    h.channel.write(Collections.singletonList(reply));
         }
 
         void processOFEchoReply(OFChannelHandler h, OFEchoReply m)
@@ -1044,41 +1046,41 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 message = "Disconnecting switch {switch} due to read timeout",
                 explanation = "The connected switch has failed to send any "
                         + "messages or respond to echo requests",
-                recommendation = LogMessageDoc.CHECK_SWITCH),
+                        recommendation = LogMessageDoc.CHECK_SWITCH),
                         @LogMessageDoc(level = "ERROR",
-                message = "Disconnecting switch {switch}: failed to "
-                        + "complete handshake",
-                explanation = "The switch did not respond correctly "
-                        + "to handshake messages",
-                recommendation = LogMessageDoc.CHECK_SWITCH),
-        @LogMessageDoc(level = "ERROR",
-                message = "Disconnecting switch {switch} due to IO Error: {}",
-                explanation = "There was an error communicating with the switch",
-                recommendation = LogMessageDoc.CHECK_SWITCH),
-        @LogMessageDoc(level = "ERROR",
-                message = "Disconnecting switch {switch} due to switch "
-                        + "state error: {error}",
-                explanation = "The switch sent an unexpected message",
-                recommendation = LogMessageDoc.CHECK_SWITCH),
-        @LogMessageDoc(level = "ERROR",
-                message = "Disconnecting switch {switch} due to "
-                          + "message parse failure",
-                explanation = "Could not parse a message from the switch",
-                recommendation = LogMessageDoc.CHECK_SWITCH),
-        @LogMessageDoc(level = "ERROR",
-                message = "Terminating controller due to storage exception",
-                explanation = Controller.ERROR_DATABASE,
-                recommendation = LogMessageDoc.CHECK_CONTROLLER),
-        @LogMessageDoc(level = "ERROR",
-                message = "Could not process message: queue full",
-                explanation = "OpenFlow messages are arriving faster than "
-                            + "the controller can process them.",
-                recommendation = LogMessageDoc.CHECK_CONTROLLER),
-        @LogMessageDoc(level = "ERROR",
-                message = "Error while processing message "
-                        + "from switch {switch} {cause}",
-                explanation = "An error occurred processing the switch message",
-                recommendation = LogMessageDoc.GENERIC_ACTION)
+                        message = "Disconnecting switch {switch}: failed to "
+                                + "complete handshake",
+                                explanation = "The switch did not respond correctly "
+                                        + "to handshake messages",
+                                        recommendation = LogMessageDoc.CHECK_SWITCH),
+                                        @LogMessageDoc(level = "ERROR",
+                                        message = "Disconnecting switch {switch} due to IO Error: {}",
+                                        explanation = "There was an error communicating with the switch",
+                                        recommendation = LogMessageDoc.CHECK_SWITCH),
+                                        @LogMessageDoc(level = "ERROR",
+                                        message = "Disconnecting switch {switch} due to switch "
+                                                + "state error: {error}",
+                                                explanation = "The switch sent an unexpected message",
+                                                recommendation = LogMessageDoc.CHECK_SWITCH),
+                                                @LogMessageDoc(level = "ERROR",
+                                                message = "Disconnecting switch {switch} due to "
+                                                        + "message parse failure",
+                                                        explanation = "Could not parse a message from the switch",
+                                                        recommendation = LogMessageDoc.CHECK_SWITCH),
+                                                        @LogMessageDoc(level = "ERROR",
+                                                        message = "Terminating controller due to storage exception",
+                                                        explanation = Controller.ERROR_DATABASE,
+                                                        recommendation = LogMessageDoc.CHECK_CONTROLLER),
+                                                        @LogMessageDoc(level = "ERROR",
+                                                        message = "Could not process message: queue full",
+                                                        explanation = "OpenFlow messages are arriving faster than "
+                                                                + "the controller can process them.",
+                                                                recommendation = LogMessageDoc.CHECK_CONTROLLER),
+                                                                @LogMessageDoc(level = "ERROR",
+                                                                message = "Error while processing message "
+                                                                        + "from switch {switch} {cause}",
+                                                                        explanation = "An error occurred processing the switch message",
+                                                                        recommendation = LogMessageDoc.GENERIC_ACTION)
     })
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {

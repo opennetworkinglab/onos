@@ -15,8 +15,9 @@ import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.PacketListener;
 import org.onlab.onos.of.controller.RoleState;
+import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
+import org.onlab.onos.of.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.util.HexString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +28,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
 
-    protected ConcurrentHashMap<Long, OpenFlowSwitch> connectedSwitches =
-            new ConcurrentHashMap<Long, OpenFlowSwitch>();
-    protected ConcurrentHashMap<Long, OpenFlowSwitch> activeMasterSwitches =
-            new ConcurrentHashMap<Long, OpenFlowSwitch>();
-    protected ConcurrentHashMap<Long, OpenFlowSwitch> activeEqualSwitches =
-            new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
+            new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
+    protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeMasterSwitches =
+            new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
+    protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeEqualSwitches =
+            new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
     protected ArrayList<OpenFlowSwitchListener> ofEventListener =
@@ -118,12 +119,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         ((AbstractOpenFlowSwitch) getSwitch(dpid)).setRole(role);
     }
 
-    public class OpenFlowSwitchAgent {
+    public class OpenFlowSwitchAgent implements OpenFlowAgent {
 
         private final Logger log = LoggerFactory.getLogger(OpenFlowSwitchAgent.class);
-        private Lock switchLock = new ReentrantLock();
+        private final Lock switchLock = new ReentrantLock();
 
-        public boolean addConnectedSwitch(long dpid, AbstractOpenFlowSwitch sw) {
+        @Override
+        public boolean addConnectedSwitch(Dpid dpid, OpenFlowSwitch sw) {
             if (connectedSwitches.get(dpid) != null) {
                 log.error("Trying to add connectedSwitch but found a previous "
                         + "value for dpid: {}", dpid);
@@ -132,17 +134,18 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 log.error("Added switch {}", dpid);
                 connectedSwitches.put(dpid, sw);
                 for (OpenFlowSwitchListener l : ofEventListener) {
-                    l.switchAdded(new Dpid(dpid));
+                    l.switchAdded(dpid);
                 }
                 return true;
             }
         }
 
-        private boolean validActivation(long dpid) {
+        @Override
+        public boolean validActivation(Dpid dpid) {
             if (connectedSwitches.get(dpid) == null) {
                 log.error("Trying to activate switch but is not in "
                         + "connected switches: dpid {}. Aborting ..",
-                        HexString.toHexString(dpid));
+                        dpid);
                 return false;
             }
             if (activeMasterSwitches.get(dpid) != null ||
@@ -150,18 +153,17 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 log.error("Trying to activate switch but it is already "
                         + "activated: dpid {}. Found in activeMaster: {} "
                         + "Found in activeEqual: {}. Aborting ..", new Object[] {
-                                HexString.toHexString(dpid),
+                                dpid,
                                 (activeMasterSwitches.get(dpid) == null) ? 'N' : 'Y',
-                                (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y'});
+                                        (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y'});
                 return false;
             }
             return true;
         }
 
-        /**
-         * Called when a switch is activated, with this controller's role as MASTER.
-         */
-        protected boolean addActivatedMasterSwitch(long dpid, AbstractOpenFlowSwitch sw) {
+
+        @Override
+        public boolean addActivatedMasterSwitch(Dpid dpid, OpenFlowSwitch sw) {
             switchLock.lock();
             try {
                 if (!validActivation(dpid)) {
@@ -172,31 +174,25 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             } finally {
                 switchLock.unlock();
             }
-    }
+        }
 
-        /**
-         * Called when a switch is activated, with this controller's role as EQUAL.
-         */
-        protected boolean addActivatedEqualSwitch(long dpid, AbstractOpenFlowSwitch sw) {
+        @Override
+        public boolean addActivatedEqualSwitch(Dpid dpid, OpenFlowSwitch sw) {
             switchLock.lock();
             try {
-                    if (!validActivation(dpid)) {
-                        return false;
-                    }
-                    activeEqualSwitches.put(dpid, sw);
-                    log.info("Added Activated EQUAL Switch {}", dpid);
-                    return true;
+                if (!validActivation(dpid)) {
+                    return false;
+                }
+                activeEqualSwitches.put(dpid, sw);
+                log.info("Added Activated EQUAL Switch {}", dpid);
+                return true;
             } finally {
                 switchLock.unlock();
             }
         }
 
-        /**
-         * Called when this controller's role for a switch transitions from equal
-         * to master. For 1.0 switches, we internally refer to the role 'slave' as
-         * 'equal' - so this transition is equivalent to 'addActivatedMasterSwitch'.
-         */
-        protected void transitionToMasterSwitch(long dpid) {
+        @Override
+        public void transitionToMasterSwitch(Dpid dpid) {
             switchLock.lock();
             try {
                 if (activeMasterSwitches.containsKey(dpid)) {
@@ -215,12 +211,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
 
 
-        /**
-         * Called when this controller's role for a switch transitions to equal.
-         * For 1.0 switches, we internally refer to the role 'slave' as
-         * 'equal'.
-         */
-        protected void transitionToEqualSwitch(long dpid) {
+        @Override
+        public void transitionToEqualSwitch(Dpid dpid) {
             switchLock.lock();
             try {
                 if (activeEqualSwitches.containsKey(dpid)) {
@@ -239,22 +231,19 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
         }
 
-        /**
-         * Clear all state in controller switch maps for a switch that has
-         * disconnected from the local controller. Also release control for
-         * that switch from the global repository. Notify switch listeners.
-         */
-        public void removeConnectedSwitch(long dpid) {
+        @Override
+        public void removeConnectedSwitch(Dpid dpid) {
             connectedSwitches.remove(dpid);
             OpenFlowSwitch sw = activeMasterSwitches.remove(dpid);
             if (sw == null) {
                 sw = activeEqualSwitches.remove(dpid);
             }
             for (OpenFlowSwitchListener l : ofEventListener) {
-                l.switchRemoved(new Dpid(dpid));
+                l.switchRemoved(dpid);
             }
         }
 
+        @Override
         public void processMessage(OFMessage m) {
             processPacket(m);
         }

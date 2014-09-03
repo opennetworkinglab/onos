@@ -30,9 +30,10 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.onos.of.controller.Dpid;
+import org.onlab.onos.of.controller.driver.OpenFlowAgent;
+import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
 import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
-import org.onlab.onos.of.controller.impl.internal.OpenFlowControllerImpl.OpenFlowSwitchAgent;
 import org.onlab.onos.of.drivers.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
@@ -74,7 +75,7 @@ public class Controller {
 
     // Flag to always flush flow table on switch reconnect (HA or otherwise)
     protected boolean alwaysClearFlowsOnSwAdd = false;
-    private OpenFlowSwitchAgent agent;
+    private OpenFlowAgent agent;
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
@@ -120,17 +121,17 @@ public class Controller {
      * Tell controller that we're ready to accept switches loop.
      */
     @LogMessageDocs({
-            @LogMessageDoc(message = "Listening for switch connections on {address}",
-                    explanation = "The controller is ready and listening for new" +
-                            " switch connections"),
-            @LogMessageDoc(message = "Storage exception in controller " +
-                    "updates loop; terminating process",
-                    explanation = ERROR_DATABASE,
-                    recommendation = LogMessageDoc.CHECK_CONTROLLER),
-            @LogMessageDoc(level = "ERROR",
-                    message = "Exception in controller updates loop",
-                    explanation = "Failed to dispatch controller event",
-                    recommendation = LogMessageDoc.GENERIC_ACTION)
+        @LogMessageDoc(message = "Listening for switch connections on {address}",
+                explanation = "The controller is ready and listening for new" +
+                " switch connections"),
+                @LogMessageDoc(message = "Storage exception in controller " +
+                        "updates loop; terminating process",
+                        explanation = ERROR_DATABASE,
+                        recommendation = LogMessageDoc.CHECK_CONTROLLER),
+                        @LogMessageDoc(level = "ERROR",
+                        message = "Exception in controller updates loop",
+                        explanation = "Failed to dispatch controller event",
+                        recommendation = LogMessageDoc.GENERIC_ACTION)
     })
     public void run() {
 
@@ -221,15 +222,16 @@ public class Controller {
      * @param desc
      * @return switch instance
      */
-    protected AbstractOpenFlowSwitch getOFSwitchInstance(long dpid,
+    protected OpenFlowSwitchDriver getOFSwitchInstance(long dpid,
             OFDescStatsReply desc, OFVersion ofv) {
-        AbstractOpenFlowSwitch sw = DriverManager.getOFSwitchImpl(new Dpid(dpid),
+        OpenFlowSwitchDriver sw = DriverManager.getSwitch(new Dpid(dpid),
                 desc, ofv);
         sw.setAgent(agent);
+        sw.setRoleHandler(new RoleManager(sw));
         return sw;
     }
 
-    public void start(OpenFlowSwitchAgent ag) {
+    public void start(OpenFlowAgent ag) {
         log.info("Initialising OpenFlow Lib and IO");
         this.agent = ag;
         this.init(new HashMap<String, String>());

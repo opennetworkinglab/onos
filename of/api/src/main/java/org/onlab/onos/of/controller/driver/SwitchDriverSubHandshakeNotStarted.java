@@ -1,4 +1,4 @@
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.driver;
 
 /**
  * Thrown when a switch driver's sub-handshake has not been started but an

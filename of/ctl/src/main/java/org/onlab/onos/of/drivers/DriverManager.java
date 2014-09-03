@@ -3,11 +3,9 @@ package org.onlab.onos.of.drivers;
 
 
 import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.RoleState;
-import org.onlab.onos.of.controller.impl.internal.AbstractOpenFlowSwitch;
+import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
+import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriverFactory;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * A simple implementation of a driver manager that differentiates between
  * connected switches using the OF Description Statistics Reply message.
  */
-public final class DriverManager {
+public final class DriverManager implements OpenFlowSwitchDriverFactory {
 
     private static final Logger log = LoggerFactory.getLogger(DriverManager.class);
 
@@ -32,7 +30,8 @@ public final class DriverManager {
      * @return A IOFSwitch instance if the driver found an implementation for
      *         the given description. Otherwise it returns OFSwitchImplBase
      */
-    public static AbstractOpenFlowSwitch getOFSwitchImpl(Dpid dpid,
+    @Override
+    public OpenFlowSwitchDriver getOFSwitchImpl(Dpid dpid,
             OFDescStatsReply desc, OFVersion ofv) {
         String vendor = desc.getMfrDesc();
         String hw = desc.getHwDesc();
@@ -53,42 +52,7 @@ public final class DriverManager {
 
         log.warn("DriverManager could not identify switch desc: {}. "
                 + "Assigning OFSwitchImplBase", desc);
-        AbstractOpenFlowSwitch base = new AbstractOpenFlowSwitch(dpid) {
-
-
-            @Override
-            public void sendMsg(OFMessage m) {
-                channel.write(m);
-            }
-
-            @Override
-            public Boolean supportNxRole() {
-                return false;
-            }
-
-            @Override
-            public void startDriverHandshake() {}
-
-            @Override
-            public void setFeaturesReply(OFFeaturesReply featuresReply) {
-                this.features = featuresReply;
-            }
-
-            @Override
-            public void processDriverHandshakeMessage(OFMessage m) {}
-
-            @Override
-            public boolean isDriverHandshakeComplete() {
-                return true;
-            }
-
-            @Override
-            public RoleState getRole() {
-                return role;
-            }
-        };
-        base.setSwitchDescription(desc);
-        return base;
+        return null;
     }
 
     /**
@@ -108,4 +72,10 @@ public final class DriverManager {
     public static void setConfigForCpqd(boolean usePipeline13) {
         cpqdUsePipeline13 = usePipeline13;
     }
+
+    public static OpenFlowSwitchDriver getSwitch(Dpid dpid,
+            OFDescStatsReply desc, OFVersion ofv) {
+        return new DriverManager().getOFSwitchImpl(dpid, desc, ofv);
+    }
+
 }

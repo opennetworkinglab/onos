@@ -1,5 +1,6 @@
 package org.onlab.onos.of.controller.impl.internal;
 
+import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 
 

@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.onlab.onos.of.controller.RoleState;
+import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
+import org.onlab.onos.of.controller.driver.RoleHandler;
+import org.onlab.onos.of.controller.driver.RoleRecvStatus;
+import org.onlab.onos.of.controller.driver.RoleReplyInfo;
+import org.onlab.onos.of.controller.driver.SwitchStateException;
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
@@ -35,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * a new request is submitted before the timeout triggers. If necessary
  * we could work around that though.
  */
-class RoleManager {
+class RoleManager implements RoleHandler {
     protected static final long NICIRA_EXPERIMENTER = 0x2320;
 
     private static Logger log = LoggerFactory.getLogger(RoleManager.class);
@@ -49,10 +54,10 @@ class RoleManager {
 
     // the expectation set by the caller for the returned role
     private RoleRecvStatus expectation;
-    private AbstractOpenFlowSwitch sw;
+    private final OpenFlowSwitchDriver sw;
 
 
-    public RoleManager(AbstractOpenFlowSwitch sw) {
+    public RoleManager(OpenFlowSwitchDriver sw) {
         this.requestPending = false;
         this.pendingXid = -1;
         this.pendingRole = null;
@@ -122,33 +127,13 @@ class RoleManager {
         return xid;
     }
 
-    /**
-     * Send a role request with the given role to the switch and update
-     * the pending request and timestamp.
-     * Sends an OFPT_ROLE_REQUEST to an OF1.3 switch, OR
-     * Sends an NX_ROLE_REQUEST to an OF1.0 switch if configured to support it
-     * in the IOFSwitch driver. If not supported, this method sends nothing
-     * and returns 'false'. The caller should take appropriate action.
-     *
-     * One other optimization we do here is that for OF1.0 switches with
-     * Nicira role message support, we force the Role.EQUAL to become
-     * Role.SLAVE, as there is no defined behavior for the Nicira role OTHER.
-     * We cannot expect it to behave like SLAVE. We don't have this problem with
-     * OF1.3 switches, because Role.EQUAL is well defined and we can simulate
-     * SLAVE behavior by using ASYNC messages.
-     *
-     * @param role
-     * @throws IOException
-     * @returns false if and only if the switch does not support role-request
-     * messages, according to the switch driver; true otherwise.
-     */
-    synchronized boolean sendRoleRequest(RoleState role, RoleRecvStatus exp)
+    @Override
+    public synchronized boolean sendRoleRequest(RoleState role, RoleRecvStatus exp)
             throws IOException {
         this.expectation = exp;
 
         if (sw.factory().getVersion() == OFVersion.OF_10) {
-            Boolean supportsNxRole = (Boolean)
-                    sw.supportNxRole();
+            Boolean supportsNxRole = sw.supportNxRole();
             if (!supportsNxRole) {
                 log.debug("Switch driver indicates no support for Nicira "
                         + "role request messages. Not sending ...");
@@ -189,23 +174,9 @@ class RoleManager {
 
     }
 
-    /**
-     * Deliver a received role reply.
-     *
-     * Check if a request is pending and if the received reply matches the
-     * the expected pending reply (we check both role and xid) we set
-     * the role for the switch/channel.
-     *
-     * If a request is pending but doesn't match the reply we ignore it, and
-     * return
-     *
-     * If no request is pending we disconnect with a SwitchStateException
-     *
-     * @param RoleReplyInfo information about role-reply in format that
-     *                      controller can understand.
-     * @throws SwitchStateException if no request is pending
-     */
-    synchronized RoleRecvStatus deliverRoleReply(RoleReplyInfo rri)
+
+    @Override
+    public synchronized RoleRecvStatus deliverRoleReply(RoleReplyInfo rri)
             throws SwitchStateException {
         if (!requestPending) {
             RoleState currentRole = (sw != null) ? sw.getRole() : null;
@@ -280,12 +251,13 @@ class RoleManager {
      * error messages for earlier role requests that we won't be able
      * to handle
      */
-    synchronized RoleRecvStatus deliverError(OFErrorMsg error)
+    @Override
+    public synchronized RoleRecvStatus deliverError(OFErrorMsg error)
             throws SwitchStateException {
         if (!requestPending) {
             log.debug("Received an error msg from sw {}, but no pending "
                     + "requests in role-changer; not handling ...",
-                   sw.getStringId());
+                    sw.getStringId());
             return RoleRecvStatus.OTHER_EXPECTATION;
         }
         if (pendingXid != error.getXid()) {
@@ -353,7 +325,8 @@ class RoleManager {
      * @throws SwitchStateException If the message is a Nicira role reply
      * but the numeric role value is unknown.
      */
-    protected RoleState extractNiciraRoleReply(OFExperimenter experimenterMsg)
+    @Override
+    public RoleState extractNiciraRoleReply(OFExperimenter experimenterMsg)
             throws SwitchStateException {
         int vendor = (int) experimenterMsg.getExperimenter();
         if (vendor != 0x2320) {
@@ -389,72 +362,14 @@ class RoleManager {
     }
 
     /**
-     * When we remove a pending role request we use this enum to indicate how we
-     * arrived at the decision. When we send a role request to the switch, we
-     * also use  this enum to indicate what we expect back from the switch, so the
-     * role changer can match the reply to our expectation.
-     */
-    public enum RoleRecvStatus {
-        /** The switch returned an error indicating that roles are not.
-         * supported*/
-        UNSUPPORTED,
-        /** The request timed out. */
-        NO_REPLY,
-        /** The reply was old, there is a newer request pending. */
-        OLD_REPLY,
-        /**
-         *  The reply's role matched the role that this controller set in the
-         *  request message - invoked either initially at startup or to reassert
-         *  current role.
-         */
-        MATCHED_CURRENT_ROLE,
-        /**
-         *  The reply's role matched the role that this controller set in the
-         *  request message - this is the result of a callback from the
-         *  global registry, followed by a role request sent to the switch.
-         */
-        MATCHED_SET_ROLE,
-        /**
-         * The reply's role was a response to the query made by this controller.
-         */
-        REPLY_QUERY,
-        /** We received a role reply message from the switch
-         *  but the expectation was unclear, or there was no expectation.
-         */
-        OTHER_EXPECTATION,
-    }
-
-    /**
-     * Helper class returns role reply information in the format understood
-     * by the controller.
-     */
-    protected static class RoleReplyInfo {
-        private RoleState role;
-        private U64 genId;
-        private long xid;
-
-        RoleReplyInfo(RoleState role, U64 genId, long xid) {
-            this.role = role;
-            this.genId = genId;
-            this.xid = xid;
-        }
-        public RoleState getRole() { return role; }
-        public U64 getGenId() { return genId; }
-        public long getXid() { return xid; }
-        @Override
-        public String toString() {
-            return "[Role:" + role + " GenId:" + genId + " Xid:" + xid + "]";
-        }
-    }
-
-    /**
      * Extract the role information from an OF1.3 Role Reply Message.
      * @param h
-     * @param rrmsg
+     * @param rrmsg the role message
      * @return RoleReplyInfo object
-     * @throws SwitchStateException
+     * @throws SwitchStateException if the role information could not be extracted.
      */
-    protected RoleReplyInfo extractOFRoleReply(OFRoleReply rrmsg)
+    @Override
+    public RoleReplyInfo extractOFRoleReply(OFRoleReply rrmsg)
             throws SwitchStateException {
         OFControllerRole cr = rrmsg.getRole();
         RoleState role = null;

@@ -15,7 +15,7 @@
  *    under the License.
  **/
 
-package org.onlab.onos.of.controller.impl.internal;
+package org.onlab.onos.of.controller.driver;
 
 /**
  * This exception indicates an error or unexpected message during

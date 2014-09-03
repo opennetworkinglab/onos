@@ -1,15 +1,15 @@
 package org.onlab.onos.of.drivers;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.impl.internal.AbstractOpenFlowSwitch;
-import org.onlab.onos.of.controller.impl.internal.SwitchDriverSubHandshakeAlreadyStarted;
-import org.onlab.onos.of.controller.impl.internal.SwitchDriverSubHandshakeCompleted;
-import org.onlab.onos.of.controller.impl.internal.SwitchDriverSubHandshakeNotStarted;
+import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
+import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
+import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeCompleted;
+import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
     private static Logger log =
             LoggerFactory.getLogger(OFSwitchImplOVS13.class);
 
-    private AtomicBoolean driverHandshakeComplete;
+    private final AtomicBoolean driverHandshakeComplete;
     private OFFactory factory;
     private long barrierXidToWaitFor = -1;
 
@@ -78,7 +78,7 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
             break;
 
         case ERROR:
-            log.error("Switch {} Error {}", getStringId(), (OFErrorMsg) m);
+            log.error("Switch {} Error {}", getStringId(), m);
             break;
 
         case FEATURES_REPLY:
@@ -129,12 +129,18 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
     }
 
     @Override
-    public void sendMsg(OFMessage m) {
-        channel.write(m);
+    public Boolean supportNxRole() {
+        return false;
     }
 
     @Override
-    public Boolean supportNxRole() {
-        return false;
+    public void write(OFMessage msg) {
+        channel.write(msg);
+
+    }
+
+    @Override
+    public void write(List<OFMessage> msgs) {
+        channel.write(msgs);
     }
 }

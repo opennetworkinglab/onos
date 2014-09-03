@@ -1,7 +1,9 @@
 package org.onlab.onos.of.drivers;
 
+import java.util.List;
+
 import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.impl.internal.AbstractOpenFlowSwitch;
+import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 
@@ -29,11 +31,6 @@ public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
     }
 
     @Override
-    public void sendMsg(OFMessage m) {
-        channel.write(m);
-    }
-
-    @Override
     public Boolean supportNxRole() {
         return true;
     }
@@ -48,4 +45,15 @@ public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
 
     @Override
     public void processDriverHandshakeMessage(OFMessage m) {}
+
+    @Override
+    public void write(OFMessage msg) {
+        channel.write(msg);
+
+    }
+
+    @Override
+    public void write(List<OFMessage> msgs) {
+        channel.write(msgs);
+    }
 }
