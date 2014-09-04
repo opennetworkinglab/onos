@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 public abstract class AbstractProviderRegistry<P extends Provider, S extends ProviderService<P>>
         implements ProviderRegistry<P, S> {
 
+    private final Map<ProviderId, P> providers = new HashMap<>();
     private final Map<ProviderId, S> services = new HashMap<>();
 
     /**
@@ -34,6 +35,7 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
         checkState(!services.containsKey(provider.id()), "Provider %s already registered", provider.id());
         S service = createProviderService(provider);
         services.put(provider.id(), service);
+        providers.put(provider.id(), provider);
         return service;
     }
 
@@ -44,12 +46,23 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
         if (service != null && service instanceof AbstractProviderService) {
             ((AbstractProviderService) service).invalidate();
             services.remove(provider.id());
+            providers.remove(provider.id());
         }
     }
 
     @Override
     public synchronized Set<ProviderId> getProviders() {
         return ImmutableSet.copyOf(services.keySet());
+    }
+
+    /**
+     * Returns the provider registered with the specified provider ID.
+     *
+     * @param providerId provider identifier
+     * @return provider
+     */
+    protected synchronized P getProvider(ProviderId providerId) {
+        return providers.get(providerId);
     }
 
 }

@@ -18,6 +18,12 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
         DEVICE_ADDED,
 
         /**
+         * Signifies that some device attributes have changed; excludes
+         * availability changes.
+         */
+        DEVICE_UPDATED,
+
+        /**
          * Signifies that a device has been removed.
          */
         DEVICE_REMOVED,

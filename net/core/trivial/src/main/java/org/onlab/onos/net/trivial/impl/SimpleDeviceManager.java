@@ -13,6 +13,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.device.DeviceAdminService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
@@ -37,22 +38,23 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleDeviceManager
         extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
-        implements DeviceService, DeviceProviderRegistry {
+        implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
-    public static final String DEVICE_ID_NULL = "Device ID cannot be null";
-    public static final String PORT_NUMBER_NULL = "Port number cannot be null";
-    public static final String DEVICE_DESCRIPTION_NULL = "Device description cannot be null";
-    public static final String PORT_DESCRIPTION_NULL = "Port description cannot be null";
+    private static final String DEVICE_ID_NULL = "Device ID cannot be null";
+    private static final String PORT_NUMBER_NULL = "Port number cannot be null";
+    private static final String DEVICE_DESCRIPTION_NULL = "Device description cannot be null";
+    private static final String PORT_DESCRIPTION_NULL = "Port description cannot be null";
+    private static final String ROLE_NULL = "Role cannot be null";
 
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<DeviceEvent, DeviceListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final DeviceStore store = new DeviceStore();
+    private final SimpleDeviceStore store = new SimpleDeviceStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDeliveryService eventDispatcher;
+    protected EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
@@ -69,12 +71,12 @@ public class SimpleDeviceManager
     @Override
     public MastershipRole getRole(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        return null;
+        return store.getRole(deviceId);
     }
 
     @Override
     public Iterable<Device> getDevices() {
-        return null;
+        return store.getDevices();
     }
 
     @Override
@@ -111,6 +113,28 @@ public class SimpleDeviceManager
         return new InternalDeviceProviderService(provider);
     }
 
+    @Override
+    public void setRole(DeviceId deviceId, MastershipRole newRole) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(newRole, ROLE_NULL);
+        DeviceEvent event = store.setRole(deviceId, newRole);
+        if (event != null) {
+            Device device = event.subject();
+            DeviceProvider provider = getProvider(device.providerId());
+            if (provider != null) {
+                provider.roleChanged(device, newRole);
+            }
+            post(event);
+        }
+    }
+
+    @Override
+    public void removeDevice(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceEvent event = store.removeDevice(deviceId);
+        post(event);
+    }
+
     // Personalized device provider service issued to the supplied provider.
     private class InternalDeviceProviderService extends AbstractProviderService<DeviceProvider>
             implements DeviceProviderService {
@@ -124,7 +148,8 @@ public class SimpleDeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             log.info("Device {} connected: {}", deviceId, deviceDescription);
-            DeviceEvent event = store.createOrUpdateDevice(deviceId, deviceDescription);
+            DeviceEvent event = store.createOrUpdateDevice(provider().id(),
+                                                           deviceId, deviceDescription);
             post(event);
         }
 
@@ -132,7 +157,7 @@ public class SimpleDeviceManager
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             log.info("Device {} disconnected", deviceId);
-            DeviceEvent event = store.removeDevice(deviceId);
+            DeviceEvent event = store.markOffline(deviceId);
             post(event);
         }
 
