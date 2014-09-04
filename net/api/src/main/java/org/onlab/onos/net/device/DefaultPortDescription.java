@@ -1,10 +1,6 @@
 package org.onlab.onos.net.device;
 
-import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
-
-import java.util.Set;
 
 /**
  * Default implementation of immutable port description.
@@ -12,11 +8,11 @@ import java.util.Set;
 public class DefaultPortDescription implements PortDescription {
 
     private final PortNumber number;
-    private final Set<Port.State> state;
+    private final boolean isEnabled;
 
-    public DefaultPortDescription(PortNumber number, Set<Port.State> state) {
+    public DefaultPortDescription(PortNumber number, boolean isEnabled) {
         this.number = number;
-        this.state = ImmutableSet.copyOf(state);
+        this.isEnabled = isEnabled;
     }
 
     @Override
@@ -25,8 +21,8 @@ public class DefaultPortDescription implements PortDescription {
     }
 
     @Override
-    public Set<Port.State> portState() {
-        return state;
+    public boolean isEnabled() {
+        return isEnabled;
     }
 
 }

@@ -44,6 +44,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private DeviceProviderService providerService;
 
+    private OpenFlowSwitchListener listener = new InternalDeviceProvider();
+
     /**
      * Creates an OpenFlow device provider.
      */
@@ -54,13 +56,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
-        controller.addListener(new InternalDeviceProvider());
+        controller.addListener(listener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
+        controller.removeListener(listener);
         providerService = null;
         log.info("Stopped");
     }
