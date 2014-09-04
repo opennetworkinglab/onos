@@ -13,7 +13,6 @@ import org.onlab.onos.net.provider.ProviderId;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +31,8 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 class SimpleDeviceStore {
 
     private final Map<DeviceId, DefaultDevice> devices = new ConcurrentHashMap<>();
-    private final Set<DeviceId> available = new HashSet<>();
-    private final Map<DeviceId, MastershipRole> roles = new HashMap<>();
+    private final Map<DeviceId, MastershipRole> roles = new ConcurrentHashMap<>();
+    private final Set<DeviceId> availableDevices = new HashSet<>();
 
     /**
      * Returns an iterable collection of all devices known to the system.
@@ -81,7 +80,7 @@ class SimpleDeviceStore {
                                                  desc.serialNumber());
         synchronized (this) {
             devices.put(deviceId, device);
-            available.add(deviceId);
+            availableDevices.add(deviceId);
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device);
     }
@@ -100,14 +99,14 @@ class SimpleDeviceStore {
                                                       desc.serialNumber());
             synchronized (this) {
                 devices.put(device.id(), updated);
-                available.add(device.id());
+                availableDevices.add(device.id());
             }
             return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, device);
         }
 
         // Otherwise merely attempt to change availability
         synchronized (this) {
-            boolean added = available.add(device.id());
+            boolean added = availableDevices.add(device.id());
             return added ? new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device) : null;
         }
     }
@@ -122,7 +121,7 @@ class SimpleDeviceStore {
         synchronized (this) {
             Device device = devices.get(deviceId);
             checkArgument(device != null, "Device with ID %s is not found", deviceId);
-            boolean removed = available.remove(deviceId);
+            boolean removed = availableDevices.remove(deviceId);
             return removed ? new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device) : null;
         }
     }
@@ -193,10 +192,12 @@ class SimpleDeviceStore {
      * @return mastership role change event or null if no change
      */
     DeviceEvent setRole(DeviceId deviceId, MastershipRole role) {
-        Device device = getDevice(deviceId);
-        checkArgument(device != null, "Device with ID %s not found");
-        MastershipRole oldRole = roles.put(deviceId, role);
-        return oldRole == role ? null : new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device);
+        synchronized (this) {
+            Device device = getDevice(deviceId);
+            checkArgument(device != null, "Device with ID %s not found");
+            MastershipRole oldRole = roles.put(deviceId, role);
+            return oldRole == role ? null : new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device);
+        }
     }
 
     /**
