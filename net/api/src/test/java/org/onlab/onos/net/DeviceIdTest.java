@@ -3,17 +3,19 @@ package org.onlab.onos.net;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
+
 /**
- * Test of the provider identifier.
+ * Test of the device identifier.
  */
 public class DeviceIdTest extends ElementIdTest {
 
     @Test
     public void basics() {
         new EqualsTester()
-                .addEqualityGroup(new DeviceId(uri("of:foo")),
-                                  new DeviceId(uri("of:foo")))
-                .addEqualityGroup(new DeviceId(uri("of:bar")))
+                .addEqualityGroup(deviceId("of:foo"),
+                                  deviceId("of:foo"))
+                .addEqualityGroup(deviceId("of:bar"))
                 .testEquals();
     }
 

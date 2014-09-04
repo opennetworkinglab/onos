@@ -8,7 +8,7 @@ import static com.google.common.base.Objects.toStringHelper;
 /**
  * Immutable representation of a network element identity.
  */
-public class ElementId {
+public abstract class ElementId {
 
     private final URI uri;
 
@@ -17,7 +17,7 @@ public class ElementId {
      *
      * @param uri backing URI
      */
-    public ElementId(URI uri) {
+    protected ElementId(URI uri) {
         this.uri = uri;
     }
 
@@ -37,14 +37,12 @@ public class ElementId {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+        if (obj instanceof ElementId) {
+            final ElementId that = (ElementId) obj;
+            return this.getClass() == that.getClass() &&
+                    Objects.equals(this.uri, that.uri);
         }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final ElementId other = (ElementId) obj;
-        return Objects.equals(this.uri, other.uri);
+        return false;
     }
 
     @Override

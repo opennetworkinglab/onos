@@ -8,9 +8,15 @@ import java.net.URI;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test of the provider identifier.
+ * Test of the network element identifier.
  */
 public class ElementIdTest {
+
+    private static class FooId extends ElementId {
+        public FooId(URI uri) {
+            super(uri);
+        }
+    }
 
     public static URI uri(String str) {
         return URI.create(str);
@@ -19,12 +25,12 @@ public class ElementIdTest {
     @Test
     public void basics() {
         new EqualsTester()
-                .addEqualityGroup(new ElementId(uri("of:foo")),
-                                  new ElementId(uri("of:foo")))
-                .addEqualityGroup(new ElementId(uri("of:bar")))
+                .addEqualityGroup(new FooId(uri("of:foo")),
+                                  new FooId(uri("of:foo")))
+                .addEqualityGroup(new FooId(uri("of:bar")))
                 .testEquals();
         assertEquals("wrong uri", uri("ofcfg:foo"),
-                     new ElementId(uri("ofcfg:foo")).uri());
+                     new FooId(uri("ofcfg:foo")).uri());
     }
 
 }

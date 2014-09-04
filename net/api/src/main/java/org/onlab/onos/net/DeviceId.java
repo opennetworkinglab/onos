@@ -5,16 +5,29 @@ import java.net.URI;
 /**
  * Immutable representation of a device identity.
  */
-public class DeviceId extends ElementId {
+public final class DeviceId extends ElementId {
 
-    // TODO: Discuss whether we should just use ElementId for Device and Host alike
+    // Public construction is prohibited
+    private DeviceId(URI uri) {
+        super(uri);
+    }
+
     /**
      * Creates a device id using the supplied URI.
      *
-     * @param uri backing device URI
+     * @param uri device URI
      */
-    public DeviceId(URI uri) {
-        super(uri);
+    public static DeviceId deviceId(URI uri) {
+        return new DeviceId(uri);
+    }
+
+    /**
+     * Creates a device id using the supplied URI string.
+     *
+     * @param string device URI string
+     */
+    public static DeviceId deviceId(String string) {
+        return new DeviceId(URI.create(string));
     }
 
 }

@@ -1,17 +1,11 @@
 package org.onlab.onos.provider.of.device.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -26,6 +20,12 @@ import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.RoleState;
 import org.slf4j.Logger;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -73,19 +73,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {
         switch (newRole) {
-        case MASTER:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.MASTER);
-            break;
-        case STANDBY:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.EQUAL);
-        case NONE:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.SLAVE);
-            break;
-        default:
-            log.error("Unknown Mastership state : {}", newRole);
+            case MASTER:
+                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                                   RoleState.MASTER);
+                break;
+            case STANDBY:
+                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                                   RoleState.EQUAL);
+            case NONE:
+                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                                   RoleState.SLAVE);
+                break;
+            default:
+                log.error("Unknown Mastership state : {}", newRole);
 
         }
         log.info("Accepting mastership role change for device {}", device.id());
@@ -102,11 +102,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             DeviceDescription description =
                     new DefaultDeviceDescription(buildURI(dpid), Device.Type.SWITCH,
-                            sw.manfacturerDescription(),
-                            sw.hardwareDescription(),
-                            sw.softwareDescription(),
-                            sw.softwareDescription());
-            providerService.deviceConnected(new DeviceId(uri), description);
+                                                 sw.manfacturerDescription(),
+                                                 sw.hardwareDescription(),
+                                                 sw.softwareDescription(),
+                                                 sw.softwareDescription());
+            providerService.deviceConnected(deviceId(uri), description);
         }
 
         @Override
@@ -115,7 +115,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 return;
             }
             URI uri = buildURI(dpid);
-            providerService.deviceDisconnected(new DeviceId(uri));
+            providerService.deviceDisconnected(deviceId(uri));
         }
 
         private URI buildURI(Dpid dpid) {

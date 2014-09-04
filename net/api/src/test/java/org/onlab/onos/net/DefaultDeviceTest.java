@@ -4,10 +4,9 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.onos.net.provider.ProviderId;
 
-import java.net.URI;
-
 import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.Device.Type.SWITCH;
+import static org.onlab.onos.net.DeviceId.deviceId;
 
 /**
  * Test of the default device model entity.
@@ -15,8 +14,8 @@ import static org.onlab.onos.net.Device.Type.SWITCH;
 public class DefaultDeviceTest {
 
     private static final ProviderId PID = new ProviderId("foo");
-    private static final DeviceId DID1 = new DeviceId(URI.create("of:foo"));
-    private static final DeviceId DID2 = new DeviceId(URI.create("of:bar"));
+    private static final DeviceId DID1 = deviceId("of:foo");
+    private static final DeviceId DID2 = deviceId("of:bar");
     private static final String MFR = "whitebox";
     private static final String HW = "1.1.x";
     private static final String SW = "3.9.1";
