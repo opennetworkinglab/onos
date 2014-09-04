@@ -1,9 +1,6 @@
 package org.onlab.onos.net.device;
 
-import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
-
-import java.util.Set;
 
 /**
  * Information about a port.
@@ -20,10 +17,10 @@ public interface PortDescription {
     PortNumber portNumber();
 
     /**
-     * Returns the port state set.
+     * Indicates whether or not the port is up and active.
      *
-     * @return set of port states
+     * @return true if the port is active and has carrier signal
      */
-    Set<Port.State> portState();
+    boolean isEnabled();
 
 }
