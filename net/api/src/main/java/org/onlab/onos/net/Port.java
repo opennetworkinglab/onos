@@ -20,11 +20,11 @@ public interface Port {
     boolean isEnabled();
 
     /**
-     * Returns the identifier of the network element to which this port belongs.
+     * Returns the parent network element to which this port belongs.
      *
      * @return parent network element
      */
-    Element parent();
+    Element element();
 
     // set of port attributes
 
