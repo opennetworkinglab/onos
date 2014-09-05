@@ -1,5 +1,6 @@
 package org.onlab.onos.net.trivial.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
@@ -227,7 +228,13 @@ class SimpleDeviceStore {
      */
     DeviceEvent updatePortStatus(DeviceId deviceId,
                                  PortDescription portDescription) {
-        return null;
+        synchronized (this) {
+            Device device = devices.get(deviceId);
+            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
+            Map<PortNumber, Port> ports = getPortMap(deviceId);
+            Port port = ports.get(portDescription.portNumber());
+            return updatePort(device, port, portDescription, ports);
+        }
     }
 
     /**
@@ -237,7 +244,8 @@ class SimpleDeviceStore {
      * @return list of device ports
      */
     List<Port> getPorts(DeviceId deviceId) {
-        return null;
+        Map<PortNumber, Port> ports = devicePorts.get(deviceId);
+        return ports == null ? new ArrayList<Port>() : ImmutableList.copyOf(ports.values());
     }
 
     /**
@@ -248,7 +256,8 @@ class SimpleDeviceStore {
      * @return device port
      */
     Port getPort(DeviceId deviceId, PortNumber portNumber) {
-        return null;
+        Map<PortNumber, Port> ports = devicePorts.get(deviceId);
+        return ports == null ? null : ports.get(portNumber);
     }
 
     /**
