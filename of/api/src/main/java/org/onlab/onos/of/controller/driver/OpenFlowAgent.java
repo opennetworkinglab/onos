@@ -69,7 +69,9 @@ public interface OpenFlowAgent {
 
     /**
      * Process a message coming from a switch.
+     *
+     * @param dpid the dpid the message came on.
      * @param m the message to process
      */
-    public void processMessage(OFMessage m);
+    public void processMessage(Dpid dpid, OFMessage m);
 }

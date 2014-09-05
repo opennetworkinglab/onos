@@ -1,5 +1,7 @@
 package org.onlab.onos.provider.of.link.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -11,9 +13,9 @@ import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.of.controller.OpenFlowController;
+import org.onlab.onos.of.controller.PacketContext;
+import org.onlab.onos.of.controller.PacketListener;
 import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -32,6 +34,8 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
     private LinkProviderService providerService;
 
+    private final PacketListener listener = new InternalLinkProvider();
+
     /**
      * Creates an OpenFlow link provider.
      */
@@ -42,14 +46,26 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
+        controller.addPacketListener(0, listener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
+        controller.removePacketListener(listener);
         providerService = null;
         log.info("Stopped");
+    }
+
+
+    private class InternalLinkProvider implements PacketListener {
+
+        @Override
+        public void handlePacket(PacketContext pktCtx) {
+
+        }
+
     }
 
 }

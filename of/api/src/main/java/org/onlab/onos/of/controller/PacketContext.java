@@ -1,5 +1,6 @@
 package org.onlab.onos.of.controller;
 
+import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.types.OFPort;
 
 /**
@@ -34,13 +35,13 @@ public interface PacketContext {
      * @param ethFrame the actual packet to send out.
      * @param outPort the out port to send to packet out of.
      */
-    public void build(Object ethFrame, OFPort outPort);
+    public void build(Ethernet ethFrame, OFPort outPort);
 
     /**
      * Provided a handle onto the parsed payload.
      * @return the parsed form of the payload.
      */
-    public Object parsed();
+    public Ethernet parsed();
 
     /**
      * Provide the dpid of the switch where the packet in arrived.

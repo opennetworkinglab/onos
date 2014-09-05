@@ -87,9 +87,10 @@ public interface OpenFlowController {
     /**
      * Process a message and notify the appropriate listeners.
      *
+     * @param dpid the dpid the message arrived on
      * @param msg the message to process.
      */
-    public void processPacket(OFMessage msg);
+    public void processPacket(Dpid dpid, OFMessage msg);
 
     /**
      * Sets the role for a given switch.

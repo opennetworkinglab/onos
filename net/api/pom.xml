@@ -21,6 +21,10 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-misc</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

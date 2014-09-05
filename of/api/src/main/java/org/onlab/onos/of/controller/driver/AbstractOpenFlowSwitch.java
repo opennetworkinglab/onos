@@ -159,7 +159,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
      */
     @Override
     public final void handleMessage(OFMessage m) {
-        this.agent.processMessage(m);
+        this.agent.processMessage(dpid, m);
     }
 
     @Override

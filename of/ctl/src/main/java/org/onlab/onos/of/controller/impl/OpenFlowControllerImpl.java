@@ -6,9 +6,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowSwitch;
@@ -17,11 +15,10 @@ import org.onlab.onos.of.controller.PacketListener;
 import org.onlab.onos.of.controller.RoleState;
 import org.onlab.onos.of.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(immediate = true)
-@Service
 public class OpenFlowControllerImpl implements OpenFlowController {
 
     private static final Logger log =
@@ -37,6 +34,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
     protected ArrayList<OpenFlowSwitchListener> ofEventListener =
             new ArrayList<OpenFlowSwitchListener>();
+
+    protected ArrayList<PacketListener> ofPacketListener =
+            new ArrayList<PacketListener>();
 
     private final Controller ctrl = new Controller();
 
@@ -94,14 +94,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void addPacketListener(int priority, PacketListener listener) {
-        // TODO Auto-generated method stub
-
+        ofPacketListener.add(priority, listener);
     }
 
     @Override
     public void removePacketListener(PacketListener listener) {
-        // TODO Auto-generated method stub
-
+        ofPacketListener.remove(listener);
     }
 
     @Override
@@ -110,8 +108,22 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     @Override
-    public void processPacket(OFMessage msg) {
-        log.info("Got message {}", msg);
+    public void processPacket(Dpid dpid, OFMessage msg) {
+        switch (msg.getType()) {
+        case PORT_STATUS:
+            for (OpenFlowSwitchListener l : ofEventListener) {
+                l.portChanged(dpid, (OFPortStatus) msg);
+            }
+            break;
+        case PACKET_IN:
+            for (PacketListener p : ofPacketListener) {
+                //TODO fix me!
+                p.handlePacket(null);
+            }
+            break;
+        default:
+            log.warn("Handling message type {} not yet implemented", msg.getType());
+        }
     }
 
     @Override
@@ -252,8 +264,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
 
         @Override
-        public void processMessage(OFMessage m) {
-            processPacket(m);
+        public void processMessage(Dpid dpid, OFMessage m) {
+            processPacket(dpid, m);
         }
     }
 

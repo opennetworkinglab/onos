@@ -25,5 +25,7 @@
     <suppress files=".*" checks="TodoCommentCheck"/>
     <suppress files=".*" checks="AvoidInlineConditionalsCheck"/>
     <suppress files=".*" checks="OperatorWrapCheck"/>
+    <suppress files=".*" checks="HiddenField"/>
+    
 </suppressions>
 
