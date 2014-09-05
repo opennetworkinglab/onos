@@ -30,7 +30,9 @@ import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.RoleState;
+import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.slf4j.Logger;
 
 /**
@@ -50,7 +52,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private DeviceProviderService providerService;
 
-    private OpenFlowSwitchListener listener = new InternalDeviceProvider();
+    private final OpenFlowSwitchListener listener = new InternalDeviceProvider();
 
     /**
      * Creates an OpenFlow device provider.
@@ -119,17 +121,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.updatePorts(deviceId(uri), buildPortDescriptions(sw.getPorts()));
         }
 
-        private List<PortDescription> buildPortDescriptions(
-                List<OFPortDesc> ports) {
-            List<PortDescription> portDescs = new ArrayList<PortDescription>();
-            for (OFPortDesc port : ports) {
-                PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
-
-                portDescs.add(new DefaultPortDescription(portNo,
-                        port.getState()));
-            }
-        }
-
         @Override
         public void switchRemoved(Dpid dpid) {
             if (providerService == null) {
@@ -147,6 +138,21 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 log.warn("URI construction for device {} failed.", dpid);
             }
             return uri;
+        }
+
+        private List<PortDescription> buildPortDescriptions(
+                List<OFPortDesc> ports) {
+            final List<PortDescription> portDescs = new ArrayList<PortDescription>();
+            PortNumber portNo;
+            boolean enabled;
+            for (OFPortDesc port : ports) {
+                portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+                enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
+                        !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+                portDescs.add(new DefaultPortDescription(portNo,
+                        enabled));
+            }
+            return portDescs;
         }
 
     }

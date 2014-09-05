@@ -1,11 +1,13 @@
 package org.onlab.onos.of.drivers.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Nicira, Inc. Make
@@ -56,4 +58,11 @@ public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
     public void write(List<OFMessage> msgs) {
         channel.write(msgs);
     }
+
+    @Override
+    public List<OFPortDesc> getPorts() {
+        return Collections.unmodifiableList(features.getPorts());
+    }
+
+
 }

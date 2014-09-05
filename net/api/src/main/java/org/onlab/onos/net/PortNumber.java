@@ -1,10 +1,8 @@
 package org.onlab.onos.net;
 
-import com.google.common.primitives.UnsignedLongs;
-
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import com.google.common.primitives.UnsignedLongs;
 
 /**
  * Representation of a port number.
@@ -17,9 +15,6 @@ public final class PortNumber {
 
     // Public creation is prohibited
     private PortNumber(long number) {
-        checkArgument(number >= 0 && number < MAX_NUMBER,
-                      "Port number %d is outside the supported range [0, %d)",
-                      number, MAX_NUMBER);
         this.number = number;
     }
 
