@@ -33,6 +33,7 @@ import org.onlab.onos.of.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
+import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 
 /**
@@ -130,6 +131,18 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceDisconnected(deviceId(uri));
         }
 
+        @Override
+        public void portChanged(Dpid dpid, OFPortStatus status) {
+            final PortDescription portDescription = buildPortDescription(status.getDesc());
+            final URI uri = buildURI(dpid);
+            providerService.portStatusChanged(deviceId(uri), portDescription);
+        }
+
+        /**
+         * Given a dpid builds a URI for the device.
+         * @param dpid the dpid to build the uri from
+         * @return returns a uri of the form of:<dpidHexForm>
+         */
         private URI buildURI(Dpid dpid) {
             URI uri = null;
             try {
@@ -140,21 +153,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             return uri;
         }
 
+        /**
+         * Builds a list of port descriptions for a given list of ports.
+         * @param ports the list of ports
+         * @return list of portdescriptions
+         */
         private List<PortDescription> buildPortDescriptions(
                 List<OFPortDesc> ports) {
             final List<PortDescription> portDescs = new ArrayList<PortDescription>();
-            PortNumber portNo;
-            boolean enabled;
             for (OFPortDesc port : ports) {
-                portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
-                enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
-                        !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-                portDescs.add(new DefaultPortDescription(portNo,
-                        enabled));
+                portDescs.add(buildPortDescription(port));
             }
             return portDescs;
         }
 
+        /**
+         * Build a portDescription from a given port.
+         * @param port the port to build from.
+         * @return portDescription for the port.
+         */
+        private PortDescription buildPortDescription(OFPortDesc port) {
+            final PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+            final boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
+                    !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            return new DefaultPortDescription(portNo, enabled);
+        }
     }
 
 }
