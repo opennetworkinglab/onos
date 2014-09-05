@@ -1,6 +1,7 @@
 package org.onlab.onos.net.trivial.impl;
 
 import org.onlab.onos.net.DefaultDevice;
+import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -13,7 +14,9 @@ import org.onlab.onos.net.provider.ProviderId;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,18 +24,19 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
+import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
 /**
  * Manages inventory of infrastructure devices.
  */
 class SimpleDeviceStore {
 
+    public static final String DEVICE_NOT_FOUND = "Device with ID %s not found";
+
     private final Map<DeviceId, DefaultDevice> devices = new ConcurrentHashMap<>();
     private final Map<DeviceId, MastershipRole> roles = new ConcurrentHashMap<>();
     private final Set<DeviceId> availableDevices = new HashSet<>();
+    private final Map<DeviceId, Map<PortNumber, Port>> devicePorts = new HashMap<>();
 
     /**
      * Returns an iterable collection of all devices known to the system.
@@ -82,7 +86,7 @@ class SimpleDeviceStore {
             devices.put(deviceId, device);
             availableDevices.add(deviceId);
         }
-        return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device);
+        return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }
 
     // Updates the device and returns the appropriate event if necessary.
@@ -101,13 +105,14 @@ class SimpleDeviceStore {
                 devices.put(device.id(), updated);
                 availableDevices.add(device.id());
             }
-            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, device);
+            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, device, null);
         }
 
         // Otherwise merely attempt to change availability
         synchronized (this) {
             boolean added = availableDevices.add(device.id());
-            return added ? new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device) : null;
+            return !added ? null :
+                    new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
         }
     }
 
@@ -120,9 +125,10 @@ class SimpleDeviceStore {
     DeviceEvent markOffline(DeviceId deviceId) {
         synchronized (this) {
             Device device = devices.get(deviceId);
-            checkArgument(device != null, "Device with ID %s is not found", deviceId);
+            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
             boolean removed = availableDevices.remove(deviceId);
-            return removed ? new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device) : null;
+            return !removed ? null :
+                    new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
         }
     }
 
@@ -136,7 +142,79 @@ class SimpleDeviceStore {
      */
     List<DeviceEvent> updatePorts(DeviceId deviceId,
                                   List<PortDescription> portDescriptions) {
-        return new ArrayList<>();
+        List<DeviceEvent> events = new ArrayList<>();
+        synchronized (this) {
+            Device device = devices.get(deviceId);
+            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
+            Map<PortNumber, Port> ports = getPortMap(deviceId);
+
+            // Add new ports
+            Set<PortNumber> processed = new HashSet<>();
+            for (PortDescription portDescription : portDescriptions) {
+                Port port = ports.get(portDescription.portNumber());
+                DeviceEvent event = port == null ?
+                        createPort(device, portDescription, ports) :
+                        updatePort(device, port, portDescription, ports);
+                processed.add(portDescription.portNumber());
+            }
+
+            events.addAll(pruneOldPorts(device, ports, processed));
+        }
+        return events;
+    }
+
+    // Creates a new port based on the port description adds it to the map and
+    // Returns corresponding event.
+    private DeviceEvent createPort(Device device, PortDescription portDescription,
+                                   Map<PortNumber, Port> ports) {
+        DefaultPort port = new DefaultPort(device, portDescription.portNumber(),
+                                           portDescription.isEnabled());
+        ports.put(port.number(), port);
+        return new DeviceEvent(PORT_ADDED, device, port);
+    }
+
+    // CHecks if the specified port requires update and if so, it replaces the
+    // existing entry in the map and returns corresponding event.
+    private DeviceEvent updatePort(Device device, Port port,
+                                   PortDescription portDescription,
+                                   Map<PortNumber, Port> ports) {
+        if (port.isEnabled() != portDescription.isEnabled()) {
+            DefaultPort updatedPort =
+                    new DefaultPort(device, portDescription.portNumber(),
+                                    portDescription.isEnabled());
+            ports.put(port.number(), updatedPort);
+            return new DeviceEvent(PORT_UPDATED, device, port);
+        }
+        return null;
+    }
+
+    // Prunes the specified list of ports based on which ports are in the
+    // processed list and returns list of corresponding events.
+    private List<DeviceEvent> pruneOldPorts(Device device,
+                                            Map<PortNumber, Port> ports,
+                                            Set<PortNumber> processed) {
+        List<DeviceEvent> events = new ArrayList<>();
+        Iterator<PortNumber> iterator = ports.keySet().iterator();
+        while (iterator.hasNext()) {
+            PortNumber portNumber = iterator.next();
+            if (processed.contains(portNumber)) {
+                events.add(new DeviceEvent(PORT_REMOVED, device,
+                                           ports.get(portNumber)));
+                iterator.remove();
+            }
+        }
+        return events;
+    }
+
+    // Gets the map of ports for the specified device; if one does not already
+    // exist, it creates and registers a new one.
+    private Map<PortNumber, Port> getPortMap(DeviceId deviceId) {
+        Map<PortNumber, Port> ports = devicePorts.get(deviceId);
+        if (ports == null) {
+            ports = new HashMap<>();
+            devicePorts.put(deviceId, ports);
+        }
+        return ports;
     }
 
     /**
@@ -194,9 +272,10 @@ class SimpleDeviceStore {
     DeviceEvent setRole(DeviceId deviceId, MastershipRole role) {
         synchronized (this) {
             Device device = getDevice(deviceId);
-            checkArgument(device != null, "Device with ID %s not found");
+            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
             MastershipRole oldRole = roles.put(deviceId, role);
-            return oldRole == role ? null : new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device);
+            return oldRole == role ? null :
+                    new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device, null);
         }
     }
 
@@ -209,7 +288,9 @@ class SimpleDeviceStore {
         synchronized (this) {
             roles.remove(deviceId);
             Device device = devices.remove(deviceId);
-            return device != null ? new DeviceEvent(DEVICE_REMOVED, device) : null;
+            return device == null ? null :
+                    new DeviceEvent(DEVICE_REMOVED, device, null);
         }
     }
+
 }
