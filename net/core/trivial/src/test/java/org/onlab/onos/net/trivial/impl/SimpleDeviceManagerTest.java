@@ -7,7 +7,10 @@ import org.onlab.onos.event.Event;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.Port;
+import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
+import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceAdminService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
@@ -16,6 +19,7 @@ import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 
@@ -41,6 +45,10 @@ public class SimpleDeviceManagerTest {
     private static final String SW1 = "3.8.1";
     private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
+
+    private static final PortNumber P1 = PortNumber.portNumber(1);
+    private static final PortNumber P2 = PortNumber.portNumber(2);
+    private static final PortNumber P3 = PortNumber.portNumber(3);
 
 
     private SimpleDeviceManager mgr;
@@ -138,7 +146,61 @@ public class SimpleDeviceManagerTest {
         assertEquals("incorrect role", MastershipRole.MASTER, provider.roleReceived);
     }
 
+    @Test
+    public void updatePorts() {
+        connectDevice(DID1, SW1);
+        List<PortDescription> pds = new ArrayList<>();
+        pds.add(new DefaultPortDescription(P1, true));
+        pds.add(new DefaultPortDescription(P2, true));
+        pds.add(new DefaultPortDescription(P3, true));
+        providerService.updatePorts(DID1, pds);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED, PORT_ADDED);
+        pds.clear();
 
+        pds.add(new DefaultPortDescription(P1, false));
+        pds.add(new DefaultPortDescription(P3, true));
+        providerService.updatePorts(DID1, pds);
+        validateEvents(PORT_UPDATED, PORT_REMOVED);
+    }
+
+    @Test
+    public void updatePortStatus() {
+        connectDevice(DID1, SW1);
+        List<PortDescription> pds = new ArrayList<>();
+        pds.add(new DefaultPortDescription(P1, true));
+        pds.add(new DefaultPortDescription(P2, true));
+        providerService.updatePorts(DID1, pds);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
+
+        providerService.portStatusChanged(DID1, new DefaultPortDescription(P1, false));
+        validateEvents(PORT_UPDATED);
+        providerService.portStatusChanged(DID1, new DefaultPortDescription(P1, false));
+        assertTrue("no events expected", listener.events.isEmpty());
+    }
+
+    @Test
+    public void getPorts() {
+        connectDevice(DID1, SW1);
+        List<PortDescription> pds = new ArrayList<>();
+        pds.add(new DefaultPortDescription(P1, true));
+        pds.add(new DefaultPortDescription(P2, true));
+        providerService.updatePorts(DID1, pds);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
+        assertEquals("wrong port count", 2, service.getPorts(DID1).size());
+
+        Port port = service.getPort(DID1, P1);
+        assertEquals("incorrect port", P1, service.getPort(DID1, P1).number());
+        assertEquals("incorrect state", true, service.getPort(DID1, P1).isEnabled());
+    }
+
+    @Test
+    public void removeDevice() {
+        connectDevice(DID1, SW1);
+        connectDevice(DID2, SW2);
+        admin.removeDevice(DID1);
+        assertNull("device should not be found", service.getDevice(DID1));
+        assertNotNull("device should be found", service.getDevice(DID2));
+    }
 
     protected void validateEvents(Enum... types) {
         int i = 0;

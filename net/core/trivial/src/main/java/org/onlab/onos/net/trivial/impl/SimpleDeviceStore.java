@@ -153,9 +153,9 @@ class SimpleDeviceStore {
             Set<PortNumber> processed = new HashSet<>();
             for (PortDescription portDescription : portDescriptions) {
                 Port port = ports.get(portDescription.portNumber());
-                DeviceEvent event = port == null ?
-                        createPort(device, portDescription, ports) :
-                        updatePort(device, port, portDescription, ports);
+                events.add(port == null ?
+                                   createPort(device, portDescription, ports) :
+                                   updatePort(device, port, portDescription, ports));
                 processed.add(portDescription.portNumber());
             }
 
@@ -198,7 +198,7 @@ class SimpleDeviceStore {
         Iterator<PortNumber> iterator = ports.keySet().iterator();
         while (iterator.hasNext()) {
             PortNumber portNumber = iterator.next();
-            if (processed.contains(portNumber)) {
+            if (!processed.contains(portNumber)) {
                 events.add(new DeviceEvent(PORT_REMOVED, device,
                                            ports.get(portNumber)));
                 iterator.remove();

@@ -147,7 +147,7 @@ public class SimpleDeviceManager
         public void deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
-            log.info("Device {} connected: {}", deviceId, deviceDescription);
+            log.info("Device {} connected", deviceId);
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
             post(event);
@@ -165,7 +165,7 @@ public class SimpleDeviceManager
         public void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescriptions, "Port descriptions list cannot be null");
-            log.info("Device {} ports updated: {}", portDescriptions);
+            log.info("Device {} ports updated", deviceId);
             List<DeviceEvent> events = store.updatePorts(deviceId, portDescriptions);
             for (DeviceEvent event : events) {
                 post(event);
@@ -176,7 +176,7 @@ public class SimpleDeviceManager
         public void portStatusChanged(DeviceId deviceId, PortDescription portDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
-            log.info("Device {} port status changed: {}", deviceId, portDescription);
+            log.info("Device {} port status changed", deviceId);
             DeviceEvent event = store.updatePortStatus(deviceId, portDescription);
             post(event);
         }
