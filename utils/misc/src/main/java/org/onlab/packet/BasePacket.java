@@ -34,7 +34,7 @@ package org.onlab.packet;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
+ *
  */
 public abstract class BasePacket implements IPacket {
     protected IPacket parent;

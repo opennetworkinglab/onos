@@ -40,7 +40,6 @@ import java.util.ListIterator;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class DHCP extends BasePacket {
     /**

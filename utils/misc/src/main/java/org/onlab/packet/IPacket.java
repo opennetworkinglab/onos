@@ -34,7 +34,6 @@ package org.onlab.packet;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public interface IPacket {
     /**

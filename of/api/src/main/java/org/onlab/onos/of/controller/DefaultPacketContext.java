@@ -5,7 +5,7 @@ import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.types.OFPort;
 
-public class DefaultPacketContext implements PacketContext {
+public final class DefaultPacketContext implements PacketContext {
 
     private boolean free = true;
     private boolean isBuilt = false;
@@ -55,7 +55,7 @@ public class DefaultPacketContext implements PacketContext {
         return null;
     }
 
-    public static PacketContext PacketContextFromPacketIn(OpenFlowSwitch s, OFPacketIn pkt) {
+    public static PacketContext packetContextFromPacketIn(OpenFlowSwitch s, OFPacketIn pkt) {
         return new DefaultPacketContext(s, pkt);
     }
 

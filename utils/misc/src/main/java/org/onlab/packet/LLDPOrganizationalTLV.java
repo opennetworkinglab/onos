@@ -36,7 +36,6 @@ import java.util.Arrays;
 /**
  * The class representing LLDP Organizationally Specific TLV.
  *
- * @author Sho Shimizu (sho.shimizu@gmail.com)
  */
 public class LLDPOrganizationalTLV extends LLDPTLV {
     public static final int OUI_LENGTH = 3;
@@ -163,8 +162,8 @@ public class LLDPOrganizationalTLV extends LLDPTLV {
         this.setSubType(optionalField.get());
 
         final byte[] infoString = new byte[this.getLength()
-                - LLDPOrganizationalTLV.OUI_LENGTH
-                - LLDPOrganizationalTLV.SUBTYPE_LENGTH];
+                                           - LLDPOrganizationalTLV.OUI_LENGTH
+                                           - LLDPOrganizationalTLV.SUBTYPE_LENGTH];
         optionalField.get(infoString);
         this.setInfoString(infoString);
         return this;

@@ -36,7 +36,6 @@ import java.nio.ByteBuffer;
 
 /**
  *
- * @author shudong.zhou@bigswitch.com
  */
 
 public class TCP extends BasePacket {

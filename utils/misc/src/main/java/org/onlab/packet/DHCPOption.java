@@ -36,7 +36,6 @@ import java.util.Arrays;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class DHCPOption {
     protected byte code;

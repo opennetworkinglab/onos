@@ -20,7 +20,6 @@ import java.util.Arrays;
 /**
  * The class representing MAC address.
  *
- * @author Sho Shimizu (sho.shimizu@gmail.com)
  */
 public class MACAddress {
     public static final int MAC_ADDRESS_LENGTH = 6;

@@ -37,7 +37,7 @@ import java.util.Arrays;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
+ *
  */
 public class ARP extends BasePacket {
     public static final short HW_TYPE_ETHERNET = 0x1;

@@ -37,7 +37,6 @@ import java.nio.ByteBuffer;
 /**
  * Implements ICMP packet format.
  *
- * @author shudong.zhou@bigswitch.com
  */
 public class ICMP extends BasePacket {
     protected byte icmpType;

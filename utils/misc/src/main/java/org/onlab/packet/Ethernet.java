@@ -40,7 +40,6 @@ import java.util.Map;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class Ethernet extends BasePacket {
     private static final String HEXES = "0123456789ABCDEF";

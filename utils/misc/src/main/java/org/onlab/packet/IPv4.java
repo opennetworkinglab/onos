@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author David Erickson (daviderickson@cs.stanford.edu)
  *
  */
 public class IPv4 extends BasePacket {
@@ -472,10 +471,10 @@ public class IPv4 extends BasePacket {
         int result = 0;
         for (int i = 0; i < 4; ++i) {
             result = ipAddress >> (3 - i) * 8 & 0xff;
-            sb.append(Integer.valueOf(result).toString());
-            if (i != 3) {
-                sb.append(".");
-            }
+        sb.append(Integer.valueOf(result).toString());
+        if (i != 3) {
+            sb.append(".");
+        }
         }
         return sb.toString();
     }

@@ -38,7 +38,6 @@ import java.util.Map;
 
 /**
  *
- * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 
 public class UDP extends BasePacket {
