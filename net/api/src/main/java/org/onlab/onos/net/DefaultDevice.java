@@ -4,7 +4,7 @@ import org.onlab.onos.net.provider.ProviderId;
 
 import java.util.Objects;
 
-import static com.google.common.base.Objects.toStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default infrastructure device model implementation.

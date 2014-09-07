@@ -1,28 +1,34 @@
 package org.onlab.onos.net;
 
-import org.onlab.onos.net.link.LinkDescription;
+import org.onlab.onos.net.provider.ProviderId;
 
 import java.util.Objects;
 
-import static com.google.common.base.Objects.toStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default infrastructure link model implementation.
  */
-public class DefaultLink implements LinkDescription {
+public class DefaultLink extends AbstractModel implements Link {
 
-    private ConnectPoint src;
-    private ConnectPoint dst;
+    private final ConnectPoint src;
+    private final ConnectPoint dst;
+    private final Type type;
 
     /**
      * Creates a link description using the supplied information.
      *
-     * @param src link source
-     * @param dst link destination
+     * @param providerId provider identity
+     * @param src        link source
+     * @param dst        link destination
+     * @param type       link type
      */
-    public DefaultLink(ConnectPoint src, ConnectPoint dst) {
+    public DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
+                       Type type) {
+        super(providerId);
         this.src = src;
         this.dst = dst;
+        this.type = type;
     }
 
     @Override
@@ -35,18 +41,23 @@ public class DefaultLink implements LinkDescription {
         return dst;
     }
 
+    @Override
+    public Type type() {
+        return type;
+    }
 
     @Override
     public int hashCode() {
-        return Objects.hash(src, dst);
+        return Objects.hash(src, dst, type);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DefaultDevice) {
+        if (obj instanceof DefaultLink) {
             final DefaultLink other = (DefaultLink) obj;
             return Objects.equals(this.src, other.src) &&
-                    Objects.equals(this.dst, other.dst);
+                    Objects.equals(this.dst, other.dst) &&
+                    Objects.equals(this.type, other.type);
         }
         return false;
     }
@@ -56,6 +67,7 @@ public class DefaultLink implements LinkDescription {
         return toStringHelper(this)
                 .add("src", src)
                 .add("dst", dst)
+                .add("type", type)
                 .toString();
     }
 

@@ -3,7 +3,7 @@ package org.onlab.onos.net;
 import java.net.URI;
 import java.util.Objects;
 
-import static com.google.common.base.Objects.toStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Immutable representation of a network element identity.

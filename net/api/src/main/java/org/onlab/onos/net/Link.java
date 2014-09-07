@@ -37,6 +37,13 @@ public interface Link extends Provided {
      */
     ConnectPoint dst();
 
+    /**
+     * Returns the link type.
+     *
+     * @return link type
+     */
+    Type type();
+
     // LinkInfo info(); // Additional link information / decorations
 
 }

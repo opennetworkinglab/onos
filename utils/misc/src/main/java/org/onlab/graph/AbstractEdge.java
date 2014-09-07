@@ -2,6 +2,7 @@ package org.onlab.graph;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -49,7 +50,7 @@ public abstract class AbstractEdge<V extends Vertex> implements Edge<V> {
 
     @Override
     public String toString() {
-        return com.google.common.base.Objects.toStringHelper(this)
+        return toStringHelper(this)
                 .add("src", src)
                 .add("dst", dst)
                 .toString();

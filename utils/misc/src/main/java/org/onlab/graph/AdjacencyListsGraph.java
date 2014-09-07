@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -94,7 +95,7 @@ public class AdjacencyListsGraph<V extends Vertex, E extends Edge<V>> implements
 
     @Override
     public String toString() {
-        return com.google.common.base.Objects.toStringHelper(this)
+        return toStringHelper(this)
                 .add("vertexes", vertexes)
                 .add("edges", edges)
                 .toString();

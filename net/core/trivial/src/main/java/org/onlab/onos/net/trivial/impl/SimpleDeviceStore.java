@@ -45,7 +45,7 @@ class SimpleDeviceStore {
      *
      * @return number of devices
      */
-    public int getDeviceCount() {
+    int getDeviceCount() {
         return devices.size();
     }
 

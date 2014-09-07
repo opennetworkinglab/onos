@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -91,7 +92,7 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
 
     @Override
     public String toString() {
-        return com.google.common.base.Objects.toStringHelper(this)
+        return toStringHelper(this)
                 .add("src", src())
                 .add("dst", dst())
                 .add("cost", cost)

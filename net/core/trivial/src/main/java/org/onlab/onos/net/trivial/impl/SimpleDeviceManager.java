@@ -152,6 +152,7 @@ public class SimpleDeviceManager
         public void deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
+            checkValidity();
             log.info("Device {} connected", deviceId);
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
@@ -161,6 +162,7 @@ public class SimpleDeviceManager
         @Override
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
+            checkValidity();
             log.info("Device {} disconnected", deviceId);
             DeviceEvent event = store.markOffline(deviceId);
             post(event);
@@ -170,6 +172,7 @@ public class SimpleDeviceManager
         public void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescriptions, "Port descriptions list cannot be null");
+            checkValidity();
             log.info("Device {} ports updated", deviceId);
             List<DeviceEvent> events = store.updatePorts(deviceId, portDescriptions);
             for (DeviceEvent event : events) {
@@ -181,13 +184,14 @@ public class SimpleDeviceManager
         public void portStatusChanged(DeviceId deviceId, PortDescription portDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
+            checkValidity();
             log.info("Device {} port status changed", deviceId);
             DeviceEvent event = store.updatePortStatus(deviceId, portDescription);
             post(event);
         }
     }
 
-    // Posts the specified event to a local event dispatcher
+    // Posts the specified event to the local event dispatcher.
     private void post(DeviceEvent event) {
         if (event != null && eventDispatcher != null) {
             eventDispatcher.post(event);
