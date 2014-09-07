@@ -34,6 +34,8 @@ public class SimpleLinkManager
     private final AbstractListenerRegistry<LinkEvent, LinkListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
+    private final SimpleLinkStore store = new SimpleLinkStore();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private EventDeliveryService eventDispatcher;
 

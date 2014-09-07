@@ -7,7 +7,7 @@ import java.util.Objects;
 import static com.google.common.base.Objects.toStringHelper;
 
 /**
- * Default device model implementation.
+ * Default infrastructure device model implementation.
  */
 public class DefaultDevice extends AbstractElement implements Device {
 
