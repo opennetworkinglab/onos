@@ -50,7 +50,7 @@ public class SimpleLinkManager
     private final SimpleLinkStore store = new SimpleLinkStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDeliveryService eventDispatcher;
+    protected EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
