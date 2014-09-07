@@ -69,9 +69,8 @@ public class SimpleDeviceManager
     }
 
     @Override
-    public MastershipRole getRole(DeviceId deviceId) {
-        checkNotNull(deviceId, DEVICE_ID_NULL);
-        return store.getRole(deviceId);
+    public int getDeviceCount() {
+        return store.getDeviceCount();
     }
 
     @Override
@@ -83,6 +82,12 @@ public class SimpleDeviceManager
     public Device getDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDevice(deviceId);
+    }
+
+    @Override
+    public MastershipRole getRole(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getRole(deviceId);
     }
 
     @Override

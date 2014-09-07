@@ -28,7 +28,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
 /**
- * Manages inventory of infrastructure devices.
+ * Manages inventory of infrastructure devices using trivial in-memory
+ * implementation.
  */
 class SimpleDeviceStore {
 
@@ -38,6 +39,15 @@ class SimpleDeviceStore {
     private final Map<DeviceId, MastershipRole> roles = new ConcurrentHashMap<>();
     private final Set<DeviceId> availableDevices = new HashSet<>();
     private final Map<DeviceId, Map<PortNumber, Port>> devicePorts = new HashMap<>();
+
+    /**
+     * Returns the number of devices known to the system.
+     *
+     * @return number of devices
+     */
+    public int getDeviceCount() {
+        return devices.size();
+    }
 
     /**
      * Returns an iterable collection of all devices known to the system.
@@ -301,5 +311,4 @@ class SimpleDeviceStore {
                     new DeviceEvent(DEVICE_REMOVED, device, null);
         }
     }
-
 }

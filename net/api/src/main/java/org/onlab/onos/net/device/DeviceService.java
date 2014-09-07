@@ -14,12 +14,11 @@ import java.util.List;
 public interface DeviceService {
 
     /**
-     * Returns the current mastership role for the specified device.
+     * Returns the number of infrastructure devices known to the system.
      *
-     * @param deviceId device identifier
-     * @return designated mastership role
+     * @return number of infrastructure devices
      */
-    MastershipRole getRole(DeviceId deviceId);
+    int getDeviceCount();
 
     /**
      * Returns a collection of the currently known infrastructure
@@ -36,6 +35,14 @@ public interface DeviceService {
      * @return device or null if one with the given identifier is not known
      */
     Device getDevice(DeviceId deviceId);
+
+    /**
+     * Returns the current mastership role for the specified device.
+     *
+     * @param deviceId device identifier
+     * @return designated mastership role
+     */
+    MastershipRole getRole(DeviceId deviceId);
 
 
     /**

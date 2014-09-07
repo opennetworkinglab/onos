@@ -103,6 +103,7 @@ public class SimpleDeviceManagerTest {
         Iterator<Device> it = service.getDevices().iterator();
         assertNotNull("one device expected", it.next());
         assertFalse("only one device expected", it.hasNext());
+        assertEquals("incorrect device count", 1, service.getDeviceCount());
     }
 
     @Test
@@ -119,6 +120,8 @@ public class SimpleDeviceManagerTest {
         // Reconnect
         connectDevice(DID1, SW1);
         validateEvents(DEVICE_AVAILABILITY_CHANGED);
+
+        assertEquals("incorrect device count", 2, service.getDeviceCount());
     }
 
     @Test
@@ -197,9 +200,12 @@ public class SimpleDeviceManagerTest {
     public void removeDevice() {
         connectDevice(DID1, SW1);
         connectDevice(DID2, SW2);
+        assertEquals("incorrect device count", 2, service.getDeviceCount());
         admin.removeDevice(DID1);
         assertNull("device should not be found", service.getDevice(DID1));
         assertNotNull("device should be found", service.getDevice(DID2));
+        assertEquals("incorrect device count", 1, service.getDeviceCount());
+
     }
 
     protected void validateEvents(Enum... types) {
