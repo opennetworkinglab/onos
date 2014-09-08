@@ -5,7 +5,8 @@
 
     <feature name="onos-thirdparty-base" version="1.0.0"
              description="ONOS 3rd party dependencies">
-        <bundle>mvn:com.google.guava/guava/17.0</bundle>
+        <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
+        <bundle>mvn:com.google.guava/guava/18.0</bundle>
     </feature>
 
     <feature name="onos-thirdparty-web" version="1.0.0"
