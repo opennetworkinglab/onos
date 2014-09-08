@@ -38,7 +38,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
     protected Object doExecute() throws Exception {
         DeviceService service = getService(DeviceService.class);
         if (uri == null) {
-            for (Device device : service.getDevices()) {
+            for (Device device : getSortedDevices(service)) {
                 printDevicePorts(service, device);
             }
         } else {
