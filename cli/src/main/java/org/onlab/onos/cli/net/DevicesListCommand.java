@@ -13,14 +13,27 @@ import org.onlab.onos.net.device.DeviceService;
 public class DevicesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s";
+            "id=%s, available=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s";
 
     @Override
     protected Object doExecute() throws Exception {
-        for (Device device : getService(DeviceService.class).getDevices()) {
-            print(FMT, device.id().uri(), device.type(), device.manufacturer(),
-                  device.hwVersion(), device.swVersion(), device.serialNumber());
+        DeviceService service = getService(DeviceService.class);
+        for (Device device : service.getDevices()) {
+            printDevice(device, service.isAvailable(device.id()));
         }
         return null;
     }
+
+    /**
+     * Prints information about the specified device.
+     *
+     * @param device      infrastructure device
+     * @param isAvailable true of device is available
+     */
+    protected void printDevice(Device device, boolean isAvailable) {
+        print(FMT, device.id(), isAvailable, device.type(),
+              device.manufacturer(), device.hwVersion(), device.swVersion(),
+              device.serialNumber());
+    }
+
 }

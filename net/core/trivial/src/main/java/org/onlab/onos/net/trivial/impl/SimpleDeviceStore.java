@@ -271,6 +271,16 @@ class SimpleDeviceStore {
     }
 
     /**
+     * Indicates whether the specified device is available/online.
+     *
+     * @param deviceId device identifier
+     * @return true if device is available
+     */
+    boolean isAvailable(DeviceId deviceId) {
+        return availableDevices.contains(deviceId);
+    }
+
+    /**
      * Returns the mastership role determined for this device.
      *
      * @param deviceId device identifier

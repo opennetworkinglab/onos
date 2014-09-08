@@ -24,7 +24,7 @@ public class DeviceIdCompleter implements Completer {
         Iterator<Device> it = service.getDevices().iterator();
         SortedSet<String> strings = delegate.getStrings();
         while (it.hasNext()) {
-            strings.add(it.next().id().uri().toString());
+            strings.add(it.next().id().toString());
         }
 
         // Now let the completer do the work for figuring out what to offer.

@@ -3,8 +3,6 @@ package org.onlab.onos.net;
 import java.net.URI;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Immutable representation of a network element identity.
  */
@@ -47,7 +45,7 @@ public abstract class ElementId {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("uri", uri).toString();
+        return uri.toString();
     }
 
 }

@@ -1,10 +1,5 @@
 package org.onlab.onos.of.controller.impl;
 
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -21,6 +16,14 @@ import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 @Component(immediate = true)
 @Service
 public class OpenFlowControllerImpl implements OpenFlowController {
@@ -36,11 +39,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
-    protected ArrayList<OpenFlowSwitchListener> ofEventListener =
-            new ArrayList<OpenFlowSwitchListener>();
+    protected Set<OpenFlowSwitchListener> ofEventListener =
+            new HashSet<>();
 
-    protected ArrayList<PacketListener> ofPacketListener =
-            new ArrayList<PacketListener>();
+    protected List<PacketListener> ofPacketListener =
+            new ArrayList<>();
 
     private final Controller ctrl = new Controller();
 
@@ -114,19 +117,19 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void processPacket(Dpid dpid, OFMessage msg) {
         switch (msg.getType()) {
-        case PORT_STATUS:
-            for (OpenFlowSwitchListener l : ofEventListener) {
-                l.portChanged(dpid, (OFPortStatus) msg);
-            }
-            break;
-        case PACKET_IN:
-            for (PacketListener p : ofPacketListener) {
-                //TODO fix me!
-                p.handlePacket(null);
-            }
-            break;
-        default:
-            log.warn("Handling message type {} not yet implemented", msg.getType());
+            case PORT_STATUS:
+                for (OpenFlowSwitchListener l : ofEventListener) {
+                    l.portChanged(dpid, (OFPortStatus) msg);
+                }
+                break;
+            case PACKET_IN:
+                for (PacketListener p : ofPacketListener) {
+                    //TODO fix me!
+                    p.handlePacket(null);
+                }
+                break;
+            default:
+                log.warn("Handling message type {} not yet implemented", msg.getType());
         }
     }
 
@@ -139,7 +142,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
      * Implementation of an OpenFlow Agent which is responsible for
      * keeping track of connected switches and the state in which
      * they are.
-     *
      */
     public class OpenFlowSwitchAgent implements OpenFlowAgent {
 
@@ -150,7 +152,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         public boolean addConnectedSwitch(Dpid dpid, OpenFlowSwitch sw) {
             if (connectedSwitches.get(dpid) != null) {
                 log.error("Trying to add connectedSwitch but found a previous "
-                        + "value for dpid: {}", dpid);
+                                  + "value for dpid: {}", dpid);
                 return false;
             } else {
                 log.error("Added switch {}", dpid);
@@ -166,18 +168,18 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         public boolean validActivation(Dpid dpid) {
             if (connectedSwitches.get(dpid) == null) {
                 log.error("Trying to activate switch but is not in "
-                        + "connected switches: dpid {}. Aborting ..",
-                        dpid);
+                                  + "connected switches: dpid {}. Aborting ..",
+                          dpid);
                 return false;
             }
             if (activeMasterSwitches.get(dpid) != null ||
                     activeEqualSwitches.get(dpid) != null) {
                 log.error("Trying to activate switch but it is already "
-                        + "activated: dpid {}. Found in activeMaster: {} "
-                        + "Found in activeEqual: {}. Aborting ..", new Object[] {
-                                dpid,
-                                (activeMasterSwitches.get(dpid) == null) ? 'N' : 'Y',
-                                        (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y'});
+                                  + "activated: dpid {}. Found in activeMaster: {} "
+                                  + "Found in activeEqual: {}. Aborting ..", new Object[]{
+                        dpid,
+                        (activeMasterSwitches.get(dpid) == null) ? 'N' : 'Y',
+                        (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y'});
                 return false;
             }
             return true;
@@ -223,7 +225,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 OpenFlowSwitch sw = activeEqualSwitches.remove(dpid);
                 if (sw == null) {
                     log.error("Transition to master called on sw {}, but switch "
-                            + "was not found in controller-cache", dpid);
+                                      + "was not found in controller-cache", dpid);
                     return;
                 }
                 log.info("Transitioned switch {} to MASTER", dpid);
@@ -244,7 +246,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 OpenFlowSwitch sw = activeMasterSwitches.remove(dpid);
                 if (sw == null) {
                     log.error("Transition to equal called on sw {}, but switch "
-                            + "was not found in controller-cache", dpid);
+                                      + "was not found in controller-cache", dpid);
                     return;
                 }
                 log.info("Transitioned switch {} to EQUAL", dpid);
@@ -272,7 +274,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             processPacket(dpid, m);
         }
     }
-
 
 
 }

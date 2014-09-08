@@ -104,6 +104,12 @@ public class SimpleDeviceManager
     }
 
     @Override
+    public boolean isAvailable(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.isAvailable(deviceId);
+    }
+
+    @Override
     public void addListener(DeviceListener listener) {
         listenerRegistry.addListener(listener);
     }
@@ -185,8 +191,10 @@ public class SimpleDeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
-            log.info("Device {} port status changed", deviceId);
             DeviceEvent event = store.updatePortStatus(deviceId, portDescription);
+            if (event != null) {
+                log.info("Device {} port status changed", deviceId);
+            }
             post(event);
         }
     }

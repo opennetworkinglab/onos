@@ -104,6 +104,7 @@ public class SimpleDeviceManagerTest {
         assertNotNull("one device expected", it.next());
         assertFalse("only one device expected", it.hasNext());
         assertEquals("incorrect device count", 1, service.getDeviceCount());
+        assertTrue("device should be available", service.isAvailable(DID1));
     }
 
     @Test
@@ -111,10 +112,12 @@ public class SimpleDeviceManagerTest {
         connectDevice(DID1, SW1);
         connectDevice(DID2, SW1);
         validateEvents(DEVICE_ADDED, DEVICE_ADDED);
+        assertTrue("device should be available", service.isAvailable(DID1));
 
         // Disconnect
         providerService.deviceDisconnected(DID1);
         assertNotNull("device should not be found", service.getDevice(DID1));
+        assertFalse("device should not be available", service.isAvailable(DID1));
         validateEvents(DEVICE_AVAILABILITY_CHANGED);
 
         // Reconnect
