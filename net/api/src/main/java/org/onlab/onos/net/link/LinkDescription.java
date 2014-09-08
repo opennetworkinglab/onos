@@ -1,17 +1,34 @@
 package org.onlab.onos.net.link;
 
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Link;
+
 /**
  * Describes an infrastructure link.
  */
 public interface LinkDescription {
 
-    // TODO: src, dst connection points, which are pairs of (DeviceId, PortNumber)
+    /**
+     * Returns the link source.
+     *
+     * @return links source
+     */
+    ConnectPoint src();
 
-//    On the north:
-//    Link = (ConnectPoint src, ConnectPoint dst);
-//    ConnectPoint = (DeviceId, PortNumber);
+    /**
+     * Returns the link destination.
+     *
+     * @return links destination
+     */
+    ConnectPoint dst();
 
-//    On the south
-//    LinkDescription ~ Link
+    /**
+     * Returns the link type.
+     *
+     * @return link type
+     */
+    Link.Type type();
 
+
+    // Add further link attributes
 }

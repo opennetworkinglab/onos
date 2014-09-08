@@ -45,7 +45,7 @@ class SimpleDeviceStore {
      *
      * @return number of devices
      */
-    public int getDeviceCount() {
+    int getDeviceCount() {
         return devices.size();
     }
 
@@ -268,6 +268,16 @@ class SimpleDeviceStore {
     Port getPort(DeviceId deviceId, PortNumber portNumber) {
         Map<PortNumber, Port> ports = devicePorts.get(deviceId);
         return ports == null ? null : ports.get(portNumber);
+    }
+
+    /**
+     * Indicates whether the specified device is available/online.
+     *
+     * @param deviceId device identifier
+     * @return true if device is available
+     */
+    boolean isAvailable(DeviceId deviceId) {
+        return availableDevices.contains(deviceId);
     }
 
     /**

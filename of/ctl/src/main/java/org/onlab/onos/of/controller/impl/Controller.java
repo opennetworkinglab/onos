@@ -232,7 +232,7 @@ public class Controller {
     }
 
     public void start(OpenFlowAgent ag) {
-        log.info("Initialising OpenFlow Lib and IO");
+        log.info("Starting OpenFlow IO");
         this.agent = ag;
         this.init(new HashMap<String, String>());
         this.run();
@@ -240,6 +240,7 @@ public class Controller {
 
 
     public void stop() {
+        log.info("Stopping OpenFlow IO");
         execFactory.shutdown();
         cg.close();
     }

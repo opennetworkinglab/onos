@@ -10,15 +10,25 @@ import org.osgi.framework.FrameworkUtil;
 public abstract class AbstractShellCommand extends OsgiCommandSupport {
 
     /**
-     * Returns the reference to the implementaiton of the specified service.
+     * Returns the reference to the implementation of the specified service.
      *
      * @param serviceClass service class
      * @param <T>          type of service
      * @return service implementation
      */
-    static <T> T get(Class<T> serviceClass) {
+    public static <T> T get(Class<T> serviceClass) {
         BundleContext bc = FrameworkUtil.getBundle(AbstractShellCommand.class).getBundleContext();
         return bc.getService(bc.getServiceReference(serviceClass));
+    }
+
+    /**
+     * Prints the arguments using the specified format.
+     *
+     * @param format format string; see {@link String#format}
+     * @param args   arguments
+     */
+    public static void print(String format, Object... args) {
+        System.out.println(String.format(format, args));
     }
 
 }

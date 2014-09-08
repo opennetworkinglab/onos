@@ -55,11 +55,20 @@ public interface DeviceService {
 
     /**
      * Returns the port with the specified number and hosted by the given device.
-     * @param deviceId device identifier
+     *
+     * @param deviceId   device identifier
      * @param portNumber port number
      * @return device port
      */
     Port getPort(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Indicates whether or not the device is presently online and available.
+     *
+     * @param deviceId device identifier
+     * @return true if the device is available
+     */
+    boolean isAvailable(DeviceId deviceId);
 
     /**
      * Adds the specified device listener.

@@ -85,19 +85,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {
         switch (newRole) {
-        case MASTER:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.MASTER);
-            break;
-        case STANDBY:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.EQUAL);
-        case NONE:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.SLAVE);
-            break;
-        default:
-            log.error("Unknown Mastership state : {}", newRole);
+            case MASTER:
+                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                                   RoleState.MASTER);
+                break;
+            case STANDBY:
+                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                                   RoleState.EQUAL);
+            case NONE:
+                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                                   RoleState.SLAVE);
+                break;
+            default:
+                log.error("Unknown Mastership state : {}", newRole);
 
         }
         log.info("Accepting mastership role change for device {}", device.id());
@@ -114,10 +114,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             DeviceDescription description =
                     new DefaultDeviceDescription(buildURI(dpid), Device.Type.SWITCH,
-                            sw.manfacturerDescription(),
-                            sw.hardwareDescription(),
-                            sw.softwareDescription(),
-                            sw.softwareDescription());
+                                                 sw.manfacturerDescription(),
+                                                 sw.hardwareDescription(),
+                                                 sw.softwareDescription(),
+                                                 sw.serialNumber());
             providerService.deviceConnected(deviceId(uri), description);
             providerService.updatePorts(deviceId(uri), buildPortDescriptions(sw.getPorts()));
         }
@@ -140,6 +140,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         /**
          * Given a dpid builds a URI for the device.
+         *
          * @param dpid the dpid to build the uri from
          * @return returns a uri of the form of:<dpidHexForm>
          */
@@ -155,6 +156,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         /**
          * Builds a list of port descriptions for a given list of ports.
+         *
          * @param ports the list of ports
          * @return list of portdescriptions
          */
@@ -169,6 +171,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         /**
          * Build a portDescription from a given port.
+         *
          * @param port the port to build from.
          * @return portDescription for the port.
          */

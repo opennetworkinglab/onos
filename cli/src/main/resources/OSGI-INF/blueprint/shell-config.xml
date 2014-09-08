@@ -2,12 +2,37 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
+            <action class="org.onlab.onos.cli.net.DevicesListCommand"/>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.DevicePortsListCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.DeviceRemoveCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+
+        <command>
+            <action class="org.onlab.onos.cli.net.LinksListCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+
+        <command>
             <action class="org.onlab.onos.cli.GreetCommand"/>
             <completers>
                 <ref component-id="nameCompleter"/>
             </completers>
         </command>
     </command-bundle>
+
+    <bean id="deviceIdCompleter" class="org.onlab.onos.cli.net.DeviceIdCompleter"/>
 
     <bean id="nameCompleter" class="org.onlab.onos.cli.NameCompleter"/>
 

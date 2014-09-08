@@ -2,7 +2,6 @@ package org.onlab.onos.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.onlab.onos.GreetService;
 
 /**
@@ -10,7 +9,7 @@ import org.onlab.onos.GreetService;
  * use of an optional parameter as well.
  */
 @Command(scope = "onos", name = "greet", description = "Issues a greeting")
-public class GreetCommand extends OsgiCommandSupport {
+public class GreetCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "name", description = "Name to greet",
               required = false, multiValued = false)
@@ -18,7 +17,7 @@ public class GreetCommand extends OsgiCommandSupport {
 
     @Override
     protected Object doExecute() throws Exception {
-        System.out.println(getService(GreetService.class).yo(name));
+        print(getService(GreetService.class).yo(name));
         return null;
     }
 }

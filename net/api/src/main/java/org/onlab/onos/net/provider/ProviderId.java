@@ -2,7 +2,7 @@ package org.onlab.onos.net.provider;
 
 import java.util.Objects;
 
-import static com.google.common.base.Objects.toStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Notion of provider identity.

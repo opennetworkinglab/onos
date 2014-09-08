@@ -4,7 +4,6 @@ package org.onlab.onos.net;
  * Abstraction of a network infrastructure link.
  */
 public interface Link extends Provided {
-// TODO: Consider extending graph Edge<Element> once the graph module is available
 
     /**
      * Coarse representation of the link type.
@@ -37,6 +36,13 @@ public interface Link extends Provided {
      * @return link destination connection point
      */
     ConnectPoint dst();
+
+    /**
+     * Returns the link type.
+     *
+     * @return link type
+     */
+    Type type();
 
     // LinkInfo info(); // Additional link information / decorations
 
