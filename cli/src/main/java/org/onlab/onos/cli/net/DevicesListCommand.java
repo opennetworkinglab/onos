@@ -19,7 +19,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class DevicesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, available=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s";
+            "id=%s, available=%s, role=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s";
 
     protected static final Comparator<Device> ID_COMPARATOR = new Comparator<Device>() {
         @Override
@@ -32,7 +32,7 @@ public class DevicesListCommand extends AbstractShellCommand {
     protected Object doExecute() throws Exception {
         DeviceService service = getService(DeviceService.class);
         for (Device device : getSortedDevices(service)) {
-            printDevice(device, service.isAvailable(device.id()));
+            printDevice(service, device);
         }
         return null;
     }
@@ -52,11 +52,12 @@ public class DevicesListCommand extends AbstractShellCommand {
     /**
      * Prints information about the specified device.
      *
-     * @param device      infrastructure device
-     * @param isAvailable true of device is available
+     * @param service device service
+     * @param device  infrastructure device
      */
-    protected void printDevice(Device device, boolean isAvailable) {
-        print(FMT, device.id(), isAvailable, device.type(),
+    protected void printDevice(DeviceService service, Device device) {
+        print(FMT, device.id(), service.isAvailable(device.id()),
+              service.getRole(device.id()), device.type(),
               device.manufacturer(), device.hwVersion(), device.swVersion(),
               device.serialNumber());
     }

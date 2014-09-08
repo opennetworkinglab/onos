@@ -14,15 +14,15 @@ import java.util.List;
 import static org.onlab.onos.net.DeviceId.deviceId;
 
 /**
- * Lists all infrastructure links.
+ * Lists all ports or all ports of a device.
  */
 @Command(scope = "onos", name = "ports",
-         description = "Lists all ports of a device")
+         description = "Lists all ports or all ports of a device")
 public class DevicePortsListCommand extends DevicesListCommand {
 
     private static final String FMT = "  port=%s, state=%s";
 
-    @Argument(index = 0, name = "deviceId", description = "Device ID",
+    @Argument(index = 0, name = "uri", description = "Device ID",
               required = false, multiValued = false)
     String uri = null;
 
@@ -39,18 +39,19 @@ public class DevicePortsListCommand extends DevicesListCommand {
         DeviceService service = getService(DeviceService.class);
         if (uri == null) {
             for (Device device : getSortedDevices(service)) {
-                printDevicePorts(service, device);
+                printDevice(service, device);
             }
         } else {
-            printDevicePorts(service, service.getDevice(deviceId(uri)));
+            printDevice(service, service.getDevice(deviceId(uri)));
         }
         return null;
     }
 
-    private void printDevicePorts(DeviceService service, Device device) {
+    @Override
+    protected void printDevice(DeviceService service, Device device) {
+        super.printDevice(service, device);
         List<Port> ports = new ArrayList<>(service.getPorts(device.id()));
         Collections.sort(ports, PORT_COMPARATOR);
-        printDevice(device, service.isAvailable(device.id()));
         for (Port port : ports) {
             print(FMT, port.number(), port.isEnabled() ? "enabled" : "disabled");
         }
