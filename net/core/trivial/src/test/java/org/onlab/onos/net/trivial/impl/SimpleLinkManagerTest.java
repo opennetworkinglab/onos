@@ -4,23 +4,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.event.Event;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceAdminService;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderRegistry;
-import org.onlab.onos.net.device.DeviceProviderService;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.device.PortDescription;
+import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkAdminService;
+import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkProvider;
@@ -31,13 +23,10 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
 /**
  * Test codifying the link service & link provider service contracts.
@@ -47,11 +36,6 @@ public class SimpleLinkManagerTest {
     private static final ProviderId PID = new ProviderId("foo");
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
-    private static final String MFR = "whitebox";
-    private static final String HW = "1.1.x";
-    private static final String SW1 = "3.8.1";
-    private static final String SW2 = "3.9.5";
-    private static final String SN = "43311-12345";
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
@@ -93,6 +77,14 @@ public class SimpleLinkManagerTest {
         mgr.deactivate();
     }
 
+
+    @Test
+    public void createLink() {
+        LinkDescription ld = new DefaultLinkDescription(new ConnectPoint(DID1, P1),
+                                                        new ConnectPoint(DID2, P2),
+                                                        Link.Type.DIRECT);
+        providerService.linkDetected(ld);
+    }
 
     protected void validateEvents(Enum... types) {
         int i = 0;
