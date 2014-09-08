@@ -28,7 +28,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
 /**
- * Manages inventory of infrastructure devices.
+ * Manages inventory of infrastructure devices using trivial in-memory
+ * implementation.
  */
 class SimpleDeviceStore {
 
@@ -38,6 +39,15 @@ class SimpleDeviceStore {
     private final Map<DeviceId, MastershipRole> roles = new ConcurrentHashMap<>();
     private final Set<DeviceId> availableDevices = new HashSet<>();
     private final Map<DeviceId, Map<PortNumber, Port>> devicePorts = new HashMap<>();
+
+    /**
+     * Returns the number of devices known to the system.
+     *
+     * @return number of devices
+     */
+    public int getDeviceCount() {
+        return devices.size();
+    }
 
     /**
      * Returns an iterable collection of all devices known to the system.
@@ -153,9 +163,9 @@ class SimpleDeviceStore {
             Set<PortNumber> processed = new HashSet<>();
             for (PortDescription portDescription : portDescriptions) {
                 Port port = ports.get(portDescription.portNumber());
-                DeviceEvent event = port == null ?
-                        createPort(device, portDescription, ports) :
-                        updatePort(device, port, portDescription, ports);
+                events.add(port == null ?
+                                   createPort(device, portDescription, ports) :
+                                   updatePort(device, port, portDescription, ports));
                 processed.add(portDescription.portNumber());
             }
 
@@ -198,7 +208,7 @@ class SimpleDeviceStore {
         Iterator<PortNumber> iterator = ports.keySet().iterator();
         while (iterator.hasNext()) {
             PortNumber portNumber = iterator.next();
-            if (processed.contains(portNumber)) {
+            if (!processed.contains(portNumber)) {
                 events.add(new DeviceEvent(PORT_REMOVED, device,
                                            ports.get(portNumber)));
                 iterator.remove();
@@ -301,5 +311,4 @@ class SimpleDeviceStore {
                     new DeviceEvent(DEVICE_REMOVED, device, null);
         }
     }
-
 }
