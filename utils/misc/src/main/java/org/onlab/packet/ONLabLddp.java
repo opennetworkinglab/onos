@@ -29,7 +29,7 @@ import org.apache.commons.lang.ArrayUtils;
  *
  */
 @SuppressWarnings("rawtypes")
-public class OVXLLDP extends LLDP {
+public class ONLabLddp extends LLDP {
 
     // ON.Lab OUI and OVX name for organizationally specific TLVs
     public static final byte[] ONLAB_OUI = {(byte) 0xa4, 0x23, 0x05};
@@ -58,7 +58,7 @@ public class OVXLLDP extends LLDP {
 
     private static final byte NAME_TLV_TYPE = 127;
     // 4 = OUI (3) + subtype (1)
-    private static final byte NAME_TLV_SIZE = (byte) (4 + OVXLLDP.OVX_NAME.length());
+    private static final byte NAME_TLV_SIZE = (byte) (4 + ONLabLddp.OVX_NAME.length());
     private static final byte NAME_TLV_SUBTYPE = 1;
     private static final short NAME_TLV_OFFSET = 32;
     private static final short NAME_TLV_HEADER = (short) ((NAME_TLV_TYPE << 9) | NAME_TLV_SIZE);
@@ -119,7 +119,7 @@ public class OVXLLDP extends LLDP {
     /**
      * Instantiates a new OVX LDDP message.
      */
-    public OVXLLDP() {
+    public ONLabLddp() {
         // Create TLVs
         this.chassisTLV = new LLDPTLV();
         this.portTLV = new LLDPTLV();
@@ -140,7 +140,7 @@ public class OVXLLDP extends LLDP {
         this.setChassisTLV(DEFAULT_DPID);
         this.setPortTLV(DEFAULT_PORT);
         this.setTTLTLV(DEFAULT_TTL);
-        this.setOUIName(OVXLLDP.OVX_NAME);
+        this.setOUIName(ONLabLddp.OVX_NAME);
         this.setOUIDpid(DEFAULT_DPID);
     }
 
@@ -198,7 +198,7 @@ public class OVXLLDP extends LLDP {
      */
     private void setOUIName(final String name) {
         this.bb = ByteBuffer.wrap(ouiName);
-        this.bb.put(OVXLLDP.ONLAB_OUI);
+        this.bb.put(ONLabLddp.ONLAB_OUI);
         this.bb.put(NAME_TLV_SUBTYPE);
         this.bb.put(name.getBytes());
 
@@ -214,7 +214,7 @@ public class OVXLLDP extends LLDP {
      */
     private void setOUIDpid(final byte[] dpid) {
         this.bb = ByteBuffer.wrap(ouiDpid);
-        this.bb.put(OVXLLDP.ONLAB_OUI);
+        this.bb.put(ONLabLddp.ONLAB_OUI);
         this.bb.put(DPID_TLV_SUBTYPE);
         this.bb.put(dpid);
 
@@ -272,9 +272,9 @@ public class OVXLLDP extends LLDP {
         final byte[] dst = new byte[6];
         bb.get(dst);
 
-        if (!(Arrays.equals(dst, OVXLLDP.LLDP_NICIRA)
-                || Arrays.equals(dst, OVXLLDP.LLDP_MULTICAST) || Arrays.equals(
-                        dst, OVXLLDP.BDDP_MULTICAST))) {
+        if (!(Arrays.equals(dst, ONLabLddp.LLDP_NICIRA)
+                || Arrays.equals(dst, ONLabLddp.LLDP_MULTICAST) || Arrays.equals(
+                        dst, ONLabLddp.BDDP_MULTICAST))) {
 
             return false;
         }

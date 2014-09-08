@@ -1,8 +1,12 @@
 package org.onlab.onos.of.controller;
 
+import java.util.Collections;
+
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 
 public final class DefaultPacketContext implements PacketContext {
@@ -11,7 +15,7 @@ public final class DefaultPacketContext implements PacketContext {
     private boolean isBuilt = false;
     private final OpenFlowSwitch sw;
     private final OFPacketIn pktin;
-    private final OFPacketOut pktout = null;
+    private OFPacketOut pktout = null;
 
     private DefaultPacketContext(OpenFlowSwitch s, OFPacketIn pkt) {
         this.sw = s;
@@ -39,20 +43,32 @@ public final class DefaultPacketContext implements PacketContext {
 
     @Override
     public void build(Ethernet ethFrame, OFPort outPort) {
-        // TODO Auto-generated method stub
-
+        if (isBuilt) {
+            return;
+        }
+        OFPacketOut.Builder builder = sw.factory().buildPacketOut();
+        OFAction act = sw.factory().actions()
+                .buildOutput()
+                .setPort(OFPort.of(outPort.getPortNumber()))
+                .build();
+        pktout = builder.setXid(pktin.getXid())
+                .setBufferId(OFBufferId.NO_BUFFER)
+                .setActions(Collections.singletonList(act))
+                .setData(ethFrame.serialize())
+                .build();
+        isBuilt = true;
     }
 
     @Override
     public Ethernet parsed() {
-        // TODO Auto-generated method stub
-        return null;
+        Ethernet eth = new Ethernet();
+        eth.deserialize(pktin.getData(), 0, pktin.getTotalLen());
+        return eth;
     }
 
     @Override
     public Dpid dpid() {
-        // TODO Auto-generated method stub
-        return null;
+        return new Dpid(sw.getId());
     }
 
     public static PacketContext packetContextFromPacketIn(OpenFlowSwitch s, OFPacketIn pkt) {
