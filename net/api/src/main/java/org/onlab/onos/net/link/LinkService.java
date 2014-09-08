@@ -48,7 +48,7 @@ public interface LinkService {
      * @param deviceId device identifier
      * @return set of device ingress links
      */
-    Set<Link> getDeviceInressLinks(DeviceId deviceId);
+    Set<Link> getDeviceIngressLinks(DeviceId deviceId);
 
     /**
      * Returns set of all infrastructure links leading to and from the
@@ -75,17 +75,17 @@ public interface LinkService {
      * @param connectPoint connection point
      * @return set of device ingress links
      */
-    Set<Link> getInressLinks(ConnectPoint connectPoint);
+    Set<Link> getIngressLinks(ConnectPoint connectPoint);
 
     /**
-     * Returns set of all infrastructure links between the specified source
+     * Returns the infrastructure links between the specified source
      * and destination connection points.
      *
      * @param src source connection point
      * @param dst destination connection point
-     * @return set of links
+     * @return link from source to destination; null if none found
      */
-    Set<Link> getLinks(ConnectPoint src, ConnectPoint dst);
+    Link getLink(ConnectPoint src, ConnectPoint dst);
 
     /**
      * Adds the specified link listener.

@@ -18,6 +18,11 @@ public class LinkEvent extends AbstractEvent<LinkEvent.Type, Link> {
         LINK_ADDED,
 
         /**
+         * Signifies that a link has been updated.
+         */
+        LINK_UPDATED,
+
+        /**
          * Signifies that a link has been removed.
          */
         LINK_REMOVED

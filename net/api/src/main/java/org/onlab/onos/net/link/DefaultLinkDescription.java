@@ -37,7 +37,7 @@ public class DefaultLinkDescription implements LinkDescription {
 
     @Override
     public Link.Type type() {
-        return null;
+        return type;
     }
 
 }

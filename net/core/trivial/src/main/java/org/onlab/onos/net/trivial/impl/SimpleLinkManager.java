@@ -93,7 +93,7 @@ public class SimpleLinkManager
     }
 
     @Override
-    public Set<Link> getDeviceInressLinks(DeviceId deviceId) {
+    public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDeviceIngressLinks(deviceId);
     }
@@ -112,17 +112,16 @@ public class SimpleLinkManager
     }
 
     @Override
-    public Set<Link> getInressLinks(ConnectPoint connectPoint) {
+    public Set<Link> getIngressLinks(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return store.getIngressLinks(connectPoint);
     }
 
     @Override
-    public Set<Link> getLinks(ConnectPoint src, ConnectPoint dst) {
+    public Link getLink(ConnectPoint src, ConnectPoint dst) {
         checkNotNull(src, CONNECT_POINT_NULL);
         checkNotNull(dst, CONNECT_POINT_NULL);
-        return Sets.intersection(store.getEgressLinks(src),
-                                 store.getIngressLinks(dst));
+        return store.getLink(src, dst);
     }
 
     @Override

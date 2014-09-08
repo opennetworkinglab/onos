@@ -18,6 +18,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.onlab.onos.net.Link.Type.DIRECT;
+import static org.onlab.onos.net.Link.Type.INDIRECT;
+import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onlab.onos.net.link.LinkEvent.Type.LINK_UPDATED;
+
 /**
  * Manages inventory of infrastructure links using trivial in-memory link
  * implementation.
@@ -72,6 +78,17 @@ class SimpleLinkStore {
     }
 
     /**
+     * Returns the link between the two end-points.
+     *
+     * @param src source connection point
+     * @param dst destination connection point
+     * @return link or null if one not found between the end-points
+     */
+    Link getLink(ConnectPoint src, ConnectPoint dst) {
+        return links.get(new LinkKey(src, dst));
+    }
+
+    /**
      * Returns all links egressing from the specified connection point.
      *
      * @param src source connection point
@@ -96,13 +113,12 @@ class SimpleLinkStore {
     Set<Link> getIngressLinks(ConnectPoint dst) {
         Set<Link> ingress = new HashSet<>();
         for (Link link : dstLinks.get(dst.deviceId())) {
-            if (link.src().equals(dst)) {
+            if (link.dst().equals(dst)) {
                 ingress.add(link);
             }
         }
         return ingress;
     }
-
 
     /**
      * Creates a new link, or updates an existing one, based on the given
@@ -119,7 +135,7 @@ class SimpleLinkStore {
         if (link == null) {
             return createLink(providerId, key, linkDescription);
         }
-        return updateLink(link, linkDescription);
+        return updateLink(providerId, link, key, linkDescription);
     }
 
     // Creates and stores the link and returns the appropriate event.
@@ -132,11 +148,26 @@ class SimpleLinkStore {
             srcLinks.put(link.src().deviceId(), link);
             dstLinks.put(link.dst().deviceId(), link);
         }
-        return new LinkEvent(LinkEvent.Type.LINK_ADDED, link);
+        return new LinkEvent(LINK_ADDED, link);
     }
 
     // Updates, if necessary the specified link and returns the appropriate event.
-    private LinkEvent updateLink(DefaultLink link, LinkDescription linkDescription) {
+    private LinkEvent updateLink(ProviderId providerId, DefaultLink link,
+                                 LinkKey key, LinkDescription linkDescription) {
+        if (link.type() == INDIRECT && linkDescription.type() == DIRECT) {
+            synchronized (this) {
+                srcLinks.remove(link.src().deviceId(), link);
+                dstLinks.remove(link.dst().deviceId(), link);
+
+                DefaultLink updated =
+                        new DefaultLink(providerId, link.src(), link.dst(),
+                                        linkDescription.type());
+                links.put(key, updated);
+                srcLinks.put(link.src().deviceId(), updated);
+                dstLinks.put(link.dst().deviceId(), updated);
+                return new LinkEvent(LINK_UPDATED, updated);
+            }
+        }
         return null;
     }
 
@@ -150,9 +181,12 @@ class SimpleLinkStore {
     LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
         synchronized (this) {
             Link link = links.remove(new LinkKey(src, dst));
-            srcLinks.remove(link.src().deviceId(), link);
-            dstLinks.remove(link.dst().deviceId(), link);
-            return link == null ? null : new LinkEvent(LinkEvent.Type.LINK_REMOVED, link);
+            if (link != null) {
+                srcLinks.remove(link.src().deviceId(), link);
+                dstLinks.remove(link.dst().deviceId(), link);
+                return new LinkEvent(LINK_REMOVED, link);
+            }
+            return null;
         }
     }
 
