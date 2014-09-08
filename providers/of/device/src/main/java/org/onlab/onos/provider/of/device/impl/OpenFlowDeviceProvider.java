@@ -117,7 +117,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                             sw.manfacturerDescription(),
                             sw.hardwareDescription(),
                             sw.softwareDescription(),
-                            sw.softwareDescription());
+                            sw.serialNumber());
             providerService.deviceConnected(deviceId(uri), description);
             providerService.updatePorts(deviceId(uri), buildPortDescriptions(sw.getPorts()));
         }

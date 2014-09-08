@@ -18,7 +18,7 @@ public class DevicesListCommand extends AbstractShellCommand {
     @Override
     protected Object doExecute() throws Exception {
         for (Device device : getService(DeviceService.class).getDevices()) {
-            print(FMT, device.id(), device.type(), device.manufacturer(),
+            print(FMT, device.id().uri(), device.type(), device.manufacturer(),
                   device.hwVersion(), device.swVersion(), device.serialNumber());
         }
         return null;
