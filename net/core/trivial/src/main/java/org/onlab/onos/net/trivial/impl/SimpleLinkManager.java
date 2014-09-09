@@ -148,7 +148,7 @@ public class SimpleLinkManager
     private class InternalLinkProviderService extends AbstractProviderService<LinkProvider>
             implements LinkProviderService {
 
-        public InternalLinkProviderService(LinkProvider provider) {
+        InternalLinkProviderService(LinkProvider provider) {
             super(provider);
         }
 

@@ -59,7 +59,7 @@ public class SimpleHostManager
     private class InternalHostProviderService extends AbstractProviderService<HostProvider>
             implements HostProviderService {
 
-        public InternalHostProviderService(HostProvider provider) {
+        InternalHostProviderService(HostProvider provider) {
             super(provider);
         }
 

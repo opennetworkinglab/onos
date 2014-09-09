@@ -4,7 +4,6 @@ import org.onlab.graph.Graph;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Path;
-import org.onlab.onos.net.Topology;
 
 import java.util.Set;
 
@@ -37,8 +36,8 @@ public interface TopologyService {
     Graph<TopoVertex, TopoEdge> getGraph(Topology topology);
 
     /**
-     * Returns the set of all shortest paths, in terms of hop-count, between
-     * the specified source and destination devices.
+     * Returns the set of all shortest paths, precomputed in terms of hop-count,
+     * between the specified source and destination devices.
      *
      * @param topology topology descriptor
      * @param src      source device
@@ -71,7 +70,8 @@ public interface TopologyService {
 
 
     /**
-     * Indicates whether the specified connection point allows broadcast.
+     * Indicates whether the specified connection point belong to the
+     * broadcast tree.
      *
      * @param topology     topology descriptor
      * @param connectPoint connection point

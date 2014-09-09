@@ -150,7 +150,7 @@ public class SimpleDeviceManager
     private class InternalDeviceProviderService extends AbstractProviderService<DeviceProvider>
             implements DeviceProviderService {
 
-        public InternalDeviceProviderService(DeviceProvider provider) {
+        InternalDeviceProviderService(DeviceProvider provider) {
             super(provider);
         }
 
