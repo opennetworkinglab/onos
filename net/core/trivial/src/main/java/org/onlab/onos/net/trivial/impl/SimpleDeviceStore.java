@@ -96,6 +96,9 @@ class SimpleDeviceStore {
         synchronized (this) {
             devices.put(deviceId, device);
             availableDevices.add(deviceId);
+
+            // For now claim the device as a master automatically.
+            roles.put(deviceId, MastershipRole.MASTER);
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }

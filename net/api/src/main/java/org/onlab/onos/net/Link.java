@@ -20,7 +20,12 @@ public interface Link extends Provided {
          * links traversing optical paths, tunnels or intervening 'dark'
          * switches.
          */
-        INDIRECT
+        INDIRECT,
+
+        /**
+         * Signifies that this link is an edge, i.e. host link.
+         */
+        EDGE
     }
 
     /**

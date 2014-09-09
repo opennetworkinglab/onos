@@ -27,8 +27,11 @@ import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -52,6 +55,9 @@ public class SimpleDeviceManager
             listenerRegistry = new AbstractListenerRegistry<>();
 
     private final SimpleDeviceStore store = new SimpleDeviceStore();
+
+    private final ExecutorService executor =
+            newSingleThreadExecutor(namedThreads("onos-device-%d"));
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -163,6 +169,11 @@ public class SimpleDeviceManager
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
             post(event);
+
+            // If there was a change of any kind, trigger role selection process.
+            if (event != null) {
+                triggerRoleSelection(event.subject(), provider());
+            }
         }
 
         @Override
@@ -197,6 +208,22 @@ public class SimpleDeviceManager
             }
             post(event);
         }
+    }
+
+    /**
+     * Triggers asynchronous role selection.
+     *
+     * @param device   device
+     * @param provider device provider
+     */
+    private void triggerRoleSelection(final Device device,
+                                      final DeviceProvider provider) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                provider.roleChanged(device, store.getRole(device.id()));
+            }
+        });
     }
 
     // Posts the specified event to the local event dispatcher.
