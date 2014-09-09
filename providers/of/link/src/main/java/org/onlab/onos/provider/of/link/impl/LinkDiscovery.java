@@ -21,9 +21,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -85,6 +85,7 @@ public class LinkDiscovery implements TimerTask {
     private final boolean useBDDP;
     private final OpenFlowController ctrl;
     private final LinkProviderService linkProvider;
+    private final Map<Integer, OFPortDesc> ports;
 
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
@@ -103,6 +104,7 @@ public class LinkDiscovery implements TimerTask {
         this.linkProvider = providerService;
         this.slowPorts = Collections.synchronizedSet(new HashSet<Integer>());
         this.fastPorts = Collections.synchronizedSet(new HashSet<Integer>());
+        this.ports = new ConcurrentHashMap<>();
         this.portProbeCount = new HashMap<Integer, AtomicInteger>();
         this.lldpPacket = new ONLabLddp();
         this.lldpPacket.setSwitch(this.sw.getId());
@@ -140,7 +142,7 @@ public class LinkDiscovery implements TimerTask {
      */
     public void addPort(final OFPortDesc port) {
         // Ignore ports that are not on this switch, or already booted. */
-
+        this.ports.put(port.getPortNo().getPortNumber(), port);
         synchronized (this) {
             this.log.debug("sending init probe to port {}",
                     port.getPortNo().getPortNumber());
@@ -274,12 +276,10 @@ public class LinkDiscovery implements TimerTask {
      * Handles an incoming LLDP packet. Creates link in topology and sends ACK
      * to port where LLDP originated.
      */
-    @SuppressWarnings("rawtypes")
-    public void handleLLDP(final Ethernet eth, Integer inPort) {
+    public void handleLLDP(final byte[] pkt, Integer inPort) {
 
-        final byte[] pkt = eth.serialize();
-
-        if (ONLabLddp.isOVXLLDP(pkt)) {
+        short ethType = ONLabLddp.isOVXLLDP(pkt);
+        if (ethType == Ethernet.TYPE_LLDP || ethType == Ethernet.TYPE_BSN) {
             final Integer dstPort = inPort;
             final DPIDandPort dp = ONLabLddp.parseLLDP(pkt);
             final OpenFlowSwitch srcSwitch = ctrl.getSwitch(new Dpid(dp.getDpid()));
@@ -296,7 +296,7 @@ public class LinkDiscovery implements TimerTask {
                     DeviceId.deviceId("of:" + Long.toHexString(sw.getId())),
                     PortNumber.portNumber(dstPort));
             LinkDescription ld;
-            if (eth.getEtherType() == Ethernet.TYPE_BSN) {
+            if (ethType == Ethernet.TYPE_BSN) {
                 ld = new DefaultLinkDescription(src, dst, Type.INDIRECT);
             } else {
                 ld = new DefaultLinkDescription(src, dst, Type.DIRECT);
@@ -307,13 +307,8 @@ public class LinkDiscovery implements TimerTask {
         }
     }
 
-    private OFPortDesc findPort(List<OFPortDesc> ports, Integer inPort) {
-        for (OFPortDesc p : ports) {
-            if (p.getPortNo().getPortNumber() == inPort) {
-                return p;
-            }
-        }
-        return null;
+    private OFPortDesc findPort(Integer inPort) {
+        return ports.get(inPort);
     }
 
     /**
@@ -333,7 +328,7 @@ public class LinkDiscovery implements TimerTask {
                 final Integer portNumber = fastIterator.next();
                 final int probeCount = this.portProbeCount.get(portNumber)
                         .getAndIncrement();
-                OFPortDesc port = findPort(this.sw.getPorts(), portNumber);
+                OFPortDesc port = findPort(portNumber);
                 if (probeCount < LinkDiscovery.MAX_PROBE_COUNT) {
                     this.log.debug("sending fast probe to port");
 
@@ -368,7 +363,7 @@ public class LinkDiscovery implements TimerTask {
                 if (this.slowIterator.hasNext()) {
                     final int portNumber = this.slowIterator.next();
                     this.log.debug("sending slow probe to port {}", portNumber);
-                    OFPortDesc port = findPort(this.sw.getPorts(), portNumber);
+                    OFPortDesc port = findPort(portNumber);
 
                     OFPacketOut pkt = this.createLLDPPacketOut(port);
                     this.sendMsg(pkt);
