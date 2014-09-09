@@ -16,4 +16,24 @@
 
     <description>ONOS network control trivial implementations of core subsystems</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
