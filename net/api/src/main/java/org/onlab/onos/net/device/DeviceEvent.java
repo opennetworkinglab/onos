@@ -105,7 +105,7 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
      *
      * @return port subject or null if the event is not port specific.
      */
-    Port port() {
+    public Port port() {
         return port;
     }
 

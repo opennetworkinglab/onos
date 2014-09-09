@@ -51,7 +51,7 @@ public class SimpleDeviceManager
     private final AbstractListenerRegistry<DeviceEvent, DeviceListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final SimpleDeviceStore store = new SimpleDeviceStore();
+        private final SimpleDeviceStore store = new SimpleDeviceStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -143,7 +143,10 @@ public class SimpleDeviceManager
     public void removeDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         DeviceEvent event = store.removeDevice(deviceId);
-        post(event);
+        if (event != null) {
+            log.info("Device {} administratively removed", deviceId);
+            post(event);
+        }
     }
 
     // Personalized device provider service issued to the supplied provider.
@@ -159,12 +162,12 @@ public class SimpleDeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
-            log.info("Device {} connected", deviceId);
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
 
             // If there was a change of any kind, trigger role selection process.
             if (event != null) {
+                log.info("Device {} connected", deviceId);
                 Device device = event.subject();
                 provider().roleChanged(device, store.getRole(device.id()));
                 post(event);
@@ -175,9 +178,11 @@ public class SimpleDeviceManager
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
-            log.info("Device {} disconnected", deviceId);
             DeviceEvent event = store.markOffline(deviceId);
-            post(event);
+            if (event != null) {
+                log.info("Device {} disconnected", deviceId);
+                post(event);
+            }
         }
 
         @Override
@@ -185,7 +190,6 @@ public class SimpleDeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescriptions, "Port descriptions list cannot be null");
             checkValidity();
-            log.info("Device {} ports updated", deviceId);
             List<DeviceEvent> events = store.updatePorts(deviceId, portDescriptions);
             for (DeviceEvent event : events) {
                 post(event);
@@ -199,9 +203,10 @@ public class SimpleDeviceManager
             checkValidity();
             DeviceEvent event = store.updatePortStatus(deviceId, portDescription);
             if (event != null) {
-                log.info("Device {} port status changed", deviceId);
+                log.info("Device {} port {} status changed", deviceId,
+                         event.port().number());
+                post(event);
             }
-            post(event);
         }
     }
 

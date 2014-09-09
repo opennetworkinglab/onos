@@ -53,6 +53,8 @@ public class SimpleTopologyManager
     private final AbstractListenerRegistry<TopologyEvent, TopologyListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
+    private final SimpleTopologyStore store = new SimpleTopologyStore();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private EventDeliveryService eventDispatcher;
 
