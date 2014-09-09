@@ -1,4 +1,6 @@
-package org.onlab.onos.net;
+package org.onlab.onos.net.topology;
+
+import org.onlab.onos.net.Provided;
 
 /**
  * Represents a network topology computation snapshot.

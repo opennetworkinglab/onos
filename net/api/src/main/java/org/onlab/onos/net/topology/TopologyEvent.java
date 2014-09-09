@@ -1,7 +1,6 @@
 package org.onlab.onos.net.topology;
 
 import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.net.Topology;
 
 /**
  * Describes network topology event.
