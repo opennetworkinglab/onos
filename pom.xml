@@ -14,7 +14,7 @@
     <modules>
         <module>tools/build/conf</module>
         <module>utils</module>
-        <module>net</module>
+        <module>core</module>
         <module>web</module>
         <module>cli</module>
         <module>providers</module>
