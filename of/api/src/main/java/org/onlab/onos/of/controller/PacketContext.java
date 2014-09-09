@@ -48,4 +48,10 @@ public interface PacketContext {
      * @return the dpid of the switch.
      */
     public Dpid dpid();
+
+    /**
+     * Provide the port on which the packet arrived.
+     * @return the port
+     */
+    public Integer inPort();
 }

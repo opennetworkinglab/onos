@@ -21,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -31,6 +33,7 @@ import org.apache.commons.lang.ArrayUtils;
 @SuppressWarnings("rawtypes")
 public class ONLabLddp extends LLDP {
 
+    private static final Logger log = LoggerFactory.getLogger(ONLabLddp.class);
     // ON.Lab OUI and OVX name for organizationally specific TLVs
     public static final byte[] ONLAB_OUI = {(byte) 0xa4, 0x23, 0x05};
     public static final String OVX_NAME = "OpenVirteX";
@@ -50,7 +53,7 @@ public class ONLabLddp extends LLDP {
     private static final byte CHASSIS_TLV_SUBTYPE = 4;
 
     private static final byte PORT_TLV_TYPE = 2;
-    private static final byte PORT_TLV_SIZE = 7;
+    private static final byte PORT_TLV_SIZE = 5;
     private static final byte PORT_TLV_SUBTYPE = 2;
 
     private static final byte TTL_TLV_TYPE = 3;
@@ -60,7 +63,7 @@ public class ONLabLddp extends LLDP {
     // 4 = OUI (3) + subtype (1)
     private static final byte NAME_TLV_SIZE = (byte) (4 + ONLabLddp.OVX_NAME.length());
     private static final byte NAME_TLV_SUBTYPE = 1;
-    private static final short NAME_TLV_OFFSET = 32;
+    private static final short NAME_TLV_OFFSET = 34;
     private static final short NAME_TLV_HEADER = (short) ((NAME_TLV_TYPE << 9) | NAME_TLV_SIZE);
     // Contents of full name TLV
     private static final byte[] NAME_TLV = ByteBuffer.allocate(NAME_TLV_SIZE + 2)
@@ -85,7 +88,7 @@ public class ONLabLddp extends LLDP {
     // Default switch, port number and TTL
     private static final byte[] DEFAULT_DPID = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00 };
-    private static final short DEFAULT_PORT = 0;
+    private static final int DEFAULT_PORT = 0;
     private static final short DEFAULT_TTL = 120; // in seconds
 
     // Minimum and OVX-generated LLDP packet sizes
@@ -97,7 +100,7 @@ public class ONLabLddp extends LLDP {
     // Field offsets in OVX-generated LLDP
     private static final short ETHERTYPE_OFFSET = 12;
     private static final short PORT_OFFSET = 26;
-    private static final short DPID_OFFSET = 54;
+    private static final short DPID_OFFSET = 56;
 
     // Private member fields
     // Byte arrays for TLV information string
@@ -167,10 +170,10 @@ public class ONLabLddp extends LLDP {
      *
      * @param portNumber the port number
      */
-    private void setPortTLV(final long portNumber) {
+    private void setPortTLV(final int portNumber) {
         this.bb = ByteBuffer.wrap(this.portId);
         this.bb.put(PORT_TLV_SUBTYPE);
-        this.bb.putLong(portNumber);
+        this.bb.putInt(portNumber);
 
         this.portTLV.setLength(PORT_TLV_SIZE);
         this.portTLV.setType(PORT_TLV_TYPE);
@@ -240,8 +243,8 @@ public class ONLabLddp extends LLDP {
      *
      * @param port the port instance
      */
-    public void setPort(long port) {
-        long portNumber = port;
+    public void setPort(int port) {
+        int portNumber = port;
         this.setPortTLV(portNumber);
     }
 
@@ -335,7 +338,7 @@ public class ONLabLddp extends LLDP {
      * @param packet
      * @return Dpid and port
      */
-    /*    public static long parseLLDP(final byte[] packet) {
+    public static DPIDandPort parseLLDP(final byte[] packet) {
         final ByteBuffer bb = ByteBuffer.wrap(packet);
 
         // Extra offset due to VLAN tag
@@ -345,10 +348,30 @@ public class ONLabLddp extends LLDP {
             offset = 4;
         }
 
-        final short port = bb.getLong(PORT_OFFSET + offset);
+        final int port = bb.getInt(PORT_OFFSET + offset);
         final long dpid = bb.getLong(DPID_OFFSET + offset);
 
-        return dpid
+        return new DPIDandPort(dpid, port);
     }
-     */
+
+    public static class DPIDandPort {
+
+        private final long dpid;
+        private final int port;
+
+        public DPIDandPort(long dpid, int port) {
+            this.dpid = dpid;
+            this.port = port;
+        }
+
+        public long getDpid() {
+            return this.dpid;
+        }
+
+        public int getPort() {
+            return this.port;
+        }
+
+    }
+
 }

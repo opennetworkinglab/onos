@@ -75,4 +75,9 @@ public final class DefaultPacketContext implements PacketContext {
         return new DefaultPacketContext(s, pkt);
     }
 
+    @Override
+    public Integer inPort() {
+        return pktin.getInPort().getPortNumber();
+    }
+
 }

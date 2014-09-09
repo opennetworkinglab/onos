@@ -84,7 +84,7 @@ class RoleManager implements RoleHandler {
         default:
             // ensuring that the only two roles sent to 1.0 switches with
             // Nicira role support, are MASTER and SLAVE
-            roleToSend = OFNiciraControllerRole.ROLE_SLAVE;
+            roleToSend = OFNiciraControllerRole.ROLE_OTHER;
             log.warn("Sending Nx Role.SLAVE to switch {}.", sw);
         }
         int xid = sw.getNextTransactionId();

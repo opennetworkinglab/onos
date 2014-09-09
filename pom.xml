@@ -61,6 +61,14 @@
                 <version>18.0</version>
             </dependency>
 
+             <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty</artifactId>
+                <version>3.9.0.Final</version>
+            </dependency>
+
+
+
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava-testlib</artifactId>

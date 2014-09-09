@@ -2,7 +2,7 @@ package org.onlab.onos.net;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import com.google.common.base.MoreObjects;
 
 /**
  * Abstraction of a network connection point expressed as a pair of the
@@ -42,13 +42,12 @@ public class ConnectPoint {
      * @throws java.lang.IllegalStateException if connection point is not
      *                                         associated with a device
      */
-    @SuppressWarnings("unchecked")
     public DeviceId deviceId() {
         if (elementId instanceof DeviceId) {
             return (DeviceId) elementId;
         }
         throw new IllegalStateException("Connection point not associated " +
-                                                "with an infrastructure device");
+                "with an infrastructure device");
     }
 
     /**
@@ -77,7 +76,7 @@ public class ConnectPoint {
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("elementId", elementId)
                 .add("portNumber", portNumber)
                 .toString();

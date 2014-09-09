@@ -1,6 +1,10 @@
 package org.onlab.onos.net.trivial.impl;
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,10 +28,7 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Sets;
 
 /**
  * Provides basic implementation of the link SB &amp; NB APIs.
@@ -35,8 +36,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class SimpleLinkManager
-        extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
-        implements LinkService, LinkAdminService, LinkProviderRegistry {
+extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
+implements LinkService, LinkAdminService, LinkProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String LINK_DESC_NULL = "Link description cannot be null";
@@ -45,7 +46,7 @@ public class SimpleLinkManager
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<LinkEvent, LinkListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    listenerRegistry = new AbstractListenerRegistry<>();
 
     private final SimpleLinkStore store = new SimpleLinkStore();
 
@@ -83,7 +84,7 @@ public class SimpleLinkManager
     public Set<Link> getDeviceLinks(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return Sets.union(store.getDeviceEgressLinks(deviceId),
-                          store.getDeviceIngressLinks(deviceId));
+                store.getDeviceIngressLinks(deviceId));
     }
 
     @Override
@@ -102,7 +103,7 @@ public class SimpleLinkManager
     public Set<Link> getLinks(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return Sets.union(store.getEgressLinks(connectPoint),
-                          store.getIngressLinks(connectPoint));
+                store.getIngressLinks(connectPoint));
     }
 
     @Override
@@ -146,7 +147,7 @@ public class SimpleLinkManager
 
     // Personalized link provider service issued to the supplied provider.
     private class InternalLinkProviderService extends AbstractProviderService<LinkProvider>
-            implements LinkProviderService {
+    implements LinkProviderService {
 
         public InternalLinkProviderService(LinkProvider provider) {
             super(provider);
@@ -156,9 +157,9 @@ public class SimpleLinkManager
         public void linkDetected(LinkDescription linkDescription) {
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
-            log.info("Link {} detected", linkDescription);
+            log.debug("Link {} detected", linkDescription);
             LinkEvent event = store.createOrUpdateLink(provider().id(),
-                                                       linkDescription);
+                    linkDescription);
             post(event);
         }
 
@@ -168,7 +169,7 @@ public class SimpleLinkManager
             checkValidity();
             log.info("Link {} vanished", linkDescription);
             LinkEvent event = store.removeLink(linkDescription.src(),
-                                               linkDescription.dst());
+                    linkDescription.dst());
             post(event);
         }
 

@@ -415,12 +415,14 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 OFDescStatsReply drep = (OFDescStatsReply) m;
                 // Here is where we differentiate between different kinds of switches
                 h.sw = h.controller.getOFSwitchInstance(h.thisdpid, drep, h.ofVersion);
+
                 h.sw.setOFVersion(h.ofVersion);
                 h.sw.setFeaturesReply(h.featuresReply);
                 h.sw.setPortDescReply(h.portDescReply);
                 h.sw.setConnected(true);
                 h.sw.setChannel(h.channel);
                 boolean success = h.sw.connectSwitch();
+
                 if (!success) {
                     disconnectDuplicate(h);
                     return;
@@ -432,10 +434,10 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 log.info("Switch {} bound to class {}, description {}",
                         new Object[] {h.sw, h.sw.getClass(), drep });
                 //Put switch in EQUAL mode until we hear back from the global registry
-                log.debug("Setting new switch {} to EQUAL and sending Role request",
-                        h.sw.getStringId());
-                h.sw.activateEqualSwitch();
-                h.setSwitchRole(RoleState.EQUAL);
+                //log.debug("Setting new switch {} to EQUAL and sending Role request",
+                //        h.sw.getStringId());
+                //h.sw.activateEqualSwitch();
+                //h.setSwitchRole(RoleState.EQUAL);
 
                 h.sw.startDriverHandshake();
                 h.setState(WAIT_SWITCH_DRIVER_SUB_HANDSHAKE);

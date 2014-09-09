@@ -50,8 +50,7 @@ public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
 
     @Override
     public void write(OFMessage msg) {
-        channel.write(msg);
-
+        channel.write(Collections.singletonList(msg));
     }
 
     @Override
