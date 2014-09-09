@@ -166,10 +166,11 @@ public class LinkDiscovery implements TimerTask {
      *
      * @param port the port
      */
-    public void removePort(final OFPort port) {
+    public void removePort(final OFPortDesc port) {
         // Ignore ports that are not on this switch
 
-        int portnum = port.getPortNumber();
+        int portnum = port.getPortNo().getPortNumber();
+        this.ports.remove(portnum);
         synchronized (this) {
             if (this.slowPorts.contains(portnum)) {
                 this.slowPorts.remove(portnum);
@@ -383,7 +384,7 @@ public class LinkDiscovery implements TimerTask {
 
     public void removeAllPorts() {
         for (OFPortDesc port : sw.getPorts()) {
-            removePort(port.getPortNo());
+            removePort(port);
         }
     }
 

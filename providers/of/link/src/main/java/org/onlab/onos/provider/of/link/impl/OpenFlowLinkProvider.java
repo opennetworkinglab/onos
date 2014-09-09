@@ -125,7 +125,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
                         DeviceId.deviceId("of:" + Long.toHexString(dpid.value())),
                         PortNumber.portNumber(port.getPortNo().getPortNumber()));
                 providerService.linksVanished(cp);
-                ld.removePort(port.getPortNo());
+                ld.removePort(port);
             }
 
         }
