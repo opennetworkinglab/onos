@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ONLabLddp extends LLDP {
 
-    private static final Logger log = LoggerFactory.getLogger(ONLabLddp.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ONLabLddp.class);
     // ON.Lab OUI and OVX name for organizationally specific TLVs
     public static final byte[] ONLAB_OUI = {(byte) 0xa4, 0x23, 0x05};
     public static final String OVX_NAME = "OpenVirteX";
