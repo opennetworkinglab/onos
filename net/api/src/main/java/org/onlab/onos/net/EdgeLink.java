@@ -17,8 +17,8 @@ public interface EdgeLink extends Link {
      * Returns the connection point where the host attaches to the
      * network infrastructure.
      *
-     * @return host connection point
+     * @return host location point
      */
-    ConnectPoint connectPoint();
+    HostLocation hostLocation();
 
 }

@@ -27,7 +27,7 @@ public final class HostId extends ElementId {
      * @param string device URI string
      */
     public static HostId hostId(String string) {
-        return new HostId(URI.create(string));
+        return hostId(URI.create(string));
     }
 
 }

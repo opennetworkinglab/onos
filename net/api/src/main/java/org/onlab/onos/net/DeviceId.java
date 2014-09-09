@@ -27,7 +27,7 @@ public final class DeviceId extends ElementId {
      * @param string device URI string
      */
     public static DeviceId deviceId(String string) {
-        return new DeviceId(URI.create(string));
+        return deviceId(URI.create(string));
     }
 
 }

@@ -37,7 +37,7 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
     }
 
     @Override
-    public ConnectPoint connectPoint() {
+    public HostLocation hostLocation() {
         return hostLocation;
     }
 }
