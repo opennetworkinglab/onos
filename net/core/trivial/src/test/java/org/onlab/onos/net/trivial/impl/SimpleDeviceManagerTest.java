@@ -139,17 +139,17 @@ public class SimpleDeviceManagerTest {
     @Test
     public void getRole() {
         connectDevice(DID1, SW1);
-        assertEquals("incorrect role", MastershipRole.NONE, service.getRole(DID1));
+        assertEquals("incorrect role", MastershipRole.MASTER, service.getRole(DID1));
     }
 
     @Test
     public void setRole() {
         connectDevice(DID1, SW1);
-        admin.setRole(DID1, MastershipRole.MASTER);
+        admin.setRole(DID1, MastershipRole.STANDBY);
         validateEvents(DEVICE_ADDED, DEVICE_MASTERSHIP_CHANGED);
-        assertEquals("incorrect role", MastershipRole.MASTER, service.getRole(DID1));
+        assertEquals("incorrect role", MastershipRole.STANDBY, service.getRole(DID1));
         assertEquals("incorrect device", DID1, provider.deviceReceived.id());
-        assertEquals("incorrect role", MastershipRole.MASTER, provider.roleReceived);
+        assertEquals("incorrect role", MastershipRole.STANDBY, provider.roleReceived);
     }
 
     @Test
