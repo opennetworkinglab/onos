@@ -139,7 +139,7 @@ public class SimpleDeviceManager
             Device device = event.subject();
             DeviceProvider provider = getProvider(device.providerId());
             if (provider != null) {
-                provider.roleChanged(device, newRole);
+                triggerRoleSelection(device, provider);
             }
             post(event);
         }

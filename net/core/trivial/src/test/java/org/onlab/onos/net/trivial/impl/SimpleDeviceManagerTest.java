@@ -143,11 +143,13 @@ public class SimpleDeviceManagerTest {
     }
 
     @Test
-    public void setRole() {
+    public void setRole() throws InterruptedException {
         connectDevice(DID1, SW1);
         admin.setRole(DID1, MastershipRole.STANDBY);
         validateEvents(DEVICE_ADDED, DEVICE_MASTERSHIP_CHANGED);
         assertEquals("incorrect role", MastershipRole.STANDBY, service.getRole(DID1));
+
+        Thread.sleep(200); // FIXME: replace this with more reliable and faster testing means!!!
         assertEquals("incorrect device", DID1, provider.deviceReceived.id());
         assertEquals("incorrect role", MastershipRole.STANDBY, provider.roleReceived);
     }
