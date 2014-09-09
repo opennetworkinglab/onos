@@ -51,7 +51,7 @@ public class SimpleDeviceManager
     private final AbstractListenerRegistry<DeviceEvent, DeviceListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-        private final SimpleDeviceStore store = new SimpleDeviceStore();
+    private final SimpleDeviceStore store = new SimpleDeviceStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -110,21 +110,6 @@ public class SimpleDeviceManager
     }
 
     @Override
-    public void addListener(DeviceListener listener) {
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(DeviceListener listener) {
-        listenerRegistry.removeListener(listener);
-    }
-
-    @Override
-    protected DeviceProviderService createProviderService(DeviceProvider provider) {
-        return new InternalDeviceProviderService(provider);
-    }
-
-    @Override
     public void setRole(DeviceId deviceId, MastershipRole newRole) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(newRole, ROLE_NULL);
@@ -147,6 +132,21 @@ public class SimpleDeviceManager
             log.info("Device {} administratively removed", deviceId);
             post(event);
         }
+    }
+
+    @Override
+    public void addListener(DeviceListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(DeviceListener listener) {
+        listenerRegistry.removeListener(listener);
+    }
+
+    @Override
+    protected DeviceProviderService createProviderService(DeviceProvider provider) {
+        return new InternalDeviceProviderService(provider);
     }
 
     // Personalized device provider service issued to the supplied provider.

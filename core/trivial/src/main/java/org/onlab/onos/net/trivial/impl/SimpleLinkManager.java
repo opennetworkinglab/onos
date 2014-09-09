@@ -66,11 +66,6 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
     }
 
     @Override
-    protected LinkProviderService createProviderService(LinkProvider provider) {
-        return new InternalLinkProviderService(provider);
-    }
-
-    @Override
     public int getLinkCount() {
         return store.getLinkCount();
     }
@@ -143,6 +138,11 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
     @Override
     public void removeListener(LinkListener listener) {
         listenerRegistry.removeListener(listener);
+    }
+
+    @Override
+    protected LinkProviderService createProviderService(LinkProvider provider) {
+        return new InternalLinkProviderService(provider);
     }
 
     // Personalized link provider service issued to the supplied provider.

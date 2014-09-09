@@ -8,16 +8,26 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Host;
+import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
+import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.MACAddress;
 import org.slf4j.Logger;
 
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -27,12 +37,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleHostManager
         extends AbstractProviderRegistry<HostProvider, HostProviderService>
-        implements HostProviderRegistry {
+        implements HostService, HostProviderRegistry {
 
+    public static final String HOST_ID_NULL = "Host ID cannot be null";
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<HostEvent, HostListener>
             listenerRegistry = new AbstractListenerRegistry<>();
+
+    private final SimpleHostStore store = new SimpleHostStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private EventDeliveryService eventDispatcher;
@@ -55,8 +68,64 @@ public class SimpleHostManager
         return new InternalHostProviderService(provider);
     }
 
+    @Override
+    public int getHostCount() {
+        return store.getHostCount();
+    }
+
+    @Override
+    public Iterable<Host> getHosts() {
+        return store.getHosts();
+    }
+
+    @Override
+    public Host getHost(HostId hostId) {
+        checkNotNull(hostId, HOST_ID_NULL);
+        return store.getHost(hostId);
+    }
+
+    @Override
+    public Set<Host> getHostsByVlan(long vlanId) {
+        return store.getHosts(vlanId);
+    }
+
+    @Override
+    public Set<Host> getHostsByMac(MACAddress mac) {
+        checkNotNull(mac, "MAC address cannot be null");
+        return store.getHosts(mac);
+    }
+
+    @Override
+    public Set<Host> getHostsByIp(IPv4 ip) {
+        checkNotNull(ip, "IP address cannot be null");
+        return store.getHosts(ip);
+    }
+
+    @Override
+    public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
+        checkNotNull(connectPoint, "Connection point cannot be null");
+        return store.getConnectedHosts(connectPoint);
+    }
+
+    @Override
+    public Set<Host> getConnectedHosts(DeviceId deviceId) {
+        checkNotNull(deviceId, "Device ID cannot be null");
+        return store.getConnectedHosts(deviceId);
+    }
+
+    @Override
+    public void addListener(HostListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(HostListener listener) {
+        listenerRegistry.removeListener(listener);
+    }
+
     // Personalized host provider service issued to the supplied provider.
-    private class InternalHostProviderService extends AbstractProviderService<HostProvider>
+    private class InternalHostProviderService
+            extends AbstractProviderService<HostProvider>
             implements HostProviderService {
 
         InternalHostProviderService(HostProvider provider) {
@@ -64,13 +133,34 @@ public class SimpleHostManager
         }
 
         @Override
-        public void hostDetected(HostDescription hostDescription) {
-            log.info("Host {} detected", hostDescription);
+        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+            checkNotNull(hostId, HOST_ID_NULL);
+            checkValidity();
+            HostEvent event = store.createOrUpdateHost(provider().id(), hostId,
+                                                       hostDescription);
+            if (event != null) {
+                log.info("Host {} detected", hostId);
+                post(event);
+            }
         }
 
         @Override
-        public void hostVanished(HostDescription hostDescription) {
-            log.info("Host {} vanished", hostDescription);
+        public void hostVanished(HostId hostId) {
+            checkNotNull(hostId, HOST_ID_NULL);
+            checkValidity();
+            HostEvent event = store.removeHost(hostId);
+            if (event != null) {
+                log.info("Host {} vanished", hostId);
+                post(event);
+            }
         }
     }
+
+    // Posts the specified event to the local event dispatcher.
+    private void post(HostEvent event) {
+        if (event != null && eventDispatcher != null) {
+            eventDispatcher.post(event);
+        }
+    }
+
 }

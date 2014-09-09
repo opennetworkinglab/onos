@@ -23,6 +23,11 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         HOST_REMOVED,
 
         /**
+         * Signifies that host data changed, e.g. IP address
+         */
+        HOST_UPDATED,
+
+        /**
          * Signifies that a host location has changed.
          */
         HOST_MOVED
