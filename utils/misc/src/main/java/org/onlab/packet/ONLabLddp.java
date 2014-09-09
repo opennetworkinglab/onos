@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
  * Refer to IEEE Std 802.1ABTM-2009 for more information.
  *
  */
-@SuppressWarnings("rawtypes")
 public class ONLabLddp extends LLDP {
 
     private static final Logger log = LoggerFactory.getLogger(ONLabLddp.class);
@@ -308,28 +307,34 @@ public class ONLabLddp extends LLDP {
      * @param packet
      * @return
      */
-    public static boolean isOVXLLDP(byte[] packet) {
+    public static short isOVXLLDP(byte[] packet) {
         if (packet.length < OVX_LLDP_SIZE) {
-            return false;
+            return -1;
         }
 
         // Extra offset due to VLAN tag
         final ByteBuffer bb = ByteBuffer.wrap(packet);
         int offset = 0;
-        if (bb.getShort(ETHERTYPE_OFFSET) != Ethernet.TYPE_LLDP
-                && bb.getShort(ETHERTYPE_OFFSET) != Ethernet.TYPE_BSN) {
+        short ethType = bb.getShort(ETHERTYPE_OFFSET);
+        if (ethType != Ethernet.TYPE_LLDP
+                && ethType != Ethernet.TYPE_BSN) {
             offset = 4;
+            ethType = bb.getShort(ETHERTYPE_OFFSET + offset);
+            if (ethType != Ethernet.TYPE_LLDP
+                    && ethType != Ethernet.TYPE_BSN) {
+                return -1;
+            }
         }
 
         // Compare packet's organizationally specific TLVs to the expected
         // values
         for (int i = 0; i < OUI_TLV.length; i++) {
             if (packet[NAME_TLV_OFFSET + offset + i] != OUI_TLV[i]) {
-                return false;
+                return -1;
             }
         }
 
-        return true;
+        return ethType;
     }
 
     /**

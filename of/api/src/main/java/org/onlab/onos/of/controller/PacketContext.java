@@ -44,6 +44,12 @@ public interface PacketContext {
     public Ethernet parsed();
 
     /**
+     * Provide an unparsed copy of the data.
+     * @return the unparsed form of the payload.
+     */
+    public byte[] unparsed();
+
+    /**
      * Provide the dpid of the switch where the packet in arrived.
      * @return the dpid of the switch.
      */

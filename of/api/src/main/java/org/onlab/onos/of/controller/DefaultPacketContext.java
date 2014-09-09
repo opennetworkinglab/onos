@@ -80,4 +80,9 @@ public final class DefaultPacketContext implements PacketContext {
         return pktin.getInPort().getPortNumber();
     }
 
+    @Override
+    public byte[] unparsed() {
+        return pktin.getData().clone();
+    }
+
 }
