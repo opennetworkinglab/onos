@@ -277,7 +277,7 @@ public class LinkDiscovery implements TimerTask {
      * Handles an incoming LLDP packet. Creates link in topology and sends ACK
      * to port where LLDP originated.
      */
-    public void handleLLDP(final byte[] pkt, Integer inPort) {
+    public boolean handleLLDP(final byte[] pkt, Integer inPort) {
 
         short ethType = ONLabLddp.isOVXLLDP(pkt);
         if (ethType == Ethernet.TYPE_LLDP || ethType == Ethernet.TYPE_BSN) {
@@ -286,7 +286,7 @@ public class LinkDiscovery implements TimerTask {
             final OpenFlowSwitch srcSwitch = ctrl.getSwitch(new Dpid(dp.getDpid()));
             final Integer srcPort = dp.getPort();
             if (srcSwitch == null) {
-                return;
+                return true;
             }
             this.ackProbe(srcPort);
             ConnectPoint src = new ConnectPoint(
@@ -303,8 +303,10 @@ public class LinkDiscovery implements TimerTask {
                 ld = new DefaultLinkDescription(src, dst, Type.DIRECT);
             }
             linkProvider.linkDetected(ld);
+            return true;
         } else {
             this.log.debug("Ignoring unknown LLDP");
+            return false;
         }
     }
 
