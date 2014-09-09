@@ -143,7 +143,7 @@ public class SimpleDeviceManagerTest {
     }
 
     @Test
-    public void setRole() {
+    public void setRole() throws InterruptedException {
         connectDevice(DID1, SW1);
         admin.setRole(DID1, MastershipRole.STANDBY);
         validateEvents(DEVICE_ADDED, DEVICE_MASTERSHIP_CHANGED);

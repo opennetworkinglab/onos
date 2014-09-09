@@ -1,6 +1,12 @@
 package org.onlab.onos.net.topology;
 
+import org.onlab.graph.Graph;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Path;
 import org.onlab.onos.net.Topology;
+
+import java.util.Set;
 
 /**
  * Service for providing network topology information.
@@ -14,13 +20,64 @@ public interface TopologyService {
      */
     Topology currentTopology();
 
-    // TODO: Figure out hot to best export graph traversal methods via Graph/Vertex/Edge
-    // TODO: figure out how we want this to be presented, via Topology or via TopologyService
-    // Set<TopologyCluster> getClusters(Topology topology);
-    // Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst);
-    // Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight);
-    // boolean isInfrastructure(Topology topology, ConnectPoint connectPoint);
-    // boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint);
+    /**
+     * Returns the set of clusters in the specified topology.
+     *
+     * @param topology topology descriptor
+     * @return set of topology clusters
+     */
+    Set<TopologyCluster> getClusters(Topology topology);
+
+    /**
+     * Returns the graph view of the specified topology.
+     *
+     * @param topology topology descriptor
+     * @return topology graph view
+     */
+    Graph<TopoVertex, TopoEdge> getGraph(Topology topology);
+
+    /**
+     * Returns the set of all shortest paths, in terms of hop-count, between
+     * the specified source and destination devices.
+     *
+     * @param topology topology descriptor
+     * @param src      source device
+     * @param dst      destination device
+     * @return set of all shortest paths between the two devices
+     */
+    Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst);
+
+    /**
+     * Returns the set of all shortest paths, computed using the supplied
+     * edge-weight entity, between the specified source and destination devices.
+     *
+     * @param topology topology descriptor
+     * @param src      source device
+     * @param dst      destination device
+     * @return set of all shortest paths between the two devices
+     */
+    Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
+                       LinkWeight weight);
+
+    /**
+     * Indicates whether the specified connection point is part of the network
+     * infrastructure or part of network edge.
+     *
+     * @param topology     topology descriptor
+     * @param connectPoint connection point
+     * @return true of connection point is in infrastructure; false if edge
+     */
+    boolean isInfrastructure(Topology topology, ConnectPoint connectPoint);
+
+
+    /**
+     * Indicates whether the specified connection point allows broadcast.
+     *
+     * @param topology     topology descriptor
+     * @param connectPoint connection point
+     * @return true if broadcast is permissible
+     */
+    boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint);
 
     /**
      * Adds the specified topology listener.

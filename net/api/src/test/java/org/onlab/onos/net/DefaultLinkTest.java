@@ -21,7 +21,7 @@ public class DefaultLinkTest {
     private static final PortNumber P1 = portNumber(1);
     private static final PortNumber P2 = portNumber(2);
 
-    public static ConnectPoint cp(DeviceId id, PortNumber pn) {
+    public static ConnectPoint cp(ElementId id, PortNumber pn) {
         return new ConnectPoint(id, pn);
     }
 

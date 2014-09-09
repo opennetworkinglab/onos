@@ -16,6 +16,13 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.DeviceRoleCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="roleCompleter"/>
+            </completers>
+        </command>
 
         <command>
             <action class="org.onlab.onos.cli.net.LinksListCommand"/>
@@ -33,6 +40,7 @@
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onlab.onos.cli.net.DeviceIdCompleter"/>
+    <bean id="roleCompleter" class="org.onlab.onos.cli.net.RoleCompleter"/>
 
     <bean id="nameCompleter" class="org.onlab.onos.cli.NameCompleter"/>
 
