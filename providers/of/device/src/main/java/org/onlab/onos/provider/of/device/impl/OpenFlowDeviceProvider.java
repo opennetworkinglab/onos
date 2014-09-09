@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 @Component(immediate = true)
 public class OpenFlowDeviceProvider extends AbstractProvider implements DeviceProvider {
 
-    private final Logger log = getLogger(getClass());
+    private static final Logger LOG = getLogger(OpenFlowDeviceProvider.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
@@ -66,7 +66,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void activate() {
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
-        log.info("Started");
+        LOG.info("Started");
     }
 
     @Deactivate
@@ -74,33 +74,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         providerRegistry.unregister(this);
         controller.removeListener(listener);
         providerService = null;
-        log.info("Stopped");
+        LOG.info("Stopped");
     }
 
     @Override
     public void triggerProbe(Device device) {
-        log.info("Triggering probe on device {}", device.id());
+        LOG.info("Triggering probe on device {}", device.id());
     }
 
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {
         switch (newRole) {
-            case MASTER:
-                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                                   RoleState.MASTER);
-                break;
-            case STANDBY:
-                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                                   RoleState.EQUAL);
-            case NONE:
-                controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                                   RoleState.SLAVE);
-                break;
-            default:
-                log.error("Unknown Mastership state : {}", newRole);
+        case MASTER:
+            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                    RoleState.MASTER);
+            break;
+        case STANDBY:
+            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                    RoleState.EQUAL);
+            break;
+        case NONE:
+            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
+                    RoleState.SLAVE);
+            break;
+        default:
+            LOG.error("Unknown Mastership state : {}", newRole);
 
         }
-        log.info("Accepting mastership role change for device {}", device.id());
+        LOG.info("Accepting mastership role change for device {}", device.id());
     }
 
     private class InternalDeviceProvider implements OpenFlowSwitchListener {
@@ -114,10 +115,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             DeviceDescription description =
                     new DefaultDeviceDescription(buildURI(dpid), Device.Type.SWITCH,
-                                                 sw.manfacturerDescription(),
-                                                 sw.hardwareDescription(),
-                                                 sw.softwareDescription(),
-                                                 sw.serialNumber());
+                            sw.manfacturerDescription(),
+                            sw.hardwareDescription(),
+                            sw.softwareDescription(),
+                            sw.serialNumber());
             providerService.deviceConnected(deviceId(uri), description);
             providerService.updatePorts(deviceId(uri), buildPortDescriptions(sw.getPorts()));
         }
@@ -149,7 +150,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             try {
                 uri = new URI("of", Long.toHexString(dpid.value()), null);
             } catch (URISyntaxException e) {
-                log.warn("URI construction for device {} failed.", dpid);
+                LOG.warn("URI construction for device {} failed.", dpid);
             }
             return uri;
         }
