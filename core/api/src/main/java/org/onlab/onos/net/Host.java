@@ -25,6 +25,13 @@ public interface Host extends Element {
     MACAddress mac();
 
     /**
+     * Returns the VLAN ID tied to this host.
+     *
+     * @return VLAN ID value
+     */
+    short vlan();
+
+    /**
      * Returns set of IP addresses currently bound to the host MAC address.
      *
      * @return set of IP addresses; empty if no IP address is bound
