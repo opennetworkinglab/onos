@@ -36,8 +36,8 @@ import com.google.common.collect.Sets;
 @Component(immediate = true)
 @Service
 public class SimpleLinkManager
-extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
-implements LinkService, LinkAdminService, LinkProviderRegistry {
+        extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
+        implements LinkService, LinkAdminService, LinkProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String LINK_DESC_NULL = "Link description cannot be null";
@@ -46,7 +46,7 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<LinkEvent, LinkListener>
-    listenerRegistry = new AbstractListenerRegistry<>();
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     private final SimpleLinkStore store = new SimpleLinkStore();
 
@@ -79,7 +79,7 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
     public Set<Link> getDeviceLinks(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return Sets.union(store.getDeviceEgressLinks(deviceId),
-                store.getDeviceIngressLinks(deviceId));
+                          store.getDeviceIngressLinks(deviceId));
     }
 
     @Override
@@ -98,7 +98,7 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
     public Set<Link> getLinks(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return Sets.union(store.getEgressLinks(connectPoint),
-                store.getIngressLinks(connectPoint));
+                          store.getIngressLinks(connectPoint));
     }
 
     @Override
@@ -146,8 +146,9 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
     }
 
     // Personalized link provider service issued to the supplied provider.
-    private class InternalLinkProviderService extends AbstractProviderService<LinkProvider>
-    implements LinkProviderService {
+    private class InternalLinkProviderService
+            extends AbstractProviderService<LinkProvider>
+            implements LinkProviderService {
 
         InternalLinkProviderService(LinkProvider provider) {
             super(provider);
@@ -157,27 +158,31 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
         public void linkDetected(LinkDescription linkDescription) {
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
-            log.debug("Link {} detected", linkDescription);
             LinkEvent event = store.createOrUpdateLink(provider().id(),
-                    linkDescription);
-            post(event);
+                                                       linkDescription);
+            if (event != null) {
+                log.debug("Link {} detected", linkDescription);
+                post(event);
+            }
         }
 
         @Override
         public void linkVanished(LinkDescription linkDescription) {
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
-            log.info("Link {} vanished", linkDescription);
             LinkEvent event = store.removeLink(linkDescription.src(),
-                    linkDescription.dst());
-            post(event);
+                                               linkDescription.dst());
+            if (event != null) {
+                log.info("Link {} vanished", linkDescription);
+                post(event);
+            }
         }
 
         @Override
         public void linksVanished(ConnectPoint connectPoint) {
             checkNotNull(connectPoint, "Connect point cannot be null");
             checkValidity();
-            log.info("Link for connection point {} vanished", connectPoint);
+            log.info("Links for connection point {} vanished", connectPoint);
             removeLinks(getLinks(connectPoint));
         }
 
@@ -185,7 +190,7 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
         public void linksVanished(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
-            log.info("Link for device {} vanished", deviceId);
+            log.info("Links for device {} vanished", deviceId);
             removeLinks(getDeviceLinks(deviceId));
         }
     }
@@ -200,7 +205,7 @@ implements LinkService, LinkAdminService, LinkProviderRegistry {
 
     // Posts the specified event to the local event dispatcher.
     private void post(LinkEvent event) {
-        if (event != null && eventDispatcher != null) {
+        if (event != null) {
             eventDispatcher.post(event);
         }
     }

@@ -72,25 +72,26 @@ public class SimpleTopologyManager
     }
 
     @Override
-    protected TopologyProviderService createProviderService(TopologyProvider provider) {
-        return new InternalTopologyProviderService(provider);
+    public Topology currentTopology() {
+        return store.currentTopology();
     }
 
     @Override
-    public Topology currentTopology() {
-        return null;
+    public boolean isLatest(Topology topology) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        return store.isLatest(topology);
     }
 
     @Override
     public Set<TopologyCluster> getClusters(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return null;
+        return store.getClusters(topology);
     }
 
     @Override
     public Graph<TopoVertex, TopoEdge> getGraph(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return null;
+        return store.getGraph(topology);
     }
 
     @Override
@@ -98,7 +99,7 @@ public class SimpleTopologyManager
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
-        return null;
+        return store.getPaths(topology, src, dst);
     }
 
     @Override
@@ -107,21 +108,21 @@ public class SimpleTopologyManager
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
         checkNotNull(weight, "Link weight cannot be null");
-        return null;
+        return store.getPaths(topology, src, dst, weight);
     }
 
     @Override
     public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return false;
+        return store.isInfrastructure(topology, connectPoint);
     }
 
     @Override
     public boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return false;
+        return store.isInBroadcastTree(topology, connectPoint);
     }
 
     @Override
@@ -135,6 +136,11 @@ public class SimpleTopologyManager
     }
 
     // Personalized host provider service issued to the supplied provider.
+    @Override
+    protected TopologyProviderService createProviderService(TopologyProvider provider) {
+        return new InternalTopologyProviderService(provider);
+    }
+
     private class InternalTopologyProviderService
             extends AbstractProviderService<TopologyProvider>
             implements TopologyProviderService {
@@ -147,8 +153,12 @@ public class SimpleTopologyManager
         public void topologyChanged(TopologyDescription topoDescription,
                                     List<Event> reasons) {
             checkNotNull(topoDescription, "Topology description cannot be null");
-            log.info("Topology changed due to: {}",
-                     reasons == null ? "initial compute" : reasons);
+            TopologyEvent event = store.updateTopology(topoDescription, reasons);
+            if (event != null) {
+                log.info("Topology changed due to: {}",
+                         reasons == null ? "initial compute" : reasons);
+                eventDispatcher.post(event);
+            }
         }
     }
 
