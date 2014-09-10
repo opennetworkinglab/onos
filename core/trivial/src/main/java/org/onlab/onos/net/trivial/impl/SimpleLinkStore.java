@@ -25,7 +25,7 @@ import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_UPDATED;
 
 /**
- * Manages inventory of infrastructure links using trivial in-memory link
+ * Manages inventory of infrastructure links using trivial in-memory structures
  * implementation.
  */
 class SimpleLinkStore {

@@ -28,7 +28,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
 /**
-
+ * Manages inventory of infrastructure DEVICES using trivial in-memory
+ * structures implementation.
  */
 class SimpleDeviceStore {
 

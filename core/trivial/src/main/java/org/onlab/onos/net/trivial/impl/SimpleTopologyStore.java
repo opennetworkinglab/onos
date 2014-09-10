@@ -18,9 +18,9 @@ import java.util.Set;
 
 /**
  * Manages inventory of topology snapshots using trivial in-memory
- * implementation.
+ * structures implementation.
  */
-public class SimpleTopologyStore {
+class SimpleTopologyStore {
 
     private volatile DefaultTopology current;
 
@@ -35,10 +35,12 @@ public class SimpleTopologyStore {
 
     /**
      * Indicates whether the topology is the latest.
+     *
      * @param topology topology descriptor
      * @return true if topology is the most recent one
      */
     boolean isLatest(Topology topology) {
+        // Topology is current only if it is the same as our current topology
         return topology == current;
     }
 
@@ -117,7 +119,8 @@ public class SimpleTopologyStore {
      * @param reasons         list of events that triggered the update
      * @return topology update event or null if the description is old
      */
-    TopologyEvent updateTopology(TopologyDescription topoDescription, List<Event> reasons) {
+    TopologyEvent updateTopology(TopologyDescription topoDescription,
+                                 List<Event> reasons) {
         return null;
     }
 

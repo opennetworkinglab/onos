@@ -153,6 +153,9 @@ public class SimpleTopologyManager
         public void topologyChanged(TopologyDescription topoDescription,
                                     List<Event> reasons) {
             checkNotNull(topoDescription, "Topology description cannot be null");
+
+            log.info("Topology changed due to: {}", // to be removed soon
+                     reasons == null ? "initial compute" : reasons);
             TopologyEvent event = store.updateTopology(topoDescription, reasons);
             if (event != null) {
                 log.info("Topology changed due to: {}",

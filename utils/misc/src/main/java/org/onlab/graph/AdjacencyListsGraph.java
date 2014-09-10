@@ -15,7 +15,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <V> vertex type
  * @param <E> edge type
  */
-public class AdjacencyListsGraph<V extends Vertex, E extends Edge<V>> implements Graph<V, E> {
+public class AdjacencyListsGraph<V extends Vertex, E extends Edge<V>>
+        implements Graph<V, E> {
 
     private final Set<V> vertexes;
     private final Set<E> edges;
