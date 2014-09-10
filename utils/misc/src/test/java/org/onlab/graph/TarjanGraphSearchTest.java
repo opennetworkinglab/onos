@@ -1,0 +1,110 @@
+package org.onlab.graph;
+
+import org.junit.Test;
+
+import static com.google.common.collect.ImmutableSet.of;
+import static org.junit.Assert.assertEquals;
+import static org.onlab.graph.TarjanGraphSearch.SCCResult;
+
+/**
+ * Tarjan graph search tests.
+ */
+public class TarjanGraphSearchTest extends GraphTest {
+
+    private void validate(SCCResult<TestVertex, TestEdge> result, int cc) {
+        System.out.println("Cluster count: " + result.clusterVertexes().size());
+        System.out.println("Clusters: " + result.clusterVertexes());
+        assertEquals("incorrect cluster count", cc, result.clusterCount());
+    }
+
+    private void validate(SCCResult<TestVertex, TestEdge> result,
+                          int i, int vc, int ec) {
+        assertEquals("incorrect cluster count", vc, result.clusterVertexes().get(i).size());
+        assertEquals("incorrect edge count", ec, result.clusterEdges().get(i).size());
+    }
+
+    @Test
+    public void basic() {
+        graph = new AdjacencyListsGraph<>(vertexes(), edges());
+        TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
+        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        validate(result, 6);
+    }
+
+    @Test
+    public void singleCluster() {
+        graph = new AdjacencyListsGraph<>(vertexes(),
+                                          of(new TestEdge(A, B, 1),
+                                             new TestEdge(B, C, 1),
+                                             new TestEdge(C, D, 1),
+                                             new TestEdge(D, E, 1),
+                                             new TestEdge(E, F, 1),
+                                             new TestEdge(F, G, 1),
+                                             new TestEdge(G, H, 1),
+                                             new TestEdge(H, A, 1)));
+
+        TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
+        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        validate(result, 1);
+        validate(result, 0, 8, 8);
+    }
+
+    @Test
+    public void twoUnconnectedCluster() {
+        graph = new AdjacencyListsGraph<>(vertexes(),
+                                          of(new TestEdge(A, B, 1),
+                                             new TestEdge(B, C, 1),
+                                             new TestEdge(C, D, 1),
+                                             new TestEdge(D, A, 1),
+                                             new TestEdge(E, F, 1),
+                                             new TestEdge(F, G, 1),
+                                             new TestEdge(G, H, 1),
+                                             new TestEdge(H, E, 1)));
+        TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
+        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        validate(result, 2);
+        validate(result, 0, 4, 4);
+        validate(result, 1, 4, 4);
+    }
+
+    @Test
+    public void twoWeaklyConnectedClusters() {
+        graph = new AdjacencyListsGraph<>(vertexes(),
+                                          of(new TestEdge(A, B, 1),
+                                             new TestEdge(B, C, 1),
+                                             new TestEdge(C, D, 1),
+                                             new TestEdge(D, A, 1),
+                                             new TestEdge(E, F, 1),
+                                             new TestEdge(F, G, 1),
+                                             new TestEdge(G, H, 1),
+                                             new TestEdge(H, E, 1),
+                                             new TestEdge(B, E, 1)));
+        TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
+        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        validate(result, 2);
+        validate(result, 0, 4, 4);
+        validate(result, 1, 4, 4);
+    }
+
+    @Test
+    public void twoClustersConnectedWithIgnoredEdges() {
+        graph = new AdjacencyListsGraph<>(vertexes(),
+                                          of(new TestEdge(A, B, 1),
+                                             new TestEdge(B, C, 1),
+                                             new TestEdge(C, D, 1),
+                                             new TestEdge(D, A, 1),
+                                             new TestEdge(E, F, 1),
+                                             new TestEdge(F, G, 1),
+                                             new TestEdge(G, H, 1),
+                                             new TestEdge(H, E, 1),
+                                             new TestEdge(B, E, -1),
+                                             new TestEdge(E, B, -1)));
+
+        TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
+        SCCResult<TestVertex, TestEdge> result = gs.search(graph, weight);
+        validate(result, 2);
+        validate(result, 0, 4, 4);
+        validate(result, 1, 4, 4);
+    }
+
+}

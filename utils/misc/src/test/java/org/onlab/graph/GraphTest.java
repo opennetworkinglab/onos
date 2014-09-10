@@ -19,7 +19,7 @@ public class GraphTest {
     static final TestVertex H = new TestVertex("H");
     static final TestVertex Z = new TestVertex("Z");
 
-    protected Graph<TestVertex, TestEdge> g;
+    protected Graph<TestVertex, TestEdge> graph;
 
     protected EdgeWeight<TestVertex, TestEdge> weight =
             new EdgeWeight<TestVertex, TestEdge>() {
@@ -35,7 +35,7 @@ public class GraphTest {
         }
     }
 
-    protected Set<TestVertex> vertices() {
+    protected Set<TestVertex> vertexes() {
         return of(A, B, C, D, E, F, G, H);
     }
 

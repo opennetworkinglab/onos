@@ -29,10 +29,10 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
 
     // Executes the default test
     protected void executeDefaultTest(int pathCount, int pathLength, double pathCost) {
-        g = new AdjacencyListsGraph<>(vertices(), edges());
+        graph = new AdjacencyListsGraph<>(vertexes(), edges());
 
         GraphPathSearch<TestVertex, TestEdge> search = graphSearch();
-        Set<Path<TestVertex, TestEdge>> paths = search.search(g, A, H, weight).paths();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, H, weight).paths();
         assertEquals("incorrect paths count", 1, paths.size());
 
         Path p = paths.iterator().next();
@@ -41,7 +41,7 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
         assertEquals("incorrect path length", pathLength, p.edges().size());
         assertEquals("incorrect path cost", pathCost, p.cost(), 0.1);
 
-        paths = search.search(g, A, null, weight).paths();
+        paths = search.search(graph, A, null, weight).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", pathCount, paths.size());
     }
