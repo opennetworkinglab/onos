@@ -10,9 +10,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.link.LinkProvider;
 import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
@@ -20,10 +18,10 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
+import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.PacketContext;
 import org.onlab.onos.of.controller.PacketListener;
-import org.onlab.timer.Timer;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
@@ -51,6 +49,8 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
     private final InternalLinkProvider listener = new InternalLinkProvider();
 
+    private final Map<Dpid, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
+
     /**
      * Creates an OpenFlow link provider.
      */
@@ -63,23 +63,28 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addPacketListener(0, listener);
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            listener.switchAdded(new Dpid(sw.getId()));
+        }
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        for (LinkDiscovery ld : discoverers.values()) {
+            ld.stop();
+        }
         providerRegistry.unregister(this);
         controller.removeListener(listener);
         controller.removePacketListener(listener);
         providerService = null;
-        Timer.getTimer().stop();
+
         log.info("Stopped");
     }
 
 
     private class InternalLinkProvider implements PacketListener, OpenFlowSwitchListener {
 
-        private final Map<Dpid, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
 
         @Override
         public void handlePacket(PacketContext pktCtx) {
@@ -102,7 +107,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
         @Override
         public void switchRemoved(Dpid dpid) {
-            LinkDiscovery ld = this.discoverers.remove(dpid);
+            LinkDiscovery ld = discoverers.remove(dpid);
             if (ld != null) {
                 ld.removeAllPorts();
             }
@@ -122,10 +127,9 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
             if (enabled) {
                 ld.addPort(port);
             } else {
-                ConnectPoint cp = new ConnectPoint(
-                        DeviceId.deviceId("of:" + Long.toHexString(dpid.value())),
-                        PortNumber.portNumber(port.getPortNo().getPortNumber()));
-                providerService.linksVanished(cp);
+                /*
+                 * remove port calls linkVanished
+                 */
                 ld.removePort(port);
             }
 

@@ -1,5 +1,6 @@
 package org.onlab.onos.of.drivers.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -135,7 +136,7 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void write(OFMessage msg) {
-        channel.write(msg);
+        channel.write(Collections.singletonList(msg));
 
     }
 
