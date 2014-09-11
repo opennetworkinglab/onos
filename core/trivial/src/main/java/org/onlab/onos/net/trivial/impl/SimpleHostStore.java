@@ -1,5 +1,16 @@
 package org.onlab.onos.net.trivial.impl;
 
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;
@@ -14,17 +25,6 @@ import org.onlab.packet.MACAddress;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
@@ -46,7 +46,7 @@ public class SimpleHostStore {
      * @return appropriate event or null if no change resulted
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                 HostDescription hostDescription) {
+            HostDescription hostDescription) {
         Host host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
@@ -62,7 +62,7 @@ public class SimpleHostStore {
                 descr.vlan(),
                 descr.location(),
                 descr.ipAddresses());
-        synchronized(this) {
+        synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
         }
@@ -104,7 +104,7 @@ public class SimpleHostStore {
      * @return remove even or null if host was not found
      */
     HostEvent removeHost(HostId hostId) {
-        synchronized(this) {
+        synchronized (this) {
             Host host = hosts.remove(hostId);
             if (host != null) {
                 locations.remove((host.location()), host);
