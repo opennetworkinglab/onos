@@ -16,7 +16,7 @@ import static org.onlab.onos.net.topology.ClusterId.clusterId;
 public class ClusterLinksCommand extends ClustersListCommand {
 
     @Argument(index = 0, name = "id", description = "Cluster ID",
-              required = false, multiValued = false)
+              required = true, multiValued = false)
     String id = null;
 
     @Override
@@ -29,6 +29,5 @@ public class ClusterLinksCommand extends ClustersListCommand {
         }
         return null;
     }
-
 
 }

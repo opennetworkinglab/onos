@@ -33,10 +33,10 @@ public class LinksListCommand extends AbstractShellCommand {
     }
 
     /**
-     * Returns a formated string representing the gien link.
+     * Returns a formatted string representing the given link.
      *
      * @param link infrastructure link
-     * @return formated link string
+     * @return formatted link string
      */
     public static String linkString(Link link) {
         return String.format(FMT, link.src().deviceId(), link.src().port(),
