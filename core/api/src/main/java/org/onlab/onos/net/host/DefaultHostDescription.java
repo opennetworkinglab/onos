@@ -2,13 +2,14 @@ package org.onlab.onos.net.host;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.onlab.onos.net.HostLocation;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.MACAddress;
+
+import com.google.common.collect.ImmutableSet;
 
 public class DefaultHostDescription implements HostDescription {
 
@@ -42,7 +43,7 @@ public class DefaultHostDescription implements HostDescription {
 
     @Override
     public Set<IPv4> ipAddresses() {
-        return Collections.unmodifiableSet(ips);
+        return ImmutableSet.copyOf(ips);
     }
 
     @Override

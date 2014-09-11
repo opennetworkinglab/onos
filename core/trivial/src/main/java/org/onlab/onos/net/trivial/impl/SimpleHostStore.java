@@ -1,6 +1,7 @@
 package org.onlab.onos.net.trivial.impl;
 
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
@@ -10,9 +11,20 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.MACAddress;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
@@ -22,6 +34,8 @@ public class SimpleHostStore {
 
     private final Map<HostId, Host> hosts = new ConcurrentHashMap<>();
 
+    // hosts sorted based on their location
+    private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
     /**
      * Creates a new host or updates the existing one based on the specified
      * description.
@@ -33,7 +47,54 @@ public class SimpleHostStore {
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
                                  HostDescription hostDescription) {
-        return null;
+        Host host = hosts.get(hostId);
+        if (host == null) {
+            return createHost(providerId, hostId, hostDescription);
+        }
+        return updateHost(providerId, host, hostDescription);
+    }
+
+    // creates a new host and sends HOST_ADDED
+    private HostEvent createHost(ProviderId providerId, HostId hostId,
+            HostDescription descr) {
+        DefaultHost newhost = new DefaultHost(providerId, hostId,
+                descr.hwAddress(),
+                descr.vlan(),
+                descr.location(),
+                descr.ipAddresses());
+        synchronized(this) {
+            hosts.put(hostId, newhost);
+            locations.put(descr.location(), newhost);
+        }
+        return new HostEvent(HOST_ADDED, newhost);
+    }
+
+    // checks for type of update to host, sends appropriate event
+    private HostEvent updateHost(ProviderId providerId, Host host,
+            HostDescription descr) {
+        DefaultHost updated;
+        HostEvent event;
+        if (host.location().equals(descr.location())) {
+            updated = new DefaultHost(providerId, host.id(),
+                    host.mac(),
+                    host.vlan(),
+                    host.location(),
+                    descr.ipAddresses());
+            event = new HostEvent(HOST_UPDATED, updated);
+        } else {
+            updated = new DefaultHost(providerId, host.id(),
+                    host.mac(),
+                    host.vlan(),
+                    descr.location(),
+                    host.ipAddresses());
+            event = new HostEvent(HOST_MOVED, updated);
+        }
+        synchronized (this) {
+            hosts.put(host.id(), updated);
+            locations.remove(host.location(), host);
+            locations.put(updated.location(), updated);
+        }
+        return event;
     }
 
     /**
@@ -43,7 +104,14 @@ public class SimpleHostStore {
      * @return remove even or null if host was not found
      */
     HostEvent removeHost(HostId hostId) {
-        return null;
+        synchronized(this) {
+            Host host = hosts.remove(hostId);
+            if (host != null) {
+                locations.remove((host.location()), host);
+                return new HostEvent(HOST_REMOVED, host);
+            }
+            return null;
+        }
     }
 
     /**
@@ -61,7 +129,7 @@ public class SimpleHostStore {
      * @return iterable collection of all hosts
      */
     Iterable<Host> getHosts() {
-        return null;
+        return Collections.unmodifiableSet(new HashSet<Host>(hosts.values()));
     }
 
     /**
@@ -71,7 +139,7 @@ public class SimpleHostStore {
      * @return host or null if not found
      */
     Host getHost(HostId hostId) {
-        return null;
+        return hosts.get(hostId);
     }
 
     /**
@@ -81,7 +149,13 @@ public class SimpleHostStore {
      * @return set of hosts in the vlan
      */
     Set<Host> getHosts(long vlanId) {
-        return null;
+        Set<Host> vlanset = new HashSet<Host>();
+        for (Host h : hosts.values()) {
+            if (h.vlan() == vlanId) {
+                vlanset.add(h);
+            }
+        }
+        return vlanset;
     }
 
     /**
@@ -91,7 +165,13 @@ public class SimpleHostStore {
      * @return set of hosts with the given mac
      */
     Set<Host> getHosts(MACAddress mac) {
-        return null;
+        Set<Host> macset = new HashSet<>();
+        for (Host h : hosts.values()) {
+            if (h.mac().equals(mac)) {
+                macset.add(h);
+            }
+        }
+        return macset;
     }
 
     /**
@@ -101,7 +181,13 @@ public class SimpleHostStore {
      * @return set of hosts with the given IP
      */
     Set<Host> getHosts(IPv4 ip) {
-        return null;
+        Set<Host> ipset = new HashSet<>();
+        for (Host h : hosts.values()) {
+            if (h.ipAddresses().contains(ip)) {
+                ipset.add(h);
+            }
+        }
+        return ipset;
     }
 
     /**
@@ -111,7 +197,7 @@ public class SimpleHostStore {
      * @return set of hosts
      */
     Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
-        return null;
+        return ImmutableSet.copyOf(locations.get(connectPoint));
     }
 
     /**
@@ -121,7 +207,13 @@ public class SimpleHostStore {
      * @return set of hosts
      */
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
-        return null;
+        Set<Host> hostset = new HashSet<>();
+        for (ConnectPoint p : locations.keySet()) {
+            if (p.deviceId().equals(deviceId)) {
+                hostset.addAll(locations.get(p));
+            }
+        }
+        return hostset;
     }
 
 }
