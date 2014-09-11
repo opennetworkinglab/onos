@@ -1,5 +1,7 @@
 package org.onlab.onos.of.drivers.impl;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,7 +14,14 @@ import org.onlab.onos.of.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.OFMatchV3;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFOxmList;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
+import org.projectfloodlight.openflow.types.OFBufferId;
+import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.TableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +38,9 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
     private final AtomicBoolean driverHandshakeComplete;
     private OFFactory factory;
     private long barrierXidToWaitFor = -1;
+
+    private static final short MIN_PRIORITY = 0x0;
+    private static final int OFPCML_NO_BUFFER = 0xffff;
 
     public OFSwitchImplOVS13(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
@@ -113,6 +125,7 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
 
 
     private void configureSwitch() {
+        populateTableMissEntry(0, true, false, false, 0);
         sendBarrier(true);
     }
 
@@ -144,4 +157,79 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
     public void write(List<OFMessage> msgs) {
         channel.write(msgs);
     }
+
+    /**
+     * By default if none of the booleans in the call are set, then the
+     * table-miss entry is added with no instructions, which means that pipeline
+     * execution will stop, and the action set associated with the packet will
+     * be executed.
+     *
+     * @param tableToAdd
+     * @param toControllerNow as an APPLY_ACTION instruction
+     * @param toControllerWrite as a WRITE_ACITION instruction
+     * @param toTable as a GOTO_TABLE instruction
+     * @param tableToSend
+     * @throws IOException
+     */
+    @SuppressWarnings("unchecked")
+    private void populateTableMissEntry(int tableToAdd, boolean toControllerNow,
+            boolean toControllerWrite,
+            boolean toTable, int tableToSend) {
+        OFOxmList oxmList = OFOxmList.EMPTY;
+        OFMatchV3 match = factory.buildMatchV3()
+                .setOxmList(oxmList)
+                .build();
+        OFAction outc = factory.actions()
+                .buildOutput()
+                .setPort(OFPort.CONTROLLER)
+                .setMaxLen(OFPCML_NO_BUFFER)
+                .build();
+        List<OFInstruction> instructions = new ArrayList<OFInstruction>();
+        if (toControllerNow) {
+            // table-miss instruction to send to controller immediately
+            OFInstruction instr = factory.instructions()
+                    .buildApplyActions()
+                    .setActions(Collections.singletonList(outc))
+                    .build();
+            instructions.add(instr);
+        }
+
+        if (toControllerWrite) {
+            // table-miss instruction to write-action to send to controller
+            // this will be executed whenever the action-set gets executed
+            OFInstruction instr = factory.instructions()
+                    .buildWriteActions()
+                    .setActions(Collections.singletonList(outc))
+                    .build();
+            instructions.add(instr);
+        }
+
+        if (toTable) {
+            // table-miss instruction to goto-table x
+            OFInstruction instr = factory.instructions()
+                    .gotoTable(TableId.of(tableToSend));
+            instructions.add(instr);
+        }
+
+        if (!toControllerNow && !toControllerWrite && !toTable) {
+            // table-miss has no instruction - at which point action-set will be
+            // executed - if there is an action to output/group in the action
+            // set
+            // the packet will be sent there, otherwise it will be dropped.
+            instructions = Collections.EMPTY_LIST;
+        }
+
+        OFMessage tableMissEntry = factory.buildFlowAdd()
+                .setTableId(TableId.of(tableToAdd))
+                .setMatch(match) // match everything
+                .setInstructions(instructions)
+                .setPriority(MIN_PRIORITY)
+                .setBufferId(OFBufferId.NO_BUFFER)
+                .setIdleTimeout(0)
+                .setHardTimeout(0)
+                .setXid(getNextTransactionId())
+                .build();
+        sendMsg(tableMissEntry);
+    }
+
 }
