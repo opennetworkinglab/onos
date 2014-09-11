@@ -14,6 +14,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
@@ -66,14 +67,22 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void activate() {
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            listener.switchAdded(new Dpid(sw.getId()));
+        }
         LOG.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            providerService.deviceDisconnected(DeviceId.deviceId("of:"
+                    + Long.toHexString(sw.getId())));
+        }
         providerRegistry.unregister(this);
         controller.removeListener(listener);
         providerService = null;
+
         LOG.info("Stopped");
     }
 

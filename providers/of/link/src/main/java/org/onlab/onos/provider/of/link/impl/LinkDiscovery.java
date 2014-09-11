@@ -86,6 +86,7 @@ public class LinkDiscovery implements TimerTask {
     private final OpenFlowController ctrl;
     private final LinkProviderService linkProvider;
     private final Map<Integer, OFPortDesc> ports;
+    private Timeout timeout;
 
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
@@ -127,7 +128,7 @@ public class LinkDiscovery implements TimerTask {
                 addPort(port);
             }
         }
-        Timer.getTimer().newTimeout(this, this.probeRate,
+        timeout = Timer.getTimer().newTimeout(this, this.probeRate,
                 TimeUnit.MILLISECONDS);
         this.log.debug("Started discovery manager for switch {}",
                 sw.getId());
@@ -186,6 +187,10 @@ public class LinkDiscovery implements TimerTask {
                         portnum);
             }
         }
+        ConnectPoint cp = new ConnectPoint(
+                DeviceId.deviceId("of:" + Long.toHexString(sw.getId())),
+                PortNumber.portNumber(port.getPortNo().getPortNumber()));
+        linkProvider.linksVanished(cp);
 
     }
 
@@ -380,14 +385,19 @@ public class LinkDiscovery implements TimerTask {
         }
 
         // reschedule timer
-        Timer.getTimer().newTimeout(this, this.probeRate,
+        timeout = Timer.getTimer().newTimeout(this, this.probeRate,
                 TimeUnit.MILLISECONDS);
     }
 
     public void removeAllPorts() {
-        for (OFPortDesc port : sw.getPorts()) {
+        for (OFPortDesc port : ports.values()) {
             removePort(port);
         }
+    }
+
+    public void stop() {
+        removeAllPorts();
+        timeout.cancel();
     }
 
 }
