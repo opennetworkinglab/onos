@@ -2,10 +2,15 @@ package org.onlab.onos.of.drivers.impl;
 
 
 
+import java.util.Collections;
+import java.util.List;
+
 import org.onlab.onos.of.controller.Dpid;
+import org.onlab.onos.of.controller.driver.AbstractOpenFlowSwitch;
 import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriverFactory;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +56,36 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
         }
 
         log.warn("DriverManager could not identify switch desc: {}. "
-                + "Assigning OFSwitchImplBase", desc);
-        return null;
+                + "Assigning AbstractOpenFlowSwich", desc);
+        return new AbstractOpenFlowSwitch(dpid) {
+
+            @Override
+            public void write(List<OFMessage> msgs) {
+                channel.write(msgs);
+            }
+
+            @Override
+            public void write(OFMessage msg) {
+                channel.write(Collections.singletonList(msg));
+
+            }
+
+            @Override
+            public Boolean supportNxRole() {
+                return false;
+            }
+
+            @Override
+            public void startDriverHandshake() {}
+
+            @Override
+            public void processDriverHandshakeMessage(OFMessage m) {}
+
+            @Override
+            public boolean isDriverHandshakeComplete() {
+                return true;
+            }
+        };
     }
 
     /**
