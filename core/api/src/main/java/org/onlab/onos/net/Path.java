@@ -17,4 +17,11 @@ public interface Path extends Link {
      */
     List<Link> links();
 
+    /**
+     * Returns the path cost as a unit-less value.
+     *
+     * @return unit-less path cost
+     */
+    double cost();
+
 }

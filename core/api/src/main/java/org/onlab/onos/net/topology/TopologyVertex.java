@@ -6,7 +6,7 @@ import org.onlab.onos.net.DeviceId;
 /**
  * Represents a vertex in the topology graph.
  */
-public interface TopoVertex extends Vertex {
+public interface TopologyVertex extends Vertex {
 
     /**
      * Returns the associated infrastructure device identification.

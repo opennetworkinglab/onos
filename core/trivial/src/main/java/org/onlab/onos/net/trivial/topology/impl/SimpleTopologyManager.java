@@ -6,7 +6,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.graph.Graph;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.EventDeliveryService;
@@ -15,13 +14,12 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.TopoEdge;
-import org.onlab.onos.net.topology.TopoVertex;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyDescription;
 import org.onlab.onos.net.topology.TopologyEvent;
+import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyListener;
 import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
@@ -98,7 +96,7 @@ public class SimpleTopologyManager
     }
 
     @Override
-    public Graph<TopoVertex, TopoEdge> getGraph(Topology topology) {
+    public TopologyGraph getGraph(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.getGraph(defaultTopology(topology));
     }
@@ -159,16 +157,14 @@ public class SimpleTopologyManager
         }
 
         @Override
-        public void topologyChanged(TopologyDescription topoDescription,
+        public void topologyChanged(GraphDescription topoDescription,
                                     List<Event> reasons) {
             checkNotNull(topoDescription, "Topology description cannot be null");
 
-            log.info("Topology changed due to: {}", // to be removed soon
-                     reasons == null ? "initial compute" : reasons);
             TopologyEvent event = store.updateTopology(provider().id(),
                                                        topoDescription, reasons);
             if (event != null) {
-                log.info("Topology changed due to: {}",
+                log.info("Topology {} changed due to: {}", event.subject(),
                          reasons == null ? "initial compute" : reasons);
                 eventDispatcher.post(event);
             }

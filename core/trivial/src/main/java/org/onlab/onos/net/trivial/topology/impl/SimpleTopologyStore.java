@@ -1,18 +1,16 @@
 package org.onlab.onos.net.trivial.topology.impl;
 
-import org.onlab.graph.Graph;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.TopoEdge;
-import org.onlab.onos.net.topology.TopoVertex;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyDescription;
 import org.onlab.onos.net.topology.TopologyEvent;
+import org.onlab.onos.net.topology.TopologyGraph;
 
 import java.util.List;
 import java.util.Set;
@@ -61,7 +59,7 @@ class SimpleTopologyStore {
      * @param topology topology descriptor
      * @return graph view
      */
-    Graph<TopoVertex, TopoEdge> getGraph(DefaultTopology topology) {
+    TopologyGraph getGraph(DefaultTopology topology) {
         return topology.getGraph();
     }
 
@@ -88,7 +86,7 @@ class SimpleTopologyStore {
      */
     Set<Path> getPaths(DefaultTopology topology, DeviceId src, DeviceId dst,
                        LinkWeight weight) {
-        return null;
+        return topology.getPaths(src, dst, weight);
     }
 
     /**
@@ -116,27 +114,29 @@ class SimpleTopologyStore {
     /**
      * Generates a new topology snapshot from the specified description.
      *
-     * @param providerId      provider identification
-     * @param topoDescription topology description
-     * @param reasons         list of events that triggered the update
+     * @param providerId       provider identification
+     * @param graphDescription topology graph description
+     * @param reasons          list of events that triggered the update
      * @return topology update event or null if the description is old
      */
     TopologyEvent updateTopology(ProviderId providerId,
-                                 TopologyDescription topoDescription,
+                                 GraphDescription graphDescription,
                                  List<Event> reasons) {
         // First off, make sure that what we're given is indeed newer than
         // what we already have.
-        if (current != null && topoDescription.timestamp() < current.time()) {
+        if (current != null && graphDescription.timestamp() < current.time()) {
             return null;
         }
 
         // Have the default topology construct self from the description data.
         DefaultTopology newTopology =
-                new DefaultTopology(providerId, topoDescription);
+                new DefaultTopology(providerId, graphDescription);
 
         // Promote the new topology to current and return a ready-to-send event.
-        current = newTopology;
-        return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, current);
+        synchronized (this) {
+            current = newTopology;
+            return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, current);
+        }
     }
 
 }
