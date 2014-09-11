@@ -21,8 +21,9 @@ import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.packet.IPv4;
+import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -85,7 +86,7 @@ public class SimpleHostManager
     }
 
     @Override
-    public Set<Host> getHostsByVlan(long vlanId) {
+    public Set<Host> getHostsByVlan(VLANID vlanId) {
         return store.getHosts(vlanId);
     }
 
@@ -96,7 +97,7 @@ public class SimpleHostManager
     }
 
     @Override
-    public Set<Host> getHostsByIp(IPv4 ip) {
+    public Set<Host> getHostsByIp(IPAddress ip) {
         checkNotNull(ip, "IP address cannot be null");
         return store.getHosts(ip);
     }

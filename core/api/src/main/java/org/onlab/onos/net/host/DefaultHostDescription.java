@@ -6,24 +6,25 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.onlab.onos.net.HostLocation;
-import org.onlab.packet.IPv4;
+import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 import com.google.common.collect.ImmutableSet;
 
 public class DefaultHostDescription implements HostDescription {
 
     private final MACAddress mac;
-    private final short vlan;
+    private final VLANID vlan;
     private final HostLocation location;
-    private final Set<IPv4> ips;
+    private final Set<IPAddress> ips;
 
-    public DefaultHostDescription(MACAddress mac, short vlan,
-            HostLocation loc, Set<IPv4> ips) {
+    public DefaultHostDescription(MACAddress mac, VLANID vlan,
+            HostLocation loc, Set<IPAddress> ips) {
         this.mac = mac;
         this.vlan = vlan;
         this.location = loc;
-        this.ips = new HashSet<IPv4>(ips);
+        this.ips = new HashSet<IPAddress>(ips);
     }
 
     @Override
@@ -32,7 +33,7 @@ public class DefaultHostDescription implements HostDescription {
     }
 
     @Override
-    public short vlan() {
+    public VLANID vlan() {
         return vlan;
     }
 
@@ -42,7 +43,7 @@ public class DefaultHostDescription implements HostDescription {
     }
 
     @Override
-    public Set<IPv4> ipAddresses() {
+    public Set<IPAddress> ipAddresses() {
         return ImmutableSet.copyOf(ips);
     }
 
