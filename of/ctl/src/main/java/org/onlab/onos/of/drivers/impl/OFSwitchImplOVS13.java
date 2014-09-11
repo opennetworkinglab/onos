@@ -1,6 +1,5 @@
 package org.onlab.onos.of.drivers.impl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -169,7 +168,6 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
      * @param toControllerWrite as a WRITE_ACITION instruction
      * @param toTable as a GOTO_TABLE instruction
      * @param tableToSend
-     * @throws IOException
      */
     @SuppressWarnings("unchecked")
     private void populateTableMissEntry(int tableToAdd, boolean toControllerNow,
