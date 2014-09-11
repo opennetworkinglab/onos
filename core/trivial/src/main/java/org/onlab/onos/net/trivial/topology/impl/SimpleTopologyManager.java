@@ -11,9 +11,11 @@ import org.onlab.onos.event.Event;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.onos.net.topology.ClusterId;
 import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
@@ -44,6 +46,8 @@ public class SimpleTopologyManager
 
     public static final String TOPOLOGY_NULL = "Topology cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
+    private static final String CLUSTER_ID_NULL = "Cluster ID cannot be null";
+    private static final String CLUSTER_NULL = "Topology cluster cannot be null";
     public static final String CONNECTION_POINT_NULL = "Connection point cannot be null";
 
     private final Logger log = getLogger(getClass());
@@ -93,6 +97,27 @@ public class SimpleTopologyManager
     public Set<TopologyCluster> getClusters(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.getClusters(defaultTopology(topology));
+    }
+
+    @Override
+    public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(topology, CLUSTER_ID_NULL);
+        return store.getCluster(defaultTopology(topology), clusterId);
+    }
+
+    @Override
+    public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(topology, CLUSTER_NULL);
+        return store.getClusterDevices(defaultTopology(topology), cluster);
+    }
+
+    @Override
+    public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(topology, CLUSTER_NULL);
+        return store.getClusterLinks(defaultTopology(topology), cluster);
     }
 
     @Override

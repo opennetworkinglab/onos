@@ -133,6 +133,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
     }
 
     /**
+     * Returns the specified topology cluster.
+     *
+     * @param clusterId cluster identifier
+     * @return topology cluster
+     */
+    TopologyCluster getCluster(ClusterId clusterId) {
+        return clusters.get(clusterId);
+    }
+
+
+    /**
      * Returns the set of cluster devices.
      *
      * @param cluster topology cluster

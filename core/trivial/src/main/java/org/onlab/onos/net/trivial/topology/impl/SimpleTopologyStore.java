@@ -3,8 +3,10 @@ package org.onlab.onos.net.trivial.topology.impl;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.topology.ClusterId;
 import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
@@ -44,6 +46,16 @@ class SimpleTopologyStore {
     }
 
     /**
+     * Returns the immutable graph view of the current topology.
+     *
+     * @param topology topology descriptor
+     * @return graph view
+     */
+    TopologyGraph getGraph(DefaultTopology topology) {
+        return topology.getGraph();
+    }
+
+    /**
      * Returns the set of topology SCC clusters.
      *
      * @param topology topology descriptor
@@ -54,13 +66,36 @@ class SimpleTopologyStore {
     }
 
     /**
-     * Returns the immutable graph view of the current topology.
+     * Returns the cluster of the specified topology.
      *
-     * @param topology topology descriptor
-     * @return graph view
+     * @param topology  topology descriptor
+     * @param clusterId cluster identity
+     * @return topology cluster
      */
-    TopologyGraph getGraph(DefaultTopology topology) {
-        return topology.getGraph();
+    TopologyCluster getCluster(DefaultTopology topology, ClusterId clusterId) {
+        return topology.getCluster(clusterId);
+    }
+
+    /**
+     * Returns the cluster of the specified topology.
+     *
+     * @param topology  topology descriptor
+     * @param cluster topology cluster
+     * @return set of cluster links
+     */
+    Set<DeviceId> getClusterDevices(DefaultTopology topology, TopologyCluster cluster) {
+        return topology.getClusterDevices(cluster);
+    }
+
+    /**
+     * Returns the cluster of the specified topology.
+     *
+     * @param topology  topology descriptor
+     * @param cluster topology cluster
+     * @return set of cluster links
+     */
+    Set<Link> getClusterLinks(DefaultTopology topology, TopologyCluster cluster) {
+        return topology.getClusterLinks(cluster);
     }
 
     /**
