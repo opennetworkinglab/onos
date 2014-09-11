@@ -1,8 +1,8 @@
 package org.onlab.onos.net.trivial.topology.provider.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.onlab.graph.AdjacencyListsGraph;
 import org.onlab.graph.DijkstraGraphSearch;
@@ -21,13 +21,11 @@ import org.onlab.onos.net.topology.TopoVertex;
 import org.onlab.onos.net.topology.TopologyCluster;
 import org.onlab.onos.net.topology.TopologyDescription;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.collect.ImmutableSetMultimap.Builder;
 import static org.onlab.graph.GraphPathSearch.Result;
 import static org.onlab.graph.TarjanGraphSearch.SCCResult;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
@@ -49,16 +47,16 @@ class DefaultTopologyDescription implements TopologyDescription {
     private final Map<ClusterId, TopologyCluster> clusters;
 
     // Secondary look-up indexes
-    private Multimap<ClusterId, DeviceId> devicesByCluster;
-    private Multimap<ClusterId, Link> linksByCluster;
-    private Map<DeviceId, TopologyCluster> clustersByDevice;
+    private ImmutableSetMultimap<ClusterId, DeviceId> devicesByCluster;
+    private ImmutableSetMultimap<ClusterId, Link> linksByCluster;
+    private Map<DeviceId, TopologyCluster> clustersByDevice = Maps.newHashMap();
 
     /**
      * Creates a topology description to carry topology vitals to the core.
      *
      * @param nanos   time in nanos of when the topology description was created
-     * @param devices collection of devices
-     * @param links
+     * @param devices collection of infrastructure devices
+     * @param links   collection of infrastructure links
      */
     DefaultTopologyDescription(long nanos, Iterable<Device> devices, Iterable<Link> links) {
         this.nanos = nanos;
@@ -67,22 +65,81 @@ class DefaultTopologyDescription implements TopologyDescription {
         this.clusters = computeClusters();
     }
 
+    @Override
+    public long timestamp() {
+        return nanos;
+    }
+
+    @Override
+    public Graph<TopoVertex, TopoEdge> graph() {
+        return graph;
+    }
+
+    @Override
+    public Result<TopoVertex, TopoEdge> pathResults(DeviceId srcDeviceId) {
+        return results.get(srcDeviceId);
+    }
+
+    @Override
+    public Set<TopologyCluster> clusters() {
+        return ImmutableSet.copyOf(clusters.values());
+    }
+
+    @Override
+    public Set<DeviceId> clusterDevices(TopologyCluster cluster) {
+        return devicesByCluster.get(cluster.id());
+    }
+
+    @Override
+    public Set<Link> clusterLinks(TopologyCluster cluster) {
+        return linksByCluster.get(cluster.id());
+    }
+
+    @Override
+    public TopologyCluster clusterFor(DeviceId deviceId) {
+        return clustersByDevice.get(deviceId);
+    }
+
+
+    // Link weight for measuring link cost as hop count with indirect links
+    // being as expensive as traversing the entire graph to assume the worst.
+    private static class HopCountLinkWeight implements LinkWeight {
+        private final int indirectLinkCost;
+
+        HopCountLinkWeight(int indirectLinkCost) {
+            this.indirectLinkCost = indirectLinkCost;
+        }
+
+        @Override
+        public double weight(TopoEdge edge) {
+            // To force preference to use direct paths first, make indirect
+            // links as expensive as the linear vertex traversal.
+            return edge.link().type() == INDIRECT ? indirectLinkCost : 1;
+        }
+    }
+
+    // Link weight for preventing traversal over indirect links.
+    private static class NoIndirectLinksWeight implements LinkWeight {
+        @Override
+        public double weight(TopoEdge edge) {
+            return edge.link().type() == INDIRECT ? -1 : 1;
+        }
+    }
+
     // Constructs the topology graph using the supplied devices and links.
     private Graph<TopoVertex, TopoEdge> buildGraph(Iterable<Device> devices,
                                                    Iterable<Link> links) {
-        Graph<TopoVertex, TopoEdge> graph =
-                new AdjacencyListsGraph<>(buildVertexes(devices),
-                                          buildEdges(links));
-        return graph;
+        return new AdjacencyListsGraph<>(buildVertexes(devices),
+                                         buildEdges(links));
     }
 
     // Builds a set of topology vertexes from the specified list of devices
     private Set<TopoVertex> buildVertexes(Iterable<Device> devices) {
         Set<TopoVertex> vertexes = Sets.newHashSet();
         for (Device device : devices) {
-            TopoVertex vertex = new TVertex(device.id());
-            vertexesById.put(vertex.deviceId(), vertex);
+            TopoVertex vertex = new DefaultTopoVertex(device.id());
             vertexes.add(vertex);
+            vertexesById.put(vertex.deviceId(), vertex);
         }
         return vertexes;
     }
@@ -91,7 +148,8 @@ class DefaultTopologyDescription implements TopologyDescription {
     private Set<TopoEdge> buildEdges(Iterable<Link> links) {
         Set<TopoEdge> edges = Sets.newHashSet();
         for (Link link : links) {
-            edges.add(new TEdge(vertexOf(link.src()), vertexOf(link.dst()), link));
+            edges.add(new DefaultTopoEdge(vertexOf(link.src()),
+                                          vertexOf(link.dst()), link));
         }
         return edges;
     }
@@ -119,6 +177,9 @@ class DefaultTopologyDescription implements TopologyDescription {
         List<Set<TopoVertex>> clusterVertexes = result.clusterVertexes();
         List<Set<TopoEdge>> clusterEdges = result.clusterEdges();
 
+        Builder<ClusterId, DeviceId> devicesBuilder = ImmutableSetMultimap.builder();
+        Builder<ClusterId, Link> linksBuilder = ImmutableSetMultimap.builder();
+
         // Scan over the lists and create a cluster from the results.
         for (int i = 0, n = result.clusterCount(); i < n; i++) {
             Set<TopoVertex> vertexSet = clusterVertexes.get(i);
@@ -128,29 +189,32 @@ class DefaultTopologyDescription implements TopologyDescription {
                     new DefaultTopologyCluster(ClusterId.clusterId(i),
                                                vertexSet.size(), edgeSet.size(),
                                                findRoot(vertexSet).deviceId());
-
-            findClusterDevices(vertexSet, cluster);
-            findClusterLinks(edgeSet, cluster);
+            findClusterDevices(vertexSet, cluster, devicesBuilder);
+            findClusterLinks(edgeSet, cluster, linksBuilder);
         }
         return clusters;
     }
 
-    // Scan through the set of cluster vertices and convert it to a set of
-    // device ids; register the cluster by device id as well.
+    // Scans through the set of cluster vertexes and puts their devices in a
+    // multi-map associated with the cluster. It also binds the devices to
+    // the cluster.
     private void findClusterDevices(Set<TopoVertex> vertexSet,
-                                    DefaultTopologyCluster cluster) {
-        Set<DeviceId> ids = new HashSet<>(vertexSet.size());
-        for (TopoVertex v : vertexSet) {
-            DeviceId deviceId = v.deviceId();
-            devicesByCluster.put(cluster.id(), deviceId);
+                                    DefaultTopologyCluster cluster,
+                                    Builder<ClusterId, DeviceId> builder) {
+        for (TopoVertex vertex : vertexSet) {
+            DeviceId deviceId = vertex.deviceId();
+            builder.put(cluster.id(), deviceId);
             clustersByDevice.put(deviceId, cluster);
         }
     }
 
+    // Scans through the set of cluster edges and puts their links in a
+    // multi-map associated with the cluster.
     private void findClusterLinks(Set<TopoEdge> edgeSet,
-                                  DefaultTopologyCluster cluster) {
-        for (TopoEdge e : edgeSet) {
-            linksByCluster.put(cluster.id(), e.link());
+                                  DefaultTopologyCluster cluster,
+                                  Builder<ClusterId, Link> builder) {
+        for (TopoEdge edge : edgeSet) {
+            builder.put(cluster.id(), edge.link());
         }
     }
 
@@ -174,151 +238,10 @@ class DefaultTopologyDescription implements TopologyDescription {
         TopoVertex vertex = vertexesById.get(id);
         if (vertex == null) {
             // If vertex does not exist, create one and register it.
-            vertex = new TVertex(id);
+            vertex = new DefaultTopoVertex(id);
             vertexesById.put(id, vertex);
         }
         return vertex;
-    }
-
-    @Override
-    public long timestamp() {
-        return nanos;
-    }
-
-    @Override
-    public Graph<TopoVertex, TopoEdge> graph() {
-        return graph;
-    }
-
-    @Override
-    public Result<TopoVertex, TopoEdge> pathResults(DeviceId srcDeviceId) {
-        return results.get(srcDeviceId);
-    }
-
-    @Override
-    public Set<TopologyCluster> clusters() {
-        return ImmutableSet.copyOf(clusters.values());
-    }
-
-    @Override
-    public Set<DeviceId> clusterDevices(TopologyCluster cluster) {
-        return null; // clusterDevices.get(cluster.id());
-    }
-
-    @Override
-    public Set<Link> clusterLinks(TopologyCluster cluster) {
-        return null; // clusterLinks.get(cluster.id());
-    }
-
-    @Override
-    public TopologyCluster clusterFor(DeviceId deviceId) {
-        return null; // deviceClusters.get(deviceId);
-    }
-
-    // Implementation of the topology vertex backed by a device id
-    private static class TVertex implements TopoVertex {
-
-        private final DeviceId deviceId;
-
-        public TVertex(DeviceId deviceId) {
-            this.deviceId = deviceId;
-        }
-
-        @Override
-        public DeviceId deviceId() {
-            return deviceId;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(deviceId);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof TVertex) {
-                final TVertex other = (TVertex) obj;
-                return Objects.equals(this.deviceId, other.deviceId);
-            }
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return deviceId.toString();
-        }
-    }
-
-    // Implementation of the topology edge backed by a link
-    private class TEdge implements TopoEdge {
-        private final Link link;
-        private final TopoVertex src;
-        private final TopoVertex dst;
-
-        public TEdge(TopoVertex src, TopoVertex dst, Link link) {
-            this.src = src;
-            this.dst = dst;
-            this.link = link;
-        }
-
-        @Override
-        public Link link() {
-            return link;
-        }
-
-        @Override
-        public TopoVertex src() {
-            return src;
-        }
-
-        @Override
-        public TopoVertex dst() {
-            return dst;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(link);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof TEdge) {
-                final TEdge other = (TEdge) obj;
-                return Objects.equals(this.link, other.link);
-            }
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return toStringHelper(this).add("src", src).add("dst", dst).toString();
-        }
-    }
-
-    // Link weight for measuring link cost as hop count with indirect links
-    // being as expensive as traversing the entire graph to assume the worst.
-    private static class HopCountLinkWeight implements LinkWeight {
-        private final int indirectLinkCost;
-
-        public HopCountLinkWeight(int indirectLinkCost) {
-            this.indirectLinkCost = indirectLinkCost;
-        }
-
-        @Override
-        public double weight(TopoEdge edge) {
-            // To force preference to use direct paths first, make indirect
-            // links as expensive as the linear vertex traversal.
-            return edge.link().type() == INDIRECT ? indirectLinkCost : 1;
-        }
-    }
-
-    // Link weight for preventing traversal over indirect links.
-    private static class NoIndirectLinksWeight implements LinkWeight {
-        @Override
-        public double weight(TopoEdge edge) {
-            return edge.link().type() == INDIRECT ? -1 : 1;
-        }
     }
 
 }

@@ -115,7 +115,6 @@ public class SimpleTopologyProvider extends AbstractProvider
     // Builds the topology using the latest device and link information
     // and citing the specified events as reasons for the change.
     private void buildTopology(List<Event> reasons) {
-        log.info("YO! Computing topology");
         if (isStarted) {
             TopologyDescription desc =
                     new DefaultTopologyDescription(System.nanoTime(),
