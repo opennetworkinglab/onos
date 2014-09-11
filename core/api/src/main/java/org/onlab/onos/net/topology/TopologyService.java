@@ -21,6 +21,7 @@ public interface TopologyService {
 
     /**
      * Indicates whether the specified topology is the latest or not.
+     *
      * @param topology topology descriptor
      * @return true if the topology is the most recent; false otherwise
      */

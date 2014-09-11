@@ -5,6 +5,7 @@ import org.onlab.onos.event.Event;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Path;
+import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.TopoEdge;
 import org.onlab.onos.net.topology.TopoVertex;
@@ -50,8 +51,8 @@ class SimpleTopologyStore {
      * @param topology topology descriptor
      * @return set of clusters
      */
-    Set<TopologyCluster> getClusters(Topology topology) {
-        return null;
+    Set<TopologyCluster> getClusters(DefaultTopology topology) {
+        return topology.getClusters();
     }
 
     /**
@@ -60,8 +61,8 @@ class SimpleTopologyStore {
      * @param topology topology descriptor
      * @return graph view
      */
-    Graph<TopoVertex, TopoEdge> getGraph(Topology topology) {
-        return null;
+    Graph<TopoVertex, TopoEdge> getGraph(DefaultTopology topology) {
+        return topology.getGraph();
     }
 
     /**
@@ -72,8 +73,8 @@ class SimpleTopologyStore {
      * @param dst      destination device
      * @return set of shortest paths
      */
-    Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
-        return null;
+    Set<Path> getPaths(DefaultTopology topology, DeviceId src, DeviceId dst) {
+        return topology.getPaths(src, dst);
     }
 
     /**
@@ -85,7 +86,7 @@ class SimpleTopologyStore {
      * @param weight   link weight function
      * @return set of shortest paths
      */
-    Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
+    Set<Path> getPaths(DefaultTopology topology, DeviceId src, DeviceId dst,
                        LinkWeight weight) {
         return null;
     }
@@ -97,8 +98,8 @@ class SimpleTopologyStore {
      * @param connectPoint connection point
      * @return true if infrastructure; false otherwise
      */
-    boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
-        return false;
+    boolean isInfrastructure(DefaultTopology topology, ConnectPoint connectPoint) {
+        return topology.isInfrastructure(connectPoint);
     }
 
     /**
@@ -108,20 +109,34 @@ class SimpleTopologyStore {
      * @param connectPoint connection point
      * @return true if in broadcast tree; false otherwise
      */
-    boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint) {
-        return false;
+    boolean isInBroadcastTree(DefaultTopology topology, ConnectPoint connectPoint) {
+        return topology.isInBroadcastTree(connectPoint);
     }
 
     /**
      * Generates a new topology snapshot from the specified description.
      *
+     * @param providerId      provider identification
      * @param topoDescription topology description
      * @param reasons         list of events that triggered the update
      * @return topology update event or null if the description is old
      */
-    TopologyEvent updateTopology(TopologyDescription topoDescription,
+    TopologyEvent updateTopology(ProviderId providerId,
+                                 TopologyDescription topoDescription,
                                  List<Event> reasons) {
-        return null;
+        // First off, make sure that what we're given is indeed newer than
+        // what we already have.
+        if (current != null && topoDescription.timestamp() < current.time()) {
+            return null;
+        }
+
+        // Have the default topology construct self from the description data.
+        DefaultTopology newTopology =
+                new DefaultTopology(providerId, topoDescription);
+
+        // Promote the new topology to current and return a ready-to-send event.
+        current = newTopology;
+        return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, current);
     }
 
 }

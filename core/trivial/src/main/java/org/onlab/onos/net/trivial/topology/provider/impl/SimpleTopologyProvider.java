@@ -90,6 +90,8 @@ public class SimpleTopologyProvider extends AbstractProvider
 
     @Deactivate
     public synchronized void deactivate() {
+        isStarted = false;
+
         deviceService.removeListener(deviceListener);
         linkService.removeListener(linkListener);
         providerRegistry.unregister(this);
@@ -98,7 +100,6 @@ public class SimpleTopologyProvider extends AbstractProvider
         executor.shutdownNow();
         executor = null;
 
-        isStarted = false;
         log.info("Stopped");
     }
 
@@ -108,7 +109,7 @@ public class SimpleTopologyProvider extends AbstractProvider
      *
      * @param reasons events which triggered the topology change
      */
-    private void triggerTopologyBuild(List<Event> reasons) {
+    private synchronized void triggerTopologyBuild(List<Event> reasons) {
         executor.execute(new TopologyBuilderTask(reasons));
     }
 

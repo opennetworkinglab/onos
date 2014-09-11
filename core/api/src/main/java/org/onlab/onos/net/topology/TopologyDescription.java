@@ -1,12 +1,14 @@
 package org.onlab.onos.net.topology;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import org.onlab.graph.Graph;
-import org.onlab.graph.GraphPathSearch;
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 
-import java.util.Set;
+import static org.onlab.graph.GraphPathSearch.Result;
 
 /**
  * Describes attribute(s) of a network topology.
@@ -22,50 +24,39 @@ public interface TopologyDescription extends Description {
     long timestamp();
 
     /**
-     * Returns the topology graph.
+     * Returns the topology graph in immutable form.
      *
      * @return network graph
      */
     Graph<TopoVertex, TopoEdge> graph();
 
     /**
-     * Returns the results of the path search through the network graph. This
-     * is assumed to contain results of seach fro the given device to all
-     * other devices.
+     * Returns an immutable map of path search results for each source device.
      *
-     * @param srcDeviceId source device identifier
-     * @return path search result for the given source node
+     * @return map of path search result for each source node
      */
-    GraphPathSearch.Result pathResults(DeviceId srcDeviceId);
+    ImmutableMap<DeviceId, Result<TopoVertex, TopoEdge>> pathsBySource();
 
     /**
      * Returns the set of topology SCC clusters.
      *
      * @return set of SCC clusters
      */
-    Set<TopologyCluster> clusters();
+    ImmutableSet<TopologyCluster> clusters();
 
     /**
-     * Returns the set of devices contained by the specified topology cluster.
+     * Returns an immutable set multi-map of devices for each cluster.
      *
-     * @return set of devices that belong to the specified cluster
+     * @return set multi-map of devices that belong to each cluster
      */
-    Set<DeviceId> clusterDevices(TopologyCluster cluster);
+    ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster();
 
     /**
-     * Returns the set of infrastructure links contained by the specified cluster.
+     * Returns an immutable set multi-map of links for each cluster.
      *
-     * @return set of links that form the given cluster
+     * @return set multi-map of links that belong to each cluster
      */
-    Set<Link> clusterLinks(TopologyCluster cluster);
-
-    /**
-     * Returns the topology SCC cluster which contains the given device.
-     *
-     * @param deviceId device identifier
-     * @return topology cluster that contains the specified device
-     */
-    TopologyCluster clusterFor(DeviceId deviceId);
+    ImmutableSetMultimap<TopologyCluster, Link> linksByCluster();
 
 }
 

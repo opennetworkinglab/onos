@@ -1,5 +1,6 @@
 package org.onlab.onos.net.trivial.topology.provider.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSetMultimap.Builder;
+import static com.google.common.collect.ImmutableSetMultimap.builder;
 import static org.onlab.graph.GraphPathSearch.Result;
 import static org.onlab.graph.TarjanGraphSearch.SCCResult;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
@@ -43,13 +45,12 @@ class DefaultTopologyDescription implements TopologyDescription {
     private final long nanos;
     private final Map<DeviceId, TopoVertex> vertexesById = Maps.newHashMap();
     private final Graph<TopoVertex, TopoEdge> graph;
-    private final Map<DeviceId, Result<TopoVertex, TopoEdge>> results;
-    private final Map<ClusterId, TopologyCluster> clusters;
+    private final ImmutableMap<DeviceId, Result<TopoVertex, TopoEdge>> results;
 
-    // Secondary look-up indexes
-    private ImmutableSetMultimap<ClusterId, DeviceId> devicesByCluster;
-    private ImmutableSetMultimap<ClusterId, Link> linksByCluster;
-    private Map<DeviceId, TopologyCluster> clustersByDevice = Maps.newHashMap();
+    // Cluster-related structures
+    private final ImmutableSet<TopologyCluster> clusters;
+    private ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster;
+    private ImmutableSetMultimap<TopologyCluster, Link> linksByCluster;
 
     /**
      * Creates a topology description to carry topology vitals to the core.
@@ -76,30 +77,24 @@ class DefaultTopologyDescription implements TopologyDescription {
     }
 
     @Override
-    public Result<TopoVertex, TopoEdge> pathResults(DeviceId srcDeviceId) {
-        return results.get(srcDeviceId);
+    public ImmutableMap<DeviceId, Result<TopoVertex, TopoEdge>> pathsBySource() {
+        return results;
     }
 
     @Override
-    public Set<TopologyCluster> clusters() {
-        return ImmutableSet.copyOf(clusters.values());
+    public ImmutableSet<TopologyCluster> clusters() {
+        return clusters;
     }
 
     @Override
-    public Set<DeviceId> clusterDevices(TopologyCluster cluster) {
-        return devicesByCluster.get(cluster.id());
+    public ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster() {
+        return devicesByCluster;
     }
 
     @Override
-    public Set<Link> clusterLinks(TopologyCluster cluster) {
-        return linksByCluster.get(cluster.id());
+    public ImmutableSetMultimap<TopologyCluster, Link> linksByCluster() {
+        return linksByCluster;
     }
-
-    @Override
-    public TopologyCluster clusterFor(DeviceId deviceId) {
-        return clustersByDevice.get(deviceId);
-    }
-
 
     // Link weight for measuring link cost as hop count with indirect links
     // being as expensive as traversing the entire graph to assume the worst.
@@ -156,29 +151,31 @@ class DefaultTopologyDescription implements TopologyDescription {
 
     // Computes the default shortest paths for all source/dest pairs using
     // the multi-path Dijkstra and hop-count as path cost.
-    private Map<DeviceId, Result<TopoVertex, TopoEdge>> computeDefaultPaths() {
+    private ImmutableMap<DeviceId, Result<TopoVertex, TopoEdge>> computeDefaultPaths() {
         LinkWeight weight = new HopCountLinkWeight(graph.getVertexes().size());
-        Map<DeviceId, Result<TopoVertex, TopoEdge>> results = Maps.newHashMap();
+        ImmutableMap.Builder<DeviceId, Result<TopoVertex, TopoEdge>> results =
+                ImmutableMap.builder();
 
         // Search graph paths for each source to all destinations.
         for (TopoVertex src : vertexesById.values()) {
             results.put(src.deviceId(), DIJKSTRA.search(graph, src, null, weight));
         }
-        return results;
+        return results.build();
     }
 
     // Computes topology SCC clusters using Tarjan algorithm.
-    private Map<ClusterId, TopologyCluster> computeClusters() {
-        Map<ClusterId, TopologyCluster> clusters = Maps.newHashMap();
-        SCCResult<TopoVertex, TopoEdge> result = TARJAN.search(graph, new NoIndirectLinksWeight());
+    private ImmutableSet<TopologyCluster> computeClusters() {
+        ImmutableSet.Builder<TopologyCluster> clusterBuilder = ImmutableSet.builder();
+        SCCResult<TopoVertex, TopoEdge> result =
+                TARJAN.search(graph, new NoIndirectLinksWeight());
 
         // Extract both vertexes and edges from the results; the lists form
         // pairs along the same index.
         List<Set<TopoVertex>> clusterVertexes = result.clusterVertexes();
         List<Set<TopoEdge>> clusterEdges = result.clusterEdges();
 
-        Builder<ClusterId, DeviceId> devicesBuilder = ImmutableSetMultimap.builder();
-        Builder<ClusterId, Link> linksBuilder = ImmutableSetMultimap.builder();
+        Builder<TopologyCluster, DeviceId> devicesBuilder = ImmutableSetMultimap.builder();
+        Builder<TopologyCluster, Link> linksBuilder = ImmutableSetMultimap.builder();
 
         // Scan over the lists and create a cluster from the results.
         for (int i = 0, n = result.clusterCount(); i < n; i++) {
@@ -189,10 +186,11 @@ class DefaultTopologyDescription implements TopologyDescription {
                     new DefaultTopologyCluster(ClusterId.clusterId(i),
                                                vertexSet.size(), edgeSet.size(),
                                                findRoot(vertexSet).deviceId());
+            clusterBuilder.add(cluster);
             findClusterDevices(vertexSet, cluster, devicesBuilder);
             findClusterLinks(edgeSet, cluster, linksBuilder);
         }
-        return clusters;
+        return clusterBuilder.build();
     }
 
     // Scans through the set of cluster vertexes and puts their devices in a
@@ -200,11 +198,10 @@ class DefaultTopologyDescription implements TopologyDescription {
     // the cluster.
     private void findClusterDevices(Set<TopoVertex> vertexSet,
                                     DefaultTopologyCluster cluster,
-                                    Builder<ClusterId, DeviceId> builder) {
+                                    Builder<TopologyCluster, DeviceId> builder) {
         for (TopoVertex vertex : vertexSet) {
             DeviceId deviceId = vertex.deviceId();
-            builder.put(cluster.id(), deviceId);
-            clustersByDevice.put(deviceId, cluster);
+            builder.put(cluster, deviceId);
         }
     }
 
@@ -212,9 +209,9 @@ class DefaultTopologyDescription implements TopologyDescription {
     // multi-map associated with the cluster.
     private void findClusterLinks(Set<TopoEdge> edgeSet,
                                   DefaultTopologyCluster cluster,
-                                  Builder<ClusterId, Link> builder) {
+                                  Builder<TopologyCluster, Link> builder) {
         for (TopoEdge edge : edgeSet) {
-            builder.put(cluster.id(), edge.link());
+            builder.put(cluster, edge.link());
         }
     }
 
