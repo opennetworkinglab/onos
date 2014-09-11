@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.HostLocation;
-import org.onlab.packet.IPv4;
+import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
 
 /**
@@ -38,6 +38,6 @@ public interface HostDescription extends Description {
      *
      * @return a set of IP addresses.
      */
-    Set<IPv4> ipAddresses();
+    Set<IPAddress> ipAddresses();
 
 }

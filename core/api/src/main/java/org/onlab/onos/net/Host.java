@@ -1,6 +1,6 @@
 package org.onlab.onos.net;
 
-import org.onlab.packet.IPv4;
+import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
 
 import java.util.Set;
@@ -15,6 +15,7 @@ public interface Host extends Element {
      *
      * @return host id
      */
+    @Override
     HostId id();
 
     /**
@@ -36,7 +37,7 @@ public interface Host extends Element {
      *
      * @return set of IP addresses; empty if no IP address is bound
      */
-    Set<IPv4> ipAddresses();
+    Set<IPAddress> ipAddresses();
 
     /**
      * Returns the most recent host location where the host attaches to the

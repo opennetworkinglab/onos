@@ -8,7 +8,7 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IPv4;
+import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
 
 import com.google.common.collect.HashMultimap;
@@ -62,7 +62,7 @@ public class SimpleHostStore {
                 descr.vlan(),
                 descr.location(),
                 descr.ipAddresses());
-        synchronized(this) {
+        synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
         }
@@ -104,7 +104,7 @@ public class SimpleHostStore {
      * @return remove even or null if host was not found
      */
     HostEvent removeHost(HostId hostId) {
-        synchronized(this) {
+        synchronized (this) {
             Host host = hosts.remove(hostId);
             if (host != null) {
                 locations.remove((host.location()), host);
@@ -180,7 +180,7 @@ public class SimpleHostStore {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
-    Set<Host> getHosts(IPv4 ip) {
+    Set<Host> getHosts(IPAddress ip) {
         Set<Host> ipset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.ipAddresses().contains(ip)) {
