@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.host.impl;
 
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;

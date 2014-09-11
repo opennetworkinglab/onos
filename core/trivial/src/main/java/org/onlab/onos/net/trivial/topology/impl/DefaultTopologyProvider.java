@@ -32,7 +32,9 @@ import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Simple implementation of a network topology provider/computor.
+ * Default implementation of a network topology provider that feeds off
+ * device and link subsystem events to trigger assembly and computation of
+ * new topology snapshots.
  */
 @Component(immediate = true)
 public class DefaultTopologyProvider extends AbstractProvider
@@ -76,7 +78,7 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     @Activate
     public synchronized void activate() {
-        executor = newFixedThreadPool(MAX_THREADS, namedThreads("topo-compute-%d"));
+        executor = newFixedThreadPool(MAX_THREADS, namedThreads("topo-build-%d"));
         accumulator = new TopologyChangeAccumulator();
 
         providerService = providerRegistry.register(this);

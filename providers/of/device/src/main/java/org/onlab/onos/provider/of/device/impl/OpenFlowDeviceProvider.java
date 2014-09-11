@@ -60,7 +60,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      * Creates an OpenFlow device provider.
      */
     public OpenFlowDeviceProvider() {
-        super(new ProviderId("org.onlab.onos.provider.of.device"));
+        super(new ProviderId("org.onlab.onos.provider.openflow"));
     }
 
     @Activate

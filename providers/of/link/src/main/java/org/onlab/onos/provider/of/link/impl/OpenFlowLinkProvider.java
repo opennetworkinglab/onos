@@ -55,7 +55,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
      * Creates an OpenFlow link provider.
      */
     public OpenFlowLinkProvider() {
-        super(new ProviderId("org.onlab.onos.provider.of.link"));
+        super(new ProviderId("org.onlab.onos.provider.openflow"));
     }
 
     @Activate

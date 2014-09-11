@@ -5,7 +5,7 @@ import org.onlab.onos.net.DeviceId;
 import java.util.Objects;
 
 /**
- * Key for filing src/dst paths.
+ * Key for filing pre-computed paths between source and destination devices.
  */
 class PathKey {
     private final DeviceId src;
