@@ -1,8 +1,8 @@
-package org.onlab.onos.net.trivial.topology.provider.impl;
+package org.onlab.onos.net.trivial.topology.impl;
 
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.topology.TopoEdge;
-import org.onlab.onos.net.topology.TopoVertex;
+import org.onlab.onos.net.topology.TopologyEdge;
+import org.onlab.onos.net.topology.TopologyVertex;
 
 import java.util.Objects;
 
@@ -11,11 +11,11 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Implementation of the topology edge backed by a link.
  */
-class DefaultTopoEdge implements TopoEdge {
+class DefaultTopologyEdge implements TopologyEdge {
 
     private final Link link;
-    private final TopoVertex src;
-    private final TopoVertex dst;
+    private final TopologyVertex src;
+    private final TopologyVertex dst;
 
     /**
      * Creates a new topology edge.
@@ -24,7 +24,7 @@ class DefaultTopoEdge implements TopoEdge {
      * @param dst  destination vertex
      * @param link infrastructure link
      */
-    DefaultTopoEdge(TopoVertex src, TopoVertex dst, Link link) {
+    DefaultTopologyEdge(TopologyVertex src, TopologyVertex dst, Link link) {
         this.src = src;
         this.dst = dst;
         this.link = link;
@@ -36,12 +36,12 @@ class DefaultTopoEdge implements TopoEdge {
     }
 
     @Override
-    public TopoVertex src() {
+    public TopologyVertex src() {
         return src;
     }
 
     @Override
-    public TopoVertex dst() {
+    public TopologyVertex dst() {
         return dst;
     }
 
@@ -52,8 +52,8 @@ class DefaultTopoEdge implements TopoEdge {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DefaultTopoEdge) {
-            final DefaultTopoEdge other = (DefaultTopoEdge) obj;
+        if (obj instanceof DefaultTopologyEdge) {
+            final DefaultTopologyEdge other = (DefaultTopologyEdge) obj;
             return Objects.equals(this.link, other.link);
         }
         return false;

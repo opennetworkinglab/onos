@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.topology.provider.impl;
+package org.onlab.onos.net.trivial.topology.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -16,7 +16,7 @@ import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.TopologyDescription;
+import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
@@ -32,10 +32,12 @@ import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Simple implementation of a network topology provider/computor.
+ * Default implementation of a network topology provider that feeds off
+ * device and link subsystem events to trigger assembly and computation of
+ * new topology snapshots.
  */
 @Component(immediate = true)
-public class SimpleTopologyProvider extends AbstractProvider
+public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
     // TODO: make these configurable
@@ -70,13 +72,13 @@ public class SimpleTopologyProvider extends AbstractProvider
     /**
      * Creates a provider with the supplier identifier.
      */
-    public SimpleTopologyProvider() {
+    public DefaultTopologyProvider() {
         super(new ProviderId("org.onlab.onos.provider.topology"));
     }
 
     @Activate
     public synchronized void activate() {
-        executor = newFixedThreadPool(MAX_THREADS, namedThreads("topo-compute-%d"));
+        executor = newFixedThreadPool(MAX_THREADS, namedThreads("topo-build-%d"));
         accumulator = new TopologyChangeAccumulator();
 
         providerService = providerRegistry.register(this);
@@ -90,6 +92,8 @@ public class SimpleTopologyProvider extends AbstractProvider
 
     @Deactivate
     public synchronized void deactivate() {
+        isStarted = false;
+
         deviceService.removeListener(deviceListener);
         linkService.removeListener(linkListener);
         providerRegistry.unregister(this);
@@ -98,7 +102,6 @@ public class SimpleTopologyProvider extends AbstractProvider
         executor.shutdownNow();
         executor = null;
 
-        isStarted = false;
         log.info("Stopped");
     }
 
@@ -108,18 +111,20 @@ public class SimpleTopologyProvider extends AbstractProvider
      *
      * @param reasons events which triggered the topology change
      */
-    private void triggerTopologyBuild(List<Event> reasons) {
-        executor.execute(new TopologyBuilderTask(reasons));
+    private synchronized void triggerTopologyBuild(List<Event> reasons) {
+        if (executor != null) {
+            executor.execute(new TopologyBuilderTask(reasons));
+        }
     }
 
     // Builds the topology using the latest device and link information
     // and citing the specified events as reasons for the change.
     private void buildTopology(List<Event> reasons) {
         if (isStarted) {
-            TopologyDescription desc =
-                    new DefaultTopologyDescription(System.nanoTime(),
-                                                   deviceService.getDevices(),
-                                                   linkService.getLinks());
+            GraphDescription desc =
+                    new DefaultGraphDescription(System.nanoTime(),
+                                                deviceService.getDevices(),
+                                                linkService.getLinks());
             providerService.topologyChanged(desc, reasons);
         }
     }

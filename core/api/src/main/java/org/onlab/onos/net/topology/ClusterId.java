@@ -27,6 +27,15 @@ public final class ClusterId {
         return new ClusterId(id);
     }
 
+    /**
+     * Returns the backing integer index.
+     *
+     * @return backing integer index
+     */
+    public int index() {
+        return id;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id);

@@ -6,22 +6,22 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.graph.Graph;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.onos.net.topology.ClusterId;
+import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.TopoEdge;
-import org.onlab.onos.net.topology.TopoVertex;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyDescription;
 import org.onlab.onos.net.topology.TopologyEvent;
+import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyListener;
 import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
@@ -46,6 +46,8 @@ public class SimpleTopologyManager
 
     public static final String TOPOLOGY_NULL = "Topology cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
+    private static final String CLUSTER_ID_NULL = "Cluster ID cannot be null";
+    private static final String CLUSTER_NULL = "Topology cluster cannot be null";
     public static final String CONNECTION_POINT_NULL = "Connection point cannot be null";
 
     private final Logger log = getLogger(getClass());
@@ -79,19 +81,49 @@ public class SimpleTopologyManager
     @Override
     public boolean isLatest(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return store.isLatest(topology);
+        return store.isLatest(defaultTopology(topology));
+    }
+
+    // Validates the specified topology and returns it as a default
+    private DefaultTopology defaultTopology(Topology topology) {
+        if (topology instanceof DefaultTopology) {
+            return (DefaultTopology) topology;
+        }
+        throw new IllegalArgumentException("Topology class " + topology.getClass() +
+                                                   " not supported");
     }
 
     @Override
     public Set<TopologyCluster> getClusters(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return store.getClusters(topology);
+        return store.getClusters(defaultTopology(topology));
     }
 
     @Override
-    public Graph<TopoVertex, TopoEdge> getGraph(Topology topology) {
+    public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return store.getGraph(topology);
+        checkNotNull(topology, CLUSTER_ID_NULL);
+        return store.getCluster(defaultTopology(topology), clusterId);
+    }
+
+    @Override
+    public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(topology, CLUSTER_NULL);
+        return store.getClusterDevices(defaultTopology(topology), cluster);
+    }
+
+    @Override
+    public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(topology, CLUSTER_NULL);
+        return store.getClusterLinks(defaultTopology(topology), cluster);
+    }
+
+    @Override
+    public TopologyGraph getGraph(Topology topology) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        return store.getGraph(defaultTopology(topology));
     }
 
     @Override
@@ -99,7 +131,7 @@ public class SimpleTopologyManager
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
-        return store.getPaths(topology, src, dst);
+        return store.getPaths(defaultTopology(topology), src, dst);
     }
 
     @Override
@@ -108,21 +140,21 @@ public class SimpleTopologyManager
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
         checkNotNull(weight, "Link weight cannot be null");
-        return store.getPaths(topology, src, dst, weight);
+        return store.getPaths(defaultTopology(topology), src, dst, weight);
     }
 
     @Override
     public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return store.isInfrastructure(topology, connectPoint);
+        return store.isInfrastructure(defaultTopology(topology), connectPoint);
     }
 
     @Override
     public boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return store.isInBroadcastTree(topology, connectPoint);
+        return store.isInBroadcastTree(defaultTopology(topology), connectPoint);
     }
 
     @Override
@@ -150,15 +182,14 @@ public class SimpleTopologyManager
         }
 
         @Override
-        public void topologyChanged(TopologyDescription topoDescription,
+        public void topologyChanged(GraphDescription topoDescription,
                                     List<Event> reasons) {
             checkNotNull(topoDescription, "Topology description cannot be null");
 
-            log.info("Topology changed due to: {}", // to be removed soon
-                     reasons == null ? "initial compute" : reasons);
-            TopologyEvent event = store.updateTopology(topoDescription, reasons);
+            TopologyEvent event = store.updateTopology(provider().id(),
+                                                       topoDescription, reasons);
             if (event != null) {
-                log.info("Topology changed due to: {}",
+                log.info("Topology {} changed due to: {}", event.subject(),
                          reasons == null ? "initial compute" : reasons);
                 eventDispatcher.post(event);
             }

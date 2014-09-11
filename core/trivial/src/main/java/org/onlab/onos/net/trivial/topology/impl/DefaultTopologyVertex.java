@@ -1,14 +1,14 @@
-package org.onlab.onos.net.trivial.topology.provider.impl;
+package org.onlab.onos.net.trivial.topology.impl;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.topology.TopoVertex;
+import org.onlab.onos.net.topology.TopologyVertex;
 
 import java.util.Objects;
 
 /**
  * Implementation of the topology vertex backed by a device id.
  */
-class DefaultTopoVertex implements TopoVertex {
+class DefaultTopologyVertex implements TopologyVertex {
 
     private final DeviceId deviceId;
 
@@ -17,7 +17,7 @@ class DefaultTopoVertex implements TopoVertex {
      *
      * @param deviceId backing infrastructure device identifier
      */
-    DefaultTopoVertex(DeviceId deviceId) {
+    DefaultTopologyVertex(DeviceId deviceId) {
         this.deviceId = deviceId;
     }
 
@@ -33,8 +33,8 @@ class DefaultTopoVertex implements TopoVertex {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DefaultTopoVertex) {
-            final DefaultTopoVertex other = (DefaultTopoVertex) obj;
+        if (obj instanceof DefaultTopologyVertex) {
+            final DefaultTopologyVertex other = (DefaultTopologyVertex) obj;
             return Objects.equals(this.deviceId, other.deviceId);
         }
         return false;

@@ -1,4 +1,15 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.host.impl;
+
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
@@ -15,17 +26,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
-
 /**
  * Manages inventory of end-station hosts using trivial in-memory
  * implementation.
@@ -36,6 +36,7 @@ public class SimpleHostStore {
 
     // hosts sorted based on their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
+
     /**
      * Creates a new host or updates the existing one based on the specified
      * description.
@@ -46,7 +47,7 @@ public class SimpleHostStore {
      * @return appropriate event or null if no change resulted
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                 HostDescription hostDescription) {
+            HostDescription hostDescription) {
         Host host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);

@@ -27,9 +27,20 @@ public class LinksListCommand extends AbstractShellCommand {
         Iterable<Link> links = uri != null ?
                 service.getDeviceLinks(deviceId(uri)) : service.getLinks();
         for (Link link : links) {
-            print(FMT, link.src().deviceId(), link.src().port(),
-                  link.dst().deviceId(), link.dst().port(), link.type());
+            print(linkString(link));
         }
         return null;
+    }
+
+    /**
+     * Returns a formated string representing the gien link.
+     *
+     * @param link infrastructure link
+     * @return formated link string
+     */
+    public static String linkString(Link link) {
+        return String.format(FMT, link.src().deviceId(), link.src().port(),
+                             link.dst().deviceId(), link.dst().port(), link.type());
+
     }
 }

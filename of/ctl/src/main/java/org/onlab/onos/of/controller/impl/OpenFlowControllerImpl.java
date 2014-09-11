@@ -250,9 +250,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 }
                 OpenFlowSwitch sw = activeMasterSwitches.remove(dpid);
                 if (sw == null) {
-                    log.error("Transition to equal called on sw {}, but switch "
-                            + "was not found in controller-cache", dpid);
-                    return;
+                    sw = getSwitch(dpid);
+                    if (sw == null) {
+                        log.error("Transition to equal called on sw {}, but switch "
+                                + "was not found in controller-cache", dpid);
+                        return;
+                    }
                 }
                 log.info("Transitioned switch {} to EQUAL", dpid);
                 activeEqualSwitches.put(dpid, sw);

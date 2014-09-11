@@ -32,16 +32,27 @@
         </command>
 
         <command>
-            <action class="org.onlab.onos.cli.GreetCommand"/>
+            <action class="org.onlab.onos.cli.net.TopologyCommand"/>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.ClustersListCommand"/>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.ClusterDevicesCommand"/>
             <completers>
-                <ref component-id="nameCompleter"/>
+                <ref component-id="clusterIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.ClusterLinksCommand"/>
+            <completers>
+                <ref component-id="clusterIdCompleter"/>
             </completers>
         </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onlab.onos.cli.net.DeviceIdCompleter"/>
+    <bean id="clusterIdCompleter" class="org.onlab.onos.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onlab.onos.cli.net.RoleCompleter"/>
-
-    <bean id="nameCompleter" class="org.onlab.onos.cli.NameCompleter"/>
 
 </blueprint>

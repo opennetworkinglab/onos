@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.host.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;

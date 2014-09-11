@@ -1,8 +1,8 @@
 package org.onlab.onos.net.topology;
 
-import org.onlab.graph.Graph;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 
 import java.util.Set;
@@ -21,10 +21,19 @@ public interface TopologyService {
 
     /**
      * Indicates whether the specified topology is the latest or not.
+     *
      * @param topology topology descriptor
      * @return true if the topology is the most recent; false otherwise
      */
     boolean isLatest(Topology topology);
+
+    /**
+     * Returns the graph view of the specified topology.
+     *
+     * @param topology topology descriptor
+     * @return topology graph view
+     */
+    TopologyGraph getGraph(Topology topology);
 
     /**
      * Returns the set of clusters in the specified topology.
@@ -35,12 +44,31 @@ public interface TopologyService {
     Set<TopologyCluster> getClusters(Topology topology);
 
     /**
-     * Returns the graph view of the specified topology.
+     * Returns the cluster with the specified ID.
      *
-     * @param topology topology descriptor
-     * @return topology graph view
+     * @param topology  topology descriptor
+     * @param clusterId cluster identifier
+     * @return topology cluster
      */
-    Graph<TopoVertex, TopoEdge> getGraph(Topology topology);
+    TopologyCluster getCluster(Topology topology, ClusterId clusterId);
+
+    /**
+     * Returns the set of devices that belong to the specified cluster.
+     *
+     * @param topology  topology descriptor
+     * @param cluster topology cluster
+     * @return set of cluster devices
+     */
+    Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster);
+
+    /**
+     * Returns the set of links that form the specified cluster.
+     *
+     * @param topology  topology descriptor
+     * @param cluster topology cluster
+     * @return set of cluster links
+     */
+    Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster);
 
     /**
      * Returns the set of all shortest paths, precomputed in terms of hop-count,

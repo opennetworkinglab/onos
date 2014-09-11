@@ -16,7 +16,7 @@ public class DefaultLink extends AbstractModel implements Link {
     private final Type type;
 
     /**
-     * Creates a link description using the supplied information.
+     * Creates an infrastructure link using the supplied information.
      *
      * @param providerId provider identity
      * @param src        link source
