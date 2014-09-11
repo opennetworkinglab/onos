@@ -332,7 +332,7 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.net.trivial.impl:org.onlab.onos.net.*.impl:org.onlab.onos.impl:org.onlab.onos.event.impl
+                                org.onlab.onos.net.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.impl:org.onlab.onos.event.impl
                             </packages>
                         </group>
                         <group>

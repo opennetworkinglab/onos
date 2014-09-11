@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.device.impl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,6 +22,7 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.event.impl.TestEventDispatcher;
 
 import java.util.ArrayList;
 import java.util.Iterator;

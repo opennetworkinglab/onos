@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.link.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;

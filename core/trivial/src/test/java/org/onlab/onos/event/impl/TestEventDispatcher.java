@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.event.impl;
 
 import org.onlab.onos.event.DefaultEventSinkRegistry;
 import org.onlab.onos.event.Event;

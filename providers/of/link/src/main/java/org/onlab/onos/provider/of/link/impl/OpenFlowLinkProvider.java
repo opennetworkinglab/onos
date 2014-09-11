@@ -23,7 +23,7 @@ import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.PacketContext;
 import org.onlab.onos.of.controller.PacketListener;
-import org.onlab.timer.Timer;
+import org.onlab.util.Timer;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;

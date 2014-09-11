@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.topology.impl;
 
 import org.onlab.graph.Graph;
 import org.onlab.onos.event.Event;

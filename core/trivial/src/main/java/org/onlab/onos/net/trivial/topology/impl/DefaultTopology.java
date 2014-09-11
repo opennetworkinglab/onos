@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.topology.impl;
 
 import org.onlab.onos.net.AbstractModel;
 import org.onlab.onos.net.provider.ProviderId;

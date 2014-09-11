@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.device.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.onlab.onos.net.DefaultDevice;

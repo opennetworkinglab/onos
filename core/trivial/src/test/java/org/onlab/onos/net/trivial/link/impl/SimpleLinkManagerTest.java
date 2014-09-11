@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.link.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
@@ -21,6 +21,7 @@ import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.event.impl.TestEventDispatcher;
 
 import java.util.ArrayList;
 import java.util.Iterator;

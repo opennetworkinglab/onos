@@ -1,29 +1,35 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.topology.provider.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.onlab.graph.AdjacencyListsGraph;
 import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.Graph;
 import org.onlab.graph.GraphPathSearch;
+import org.onlab.graph.TarjanGraphSearch;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.topology.ClusterId;
+import org.onlab.onos.net.topology.DefaultTopologyCluster;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.TopoEdge;
 import org.onlab.onos.net.topology.TopoVertex;
 import org.onlab.onos.net.topology.TopologyCluster;
 import org.onlab.onos.net.topology.TopologyDescription;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.graph.GraphPathSearch.Result;
+import static org.onlab.graph.TarjanGraphSearch.SCCResult;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 
 /**
@@ -33,25 +39,32 @@ class DefaultTopologyDescription implements TopologyDescription {
 
     private static final GraphPathSearch<TopoVertex, TopoEdge> DIJKSTRA =
             new DijkstraGraphSearch<>();
+    private static final TarjanGraphSearch<TopoVertex, TopoEdge> TARJAN =
+            new TarjanGraphSearch<>();
 
     private final long nanos;
     private final Map<DeviceId, TopoVertex> vertexesById = Maps.newHashMap();
     private final Graph<TopoVertex, TopoEdge> graph;
     private final Map<DeviceId, Result<TopoVertex, TopoEdge>> results;
     private final Map<ClusterId, TopologyCluster> clusters;
-//    private final Multimap<ClusterId, DeviceId> clusterDevices;
-//    private final Multimap<ClusterId, Link> clusterLinks;
-//    private final Map<DeviceId, TopologyCluster> deviceClusters;
 
+    // Secondary look-up indexes
+    private Multimap<ClusterId, DeviceId> devicesByCluster;
+    private Multimap<ClusterId, Link> linksByCluster;
+    private Map<DeviceId, TopologyCluster> clustersByDevice;
 
+    /**
+     * Creates a topology description to carry topology vitals to the core.
+     *
+     * @param nanos   time in nanos of when the topology description was created
+     * @param devices collection of devices
+     * @param links
+     */
     DefaultTopologyDescription(long nanos, Iterable<Device> devices, Iterable<Link> links) {
         this.nanos = nanos;
         this.graph = buildGraph(devices, links);
         this.results = computeDefaultPaths();
         this.clusters = computeClusters();
-//        this.clusterDevices = clusterDevices;
-//        this.clusterLinks = clusterLinks;
-//        this.deviceClusters = deviceClusters;
     }
 
     // Constructs the topology graph using the supplied devices and links.
@@ -99,7 +112,60 @@ class DefaultTopologyDescription implements TopologyDescription {
     // Computes topology SCC clusters using Tarjan algorithm.
     private Map<ClusterId, TopologyCluster> computeClusters() {
         Map<ClusterId, TopologyCluster> clusters = Maps.newHashMap();
+        SCCResult<TopoVertex, TopoEdge> result = TARJAN.search(graph, new NoIndirectLinksWeight());
+
+        // Extract both vertexes and edges from the results; the lists form
+        // pairs along the same index.
+        List<Set<TopoVertex>> clusterVertexes = result.clusterVertexes();
+        List<Set<TopoEdge>> clusterEdges = result.clusterEdges();
+
+        // Scan over the lists and create a cluster from the results.
+        for (int i = 0, n = result.clusterCount(); i < n; i++) {
+            Set<TopoVertex> vertexSet = clusterVertexes.get(i);
+            Set<TopoEdge> edgeSet = clusterEdges.get(i);
+
+            DefaultTopologyCluster cluster =
+                    new DefaultTopologyCluster(ClusterId.clusterId(i),
+                                               vertexSet.size(), edgeSet.size(),
+                                               findRoot(vertexSet).deviceId());
+
+            findClusterDevices(vertexSet, cluster);
+            findClusterLinks(edgeSet, cluster);
+        }
         return clusters;
+    }
+
+    // Scan through the set of cluster vertices and convert it to a set of
+    // device ids; register the cluster by device id as well.
+    private void findClusterDevices(Set<TopoVertex> vertexSet,
+                                    DefaultTopologyCluster cluster) {
+        Set<DeviceId> ids = new HashSet<>(vertexSet.size());
+        for (TopoVertex v : vertexSet) {
+            DeviceId deviceId = v.deviceId();
+            devicesByCluster.put(cluster.id(), deviceId);
+            clustersByDevice.put(deviceId, cluster);
+        }
+    }
+
+    private void findClusterLinks(Set<TopoEdge> edgeSet,
+                                  DefaultTopologyCluster cluster) {
+        for (TopoEdge e : edgeSet) {
+            linksByCluster.put(cluster.id(), e.link());
+        }
+    }
+
+    // Finds the vertex whose device id is the lexicographical minimum in the
+    // specified set.
+    private TopoVertex findRoot(Set<TopoVertex> vertexSet) {
+        TopoVertex minVertex = null;
+        for (TopoVertex vertex : vertexSet) {
+            if (minVertex == null ||
+                    minVertex.deviceId().toString()
+                            .compareTo(minVertex.deviceId().toString()) < 0) {
+                minVertex = vertex;
+            }
+        }
+        return minVertex;
     }
 
     // Fetches a vertex corresponding to the given connection point device.
@@ -232,7 +298,7 @@ class DefaultTopologyDescription implements TopologyDescription {
 
     // Link weight for measuring link cost as hop count with indirect links
     // being as expensive as traversing the entire graph to assume the worst.
-    private class HopCountLinkWeight implements LinkWeight {
+    private static class HopCountLinkWeight implements LinkWeight {
         private final int indirectLinkCost;
 
         public HopCountLinkWeight(int indirectLinkCost) {
@@ -244,6 +310,14 @@ class DefaultTopologyDescription implements TopologyDescription {
             // To force preference to use direct paths first, make indirect
             // links as expensive as the linear vertex traversal.
             return edge.link().type() == INDIRECT ? indirectLinkCost : 1;
+        }
+    }
+
+    // Link weight for preventing traversal over indirect links.
+    private static class NoIndirectLinksWeight implements LinkWeight {
+        @Override
+        public double weight(TopoEdge edge) {
+            return edge.link().type() == INDIRECT ? -1 : 1;
         }
     }
 

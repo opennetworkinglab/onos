@@ -42,7 +42,7 @@ import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONLabLddp;
 import org.onlab.packet.ONLabLddp.DPIDandPort;
-import org.onlab.timer.Timer;
+import org.onlab.util.Timer;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
