@@ -1,6 +1,5 @@
 package org.onlab.onos.net.topology;
 
-import org.onlab.graph.Graph;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Path;
@@ -21,6 +20,7 @@ public interface TopologyService {
 
     /**
      * Indicates whether the specified topology is the latest or not.
+     *
      * @param topology topology descriptor
      * @return true if the topology is the most recent; false otherwise
      */
@@ -40,7 +40,7 @@ public interface TopologyService {
      * @param topology topology descriptor
      * @return topology graph view
      */
-    Graph<TopoVertex, TopoEdge> getGraph(Topology topology);
+    TopologyGraph getGraph(Topology topology);
 
     /**
      * Returns the set of all shortest paths, precomputed in terms of hop-count,

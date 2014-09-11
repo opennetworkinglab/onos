@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.net.trivial.host.impl;
 
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
@@ -36,6 +36,7 @@ public class SimpleHostStore {
 
     // hosts sorted based on their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
+
     /**
      * Creates a new host or updates the existing one based on the specified
      * description.

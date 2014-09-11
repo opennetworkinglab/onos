@@ -6,7 +6,7 @@ import org.onlab.onos.net.Link;
 /**
  * Represents an edge in the topology graph.
  */
-public interface TopoEdge extends Edge<TopoVertex> {
+public interface TopologyEdge extends Edge<TopologyVertex> {
 
     /**
      * Returns the associated infrastructure link.
