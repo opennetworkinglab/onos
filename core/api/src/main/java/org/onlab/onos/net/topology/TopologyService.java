@@ -20,6 +20,13 @@ public interface TopologyService {
     Topology currentTopology();
 
     /**
+     * Indicates whether the specified topology is the latest or not.
+     * @param topology topology descriptor
+     * @return true if the topology is the most recent; false otherwise
+     */
+    boolean isLatest(Topology topology);
+
+    /**
      * Returns the set of clusters in the specified topology.
      *
      * @param topology topology descriptor

@@ -33,11 +33,11 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
 
     protected void executeDefaultTest(int minLength, int maxLength,
                                       double minCost, double maxCost) {
-        g = new AdjacencyListsGraph<>(vertices(), edges());
+        graph = new AdjacencyListsGraph<>(vertexes(), edges());
         DepthFirstSearch<TestVertex, TestEdge> search = graphSearch();
 
         DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult result =
-                search.search(g, A, H, weight);
+                search.search(graph, A, H, weight);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         assertEquals("incorrect path count", 1, paths.size());
 
@@ -57,12 +57,12 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
     }
 
     public void executeBroadSearch() {
-        g = new AdjacencyListsGraph<>(vertices(), edges());
+        graph = new AdjacencyListsGraph<>(vertexes(), edges());
         DepthFirstSearch<TestVertex, TestEdge> search = graphSearch();
 
         // Perform narrow path search to a specific destination.
         DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult result =
-                search.search(g, A, null, weight);
+                search.search(graph, A, null, weight);
         assertEquals("incorrect paths count", 7, result.paths().size());
 
         int[] types = new int[]{0, 0, 0, 0};

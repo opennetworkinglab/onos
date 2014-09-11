@@ -158,7 +158,7 @@ public class SimpleHostManager
 
     // Posts the specified event to the local event dispatcher.
     private void post(HostEvent event) {
-        if (event != null && eventDispatcher != null) {
+        if (event != null) {
             eventDispatcher.post(event);
         }
     }

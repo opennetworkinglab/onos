@@ -1,5 +1,7 @@
 package org.onlab.onos.event;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Base event implementation.
  */
@@ -46,6 +48,12 @@ public class AbstractEvent<T extends Enum, S extends Object> implements Event<T,
     @Override
     public S subject() {
         return subject;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this).add("time", time).add("type", type())
+                .add("subject", subject()).toString();
     }
 
 }

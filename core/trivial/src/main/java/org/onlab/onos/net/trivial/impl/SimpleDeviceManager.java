@@ -150,7 +150,8 @@ public class SimpleDeviceManager
     }
 
     // Personalized device provider service issued to the supplied provider.
-    private class InternalDeviceProviderService extends AbstractProviderService<DeviceProvider>
+    private class InternalDeviceProviderService
+            extends AbstractProviderService<DeviceProvider>
             implements DeviceProviderService {
 
         InternalDeviceProviderService(DeviceProvider provider) {
