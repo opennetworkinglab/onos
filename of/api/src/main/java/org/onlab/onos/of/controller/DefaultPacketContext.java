@@ -7,6 +7,7 @@ import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 
@@ -83,12 +84,18 @@ public final class DefaultPacketContext implements PacketContext {
 
     @Override
     public Integer inPort() {
-        return pktin.getInPort().getPortNumber();
+        try {
+            return pktin.getInPort().getPortNumber();
+        } catch (UnsupportedOperationException e) {
+            return pktin.getMatch().get(MatchField.IN_PORT).getPortNumber();
+        }
     }
 
     @Override
     public byte[] unparsed() {
+
         return pktin.getData().clone();
+
     }
 
     private OFActionOutput buildOutput(Integer port) {

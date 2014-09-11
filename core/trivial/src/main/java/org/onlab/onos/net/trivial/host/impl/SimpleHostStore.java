@@ -1,5 +1,16 @@
 package org.onlab.onos.net.trivial.host.impl;
 
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;
@@ -14,17 +25,6 @@ import org.onlab.packet.MACAddress;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
@@ -47,7 +47,7 @@ public class SimpleHostStore {
      * @return appropriate event or null if no change resulted
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                 HostDescription hostDescription) {
+            HostDescription hostDescription) {
         Host host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
@@ -57,12 +57,12 @@ public class SimpleHostStore {
 
     // creates a new host and sends HOST_ADDED
     private HostEvent createHost(ProviderId providerId, HostId hostId,
-                                 HostDescription descr) {
+            HostDescription descr) {
         DefaultHost newhost = new DefaultHost(providerId, hostId,
-                                              descr.hwAddress(),
-                                              descr.vlan(),
-                                              descr.location(),
-                                              descr.ipAddresses());
+                descr.hwAddress(),
+                descr.vlan(),
+                descr.location(),
+                descr.ipAddresses());
         synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
@@ -72,22 +72,22 @@ public class SimpleHostStore {
 
     // checks for type of update to host, sends appropriate event
     private HostEvent updateHost(ProviderId providerId, Host host,
-                                 HostDescription descr) {
+            HostDescription descr) {
         DefaultHost updated;
         HostEvent event;
         if (host.location().equals(descr.location())) {
             updated = new DefaultHost(providerId, host.id(),
-                                      host.mac(),
-                                      host.vlan(),
-                                      host.location(),
-                                      descr.ipAddresses());
+                    host.mac(),
+                    host.vlan(),
+                    host.location(),
+                    descr.ipAddresses());
             event = new HostEvent(HOST_UPDATED, updated);
         } else {
             updated = new DefaultHost(providerId, host.id(),
-                                      host.mac(),
-                                      host.vlan(),
-                                      descr.location(),
-                                      host.ipAddresses());
+                    host.mac(),
+                    host.vlan(),
+                    descr.location(),
+                    host.ipAddresses());
             event = new HostEvent(HOST_MOVED, updated);
         }
         synchronized (this) {
