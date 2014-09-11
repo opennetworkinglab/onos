@@ -6,6 +6,7 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 import java.util.Set;
 
@@ -43,7 +44,7 @@ public interface HostService {
      * @return set of hosts in the given vlan id
      */
     // FIXME: change long to VLanId
-    Set<Host> getHostsByVlan(long vlanId);
+    Set<Host> getHostsByVlan(VLANID vlanId);
 
     /**
      * Returns the set of hosts that have the specified MAC address.

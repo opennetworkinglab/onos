@@ -10,7 +10,7 @@ public class IPAddress {
     //IP Versions
     public enum Version { INET, INET6 };
 
-    //lengths of addresses, in bytes
+    //lengths of address, in bytes
     public static final int INET_LEN = 4;
     public static final int INET6_LEN = 6;
 

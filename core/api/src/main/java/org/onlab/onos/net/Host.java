@@ -2,6 +2,7 @@ package org.onlab.onos.net;
 
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 import java.util.Set;
 
@@ -30,7 +31,7 @@ public interface Host extends Element {
      *
      * @return VLAN ID value
      */
-    short vlan();
+    VLANID vlan();
 
     /**
      * Returns set of IP addresses currently bound to the host MAC address.

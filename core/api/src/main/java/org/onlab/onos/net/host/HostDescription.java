@@ -6,6 +6,7 @@ import org.onlab.onos.net.Description;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 /**
  * Information describing host and its location.
@@ -24,7 +25,7 @@ public interface HostDescription extends Description {
      *
      * @return the VLAN ID value
      */
-    short vlan();
+    VLANID vlan();
 
     /**
      * Returns the location of the host on the network edge.

@@ -10,6 +10,7 @@ import java.util.Set;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 /**
  * A basic implementation of a Host.
@@ -17,12 +18,12 @@ import org.onlab.packet.MACAddress;
 public class DefaultHost extends AbstractElement implements Host {
 
     private final MACAddress mac;
-    private final short vlan;
+    private final VLANID vlan;
     private final HostLocation location;
     private final Set<IPAddress> ips;
 
-    public DefaultHost(ProviderId providerId, ElementId id, MACAddress mac,
-            short vlan, HostLocation loc, Set<IPAddress> ips) {
+    public DefaultHost(ProviderId providerId, HostId id, MACAddress mac,
+            VLANID vlan, HostLocation loc, Set<IPAddress> ips) {
         super(providerId, id);
         this.mac = mac;
         this.vlan = vlan;
@@ -51,7 +52,7 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
-    public short vlan() {
+    public VLANID vlan() {
         return vlan;
     }
 
