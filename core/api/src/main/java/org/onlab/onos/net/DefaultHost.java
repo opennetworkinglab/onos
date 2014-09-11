@@ -18,7 +18,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final HostLocation location;
     private final Set<IPv4> ips;
 
-    protected DefaultHost(ProviderId providerId, ElementId id, MACAddress mac,
+    public DefaultHost(ProviderId providerId, ElementId id, MACAddress mac,
             short vlan, HostLocation loc, Set<IPv4> ips) {
         super(providerId, id);
         this.mac = mac;
