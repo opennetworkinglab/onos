@@ -36,6 +36,7 @@ public class SimpleHostStore {
 
     // hosts sorted based on their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
+
     /**
      * Creates a new host or updates the existing one based on the specified
      * description.
@@ -56,13 +57,13 @@ public class SimpleHostStore {
 
     // creates a new host and sends HOST_ADDED
     private HostEvent createHost(ProviderId providerId, HostId hostId,
-            HostDescription descr) {
+                                 HostDescription descr) {
         DefaultHost newhost = new DefaultHost(providerId, hostId,
-                descr.hwAddress(),
-                descr.vlan(),
-                descr.location(),
-                descr.ipAddresses());
-        synchronized(this) {
+                                              descr.hwAddress(),
+                                              descr.vlan(),
+                                              descr.location(),
+                                              descr.ipAddresses());
+        synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
         }
@@ -71,22 +72,22 @@ public class SimpleHostStore {
 
     // checks for type of update to host, sends appropriate event
     private HostEvent updateHost(ProviderId providerId, Host host,
-            HostDescription descr) {
+                                 HostDescription descr) {
         DefaultHost updated;
         HostEvent event;
         if (host.location().equals(descr.location())) {
             updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    host.location(),
-                    descr.ipAddresses());
+                                      host.mac(),
+                                      host.vlan(),
+                                      host.location(),
+                                      descr.ipAddresses());
             event = new HostEvent(HOST_UPDATED, updated);
         } else {
             updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    descr.location(),
-                    host.ipAddresses());
+                                      host.mac(),
+                                      host.vlan(),
+                                      descr.location(),
+                                      host.ipAddresses());
             event = new HostEvent(HOST_MOVED, updated);
         }
         synchronized (this) {
@@ -104,7 +105,7 @@ public class SimpleHostStore {
      * @return remove even or null if host was not found
      */
     HostEvent removeHost(HostId hostId) {
-        synchronized(this) {
+        synchronized (this) {
             Host host = hosts.remove(hostId);
             if (host != null) {
                 locations.remove((host.location()), host);
