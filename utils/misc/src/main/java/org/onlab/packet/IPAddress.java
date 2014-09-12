@@ -57,7 +57,7 @@ public class IPAddress {
      * @return an IP address
      */
     public static IPAddress valueOf(String address) {
-        final String [] parts = address.split(".");
+        final String [] parts = address.split("\\.");
         if (parts.length != INET_LEN) {
             throw new IllegalArgumentException("Malformed IP address string; "
                     + "Addres must have four decimal values separated by dots (.)");
@@ -119,7 +119,9 @@ public class IPAddress {
             return true;
         }
         if (obj instanceof IPAddress) {
+
             IPAddress other = (IPAddress) obj;
+
             if (!(this.version.equals(other.version))) {
                 return false;
             }

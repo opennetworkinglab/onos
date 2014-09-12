@@ -37,12 +37,12 @@ public class VLANID {
         }
 
         if (obj instanceof VLANID) {
-            return true;
-        }
 
-        VLANID other = (VLANID) obj;
-        if (this.value == other.value) {
-            return true;
+            VLANID other = (VLANID) obj;
+
+             if (this.value == other.value) {
+                return true;
+            }
         }
 
         return false;
