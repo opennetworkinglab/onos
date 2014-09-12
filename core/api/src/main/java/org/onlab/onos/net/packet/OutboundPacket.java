@@ -1,9 +1,9 @@
 package org.onlab.onos.net.packet;
 
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.flow.TrafficTreatment;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * Represents an outbound data packet that is to be emitted to network via
@@ -20,14 +20,14 @@ public interface OutboundPacket {
     DeviceId sendThrough();
 
     /**
-     * Returns list of treatments for the outbound packet.
+     * Returns how the outbound packet should be treated.
      *
      * @return output treatment
      */
-    List<Treatment> treatments();
+    TrafficTreatment treatment();
 
     /**
-     * Returns the raw data to be sent.
+     * Returns immutable view of the raw data to be sent.
      *
      * @return data to emit
      */

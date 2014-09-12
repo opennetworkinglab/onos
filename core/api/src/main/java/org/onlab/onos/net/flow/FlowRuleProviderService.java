@@ -3,33 +3,23 @@ package org.onlab.onos.net.flow;
 import org.onlab.onos.net.provider.ProviderService;
 
 /**
- * Service through which flowrule providers can inject flowrule information into
+ * Service through which flow rule providers can inject information into
  * the core.
  */
 public interface FlowRuleProviderService extends ProviderService<FlowRuleProvider> {
 
     /**
-     * Signals that a flow that was previously installed has been removed.
+     * Signals that a flow rule that was previously installed has been removed.
      *
-     * @param flowDescription information about the removed flow
+     * @param flowRule information about the removed flow
      */
-    void flowRemoved(FlowDescription flowDescription);
+    void flowRemoved(FlowRule flowRule);
 
     /**
-     * Signals that a flowrule is missing for some network traffic.
+     * Signals that a flow rule is missing for some network traffic.
      *
-     * @param flowDescription information about traffic in need of flow rule(s)
+     * @param flowRule information about traffic in need of flow rule(s)
      */
-    void flowMissing(FlowDescription flowDescription);
-
-    /**
-     * Signals that a flowrule has been added.
-     *
-     * TODO  think about if this really makes sense, e.g. if stats collection or
-     * something can leverage it.
-     *
-     * @param flowDescription the rule that was added
-     */
-    void flowAdded(FlowDescription flowDescription);
+    void flowMissing(FlowRule flowRule);
 
 }
