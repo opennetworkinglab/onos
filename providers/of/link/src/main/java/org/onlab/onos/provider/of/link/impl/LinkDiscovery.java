@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.onlab.onos.provider.of.link.impl;
 
+import static org.onlab.onos.of.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -188,7 +189,7 @@ public class LinkDiscovery implements TimerTask {
             }
         }
         ConnectPoint cp = new ConnectPoint(
-                DeviceId.deviceId("of:" + Long.toHexString(sw.getId())),
+                DeviceId.deviceId(uri(sw.getId())),
                 PortNumber.portNumber(port.getPortNo().getPortNumber()));
         linkProvider.linksVanished(cp);
 
@@ -228,7 +229,6 @@ public class LinkDiscovery implements TimerTask {
      *
      * @param port the port
      * @return Packet_out message with LLDP data
-     * @throws PortMappingException
      */
     private OFPacketOut createLLDPPacketOut(final OFPortDesc port) {
         OFPacketOut.Builder packetOut = this.ofFactory.buildPacketOut();
@@ -249,7 +249,6 @@ public class LinkDiscovery implements TimerTask {
      *
      * @param port the port
      * @return Packet_out message with LLDP data
-     * @throws PortMappingException
      */
     private OFPacketOut createBDDPPacketOut(final OFPortDesc port) {
         OFPacketOut.Builder packetOut = sw.factory().buildPacketOut();
@@ -295,11 +294,11 @@ public class LinkDiscovery implements TimerTask {
             }
             this.ackProbe(srcPort);
             ConnectPoint src = new ConnectPoint(
-                    DeviceId.deviceId("of:" + Long.toHexString(srcSwitch.getId())),
+                    DeviceId.deviceId(uri(srcSwitch.getId())),
                     PortNumber.portNumber(srcPort));
 
             ConnectPoint dst = new ConnectPoint(
-                    DeviceId.deviceId("of:" + Long.toHexString(sw.getId())),
+                    DeviceId.deviceId(uri(sw.getId())),
                     PortNumber.portNumber(dstPort));
             LinkDescription ld;
             if (ethType == Ethernet.TYPE_BSN) {
@@ -357,7 +356,7 @@ public class LinkDiscovery implements TimerTask {
                     final OFPortDesc srcPort = port;
 
                     ConnectPoint cp = new ConnectPoint(
-                            DeviceId.deviceId("of:" + Long.toHexString(sw.getId())),
+                            DeviceId.deviceId(uri(sw.getId())),
                             PortNumber.portNumber(srcPort.getPortNo().getPortNumber()));
                     linkProvider.linksVanished(cp);
                 }

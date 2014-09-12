@@ -189,8 +189,7 @@ public class SimpleTopologyManager
             TopologyEvent event = store.updateTopology(provider().id(),
                                                        topoDescription, reasons);
             if (event != null) {
-                log.info("Topology {} changed due to: {}", event.subject(),
-                         reasons == null ? "initial compute" : reasons);
+                log.info("Topology {} changed", event.subject());
                 eventDispatcher.post(event);
             }
         }
