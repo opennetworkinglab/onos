@@ -100,7 +100,7 @@ public class TopologyResource extends BaseResource {
     private ObjectNode json(ObjectMapper mapper, ElementId id, int group,
                             boolean isOnline) {
         return mapper.createObjectNode()
-                .put("name", id.uri().toString())
+                .put("name", id.uri().getSchemeSpecificPart())
                 .put("group", group)
                 .put("online", isOnline);
     }
@@ -147,7 +147,7 @@ public class TopologyResource extends BaseResource {
     // Returns a formatted string for the element associated with the given
     // connection point.
     private static String id(ConnectPoint cp) {
-        return cp.elementId().uri().toString();
+        return cp.elementId().uri().getSchemeSpecificPart();
     }
 
 }

@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-tvue</artifactId>
+    <artifactId>onos-app-tvue</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS simple topology viewer</description>
