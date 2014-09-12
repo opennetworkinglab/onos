@@ -35,11 +35,16 @@ public class ClusterDevicesCommand extends ClustersListCommand {
         int cid = Integer.parseInt(id);
         init();
         TopologyCluster cluster = service.getCluster(topology, clusterId(cid));
-        List<DeviceId> ids = Lists.newArrayList(service.getClusterDevices(topology, cluster));
-        Collections.sort(ids, ID_COMPARATOR);
-        for (DeviceId deviceId : ids) {
-            print("%s", deviceId);
+        if (cluster == null) {
+            error("No such cluster %s", cid);
+        } else {
+            List<DeviceId> ids = Lists.newArrayList(service.getClusterDevices(topology, cluster));
+            Collections.sort(ids, ID_COMPARATOR);
+            for (DeviceId deviceId : ids) {
+                print("%s", deviceId);
+            }
         }
+
         return null;
     }
 

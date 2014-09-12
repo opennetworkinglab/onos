@@ -24,8 +24,12 @@ public class ClusterLinksCommand extends ClustersListCommand {
         int cid = Integer.parseInt(id);
         init();
         TopologyCluster cluster = service.getCluster(topology, clusterId(cid));
-        for (Link link : service.getClusterLinks(topology, cluster)) {
-            print(linkString(link));
+        if (cluster == null) {
+            error("No such cluster %s", cid);
+        } else {
+            for (Link link : service.getClusterLinks(topology, cluster)) {
+                print(linkString(link));
+            }
         }
         return null;
     }

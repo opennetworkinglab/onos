@@ -56,10 +56,12 @@ public class DevicesListCommand extends AbstractShellCommand {
      * @param device  infrastructure device
      */
     protected void printDevice(DeviceService service, Device device) {
-        print(FMT, device.id(), service.isAvailable(device.id()),
-              service.getRole(device.id()), device.type(),
-              device.manufacturer(), device.hwVersion(), device.swVersion(),
-              device.serialNumber());
+        if (device != null) {
+            print(FMT, device.id(), service.isAvailable(device.id()),
+                  service.getRole(device.id()), device.type(),
+                  device.manufacturer(), device.hwVersion(), device.swVersion(),
+                  device.serialNumber());
+        }
     }
 
 }

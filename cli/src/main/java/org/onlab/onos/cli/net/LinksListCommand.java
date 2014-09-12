@@ -16,6 +16,7 @@ import static org.onlab.onos.net.DeviceId.deviceId;
 public class LinksListCommand extends AbstractShellCommand {
 
     private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s";
+    private static final String COMPACT = "%s/%s-%s/%s";
 
     @Argument(index = 0, name = "uri", description = "Device ID",
               required = false, multiValued = false)
@@ -43,4 +44,16 @@ public class LinksListCommand extends AbstractShellCommand {
                              link.dst().deviceId(), link.dst().port(), link.type());
 
     }
+
+    /**
+     * Returns a compact string representing the given link.
+     *
+     * @param link infrastructure link
+     * @return formatted link string
+     */
+    public static String compactLinkString(Link link) {
+        return String.format(COMPACT, link.src().deviceId(), link.src().port(),
+                             link.dst().deviceId(), link.dst().port());
+    }
+
 }

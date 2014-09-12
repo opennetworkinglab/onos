@@ -31,4 +31,14 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
         System.out.println(String.format(format, args));
     }
 
+    /**
+     * Prints the arguments using the specified format to error stream.
+     *
+     * @param format format string; see {@link String#format}
+     * @param args   arguments
+     */
+    public static void error(String format, Object... args) {
+        System.err.println(String.format(format, args));
+    }
+
 }

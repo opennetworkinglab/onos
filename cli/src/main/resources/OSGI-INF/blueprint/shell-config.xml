@@ -35,6 +35,12 @@
             <action class="org.onlab.onos.cli.net.TopologyCommand"/>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.PathListCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.ClustersListCommand"/>
         </command>
         <command>

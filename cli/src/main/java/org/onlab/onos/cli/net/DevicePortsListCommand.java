@@ -42,7 +42,12 @@ public class DevicePortsListCommand extends DevicesListCommand {
                 printDevice(service, device);
             }
         } else {
-            printDevice(service, service.getDevice(deviceId(uri)));
+            Device device = service.getDevice(deviceId(uri));
+            if (device == null) {
+                error("No such device %s", uri);
+            } else {
+                printDevice(service, device);
+            }
         }
         return null;
     }
