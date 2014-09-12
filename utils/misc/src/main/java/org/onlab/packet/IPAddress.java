@@ -12,7 +12,7 @@ public class IPAddress {
 
     //lengths of address, in bytes
     public static final int INET_LEN = 4;
-    public static final int INET6_LEN = 6;
+    public static final int INET6_LEN = 16;
 
     protected Version version;
     //does it make more sense to have a integral address?
