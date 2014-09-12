@@ -1,6 +1,7 @@
 package org.onlab.onos.net;
 
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 import java.net.URI;
 
@@ -42,7 +43,7 @@ public final class HostId extends ElementId {
      * @return host identifier
      */
     // FIXME: replace vlanId long with a rich data-type, e.g. VLanId or something like that
-    public static HostId hostId(MACAddress mac, long vlanId) {
+    public static HostId hostId(MACAddress mac, VLANID vlanId) {
         // FIXME: use more efficient means of encoding
         return hostId("nic" + ":" + mac + "/" + vlanId);
     }
