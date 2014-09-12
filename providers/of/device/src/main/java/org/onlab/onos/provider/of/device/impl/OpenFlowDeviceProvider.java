@@ -1,13 +1,5 @@
 package org.onlab.onos.provider.of.device.impl;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -36,6 +28,14 @@ import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.of.controller.Dpid.dpid;
+import static org.onlab.onos.of.controller.Dpid.uri;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -76,8 +76,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Deactivate
     public void deactivate() {
         for (OpenFlowSwitch sw : controller.getSwitches()) {
-            providerService.deviceDisconnected(DeviceId.deviceId("of:"
-                    + Long.toHexString(sw.getId())));
+            providerService.deviceDisconnected(DeviceId.deviceId(uri(sw.getId())));
         }
         providerRegistry.unregister(this);
         controller.removeListener(listener);
@@ -94,20 +93,17 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {
         switch (newRole) {
-        case MASTER:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.MASTER);
-            break;
-        case STANDBY:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.EQUAL);
-            break;
-        case NONE:
-            controller.setRole(new Dpid(device.id().uri().getSchemeSpecificPart()),
-                    RoleState.SLAVE);
-            break;
-        default:
-            LOG.error("Unknown Mastership state : {}", newRole);
+            case MASTER:
+                controller.setRole(dpid(device.id().uri()), RoleState.MASTER);
+                break;
+            case STANDBY:
+                controller.setRole(dpid(device.id().uri()), RoleState.EQUAL);
+                break;
+            case NONE:
+                controller.setRole(dpid(device.id().uri()), RoleState.SLAVE);
+                break;
+            default:
+                LOG.error("Unknown Mastership state : {}", newRole);
 
         }
         LOG.info("Accepting mastership role change for device {}", device.id());
@@ -119,17 +115,17 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (providerService == null) {
                 return;
             }
-            URI uri = buildURI(dpid);
+            DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
 
             DeviceDescription description =
-                    new DefaultDeviceDescription(buildURI(dpid), Device.Type.SWITCH,
-                            sw.manfacturerDescription(),
-                            sw.hardwareDescription(),
-                            sw.softwareDescription(),
-                            sw.serialNumber());
-            providerService.deviceConnected(deviceId(uri), description);
-            providerService.updatePorts(deviceId(uri), buildPortDescriptions(sw.getPorts()));
+                    new DefaultDeviceDescription(did.uri(), Device.Type.SWITCH,
+                                                 sw.manfacturerDescription(),
+                                                 sw.hardwareDescription(),
+                                                 sw.softwareDescription(),
+                                                 sw.serialNumber());
+            providerService.deviceConnected(did, description);
+            providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
         }
 
         @Override
@@ -137,31 +133,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (providerService == null) {
                 return;
             }
-            URI uri = buildURI(dpid);
-            providerService.deviceDisconnected(deviceId(uri));
+            providerService.deviceDisconnected(deviceId(uri(dpid)));
         }
 
         @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
-            final PortDescription portDescription = buildPortDescription(status.getDesc());
-            final URI uri = buildURI(dpid);
-            providerService.portStatusChanged(deviceId(uri), portDescription);
-        }
-
-        /**
-         * Given a dpid builds a URI for the device.
-         *
-         * @param dpid the dpid to build the uri from
-         * @return returns a uri of the form of:<dpidHexForm>
-         */
-        private URI buildURI(Dpid dpid) {
-            URI uri = null;
-            try {
-                uri = new URI("of", Long.toHexString(dpid.value()), null);
-            } catch (URISyntaxException e) {
-                LOG.warn("URI construction for device {} failed.", dpid);
-            }
-            return uri;
+            PortDescription portDescription = buildPortDescription(status.getDesc());
+            providerService.portStatusChanged(deviceId(uri(dpid)), portDescription);
         }
 
         /**
@@ -172,7 +150,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          */
         private List<PortDescription> buildPortDescriptions(
                 List<OFPortDesc> ports) {
-            final List<PortDescription> portDescs = new ArrayList<PortDescription>();
+            final List<PortDescription> portDescs = new ArrayList<>();
             for (OFPortDesc port : ports) {
                 portDescs.add(buildPortDescription(port));
             }
