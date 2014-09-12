@@ -16,7 +16,7 @@ import java.util.List;
 public class ClustersListCommand extends TopologyCommand {
 
     private static final String FMT =
-            "id=%s, devices=%d, links=%d";
+            "id=%d, devices=%d, links=%d";
 
     protected static final Comparator<TopologyCluster> ID_COMPARATOR =
             new Comparator<TopologyCluster>() {
@@ -33,7 +33,7 @@ public class ClustersListCommand extends TopologyCommand {
         Collections.sort(clusters, ID_COMPARATOR);
 
         for (TopologyCluster cluster : clusters) {
-            print(FMT, cluster.id(), cluster.deviceCount(), cluster.linkCount());
+            print(FMT, cluster.id().index(), cluster.deviceCount(), cluster.linkCount());
         }
         return null;
     }
