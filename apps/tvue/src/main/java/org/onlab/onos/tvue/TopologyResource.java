@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.link.LinkService;
@@ -83,7 +83,6 @@ public class TopologyResource extends BaseResource {
     }
 
 
-
     /**
      * Returns a JSON array of all paths between the specified hosts.
      *
@@ -97,22 +96,17 @@ public class TopologyResource extends BaseResource {
     public Response paths(@PathParam("src") String src, @PathParam("dst") String dst) {
         ObjectMapper mapper = new ObjectMapper();
 
-        DeviceService deviceService = get(DeviceService.class);
         TopologyService topologyService = get(TopologyService.class);
-        Topology topology  = topologyService.currentTopology();
+        Topology topology = topologyService.currentTopology();
 
         ArrayNode pathsNode = mapper.createArrayNode();
-        Device srcDevice = deviceService.getDevice(deviceId(src));
-        Device dstDevice = deviceService.getDevice(deviceId(dst));
-
-//        if (srcDevice != null && dstDevice != null) {
-//            for (Path path : topologyService.getPaths(topology, srcDevice, dstDevice))
-//                pathsNode.add(json(mapper, path));
-//        }
+        for (Path path : topologyService.getPaths(topology, deviceId(src), deviceId(dst))) {
+            pathsNode.add(json(mapper, path));
+        }
 
         // Now put the vertexes and edges into a root node and ship them off
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.put("paths", pathsNode);
+        rootNode.set("paths", pathsNode);
         return Response.ok(rootNode.toString()).build();
     }
 
@@ -134,14 +128,11 @@ public class TopologyResource extends BaseResource {
     }
 
 
-
-
-
     // Produces JSON for a graph vertex.
     private ObjectNode json(ObjectMapper mapper, ElementId id, int group,
                             boolean isOnline) {
         return mapper.createObjectNode()
-                .put("name", id.uri().getSchemeSpecificPart())
+                .put("name", id.uri().toString())
                 .put("group", group)
                 .put("online", isOnline);
     }
@@ -157,6 +148,19 @@ public class TopologyResource extends BaseResource {
         return mapper.createObjectNode()
                 .put("source", src).put("target", dst).put("value", count);
     }
+
+    // Produces JSON representation of a network path.
+    private ArrayNode json(ObjectMapper mapper, Path path) {
+        ArrayNode pathNode = mapper.createArrayNode();
+        for (Link link : path.links()) {
+            ObjectNode linkNode = mapper.createObjectNode()
+                    .put("src", id(link.src()))
+                    .put("dst", id(link.dst()));
+            pathNode.add(linkNode);
+        }
+        return pathNode;
+    }
+
 
     // Aggregate link of all links between the same devices regardless of
     // their direction.
@@ -188,7 +192,7 @@ public class TopologyResource extends BaseResource {
     // Returns a formatted string for the element associated with the given
     // connection point.
     private static String id(ConnectPoint cp) {
-        return cp.elementId().uri().getSchemeSpecificPart();
+        return cp.elementId().uri().toString();
     }
 
 }
