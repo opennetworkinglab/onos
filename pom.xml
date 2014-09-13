@@ -19,6 +19,7 @@
         <module>cli</module>
         <module>providers</module>
         <module>of</module>
+        <module>apps</module>
         <module>features</module>
     </modules>
 
@@ -353,6 +354,12 @@
                             <title>GUI, REST &amp; Command-Line</title>
                             <packages>
                                 org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli:org.onlab.onos.gui.*:org.onlab.onos.rest.*:org.onlab.onos.cli.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Sample Applications</title>
+                            <packages>
+                                org.onlab.onos.tvue
                             </packages>
                         </group>
                     </groups>

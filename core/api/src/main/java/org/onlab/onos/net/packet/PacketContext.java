@@ -1,5 +1,7 @@
 package org.onlab.onos.net.packet;
 
+import org.onlab.onos.net.flow.TrafficTreatment;
+
 /**
  * Represents context for processing an inbound packet, and (optionally)
  * emitting a corresponding outbound packet.
@@ -28,11 +30,11 @@ public interface PacketContext {
     OutboundPacket outPacket();
 
     /**
-     * Appends a new treatment to be applied to the outbound packet.
+     * Returns a builder for constructing traffic treatment.
      *
-     * @param treatment output treatment
+     * @return traffic treatment builder
      */
-    void appendTreatment(Treatment treatment);
+    TrafficTreatment.Builder treatmentBuilder();
 
     /**
      * Triggers the outbound packet to be sent.

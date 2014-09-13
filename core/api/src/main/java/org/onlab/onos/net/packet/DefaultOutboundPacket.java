@@ -1,31 +1,30 @@
 package org.onlab.onos.net.packet;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.flow.TrafficTreatment;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * Default implementation of an immutable outbound packet.
  */
 public class DefaultOutboundPacket implements OutboundPacket {
     private final DeviceId sendThrough;
-    private final List<Treatment> treatments;
+    private final TrafficTreatment treatment;
     private final ByteBuffer data;
 
     /**
      * Creates an immutable outbound packet.
      *
      * @param sendThrough identifier through which to send the packet
-     * @param treatments  list of packet treatments
+     * @param treatment   list of packet treatments
      * @param data        raw packet data
      */
     public DefaultOutboundPacket(DeviceId sendThrough,
-                                 List<Treatment> treatments, ByteBuffer data) {
+                                 TrafficTreatment treatment, ByteBuffer data) {
         this.sendThrough = sendThrough;
-        this.treatments = ImmutableList.copyOf(treatments);
+        this.treatment = treatment;
         this.data = data;
     }
 
@@ -35,8 +34,8 @@ public class DefaultOutboundPacket implements OutboundPacket {
     }
 
     @Override
-    public List<Treatment> treatments() {
-        return treatments;
+    public TrafficTreatment treatment() {
+        return treatment;
     }
 
     @Override
@@ -49,7 +48,7 @@ public class DefaultOutboundPacket implements OutboundPacket {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("sendThrough", sendThrough)
-                .add("treatments", treatments)
+                .add("treatment", treatment)
                 .toString();
     }
 }

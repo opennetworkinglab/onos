@@ -1,4 +1,4 @@
-package org.onlab.onos.net.packet;
+package org.onlab.onos.net.flow;
 
 import org.onlab.onos.net.PortNumber;
 
