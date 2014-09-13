@@ -17,6 +17,7 @@
     <description>Domain agnostic ON.Lab utilities</description>
 
     <modules>
+        <module>junit</module>
         <module>misc</module>
         <module>osgi</module>
         <module>rest</module>

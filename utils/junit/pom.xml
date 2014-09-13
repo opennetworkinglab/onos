@@ -6,20 +6,26 @@
 
     <parent>
         <groupId>org.onlab.onos</groupId>
-        <artifactId>onos-core</artifactId>
+        <artifactId>onlab-utils</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-api</artifactId>
+    <artifactId>onlab-junit</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS network control API</description>
+    <description>ON.Lab JUnit test utilities</description>
 
     <dependencies>
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

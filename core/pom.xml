@@ -26,10 +26,13 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onlab-misc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-junit</artifactId>
         </dependency>
     </dependencies>
 

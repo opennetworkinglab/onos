@@ -130,6 +130,12 @@
                 <artifactId>onlab-misc</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
+                <artifactId>onlab-junit</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>org.onlab.onos</groupId>
