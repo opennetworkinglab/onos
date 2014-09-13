@@ -22,4 +22,11 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      */
     void flowMissing(FlowRule flowRule);
 
+    /**
+     * Signals that a flow rule was indeed added.
+     *
+     * @param flowRule the added flow rule
+     */
+    void flowAdded(FlowRule flowRule);
+
 }

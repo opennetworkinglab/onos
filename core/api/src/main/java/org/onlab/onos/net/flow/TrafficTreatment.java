@@ -25,7 +25,7 @@ public interface TrafficTreatment {
          *
          * @param instruction new instruction
          */
-        void add(Instruction instruction);
+        Builder add(Instruction instruction);
 
         /**
          * Builds an immutable traffic treatment descriptor.

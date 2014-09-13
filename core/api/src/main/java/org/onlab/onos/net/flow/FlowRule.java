@@ -2,13 +2,13 @@ package org.onlab.onos.net.flow;
 
 import org.onlab.onos.net.DeviceId;
 
-import java.util.List;
-
 /**
  * Represents a generalized match &amp; action pair to be applied to
  * an infrastucture device.
  */
 public interface FlowRule {
+
+    //TODO: build cookie value
 
     /**
      * Returns the flow rule priority given in natural order; higher numbers
@@ -38,6 +38,6 @@ public interface FlowRule {
      *
      * @return traffic treatment
      */
-    List<Treatment> treatments();
+    TrafficTreatment treatment();
 
 }
