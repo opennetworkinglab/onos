@@ -10,5 +10,5 @@ public interface PacketListener {
      *
      * @param pktCtx the packet context
      */
-    public void handlePacket(PacketContext pktCtx);
+    public void handlePacket(OpenFlowPacketContext pktCtx);
 }

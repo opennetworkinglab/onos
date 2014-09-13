@@ -12,7 +12,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.of.controller.DefaultPacketContext;
+import org.onlab.onos.of.controller.DefaultOpenFlowPacketContext;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowSwitch;
@@ -124,7 +124,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             break;
         case PACKET_IN:
             for (PacketListener p : ofPacketListener) {
-                p.handlePacket(DefaultPacketContext
+                p.handlePacket(DefaultOpenFlowPacketContext
                         .packetContextFromPacketIn(this.getSwitch(dpid),
                                 (OFPacketIn) msg));
             }

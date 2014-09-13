@@ -20,6 +20,18 @@ public final class Criteria {
         return null;
     }
 
+    /**
+     * Creates a match on ETH_DST field using the specified value. This value
+     * may be a wildcard mask.
+     *
+     * @param macValue MAC address value or wildcard mask
+     * @return match criterion
+     */
+    public static Criterion matchEthDst(MACValue macValue) {
+        return null;
+    }
+
+
     // Dummy to illustrate the concept for now; delete ASAP
     private static class MACValue { }
 }

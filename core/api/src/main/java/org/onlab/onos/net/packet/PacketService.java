@@ -18,7 +18,7 @@ public interface PacketService {
      * @throws java.lang.IllegalArgumentException if a processor with the
      *                                            given priority already exists
      */
-    void addProcessor(PacketProcessor processor, long priority);
+    void addProcessor(PacketProcessor processor, int priority);
 
     /**
      * Removes the specified processor from the processing pipeline.

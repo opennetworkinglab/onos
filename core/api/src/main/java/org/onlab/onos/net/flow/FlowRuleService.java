@@ -26,6 +26,15 @@ public interface FlowRuleService {
     void applyFlowRules(FlowRule... flowRules);
 
     /**
+     * Removes the specified flow rules from their respective devices.
+     *
+     * @param flowRules one or more flow rules
+     * throws SomeKindOfException that indicates which ones were removed and
+     *                  which ones failed
+     */
+    void removeFlowRules(FlowRule... flowRules);
+
+    /**
      * Adds the specified flow rule listener.
      *
      * @param listener flow rule listener

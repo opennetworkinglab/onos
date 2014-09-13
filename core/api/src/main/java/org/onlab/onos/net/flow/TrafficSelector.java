@@ -24,8 +24,9 @@ public interface TrafficSelector {
          * already been added, it will be replaced by this one.
          *
          * @param criterion new criterion
+         * @return self
          */
-        void add(Criterion criterion);
+        Builder add(Criterion criterion);
 
         /**
          * Builds an immutable traffic selector.
