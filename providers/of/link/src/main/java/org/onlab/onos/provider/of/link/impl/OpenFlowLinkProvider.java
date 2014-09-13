@@ -15,7 +15,7 @@ import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
-import org.onlab.onos.of.controller.PacketContext;
+import org.onlab.onos.of.controller.OpenFlowPacketContext;
 import org.onlab.onos.of.controller.PacketListener;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
@@ -87,7 +87,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
 
         @Override
-        public void handlePacket(PacketContext pktCtx) {
+        public void handlePacket(OpenFlowPacketContext pktCtx) {
             LinkDiscovery ld = discoverers.get(pktCtx.dpid());
             if (ld == null) {
                 return;

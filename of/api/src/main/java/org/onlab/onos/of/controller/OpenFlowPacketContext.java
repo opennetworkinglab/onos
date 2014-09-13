@@ -8,7 +8,7 @@ import org.projectfloodlight.openflow.types.OFPort;
  * to view the packet in event but may block the response to the
  * event if blocked has been called.
  */
-public interface PacketContext {
+public interface OpenFlowPacketContext {
 
     //TODO: may want to support sending packet out other switches than
     // the one it came in on.

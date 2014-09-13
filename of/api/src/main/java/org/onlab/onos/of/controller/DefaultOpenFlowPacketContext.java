@@ -11,7 +11,7 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 
-public final class DefaultPacketContext implements PacketContext {
+public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext {
 
     private boolean free = true;
     private boolean isBuilt = false;
@@ -19,7 +19,7 @@ public final class DefaultPacketContext implements PacketContext {
     private final OFPacketIn pktin;
     private OFPacketOut pktout = null;
 
-    private DefaultPacketContext(OpenFlowSwitch s, OFPacketIn pkt) {
+    private DefaultOpenFlowPacketContext(OpenFlowSwitch s, OFPacketIn pkt) {
         this.sw = s;
         this.pktin = pkt;
     }
@@ -78,8 +78,8 @@ public final class DefaultPacketContext implements PacketContext {
         return new Dpid(sw.getId());
     }
 
-    public static PacketContext packetContextFromPacketIn(OpenFlowSwitch s, OFPacketIn pkt) {
-        return new DefaultPacketContext(s, pkt);
+    public static OpenFlowPacketContext packetContextFromPacketIn(OpenFlowSwitch s, OFPacketIn pkt) {
+        return new DefaultOpenFlowPacketContext(s, pkt);
     }
 
     @Override
