@@ -2,14 +2,6 @@
 <!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-     <!--
-        Note: Exclusion definition exists in multiple places.
-        - In file ${findbugs.excludeFilterFile} defined at top of pom.xml
-        - In file conf/checkstyle/suppressions.xml (this file)
-        - maven-pmd-plugin configuration in pom.xml
-          (under build and reporting)
-     -->
-
     <!-- Suppressions for ONOS -->
     <suppress files="edu.stanford.ramcloud.*" checks="[_a-zA-Z0-9]*"/>
     <suppress files="net.floodlightcontroller.*" checks="[_a-zA-Z0-9]*"/>
@@ -27,6 +19,7 @@
     <suppress files=".*" checks="AvoidInlineConditionalsCheck"/>
     <suppress files=".*" checks="OperatorWrapCheck"/>
     <suppress files=".*" checks="HiddenField"/>
-    
+    <suppress files=".java" checks="NewlineAtEndOfFile"/>
+
 </suppressions>
 
