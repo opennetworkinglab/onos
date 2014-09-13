@@ -21,6 +21,7 @@
         <module>of</module>
         <module>apps</module>
         <module>features</module>
+        <module>tools/package/branding</module>
     </modules>
 
     <url>http://onlab.us/</url>
