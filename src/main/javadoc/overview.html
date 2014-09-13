@@ -1,9 +1,67 @@
 <html>
 <body>
-<img src="doc-files/onos-tiers.png" alt="ONOS architecture tiers"><br>
-ONOS architecture is strictly segmented into protocol-agnostic system core and
-protocol-aware providers tiers.
+<p>
+    ONOS architecture is strictly segmented into a <em>protocol-agnostic system
+    core</em> tier and the <em>protocol-aware providers</em> tier as shown in
+    the figure below:<br>
+    <img src="doc-files/onos-tiers.png" alt="ONOS architecture tiers">
+</p>
 
-<em>More information to come later...</em>
+<p>
+    The <em>ONOS core</em> is responsible for tracking information about the
+    network environment and distributing it to the applications either
+    synchronously via query or asynchronously via listener callbacks. The
+    core is also responsible for persisting select state and synchronizing state
+    among the cluster peers.
+</p>
+
+<p>
+    The <em>protocol-aware providers</em> are responsible for interacting with
+    the network environment using various control and configuration protocols
+    and supplying such sensory data to the core. Some providers may also need to
+    accept control edicts from the core and apply them to the environment
+    using the appropriate protocol-specific means.
+</p>
+
+<p>
+    The following diagram describes a general structure of each ONOS subsystem:
+    <br>
+    <img src="doc-files/onos-subsystem.png" alt="ONOS subsystem structure"><br>
+    For example, the device-subsystem comprises of a core
+    {@link org.onlab.onos.net.trivial.device.impl.SimpleDeviceManager DeviceManager},
+    which exposes a north-bound
+    {@link org.onlab.onos.net.device.DeviceService} through which applications or other core components
+    can learn about the global infrastructure device inventory and through
+    which they can also subscribe for asynchronous {@link org.onlab.onos.net.device.DeviceEvent}
+    notifications via the {@link org.onlab.onos.net.device.DeviceListener} mechanism. A set of
+    administrative actions can be performed via {@link org.onlab.onos.net.device.DeviceAdminService},
+    e.g. setting mastership role, removing a decommissioned device.
+</p>
+
+<p>
+    On the south-bound side, the core {@link org.onlab.onos.net.trivial.device.impl.SimpleDeviceManager DeviceManager}
+    exposes a {@link org.onlab.onos.net.device.DeviceProviderRegistry} through which any number of
+    {@link org.onlab.onos.net.device.DeviceProvider} entities can register and in turn obtain a
+    {@link org.onlab.onos.net.device.DeviceProviderService}. Device and port information can then be
+    supplied to the core by each provider through the provider service issued
+    to them. When a provider unregisters, its {@link org.onlab.onos.net.device.DeviceProviderService}
+    will be invalidated and can no longer be used for interacting with the
+    core.
+</p>
+
+<p>
+    Within the core, the tasks of indexing, persisting and synchronizing the
+    global device and port state with the cluster peers falls on the
+    {@link org.onlab.onos.net.trivial.device.impl.SimpleDeviceStore DeviceStore}.
+</p>
+
+<p>
+    Similar structure applies to the link subsystem, host subsystem and others.
+</p>
+
+<p>
+    <em>More information to come later...</em>
+</p>
 
 </body>
+</html>
