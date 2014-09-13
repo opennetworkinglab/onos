@@ -632,7 +632,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * @param m The OFMessage that has just been received
          * @param details A string giving more details about the exact nature
          * of the problem.
-         * @return
+         * @return display string
          */
         // needs to be protected because enum members are actually subclasses
         protected String getSwitchStateMessage(OFChannelHandler h,
@@ -682,7 +682,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
         /**
          * Log an OpenFlow error message from a switch.
-         * @param sw The switch that sent the error
+         * @param h The switch that sent the error
          * @param error The error message
          */
         @LogMessageDoc(level = "ERROR",
@@ -1185,7 +1185,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     /**
      * Return a string describing this switch based on the already available
      * information (DPID and/or remote socket).
-     * @return
+     * @return display string
      */
     private String getSwitchInfoString() {
         if (sw != null) {

@@ -38,27 +38,27 @@ package org.onlab.packet;
 public interface IPacket {
     /**
      *
-     * @return
+     * @return the payload
      */
     public IPacket getPayload();
 
     /**
      *
-     * @param packet
-     * @return
+     * @param packet new payload
+     * @return self
      */
     public IPacket setPayload(IPacket packet);
 
     /**
      *
-     * @return
+     * @return parent packet
      */
     public IPacket getParent();
 
     /**
      *
-     * @param packet
-     * @return
+     * @param packet new parent
+     * @return self
      */
     public IPacket setParent(IPacket packet);
 
@@ -90,7 +90,7 @@ public interface IPacket {
     /**
      * Clone this packet and its payload packet but not its parent.
      *
-     * @return
+     * @return the clone
      */
     public Object clone();
 }

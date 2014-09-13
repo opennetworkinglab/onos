@@ -228,7 +228,7 @@ public class ONLabLddp extends LLDP {
     /**
      * Sets switch DPID in LLDP packet.
      *
-     * @param sw the switch instance
+     * @param dp the switch instance
      */
     public void setSwitch(long dp) {
         final byte[] dpid = ByteBuffer.allocate(8).putLong(dp)
@@ -243,8 +243,7 @@ public class ONLabLddp extends LLDP {
      * @param port the port instance
      */
     public void setPort(int port) {
-        int portNumber = port;
-        this.setPortTLV(portNumber);
+        this.setPortTLV(port);
     }
 
     /**
@@ -260,7 +259,7 @@ public class ONLabLddp extends LLDP {
      * Checks if LLDP packet has correct size, LLDP multicast address, and
      * ethertype. Packet assumed to have Ethernet header.
      *
-     * @param packet
+     * @param packet packet data
      * @return true if packet is LLDP, false otherwise
      */
     public static boolean isLLDP(final byte[] packet) {
@@ -304,8 +303,8 @@ public class ONLabLddp extends LLDP {
      * organizationally specific TLVs that use ON.Lab's OUI. Assumes packet is
      * valid LLDP packet
      *
-     * @param packet
-     * @return
+     * @param packet packet data
+     * @return eth type or -1
      */
     public static short isOVXLLDP(byte[] packet) {
         if (packet.length < OVX_LLDP_SIZE) {
@@ -340,7 +339,7 @@ public class ONLabLddp extends LLDP {
     /**
      * Extracts dpid and port from OVX-generated LLDP packet.
      *
-     * @param packet
+     * @param packet packet data
      * @return Dpid and port
      */
     public static DPIDandPort parseLLDP(final byte[] packet) {

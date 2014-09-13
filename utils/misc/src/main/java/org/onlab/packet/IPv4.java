@@ -422,8 +422,8 @@ public class IPv4 extends BasePacket {
      * Accepts an IPv4 address of the form xxx.xxx.xxx.xxx, ie 192.168.0.1 and
      * returns the corresponding 32 bit integer.
      *
-     * @param ipAddress
-     * @return
+     * @param ipAddress ip address in string form
+     * @return int ip address value
      */
     public static int toIPv4Address(final String ipAddress) {
         if (ipAddress == null) {
@@ -447,8 +447,8 @@ public class IPv4 extends BasePacket {
      * Accepts an IPv4 address in a byte array and returns the corresponding
      * 32-bit integer value.
      *
-     * @param ipAddress
-     * @return
+     * @param ipAddress ip address in byte form
+     * @return int ip address value
      */
     public static int toIPv4Address(final byte[] ipAddress) {
         int ip = 0;
@@ -463,8 +463,8 @@ public class IPv4 extends BasePacket {
      * Accepts an IPv4 address and returns of string of the form xxx.xxx.xxx.xxx,
      * e.g., 192.168.0.1.
      *
-     * @param ipAddress
-     * @return
+     * @param ipAddress ip address in form
+     * @return string form of ip address
      */
     public static String fromIPv4Address(final int ipAddress) {
         final StringBuffer sb = new StringBuffer();
@@ -486,7 +486,7 @@ public class IPv4 extends BasePacket {
      *
      * @param ipAddresses
      *            collection
-     * @return
+     * @return ip addresses in comma-separated string form
      */
     public static String fromIPv4AddressCollection(
             final Collection<Integer> ipAddresses) {

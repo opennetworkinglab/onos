@@ -62,7 +62,7 @@ public class LLDP extends BasePacket {
     }
 
     /**
-     * @param chassisId
+     * @param chassis
      *            the chassisId to set
      */
     public LLDP setChassisId(final LLDPTLV chassis) {

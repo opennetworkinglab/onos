@@ -69,7 +69,6 @@ class RoleManager implements RoleHandler {
      * Send NX role request message to the switch requesting the specified
      * role.
      *
-     * @param sw switch to send the role request message to
      * @param role role to request
      */
     private int sendNxRoleRequest(RoleState role) throws IOException {
@@ -318,8 +317,7 @@ class RoleManager implements RoleHandler {
      * Extract the role from an OFVendor message if the message is a
      * Nicira role reply. Otherwise return null.
      *
-     * @param h The channel handler receiving the message
-     * @param vendorMessage The vendor message to parse.
+     * @param experimenterMsg message
      * @return The role in the message if the message is a Nicira role
      * reply, null otherwise.
      * @throws SwitchStateException If the message is a Nicira role reply
@@ -363,7 +361,7 @@ class RoleManager implements RoleHandler {
 
     /**
      * Extract the role information from an OF1.3 Role Reply Message.
-     * @param h
+     *
      * @param rrmsg the role message
      * @return RoleReplyInfo object
      * @throws SwitchStateException if the role information could not be extracted.

@@ -96,7 +96,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the destination MAC address.
      *
-     * @param destinationMACAddress the destination MAC to set
+     * @param destMac the destination MAC to set
      * @return the Ethernet frame
      */
     public Ethernet setDestinationMACAddress(final byte[] destMac) {
@@ -107,7 +107,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the destination MAC address.
      *
-     * @param destinationMACAddress the destination MAC to set
+     * @param destMac the destination MAC to set
      * @return the Ethernet frame
      */
     public Ethernet setDestinationMACAddress(final String destMac) {
@@ -136,7 +136,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the source MAC address.
      *
-     * @param sourceMACAddress the source MAC to set
+     * @param sourceMac the source MAC to set
      * @return the Ethernet frame
      */
     public Ethernet setSourceMACAddress(final byte[] sourceMac) {
@@ -147,7 +147,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the source MAC address.
      *
-     * @param sourceMACAddress the source MAC to set
+     * @param sourceMac the source MAC to set
      * @return the Ethernet frame
      */
     public Ethernet setSourceMACAddress(final String sourceMac) {
@@ -167,7 +167,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the priority code.
      *
-     * @param priorityCode the priorityCode to set
+     * @param priority the priorityCode to set
      * @return the Ethernet frame
      */
     public Ethernet setPriorityCode(final byte priority) {
@@ -187,7 +187,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the VLAN ID.
      *
-     * @param vlanID the vlanID to set
+     * @param vlan the vlanID to set
      * @return the Ethernet frame
      */
     public Ethernet setVlanID(final short vlan) {
@@ -207,7 +207,7 @@ public class Ethernet extends BasePacket {
     /**
      * Sets the Ethernet type.
      *
-     * @param etherType the etherType to set
+     * @param ethType the etherType to set
      * @return the Ethernet frame
      */
     public Ethernet setEtherType(final short ethType) {
@@ -242,7 +242,7 @@ public class Ethernet extends BasePacket {
     /**
      * Pad this packet to 60 bytes minimum, filling with zeros?
      *
-     * @param pad
+     * @param pd
      *            the pad to set
      */
     public Ethernet setPad(final boolean pd) {
@@ -535,7 +535,7 @@ public class Ethernet extends BasePacket {
         } else if (pkt instanceof LLC) {
             sb.append("\nllc packet");
         } else {
-            sb.append("\nunknwon packet");
+            sb.append("\nunknown packet");
         }
 
         return sb.toString();

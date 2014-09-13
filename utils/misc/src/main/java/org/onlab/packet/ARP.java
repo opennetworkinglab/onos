@@ -67,7 +67,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param hardwareType
+     * @param hwType
      *            the hardwareType to set
      */
     public ARP setHardwareType(final short hwType) {
@@ -83,7 +83,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param protocolType
+     * @param protoType
      *            the protocolType to set
      */
     public ARP setProtocolType(final short protoType) {
@@ -115,7 +115,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param protocolAddressLength
+     * @param protoAddressLength
      *            the protocolAddressLength to set
      */
     public ARP setProtocolAddressLength(final byte protoAddressLength) {
@@ -131,7 +131,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param opCode
+     * @param op
      *            the opCode to set
      */
     public ARP setOpCode(final short op) {
@@ -147,7 +147,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param senderHardwareAddress
+     * @param senderHWAddress
      *            the senderHardwareAddress to set
      */
     public ARP setSenderHardwareAddress(final byte[] senderHWAddress) {
@@ -163,7 +163,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param senderProtocolAddress
+     * @param senderProtoAddress
      *            the senderProtocolAddress to set
      */
     public ARP setSenderProtocolAddress(final byte[] senderProtoAddress) {
@@ -185,7 +185,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param targetHardwareAddress
+     * @param targetHWAddress
      *            the targetHardwareAddress to set
      */
     public ARP setTargetHardwareAddress(final byte[] targetHWAddress) {
@@ -218,7 +218,7 @@ public class ARP extends BasePacket {
     }
 
     /**
-     * @param targetProtocolAddress
+     * @param targetProtoAddress
      *            the targetProtocolAddress to set
      */
     public ARP setTargetProtocolAddress(final byte[] targetProtoAddress) {
