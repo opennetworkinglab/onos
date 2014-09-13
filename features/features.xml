@@ -73,6 +73,7 @@
     <feature name="onos-app-tvue" version="1.0.0"
              description="ONOS sample topology viewer application">
         <feature>onos-core</feature>
+        <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.onlab.onos/onos-app-tvue/1.0.0-SNAPSHOT</bundle>
     </feature>
 
