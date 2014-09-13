@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Device;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.device.DeviceService;
@@ -16,7 +17,7 @@ import org.onlab.onos.net.topology.TopologyVertex;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -24,13 +25,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
+
 /**
  * Topology viewer resource.
  */
-@Path("topology")
+@javax.ws.rs.Path("topology")
 public class TopologyResource extends BaseResource {
 
-    @Path("/graph")
+    @javax.ws.rs.Path("/graph")
     @GET
     @Produces("application/json")
     public Response graph() {
@@ -79,6 +82,40 @@ public class TopologyResource extends BaseResource {
         return Response.ok(rootNode.toString()).build();
     }
 
+
+
+    /**
+     * Returns a JSON array of all paths between the specified hosts.
+     *
+     * @param src source host id
+     * @param dst target host id
+     * @return JSON array of paths
+     */
+    @javax.ws.rs.Path("/paths/{src}/{dst}")
+    @GET
+    @Produces("application/json")
+    public Response paths(@PathParam("src") String src, @PathParam("dst") String dst) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        DeviceService deviceService = get(DeviceService.class);
+        TopologyService topologyService = get(TopologyService.class);
+        Topology topology  = topologyService.currentTopology();
+
+        ArrayNode pathsNode = mapper.createArrayNode();
+        Device srcDevice = deviceService.getDevice(deviceId(src));
+        Device dstDevice = deviceService.getDevice(deviceId(dst));
+
+//        if (srcDevice != null && dstDevice != null) {
+//            for (Path path : topologyService.getPaths(topology, srcDevice, dstDevice))
+//                pathsNode.add(json(mapper, path));
+//        }
+
+        // Now put the vertexes and edges into a root node and ship them off
+        ObjectNode rootNode = mapper.createObjectNode();
+        rootNode.put("paths", pathsNode);
+        return Response.ok(rootNode.toString()).build();
+    }
+
     // Scan all links and counts number of them between the same devices
     // using a normalized link key.
     private Map<String, AggLink> aggregateLinks() {
@@ -95,6 +132,10 @@ public class TopologyResource extends BaseResource {
         }
         return aggLinks;
     }
+
+
+
+
 
     // Produces JSON for a graph vertex.
     private ObjectNode json(ObjectMapper mapper, ElementId id, int group,
