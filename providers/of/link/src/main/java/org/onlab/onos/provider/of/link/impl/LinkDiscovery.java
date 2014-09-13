@@ -102,7 +102,7 @@ public class LinkDiscovery implements TimerTask {
         this.sw = sw;
         this.ofFactory = sw.factory();
         this.ctrl = ctrl;
-        this.probeRate = 1000;
+        this.probeRate = 3000;
         this.linkProvider = providerService;
         this.slowPorts = Collections.synchronizedSet(new HashSet<Integer>());
         this.fastPorts = Collections.synchronizedSet(new HashSet<Integer>());
@@ -129,7 +129,7 @@ public class LinkDiscovery implements TimerTask {
                 addPort(port);
             }
         }
-        timeout = Timer.getTimer().newTimeout(this, this.probeRate,
+        timeout = Timer.getTimer().newTimeout(this, 0,
                 TimeUnit.MILLISECONDS);
         this.log.debug("Started discovery manager for switch {}",
                 sw.getId());
