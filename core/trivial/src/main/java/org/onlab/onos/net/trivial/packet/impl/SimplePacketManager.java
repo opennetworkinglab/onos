@@ -2,7 +2,8 @@ package org.onlab.onos.net.trivial.packet.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -39,7 +40,7 @@ implements PacketService, PacketProviderRegistry {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DeviceService deviceService;
 
-    private final ArrayList<PacketProcessor> processors = new ArrayList<>();
+    private final Map<Integer, PacketProcessor> processors = new TreeMap<>();
 
     private final PacketProcessor reactiveProcessor = new ReactivePacketProcessor();
 
@@ -57,12 +58,12 @@ implements PacketService, PacketProviderRegistry {
 
     @Override
     public void addProcessor(PacketProcessor processor, int priority) {
-        processors.add(priority, processor);
+        processors.put(priority, processor);
     }
 
     @Override
     public void removeProcessor(PacketProcessor processor) {
-        processors.remove(processor);
+        processors.values().remove(processor);
     }
 
     @Override
@@ -89,7 +90,7 @@ implements PacketService, PacketProviderRegistry {
 
         @Override
         public void processPacket(PacketContext context) {
-            for (PacketProcessor processor : processors) {
+            for (PacketProcessor processor : processors.values()) {
                 processor.process(context);
             }
         }

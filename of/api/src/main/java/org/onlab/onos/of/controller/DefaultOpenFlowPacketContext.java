@@ -33,8 +33,8 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     public void send() {
         if (free && isBuilt) {
             sw.sendMsg(pktout);
+            block();
         }
-
     }
 
     @Override

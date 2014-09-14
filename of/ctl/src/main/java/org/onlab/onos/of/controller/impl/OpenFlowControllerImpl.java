@@ -1,9 +1,9 @@
 package org.onlab.onos.of.controller.impl;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -43,7 +43,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
     protected Set<OpenFlowSwitchListener> ofEventListener = new HashSet<>();
 
-    protected List<PacketListener> ofPacketListener = new ArrayList<>();
+    protected Map<Integer, PacketListener> ofPacketListener = new TreeMap<>();
 
     private final Controller ctrl = new Controller();
 
@@ -101,7 +101,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void addPacketListener(int priority, PacketListener listener) {
-        ofPacketListener.add(priority, listener);
+        ofPacketListener.put(priority, listener);
     }
 
     @Override
@@ -123,7 +123,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
             break;
         case PACKET_IN:
-            for (PacketListener p : ofPacketListener) {
+            for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(DefaultOpenFlowPacketContext
                         .packetContextFromPacketIn(this.getSwitch(dpid),
                                 (OFPacketIn) msg));
