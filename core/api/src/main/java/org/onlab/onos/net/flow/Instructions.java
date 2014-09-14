@@ -8,8 +8,7 @@ import org.onlab.onos.net.PortNumber;
 public final class Instructions {
 
     // Ban construction
-    private Instructions() {
-    }
+    private Instructions() {}
 
     /**
      * Creates an output instruction using the specified port number. This can
@@ -18,8 +17,20 @@ public final class Instructions {
      * @param number port number
      * @return output instruction
      */
-    public static Instruction createOutput(PortNumber number) {
-        return null;
+    public static Instruction<PortNumber> createOutput(final PortNumber number) {
+        return new Instruction<PortNumber>() {
+
+            @Override
+            public Instruction.Type type() {
+                return Type.OUTPUT;
+            }
+
+            @Override
+            public PortNumber instruction() {
+                return number;
+            }
+
+        };
     }
 
     // TODO: add create methods

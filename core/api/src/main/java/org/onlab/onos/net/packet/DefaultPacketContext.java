@@ -1,12 +1,19 @@
 package org.onlab.onos.net.packet;
 
+import org.onlab.onos.net.flow.DefaultTrafficTreatment;
+import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.flow.TrafficTreatment.Builder;
+
 
 public abstract class DefaultPacketContext implements PacketContext {
 
     private final long time;
     private final InboundPacket inPkt;
     private final OutboundPacket outPkt;
+    private final TrafficTreatment.Builder builder;
+
     private boolean block = false;
+
 
     protected DefaultPacketContext(long time, InboundPacket inPkt,
             OutboundPacket outPkt, boolean block) {
@@ -15,6 +22,7 @@ public abstract class DefaultPacketContext implements PacketContext {
         this.inPkt = inPkt;
         this.outPkt = outPkt;
         this.block = block;
+        this.builder = new DefaultTrafficTreatment.Builder();
     }
 
     @Override
@@ -30,6 +38,11 @@ public abstract class DefaultPacketContext implements PacketContext {
     @Override
     public OutboundPacket outPacket() {
         return outPkt;
+    }
+
+    @Override
+    public Builder treatmentBuilder() {
+        return builder;
     }
 
     @Override

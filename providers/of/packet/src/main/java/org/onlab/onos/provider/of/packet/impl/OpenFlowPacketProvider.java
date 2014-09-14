@@ -78,7 +78,6 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
      */
     private class InternalPacketProvider implements PacketListener {
 
-
         @Override
         public void handlePacket(OpenFlowPacketContext pktCtx) {
             DeviceId id = DeviceId.deviceId(Dpid.uri(pktCtx.dpid().value()));
@@ -88,8 +87,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                     pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()));
 
             OpenFlowCorePacketContext corePktCtx =
-                    new OpenFlowCorePacketContext(0, inPkt, null, false, pktCtx,
-                            controller.getSwitch(pktCtx.dpid()));
+                    new OpenFlowCorePacketContext(0, inPkt, null, false, pktCtx);
             providerService.processPacket(corePktCtx);
         }
 

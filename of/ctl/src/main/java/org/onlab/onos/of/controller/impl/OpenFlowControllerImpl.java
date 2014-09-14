@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.of.controller.DefaultOpenFlowPacketContext;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
+import org.onlab.onos.of.controller.OpenFlowPacketContext;
 import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
 import org.onlab.onos.of.controller.PacketListener;
@@ -106,7 +107,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void removePacketListener(PacketListener listener) {
-        ofPacketListener.remove(listener);
+        ofPacketListener.values().remove(listener);
     }
 
     @Override
@@ -123,10 +124,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
             break;
         case PACKET_IN:
+            OpenFlowPacketContext pktCtx = DefaultOpenFlowPacketContext
+            .packetContextFromPacketIn(this.getSwitch(dpid),
+                    (OFPacketIn) msg);
             for (PacketListener p : ofPacketListener.values()) {
-                p.handlePacket(DefaultOpenFlowPacketContext
-                        .packetContextFromPacketIn(this.getSwitch(dpid),
-                                (OFPacketIn) msg));
+                p.handlePacket(pktCtx);
             }
             break;
         default:

@@ -1,5 +1,7 @@
 package org.onlab.onos.of.controller;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.Collections;
 
 import org.onlab.packet.Ethernet;
@@ -10,8 +12,11 @@ import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.slf4j.Logger;
 
 public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext {
+
+    private final Logger log = getLogger(getClass());
 
     private boolean free = true;
     private boolean isBuilt = false;
@@ -32,8 +37,8 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     @Override
     public void send() {
         if (free && isBuilt) {
-            sw.sendMsg(pktout);
             block();
+            sw.sendMsg(pktout);
         }
     }
 

@@ -1,10 +1,11 @@
 package org.onlab.onos.net.packet;
 
-import com.google.common.base.MoreObjects;
+import java.nio.ByteBuffer;
+
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import java.nio.ByteBuffer;
+import com.google.common.base.MoreObjects;
 
 /**
  * Default implementation of an immutable outbound packet.
@@ -22,7 +23,7 @@ public class DefaultOutboundPacket implements OutboundPacket {
      * @param data        raw packet data
      */
     public DefaultOutboundPacket(DeviceId sendThrough,
-                                 TrafficTreatment treatment, ByteBuffer data) {
+            TrafficTreatment treatment, ByteBuffer data) {
         this.sendThrough = sendThrough;
         this.treatment = treatment;
         this.data = data;
