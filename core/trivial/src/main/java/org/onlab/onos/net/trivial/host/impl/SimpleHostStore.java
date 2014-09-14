@@ -76,20 +76,23 @@ public class SimpleHostStore {
             HostDescription descr) {
         DefaultHost updated;
         HostEvent event;
-        if (host.location().equals(descr.location())) {
-            updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    host.location(),
-                    descr.ipAddresses());
-            event = new HostEvent(HOST_UPDATED, updated);
-        } else {
+        // Consider only actual location (not timestamp) change?
+        if (!(host.location().port().equals(descr.location().port()))) {
             updated = new DefaultHost(providerId, host.id(),
                     host.mac(),
                     host.vlan(),
                     descr.location(),
                     host.ipAddresses());
             event = new HostEvent(HOST_MOVED, updated);
+        } else if (!(host.ipAddresses().equals(descr.ipAddresses()))) {
+            updated = new DefaultHost(providerId, host.id(),
+                    host.mac(),
+                    host.vlan(),
+                    descr.location(),
+                    descr.ipAddresses());
+            event = new HostEvent(HOST_UPDATED, updated);
+        } else {
+            return null;
         }
         synchronized (this) {
             hosts.put(host.id(), updated);

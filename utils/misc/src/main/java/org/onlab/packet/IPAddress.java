@@ -103,32 +103,27 @@ public class IPAddress {
             if (builder.length() > 0) {
                 builder.append(".");
             }
-            builder.append(String.format("%02d", b));
+            builder.append(String.format("%d", b));
         }
         return builder.toString();
     }
 
     @Override
     public int hashCode() {
-        return octets.hashCode();
+        return Arrays.hashCode(octets);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof IPAddress) {
 
+        if (obj instanceof IPAddress) {
             IPAddress other = (IPAddress) obj;
 
-            if (!(this.version.equals(other.version))) {
-                return false;
-            }
-            if (!(Arrays.equals(this.octets, other.octets))) {
-                return false;
+            if (this.version.equals(other.version)
+                    && (Arrays.equals(this.octets, other.octets))) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }

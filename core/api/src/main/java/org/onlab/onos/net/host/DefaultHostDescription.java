@@ -20,6 +20,14 @@ public class DefaultHostDescription implements HostDescription {
     private final Set<IPAddress> ips;
 
     public DefaultHostDescription(MACAddress mac, VLANID vlan,
+            HostLocation loc) {
+        this.mac = mac;
+        this.vlan = vlan;
+        this.location = loc;
+        this.ips = new HashSet<IPAddress>();
+    }
+
+    public DefaultHostDescription(MACAddress mac, VLANID vlan,
             HostLocation loc, Set<IPAddress> ips) {
         this.mac = mac;
         this.vlan = vlan;

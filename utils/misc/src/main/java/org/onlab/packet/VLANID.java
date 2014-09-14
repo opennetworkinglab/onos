@@ -6,20 +6,29 @@ package org.onlab.packet;
 public class VLANID {
 
     private final short value;
-    private static final short NONE = 0;
+    // Based on convention used elsewhere? Check and change if needed
+    private static final short UNTAGGED = (short) 0xffff;
     // A VLAN ID is actually 12 bits of a VLAN tag.
     private static final short MAX_VLAN = 4095;
+
+    protected VLANID() {
+        this.value = UNTAGGED;
+    }
 
     protected VLANID(short value) {
         this.value = value;
     }
 
     public static VLANID vlanId() {
-        return new VLANID(NONE);
+        return new VLANID(UNTAGGED);
     }
 
     public static VLANID vlanId(short value) {
-        if (value >= MAX_VLAN) {
+        if (value == UNTAGGED) {
+            return new VLANID();
+        }
+
+        if (value > MAX_VLAN) {
             throw new IllegalArgumentException(
                     "value exceeds allowed maximum VLAN ID value (4095)");
         }
