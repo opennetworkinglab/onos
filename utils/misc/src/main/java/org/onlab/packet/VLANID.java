@@ -7,9 +7,9 @@ public class VLANID {
 
     private final short value;
     // Based on convention used elsewhere? Check and change if needed
-    private static final short UNTAGGED = (short) 0xffff;
+    public static final short UNTAGGED = (short) 0xffff;
     // A VLAN ID is actually 12 bits of a VLAN tag.
-    private static final short MAX_VLAN = 4095;
+    public static final short MAX_VLAN = 4095;
 
     protected VLANID() {
         this.value = UNTAGGED;

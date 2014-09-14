@@ -40,12 +40,11 @@ public class IPAddress {
      * @return an IP address
      */
     public static IPAddress valueOf(int address) {
-        byte [] bytes = new byte [] {
-                (byte) ((address >> 24) & 0xff),
-                (byte) ((address >> 16) & 0xff),
-                (byte) ((address >> 8) & 0xff),
-                (byte) ((address >> 0) & 0xff)
-        };
+        byte [] bytes = new byte [INET_LEN];
+        for (int i = 0; i < INET_LEN; i++) {
+            bytes[i] = (byte) ((address >> (INET_LEN - (i + 1)) * 8) & 0xff);
+        }
+
         return new IPAddress(Version.INET, bytes);
     }
 
@@ -87,12 +86,16 @@ public class IPAddress {
         return Arrays.copyOf(this.octets, INET_LEN);
     }
 
+    /**
+     * Returns the integral value of this IP address.
+     *
+     * @return the IP address's value as an integer
+     */
     public int toInt() {
-        int address =
-                ((octets[0] << 24) |
-                (octets[1] << 16) |
-                (octets[2] << 8) |
-                (octets[3] << 0));
+        int address = 0;
+        for (int i = 0; i < INET_LEN; i++) {
+            address |= octets[i] << ((INET_LEN - (i + 1)) * 8);
+        }
         return address;
     }
 
