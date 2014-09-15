@@ -55,10 +55,19 @@
                 <ref component-id="clusterIdCompleter"/>
             </completers>
         </command>
+
+        <command>
+            <action class="org.onlab.onos.cli.net.HostsListCommand"/>
+            <completers>
+                <ref component-id="hostIdCompleter"/>
+            </completers>
+        </command>
+
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onlab.onos.cli.net.DeviceIdCompleter"/>
     <bean id="clusterIdCompleter" class="org.onlab.onos.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onlab.onos.cli.net.RoleCompleter"/>
+    <bean id="hostIdCompleter" class="org.onlab.onos.cli.net.HostIdCompleter"/>
 
 </blueprint>

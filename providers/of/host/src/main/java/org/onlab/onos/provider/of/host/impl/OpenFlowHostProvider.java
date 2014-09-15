@@ -19,6 +19,7 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowPacketContext;
 import org.onlab.onos.of.controller.PacketListener;
@@ -61,7 +62,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
-        controller.addPacketListener(0, listener);
+        controller.addPacketListener(10, listener);
 
         log.info("Started");
     }
@@ -92,7 +93,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
                 HostId hid = HostId.hostId(
                         eth.getSourceMAC(), vlan);
                 HostLocation hloc = new HostLocation(
-                        DeviceId.deviceId("of:" + Long.toHexString(pktCtx.dpid().value())),
+                        DeviceId.deviceId(Dpid.uri(pktCtx.dpid())),
                         PortNumber.portNumber(pktCtx.inPort()),
                         System.currentTimeMillis());
                 ARP arp = (ARP) eth.getPayload();
