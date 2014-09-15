@@ -45,6 +45,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
         OFAction act = buildOutput(outPort.getPortNumber());
         pktout = builder.setXid(pktin.getXid())
+                .setInPort(pktin.getInPort())
                 .setBufferId(pktin.getBufferId())
                 .setActions(Collections.singletonList(act))
                 .build();
