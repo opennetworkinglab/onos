@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.ElementId;
+import org.onlab.onos.net.Host;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceService;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
 
 /**
  * Topology viewer resource.
@@ -67,13 +69,10 @@ public class TopologyResource extends BaseResource {
 
         // Merge the exterior and interior vertexes and inject host links as
         // the exterior edges.
-//        Iterator<Host> hosts = hostService.getHosts();
-//        while (hosts.hasNext()) {
-//            Host host = hosts.next();
-//            vertexesNode.add(json(mapper, host.id().ip().toString(), 3, true));
-//            edgesNode.add(json(mapper, 1, host.ip().toString(),
-//                               host.location().elementId().uri()));
-//        }
+        for (Host host : hostService.getHosts()) {
+            vertexesNode.add(json(mapper, host.id(), 3, true));
+            edgesNode.add(json(mapper, 1, host.location(), new ConnectPoint(host.id(), portNumber(-1))));
+        }
 
         // Now put the vertexes and edges into a root node and ship them off
         ObjectNode rootNode = mapper.createObjectNode();

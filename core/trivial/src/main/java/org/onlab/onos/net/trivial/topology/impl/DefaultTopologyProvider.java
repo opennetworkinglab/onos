@@ -46,7 +46,8 @@ public class DefaultTopologyProvider extends AbstractProvider
     private static final int MAX_BATCH_MS = 200;
     private static final int MAX_THREADS = 8;
 
-    // FIXME: Replace with a system-wide timer instance
+    // FIXME: Replace with a system-wide timer instance;
+    // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
     private static final Timer TIMER = new Timer();
 
     private final Logger log = getLogger(getClass());

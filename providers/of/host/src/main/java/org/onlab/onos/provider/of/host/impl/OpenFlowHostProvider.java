@@ -1,17 +1,14 @@
 package org.onlab.onos.provider.of.host.impl;
 
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostProvider;
@@ -19,6 +16,8 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.topology.Topology;
+import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowPacketContext;
@@ -29,8 +28,11 @@ import org.onlab.packet.IPAddress;
 import org.onlab.packet.VLANID;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -47,6 +49,9 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenFlowController controller;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
 
     private HostProviderService providerService;
 
@@ -87,25 +92,32 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
         public void handlePacket(OpenFlowPacketContext pktCtx) {
             Ethernet eth = pktCtx.parsed();
 
-            // potentially a new or moved host
+            // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 VLANID vlan = VLANID.vlanId(eth.getVlanID());
-                HostId hid = HostId.hostId(
-                        eth.getSourceMAC(), vlan);
-                HostLocation hloc = new HostLocation(
-                        DeviceId.deviceId(Dpid.uri(pktCtx.dpid())),
-                        PortNumber.portNumber(pktCtx.inPort()),
-                        System.currentTimeMillis());
+                ConnectPoint heardOn = new ConnectPoint(deviceId(Dpid.uri(pktCtx.dpid())),
+                                                        portNumber(pktCtx.inPort()));
+
+                // If this is not an edge port, bail out.
+                Topology topology = topologyService.currentTopology();
+                if (topologyService.isInfrastructure(topology, heardOn)) {
+                    return;
+                }
+
+                HostLocation hloc = new HostLocation(deviceId(Dpid.uri(pktCtx.dpid())),
+                                                     portNumber(pktCtx.inPort()),
+                                                     System.currentTimeMillis());
+
+                HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
                 ARP arp = (ARP) eth.getPayload();
-                Set<IPAddress> ips = Sets.newHashSet(IPAddress.valueOf(arp.getSenderProtocolAddress()));
-                HostDescription hdescr = new DefaultHostDescription(
-                        eth.getSourceMAC(),
-                        vlan,
-                        hloc,
-                        ips);
+                Set<IPAddress> ips = newHashSet(IPAddress.valueOf(arp.getSenderProtocolAddress()));
+                HostDescription hdescr =
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ips);
                 providerService.hostDetected(hid, hdescr);
 
             }
+
+            // TODO: Use DHCP packets as well later...
         }
 
     }
