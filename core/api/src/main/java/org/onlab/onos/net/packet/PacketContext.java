@@ -45,7 +45,7 @@ public interface PacketContext {
      * Blocks the outbound packet from being sent from this point onward.
      * @return whether the outbound packet is blocked.
      */
-    boolean blocked();
+    boolean block();
 
     /**
      * Check whether the outbound packet is blocked.

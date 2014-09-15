@@ -1,7 +1,8 @@
 package org.onlab.onos.net.flow;
 
-import org.onlab.onos.net.PortNumber;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.onlab.onos.net.PortNumber;
 /**
  * Factory class for creating various traffic treatment instructions.
  */
@@ -17,22 +18,44 @@ public final class Instructions {
      * @param number port number
      * @return output instruction
      */
-    public static Instruction<PortNumber> createOutput(final PortNumber number) {
-        return new Instruction<PortNumber>() {
+    public static OutputInstruction createOutput(final PortNumber number) {
+        checkNotNull(number, "PortNumber cannot be null");
+        return new OutputInstruction(number);
+    }
 
-            @Override
-            public Instruction.Type type() {
-                return Type.OUTPUT;
-            }
-
-            @Override
-            public PortNumber instruction() {
-                return number;
-            }
-
-        };
+    public static DropInstruction createDrop() {
+        return new DropInstruction();
     }
 
     // TODO: add create methods
+
+    public static final class DropInstruction implements Instruction {
+
+        @Override
+        public Type type() {
+            return Type.DROP;
+        }
+    }
+
+
+    public static final class OutputInstruction implements Instruction {
+
+        private final PortNumber port;
+
+        private OutputInstruction(PortNumber port) {
+            this.port = port;
+        }
+
+        public PortNumber port() {
+            return port;
+        }
+
+        @Override
+        public Type type() {
+            return Type.OUTPUT;
+        }
+
+
+    }
 
 }

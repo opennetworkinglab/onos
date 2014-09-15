@@ -51,7 +51,7 @@ public abstract class DefaultPacketContext implements PacketContext {
     public abstract void send();
 
     @Override
-    public boolean blocked() {
+    public boolean block() {
         return this.block.getAndSet(true);
     }
 

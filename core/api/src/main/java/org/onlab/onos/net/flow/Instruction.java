@@ -4,7 +4,7 @@ package org.onlab.onos.net.flow;
  * Abstraction of a single traffic treatment step.
  * @param <T> the type parameter for the instruction
  */
-public interface Instruction<T> {
+public interface Instruction {
 
     /**
      * Represents the type of traffic treatment.
@@ -40,11 +40,5 @@ public interface Instruction<T> {
      * @return type of instruction
      */
     public Type type();
-
-    /**
-     * Returns the actual value of the instruction.
-     * @return the value for this instruction
-     */
-    public T instruction();
 
 }

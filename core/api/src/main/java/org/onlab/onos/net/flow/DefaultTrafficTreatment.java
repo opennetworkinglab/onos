@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.onlab.onos.net.PortNumber;
 import org.slf4j.Logger;
 
 @SuppressWarnings("rawtypes")
@@ -33,29 +32,33 @@ public class DefaultTrafficTreatment implements TrafficTreatment {
 
         private final Logger log = getLogger(getClass());
 
-        List<Instruction<PortNumber>> outputs = new LinkedList<>();
+        boolean drop = false;
+
+        List<Instruction> outputs = new LinkedList<>();
 
         // TODO: should be a list of instructions based on group objects
-        List<Instruction<Object>> groups = new LinkedList<>();
+        List<Instruction> groups = new LinkedList<>();
 
         // TODO: should be a list of instructions based on modification objects
-        List<Instruction<Object>> modifications = new LinkedList<>();
+        List<Instruction> modifications = new LinkedList<>();
 
 
-        @SuppressWarnings("unchecked")
         @Override
         public Builder add(Instruction instruction) {
             switch (instruction.type()) {
-            case OUTPUT:
             case DROP:
-                // TODO: should check that there is only one drop instruction.
+                drop = true;
+                break;
+            case OUTPUT:
                 outputs.add(instruction);
                 break;
             case MODIFICATION:
                 // TODO: enforce modification order if any
                 modifications.add(instruction);
+                break;
             case GROUP:
                 groups.add(instruction);
+                break;
             default:
                 log.warn("Unknown instruction type {}", instruction.type());
             }
@@ -64,10 +67,14 @@ public class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public TrafficTreatment build() {
+
+            //If we are dropping should we just return an emptry list?
             List<Instruction> instructions = new LinkedList<Instruction>();
             instructions.addAll(modifications);
             instructions.addAll(groups);
-            instructions.addAll(outputs);
+            if (!drop) {
+                instructions.addAll(outputs);
+            }
 
             return new DefaultTrafficTreatment(instructions);
         }

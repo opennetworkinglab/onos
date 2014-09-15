@@ -1,13 +1,15 @@
 package org.onlab.onos.event;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.onlab.junit.TestTools.delay;
+import static org.onlab.onos.event.TestEvent.Type.FOO;
 
 import java.util.List;
 import java.util.Timer;
 
-import static org.junit.Assert.*;
-import static org.onlab.junit.TestTools.delay;
-import static org.onlab.onos.event.TestEvent.Type.FOO;
+import org.junit.Test;
 
 /**
  * Tests the operation of the accumulator.

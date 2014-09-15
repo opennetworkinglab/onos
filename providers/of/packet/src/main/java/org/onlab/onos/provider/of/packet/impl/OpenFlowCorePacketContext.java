@@ -7,6 +7,7 @@ import java.util.List;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.Instruction;
 import org.onlab.onos.net.flow.Instruction.Type;
+import org.onlab.onos.net.flow.Instructions.OutputInstruction;
 import org.onlab.onos.net.packet.DefaultPacketContext;
 import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;
@@ -29,7 +30,7 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
 
     @Override
     public void send() {
-        if (!this.blocked()) {
+        if (!this.block()) {
             if (outPacket() == null) {
                 sendBufferedPacket();
             } else {
@@ -42,14 +43,13 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
         }
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void sendBufferedPacket() {
         List<Instruction> ins = treatmentBuilder().build().instructions();
         OFPort p = null;
         //TODO: support arbitrary list of treatments
         for (Instruction i : ins) {
             if (i.type() == Type.OUTPUT) {
-                p = buildPort(((Instruction<PortNumber>) i).instruction());
+                p = buildPort(((OutputInstruction) i).port());
                 break; //for now...
             }
         }

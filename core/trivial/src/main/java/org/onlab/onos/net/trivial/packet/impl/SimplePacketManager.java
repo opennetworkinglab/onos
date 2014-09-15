@@ -1,5 +1,6 @@
 package org.onlab.onos.net.trivial.packet.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
@@ -42,22 +43,20 @@ implements PacketService, PacketProviderRegistry {
 
     private final Map<Integer, PacketProcessor> processors = new TreeMap<>();
 
-    private final PacketProcessor reactiveProcessor = new ReactivePacketProcessor();
 
     @Activate
     public void activate() {
-        addProcessor(reactiveProcessor, PacketProcessor.ADVISOR_MAX + 1);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        removeProcessor(reactiveProcessor);
         log.info("Stopped");
     }
 
     @Override
     public void addProcessor(PacketProcessor processor, int priority) {
+        checkNotNull(processor, "Processor cannot be null");
         processors.put(priority, processor);
     }
 

@@ -78,5 +78,12 @@
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.onlab.onos/onos-app-tvue/1.0.0-SNAPSHOT</bundle>
     </feature>
+    
+    <feature name="onos-app-fwd" version="1.0.0"
+             description="ONOS sample forwarding application">
+        <feature>onos-core</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-fwd/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
 
 </features>

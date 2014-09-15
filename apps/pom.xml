@@ -18,6 +18,7 @@
 
     <modules>
         <module>tvue</module>
+        <module>fwd</module>
     </modules>
 
     <properties>
