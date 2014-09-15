@@ -105,14 +105,14 @@ public interface TopologyService {
 
 
     /**
-     * Indicates whether the specified connection point belong to the
-     * broadcast tree.
+     * Indicates whether broadcast is allowed for traffic received on the
+     * specified connection point.
      *
      * @param topology     topology descriptor
      * @param connectPoint connection point
      * @return true if broadcast is permissible
      */
-    boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint);
+    boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint);
 
     /**
      * Adds the specified topology listener.

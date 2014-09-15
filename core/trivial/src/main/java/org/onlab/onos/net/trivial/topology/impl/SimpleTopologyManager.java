@@ -58,7 +58,7 @@ public class SimpleTopologyManager
     private final SimpleTopologyStore store = new SimpleTopologyStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDeliveryService eventDispatcher;
+    protected EventDeliveryService eventDispatcher;
 
 
     @Activate
@@ -151,10 +151,10 @@ public class SimpleTopologyManager
     }
 
     @Override
-    public boolean isInBroadcastTree(Topology topology, ConnectPoint connectPoint) {
+    public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return store.isInBroadcastTree(defaultTopology(topology), connectPoint);
+        return store.isBroadcastPoint(defaultTopology(topology), connectPoint);
     }
 
     @Override

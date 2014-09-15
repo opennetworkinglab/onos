@@ -136,13 +136,14 @@ class SimpleTopologyStore {
     }
 
     /**
-     * Indicates whether the given connect point is part of the broadcast tree.
+     * Indicates whether broadcast is allowed for traffic received on the
+     * given connection point.
      *
      * @param topology     topology descriptor
      * @param connectPoint connection point
-     * @return true if in broadcast tree; false otherwise
+     * @return true if broadcast allowed; false otherwise
      */
-    boolean isInBroadcastTree(DefaultTopology topology, ConnectPoint connectPoint) {
+    boolean isBroadcastPoint(DefaultTopology topology, ConnectPoint connectPoint) {
         return topology.isInBroadcastTree(connectPoint);
     }
 
