@@ -48,7 +48,7 @@ public class SimpleDeviceManager
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<DeviceEvent, DeviceListener>
+    protected final AbstractListenerRegistry<DeviceEvent, DeviceListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
     private final SimpleDeviceStore store = new SimpleDeviceStore();

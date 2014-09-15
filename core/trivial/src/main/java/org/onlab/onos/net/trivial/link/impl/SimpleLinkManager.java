@@ -45,7 +45,7 @@ public class SimpleLinkManager
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<LinkEvent, LinkListener>
+    protected final AbstractListenerRegistry<LinkEvent, LinkListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
     private final SimpleLinkStore store = new SimpleLinkStore();

@@ -182,20 +182,20 @@ public class SimpleTopologyManagerTest {
     }
 
     // Short-hand for creating a link.
-    private Link link(String src, int sp, String dst, int dp) {
+    static Link link(String src, int sp, String dst, int dp) {
         return new DefaultLink(PID, new ConnectPoint(did(src), portNumber(sp)),
                                new ConnectPoint(did(dst), portNumber(dp)),
                                Link.Type.DIRECT);
     }
 
     // Crates a new device with the specified id
-    private Device device(String id) {
+    static Device device(String id) {
         return new DefaultDevice(PID, did(id), Device.Type.SWITCH,
                                  "mfg", "1.0", "1.1", "1234");
     }
 
     // Short-hand for producing a device id from a string
-    private DeviceId did(String id) {
+    static DeviceId did(String id) {
         return deviceId("of:" + id);
     }
 
