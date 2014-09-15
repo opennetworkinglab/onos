@@ -2,6 +2,11 @@ package org.onlab.onos.provider.of.packet.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.List;
+
+import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.flow.Instruction;
+import org.onlab.onos.net.flow.Instruction.Type;
 import org.onlab.onos.net.packet.DefaultPacketContext;
 import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;
@@ -24,18 +29,36 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
 
     @Override
     public void send() {
-        if (!this.isHandled()) {
-            block();
+        if (!this.blocked()) {
             if (outPacket() == null) {
-                ofPktCtx.build(OFPort.FLOOD);
+                sendBufferedPacket();
             } else {
                 Ethernet eth = new Ethernet();
                 eth.deserialize(outPacket().data().array(), 0,
                         outPacket().data().array().length);
                 ofPktCtx.build(eth, OFPort.FLOOD);
             }
-            ofPktCtx.send();
+
         }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void sendBufferedPacket() {
+        List<Instruction> ins = treatmentBuilder().build().instructions();
+        OFPort p = null;
+        //TODO: support arbitrary list of treatments
+        for (Instruction i : ins) {
+            if (i.type() == Type.OUTPUT) {
+                p = buildPort(((Instruction<PortNumber>) i).instruction());
+                break; //for now...
+            }
+        }
+        ofPktCtx.build(p);
+        ofPktCtx.send();
+    }
+
+    private OFPort buildPort(PortNumber port) {
+        return OFPort.of((int) port.toLong());
     }
 
 }

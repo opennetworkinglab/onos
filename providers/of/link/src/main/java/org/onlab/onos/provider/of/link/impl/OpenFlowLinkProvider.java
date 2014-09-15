@@ -1,5 +1,10 @@
 package org.onlab.onos.provider.of.link.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -13,20 +18,15 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.OpenFlowController;
+import org.onlab.onos.of.controller.OpenFlowPacketContext;
 import org.onlab.onos.of.controller.OpenFlowSwitch;
 import org.onlab.onos.of.controller.OpenFlowSwitchListener;
-import org.onlab.onos.of.controller.OpenFlowPacketContext;
 import org.onlab.onos.of.controller.PacketListener;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -93,7 +93,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
                 return;
             }
             if (ld.handleLLDP(pktCtx.unparsed(), pktCtx.inPort())) {
-                pktCtx.block();
+                pktCtx.blocked();
             }
 
         }
@@ -101,7 +101,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
         @Override
         public void switchAdded(Dpid dpid) {
             discoverers.put(dpid, new LinkDiscovery(controller.getSwitch(dpid),
-                                                    controller, providerService, useBDDP));
+                    controller, providerService, useBDDP));
 
         }
 

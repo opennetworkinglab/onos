@@ -1,9 +1,7 @@
 package org.onlab.onos.of.controller.impl;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,6 +25,9 @@ import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 @Component(immediate = true)
 @Service
 public class OpenFlowControllerImpl implements OpenFlowController {
@@ -44,7 +45,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
     protected Set<OpenFlowSwitchListener> ofEventListener = new HashSet<>();
 
-    protected Map<Integer, PacketListener> ofPacketListener = new TreeMap<>();
+    protected Multimap<Integer, PacketListener> ofPacketListener =
+            ArrayListMultimap.create();
+
 
     private final Controller ctrl = new Controller();
 

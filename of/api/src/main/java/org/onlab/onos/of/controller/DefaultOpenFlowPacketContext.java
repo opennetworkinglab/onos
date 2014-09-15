@@ -3,6 +3,7 @@ package org.onlab.onos.of.controller;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
@@ -18,7 +19,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     private final Logger log = getLogger(getClass());
 
-    private boolean free = true;
+    private final AtomicBoolean free = new AtomicBoolean(true);
     private boolean isBuilt = false;
     private final OpenFlowSwitch sw;
     private final OFPacketIn pktin;
@@ -30,14 +31,8 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     }
 
     @Override
-    public void block() {
-        free = false;
-    }
-
-    @Override
     public void send() {
-        if (free && isBuilt) {
-            block();
+        if (blocked() && isBuilt) {
             sw.sendMsg(pktout);
         }
     }
@@ -109,6 +104,11 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
                 .setPort(OFPort.of(port))
                 .build();
         return act;
+    }
+
+    @Override
+    public boolean blocked() {
+        return free.getAndSet(false);
     }
 
 }

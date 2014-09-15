@@ -13,12 +13,13 @@ public final class PortNumber {
 
     private static final long MAX_NUMBER = (2L * Integer.MAX_VALUE) + 1;
 
-    public static final PortNumber FLOOD = new PortNumber(-1);
-    public static final PortNumber IN_PORT = new PortNumber(-2);
-    public static final PortNumber TABLE = new PortNumber(-3);
-    public static final PortNumber NORMAL = new PortNumber(-4);
+
+    public static final PortNumber IN_PORT = new PortNumber(-8);
+    public static final PortNumber TABLE = new PortNumber(-7);
+    public static final PortNumber NORMAL = new PortNumber(-6);
+    public static final PortNumber FLOOD = new PortNumber(-5);
     public static final PortNumber ALL = new PortNumber(-4);
-    public static final PortNumber LOCAL = new PortNumber(-5);
+    public static final PortNumber LOCAL = new PortNumber(-2);
 
     private final long number;
 
