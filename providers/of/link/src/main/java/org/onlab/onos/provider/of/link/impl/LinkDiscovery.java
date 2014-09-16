@@ -228,6 +228,9 @@ public class LinkDiscovery implements TimerTask {
      * @return Packet_out message with LLDP data
      */
     private OFPacketOut createLLDPPacketOut(final OFPortDesc port) {
+        if (port == null) {
+            return null;
+        }
         OFPacketOut.Builder packetOut = this.ofFactory.buildPacketOut();
         packetOut.setBufferId(OFBufferId.NO_BUFFER);
         OFAction act = this.ofFactory.actions().buildOutput()
@@ -248,6 +251,9 @@ public class LinkDiscovery implements TimerTask {
      * @return Packet_out message with LLDP data
      */
     private OFPacketOut createBDDPPacketOut(final OFPortDesc port) {
+        if (port == null) {
+            return null;
+        }
         OFPacketOut.Builder packetOut = sw.factory().buildPacketOut();
 
         packetOut.setBufferId(OFBufferId.NO_BUFFER);
@@ -267,6 +273,9 @@ public class LinkDiscovery implements TimerTask {
 
 
     private void sendMsg(final OFMessage msg) {
+        if (msg == null) {
+            return;
+        }
         this.sw.sendMsg(msg);
     }
 
@@ -389,8 +398,8 @@ public class LinkDiscovery implements TimerTask {
     }
 
     public void stop() {
-        removeAllPorts();
         timeout.cancel();
+        removeAllPorts();
     }
 
 }
