@@ -1,4 +1,4 @@
-package org.onlab.onos.net.flow;
+package org.onlab.onos.net.flow.instructions;
 
 /**
  * Abstraction of a single traffic treatment step.

@@ -11,6 +11,7 @@ import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriverFactory;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
 
         log.warn("DriverManager could not identify switch desc: {}. "
                 + "Assigning AbstractOpenFlowSwich", desc);
-        return new AbstractOpenFlowSwitch(dpid) {
+        return new AbstractOpenFlowSwitch(dpid, desc) {
 
             @Override
             public void write(List<OFMessage> msgs) {
@@ -84,6 +85,15 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             @Override
             public boolean isDriverHandshakeComplete() {
                 return true;
+            }
+
+            @Override
+            public List<OFPortDesc> getPorts() {
+                if (this.factory().getVersion() == OFVersion.OF_10) {
+                    return Collections.unmodifiableList(features.getPorts());
+                } else {
+                    return Collections.unmodifiableList(ports.getEntries());
+                }
             }
         };
     }

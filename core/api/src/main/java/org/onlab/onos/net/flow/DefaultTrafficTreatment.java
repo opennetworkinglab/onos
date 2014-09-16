@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.onlab.onos.net.flow.instructions.Instruction;
 import org.slf4j.Logger;
 
 @SuppressWarnings("rawtypes")

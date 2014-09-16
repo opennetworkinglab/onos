@@ -5,9 +5,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.List;
 
 import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.Instruction;
-import org.onlab.onos.net.flow.Instruction.Type;
-import org.onlab.onos.net.flow.Instructions.OutputInstruction;
+import org.onlab.onos.net.flow.instructions.Instruction;
+import org.onlab.onos.net.flow.instructions.Instruction.Type;
+import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.packet.DefaultPacketContext;
 import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;

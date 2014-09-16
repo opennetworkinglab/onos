@@ -1,0 +1,352 @@
+package org.onlab.onos.provider.of.host.impl;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Set;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Path;
+import org.onlab.onos.net.host.HostDescription;
+import org.onlab.onos.net.host.HostProvider;
+import org.onlab.onos.net.host.HostProviderRegistry;
+import org.onlab.onos.net.host.HostProviderService;
+import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.topology.ClusterId;
+import org.onlab.onos.net.topology.LinkWeight;
+import org.onlab.onos.net.topology.Topology;
+import org.onlab.onos.net.topology.TopologyCluster;
+import org.onlab.onos.net.topology.TopologyGraph;
+import org.onlab.onos.net.topology.TopologyListener;
+import org.onlab.onos.net.topology.TopologyService;
+import org.onlab.onos.of.controller.Dpid;
+import org.onlab.onos.of.controller.OpenFlowController;
+import org.onlab.onos.of.controller.OpenFlowPacketContext;
+import org.onlab.onos.of.controller.OpenFlowSwitch;
+import org.onlab.onos.of.controller.OpenFlowSwitchListener;
+import org.onlab.onos.of.controller.PacketListener;
+import org.onlab.onos.of.controller.RoleState;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
+import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.types.OFPort;
+
+public class OpenFlowHostProviderTest {
+
+    private static final Integer INPORT = 10;
+    private static final Dpid DPID1 = new Dpid(100);
+    private static final Dpid DPID2 = new Dpid(200);
+    private static final Dpid DPID3 = new Dpid(300);
+
+    private static final VLANID VLAN = VLANID.vlanId();
+    private static final MACAddress MAC = MACAddress.valueOf("00:00:11:00:00:01");
+    private static final MACAddress BCMAC = MACAddress.valueOf("ff:ff:ff:ff:ff:ff");
+    private static byte [] IP = new byte [] { 10,0,0,1 };
+
+    private OpenFlowHostProvider provider = new OpenFlowHostProvider();
+    private TestHostRegistry hostService = new TestHostRegistry();
+    private TestController controller = new TestController();
+    private TestTopologyService topoService = new TestTopologyService();
+    private TestHostProviderService providerService;
+
+    @Before
+    public void setUp() {
+        provider.providerRegistry = hostService;
+        provider.controller = controller;
+        provider.topologyService = topoService;
+        provider.activate();
+    }
+
+    @Test
+    public void basics() {
+        assertNotNull("registration expected", providerService);
+        assertEquals("incorrect provider", provider, providerService.provider());
+    }
+
+    @Test
+    public void events() {
+        // new host
+        controller.processPacket(DPID1, null);
+        assertNotNull("new host expected", providerService.added);
+        assertNull("host motion unexpected", providerService.moved);
+
+        // the host moved to new switch
+        controller.processPacket(DPID2, null);
+        assertNotNull("host motion expected", providerService.moved);
+
+        // the host was misheard on a spine
+        controller.processPacket(DPID3, null);
+        assertNull("host misheard on spine switch", providerService.spine);
+    }
+
+    @After
+    public void tearDown() {
+        provider.deactivate();
+        provider.providerRegistry = null;
+        provider.controller = null;
+    }
+
+    private class TestHostRegistry implements HostProviderRegistry {
+
+        @Override
+        public HostProviderService register(HostProvider provider) {
+            providerService = new TestHostProviderService(provider);
+            return providerService;
+        }
+
+        @Override
+        public void unregister(HostProvider provider) {
+        }
+
+        @Override
+        public Set<ProviderId> getProviders() {
+            return null;
+        }
+
+    }
+
+    private class TestHostProviderService
+            extends AbstractProviderService<HostProvider>
+            implements HostProviderService {
+
+        Dpid added = null;
+        Dpid moved = null;
+        Dpid spine = null;
+
+        protected TestHostProviderService(HostProvider provider) {
+            super(provider);
+        }
+
+        @Override
+        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+            Dpid descr = Dpid.dpid(hostDescription.location().deviceId().uri());
+            if (added == null) {
+                added = descr;
+            } else if ((moved == null) && !descr.equals(added)) {
+                moved = descr;
+            } else {
+                spine = descr;
+            }
+        }
+
+        @Override
+        public void hostVanished(HostId hostId) {
+        }
+
+    }
+
+    private class TestController implements OpenFlowController {
+
+        PacketListener pktListener;
+
+        @Override
+        public Iterable<OpenFlowSwitch> getSwitches() {
+            return null;
+        }
+
+        @Override
+        public Iterable<OpenFlowSwitch> getMasterSwitches() {
+            return null;
+        }
+
+        @Override
+        public Iterable<OpenFlowSwitch> getEqualSwitches() {
+            return null;
+        }
+
+        @Override
+        public OpenFlowSwitch getSwitch(Dpid dpid) {
+            return null;
+        }
+
+        @Override
+        public OpenFlowSwitch getMasterSwitch(Dpid dpid) {
+            return null;
+        }
+
+        @Override
+        public OpenFlowSwitch getEqualSwitch(Dpid dpid) {
+            return null;
+        }
+
+        @Override
+        public void addListener(OpenFlowSwitchListener listener) {
+        }
+
+        @Override
+        public void removeListener(OpenFlowSwitchListener listener) {
+        }
+
+        @Override
+        public void addPacketListener(int priority, PacketListener listener) {
+            pktListener = listener;
+        }
+
+        @Override
+        public void removePacketListener(PacketListener listener) {
+        }
+
+        @Override
+        public void write(Dpid dpid, OFMessage msg) {
+        }
+
+        @Override
+        public void processPacket(Dpid dpid, OFMessage msg) {
+            OpenFlowPacketContext ctx =
+                    new TestPacketContext(dpid);
+
+            pktListener.handlePacket(ctx);
+        }
+
+        @Override
+        public void setRole(Dpid dpid, RoleState role) {
+        }
+    }
+
+    private class TestTopologyService implements TopologyService {
+
+        @Override
+        public Topology currentTopology() {
+            return null;
+        }
+
+        @Override
+        public boolean isLatest(Topology topology) {
+            return false;
+        }
+
+        @Override
+        public TopologyGraph getGraph(Topology topology) {
+            return null;
+        }
+
+        @Override
+        public Set<TopologyCluster> getClusters(Topology topology) {
+            return null;
+        }
+
+        @Override
+        public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
+            return null;
+        }
+
+        @Override
+        public Set<DeviceId> getClusterDevices(Topology topology,
+                TopologyCluster cluster) {
+            return null;
+        }
+
+        @Override
+        public Set<Link> getClusterLinks(Topology topology,
+                TopologyCluster cluster) {
+            return null;
+        }
+
+        @Override
+        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
+            return null;
+        }
+
+        @Override
+        public Set<Path> getPaths(Topology topology, DeviceId src,
+                DeviceId dst, LinkWeight weight) {
+            return null;
+        }
+
+        @Override
+        public boolean isInfrastructure(Topology topology,
+                ConnectPoint connectPoint) {
+            //simulate DPID3 as an infrastructure switch
+            if (Dpid.dpid(connectPoint.deviceId().uri()).equals(DPID3)) {
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean isBroadcastPoint(Topology topology,
+                ConnectPoint connectPoint) {
+            return false;
+        }
+
+        @Override
+        public void addListener(TopologyListener listener) {
+        }
+
+        @Override
+        public void removeListener(TopologyListener listener) {
+        }
+
+    }
+
+    private class TestPacketContext implements OpenFlowPacketContext {
+
+        protected Dpid swid;
+
+        public TestPacketContext(Dpid dpid) {
+            swid = dpid;
+        }
+
+        @Override
+        public boolean blocked() {
+            return false;
+        }
+
+        @Override
+        public void send() {
+        }
+
+        @Override
+        public void build(OFPort outPort) {
+        }
+
+        @Override
+        public void build(Ethernet ethFrame, OFPort outPort) {
+        }
+
+        @Override
+        public Ethernet parsed() {
+            // just things we (and serializers) need
+            ARP arp = new ARP();
+            arp.setSenderProtocolAddress(IP)
+                .setSenderHardwareAddress(MAC.toBytes())
+                .setTargetHardwareAddress(BCMAC.toBytes())
+                .setTargetProtocolAddress(IP);
+
+            Ethernet eth = new Ethernet();
+            eth.setEtherType(Ethernet.TYPE_ARP)
+                    .setVlanID(VLAN.toShort())
+                    .setSourceMACAddress(MAC.toBytes())
+                    .setDestinationMACAddress(BCMAC.getAddress())
+                    .setPayload(arp);
+
+            return eth;
+        }
+
+        @Override
+        public byte[] unparsed() {
+            return null;
+        }
+
+        @Override
+        public Dpid dpid() {
+            return swid;
+        }
+
+        @Override
+        public Integer inPort() {
+            return INPORT;
+        }
+
+    }
+}
