@@ -129,7 +129,7 @@
         }
 
         function dragstart(d) {
-            d3.select(this).classed("fixed", d.fixed = true);
+            // d3.select(this).classed("fixed", d.fixed = true);
         }
 
 
@@ -147,8 +147,8 @@
                     }
                     return false;
                 }
-                node = {"id": vertex.name, "group": vertex.group,
-                    "online": vertex.online, "stamp": stamp};
+                node = {"id": vertex.name, "label": vertex.label,
+                    "group": vertex.group, "online": vertex.online, "stamp": stamp};
                 nodes.push(node);
                 topo.vertexes[vertex.name] = node;
                 update();
@@ -239,6 +239,8 @@
                             targetNode = aux;
                         } else if (d3.event.keyCode == 70) {
                             nextPath();
+                        } else if (d3.event.keyCode == 67 && selectedNode) {
+                            selectedNode.fixed = !selectedNode.fixed;
                         }
 
                         d3.selectAll(".nodeStrokeClass").attr("fill", fillColor);
@@ -288,7 +290,7 @@
                         .attr("class", "textClass")
                         .attr("x", 20)
                         .attr("y", ".31em")
-                        .text(function (d) { return d.id; });
+                        .text(function (d) { return d.label; });
 
                 node.exit().remove();
 

@@ -23,6 +23,7 @@ public final class Instructions {
         return new OutputInstruction(number);
     }
 
+    // TODO: Move these out into separate classes and to flow.instruction package
     public static DropInstruction createDrop() {
         return new DropInstruction();
     }
@@ -30,7 +31,6 @@ public final class Instructions {
     // TODO: add create methods
 
     public static final class DropInstruction implements Instruction {
-
         @Override
         public Type type() {
             return Type.DROP;
@@ -39,7 +39,6 @@ public final class Instructions {
 
 
     public static final class OutputInstruction implements Instruction {
-
         private final PortNumber port;
 
         private OutputInstruction(PortNumber port) {
@@ -54,8 +53,6 @@ public final class Instructions {
         public Type type() {
             return Type.OUTPUT;
         }
-
-
     }
 
 }

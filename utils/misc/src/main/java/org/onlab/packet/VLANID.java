@@ -3,6 +3,7 @@ package org.onlab.packet;
 /**
  * Representation of a VLAN ID.
  */
+// FIXME: This will end-up looking like a constant; we should name it 'VlanId', 'IpAddress', 'MacAddress'.
 public class VLANID {
 
     private final short value;

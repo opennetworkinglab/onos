@@ -25,10 +25,8 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-
 /**
  * Provides a basic implementation of the packet SB &amp; NB APIs.
- *
  */
 @Component(immediate = true)
 @Service
@@ -42,7 +40,6 @@ implements PacketService, PacketProviderRegistry {
     private DeviceService deviceService;
 
     private final Map<Integer, PacketProcessor> processors = new TreeMap<>();
-
 
     @Activate
     public void activate() {
@@ -62,19 +59,20 @@ implements PacketService, PacketProviderRegistry {
 
     @Override
     public void removeProcessor(PacketProcessor processor) {
+        checkNotNull(processor, "Processor cannot be null");
         processors.values().remove(processor);
     }
 
     @Override
     public void emit(OutboundPacket packet) {
+        checkNotNull(packet, "Packet cannot be null");
         final Device device = deviceService.getDevice(packet.sendThrough());
         final PacketProvider packetProvider = getProvider(device.providerId());
         packetProvider.emit(packet);
     }
 
     @Override
-    protected PacketProviderService createProviderService(
-            PacketProvider provider) {
+    protected PacketProviderService createProviderService(PacketProvider provider) {
         return new InternalPacketProviderService(provider);
     }
 

@@ -12,6 +12,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.host.HostAdminService;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostListener;
@@ -38,7 +39,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleHostManager
         extends AbstractProviderRegistry<HostProvider, HostProviderService>
-        implements HostService, HostProviderRegistry {
+        implements HostService, HostAdminService, HostProviderRegistry {
 
     public static final String HOST_ID_NULL = "Host ID cannot be null";
     private final Logger log = getLogger(getClass());
@@ -122,6 +123,16 @@ public class SimpleHostManager
     @Override
     public void removeListener(HostListener listener) {
         listenerRegistry.removeListener(listener);
+    }
+
+    @Override
+    public void removeHost(HostId hostId) {
+        checkNotNull(hostId, HOST_ID_NULL);
+        HostEvent event = store.removeHost(hostId);
+        if (event != null) {
+            log.info("Host {} administratively removed", hostId);
+            post(event);
+        }
     }
 
     // Personalized host provider service issued to the supplied provider.

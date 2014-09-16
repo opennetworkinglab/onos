@@ -139,8 +139,7 @@ class SimpleDeviceStore {
     DeviceEvent markOffline(DeviceId deviceId) {
         synchronized (this) {
             Device device = devices.get(deviceId);
-            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
-            boolean removed = availableDevices.remove(deviceId);
+            boolean removed = device != null && availableDevices.remove(deviceId);
             return !removed ? null :
                     new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
         }

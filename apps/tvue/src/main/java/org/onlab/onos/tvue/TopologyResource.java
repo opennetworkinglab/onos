@@ -15,6 +15,7 @@ import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.onos.net.topology.TopologyVertex;
+import org.onlab.packet.IPAddress;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.GET;
@@ -54,6 +55,7 @@ public class TopologyResource extends BaseResource {
         ArrayNode vertexesNode = mapper.createArrayNode();
         for (TopologyVertex vertex : graph.getVertexes()) {
             vertexesNode.add(json(mapper, vertex.deviceId(), 2,
+                                  vertex.deviceId().uri().getSchemeSpecificPart(),
                                   deviceService.isAvailable(vertex.deviceId())));
         }
 
@@ -70,14 +72,17 @@ public class TopologyResource extends BaseResource {
         // Merge the exterior and interior vertexes and inject host links as
         // the exterior edges.
         for (Host host : hostService.getHosts()) {
-            vertexesNode.add(json(mapper, host.id(), 3, true));
+            Set<IPAddress> ipAddresses = host.ipAddresses();
+            IPAddress ipAddress = ipAddresses.isEmpty() ? null : ipAddresses.iterator().next();
+            String label = ipAddress != null ? ipAddress.toString() : host.mac().toString();
+            vertexesNode.add(json(mapper, host.id(), 3, label, true));
             edgesNode.add(json(mapper, 1, host.location(), new ConnectPoint(host.id(), portNumber(-1))));
         }
 
         // Now put the vertexes and edges into a root node and ship them off
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.put("vertexes", vertexesNode);
-        rootNode.put("edges", edgesNode);
+        rootNode.set("vertexes", vertexesNode);
+        rootNode.set("edges", edgesNode);
         return Response.ok(rootNode.toString()).build();
     }
 
@@ -126,12 +131,12 @@ public class TopologyResource extends BaseResource {
         return aggLinks;
     }
 
-
     // Produces JSON for a graph vertex.
     private ObjectNode json(ObjectMapper mapper, ElementId id, int group,
-                            boolean isOnline) {
+                            String label, boolean isOnline) {
         return mapper.createObjectNode()
                 .put("name", id.uri().toString())
+                .put("label", label)
                 .put("group", group)
                 .put("online", isOnline);
     }
