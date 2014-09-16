@@ -1,4 +1,4 @@
-package org.onlab.onos.net.flow;
+package org.onlab.onos.net.flow.criteria;
 
 /**
  * Factory class to create various traffic selection criteria.
