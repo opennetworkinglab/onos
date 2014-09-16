@@ -147,8 +147,8 @@
                     }
                     return false;
                 }
-                node = {"id": vertex.name, "group": vertex.group,
-                    "online": vertex.online, "stamp": stamp};
+                node = {"id": vertex.name, "label": vertex.label,
+                    "group": vertex.group, "online": vertex.online, "stamp": stamp};
                 nodes.push(node);
                 topo.vertexes[vertex.name] = node;
                 update();
@@ -288,7 +288,7 @@
                         .attr("class", "textClass")
                         .attr("x", 20)
                         .attr("y", ".31em")
-                        .text(function (d) { return d.id; });
+                        .text(function (d) { return d.label; });
 
                 node.exit().remove();
 

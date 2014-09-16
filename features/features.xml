@@ -39,27 +39,27 @@
 
     <feature name="onos-rest" version="1.0.0"
              description="ONOS REST API components">
-        <feature>onos-core</feature>
+        <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.onlab.onos/onos-rest/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-gui" version="1.0.0"
              description="ONOS GUI console components">
-        <feature>onos-core</feature>
+        <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.onlab.onos/onos-gui/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-cli" version="1.0.0"
              description="ONOS admin command console components">
-        <feature>onos-core</feature>
+        <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-cli/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-openflow" version="1.0.0"
             description="ONOS OpenFlow API, Controller &amp; Providers">
-        <feature>onos-core</feature>
+        <feature>onos-api</feature>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
 
         <bundle>mvn:org.onlab.onos/onos-of-api/1.0.0-SNAPSHOT</bundle>
@@ -74,14 +74,14 @@
 
     <feature name="onos-app-tvue" version="1.0.0"
              description="ONOS sample topology viewer application">
-        <feature>onos-core</feature>
+        <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.onlab.onos/onos-app-tvue/1.0.0-SNAPSHOT</bundle>
     </feature>
     
     <feature name="onos-app-fwd" version="1.0.0"
              description="ONOS sample forwarding application">
-        <feature>onos-core</feature>
+        <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-app-fwd/1.0.0-SNAPSHOT</bundle>
     </feature>
 
