@@ -60,8 +60,8 @@ public class Ethernet extends BasePacket {
         Ethernet.etherTypeClassMap.put(Ethernet.TYPE_LLDP, LLDP.class);
     }
 
-    protected MACAddress destinationMACAddress;
-    protected MACAddress sourceMACAddress;
+    protected MacAddress destinationMACAddress;
+    protected MacAddress sourceMACAddress;
     protected byte priorityCode;
     protected short vlanID;
     protected short etherType;
@@ -89,7 +89,7 @@ public class Ethernet extends BasePacket {
      *
      * @return the destination MAC
      */
-    public MACAddress getDestinationMAC() {
+    public MacAddress getDestinationMAC() {
         return this.destinationMACAddress;
     }
 
@@ -100,7 +100,7 @@ public class Ethernet extends BasePacket {
      * @return the Ethernet frame
      */
     public Ethernet setDestinationMACAddress(final byte[] destMac) {
-        this.destinationMACAddress = MACAddress.valueOf(destMac);
+        this.destinationMACAddress = MacAddress.valueOf(destMac);
         return this;
     }
 
@@ -111,7 +111,7 @@ public class Ethernet extends BasePacket {
      * @return the Ethernet frame
      */
     public Ethernet setDestinationMACAddress(final String destMac) {
-        this.destinationMACAddress = MACAddress.valueOf(destMac);
+        this.destinationMACAddress = MacAddress.valueOf(destMac);
         return this;
     }
 
@@ -129,7 +129,7 @@ public class Ethernet extends BasePacket {
      *
      * @return the source MACAddress
      */
-    public MACAddress getSourceMAC() {
+    public MacAddress getSourceMAC() {
         return this.sourceMACAddress;
     }
 
@@ -140,7 +140,7 @@ public class Ethernet extends BasePacket {
      * @return the Ethernet frame
      */
     public Ethernet setSourceMACAddress(final byte[] sourceMac) {
-        this.sourceMACAddress = MACAddress.valueOf(sourceMac);
+        this.sourceMACAddress = MacAddress.valueOf(sourceMac);
         return this;
     }
 
@@ -151,7 +151,7 @@ public class Ethernet extends BasePacket {
      * @return the Ethernet frame
      */
     public Ethernet setSourceMACAddress(final String sourceMac) {
-        this.sourceMACAddress = MACAddress.valueOf(sourceMac);
+        this.sourceMACAddress = MacAddress.valueOf(sourceMac);
         return this;
     }
 
@@ -288,18 +288,18 @@ public class Ethernet extends BasePacket {
         }
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         if (this.destinationMACAddress == null) {
-            this.destinationMACAddress = MACAddress.valueOf(new byte[6]);
+            this.destinationMACAddress = MacAddress.valueOf(new byte[6]);
         }
-        final byte[] dstAddr = new byte[MACAddress.MAC_ADDRESS_LENGTH];
+        final byte[] dstAddr = new byte[MacAddress.MAC_ADDRESS_LENGTH];
         bb.get(dstAddr);
-        this.destinationMACAddress = MACAddress.valueOf(dstAddr);
+        this.destinationMACAddress = MacAddress.valueOf(dstAddr);
 
         if (this.sourceMACAddress == null) {
-            this.sourceMACAddress = MACAddress.valueOf(new byte[6]);
+            this.sourceMACAddress = MacAddress.valueOf(new byte[6]);
         }
-        final byte[] srcAddr = new byte[MACAddress.MAC_ADDRESS_LENGTH];
+        final byte[] srcAddr = new byte[MacAddress.MAC_ADDRESS_LENGTH];
         bb.get(srcAddr);
-        this.sourceMACAddress = MACAddress.valueOf(srcAddr);
+        this.sourceMACAddress = MacAddress.valueOf(srcAddr);
 
         short ethType = bb.getShort();
         if (ethType == (short) 0x8100) {
@@ -361,7 +361,7 @@ public class Ethernet extends BasePacket {
      * @return The macAddress as a byte array
      */
     public static byte[] toMACAddress(final String macAddress) {
-        return MACAddress.valueOf(macAddress).toBytes();
+        return MacAddress.valueOf(macAddress).toBytes();
     }
 
     /**
@@ -372,7 +372,7 @@ public class Ethernet extends BasePacket {
      * @return a long containing the mac address bytes
      */
     public static long toLong(final byte[] macAddress) {
-        return MACAddress.valueOf(macAddress).toLong();
+        return MacAddress.valueOf(macAddress).toLong();
     }
 
     /**
@@ -382,7 +382,7 @@ public class Ethernet extends BasePacket {
      * @return the bytes of the mac address
      */
     public static byte[] toByteArray(final long macAddress) {
-        return MACAddress.valueOf(macAddress).toBytes();
+        return MacAddress.valueOf(macAddress).toBytes();
     }
 
     /*

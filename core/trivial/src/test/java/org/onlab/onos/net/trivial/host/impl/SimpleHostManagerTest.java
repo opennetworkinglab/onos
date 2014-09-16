@@ -28,9 +28,9 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,17 +44,17 @@ public class SimpleHostManagerTest {
 
     private static final ProviderId PID = new ProviderId("foo");
 
-    private static final VLANID VLAN1 = VLANID.vlanId((short) 1);
-    private static final VLANID VLAN2 = VLANID.vlanId((short) 2);
-    private static final MACAddress MAC1 = MACAddress.valueOf("00:00:11:00:00:01");
-    private static final MACAddress MAC2 = MACAddress.valueOf("00:00:22:00:00:02");
+    private static final VlanId VLAN1 = VlanId.vlanId((short) 1);
+    private static final VlanId VLAN2 = VlanId.vlanId((short) 2);
+    private static final MacAddress MAC1 = MacAddress.valueOf("00:00:11:00:00:01");
+    private static final MacAddress MAC2 = MacAddress.valueOf("00:00:22:00:00:02");
     private static final HostId HID1 = HostId.hostId(MAC1, VLAN1);
     private static final HostId HID2 = HostId.hostId(MAC2, VLAN1);
 
-    private static final IPAddress IP1 = IPAddress.valueOf("10.0.0.1");
-    private static final IPAddress IP2 = IPAddress.valueOf("10.0.0.2");
-    private static final Set<IPAddress> IPSET1 = Sets.newHashSet(IP1);
-    private static final Set<IPAddress> IPSET2 = Sets.newHashSet(IP2);
+    private static final IpAddress IP1 = IpAddress.valueOf("10.0.0.1");
+    private static final IpAddress IP2 = IpAddress.valueOf("10.0.0.2");
+    private static final Set<IpAddress> IPSET1 = Sets.newHashSet(IP1);
+    private static final Set<IpAddress> IPSET2 = Sets.newHashSet(IP2);
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:001");
     private static final DeviceId DID2 = DeviceId.deviceId("of:002");
@@ -96,8 +96,8 @@ public class SimpleHostManagerTest {
         mgr.eventDispatcher = null;
     }
 
-    private void detect(HostId hid, MACAddress mac, VLANID vlan,
-            HostLocation loc, Set<IPAddress> ips) {
+    private void detect(HostId hid, MacAddress mac, VlanId vlan,
+            HostLocation loc, Set<IpAddress> ips) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ips);
         providerService.hostDetected(hid, descr);
         assertNotNull("host should be found", mgr.getHost(hid));

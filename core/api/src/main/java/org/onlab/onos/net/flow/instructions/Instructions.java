@@ -8,9 +8,9 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherIn
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPProtoInstruction;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 /**
  * Factory class for creating various traffic treatment instructions.
  */
@@ -45,7 +45,7 @@ public final class Instructions {
      * @param addr the mac address to modify to.
      * @return a l2 modification
      */
-    public static L2ModificationInstruction modL2Src(MACAddress addr) {
+    public static L2ModificationInstruction modL2Src(MacAddress addr) {
         checkNotNull(addr, "Src l2 address cannot be null");
         return new ModEtherInstruction(L2SubType.L2_SRC, addr);
     }
@@ -55,7 +55,7 @@ public final class Instructions {
      * @param addr the mac address to modify to.
      * @return a L2 modification
      */
-    public static L2ModificationInstruction modL2Dst(MACAddress addr) {
+    public static L2ModificationInstruction modL2Dst(MacAddress addr) {
         checkNotNull(addr, "Dst l2 address cannot be null");
         return new L2ModificationInstruction.ModEtherInstruction(L2SubType.L2_DST, addr);
     }
@@ -75,7 +75,7 @@ public final class Instructions {
      * @param vlanId the vlan id to modify to.
      * @return a L2 modification
      */
-    public static L2ModificationInstruction modVlanId(VLANID vlanId) {
+    public static L2ModificationInstruction modVlanId(VlanId vlanId) {
         checkNotNull(vlanId, "VLAN id cannot be null");
         return new L2ModificationInstruction.ModVlanIdInstruction(vlanId);
     }
@@ -95,7 +95,7 @@ public final class Instructions {
      * @param addr the ip address to modify to.
      * @return a L3 modification
      */
-    public static L3ModificationInstruction modL3Src(IPAddress addr) {
+    public static L3ModificationInstruction modL3Src(IpAddress addr) {
         checkNotNull(addr, "Src l3 address cannot be null");
         return new ModIPInstruction(L3SubType.L3_SRC, addr);
     }
@@ -105,7 +105,7 @@ public final class Instructions {
      * @param addr the ip address to modify to.
      * @return a L3 modification
      */
-    public static L3ModificationInstruction modL3Dst(IPAddress addr) {
+    public static L3ModificationInstruction modL3Dst(IpAddress addr) {
         checkNotNull(addr, "Dst l3 address cannot be null");
         return new ModIPInstruction(L3SubType.L3_DST, addr);
     }

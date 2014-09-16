@@ -4,9 +4,9 @@ import java.util.Set;
 
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.HostLocation;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 /**
  * Information describing host and its location.
@@ -18,14 +18,14 @@ public interface HostDescription extends Description {
      *
      * @return the MAC address of this host
      */
-    MACAddress hwAddress();
+    MacAddress hwAddress();
 
     /**
      * Returns the VLAN associated with this host.
      *
      * @return the VLAN ID value
      */
-    VLANID vlan();
+    VlanId vlan();
 
     /**
      * Returns the location of the host on the network edge.
@@ -39,6 +39,6 @@ public interface HostDescription extends Description {
      *
      * @return a set of IP addresses.
      */
-    Set<IPAddress> ipAddresses();
+    Set<IpAddress> ipAddresses();
 
 }

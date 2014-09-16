@@ -8,27 +8,27 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 /**
  * A basic implementation of a Host.
  */
 public class DefaultHost extends AbstractElement implements Host {
 
-    private final MACAddress mac;
-    private final VLANID vlan;
+    private final MacAddress mac;
+    private final VlanId vlan;
     private final HostLocation location;
-    private final Set<IPAddress> ips;
+    private final Set<IpAddress> ips;
 
-    public DefaultHost(ProviderId providerId, HostId id, MACAddress mac,
-            VLANID vlan, HostLocation loc, Set<IPAddress> ips) {
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
+            VlanId vlan, HostLocation loc, Set<IpAddress> ips) {
         super(providerId, id);
         this.mac = mac;
         this.vlan = vlan;
         this.location = loc;
-        this.ips = new HashSet<IPAddress>(ips);
+        this.ips = new HashSet<IpAddress>(ips);
     }
 
     @Override
@@ -37,12 +37,12 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
-    public MACAddress mac() {
+    public MacAddress mac() {
         return mac;
     }
 
     @Override
-    public Set<IPAddress> ipAddresses() {
+    public Set<IpAddress> ipAddresses() {
         return Collections.unmodifiableSet(ips);
     }
 
@@ -52,7 +52,7 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
-    public VLANID vlan() {
+    public VlanId vlan() {
         return vlan;
     }
 

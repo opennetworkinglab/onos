@@ -19,9 +19,9 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -153,7 +153,7 @@ public class SimpleHostStore {
      * @param vlanId vlan id
      * @return set of hosts in the vlan
      */
-    Set<Host> getHosts(VLANID vlanId) {
+    Set<Host> getHosts(VlanId vlanId) {
         Set<Host> vlanset = new HashSet<Host>();
         for (Host h : hosts.values()) {
             if (h.vlan().equals(vlanId)) {
@@ -169,7 +169,7 @@ public class SimpleHostStore {
      * @param mac mac address
      * @return set of hosts with the given mac
      */
-    Set<Host> getHosts(MACAddress mac) {
+    Set<Host> getHosts(MacAddress mac) {
         Set<Host> macset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.mac().equals(mac)) {
@@ -185,7 +185,7 @@ public class SimpleHostStore {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
-    Set<Host> getHosts(IPAddress ip) {
+    Set<Host> getHosts(IpAddress ip) {
         Set<Host> ipset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.ipAddresses().contains(ip)) {

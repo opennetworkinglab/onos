@@ -21,12 +21,12 @@ import java.util.Arrays;
  * The class representing MAC address.
  *
  */
-public class MACAddress {
+public class MacAddress {
     public static final int MAC_ADDRESS_LENGTH = 6;
-    private byte[] address = new byte[MACAddress.MAC_ADDRESS_LENGTH];
+    private byte[] address = new byte[MacAddress.MAC_ADDRESS_LENGTH];
 
-    public MACAddress(final byte[] address) {
-        this.address = Arrays.copyOf(address, MACAddress.MAC_ADDRESS_LENGTH);
+    public MacAddress(final byte[] address) {
+        this.address = Arrays.copyOf(address, MacAddress.MAC_ADDRESS_LENGTH);
     }
 
     /**
@@ -40,21 +40,21 @@ public class MACAddress {
      * @throws IllegalArgumentException
      *             if the string cannot be parsed as a MAC address.
      */
-    public static MACAddress valueOf(final String address) {
+    public static MacAddress valueOf(final String address) {
         final String[] elements = address.split(":");
-        if (elements.length != MACAddress.MAC_ADDRESS_LENGTH) {
+        if (elements.length != MacAddress.MAC_ADDRESS_LENGTH) {
             throw new IllegalArgumentException(
                     "Specified MAC Address must contain 12 hex digits"
                             + " separated pairwise by :'s.");
         }
 
-        final byte[] addressInBytes = new byte[MACAddress.MAC_ADDRESS_LENGTH];
-        for (int i = 0; i < MACAddress.MAC_ADDRESS_LENGTH; i++) {
+        final byte[] addressInBytes = new byte[MacAddress.MAC_ADDRESS_LENGTH];
+        for (int i = 0; i < MacAddress.MAC_ADDRESS_LENGTH; i++) {
             final String element = elements[i];
             addressInBytes[i] = (byte) Integer.parseInt(element, 16);
         }
 
-        return new MACAddress(addressInBytes);
+        return new MacAddress(addressInBytes);
     }
 
     /**
@@ -68,13 +68,13 @@ public class MACAddress {
      * @throws IllegalArgumentException
      *             if the byte array cannot be parsed as a MAC address.
      */
-    public static MACAddress valueOf(final byte[] address) {
-        if (address.length != MACAddress.MAC_ADDRESS_LENGTH) {
+    public static MacAddress valueOf(final byte[] address) {
+        if (address.length != MacAddress.MAC_ADDRESS_LENGTH) {
             throw new IllegalArgumentException("the length is not "
-                    + MACAddress.MAC_ADDRESS_LENGTH);
+                    + MacAddress.MAC_ADDRESS_LENGTH);
         }
 
-        return new MACAddress(address);
+        return new MacAddress(address);
     }
 
     /**
@@ -90,13 +90,13 @@ public class MACAddress {
      * @throws IllegalArgumentException
      *             if the long value cannot be parsed as a MAC address.
      */
-    public static MACAddress valueOf(final long address) {
+    public static MacAddress valueOf(final long address) {
         final byte[] addressInBytes = new byte[] {
                 (byte) (address >> 40 & 0xff), (byte) (address >> 32 & 0xff),
                 (byte) (address >> 24 & 0xff), (byte) (address >> 16 & 0xff),
                 (byte) (address >> 8 & 0xff), (byte) (address >> 0 & 0xff) };
 
-        return new MACAddress(addressInBytes);
+        return new MacAddress(addressInBytes);
     }
 
     /**
@@ -165,11 +165,11 @@ public class MACAddress {
             return true;
         }
 
-        if (!(o instanceof MACAddress)) {
+        if (!(o instanceof MacAddress)) {
             return false;
         }
 
-        final MACAddress other = (MACAddress) o;
+        final MacAddress other = (MacAddress) o;
         return Arrays.equals(this.address, other.address);
     }
 

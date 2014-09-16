@@ -22,9 +22,9 @@ import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -87,18 +87,18 @@ public class SimpleHostManager
     }
 
     @Override
-    public Set<Host> getHostsByVlan(VLANID vlanId) {
+    public Set<Host> getHostsByVlan(VlanId vlanId) {
         return store.getHosts(vlanId);
     }
 
     @Override
-    public Set<Host> getHostsByMac(MACAddress mac) {
+    public Set<Host> getHostsByMac(MacAddress mac) {
         checkNotNull(mac, "MAC address cannot be null");
         return store.getHosts(mac);
     }
 
     @Override
-    public Set<Host> getHostsByIp(IPAddress ip) {
+    public Set<Host> getHostsByIp(IpAddress ip) {
         checkNotNull(ip, "IP address cannot be null");
         return store.getHosts(ip);
     }

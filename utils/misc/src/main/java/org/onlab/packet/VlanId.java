@@ -4,7 +4,7 @@ package org.onlab.packet;
  * Representation of a VLAN ID.
  */
 // FIXME: This will end-up looking like a constant; we should name it 'VlanId', 'IpAddress', 'MacAddress'.
-public class VLANID {
+public class VlanId {
 
     private final short value;
     // Based on convention used elsewhere? Check and change if needed
@@ -12,28 +12,28 @@ public class VLANID {
     // A VLAN ID is actually 12 bits of a VLAN tag.
     public static final short MAX_VLAN = 4095;
 
-    protected VLANID() {
+    protected VlanId() {
         this.value = UNTAGGED;
     }
 
-    protected VLANID(short value) {
+    protected VlanId(short value) {
         this.value = value;
     }
 
-    public static VLANID vlanId() {
-        return new VLANID(UNTAGGED);
+    public static VlanId vlanId() {
+        return new VlanId(UNTAGGED);
     }
 
-    public static VLANID vlanId(short value) {
+    public static VlanId vlanId(short value) {
         if (value == UNTAGGED) {
-            return new VLANID();
+            return new VlanId();
         }
 
         if (value > MAX_VLAN) {
             throw new IllegalArgumentException(
                     "value exceeds allowed maximum VLAN ID value (4095)");
         }
-        return new VLANID(value);
+        return new VlanId(value);
     }
 
     public short toShort() {
@@ -46,9 +46,9 @@ public class VLANID {
             return true;
         }
 
-        if (obj instanceof VLANID) {
+        if (obj instanceof VlanId) {
 
-            VLANID other = (VLANID) obj;
+            VlanId other = (VlanId) obj;
 
              if (this.value == other.value) {
                 return true;

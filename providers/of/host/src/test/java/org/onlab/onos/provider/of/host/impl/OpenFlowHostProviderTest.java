@@ -19,8 +19,8 @@ import org.onlab.onos.of.controller.OpenflowControllerAdapter;
 import org.onlab.onos.of.controller.PacketListener;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.types.OFPort;
 
@@ -35,9 +35,9 @@ public class OpenFlowHostProviderTest {
     private static final Dpid DPID2 = new Dpid(200);
     private static final Dpid DPID3 = new Dpid(300);
 
-    private static final VLANID VLAN = VLANID.vlanId();
-    private static final MACAddress MAC = MACAddress.valueOf("00:00:11:00:00:01");
-    private static final MACAddress BCMAC = MACAddress.valueOf("ff:ff:ff:ff:ff:ff");
+    private static final VlanId VLAN = VlanId.vlanId();
+    private static final MacAddress MAC = MacAddress.valueOf("00:00:11:00:00:01");
+    private static final MacAddress BCMAC = MacAddress.valueOf("ff:ff:ff:ff:ff:ff");
     private static final byte[] IP = new byte[]{10, 0, 0, 1};
 
     private OpenFlowHostProvider provider = new OpenFlowHostProvider();

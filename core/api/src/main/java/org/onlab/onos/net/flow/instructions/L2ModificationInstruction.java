@@ -1,7 +1,7 @@
 package org.onlab.onos.net.flow.instructions;
 
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 /**
  * Abstraction of a single traffic treatment step.
@@ -56,9 +56,9 @@ public abstract class L2ModificationInstruction implements Instruction {
     public static final class ModEtherInstruction extends L2ModificationInstruction {
 
         private final SubType subtype;
-        private final MACAddress mac;
+        private final MacAddress mac;
 
-        public ModEtherInstruction(SubType subType, MACAddress addr) {
+        public ModEtherInstruction(SubType subType, MacAddress addr) {
             this.subtype = subType;
             this.mac = addr;
         }
@@ -68,7 +68,7 @@ public abstract class L2ModificationInstruction implements Instruction {
             return this.subtype;
         }
 
-        public MACAddress mac() {
+        public MacAddress mac() {
             return this.mac;
         }
 
@@ -101,9 +101,9 @@ public abstract class L2ModificationInstruction implements Instruction {
      */
     public static final class ModVlanIdInstruction extends L2ModificationInstruction {
 
-        public final VLANID vlanId;
+        public final VlanId vlanId;
 
-        public ModVlanIdInstruction(VLANID vlanId) {
+        public ModVlanIdInstruction(VlanId vlanId) {
             this.vlanId = vlanId;
         }
 
@@ -112,7 +112,7 @@ public abstract class L2ModificationInstruction implements Instruction {
             return L2SubType.VLAN_ID;
         }
 
-        public VLANID vlanId() {
+        public VlanId vlanId() {
             return this.vlanId;
         }
 
