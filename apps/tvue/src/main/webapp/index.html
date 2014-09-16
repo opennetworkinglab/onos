@@ -129,7 +129,7 @@
         }
 
         function dragstart(d) {
-            d3.select(this).classed("fixed", d.fixed = true);
+            // d3.select(this).classed("fixed", d.fixed = true);
         }
 
 
@@ -239,6 +239,8 @@
                             targetNode = aux;
                         } else if (d3.event.keyCode == 70) {
                             nextPath();
+                        } else if (d3.event.keyCode == 67 && selectedNode) {
+                            selectedNode.fixed = !selectedNode.fixed;
                         }
 
                         d3.selectAll(".nodeStrokeClass").attr("fill", fillColor);
