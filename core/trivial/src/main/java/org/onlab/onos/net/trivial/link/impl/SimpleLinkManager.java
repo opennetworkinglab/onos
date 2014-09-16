@@ -16,6 +16,9 @@ import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.device.DeviceEvent;
+import org.onlab.onos.net.device.DeviceListener;
+import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.link.LinkAdminService;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
@@ -49,6 +52,10 @@ public class SimpleLinkManager
             listenerRegistry = new AbstractListenerRegistry<>();
 
     private final SimpleLinkStore store = new SimpleLinkStore();
+    private final DeviceListener deviceListener = new InnerDeviceListener();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -56,12 +63,14 @@ public class SimpleLinkManager
     @Activate
     public void activate() {
         eventDispatcher.addSink(LinkEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(LinkEvent.class);
+        deviceService.removeListener(deviceListener);
         log.info("Stopped");
     }
 
@@ -138,6 +147,20 @@ public class SimpleLinkManager
     @Override
     public void removeListener(LinkListener listener) {
         listenerRegistry.removeListener(listener);
+    }
+
+    // Auxiliary interceptor for device remove events to prune links that
+    // are associated with the removed device or its port.
+    private class InnerDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            if (event.type() == DeviceEvent.Type.DEVICE_REMOVED) {
+                removeLinks(event.subject().id());
+            } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
+                removeLinks(new ConnectPoint(event.subject().id(),
+                                             event.port().number()));
+            }
+        }
     }
 
     @Override

@@ -43,13 +43,15 @@ public interface PacketContext {
 
     /**
      * Blocks the outbound packet from being sent from this point onward.
+     *
      * @return whether the outbound packet is blocked.
      */
     boolean block();
 
     /**
-     * Check whether the outbound packet is blocked.
-     * @return
+     * Indicates whether the outbound packet is handled, i.e. sent or blocked.
+     *
+     * @return true uf the packed is handled
      */
     boolean isHandled();
 

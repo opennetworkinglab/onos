@@ -22,6 +22,7 @@ import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.net.trivial.device.impl.SimpleDeviceManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -65,6 +66,7 @@ public class SimpleLinkManagerTest {
         admin = mgr;
         registry = mgr;
         mgr.eventDispatcher = new TestEventDispatcher();
+        mgr.deviceService = new SimpleDeviceManager();
         mgr.activate();
 
         service.addListener(listener);

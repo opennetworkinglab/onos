@@ -58,11 +58,11 @@
 
         <command>
             <action class="org.onlab.onos.cli.net.HostsListCommand"/>
-            <completers>
-                <ref component-id="hostIdCompleter"/>
-            </completers>
         </command>
 
+        <command>
+            <action class="org.onlab.onos.cli.net.WipeOutCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onlab.onos.cli.net.DeviceIdCompleter"/>

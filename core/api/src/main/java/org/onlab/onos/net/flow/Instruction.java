@@ -2,7 +2,6 @@ package org.onlab.onos.net.flow;
 
 /**
  * Abstraction of a single traffic treatment step.
- * @param <T> the type parameter for the instruction
  */
 public interface Instruction {
 
