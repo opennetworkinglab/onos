@@ -51,7 +51,7 @@ public class OpenFlowHostProviderTest {
     private static final VLANID VLAN = VLANID.vlanId();
     private static final MACAddress MAC = MACAddress.valueOf("00:00:11:00:00:01");
     private static final MACAddress BCMAC = MACAddress.valueOf("ff:ff:ff:ff:ff:ff");
-    private static byte [] IP = new byte [] { 10,0,0,1 };
+    private static final byte[] IP = new byte[]{10, 0, 0, 1};
 
     private OpenFlowHostProvider provider = new OpenFlowHostProvider();
     private TestHostRegistry hostService = new TestHostRegistry();
@@ -242,13 +242,13 @@ public class OpenFlowHostProviderTest {
 
         @Override
         public Set<DeviceId> getClusterDevices(Topology topology,
-                TopologyCluster cluster) {
+                                               TopologyCluster cluster) {
             return null;
         }
 
         @Override
         public Set<Link> getClusterLinks(Topology topology,
-                TopologyCluster cluster) {
+                                         TopologyCluster cluster) {
             return null;
         }
 
@@ -259,13 +259,13 @@ public class OpenFlowHostProviderTest {
 
         @Override
         public Set<Path> getPaths(Topology topology, DeviceId src,
-                DeviceId dst, LinkWeight weight) {
+                                  DeviceId dst, LinkWeight weight) {
             return null;
         }
 
         @Override
         public boolean isInfrastructure(Topology topology,
-                ConnectPoint connectPoint) {
+                                        ConnectPoint connectPoint) {
             //simulate DPID3 as an infrastructure switch
             if (Dpid.dpid(connectPoint.deviceId().uri()).equals(DPID3)) {
                 return true;
@@ -275,7 +275,7 @@ public class OpenFlowHostProviderTest {
 
         @Override
         public boolean isBroadcastPoint(Topology topology,
-                ConnectPoint connectPoint) {
+                                        ConnectPoint connectPoint) {
             return false;
         }
 
@@ -319,9 +319,9 @@ public class OpenFlowHostProviderTest {
             // just things we (and serializers) need
             ARP arp = new ARP();
             arp.setSenderProtocolAddress(IP)
-                .setSenderHardwareAddress(MAC.toBytes())
-                .setTargetHardwareAddress(BCMAC.toBytes())
-                .setTargetProtocolAddress(IP);
+                    .setSenderHardwareAddress(MAC.toBytes())
+                    .setTargetHardwareAddress(BCMAC.toBytes())
+                    .setTargetProtocolAddress(IP);
 
             Ethernet eth = new Ethernet();
             eth.setEtherType(Ethernet.TYPE_ARP)
