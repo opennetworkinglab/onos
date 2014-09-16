@@ -1,45 +1,32 @@
 package org.onlab.onos.provider.of.host.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.Set;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.ClusterId;
-import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyListener;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onlab.onos.net.topology.TopologyServiceAdapter;
 import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.OpenFlowController;
 import org.onlab.onos.of.controller.OpenFlowPacketContext;
-import org.onlab.onos.of.controller.OpenFlowSwitch;
-import org.onlab.onos.of.controller.OpenFlowSwitchListener;
+import org.onlab.onos.of.controller.OpenflowControllerAdapter;
 import org.onlab.onos.of.controller.PacketListener;
-import org.onlab.onos.of.controller.RoleState;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MACAddress;
 import org.onlab.packet.VLANID;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.types.OFPort;
+
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 public class OpenFlowHostProviderTest {
 
@@ -145,47 +132,8 @@ public class OpenFlowHostProviderTest {
 
     }
 
-    private class TestController implements OpenFlowController {
-
+    private class TestController extends OpenflowControllerAdapter {
         PacketListener pktListener;
-
-        @Override
-        public Iterable<OpenFlowSwitch> getSwitches() {
-            return null;
-        }
-
-        @Override
-        public Iterable<OpenFlowSwitch> getMasterSwitches() {
-            return null;
-        }
-
-        @Override
-        public Iterable<OpenFlowSwitch> getEqualSwitches() {
-            return null;
-        }
-
-        @Override
-        public OpenFlowSwitch getSwitch(Dpid dpid) {
-            return null;
-        }
-
-        @Override
-        public OpenFlowSwitch getMasterSwitch(Dpid dpid) {
-            return null;
-        }
-
-        @Override
-        public OpenFlowSwitch getEqualSwitch(Dpid dpid) {
-            return null;
-        }
-
-        @Override
-        public void addListener(OpenFlowSwitchListener listener) {
-        }
-
-        @Override
-        public void removeListener(OpenFlowSwitchListener listener) {
-        }
 
         @Override
         public void addPacketListener(int priority, PacketListener listener) {
@@ -193,76 +141,13 @@ public class OpenFlowHostProviderTest {
         }
 
         @Override
-        public void removePacketListener(PacketListener listener) {
-        }
-
-        @Override
-        public void write(Dpid dpid, OFMessage msg) {
-        }
-
-        @Override
         public void processPacket(Dpid dpid, OFMessage msg) {
-            OpenFlowPacketContext ctx =
-                    new TestPacketContext(dpid);
-
+            OpenFlowPacketContext ctx = new TestPacketContext(dpid);
             pktListener.handlePacket(ctx);
-        }
-
-        @Override
-        public void setRole(Dpid dpid, RoleState role) {
         }
     }
 
-    private class TestTopologyService implements TopologyService {
-
-        @Override
-        public Topology currentTopology() {
-            return null;
-        }
-
-        @Override
-        public boolean isLatest(Topology topology) {
-            return false;
-        }
-
-        @Override
-        public TopologyGraph getGraph(Topology topology) {
-            return null;
-        }
-
-        @Override
-        public Set<TopologyCluster> getClusters(Topology topology) {
-            return null;
-        }
-
-        @Override
-        public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
-            return null;
-        }
-
-        @Override
-        public Set<DeviceId> getClusterDevices(Topology topology,
-                                               TopologyCluster cluster) {
-            return null;
-        }
-
-        @Override
-        public Set<Link> getClusterLinks(Topology topology,
-                                         TopologyCluster cluster) {
-            return null;
-        }
-
-        @Override
-        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
-            return null;
-        }
-
-        @Override
-        public Set<Path> getPaths(Topology topology, DeviceId src,
-                                  DeviceId dst, LinkWeight weight) {
-            return null;
-        }
-
+    private class TestTopologyService extends TopologyServiceAdapter {
         @Override
         public boolean isInfrastructure(Topology topology,
                                         ConnectPoint connectPoint) {
@@ -272,21 +157,6 @@ public class OpenFlowHostProviderTest {
             }
             return false;
         }
-
-        @Override
-        public boolean isBroadcastPoint(Topology topology,
-                                        ConnectPoint connectPoint) {
-            return false;
-        }
-
-        @Override
-        public void addListener(TopologyListener listener) {
-        }
-
-        @Override
-        public void removeListener(TopologyListener listener) {
-        }
-
     }
 
     private class TestPacketContext implements OpenFlowPacketContext {

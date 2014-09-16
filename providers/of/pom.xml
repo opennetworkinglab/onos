@@ -28,6 +28,19 @@
             <groupId>org.onlab.onos</groupId>
             <artifactId>onos-of-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-of-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

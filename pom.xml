@@ -144,10 +144,24 @@
             </dependency>
             <dependency>
                 <groupId>org.onlab.onos</groupId>
+                <artifactId>onos-api</artifactId>
+                <version>${project.version}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
                 <artifactId>onos-of-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.onlab.onos</groupId>
+                <artifactId>onos-of-api</artifactId>
+                <version>${project.version}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
