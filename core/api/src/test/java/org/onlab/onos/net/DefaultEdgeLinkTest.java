@@ -47,8 +47,8 @@ public class DefaultEdgeLinkTest {
     public void basics() {
         HostLocation hostLocation = new HostLocation(DID1, P1, 123L);
         EdgeLink link = new DefaultEdgeLink(PID, cp(HID1, P0), hostLocation, false);
-        assertEquals("incorrect src", cp(HID1, P0), link.src());
-        assertEquals("incorrect dst", hostLocation, link.dst());
+        assertEquals("incorrect src", cp(HID1, P0), link.dst());
+        assertEquals("incorrect dst", hostLocation, link.src());
         assertEquals("incorrect type", Link.Type.EDGE, link.type());
         assertEquals("incorrect hostId", HID1, link.hostId());
         assertEquals("incorrect connect point", hostLocation, link.hostLocation());

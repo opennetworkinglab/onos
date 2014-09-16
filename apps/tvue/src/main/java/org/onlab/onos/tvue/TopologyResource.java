@@ -11,6 +11,7 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.link.LinkService;
+import org.onlab.onos.net.path.PathService;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyService;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.HostId.hostId;
 import static org.onlab.onos.net.PortNumber.portNumber;
 
 /**
@@ -99,12 +101,11 @@ public class TopologyResource extends BaseResource {
     @Produces("application/json")
     public Response paths(@PathParam("src") String src, @PathParam("dst") String dst) {
         ObjectMapper mapper = new ObjectMapper();
-
-        TopologyService topologyService = get(TopologyService.class);
-        Topology topology = topologyService.currentTopology();
+        PathService pathService = get(PathService.class);
+        Set<Path> paths = pathService.getPaths(elementId(src), elementId(dst));
 
         ArrayNode pathsNode = mapper.createArrayNode();
-        for (Path path : topologyService.getPaths(topology, deviceId(src), deviceId(dst))) {
+        for (Path path : paths) {
             pathsNode.add(json(mapper, path));
         }
 
@@ -112,6 +113,11 @@ public class TopologyResource extends BaseResource {
         ObjectNode rootNode = mapper.createObjectNode();
         rootNode.set("paths", pathsNode);
         return Response.ok(rootNode.toString()).build();
+    }
+
+    // Creates either device ID or host ID as appropriate.
+    private ElementId elementId(String id) {
+        return id.startsWith("nic:") ? hostId(id) : deviceId(id);
     }
 
     // Scan all links and counts number of them between the same devices

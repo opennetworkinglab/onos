@@ -22,7 +22,7 @@ public class HostIdTest extends ElementIdTest {
     @Test
     public void basics() {
         new EqualsTester()
-                .addEqualityGroup(hostId("nic:00:11:00:00:00:01/11"),
+                .addEqualityGroup(hostId("nic:00:11:00:00:00:01-11"),
                                   hostId(MAC1, VLAN1))
                 .addEqualityGroup(hostId(MAC2, VLAN2))
                 .testEquals();
