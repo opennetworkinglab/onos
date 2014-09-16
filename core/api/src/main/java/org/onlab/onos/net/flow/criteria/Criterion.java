@@ -1,4 +1,4 @@
-package org.onlab.onos.net.flow;
+package org.onlab.onos.net.flow.criteria;
 
 /**
  * Representation of a single header field selection.

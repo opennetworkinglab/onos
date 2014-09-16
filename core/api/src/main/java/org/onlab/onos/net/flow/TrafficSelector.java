@@ -2,6 +2,8 @@ package org.onlab.onos.net.flow;
 
 import java.util.List;
 
+import org.onlab.onos.net.flow.criteria.Criterion;
+
 /**
  * Abstraction of a slice of network traffic.
  */

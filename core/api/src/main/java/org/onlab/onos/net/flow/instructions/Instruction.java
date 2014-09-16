@@ -5,6 +5,12 @@ package org.onlab.onos.net.flow.instructions;
  */
 public interface Instruction {
 
+    interface SubType { }
+
+    public enum NoneSubType implements SubType {
+        NONE;
+    }
+
     /**
      * Represents the type of traffic treatment.
      */
@@ -38,5 +44,11 @@ public interface Instruction {
      * @return type of instruction
      */
     public Type type();
+
+    /**
+     * Returns the subtype of the modification instruction.
+     * @return type of instruction
+     */
+    public SubType subtype();
 
 }

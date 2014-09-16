@@ -3,8 +3,12 @@ package org.onlab.onos.net.flow.instructions;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.SubType;
+import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
+import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPProtoInstruction;
+import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
 /**
  * Factory class for creating various traffic treatment instructions.
@@ -42,7 +46,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Src(MACAddress addr) {
         checkNotNull(addr, "Src l2 address cannot be null");
-        return new ModEtherInstruction(SubType.L2_SRC, addr);
+        return new ModEtherInstruction(L2SubType.L2_SRC, addr);
     }
 
     /**
@@ -52,7 +56,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Dst(MACAddress addr) {
         checkNotNull(addr, "Dst l2 address cannot be null");
-        return new L2ModificationInstruction.ModEtherInstruction(SubType.L2_DST, addr);
+        return new L2ModificationInstruction.ModEtherInstruction(L2SubType.L2_DST, addr);
     }
 
     /**
@@ -65,9 +69,54 @@ public final class Instructions {
         return new L2ModificationInstruction.ModEtherTypeInstruction(l2Type);
     }
 
+    /**
+     * Creates a Vlan id modification.
+     * @param vlanId the vlan id to modify to.
+     * @return a L2 modification
+     */
     public static L2ModificationInstruction modVlanId(Short vlanId) {
         checkNotNull(vlanId, "VLAN id cannot be null");
         return new L2ModificationInstruction.ModVlanIdInstruction(vlanId);
+    }
+
+    /**
+     * Creates a Vlan pcp modification.
+     * @param vlanPcp the pcp to modify to.
+     * @return a L2 modification
+     */
+    public static L2ModificationInstruction modVlanPcp(Byte vlanPcp) {
+        checkNotNull(vlanPcp, "VLAN Pcp cannot be null");
+        return new L2ModificationInstruction.ModVlanPcpInstruction(vlanPcp);
+    }
+
+    /**
+     * Creates a L3 src modification.
+     * @param addr the ip address to modify to.
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modL3Src(IPAddress addr) {
+        checkNotNull(addr, "Src l3 address cannot be null");
+        return new ModIPInstruction(L3SubType.L3_SRC, addr);
+    }
+
+    /**
+     * Creates a L3 dst modification.
+     * @param addr the ip address to modify to.
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modL3Dst(IPAddress addr) {
+        checkNotNull(addr, "Dst l3 address cannot be null");
+        return new ModIPInstruction(L3SubType.L3_DST, addr);
+    }
+
+    /**
+     * Creates an L3 protocol modification.
+     * @param proto the protocol to change to
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modIPProto(Byte proto) {
+        checkNotNull(proto, "IP protocol cannot be null");
+        return new ModIPProtoInstruction(proto);
     }
 
     /*
@@ -78,6 +127,11 @@ public final class Instructions {
         @Override
         public Type type() {
             return Type.DROP;
+        }
+
+        @Override
+        public SubType subtype() {
+            return NoneSubType.NONE;
         }
     }
 
@@ -96,6 +150,11 @@ public final class Instructions {
         @Override
         public Type type() {
             return Type.OUTPUT;
+        }
+
+        @Override
+        public SubType subtype() {
+            return NoneSubType.NONE;
         }
     }
 

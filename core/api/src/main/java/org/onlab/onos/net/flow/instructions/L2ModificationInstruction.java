@@ -11,7 +11,7 @@ public abstract class L2ModificationInstruction implements Instruction {
     /**
      * Represents the type of traffic treatment.
      */
-    public enum SubType {
+    public enum L2SubType implements SubType {
         /**
          * Ether src modification.
          */
@@ -41,10 +41,7 @@ public abstract class L2ModificationInstruction implements Instruction {
     // TODO: Create factory class 'Instructions' that will have various factory
     // to create specific instructions.
 
-    /**
-     * Returns the subtype of the modification instruction.
-     * @return type of instruction
-     */
+    @Override
     public abstract SubType subtype();
 
     @Override
@@ -89,7 +86,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public SubType subtype() {
-            return SubType.L2_TYPE;
+            return L2SubType.L2_TYPE;
         }
 
         public short l2Type() {
@@ -111,11 +108,33 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public SubType subtype() {
-            return SubType.VLAN_ID;
+            return L2SubType.VLAN_ID;
         }
 
         public Short vlanId() {
             return this.vlanId;
+        }
+
+    }
+
+    /**
+     * Represents a VLAN PCP modification instruction.
+     */
+    public static final class ModVlanPcpInstruction extends L2ModificationInstruction {
+
+        public final Byte vlanPcp;
+
+        public ModVlanPcpInstruction(Byte vlanPcp) {
+            this.vlanPcp = vlanPcp;
+        }
+
+        @Override
+        public SubType subtype() {
+            return L2SubType.VLAN_PCP;
+        }
+
+        public Byte vlanPcp() {
+            return this.vlanPcp;
         }
 
     }
