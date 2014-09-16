@@ -1,6 +1,7 @@
 package org.onlab.onos.net.flow.instructions;
 
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 
 /**
  * Abstraction of a single traffic treatment step.
@@ -100,9 +101,9 @@ public abstract class L2ModificationInstruction implements Instruction {
      */
     public static final class ModVlanIdInstruction extends L2ModificationInstruction {
 
-        public final Short vlanId;
+        public final VLANID vlanId;
 
-        public ModVlanIdInstruction(Short vlanId) {
+        public ModVlanIdInstruction(VLANID vlanId) {
             this.vlanId = vlanId;
         }
 
@@ -111,7 +112,7 @@ public abstract class L2ModificationInstruction implements Instruction {
             return L2SubType.VLAN_ID;
         }
 
-        public Short vlanId() {
+        public VLANID vlanId() {
             return this.vlanId;
         }
 

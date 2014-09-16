@@ -10,6 +10,7 @@ import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstr
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPProtoInstruction;
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
+import org.onlab.packet.VLANID;
 /**
  * Factory class for creating various traffic treatment instructions.
  */
@@ -74,7 +75,7 @@ public final class Instructions {
      * @param vlanId the vlan id to modify to.
      * @return a L2 modification
      */
-    public static L2ModificationInstruction modVlanId(Short vlanId) {
+    public static L2ModificationInstruction modVlanId(VLANID vlanId) {
         checkNotNull(vlanId, "VLAN id cannot be null");
         return new L2ModificationInstruction.ModVlanIdInstruction(vlanId);
     }

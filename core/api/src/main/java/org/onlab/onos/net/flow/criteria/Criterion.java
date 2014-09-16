@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow.criteria;
 
+
 /**
  * Representation of a single header field selection.
  */
@@ -91,6 +92,12 @@ public interface Criterion {
         /** IPv6 Extension Header pseudo-field. */
         IPV6_EXTHDR
     }
+
+    /**
+     * Returns the type of criterion.
+     * @return type of criterion
+     */
+    public Type type();
 
     // TODO: Create factory class 'Criteria' that will have various factory
     // to create specific criterions.
