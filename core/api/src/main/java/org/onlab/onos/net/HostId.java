@@ -42,10 +42,19 @@ public final class HostId extends ElementId {
      * @param vlanId vlan identifier
      * @return host identifier
      */
-    // FIXME: replace vlanId long with a rich data-type, e.g. VLanId or something like that
     public static HostId hostId(MACAddress mac, VLANID vlanId) {
         // FIXME: use more efficient means of encoding
         return hostId("nic" + ":" + mac + "/" + vlanId);
+    }
+
+    /**
+     * Creates a device id using the supplied MAC and default VLAN.
+     *
+     * @param mac mac address
+     * @return host identifier
+     */
+    public static HostId hostId(MACAddress mac) {
+        return hostId(mac, VLANID.vlanId(VLANID.UNTAGGED));
     }
 
 }
