@@ -5,7 +5,7 @@ package org.onlab.onos.net.flow.instructions;
  */
 public interface Instruction {
 
-    interface SubType {}
+    interface SubType { }
 
     public enum NoneSubType implements SubType {
         NONE;
