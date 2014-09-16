@@ -35,8 +35,7 @@ public interface Instruction {
     // to create specific instructions.
 
     /**
-     * Returns the type of instruction not to be confused
-     * with the instruction's java type.
+     * Returns the type of instruction.
      * @return type of instruction
      */
     public Type type();
