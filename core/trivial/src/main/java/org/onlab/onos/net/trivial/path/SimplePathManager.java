@@ -13,8 +13,10 @@ import org.onlab.onos.net.DefaultEdgeLink;
 import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.EdgeLink;
+import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.PortNumber;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -38,13 +41,14 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class PathManager implements PathService {
+public class SimplePathManager implements PathService {
 
-    private static final String DEVICE_ID_NULL = "Device ID cannot be null";
-    private static final String HOST_ID_NULL = "Host ID cannot be null";
+    private static final String ELEMENT_ID_NULL = "Element ID cannot be null";
 
     private static final ProviderId PID = new ProviderId("org.onlab.onos.core");
     private static final PortNumber P0 = PortNumber.portNumber(0);
+
+    private static final EdgeLink NOT_HOST = new NotHost();
 
     private final Logger log = getLogger(getClass());
 
@@ -65,52 +69,25 @@ public class PathManager implements PathService {
     }
 
     @Override
-    public Set<Path> getPaths(DeviceId src, DeviceId dst) {
-        checkNotNull(src, DEVICE_ID_NULL);
-        checkNotNull(dst, DEVICE_ID_NULL);
-        Topology topology = topologyService.currentTopology();
-        return topologyService.getPaths(topology, src, dst);
-    }
-
-    @Override
-    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
-        checkNotNull(src, DEVICE_ID_NULL);
-        checkNotNull(dst, DEVICE_ID_NULL);
-        Topology topology = topologyService.currentTopology();
-        return topologyService.getPaths(topology, src, dst, weight);
-    }
-
-    @Override
-    public Set<Path> getPaths(HostId src, HostId dst) {
+    public Set<Path> getPaths(ElementId src, ElementId dst) {
         return getPaths(src, dst, null);
     }
 
     @Override
-    public Set<Path> getPaths(HostId src, HostId dst, LinkWeight weight) {
-        checkNotNull(src, HOST_ID_NULL);
-        checkNotNull(dst, HOST_ID_NULL);
-
-        // Resolve the source host, bail if unable.
-        Host srcHost = hostService.getHost(src);
-        if (srcHost == null) {
-            return Sets.newHashSet();
-        }
-
-        // Resolve the destination host, bail if unable.
-        Host dstHost = hostService.getHost(dst);
-        if (dstHost == null) {
-            return Sets.newHashSet();
-        }
+    public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        checkNotNull(src, ELEMENT_ID_NULL);
+        checkNotNull(dst, ELEMENT_ID_NULL);
 
         // Get the source and destination edge locations
-        EdgeLink srcEdge = new DefaultEdgeLink(PID, new ConnectPoint(src, P0),
-                                               srcHost.location(), true);
-        EdgeLink dstEdge = new DefaultEdgeLink(PID, new ConnectPoint(dst, P0),
-                                               dstHost.location(), false);
+        EdgeLink srcEdge = getEdgeLink(src, true);
+        EdgeLink dstEdge = getEdgeLink(dst, false);
+
+        DeviceId srcDevice = srcEdge != NOT_HOST ? srcEdge.dst().deviceId() : (DeviceId) src;
+        DeviceId dstDevice = dstEdge != NOT_HOST ? dstEdge.src().deviceId() : (DeviceId) dst;
 
         // If the source and destination are on the same edge device, there
         // is just one path, so build it and return it.
-        if (srcEdge.dst().deviceId().equals(dstEdge.src().deviceId())) {
+        if (srcDevice.equals(dstDevice)) {
             return edgeToEdgePaths(srcEdge, dstEdge);
         }
 
@@ -118,26 +95,47 @@ public class PathManager implements PathService {
         // devices.
         Topology topology = topologyService.currentTopology();
         Set<Path> paths = weight == null ?
-                topologyService.getPaths(topology, srcEdge.dst().deviceId(),
-                                         dstEdge.src().deviceId()) :
-                topologyService.getPaths(topology, srcEdge.dst().deviceId(),
-                                         dstEdge.src().deviceId(), weight);
+                topologyService.getPaths(topology, srcDevice, dstDevice) :
+                topologyService.getPaths(topology, srcDevice, dstDevice, weight);
 
         return edgeToEdgePaths(srcEdge, dstEdge, paths);
+    }
+
+    // Finds the host edge link if the element ID is a host id of an existing
+    // host. Otherwise, if the host does not exist, it returns null and if
+    // the element ID is not a host ID, returns NOT_HOST edge link.
+    private EdgeLink getEdgeLink(ElementId elementId, boolean isIngress) {
+        if (elementId instanceof HostId) {
+            // Resolve the host, return null.
+            Host host = hostService.getHost((HostId) elementId);
+            if (host == null) {
+                return null;
+            }
+            return new DefaultEdgeLink(PID, new ConnectPoint(elementId, P0),
+                                       host.location(), isIngress);
+        }
+        return NOT_HOST;
     }
 
     // Produces a set of direct edge-to-edge paths.
     private Set<Path> edgeToEdgePaths(EdgeLink srcLink, EdgeLink dstLink) {
         Set<Path> endToEndPaths = Sets.newHashSetWithExpectedSize(1);
-        endToEndPaths.add(edgeToEdgePath(srcLink, dstLink));
+        if (srcLink != NOT_HOST || dstLink != NOT_HOST) {
+            endToEndPaths.add(edgeToEdgePath(srcLink, dstLink));
+        }
         return endToEndPaths;
     }
 
     // Produces a direct edge-to-edge path.
     private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink) {
         List<Link> links = Lists.newArrayListWithCapacity(2);
-        links.add(srcLink);
-        links.add(dstLink);
+        // Add source and destination edge links only if they are real.
+        if (srcLink != NOT_HOST) {
+            links.add(srcLink);
+        }
+        if (dstLink != NOT_HOST) {
+            links.add(dstLink);
+        }
         return new DefaultPath(PID, links, 2);
     }
 
@@ -161,4 +159,12 @@ public class PathManager implements PathService {
         return new DefaultPath(path.providerId(), links, path.cost() + 2);
     }
 
+    // Special value for edge link to represent that this is really not an
+    // edge link since the src or dst are really an infrastructure device.
+    private static class NotHost extends DefaultEdgeLink implements EdgeLink {
+        NotHost() {
+            super(PID, new ConnectPoint(HostId.hostId("nic:none"), P0),
+                  new HostLocation(deviceId("none:none"), P0, 0L), false);
+        }
+    }
 }

@@ -1,7 +1,6 @@
 package org.onlab.onos.net.path;
 
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.topology.LinkWeight;
 
@@ -15,44 +14,23 @@ public interface PathService {
 
     /**
      * Returns the set of all shortest paths, precomputed in terms of hop-count,
-     * between the specified source and destination devices.
+     * between the specified source and destination elements.
      *
-     * @param src source device
-     * @param dst destination device
-     * @return set of all shortest paths between the two devices
+     * @param src source element
+     * @param dst destination element
+     * @return set of all shortest paths between the two elements
      */
-    Set<Path> getPaths(DeviceId src, DeviceId dst);
+    Set<Path> getPaths(ElementId src, ElementId dst);
 
     /**
      * Returns the set of all shortest paths, computed using the supplied
-     * edge-weight entity, between the specified source and destination devices.
+     * edge-weight entity, between the specified source and destination
+     * network elements.
      *
-     * @param src source device
-     * @param dst destination device
-     * @return set of all shortest paths between the two devices
+     * @param src source element
+     * @param dst destination element
+     * @return set of all shortest paths between the two element
      */
-    Set<Path> getPaths(DeviceId src, DeviceId dst,
-                       LinkWeight weight);
-
-
-    /**
-     * Returns the set of all shortest paths, precomputed in terms of hop-count,
-     * between the specified source and destination end-stations.
-     *
-     * @param src source device
-     * @param dst destination device
-     * @return set of all shortest paths between the two end-stations hosts
-     */
-    Set<Path> getPaths(HostId src, HostId dst);
-
-    /**
-     * Returns the set of all shortest paths, computed using the supplied
-     * edge-weight entity, between the specified source and end-stations.
-     *
-     * @param src source host
-     * @param dst destination host
-     * @return set of all shortest paths between the two end-station hosts
-     */
-    Set<Path> getPaths(HostId src, HostId dst, LinkWeight weight);
+    Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight);
 
 }

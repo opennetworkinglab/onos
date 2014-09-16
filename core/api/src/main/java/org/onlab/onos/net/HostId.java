@@ -44,7 +44,7 @@ public final class HostId extends ElementId {
      */
     public static HostId hostId(MACAddress mac, VLANID vlanId) {
         // FIXME: use more efficient means of encoding
-        return hostId("nic" + ":" + mac + "/" + vlanId);
+        return hostId("nic" + ":" + mac + "-" + vlanId);
     }
 
     /**
