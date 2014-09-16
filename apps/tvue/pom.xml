@@ -84,6 +84,7 @@
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
+                            org.onlab.packet.*,
                             org.onlab.rest.*,
                             org.onlab.onos.*
                         </Import-Package>

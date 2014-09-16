@@ -1,5 +1,12 @@
 package org.onlab.onos.provider.of.host.impl;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -27,13 +34,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.VLANID;
 import org.slf4j.Logger;
-
-import java.util.Set;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -96,7 +96,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 VLANID vlan = VLANID.vlanId(eth.getVlanID());
                 ConnectPoint heardOn = new ConnectPoint(deviceId(Dpid.uri(pktCtx.dpid())),
-                                                        portNumber(pktCtx.inPort()));
+                        portNumber(pktCtx.inPort()));
 
                 // If this is not an edge port, bail out.
                 Topology topology = topologyService.currentTopology();
@@ -105,8 +105,8 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
                 }
 
                 HostLocation hloc = new HostLocation(deviceId(Dpid.uri(pktCtx.dpid())),
-                                                     portNumber(pktCtx.inPort()),
-                                                     System.currentTimeMillis());
+                        portNumber(pktCtx.inPort()),
+                        System.currentTimeMillis());
 
                 HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
                 ARP arp = (ARP) eth.getPayload();

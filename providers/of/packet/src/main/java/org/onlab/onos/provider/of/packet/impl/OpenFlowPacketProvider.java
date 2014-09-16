@@ -54,7 +54,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
-        controller.addPacketListener(1, listener);
+        controller.addPacketListener(20, listener);
         log.info("Started");
     }
 
