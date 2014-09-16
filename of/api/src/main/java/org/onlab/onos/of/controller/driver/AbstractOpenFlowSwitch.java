@@ -77,6 +77,11 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         this.dpid = dp;
     }
 
+    public AbstractOpenFlowSwitch(Dpid dpid, OFDescStatsReply desc) {
+        this.dpid = dpid;
+        this.desc = desc;
+    }
+
     //************************
     // Channel related
     //************************

@@ -9,7 +9,7 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.Instructions;
+import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.PacketContext;
