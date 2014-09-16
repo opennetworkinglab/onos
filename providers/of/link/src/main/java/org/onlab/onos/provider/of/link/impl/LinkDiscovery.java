@@ -158,7 +158,6 @@ public class LinkDiscovery implements TimerTask {
             }
 
             this.slowPorts.add(port.getPortNo().getPortNumber());
-            this.slowIterator = this.slowPorts.iterator();
         }
 
     }
@@ -176,7 +175,6 @@ public class LinkDiscovery implements TimerTask {
         synchronized (this) {
             if (this.slowPorts.contains(portnum)) {
                 this.slowPorts.remove(portnum);
-                this.slowIterator = this.slowPorts.iterator();
 
             } else if (this.fastPorts.contains(portnum)) {
                 this.fastPorts.remove(portnum);
@@ -209,7 +207,6 @@ public class LinkDiscovery implements TimerTask {
                 this.log.debug("Setting slow port to fast: {}:{}",
                         this.sw.getId(), portNumber);
                 this.slowPorts.remove(portNumber);
-                this.slowIterator = this.slowPorts.iterator();
                 this.fastPorts.add(portNumber);
                 this.portProbeCount.put(portNumber, new AtomicInteger(0));
             } else {
@@ -277,7 +274,7 @@ public class LinkDiscovery implements TimerTask {
         return "LinkDiscovery " + this.sw.getStringId();
     }
 
-    /*
+    /**
      * Handles an incoming LLDP packet. Creates link in topology and sends ACK
      * to port where LLDP originated.
      */
@@ -349,7 +346,6 @@ public class LinkDiscovery implements TimerTask {
                     // Update fast and slow ports
                     fastIterator.remove();
                     this.slowPorts.add(portNumber);
-                    this.slowIterator = this.slowPorts.iterator();
                     this.portProbeCount.remove(portNumber);
 
                     // Remove link from topology
@@ -363,11 +359,9 @@ public class LinkDiscovery implements TimerTask {
             }
 
             // send a probe for the next slow port
-            if (this.slowPorts.size() > 0) {
-                if (!this.slowIterator.hasNext()) {
-                    this.slowIterator = this.slowPorts.iterator();
-                }
-                if (this.slowIterator.hasNext()) {
+            if (!this.slowPorts.isEmpty()) {
+                this.slowIterator = this.slowPorts.iterator();
+                while (this.slowIterator.hasNext()) {
                     final int portNumber = this.slowIterator.next();
                     this.log.debug("sending slow probe to port {}", portNumber);
                     OFPortDesc port = findPort(portNumber);
