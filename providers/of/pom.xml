@@ -21,6 +21,7 @@
         <module>link</module>
         <module>host</module>
         <module>packet</module>
+        <module>flow</module>
     </modules>
 
     <dependencies>

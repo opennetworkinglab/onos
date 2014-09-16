@@ -17,6 +17,15 @@ public interface FlowRuleProvider extends Provider {
      */
     void applyFlowRule(FlowRule... flowRules);
 
+    /**
+     * Instructs the provider to remove the specified flow rules to their
+     * respective devices.
+     * @param flowRules one or more flow rules
+     * throws SomeKindOfException that indicates which ones were applied and
+     *                  which ones failed
+     */
+    void removeFlowRule(FlowRule... flowRules);
+
 
     /**
      * Returns the collection of flow entries currently applied on the given
