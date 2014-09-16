@@ -59,7 +59,7 @@ public class DefaultTopologyProviderTest {
 
     private void validateSubmission() {
         assertNotNull("registration expected", providerService);
-        assertEquals("incorrect providert", provider, providerService.provider());
+        assertEquals("incorrect provider", provider, providerService.provider());
         assertNotNull("topo change should be submitted", providerService.graphDesc);
         assertEquals("incorrect vertex count", 6, providerService.graphDesc.vertexes().size());
         assertEquals("incorrect edge count", 10, providerService.graphDesc.edges().size());
