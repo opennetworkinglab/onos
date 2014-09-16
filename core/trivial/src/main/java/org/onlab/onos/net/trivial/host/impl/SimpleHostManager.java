@@ -50,7 +50,7 @@ public class SimpleHostManager
     private final SimpleHostStore store = new SimpleHostStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDeliveryService eventDispatcher;
+    protected EventDeliveryService eventDispatcher;
 
 
     @Activate
