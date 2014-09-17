@@ -5,6 +5,9 @@ package org.onlab.onos.net.flow;
  */
 public interface FlowEntry extends FlowRule {
 
+
+    FlowId id();
+
     /**
      * Returns the number of milliseconds this flow rule has been applied.
      *
