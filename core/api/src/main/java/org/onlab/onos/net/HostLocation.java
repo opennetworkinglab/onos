@@ -1,13 +1,12 @@
 package org.onlab.onos.net;
 
-import java.util.Objects;
-
 /**
  * Representation of a network edge location where an end-station host is
  * connected.
  */
 public class HostLocation extends ConnectPoint {
 
+    // Note that time is explicitly excluded from the notion of equality.
     private final long time;
 
     public HostLocation(DeviceId deviceId, PortNumber portNumber, long time) {
@@ -23,20 +22,6 @@ public class HostLocation extends ConnectPoint {
      */
     public long time() {
         return time;
-    }
-
-    @Override
-    public int hashCode() {
-        return 31 * super.hashCode() + Objects.hash(time);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof HostLocation) {
-            final HostLocation other = (HostLocation) obj;
-            return super.equals(obj) && Objects.equals(this.time, other.time);
-        }
-        return false;
     }
 
 }
