@@ -4,9 +4,9 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import java.util.Set;
 
@@ -30,17 +30,17 @@ public class HostServiceAdapter implements HostService {
     }
 
     @Override
-    public Set<Host> getHostsByVlan(VLANID vlanId) {
+    public Set<Host> getHostsByVlan(VlanId vlanId) {
         return null;
     }
 
     @Override
-    public Set<Host> getHostsByMac(MACAddress mac) {
+    public Set<Host> getHostsByMac(MacAddress mac) {
         return null;
     }
 
     @Override
-    public Set<Host> getHostsByIp(IPAddress ip) {
+    public Set<Host> getHostsByIp(IpAddress ip) {
         return null;
     }
 

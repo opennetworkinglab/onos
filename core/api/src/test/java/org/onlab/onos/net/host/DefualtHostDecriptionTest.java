@@ -9,9 +9,9 @@ import org.junit.Test;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import com.google.common.collect.Sets;
 
@@ -20,16 +20,16 @@ import com.google.common.collect.Sets;
  */
 public class DefualtHostDecriptionTest {
 
-    private static final MACAddress MAC = MACAddress.valueOf("00:00:11:00:00:01");
-    private static final VLANID VLAN = VLANID.vlanId((short) 10);
+    private static final MacAddress MAC = MacAddress.valueOf("00:00:11:00:00:01");
+    private static final VlanId VLAN = VlanId.vlanId((short) 10);
     private static final HostLocation LOC = new HostLocation(
                 DeviceId.deviceId("of:foo"),
                 PortNumber.portNumber(100),
                 123L
             );
-    private static final Set<IPAddress> IPS = Sets.newHashSet(
-                IPAddress.valueOf("10.0.0.1"),
-                IPAddress.valueOf("10.0.0.2")
+    private static final Set<IpAddress> IPS = Sets.newHashSet(
+                IpAddress.valueOf("10.0.0.1"),
+                IpAddress.valueOf("10.0.0.2")
             );
 
     @Test

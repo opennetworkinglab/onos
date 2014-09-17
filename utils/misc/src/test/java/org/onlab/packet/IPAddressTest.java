@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 
 import org.junit.Test;
-import org.onlab.packet.IPAddress.Version;
+import org.onlab.packet.IpAddress.Version;
 
 import com.google.common.testing.EqualsTester;
 
@@ -19,11 +19,11 @@ public class IPAddressTest {
 
     @Test
     public void testEquality() {
-        IPAddress ip1 = IPAddress.valueOf(BYTES1);
-        IPAddress ip2 = IPAddress.valueOf(BYTES2);
-        IPAddress ip3 = IPAddress.valueOf(INTVAL1);
-        IPAddress ip4 = IPAddress.valueOf(INTVAL2);
-        IPAddress ip5 = IPAddress.valueOf(STRVAL);
+        IpAddress ip1 = IpAddress.valueOf(BYTES1);
+        IpAddress ip2 = IpAddress.valueOf(BYTES2);
+        IpAddress ip3 = IpAddress.valueOf(INTVAL1);
+        IpAddress ip4 = IpAddress.valueOf(INTVAL2);
+        IpAddress ip5 = IpAddress.valueOf(STRVAL);
 
         new EqualsTester().addEqualityGroup(ip1, ip3)
         .addEqualityGroup(ip2, ip5)
@@ -33,7 +33,7 @@ public class IPAddressTest {
 
     @Test
     public void basics() {
-        IPAddress ip4 = IPAddress.valueOf(BYTES1);
+        IpAddress ip4 = IpAddress.valueOf(BYTES1);
         assertEquals("incorrect IP Version", Version.INET, ip4.version());
         assertEquals("faulty toOctets()", Arrays.equals(
                 new byte [] {0x0, 0x0, 0x0, 0xa}, ip4.toOctets()), true);

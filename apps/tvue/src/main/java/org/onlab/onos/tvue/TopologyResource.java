@@ -11,12 +11,12 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.path.PathService;
+import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.onos.net.topology.TopologyVertex;
-import org.onlab.packet.IPAddress;
+import org.onlab.packet.IpAddress;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.GET;
@@ -74,8 +74,8 @@ public class TopologyResource extends BaseResource {
         // Merge the exterior and interior vertexes and inject host links as
         // the exterior edges.
         for (Host host : hostService.getHosts()) {
-            Set<IPAddress> ipAddresses = host.ipAddresses();
-            IPAddress ipAddress = ipAddresses.isEmpty() ? null : ipAddresses.iterator().next();
+            Set<IpAddress> ipAddresses = host.ipAddresses();
+            IpAddress ipAddress = ipAddresses.isEmpty() ? null : ipAddresses.iterator().next();
             String label = ipAddress != null ? ipAddress.toString() : host.mac().toString();
             vertexesNode.add(json(mapper, host.id(), 3, label, true));
             edgesNode.add(json(mapper, 1, host.location(), new ConnectPoint(host.id(), portNumber(-1))));

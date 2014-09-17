@@ -1,8 +1,7 @@
-package org.onlab.onos.net.path;
+package org.onlab.onos.net.topology;
 
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Path;
-import org.onlab.onos.net.topology.LinkWeight;
 
 import java.util.Set;
 

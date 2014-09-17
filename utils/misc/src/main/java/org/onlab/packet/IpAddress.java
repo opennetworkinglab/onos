@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * A class representing an IPv4 address.
  */
-public class IPAddress {
+public class IpAddress {
 
     //IP Versions
     public enum Version { INET, INET6 };
@@ -18,7 +18,7 @@ public class IPAddress {
     //does it make more sense to have a integral address?
     protected byte[] octets;
 
-    protected IPAddress(Version ver, byte[] octets) {
+    protected IpAddress(Version ver, byte[] octets) {
         this.version = ver;
         this.octets = Arrays.copyOf(octets, INET_LEN);
     }
@@ -29,8 +29,8 @@ public class IPAddress {
      * @param address a byte array
      * @return an IP address
      */
-    public static IPAddress valueOf(byte [] address) {
-        return new IPAddress(Version.INET, address);
+    public static IpAddress valueOf(byte [] address) {
+        return new IpAddress(Version.INET, address);
     }
 
     /**
@@ -39,13 +39,13 @@ public class IPAddress {
      * @param address an integer representing an IP value
      * @return an IP address
      */
-    public static IPAddress valueOf(int address) {
+    public static IpAddress valueOf(int address) {
         byte [] bytes = new byte [INET_LEN];
         for (int i = 0; i < INET_LEN; i++) {
             bytes[i] = (byte) ((address >> (INET_LEN - (i + 1)) * 8) & 0xff);
         }
 
-        return new IPAddress(Version.INET, bytes);
+        return new IpAddress(Version.INET, bytes);
     }
 
     /**
@@ -55,7 +55,7 @@ public class IPAddress {
      * @param address a string representing an IP address, e.g. "10.0.0.1"
      * @return an IP address
      */
-    public static IPAddress valueOf(String address) {
+    public static IpAddress valueOf(String address) {
         final String [] parts = address.split("\\.");
         if (parts.length != INET_LEN) {
             throw new IllegalArgumentException("Malformed IP address string; "
@@ -65,7 +65,7 @@ public class IPAddress {
         for (int i = 0; i < INET_LEN; i++) {
             bytes[i] = Byte.parseByte(parts[i], 10);
         }
-        return new IPAddress(Version.INET, bytes);
+        return new IpAddress(Version.INET, bytes);
     }
 
     /**
@@ -119,8 +119,8 @@ public class IPAddress {
     @Override
     public boolean equals(Object obj) {
 
-        if (obj instanceof IPAddress) {
-            IPAddress other = (IPAddress) obj;
+        if (obj instanceof IpAddress) {
+            IpAddress other = (IpAddress) obj;
 
             if (this.version.equals(other.version)
                     && (Arrays.equals(this.octets, other.octets))) {

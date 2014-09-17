@@ -1,8 +1,8 @@
 package org.onlab.onos.net;
 
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import java.util.Set;
 
@@ -24,21 +24,21 @@ public interface Host extends Element {
      *
      * @return mac address
      */
-    MACAddress mac();
+    MacAddress mac();
 
     /**
      * Returns the VLAN ID tied to this host.
      *
      * @return VLAN ID value
      */
-    VLANID vlan();
+    VlanId vlan();
 
     /**
      * Returns set of IP addresses currently bound to the host MAC address.
      *
      * @return set of IP addresses; empty if no IP address is bound
      */
-    Set<IPAddress> ipAddresses();
+    Set<IpAddress> ipAddresses();
 
     /**
      * Returns the most recent host location where the host attaches to the

@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.path;
+package org.onlab.onos.net.trivial.topology.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -21,7 +21,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.path.PathService;
+import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;

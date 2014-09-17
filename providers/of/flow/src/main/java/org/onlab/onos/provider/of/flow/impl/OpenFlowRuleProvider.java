@@ -207,11 +207,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 mBuilder.setExact(MatchField.ETH_TYPE, EthType.of(ethType.ethType()));
             case IPV4_DST:
                 ip = (IPCriterion) c;
-                mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toString()));
+                mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toInt()));
                 break;
             case IPV4_SRC:
                 ip = (IPCriterion) c;
-                mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toString()));
+                mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toInt()));
                 break;
             case IP_PROTO:
                 IPProtocolCriterion p = (IPProtocolCriterion) c;

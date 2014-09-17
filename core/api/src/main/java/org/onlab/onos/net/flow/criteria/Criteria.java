@@ -2,9 +2,9 @@ package org.onlab.onos.net.flow.criteria;
 
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.criteria.Criterion.Type;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 /**
  * Factory class to create various traffic selection criteria.
@@ -34,7 +34,7 @@ public final class Criteria {
      * @param macValue MAC address value or wildcard mask
      * @return match criterion
      */
-    public static Criterion matchEthSrc(MACAddress mac) {
+    public static Criterion matchEthSrc(MacAddress mac) {
         return new EthCriterion(mac, Type.ETH_SRC);
     }
 
@@ -45,7 +45,7 @@ public final class Criteria {
      * @param macValue MAC address value or wildcard mask
      * @return match criterion
      */
-    public static Criterion matchEthDst(MACAddress mac) {
+    public static Criterion matchEthDst(MacAddress mac) {
         return new EthCriterion(mac, Type.ETH_DST);
     }
 
@@ -65,7 +65,7 @@ public final class Criteria {
      * @param vlanId vlan id value
      * @return match criterion
      */
-    public static Criterion matchVlanId(VLANID vlanId) {
+    public static Criterion matchVlanId(VlanId vlanId) {
         return new VlanIdCriterion(vlanId);
     }
 
@@ -95,7 +95,7 @@ public final class Criteria {
      * @param ip ip src value
      * @return match criterion
      */
-    public static Criterion matchIPSrc(IPAddress ip) {
+    public static Criterion matchIPSrc(IpAddress ip) {
         return new IPCriterion(ip, Type.IPV4_SRC);
     }
 
@@ -105,7 +105,7 @@ public final class Criteria {
      * @param ip ip src value
      * @return match criterion
      */
-    public static Criterion matchIPDst(IPAddress ip) {
+    public static Criterion matchIPDst(IpAddress ip) {
         return new IPCriterion(ip, Type.IPV4_DST);
     }
 
@@ -133,10 +133,10 @@ public final class Criteria {
 
 
     public static final class EthCriterion implements Criterion {
-        private final MACAddress mac;
+        private final MacAddress mac;
         private final Type type;
 
-        public EthCriterion(MACAddress mac, Type type) {
+        public EthCriterion(MacAddress mac, Type type) {
             this.mac = mac;
             this.type = type;
         }
@@ -146,7 +146,7 @@ public final class Criteria {
             return this.type;
         }
 
-        public MACAddress mac() {
+        public MacAddress mac() {
             return this.mac;
         }
     }
@@ -173,10 +173,10 @@ public final class Criteria {
 
     public static final class IPCriterion implements Criterion {
 
-        private final IPAddress ip;
+        private final IpAddress ip;
         private final Type type;
 
-        public IPCriterion(IPAddress ip, Type type) {
+        public IPCriterion(IpAddress ip, Type type) {
             this.ip = ip;
             this.type = type;
         }
@@ -186,7 +186,7 @@ public final class Criteria {
             return this.type;
         }
 
-        public IPAddress ip() {
+        public IpAddress ip() {
             return this.ip;
         }
 
@@ -237,9 +237,9 @@ public final class Criteria {
     public static final class VlanIdCriterion implements Criterion {
 
 
-        private final VLANID vlanId;
+        private final VlanId vlanId;
 
-        public VlanIdCriterion(VLANID vlanId) {
+        public VlanIdCriterion(VlanId vlanId) {
             this.vlanId = vlanId;
         }
 
@@ -248,7 +248,7 @@ public final class Criteria {
             return Type.VLAN_VID;
         }
 
-        public VLANID vlanId() {
+        public VlanId vlanId() {
             return vlanId;
         }
 

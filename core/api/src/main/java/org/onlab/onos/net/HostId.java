@@ -1,7 +1,7 @@
 package org.onlab.onos.net;
 
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import java.net.URI;
 
@@ -42,7 +42,7 @@ public final class HostId extends ElementId {
      * @param vlanId vlan identifier
      * @return host identifier
      */
-    public static HostId hostId(MACAddress mac, VLANID vlanId) {
+    public static HostId hostId(MacAddress mac, VlanId vlanId) {
         // FIXME: use more efficient means of encoding
         return hostId("nic" + ":" + mac + "-" + vlanId);
     }
@@ -53,8 +53,8 @@ public final class HostId extends ElementId {
      * @param mac mac address
      * @return host identifier
      */
-    public static HostId hostId(MACAddress mac) {
-        return hostId(mac, VLANID.vlanId(VLANID.UNTAGGED));
+    public static HostId hostId(MacAddress mac) {
+        return hostId(mac, VlanId.vlanId(VlanId.UNTAGGED));
     }
 
 }

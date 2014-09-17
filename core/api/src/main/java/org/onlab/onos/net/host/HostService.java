@@ -4,9 +4,9 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
-import org.onlab.packet.IPAddress;
-import org.onlab.packet.MACAddress;
-import org.onlab.packet.VLANID;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import java.util.Set;
 
@@ -44,7 +44,7 @@ public interface HostService {
      * @return set of hosts in the given vlan id
      */
     // FIXME: change long to VLanId
-    Set<Host> getHostsByVlan(VLANID vlanId);
+    Set<Host> getHostsByVlan(VlanId vlanId);
 
     /**
      * Returns the set of hosts that have the specified MAC address.
@@ -52,7 +52,7 @@ public interface HostService {
      * @param mac mac address
      * @return set of hosts with the given mac
      */
-    Set<Host> getHostsByMac(MACAddress mac);
+    Set<Host> getHostsByMac(MacAddress mac);
 
     /**
      * Returns the set of hosts that have the specified IP address.
@@ -60,7 +60,7 @@ public interface HostService {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
-    Set<Host> getHostsByIp(IPAddress ip);
+    Set<Host> getHostsByIp(IpAddress ip);
 
     /**
      * Returns the set of hosts whose most recent location is the specified
