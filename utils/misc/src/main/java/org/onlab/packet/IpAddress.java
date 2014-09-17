@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * A class representing an IPv4 address.
  */
-public class IpAddress {
+public final class IpAddress {
 
     //IP Versions
     public enum Version { INET, INET6 };
@@ -14,13 +14,30 @@ public class IpAddress {
     public static final int INET_LEN = 4;
     public static final int INET6_LEN = 16;
 
-    protected Version version;
-    //does it make more sense to have a integral address?
-    protected byte[] octets;
+    //maximum CIDR value
+    public static final int MAX_INET_MASK = 32;
+    public static final int DEFAULT_MASK = 0;
 
-    protected IpAddress(Version ver, byte[] octets) {
+    /**
+     * Default value indicating an unspecified address.
+     */
+    public static final byte [] ANY = new byte [] {0, 0, 0, 0};
+
+    protected Version version;
+
+    protected byte[] octets;
+    protected int netmask;
+
+    private IpAddress(Version ver, byte[] octets, int netmask) {
         this.version = ver;
         this.octets = Arrays.copyOf(octets, INET_LEN);
+        this.netmask = netmask;
+    }
+
+    private IpAddress(Version ver, byte[] octets) {
+        this.version = ver;
+        this.octets = Arrays.copyOf(octets, INET_LEN);
+        this.netmask = DEFAULT_MASK;
     }
 
     /**
@@ -34,38 +51,87 @@ public class IpAddress {
     }
 
     /**
+     * Converts a byte array into an IP address.
+     *
+     * @param address a byte array
+     * @param netmask the CIDR value subnet mask
+     * @return an IP address
+     */
+    public static IpAddress valueOf(byte [] address, int netmask) {
+        return new IpAddress(Version.INET, address, netmask);
+    }
+
+    /**
+     * Helper to convert an integer into a byte array.
+     *
+     * @param address the integer to convert
+     * @return a byte array
+     */
+    private static byte [] bytes(int address) {
+        byte [] bytes = new byte [INET_LEN];
+        for (int i = 0; i < INET_LEN; i++) {
+            bytes[i] = (byte) ((address >> (INET_LEN - (i + 1)) * 8) & 0xff);
+        }
+
+        return bytes;
+    }
+
+    /**
      * Converts an integer into an IPv4 address.
      *
      * @param address an integer representing an IP value
      * @return an IP address
      */
     public static IpAddress valueOf(int address) {
-        byte [] bytes = new byte [INET_LEN];
-        for (int i = 0; i < INET_LEN; i++) {
-            bytes[i] = (byte) ((address >> (INET_LEN - (i + 1)) * 8) & 0xff);
-        }
-
-        return new IpAddress(Version.INET, bytes);
+        return new IpAddress(Version.INET, bytes(address));
     }
 
     /**
-     * Converts a string in dotted-decimal notation (x.x.x.x) into
-     * an IPv4 address.
+     * Converts an integer into an IPv4 address.
      *
-     * @param address a string representing an IP address, e.g. "10.0.0.1"
+     * @param address an integer representing an IP value
+     * @param netmask the CIDR value subnet mask
+     * @return an IP address
+     */
+    public static IpAddress valueOf(int address, int netmask) {
+        return new IpAddress(Version.INET, bytes(address), netmask);
+    }
+
+    /**
+     * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address. The
+     * string can also be in CIDR (slash) notation.
+     *
+     * @param address a IP address in string form, e.g. "10.0.0.1", "10.0.0.1/24"
      * @return an IP address
      */
     public static IpAddress valueOf(String address) {
-        final String [] parts = address.split("\\.");
-        if (parts.length != INET_LEN) {
+
+        final String [] parts = address.split("\\/");
+        if (parts.length > 2) {
+            throw new IllegalArgumentException("Malformed IP address string; "
+                    + "Addres must take form \"x.x.x.x\" or \"x.x.x.x/y\"");
+        }
+
+        int mask = DEFAULT_MASK;
+        if (parts.length == 2) {
+            mask = Integer.valueOf(parts[1]);
+            if (mask > MAX_INET_MASK) {
+                throw new IllegalArgumentException(
+                        "Value of subnet mask cannot exceed "
+                        + MAX_INET_MASK);
+            }
+        }
+
+        final String [] net = parts[0].split("\\.");
+        if (net.length != INET_LEN) {
             throw new IllegalArgumentException("Malformed IP address string; "
                     + "Addres must have four decimal values separated by dots (.)");
         }
         final byte [] bytes = new byte[INET_LEN];
         for (int i = 0; i < INET_LEN; i++) {
-            bytes[i] = Byte.parseByte(parts[i], 10);
+            bytes[i] = (byte) Short.parseShort(net[i], 10);
         }
-        return new IpAddress(Version.INET, bytes);
+        return new IpAddress(Version.INET, bytes, mask);
     }
 
     /**
@@ -99,34 +165,122 @@ public class IpAddress {
         return address;
     }
 
+    /**
+     * Helper for computing the mask value from CIDR.
+     *
+     * @return an integer bitmask
+     */
+    private int mask() {
+        int shift = MAX_INET_MASK - this.netmask;
+        return ((Integer.MAX_VALUE >>> (shift - 1)) << shift);
+    }
+
+    /**
+     * Returns the subnet mask in IpAddress form. The netmask value for
+     * the returned IpAddress is 0, as the address itself is a mask.
+     *
+     * @return the subnet mask
+     */
+    public IpAddress netmask() {
+        return new IpAddress(Version.INET, bytes(mask()));
+    }
+
+    /**
+     * Returns the network portion of this address as an IpAddress.
+     * The netmask of the returned IpAddress is the current mask. If this
+     * address doesn't have a mask, this returns an all-0 IpAddress.
+     *
+     * @return the network address or null
+     */
+    public IpAddress network() {
+        if (netmask == DEFAULT_MASK) {
+            return new IpAddress(version, ANY, DEFAULT_MASK);
+        }
+
+        byte [] net = new byte [4];
+        byte [] mask = bytes(mask());
+        for (int i = 0; i < INET_LEN; i++) {
+             net[i] = (byte) (octets[i] & mask[i]);
+        }
+        return new IpAddress(version, net, netmask);
+    }
+
+    /**
+     * Returns the host portion of the IPAddress, as an IPAddress.
+     * The netmask of the returned IpAddress is the current mask. If this
+     * address doesn't have a mask, this returns a copy of the current
+     * address.
+     *
+     * @return the host address
+     */
+    public IpAddress host() {
+        if (netmask == DEFAULT_MASK) {
+            new IpAddress(version, octets, netmask);
+        }
+
+        byte [] host = new byte [INET_LEN];
+        byte [] mask = bytes(mask());
+        for (int i = 0; i < INET_LEN; i++) {
+             host[i] = (byte) (octets[i] & ~mask[i]);
+        }
+        return new IpAddress(version, host, netmask);
+    }
+
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + netmask;
+        result = prime * result + Arrays.hashCode(octets);
+        result = prime * result + ((version == null) ? 0 : version.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        IpAddress other = (IpAddress) obj;
+        if (netmask != other.netmask) {
+            return false;
+        }
+        if (!Arrays.equals(octets, other.octets)) {
+            return false;
+        }
+        if (version != other.version) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    /*
+     * (non-Javadoc)
+     * format is "x.x.x.x" for non-masked (netmask 0) addresses,
+     * and "x.x.x.x/y" for masked addresses.
+     *
+     * @see java.lang.Object#toString()
+     */
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         for (final byte b : this.octets) {
             if (builder.length() > 0) {
                 builder.append(".");
             }
-            builder.append(String.format("%d", b));
+            builder.append(String.format("%d", b & 0xff));
+        }
+        if (netmask != DEFAULT_MASK) {
+            builder.append("/");
+            builder.append(String.format("%d", netmask));
         }
         return builder.toString();
     }
 
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(octets);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-
-        if (obj instanceof IpAddress) {
-            IpAddress other = (IpAddress) obj;
-
-            if (this.version.equals(other.version)
-                    && (Arrays.equals(this.octets, other.octets))) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
