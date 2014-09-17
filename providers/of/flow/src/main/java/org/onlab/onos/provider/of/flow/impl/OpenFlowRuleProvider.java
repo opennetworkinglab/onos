@@ -48,6 +48,7 @@ import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IpProtocol;
 import org.projectfloodlight.openflow.types.MacAddress;
+import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.VlanPcp;
@@ -110,6 +111,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
         OFFlowMod fm = sw.factory().buildFlowModify()
+                .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
@@ -128,7 +130,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             switch (i.type()) {
             case DROP:
                 log.warn("Saw drop action; assigning drop action");
-                return acts;
+                return new LinkedList<>();
             case L2MODIFICATION:
                 acts.add(buildL2Modification(i, factory));
             case L3MODIFICATION:
