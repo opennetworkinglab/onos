@@ -18,7 +18,7 @@
         <module>web</module>
         <module>cli</module>
         <module>providers</module>
-        <module>of</module>
+        <module>openflow</module>
         <module>apps</module>
         <module>features</module>
         <module>tools/package/branding</module>
