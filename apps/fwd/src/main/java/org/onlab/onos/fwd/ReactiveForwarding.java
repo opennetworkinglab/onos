@@ -74,13 +74,12 @@ public class ReactiveForwarding {
 
         @Override
         public void process(PacketContext context) {
-            /*
-             *  stop processing if the packet has been handled,
-             *  we can't do any more to it
-             */
+            // Stop processing if the packet has been handled, since we
+            // can't do any more to it.
             if (context.isHandled()) {
                 return;
             }
+
             InboundPacket pkt = context.inPacket();
             HostId id = HostId.hostId(pkt.parsed().getDestinationMAC());
 
@@ -100,10 +99,9 @@ public class ReactiveForwarding {
 
             // Otherwise, get a set of paths that lead from here to the
             // destination edge switch.
-
             Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
-                    context.inPacket().receivedFrom().deviceId(),
-                    dst.location().deviceId());
+                                                       context.inPacket().receivedFrom().deviceId(),
+                                                       dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
                 flood(context);
@@ -137,9 +135,8 @@ public class ReactiveForwarding {
 
     // Floods the specified packet.
     private void flood(PacketContext context) {
-        boolean canBcast = topologyService.isBroadcastPoint(topologyService.currentTopology(),
-                context.inPacket().receivedFrom());
-        if (canBcast) {
+        if (topologyService.isBroadcastPoint(topologyService.currentTopology(),
+                                             context.inPacket().receivedFrom())) {
             packetOutFlood(context);
         } else {
             context.block();
@@ -154,27 +151,25 @@ public class ReactiveForwarding {
 
     // Install a rule forwarding the packet to the specified port.
     private void installRule(PacketContext context, PortNumber portNumber) {
-        // we don't yet support bufferids in the flowservice so packet out and
-        // then install a flowmod.
-        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
-        context.send();
-
-
         Ethernet inPkt = context.inPacket().parsed();
         TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
         builder.add(Criteria.matchEthType(inPkt.getEtherType()))
-        .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
-        .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
-        .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
+                .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
+                .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
+                .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
 
         TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
         treat.add(Instructions.createOutput(portNumber));
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                builder.build(), treat.build());
+                                         builder.build(), treat.build());
 
         flowRuleService.applyFlowRules(f);
 
+        // we don't yet support bufferids in the flowservice so packet out and
+        // then install a flowmod.
+        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
+        context.send();
     }
 
 }
