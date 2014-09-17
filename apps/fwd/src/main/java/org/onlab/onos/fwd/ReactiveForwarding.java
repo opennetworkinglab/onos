@@ -74,6 +74,10 @@ public class ReactiveForwarding {
 
         @Override
         public void process(PacketContext context) {
+            /*
+             *  stop processing if the packet has been handled,
+             *  we can't do any more to it
+             */
             if (context.isHandled()) {
                 return;
             }

@@ -20,7 +20,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     private final Logger log = getLogger(getClass());
 
     private final AtomicBoolean free = new AtomicBoolean(true);
-    private boolean isBuilt = false;
+    private final AtomicBoolean isBuilt = new AtomicBoolean(false);
     private final OpenFlowSwitch sw;
     private final OFPacketIn pktin;
     private OFPacketOut pktout = null;
@@ -32,14 +32,14 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public void send() {
-        if (block() && isBuilt) {
+        if (block() && isBuilt.get()) {
             sw.sendMsg(pktout);
         }
     }
 
     @Override
-    public synchronized void build(OFPort outPort) {
-        if (isBuilt) {
+    public void build(OFPort outPort) {
+        if (isBuilt.getAndSet(true)) {
             return;
         }
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
@@ -49,12 +49,11 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
                 .setBufferId(pktin.getBufferId())
                 .setActions(Collections.singletonList(act))
                 .build();
-        isBuilt = true;
     }
 
     @Override
-    public synchronized void build(Ethernet ethFrame, OFPort outPort) {
-        if (isBuilt) {
+    public void build(Ethernet ethFrame, OFPort outPort) {
+        if (isBuilt.getAndSet(true)) {
             return;
         }
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
@@ -65,7 +64,6 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
                 .setActions(Collections.singletonList(act))
                 .setData(ethFrame.serialize())
                 .build();
-        isBuilt = true;
     }
 
     @Override

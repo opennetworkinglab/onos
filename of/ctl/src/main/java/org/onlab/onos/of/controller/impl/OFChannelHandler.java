@@ -17,11 +17,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
-import org.onlab.onos.of.controller.RoleState;
 import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.of.controller.driver.SwitchStateException;
-import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
-import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
 import org.projectfloodlight.openflow.exceptions.OFParseError;
 import org.projectfloodlight.openflow.protocol.OFAsyncGetReply;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
@@ -75,9 +72,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     // needs to check if the handshake is complete
     private volatile ChannelState state;
 
-    // Used to coordinate between the controller and the cleanup thread(?)
-    // for access to the global registry on a per switch basis.
-    volatile Boolean controlRequested;
     // When a switch with a duplicate dpid is found (i.e we already have a
     // connected switch with the same dpid), the new switch is immediately
     // disconnected. At that point netty callsback channelDisconnected() which
@@ -113,7 +107,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         this.pendingPortStatusMsg = new CopyOnWriteArrayList<OFPortStatus>();
         factory13 = controller.getOFMessageFactory13();
         factory10 = controller.getOFMessageFactory10();
-        controlRequested = Boolean.FALSE;
         duplicateDpidFound = Boolean.FALSE;
     }
 
@@ -316,16 +309,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          */
         WAIT_CONFIG_REPLY(false) {
             @Override
-            @LogMessageDocs({
-                @LogMessageDoc(level = "WARN",
-                        message = "Config Reply from {switch} has "
-                                + "miss length set to {length}",
-                                explanation = "The controller requires that the switch "
-                                        + "use a miss length of 0xffff for correct "
-                                        + "function",
-                                        recommendation = "Use a different switch to ensure "
-                                                + "correct function")
-            })
             void processOFGetConfigReply(OFChannelHandler h, OFGetConfigReply m)
                     throws IOException {
                 if (m.getMissSendLen() == 0xffff) {
@@ -395,11 +378,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * All following states will have a h.sw instance!
          */
         WAIT_DESCRIPTION_STAT_REPLY(false) {
-            @LogMessageDoc(message = "Switch {switch info} bound to class "
-                    + "{switch driver}, description {switch description}",
-                    explanation = "The specified switch has been bound to "
-                            + "a switch driver based on the switch description"
-                            + "received from the switch")
             @Override
             void processOFStatisticsReply(OFChannelHandler h, OFStatsReply m)
                     throws SwitchStateException {
@@ -528,15 +506,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * SLAVE.
          */
         ACTIVE(true) {
-            @LogMessageDoc(level = "WARN",
-                    message = "Received permission error from switch {} while"
-                            + "being master. Reasserting master role.",
-                            explanation = "The switch has denied an operation likely "
-                                    + "indicating inconsistent controller roles",
-                                    recommendation = "This situation can occurs transiently during role"
-                                            + " changes. If, however, the condition persists or happens"
-                                            + " frequently this indicates a role inconsistency. "
-                                            + LogMessageDoc.CHECK_CONTROLLER)
             @Override
             void processOFError(OFChannelHandler h, OFErrorMsg m)
                     throws IOException, SwitchStateException {
@@ -685,15 +654,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * @param h The switch that sent the error
          * @param error The error message
          */
-        @LogMessageDoc(level = "ERROR",
-                message = "Error {error type} {error code} from {switch} "
-                        + "in state {state}",
-                        explanation = "The switch responded with an unexpected error"
-                                + "to an OpenFlow message from the controller",
-                                recommendation = "This could indicate improper network operation. "
-                                        + "If the problem persists restarting the switch and "
-                                        + "controller may help."
-                )
         protected void logError(OFChannelHandler h, OFErrorMsg error) {
             log.error("{} from switch {} in state {}",
                     new Object[] {
@@ -1003,9 +963,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     //*************************
 
     @Override
-    @LogMessageDoc(message = "New switch connection from {ip address}",
-    explanation = "A new switch has connected from the "
-            + "specified IP address")
     public void channelConnected(ChannelHandlerContext ctx,
             ChannelStateEvent e) throws Exception {
         channel = e.getChannel();
@@ -1016,8 +973,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     @Override
-    @LogMessageDoc(message = "Disconnected switch {switch information}",
-    explanation = "The specified switch has disconnected.")
     public void channelDisconnected(ChannelHandlerContext ctx,
             ChannelStateEvent e) throws Exception {
         log.info("Switch disconnected callback for sw:{}. Cleaning up ...",
@@ -1044,47 +999,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     @Override
-    @LogMessageDocs({
-        @LogMessageDoc(level = "ERROR",
-                message = "Disconnecting switch {switch} due to read timeout",
-                explanation = "The connected switch has failed to send any "
-                        + "messages or respond to echo requests",
-                        recommendation = LogMessageDoc.CHECK_SWITCH),
-                        @LogMessageDoc(level = "ERROR",
-                        message = "Disconnecting switch {switch}: failed to "
-                                + "complete handshake",
-                                explanation = "The switch did not respond correctly "
-                                        + "to handshake messages",
-                                        recommendation = LogMessageDoc.CHECK_SWITCH),
-                                        @LogMessageDoc(level = "ERROR",
-                                        message = "Disconnecting switch {switch} due to IO Error: {}",
-                                        explanation = "There was an error communicating with the switch",
-                                        recommendation = LogMessageDoc.CHECK_SWITCH),
-                                        @LogMessageDoc(level = "ERROR",
-                                        message = "Disconnecting switch {switch} due to switch "
-                                                + "state error: {error}",
-                                                explanation = "The switch sent an unexpected message",
-                                                recommendation = LogMessageDoc.CHECK_SWITCH),
-                                                @LogMessageDoc(level = "ERROR",
-                                                message = "Disconnecting switch {switch} due to "
-                                                        + "message parse failure",
-                                                        explanation = "Could not parse a message from the switch",
-                                                        recommendation = LogMessageDoc.CHECK_SWITCH),
-                                                        @LogMessageDoc(level = "ERROR",
-                                                        message = "Terminating controller due to storage exception",
-                                                        explanation = Controller.ERROR_DATABASE,
-                                                        recommendation = LogMessageDoc.CHECK_CONTROLLER),
-                                                        @LogMessageDoc(level = "ERROR",
-                                                        message = "Could not process message: queue full",
-                                                        explanation = "OpenFlow messages are arriving faster than "
-                                                                + "the controller can process them.",
-                                                                recommendation = LogMessageDoc.CHECK_CONTROLLER),
-                                                                @LogMessageDoc(level = "ERROR",
-                                                                message = "Error while processing message "
-                                                                        + "from switch {switch} {cause}",
-                                                                        explanation = "An error occurred processing the switch message",
-                                                                        recommendation = LogMessageDoc.GENERIC_ACTION)
-    })
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         if (e.getCause() instanceof ReadTimeoutException) {
@@ -1246,10 +1160,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 .setXid(this.handshakeTransactionIds--)
                 .build();
         channel.write(Collections.singletonList(m));
-    }
-
-    private void setSwitchRole(RoleState role) {
-        sw.setRole(role);
     }
 
     /**

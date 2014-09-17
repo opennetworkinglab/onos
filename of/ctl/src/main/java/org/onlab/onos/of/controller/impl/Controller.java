@@ -32,8 +32,6 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.onos.of.controller.Dpid;
 import org.onlab.onos.of.controller.driver.OpenFlowAgent;
 import org.onlab.onos.of.controller.driver.OpenFlowSwitchDriver;
-import org.onlab.onos.of.controller.impl.annotations.LogMessageDoc;
-import org.onlab.onos.of.controller.impl.annotations.LogMessageDocs;
 import org.onlab.onos.of.drivers.impl.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
@@ -119,19 +117,6 @@ public class Controller {
     /**
      * Tell controller that we're ready to accept switches loop.
      */
-    @LogMessageDocs({
-        @LogMessageDoc(message = "Listening for switch connections on {address}",
-                explanation = "The controller is ready and listening for new" +
-                " switch connections"),
-                @LogMessageDoc(message = "Storage exception in controller " +
-                        "updates loop; terminating process",
-                        explanation = ERROR_DATABASE,
-                        recommendation = LogMessageDoc.CHECK_CONTROLLER),
-                        @LogMessageDoc(level = "ERROR",
-                        message = "Exception in controller updates loop",
-                        explanation = "Failed to dispatch controller event",
-                        recommendation = LogMessageDoc.GENERIC_ACTION)
-    })
     public void run() {
 
         try {
