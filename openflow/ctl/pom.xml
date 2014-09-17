@@ -1,0 +1,122 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.onlab.onos</groupId>
+        <artifactId>onos-of</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>onos-of-ctl</artifactId>
+    <packaging>bundle</packaging>
+
+    <description>ONOS OpenFlow controller subsystem API</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <powermock.version>1.5.5</powermock.version>
+        <restlet.version>2.1.4</restlet.version>
+        <cobertura-maven-plugin.version>2.6</cobertura-maven-plugin.version>
+        <!-- Following 2 findbugs version needs to be updated in sync to match the
+             findbugs version used in findbugs-plugin -->
+        <findbugs.version>3.0.0</findbugs.version>
+        <findbugs-plugin.version>3.0.0</findbugs-plugin.version>
+        <findbugs.effort>Max</findbugs.effort>
+        <findbugs.excludeFilterFile>${project.basedir}/conf/findbugs/exclude.xml
+        </findbugs.excludeFilterFile>
+        <checkstyle-plugin.version>2.12</checkstyle-plugin.version>
+        <!-- To publish javadoc to github,
+         uncomment com.github.github site-maven-plugin and
+         see https://github.com/OPENNETWORKINGLAB/ONOS/pull/425
+        <github.global.server>github</github.global.server>
+         -->
+        <metrics.version>3.0.2</metrics.version>
+        <maven.surefire.plugin.version>2.16</maven.surefire.plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-of-api</artifactId>
+        </dependency>
+        <!-- ONOS's direct dependencies -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <version>1.9.6</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <!-- findbugs suppression annotation and @GuardedBy, etc. -->
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${findbugs.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectfloodlight</groupId>
+            <artifactId>openflowj</artifactId>
+            <version>0.3.8-SNAPSHOT</version>
+        </dependency>
+        <!-- Floodlight's dependencies -->
+        <dependency>
+            <!-- dependency to old version of netty? -->
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.9.2.Final</version>
+        </dependency>
+        <!-- Dependency for libraries used for testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-easymock</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
