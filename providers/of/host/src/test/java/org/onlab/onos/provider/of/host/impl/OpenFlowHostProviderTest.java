@@ -1,5 +1,11 @@
 package org.onlab.onos.provider.of.host.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Set;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,10 +30,6 @@ import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.types.OFPort;
 
-import java.util.Set;
-
-import static org.junit.Assert.*;
-
 public class OpenFlowHostProviderTest {
 
     private static final Integer INPORT = 10;
@@ -40,10 +42,10 @@ public class OpenFlowHostProviderTest {
     private static final MacAddress BCMAC = MacAddress.valueOf("ff:ff:ff:ff:ff:ff");
     private static final byte[] IP = new byte[]{10, 0, 0, 1};
 
-    private OpenFlowHostProvider provider = new OpenFlowHostProvider();
-    private TestHostRegistry hostService = new TestHostRegistry();
-    private TestController controller = new TestController();
-    private TestTopologyService topoService = new TestTopologyService();
+    private final OpenFlowHostProvider provider = new OpenFlowHostProvider();
+    private final TestHostRegistry hostService = new TestHostRegistry();
+    private final TestController controller = new TestController();
+    private final TestTopologyService topoService = new TestTopologyService();
     private TestHostProviderService providerService;
 
     @Before
@@ -103,8 +105,8 @@ public class OpenFlowHostProviderTest {
     }
 
     private class TestHostProviderService
-            extends AbstractProviderService<HostProvider>
-            implements HostProviderService {
+    extends AbstractProviderService<HostProvider>
+    implements HostProviderService {
 
         Dpid added = null;
         Dpid moved = null;
@@ -150,7 +152,7 @@ public class OpenFlowHostProviderTest {
     private class TestTopologyService extends TopologyServiceAdapter {
         @Override
         public boolean isInfrastructure(Topology topology,
-                                        ConnectPoint connectPoint) {
+                ConnectPoint connectPoint) {
             //simulate DPID3 as an infrastructure switch
             if (Dpid.dpid(connectPoint.deviceId().uri()).equals(DPID3)) {
                 return true;
@@ -168,7 +170,7 @@ public class OpenFlowHostProviderTest {
         }
 
         @Override
-        public boolean blocked() {
+        public boolean block() {
             return false;
         }
 
@@ -189,16 +191,16 @@ public class OpenFlowHostProviderTest {
             // just things we (and serializers) need
             ARP arp = new ARP();
             arp.setSenderProtocolAddress(IP)
-                    .setSenderHardwareAddress(MAC.toBytes())
-                    .setTargetHardwareAddress(BCMAC.toBytes())
-                    .setTargetProtocolAddress(IP);
+            .setSenderHardwareAddress(MAC.toBytes())
+            .setTargetHardwareAddress(BCMAC.toBytes())
+            .setTargetProtocolAddress(IP);
 
             Ethernet eth = new Ethernet();
             eth.setEtherType(Ethernet.TYPE_ARP)
-                    .setVlanID(VLAN.toShort())
-                    .setSourceMACAddress(MAC.toBytes())
-                    .setDestinationMACAddress(BCMAC.getAddress())
-                    .setPayload(arp);
+            .setVlanID(VLAN.toShort())
+            .setSourceMACAddress(MAC.toBytes())
+            .setDestinationMACAddress(BCMAC.getAddress())
+            .setPayload(arp);
 
             return eth;
         }
@@ -216,6 +218,11 @@ public class OpenFlowHostProviderTest {
         @Override
         public Integer inPort() {
             return INPORT;
+        }
+
+        @Override
+        public boolean isHandled() {
+            return false;
         }
 
     }

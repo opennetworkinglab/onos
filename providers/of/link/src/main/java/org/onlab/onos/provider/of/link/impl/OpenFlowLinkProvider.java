@@ -93,7 +93,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
                 return;
             }
             if (ld.handleLLDP(pktCtx.unparsed(), pktCtx.inPort())) {
-                pktCtx.blocked();
+                pktCtx.block();
             }
 
         }

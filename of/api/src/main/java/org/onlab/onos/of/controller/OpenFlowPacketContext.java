@@ -16,7 +16,13 @@ public interface OpenFlowPacketContext {
      * Blocks further responses (ie. send() calls) on this
      * packet in event.
      */
-    public boolean blocked();
+    public boolean block();
+
+    /**
+     * Checks whether the packet has been handled.
+     * @return true if handled, false otherwise.
+     */
+    public boolean isHandled();
 
     /**
      * Provided build has been called send the packet

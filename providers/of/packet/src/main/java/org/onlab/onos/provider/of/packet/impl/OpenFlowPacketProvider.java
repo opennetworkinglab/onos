@@ -87,7 +87,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                     pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()));
 
             OpenFlowCorePacketContext corePktCtx =
-                    new OpenFlowCorePacketContext(0, inPkt, null, false, pktCtx);
+                    new OpenFlowCorePacketContext(0, inPkt, null, pktCtx.isHandled(), pktCtx);
             providerService.processPacket(corePktCtx);
         }
 

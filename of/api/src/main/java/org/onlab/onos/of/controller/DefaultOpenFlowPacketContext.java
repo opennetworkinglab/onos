@@ -32,7 +32,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public void send() {
-        if (blocked() && isBuilt) {
+        if (block() && isBuilt) {
             sw.sendMsg(pktout);
         }
     }
@@ -109,8 +109,13 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     }
 
     @Override
-    public boolean blocked() {
+    public boolean block() {
         return free.getAndSet(false);
+    }
+
+    @Override
+    public boolean isHandled() {
+        return !free.get();
     }
 
 }

@@ -9,12 +9,11 @@ import java.util.List;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.slf4j.Logger;
 
-@SuppressWarnings("rawtypes")
-public class DefaultTrafficTreatment implements TrafficTreatment {
+public final class DefaultTrafficTreatment implements TrafficTreatment {
 
     private final List<Instruction> instructions;
 
-    public DefaultTrafficTreatment(List<Instruction> instructions) {
+    private DefaultTrafficTreatment(List<Instruction> instructions) {
         this.instructions = Collections.unmodifiableList(instructions);
     }
 

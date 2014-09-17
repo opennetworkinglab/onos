@@ -69,6 +69,7 @@
         <bundle>mvn:org.onlab.onos/onos-of-provider-link/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-host/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-packet/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-of-provider-flow/1.0.0-SNAPSHOT</bundle>
 
     </feature>
 

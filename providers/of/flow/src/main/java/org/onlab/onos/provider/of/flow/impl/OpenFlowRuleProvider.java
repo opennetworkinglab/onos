@@ -26,6 +26,7 @@ import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
+import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
@@ -136,6 +137,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             case L3MODIFICATION:
                 acts.add(buildL3Modification(i, factory));
             case OUTPUT:
+                OutputInstruction out = (OutputInstruction) i;
+                acts.add(factory.actions().buildOutput().setPort(
+                        OFPort.of((int) out.port().toLong())).build());
                 break;
             case GROUP:
             default:
@@ -207,6 +211,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             case ETH_TYPE:
                 EthTypeCriterion ethType = (EthTypeCriterion) c;
                 mBuilder.setExact(MatchField.ETH_TYPE, EthType.of(ethType.ethType()));
+                break;
             case IPV4_DST:
                 ip = (IPCriterion) c;
                 mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toInt()));
