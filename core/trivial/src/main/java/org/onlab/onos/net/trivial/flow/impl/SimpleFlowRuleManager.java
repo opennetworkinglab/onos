@@ -2,6 +2,9 @@ package org.onlab.onos.net.trivial.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,16 +28,21 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @Component(immediate = true)
 @Service
 public class SimpleFlowRuleManager
 extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
 implements FlowRuleService, FlowRuleProviderRegistry {
 
+    public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
     listenerRegistry = new AbstractListenerRegistry<>();
+
+    private final SimpleFlowRuleStore store = new SimpleFlowRuleStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private EventDeliveryService eventDispatcher;
@@ -56,30 +64,31 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-        //TODO: store rules somewhere and return them here
-        return null;
+        return store.getFlowEntries(deviceId);
     }
 
     @Override
-    public void applyFlowRules(FlowRule... flowRules) {
+    public List<FlowEntry> applyFlowRules(FlowRule... flowRules) {
+        List<FlowEntry> entries = new ArrayList<FlowEntry>();
+
         for (int i = 0; i < flowRules.length; i++) {
-            FlowRule f = flowRules[0];
+            FlowRule f = flowRules[i];
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
-            //TODO: store rules somewhere
+            entries.add(store.storeFlowRule(f));
             frp.applyFlowRule(f);
         }
 
-
+        return entries;
     }
 
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
         for (int i = 0; i < flowRules.length; i++) {
-            FlowRule f = flowRules[0];
+            FlowRule f = flowRules[i];
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
-            //TODO: remove stored rules from wherever they are
+            store.removeFlowRule(f);
             frp.removeFlowRule(f);
         }
 
@@ -102,8 +111,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     private class InternalFlowRuleProviderService
-    extends AbstractProviderService<FlowRuleProvider>
-    implements FlowRuleProviderService {
+            extends AbstractProviderService<FlowRuleProvider>
+            implements FlowRuleProviderService {
 
         protected InternalFlowRuleProviderService(FlowRuleProvider provider) {
             super(provider);
@@ -111,22 +120,44 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
         @Override
         public void flowRemoved(FlowRule flowRule) {
-            // TODO Auto-generated method stub
+            checkNotNull(flowRule, FLOW_RULE_NULL);
+            checkValidity();
+            FlowRuleEvent event = store.removeFlowRule(flowRule);
 
+            if (event != null) {
+                log.debug("Flow {} removed", flowRule);
+                post(event);
+            }
         }
 
         @Override
         public void flowMissing(FlowRule flowRule) {
+            checkNotNull(flowRule, FLOW_RULE_NULL);
+            checkValidity();
             // TODO Auto-generated method stub
 
         }
 
         @Override
         public void flowAdded(FlowRule flowRule) {
-            // TODO Auto-generated method stub
+            checkNotNull(flowRule, FLOW_RULE_NULL);
+            checkValidity();
 
+            FlowRuleEvent event = store.addOrUpdateFlowRule(flowRule);
+            if (event == null) {
+                log.debug("Flow {} updated", flowRule);
+            } else {
+                log.debug("Flow {} added", flowRule);
+                post(event);
+            }
         }
 
+        // Posts the specified event to the local event dispatcher.
+        private void post(FlowRuleEvent event) {
+            if (event != null) {
+                eventDispatcher.post(event);
+            }
+        }
     }
 
 }

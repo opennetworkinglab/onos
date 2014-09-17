@@ -5,7 +5,11 @@ package org.onlab.onos.net.flow;
  */
 public interface FlowEntry extends FlowRule {
 
-
+    /**
+     * Returns the ID of this flow.
+     *
+     * @return the flow ID
+     */
     FlowId id();
 
     /**
