@@ -11,7 +11,7 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.path.PathService;
+import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyService;
