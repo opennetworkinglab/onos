@@ -11,7 +11,7 @@ import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.packet.DefaultPacketContext;
 import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.of.controller.OpenFlowPacketContext;
+import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;

@@ -18,11 +18,11 @@ import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.OpenFlowController;
-import org.onlab.onos.of.controller.OpenFlowSwitch;
-import org.onlab.onos.of.controller.OpenFlowSwitchListener;
-import org.onlab.onos.of.controller.RoleState;
+import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowSwitch;
+import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
+import org.onlab.onos.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.of.controller.Dpid.dpid;
-import static org.onlab.onos.of.controller.Dpid.uri;
+import static org.onlab.onos.openflow.controller.Dpid.dpid;
+import static org.onlab.onos.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

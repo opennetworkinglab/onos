@@ -19,10 +19,10 @@ import org.onlab.onos.net.packet.PacketProviderRegistry;
 import org.onlab.onos.net.packet.PacketProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.OpenFlowController;
-import org.onlab.onos.of.controller.OpenFlowPacketContext;
-import org.onlab.onos.of.controller.PacketListener;
+import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
+import org.onlab.onos.openflow.controller.PacketListener;
 import org.slf4j.Logger;
 
 /**
