@@ -24,8 +24,6 @@ import org.projectfloodlight.openflow.types.*;
 import org.projectfloodlight.openflow.util.*;
 import org.projectfloodlight.openflow.exceptions.*;
 import org.jboss.netty.buffer.ChannelBuffer;
-
-import java.nio.ByteBuffer;
 import java.util.Set;
 
 abstract class OFActionBsnVer13 {
@@ -38,7 +36,7 @@ abstract class OFActionBsnVer13 {
 
     static class Reader implements OFMessageReader<OFActionBsn> {
         @Override
-        public OFActionBsn readFrom(ByteBuffer bb) throws OFParseError {
+        public OFActionBsn readFrom(ChannelBuffer bb) throws OFParseError {
             if(bb.readableBytes() < MINIMUM_LENGTH)
                 return null;
             int start = bb.readerIndex();
