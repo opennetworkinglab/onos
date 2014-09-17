@@ -46,7 +46,7 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
     private void sendBufferedPacket() {
         List<Instruction> ins = treatmentBuilder().build().instructions();
         OFPort p = null;
-        //TODO: support arbitrary list of treatments
+        //TODO: support arbitrary list of treatments must be supported in ofPacketContext
         for (Instruction i : ins) {
             if (i.type() == Type.OUTPUT) {
                 p = buildPort(((OutputInstruction) i).port());

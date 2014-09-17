@@ -118,7 +118,7 @@ public final class IpAddress {
             if (mask > MAX_INET_MASK) {
                 throw new IllegalArgumentException(
                         "Value of subnet mask cannot exceed "
-                        + MAX_INET_MASK);
+                                + MAX_INET_MASK);
             }
         }
 
@@ -200,7 +200,7 @@ public final class IpAddress {
         byte [] net = new byte [4];
         byte [] mask = bytes(mask());
         for (int i = 0; i < INET_LEN; i++) {
-             net[i] = (byte) (octets[i] & mask[i]);
+            net[i] = (byte) (octets[i] & mask[i]);
         }
         return new IpAddress(version, net, netmask);
     }
@@ -221,9 +221,13 @@ public final class IpAddress {
         byte [] host = new byte [INET_LEN];
         byte [] mask = bytes(mask());
         for (int i = 0; i < INET_LEN; i++) {
-             host[i] = (byte) (octets[i] & ~mask[i]);
+            host[i] = (byte) (octets[i] & ~mask[i]);
         }
         return new IpAddress(version, host, netmask);
+    }
+
+    public boolean isMasked() {
+        return mask() != 0;
     }
 
     @Override
