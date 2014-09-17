@@ -538,43 +538,41 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             @Override
             void processOFStatisticsReply(OFChannelHandler h,
                     OFStatsReply m) {
-                h.sw.handleMessage(m);
+                h.dispatchMessage(m);
             }
 
             @Override
             void processOFExperimenter(OFChannelHandler h, OFExperimenter m)
-                    throws IOException, SwitchStateException {
+                    throws SwitchStateException {
                 h.sw.handleNiciraRole(m);
             }
 
             @Override
             void processOFRoleReply(OFChannelHandler h, OFRoleReply m)
-                    throws SwitchStateException, IOException {
+                    throws SwitchStateException {
                 h.sw.handleRole(m);
             }
 
             @Override
             void processOFPortStatus(OFChannelHandler h, OFPortStatus m)
-                    throws IOException, SwitchStateException {
+                    throws SwitchStateException {
                 handlePortStatusMessage(h, m, true);
                 h.dispatchMessage(m);
             }
 
             @Override
-            void processOFPacketIn(OFChannelHandler h, OFPacketIn m)
-                    throws IOException {
+            void processOFPacketIn(OFChannelHandler h, OFPacketIn m) {
                 h.dispatchMessage(m);
             }
 
             @Override
             void processOFFlowRemoved(OFChannelHandler h,
-                    OFFlowRemoved m) throws IOException {
+                    OFFlowRemoved m) {
                 h.dispatchMessage(m);
             }
 
             @Override
-            void processOFBarrierReply(OFChannelHandler h, OFBarrierReply m)
-                    throws IOException {
+            void processOFBarrierReply(OFChannelHandler h, OFBarrierReply m) {
                 h.dispatchMessage(m);
             }
 
@@ -1092,7 +1090,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         return this.state.isHandshakeComplete();
     }
 
-    private void dispatchMessage(OFMessage m) throws IOException {
+    private void dispatchMessage(OFMessage m) {
         sw.handleMessage(m);
     }
 

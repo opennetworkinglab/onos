@@ -53,8 +53,6 @@ public class Controller {
     protected static final OFFactory FACTORY13 = OFFactories.getFactory(OFVersion.OF_13);
     protected static final OFFactory FACTORY10 = OFFactories.getFactory(OFVersion.OF_10);
 
-
-
     // The controllerNodeIPsCache maps Controller IDs to their IP address.
     // It's only used by handleControllerNodeIPsChanged
     protected HashMap<String, String> controllerNodeIPsCache;
@@ -68,16 +66,12 @@ public class Controller {
     // Start time of the controller
     protected long systemStartTime;
 
-    // Flag to always flush flow table on switch reconnect (HA or otherwise)
-    protected boolean alwaysClearFlowsOnSwAdd = false;
     private OpenFlowAgent agent;
 
     private NioServerSocketChannelFactory execFactory;
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
-    protected static final int BATCH_MAX_SIZE = 100;
-    protected static final boolean ALWAYS_DECODE_ETH = true;
 
     // ***************
     // Getters/Setters

@@ -78,7 +78,8 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         return new Dpid(sw.getId());
     }
 
-    public static OpenFlowPacketContext packetContextFromPacketIn(OpenFlowSwitch s, OFPacketIn pkt) {
+    public static OpenFlowPacketContext packetContextFromPacketIn(OpenFlowSwitch s,
+            OFPacketIn pkt) {
         return new DefaultOpenFlowPacketContext(s, pkt);
     }
 

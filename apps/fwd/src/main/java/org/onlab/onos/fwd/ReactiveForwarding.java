@@ -156,9 +156,7 @@ public class ReactiveForwarding {
     private void installRule(PacketContext context, PortNumber portNumber) {
         // we don't yet support bufferids in the flowservice so packet out and
         // then install a flowmod.
-        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
-        context.send();
-
+        packetOutFlood(context);
 
         Ethernet inPkt = context.inPacket().parsed();
         TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
