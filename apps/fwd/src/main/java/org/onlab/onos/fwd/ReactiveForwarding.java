@@ -1,9 +1,5 @@
 package org.onlab.onos.fwd;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,6 +26,10 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
+
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive forwarding application.
@@ -81,7 +81,8 @@ public class ReactiveForwarding {
             }
 
             InboundPacket pkt = context.inPacket();
-            HostId id = HostId.hostId(pkt.parsed().getDestinationMAC());
+            Ethernet ethPkt = pkt.parsed();
+            HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
             // Do we know who this is for? If not, flood and bail.
             Host dst = hostService.getHost(id);
@@ -100,8 +101,8 @@ public class ReactiveForwarding {
             // Otherwise, get a set of paths that lead from here to the
             // destination edge switch.
             Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
-                    context.inPacket().receivedFrom().deviceId(),
-                    dst.location().deviceId());
+                                                       pkt.receivedFrom().deviceId(),
+                                                       dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
                 flood(context);
@@ -112,7 +113,9 @@ public class ReactiveForwarding {
             // came from; if no such path, flood and bail.
             Path path = pickForwardPath(paths, pkt.receivedFrom().port());
             if (path == null) {
-                log.warn("Doh... don't know where to go...");
+                log.warn("Doh... don't know where to go... {} -> {} received on {}",
+                         ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
+                         pkt.receivedFrom().port());
                 flood(context);
                 return;
             }
@@ -133,47 +136,42 @@ public class ReactiveForwarding {
         return null;
     }
 
-    // Floods the specified packet.
+    // Floods the specified packet if permissible.
     private void flood(PacketContext context) {
         if (topologyService.isBroadcastPoint(topologyService.currentTopology(),
-                context.inPacket().receivedFrom())) {
-            packetOutFlood(context);
+                                             context.inPacket().receivedFrom())) {
+            packetOut(context, PortNumber.FLOOD);
         } else {
             context.block();
         }
     }
 
-    //Floods a packet out
-    private void packetOutFlood(PacketContext context) {
-        context.treatmentBuilder().add(Instructions.createOutput(PortNumber.FLOOD));
+    // Sends a packet out the specified port.
+    private void packetOut(PacketContext context, PortNumber portNumber) {
+        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
         context.send();
     }
 
     // Install a rule forwarding the packet to the specified port.
     private void installRule(PacketContext context, PortNumber portNumber) {
-        // we don't yet support bufferids in the flowservice so packet out and
-        // then install a flowmod.
-        packetOutFlood(context);
+        // We don't yet support bufferids in the flowservice so packet out first.
+        packetOut(context, portNumber);
 
+        // Install the flow rule to handle this type of message from now on.
         Ethernet inPkt = context.inPacket().parsed();
         TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
         builder.add(Criteria.matchEthType(inPkt.getEtherType()))
-        .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
-        .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
-        .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
+                .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
+                .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
+                .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
 
         TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
         treat.add(Instructions.createOutput(portNumber));
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                builder.build(), treat.build());
+                                         builder.build(), treat.build());
 
         flowRuleService.applyFlowRules(f);
-
-        // we don't yet support bufferids in the flowservice so packet out and
-        // then install a flowmod.
-        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
-        context.send();
     }
 
 }
