@@ -11,7 +11,7 @@ public final class FlowId {
         this.flowid = id;
     }
 
-    public FlowId valueOf(int id) {
+    public static FlowId valueOf(int id) {
         return new FlowId(id);
     }
 
