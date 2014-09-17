@@ -7,7 +7,6 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPProtoInstruction;
 import org.onlab.packet.IPAddress;
 import org.onlab.packet.MACAddress;
 import org.onlab.packet.VLANID;
@@ -61,16 +60,6 @@ public final class Instructions {
     }
 
     /**
-     * Creates a L2 type modification.
-     * @param l2Type the type to change to
-     * @return a L2 modifications
-     */
-    public static L2ModificationInstruction modL2Type(Short l2Type) {
-        checkNotNull(l2Type, "L2 type cannot be null");
-        return new L2ModificationInstruction.ModEtherTypeInstruction(l2Type);
-    }
-
-    /**
      * Creates a Vlan id modification.
      * @param vlanId the vlan id to modify to.
      * @return a L2 modification
@@ -110,15 +99,6 @@ public final class Instructions {
         return new ModIPInstruction(L3SubType.L3_DST, addr);
     }
 
-    /**
-     * Creates an L3 protocol modification.
-     * @param proto the protocol to change to
-     * @return a L3 modification
-     */
-    public static L3ModificationInstruction modIPProto(Byte proto) {
-        checkNotNull(proto, "IP protocol cannot be null");
-        return new ModIPProtoInstruction(proto);
-    }
 
     /*
      *  Output instructions
@@ -128,11 +108,6 @@ public final class Instructions {
         @Override
         public Type type() {
             return Type.DROP;
-        }
-
-        @Override
-        public SubType subtype() {
-            return NoneSubType.NONE;
         }
     }
 
@@ -151,11 +126,6 @@ public final class Instructions {
         @Override
         public Type type() {
             return Type.OUTPUT;
-        }
-
-        @Override
-        public SubType subtype() {
-            return NoneSubType.NONE;
         }
     }
 

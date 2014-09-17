@@ -12,7 +12,7 @@ public abstract class L2ModificationInstruction implements Instruction {
     /**
      * Represents the type of traffic treatment.
      */
-    public enum L2SubType implements SubType {
+    public enum L2SubType {
         /**
          * Ether src modification.
          */
@@ -22,11 +22,6 @@ public abstract class L2ModificationInstruction implements Instruction {
          * Ether dst modification.
          */
         L2_DST,
-
-        /**
-         * Ethertype modification.
-         */
-        L2_TYPE,
 
         /**
          * VLAN id modification.
@@ -42,12 +37,11 @@ public abstract class L2ModificationInstruction implements Instruction {
     // TODO: Create factory class 'Instructions' that will have various factory
     // to create specific instructions.
 
-    @Override
-    public abstract SubType subtype();
+    public abstract L2SubType subtype();
 
     @Override
     public Type type() {
-        return Type.MODIFICATION;
+        return Type.L2MODIFICATION;
     }
 
     /**
@@ -55,43 +49,21 @@ public abstract class L2ModificationInstruction implements Instruction {
      */
     public static final class ModEtherInstruction extends L2ModificationInstruction {
 
-        private final SubType subtype;
+        private final L2SubType subtype;
         private final MACAddress mac;
 
-        public ModEtherInstruction(SubType subType, MACAddress addr) {
+        public ModEtherInstruction(L2SubType subType, MACAddress addr) {
             this.subtype = subType;
             this.mac = addr;
         }
 
         @Override
-        public SubType subtype() {
+        public L2SubType subtype() {
             return this.subtype;
         }
 
         public MACAddress mac() {
             return this.mac;
-        }
-
-    }
-
-    /**
-     * Represents a L2 type modification instruction.
-     */
-    public static final class ModEtherTypeInstruction extends L2ModificationInstruction {
-
-        public final short l2Type;
-
-        public ModEtherTypeInstruction(short l2Type) {
-            this.l2Type = l2Type;
-        }
-
-        @Override
-        public SubType subtype() {
-            return L2SubType.L2_TYPE;
-        }
-
-        public short l2Type() {
-            return this.l2Type;
         }
 
     }
@@ -108,7 +80,7 @@ public abstract class L2ModificationInstruction implements Instruction {
         }
 
         @Override
-        public SubType subtype() {
+        public L2SubType subtype() {
             return L2SubType.VLAN_ID;
         }
 
@@ -130,7 +102,7 @@ public abstract class L2ModificationInstruction implements Instruction {
         }
 
         @Override
-        public SubType subtype() {
+        public L2SubType subtype() {
             return L2SubType.VLAN_PCP;
         }
 

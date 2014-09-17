@@ -53,7 +53,8 @@ public class DefaultTrafficTreatment implements TrafficTreatment {
             case OUTPUT:
                 outputs.add(instruction);
                 break;
-            case MODIFICATION:
+            case L2MODIFICATION:
+            case L3MODIFICATION:
                 // TODO: enforce modification order if any
                 modifications.add(instruction);
                 break;

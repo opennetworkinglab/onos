@@ -227,7 +227,7 @@ public final class Criteria {
             return Type.VLAN_PCP;
         }
 
-        public Byte protocol() {
+        public Byte priority() {
             return vlanPcp;
         }
 

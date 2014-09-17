@@ -11,7 +11,7 @@ public abstract class L3ModificationInstruction implements Instruction {
     /**
      * Represents the type of traffic treatment.
      */
-    public enum L3SubType implements SubType {
+    public enum L3SubType {
         /**
          * Ether src modification.
          */
@@ -20,12 +20,7 @@ public abstract class L3ModificationInstruction implements Instruction {
         /**
          * Ether dst modification.
          */
-        L3_DST,
-
-        /**
-         * Ethertype modification.
-         */
-        L3_PROTO,
+        L3_DST
 
         //TODO: remaining types
     }
@@ -34,11 +29,11 @@ public abstract class L3ModificationInstruction implements Instruction {
      * Returns the subtype of the modification instruction.
      * @return type of instruction
      */
-    public abstract SubType subtype();
+    public abstract L3SubType subtype();
 
     @Override
     public Type type() {
-        return Type.MODIFICATION;
+        return Type.L3MODIFICATION;
     }
 
     /**
@@ -46,43 +41,21 @@ public abstract class L3ModificationInstruction implements Instruction {
      */
     public static final class ModIPInstruction extends L3ModificationInstruction {
 
-        private final SubType subtype;
+        private final L3SubType subtype;
         private final IPAddress ip;
 
-        public ModIPInstruction(SubType subType, IPAddress addr) {
+        public ModIPInstruction(L3SubType subType, IPAddress addr) {
             this.subtype = subType;
             this.ip = addr;
         }
 
         @Override
-        public SubType subtype() {
+        public L3SubType subtype() {
             return this.subtype;
         }
 
         public IPAddress ip() {
             return this.ip;
-        }
-
-    }
-
-    /**
-     * Represents a L3 proto modification instruction.
-     */
-    public static final class ModIPProtoInstruction extends L3ModificationInstruction {
-
-        public final Byte proto;
-
-        public ModIPProtoInstruction(Byte proto) {
-            this.proto = proto;
-        }
-
-        @Override
-        public SubType subtype() {
-            return L3SubType.L3_PROTO;
-        }
-
-        public short proto() {
-            return this.proto;
         }
 
     }

@@ -5,12 +5,6 @@ package org.onlab.onos.net.flow.instructions;
  */
 public interface Instruction {
 
-    interface SubType { }
-
-    public enum NoneSubType implements SubType {
-        NONE;
-    }
-
     /**
      * Represents the type of traffic treatment.
      */
@@ -31,9 +25,14 @@ public interface Instruction {
         GROUP,
 
         /**
-         * Signifies that the traffic should be modified in some way.
+         * Signifies that the traffic should be modified in L2 way.
          */
-        MODIFICATION
+        L2MODIFICATION,
+
+        /**
+         * Signifies that the traffic should be modified in L3 way.
+         */
+        L3MODIFICATION
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory
@@ -44,11 +43,5 @@ public interface Instruction {
      * @return type of instruction
      */
     public Type type();
-
-    /**
-     * Returns the subtype of the modification instruction.
-     * @return type of instruction
-     */
-    public SubType subtype();
 
 }
