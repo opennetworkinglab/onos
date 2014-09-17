@@ -12,7 +12,7 @@ export KARAF_LOG=$KARAF/data/log/karaf.log
 
 # Setup a path
 export PS=":"
-export PATH="$PATH:$ONOS_ROOT/tools/dev;$ONOS_ROOT/tools/package"
+export PATH="$PATH:$ONOS_ROOT/tools/dev:$ONOS_ROOT/tools/package"
 export PATH="$PATH:$MAVEN/bin:$KARAF/bin"
 export PATH="$PATH:."
 

@@ -142,6 +142,15 @@ public class DefaultTopology extends AbstractModel implements Topology {
         return clusters.get(clusterId);
     }
 
+    /**
+     * Returns the topology cluster that contains the given device.
+     *
+     * @param deviceId device identifier
+     * @return topology cluster
+     */
+    TopologyCluster getCluster(DeviceId deviceId) {
+        return clustersByDevice.get(deviceId);
+    }
 
     /**
      * Returns the set of cluster devices.
@@ -174,13 +183,13 @@ public class DefaultTopology extends AbstractModel implements Topology {
     }
 
     /**
-     * Indicates whether the given point is part of a broadcast tree.
+     * Indicates whether the given point is part of a broadcast set.
      *
      * @param connectPoint connection point
-     * @return true if in broadcast tree
+     * @return true if in broadcast set
      */
-    boolean isInBroadcastTree(ConnectPoint connectPoint) {
-        // Any non-infrastructure, i.e. edge points are assumed to be OK
+    boolean isBroadcastPoint(ConnectPoint connectPoint) {
+        // Any non-infrastructure, i.e. edge points are assumed to be OK.
         if (!isInfrastructure(connectPoint)) {
             return true;
         }
@@ -191,10 +200,20 @@ public class DefaultTopology extends AbstractModel implements Topology {
             throw new IllegalArgumentException("No cluster found for device " + connectPoint.deviceId());
         }
 
-        // If the broadcast tree is null or empty, or if the point explicitly
-        // belongs to the broadcast tree points, return true;
+        // If the broadcast set is null or empty, or if the point explicitly
+        // belongs to it, return true;
         Set<ConnectPoint> points = broadcastSets.get(cluster.id());
         return points == null || points.isEmpty() || points.contains(connectPoint);
+    }
+
+    /**
+     * Returns the size of the cluster broadcast set.
+     *
+     * @param clusterId cluster identifier
+     * @return size of the cluster broadcast set
+     */
+    int broadcastSetSize(ClusterId clusterId) {
+        return broadcastSets.get(clusterId).size();
     }
 
     /**

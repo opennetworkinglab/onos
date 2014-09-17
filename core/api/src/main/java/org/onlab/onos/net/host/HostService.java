@@ -43,7 +43,6 @@ public interface HostService {
      * @param vlanId vlan identifier
      * @return set of hosts in the given vlan id
      */
-    // FIXME: change long to VLanId
     Set<Host> getHostsByVlan(VlanId vlanId);
 
     /**
@@ -61,6 +60,8 @@ public interface HostService {
      * @return set of hosts with the given IP
      */
     Set<Host> getHostsByIp(IpAddress ip);
+
+    // TODO: consider adding Host getHostByIp(IpAddress ip, VlanId vlan);
 
     /**
      * Returns the set of hosts whose most recent location is the specified

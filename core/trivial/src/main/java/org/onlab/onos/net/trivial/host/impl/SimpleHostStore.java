@@ -48,7 +48,7 @@ public class SimpleHostStore {
      * @return appropriate event or null if no change resulted
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-            HostDescription hostDescription) {
+                                 HostDescription hostDescription) {
         Host host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
@@ -58,12 +58,12 @@ public class SimpleHostStore {
 
     // creates a new host and sends HOST_ADDED
     private HostEvent createHost(ProviderId providerId, HostId hostId,
-            HostDescription descr) {
+                                 HostDescription descr) {
         DefaultHost newhost = new DefaultHost(providerId, hostId,
-                descr.hwAddress(),
-                descr.vlan(),
-                descr.location(),
-                descr.ipAddresses());
+                                              descr.hwAddress(),
+                                              descr.vlan(),
+                                              descr.location(),
+                                              descr.ipAddresses());
         synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
@@ -73,23 +73,23 @@ public class SimpleHostStore {
 
     // checks for type of update to host, sends appropriate event
     private HostEvent updateHost(ProviderId providerId, Host host,
-            HostDescription descr) {
+                                 HostDescription descr) {
         DefaultHost updated;
         HostEvent event;
-        // Consider only actual location (not timestamp) change?
-        if (!(host.location().port().equals(descr.location().port()))) {
+        if (!host.location().equals(descr.location())) {
             updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    descr.location(),
-                    host.ipAddresses());
+                                      host.mac(),
+                                      host.vlan(),
+                                      descr.location(),
+                                      host.ipAddresses());
             event = new HostEvent(HOST_MOVED, updated);
+
         } else if (!(host.ipAddresses().equals(descr.ipAddresses()))) {
             updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    descr.location(),
-                    descr.ipAddresses());
+                                      host.mac(),
+                                      host.vlan(),
+                                      descr.location(),
+                                      descr.ipAddresses());
             event = new HostEvent(HOST_UPDATED, updated);
         } else {
             return null;
@@ -134,7 +134,7 @@ public class SimpleHostStore {
      * @return iterable collection of all hosts
      */
     Iterable<Host> getHosts() {
-        return Collections.unmodifiableSet(new HashSet<Host>(hosts.values()));
+        return Collections.unmodifiableSet(new HashSet<>(hosts.values()));
     }
 
     /**
@@ -154,7 +154,7 @@ public class SimpleHostStore {
      * @return set of hosts in the vlan
      */
     Set<Host> getHosts(VlanId vlanId) {
-        Set<Host> vlanset = new HashSet<Host>();
+        Set<Host> vlanset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.vlan().equals(vlanId)) {
                 vlanset.add(h);

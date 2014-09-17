@@ -101,7 +101,6 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         for (int i = 0; i < flowRules.length; i++) {
             applyRule(flowRules[i]);
         }
-
     }
 
     private void applyRule(FlowRule flowRule) {
@@ -120,9 +119,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 .setHardTimeout(10)
                 .setPriority(flowRule.priority())
                 .build();
-
         sw.sendMsg(fm);
-
     }
 
     private List<OFAction> buildActions(List<Instruction> instructions, OFFactory factory) {

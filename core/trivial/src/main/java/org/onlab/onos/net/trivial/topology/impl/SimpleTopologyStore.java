@@ -144,7 +144,7 @@ class SimpleTopologyStore {
      * @return true if broadcast allowed; false otherwise
      */
     boolean isBroadcastPoint(DefaultTopology topology, ConnectPoint connectPoint) {
-        return topology.isInBroadcastTree(connectPoint);
+        return topology.isBroadcastPoint(connectPoint);
     }
 
     /**

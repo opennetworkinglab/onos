@@ -29,18 +29,13 @@ cd $ONOS_STAGE
 # Unroll the Apache Karaf bits and make the ONOS top-level directories.
 unzip $KARAF_ZIP
 mkdir bin
-mkdir lib
 
 # Stage the ONOS admin scripts
 cp -r $ONOS_ROOT/tools/package/bin .
 
 # Stage the ONOS bundles
-mkdir -p lib/org/onlab 
-cp -r $M2_REPO/org/onlab lib/org
-
-
-# Patch the Apache Karaf distribution file to point to the lib as maven repo
-#perl -pi.old -e "s|^org.ops4j.pax.url.mvn.repositories= |org.ops4j.pax.url.mvn.repositories= \\\n    file:../../lib, |" $ONOS_STAGE/$KARAF_DIST/etc/org.ops4j.pax.url.mvn.cfg
+mkdir -p system/org/onlab 
+cp -r $M2_REPO/org/onlab system/org/
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
 perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-features/$ONOS_VERSION/xml/features|" \

@@ -74,13 +74,12 @@ public class ReactiveForwarding {
 
         @Override
         public void process(PacketContext context) {
-            /*
-             *  stop processing if the packet has been handled,
-             *  we can't do any more to it
-             */
+            // Stop processing if the packet has been handled, since we
+            // can't do any more to it.
             if (context.isHandled()) {
                 return;
             }
+
             InboundPacket pkt = context.inPacket();
             HostId id = HostId.hostId(pkt.parsed().getDestinationMAC());
 
@@ -100,7 +99,6 @@ public class ReactiveForwarding {
 
             // Otherwise, get a set of paths that lead from here to the
             // destination edge switch.
-
             Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
                     context.inPacket().receivedFrom().deviceId(),
                     dst.location().deviceId());
@@ -137,9 +135,8 @@ public class ReactiveForwarding {
 
     // Floods the specified packet.
     private void flood(PacketContext context) {
-        boolean canBcast = topologyService.isBroadcastPoint(topologyService.currentTopology(),
-                context.inPacket().receivedFrom());
-        if (canBcast) {
+        if (topologyService.isBroadcastPoint(topologyService.currentTopology(),
+                context.inPacket().receivedFrom())) {
             packetOutFlood(context);
         } else {
             context.block();
@@ -173,6 +170,10 @@ public class ReactiveForwarding {
 
         flowRuleService.applyFlowRules(f);
 
+        // we don't yet support bufferids in the flowservice so packet out and
+        // then install a flowmod.
+        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
+        context.send();
     }
 
 }
