@@ -36,9 +36,9 @@ import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstr
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.OpenFlowController;
-import org.onlab.onos.of.controller.OpenFlowSwitch;
+import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;

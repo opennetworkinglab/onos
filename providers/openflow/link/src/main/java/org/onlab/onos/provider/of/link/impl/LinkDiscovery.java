@@ -15,7 +15,7 @@
  ******************************************************************************/
 package org.onlab.onos.provider.of.link.impl;
 
-import static org.onlab.onos.of.controller.Dpid.uri;
+import static org.onlab.onos.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -37,9 +37,9 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.of.controller.Dpid;
-import org.onlab.onos.of.controller.OpenFlowController;
-import org.onlab.onos.of.controller.OpenFlowSwitch;
+import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONLabLddp;
 import org.onlab.packet.ONLabLddp.DPIDandPort;
