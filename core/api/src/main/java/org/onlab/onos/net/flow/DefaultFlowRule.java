@@ -35,4 +35,37 @@ public class DefaultFlowRule implements FlowRule {
         return treatment;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = prime * this.deviceId().hashCode();
+        result = prime * result + selector.hashCode();
+        result = prime * result + treatment.hashCode();
+        return result;
+    }
+
+    @Override
+    /*
+     * The priority and statistics can change on a given treatment and selector
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    public boolean equals(Object obj) {
+        if (obj instanceof FlowRule) {
+            DefaultFlowRule that = (DefaultFlowRule) obj;
+            if (!this.deviceId().equals(that.deviceId())) {
+                return false;
+            }
+            if (!this.treatment().equals(that.treatment())) {
+                return false;
+            }
+            if (!this.selector().equals(that.selector())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }

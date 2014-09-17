@@ -106,7 +106,7 @@ public class SimpleHostStore {
      * Removes the specified host from the inventory.
      *
      * @param hostId host identification
-     * @return remove even or null if host was not found
+     * @return remove event or null if host was not found
      */
     HostEvent removeHost(HostId hostId) {
         synchronized (this) {

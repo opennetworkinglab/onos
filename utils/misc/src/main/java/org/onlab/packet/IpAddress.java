@@ -7,6 +7,8 @@ import java.util.Arrays;
  */
 public final class IpAddress {
 
+    // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
+
     //IP Versions
     public enum Version { INET, INET6 };
 
@@ -99,7 +101,8 @@ public final class IpAddress {
 
     /**
      * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address. The
-     * string can also be in CIDR (slash) notation.
+     * string can also be in CIDR (slash) notation. If the netmask is omitted,
+     * it will be set to DEFAULT_MASK (0).
      *
      * @param address a IP address in string form, e.g. "10.0.0.1", "10.0.0.1/24"
      * @return an IP address
