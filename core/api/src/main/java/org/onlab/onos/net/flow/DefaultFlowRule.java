@@ -17,6 +17,7 @@ public class DefaultFlowRule implements FlowRule {
 
     @Override
     public int priority() {
+        // is this supposed to be 0?
         return 0;
     }
 
@@ -63,8 +64,9 @@ public class DefaultFlowRule implements FlowRule {
             if (!this.selector().equals(that.selector())) {
                 return false;
             }
+            return true;
         }
-        return true;
+        return false;
     }
 
 
