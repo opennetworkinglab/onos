@@ -1,6 +1,5 @@
 package org.onlab.onos.net.flow;
 
-import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.provider.Provider;
 
 /**
@@ -26,14 +25,5 @@ public interface FlowRuleProvider extends Provider {
      */
     void removeFlowRule(FlowRule... flowRules);
 
-
-    /**
-     * Returns the collection of flow entries currently applied on the given
-     * device.
-     *
-     * @param deviceId device identifier
-     * @return collection of flow entries
-     */
-    Iterable<FlowEntry> getFlowMetrics(DeviceId deviceId);
 
 }

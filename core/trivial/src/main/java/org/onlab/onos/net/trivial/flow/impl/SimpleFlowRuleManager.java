@@ -1,5 +1,6 @@
 package org.onlab.onos.net.trivial.flow.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
@@ -27,8 +28,6 @@ import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component(immediate = true)
 @Service
@@ -111,8 +110,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     private class InternalFlowRuleProviderService
-            extends AbstractProviderService<FlowRuleProvider>
-            implements FlowRuleProviderService {
+    extends AbstractProviderService<FlowRuleProvider>
+    implements FlowRuleProviderService {
 
         protected InternalFlowRuleProviderService(FlowRuleProvider provider) {
             super(provider);
@@ -157,6 +156,12 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             if (event != null) {
                 eventDispatcher.post(event);
             }
+        }
+
+        @Override
+        public void pushFlowMetrics(Iterable<FlowEntry> flowEntries) {
+            // TODO Auto-generated method stub
+
         }
     }
 

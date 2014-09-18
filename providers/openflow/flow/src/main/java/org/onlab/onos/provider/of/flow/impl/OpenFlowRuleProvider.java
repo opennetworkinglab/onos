@@ -11,7 +11,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
@@ -25,9 +24,17 @@ import org.onlab.onos.openflow.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
+import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+rt org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
 
@@ -95,12 +102,6 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     }
 
-    @Override
-    public Iterable<FlowEntry> getFlowMetrics(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 
     //TODO: InternalFlowRuleProvider listening to stats and error and flowremoved.
     // possibly barriers as well. May not be internal at all...
@@ -119,7 +120,6 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         @Override
         public void switchRemoved(Dpid dpid) {
             collectors.remove(dpid).stop();
-
         }
 
         @Override
@@ -137,12 +137,26 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 providerService.flowRemoved(fr);
                 break;
             case STATS_REPLY:
+                pushFlowMetrics((OFStatsReply) msg);
                 break;
             case BARRIER_REPLY:
             case ERROR:
             default:
                 log.warn("Unhandled message type: {}", msg.getType());
             }
+
+        }
+
+        private void pushFlowMetrics(OFStatsReply stats) {
+            if (stats.getStatsType() != OFStatsType.FLOW) {
+                return;
+            }
+            final OFFlowStatsReply replies = (OFFlowStatsReply) stats;
+            final List<FlowEntry> entries = Lists.newLinkedList();
+            for (OFFlowStatsEntry reply : replies.getEntries()) {
+
+            }
+
 
         }
 
