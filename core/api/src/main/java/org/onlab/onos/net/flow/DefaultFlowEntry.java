@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import org.onlab.onos.net.DeviceId;
 
 public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
@@ -63,7 +65,9 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
     public int hashCode() {
         final int prime = 31;
         int result = prime * this.deviceId().hashCode();
-        result = prime * result + Long.valueOf(this.created).hashCode();
+        result = prime * result + this.priority;
+        result = prime * result + this.selector().hashCode();
+        result = prime * result + this.treatment().hashCode();
         return result;
     }
 
@@ -77,12 +81,26 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
     public boolean equals(Object obj) {
         if (obj instanceof DefaultFlowEntry) {
             DefaultFlowEntry that = (DefaultFlowEntry) obj;
-            if (!this.id.equals(that.id())) {
+            if (!this.deviceId().equals(that.deviceId())) {
+                return false;
+            }
+            if (!(this.priority == that.priority)) {
                 return false;
             }
             return super.equals(obj);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("deviceId", deviceId())
+                .add("priority", priority)
+                .add("selector", selector())
+                .add("treatment", treatment())
+                .toString();
     }
 
 }

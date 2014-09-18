@@ -45,10 +45,10 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     private final SimpleFlowRuleStore store = new SimpleFlowRuleStore();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private EventDeliveryService eventDispatcher;
+    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private DeviceService deviceService;
+    protected DeviceService deviceService;
 
     @Activate
     public void activate() {

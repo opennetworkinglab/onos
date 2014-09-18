@@ -18,6 +18,7 @@ public final class IpAddress {
 
     //maximum CIDR value
     public static final int MAX_INET_MASK = 32;
+    //no mask (no network), e.g. a simple address
     public static final int DEFAULT_MASK = 0;
 
     /**
@@ -112,7 +113,7 @@ public final class IpAddress {
         final String [] parts = address.split("\\/");
         if (parts.length > 2) {
             throw new IllegalArgumentException("Malformed IP address string; "
-                    + "Addres must take form \"x.x.x.x\" or \"x.x.x.x/y\"");
+                    + "Address must take form \"x.x.x.x\" or \"x.x.x.x/y\"");
         }
 
         int mask = DEFAULT_MASK;
@@ -128,7 +129,7 @@ public final class IpAddress {
         final String [] net = parts[0].split("\\.");
         if (net.length != INET_LEN) {
             throw new IllegalArgumentException("Malformed IP address string; "
-                    + "Addres must have four decimal values separated by dots (.)");
+                    + "Address must have four decimal values separated by dots (.)");
         }
         final byte [] bytes = new byte[INET_LEN];
         for (int i = 0; i < INET_LEN; i++) {
