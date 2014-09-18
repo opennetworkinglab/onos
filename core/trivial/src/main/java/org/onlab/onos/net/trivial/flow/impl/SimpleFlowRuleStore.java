@@ -1,8 +1,7 @@
 package org.onlab.onos.net.trivial.flow.impl;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.flow.DefaultFlowEntry;
-import org.onlab.onos.net.flow.FlowEntry;
+import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 
@@ -18,7 +17,7 @@ import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
 public class SimpleFlowRuleStore {
 
     // store entries as a pile of rules, no info about device tables
-    private final Multimap<DeviceId, FlowEntry> flowEntries = HashMultimap.create();
+    private final Multimap<DeviceId, FlowRule> flowEntries = HashMultimap.create();
 
     /**
      * Returns the flow entries associated with a device.
@@ -26,19 +25,19 @@ public class SimpleFlowRuleStore {
      * @param deviceId the device ID
      * @return the flow entries
      */
-    Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
+    Iterable<FlowRule> getFlowEntries(DeviceId deviceId) {
         return ImmutableSet.copyOf(flowEntries.get(deviceId));
     }
 
     /**
-     * Stores a new flow rule, and generates a FlowEntry for it.
+     * Stores a new flow rule, and generates a FlowRule for it.
      *
      * @param rule the flow rule to add
      * @return a flow entry
      */
-    FlowEntry storeFlowRule(FlowRule rule) {
+    FlowRule storeFlowRule(FlowRule rule) {
         DeviceId did = rule.deviceId();
-        FlowEntry entry = new DefaultFlowEntry(did,
+        FlowRule entry = new DefaultFlowRule(did,
                 rule.selector(), rule.treatment(), rule.priority());
         flowEntries.put(did, entry);
         return entry;
@@ -53,20 +52,14 @@ public class SimpleFlowRuleStore {
     FlowRuleEvent addOrUpdateFlowRule(FlowRule rule) {
         DeviceId did = rule.deviceId();
 
-        FlowEntry entry = new DefaultFlowEntry(
-                did,
-                rule.selector(),
-                rule.treatment(),
-                rule.priority());
-
         // check if this new rule is an update to an existing entry
-        for (FlowEntry fe : flowEntries.get(did)) {
-            if (entry.equals(fe)) {
-                // TODO update the stats on this flowEntry?
+        for (FlowRule fe : flowEntries.get(did)) {
+            if (rule.equals(fe)) {
+                // TODO update the stats on this FlowRule?
                 return null;
             }
         }
-        flowEntries.put(did, entry);
+        flowEntries.put(did, rule);
         return new FlowRuleEvent(RULE_ADDED, rule);
     }
 
@@ -77,10 +70,8 @@ public class SimpleFlowRuleStore {
      */
     FlowRuleEvent removeFlowRule(FlowRule rule) {
 
-        FlowEntry rem = new DefaultFlowEntry(rule.deviceId(),
-                rule.selector(), rule.treatment(), rule.priority());
         synchronized (this) {
-            if (flowEntries.remove(rem.deviceId(), rem)) {
+            if (flowEntries.remove(rule.deviceId(), rule)) {
                 return new FlowRuleEvent(RULE_REMOVED, rule);
             } else {
                 return null;

@@ -18,7 +18,7 @@ import org.onlab.onos.net.provider.ProviderId;
 public class DeviceEventTest extends AbstractEventTest {
 
     private Device createDevice() {
-        return new DefaultDevice(new ProviderId("foo"), deviceId("of:foo"),
+        return new DefaultDevice(new ProviderId("of", "foo"), deviceId("of:foo"),
                 Device.Type.SWITCH, "box", "hw", "sw", "sn");
     }
 

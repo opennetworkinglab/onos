@@ -34,7 +34,7 @@ public class HostEventTest extends AbstractEventTest {
         HostId hid = HostId.hostId(mac, vlan);
 
         return new DefaultHost(
-                new ProviderId("foo"), hid, mac, vlan, loc, ipset);
+                new ProviderId("of", "foo"), hid, mac, vlan, loc, ipset);
     }
 
     @Override

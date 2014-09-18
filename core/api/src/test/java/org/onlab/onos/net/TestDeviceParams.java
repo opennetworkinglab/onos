@@ -17,7 +17,7 @@ import com.google.common.collect.Sets;
  */
 public abstract class TestDeviceParams {
 
-    protected static final ProviderId PID = new ProviderId("foo");
+    protected static final ProviderId PID = new ProviderId("of", "foo");
     protected static final DeviceId DID1 = deviceId("of:foo");
     protected static final DeviceId DID2 = deviceId("of:bar");
     protected static final MacAddress MAC1 = MacAddress.valueOf("00:11:00:00:00:01");

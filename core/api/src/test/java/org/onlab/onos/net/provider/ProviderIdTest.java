@@ -11,8 +11,9 @@ public class ProviderIdTest {
     @Test
     public void basics() {
         new EqualsTester()
-                .addEqualityGroup(new ProviderId("foo"), new ProviderId("foo"))
-                .addEqualityGroup(new ProviderId("bar"))
+                .addEqualityGroup(new ProviderId("of", "foo"), new ProviderId("of", "foo"))
+                .addEqualityGroup(new ProviderId("snmp", "foo"), new ProviderId("snmp", "foo"))
+                .addEqualityGroup(new ProviderId("of", "bar"))
                 .testEquals();
     }
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 # ONOS developer BASH profile conveniences
+# Simply include in your own .bash_aliases or .bash_profile
 
 # Root of the ONOS source tree
 export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
@@ -40,6 +41,23 @@ alias pp='python -m json.tool'
 # Short-hand to launch API docs and sample topology viewer GUI
 alias docs='open $ONOS_ROOT/target/site/apidocs/index.html'
 alias gui='open http://localhost:8181/onos/tvue'
+
+
+# Test related conveniences
+
+# Default virtual box ONOS instances 1,2 & 3
+export OC1="192.168.56.101"
+export OC2="192.168.56.102"
+export OC3="192.168.56.103"
+
+# Default instance is #1
+export OCI="$OC1"
+
+# SSH to a specified ONOS instance
+function sshctl {
+    [ -n "$1" ] && OCI=$1 && shift
+    ssh -Y sdn@$OCI "$@"
+}
 
 
 # Miscellaneous

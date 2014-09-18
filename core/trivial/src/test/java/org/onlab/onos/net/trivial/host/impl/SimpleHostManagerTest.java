@@ -42,7 +42,7 @@ import static org.onlab.onos.net.host.HostEvent.Type.*;
  */
 public class SimpleHostManagerTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
 
     private static final VlanId VLAN1 = VlanId.vlanId((short) 1);
     private static final VlanId VLAN2 = VlanId.vlanId((short) 2);

@@ -11,7 +11,7 @@ public class AbstractProviderTest {
 
     @Test
     public void basics() {
-        ProviderId id = new ProviderId("foo.bar");
+        ProviderId id = new ProviderId("of", "foo.bar");
         TestProvider provider = new TestProvider(id);
         assertEquals("incorrect id", id, provider.id());
     }

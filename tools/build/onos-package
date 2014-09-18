@@ -27,22 +27,36 @@ mkdir bin
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
 cp -r $ONOS_ROOT/tools/package/bin .
 cp -r $ONOS_ROOT/tools/package/wrapper/* $KARAF_DIST
+cp -r $ONOS_ROOT/tools/package/etc/* $KARAF_DIST/etc
 
 # Stage the ONOS bundles
 mkdir -p $KARAF_DIST/system/org/onlab 
 cp -r $M2_REPO/org/onlab $KARAF_DIST/system/org/
+
+# Wrapper & Cellar Patching ----------------------------------------------------
+
+# Patch the Apache Karaf distribution file to add Cellar features repository
+perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.apache.karaf.cellar/apache-karaf-cellar/3.0.0/xml/features|" \
+    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
+
+# Patch the Apache Karaf distribution file to load ONOS features
+perl -pi.old -e 's|^(featuresBoot=.*)|\1,wrapper,cellar|' \
+    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
+
+# ONOS Patching ----------------------------------------------------------------
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
 perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-features/$ONOS_VERSION/xml/features|" \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution file to load ONOS features
-perl -pi.old -e 's|^(featuresBoot=.*)|\1,wrapper,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue|' \
+perl -pi.old -e 's|^(featuresBoot=.*)|\1,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue|' \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
 cp $M2_REPO/org/onlab/onos/onos-branding/$ONOS_VERSION/onos-branding-*.jar \
     $ONOS_STAGE/$KARAF_DIST/lib
+
 
 # Now package up the ONOS tar file
 cd $ONOS_STAGE_ROOT

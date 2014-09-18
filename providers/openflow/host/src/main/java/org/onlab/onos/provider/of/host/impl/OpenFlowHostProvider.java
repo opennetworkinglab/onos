@@ -61,7 +61,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
      * Creates an OpenFlow host provider.
      */
     public OpenFlowHostProvider() {
-        super(new ProviderId("org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
     }
 
     @Activate

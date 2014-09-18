@@ -17,7 +17,6 @@ import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
@@ -62,13 +61,13 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     @Override
-    public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
+    public Iterable<FlowRule> getFlowEntries(DeviceId deviceId) {
         return store.getFlowEntries(deviceId);
     }
 
     @Override
-    public List<FlowEntry> applyFlowRules(FlowRule... flowRules) {
-        List<FlowEntry> entries = new ArrayList<FlowEntry>();
+    public List<FlowRule> applyFlowRules(FlowRule... flowRules) {
+        List<FlowRule> entries = new ArrayList<FlowRule>();
 
         for (int i = 0; i < flowRules.length; i++) {
             FlowRule f = flowRules[i];
@@ -159,7 +158,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         }
 
         @Override
-        public void pushFlowMetrics(Iterable<FlowEntry> flowEntries) {
+        public void pushFlowMetrics(Iterable<FlowRule> flowEntries) {
             // TODO Auto-generated method stub
 
         }

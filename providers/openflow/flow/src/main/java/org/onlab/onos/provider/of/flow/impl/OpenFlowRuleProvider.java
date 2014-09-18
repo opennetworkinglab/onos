@@ -62,7 +62,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
      * Creates an OpenFlow host provider.
      */
     public OpenFlowRuleProvider() {
-        super(new ProviderId("org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
     }
 
     @Activate
@@ -131,11 +131,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             case FLOW_REMOVED:
                 //TODO: make this better
                 OFFlowRemoved removed = (OFFlowRemoved) msg;
-                FlowRule fr = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)), null, null);
+                FlowRule fr = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)), null, null, 0);
                 providerService.flowRemoved(fr);
                 break;
             case STATS_REPLY:
-                pushFlowMetrics((OFStatsReply) msg);
+                pushFlowMetrics(dpid, (OFStatsReply) msg);
                 break;
             case BARRIER_REPLY:
             case ERROR:
@@ -145,18 +145,16 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         }
 
-        private void pushFlowMetrics(OFStatsReply stats) {
+        private void pushFlowMetrics(Dpid dpid, OFStatsReply stats) {
             if (stats.getStatsType() != OFStatsType.FLOW) {
                 return;
             }
             final OFFlowStatsReply replies = (OFFlowStatsReply) stats;
             final List<FlowRule> entries = Lists.newLinkedList();
             for (OFFlowStatsEntry reply : replies.getEntries()) {
-                entries.add(new FlowRuleBuilder(reply).build());
+                entries.add(new FlowRuleBuilder(dpid, reply).build());
             }
             providerService.pushFlowMetrics(entries);
-
-
         }
 
     }

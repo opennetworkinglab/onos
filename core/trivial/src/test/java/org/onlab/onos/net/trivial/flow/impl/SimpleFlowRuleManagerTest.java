@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +23,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
@@ -41,14 +41,12 @@ import org.onlab.onos.net.provider.ProviderId;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
-
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
  */
 public class SimpleFlowRuleManagerTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID = DeviceId.deviceId("of:001");
     private static final Device DEV = new DefaultDevice(
             PID, DID, Type.SWITCH, "", "", "", "");
@@ -81,7 +79,7 @@ public class SimpleFlowRuleManagerTest {
     public void tearDown() {
         registry.unregister(provider);
         assertFalse("provider should not be registered",
-                    registry.getProviders().contains(provider.id()));
+                registry.getProviders().contains(provider.id()));
         service.removeListener(listener);
         mgr.deactivate();
         mgr.eventDispatcher = null;
@@ -91,7 +89,7 @@ public class SimpleFlowRuleManagerTest {
     private FlowRule flowRule(int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
-        return new DefaultFlowRule(DID, ts, tr);
+        return new DefaultFlowRule(DID, ts, tr, 0);
     }
 
     private void addFlowRule(int hval) {
@@ -142,14 +140,14 @@ public class SimpleFlowRuleManagerTest {
         FlowRule r3 = flowRule(1, 3);
 
         //current FlowRules always return 0. FlowEntries inherit the value
-        FlowEntry e1 = new DefaultFlowEntry(DID, ts, r1.treatment(), 0);
-        FlowEntry e2 = new DefaultFlowEntry(DID, ts, r2.treatment(), 0);
-        FlowEntry e3 = new DefaultFlowEntry(DID, ts, r3.treatment(), 0);
-        List<FlowEntry> fel = Lists.newArrayList(e1, e2, e3);
+        FlowRule e1 = new DefaultFlowRule(DID, ts, r1.treatment(), 0);
+        FlowRule e2 = new DefaultFlowRule(DID, ts, r2.treatment(), 0);
+        FlowRule e3 = new DefaultFlowRule(DID, ts, r3.treatment(), 0);
+        List<FlowRule> fel = Lists.newArrayList(e1, e2, e3);
 
         assertTrue("store should be empty",
                 Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
-        List<FlowEntry> ret = mgr.applyFlowRules(r1, r2, r3);
+        List<FlowRule> ret = mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
         assertTrue("3 entries should result", fel.containsAll(ret));
     }
@@ -255,17 +253,12 @@ public class SimpleFlowRuleManagerTest {
         public void removeFlowRule(FlowRule... flowRules) {
         }
 
-        @Override
-        public Iterable<FlowEntry> getFlowMetrics(DeviceId deviceId) {
-            return null;
-        }
-
     }
 
     private class TestSelector implements TrafficSelector {
 
         //for controlling hashcode uniqueness;
-        private int testval;
+        private final int testval;
 
         public TestSelector(int val) {
             testval = val;
@@ -293,7 +286,7 @@ public class SimpleFlowRuleManagerTest {
     private class TestTreatment implements TrafficTreatment {
 
         //for controlling hashcode uniqueness;
-        private int testval;
+        private final int testval;
 
         public TestTreatment(int val) {
             testval = val;

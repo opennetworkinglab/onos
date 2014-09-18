@@ -16,7 +16,7 @@ import static org.onlab.onos.net.PortNumber.portNumber;
 public class LinkEventTest extends AbstractEventTest {
 
     private Link createLink() {
-        return new DefaultLink(new ProviderId("foo"),
+        return new DefaultLink(new ProviderId("of", "foo"),
                                new ConnectPoint(deviceId("of:foo"), portNumber(1)),
                                new ConnectPoint(deviceId("of:bar"), portNumber(2)),
                                Link.Type.INDIRECT);

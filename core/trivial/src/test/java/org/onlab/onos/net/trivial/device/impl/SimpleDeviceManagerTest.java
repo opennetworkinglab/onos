@@ -38,7 +38,7 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.*;
  */
 public class SimpleDeviceManagerTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final String MFR = "whitebox";

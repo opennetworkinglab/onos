@@ -25,5 +25,4 @@ public interface FlowRuleProvider extends Provider {
      */
     void removeFlowRule(FlowRule... flowRules);
 
-
 }

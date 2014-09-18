@@ -48,7 +48,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
      * Creates an OpenFlow link provider.
      */
     public OpenFlowPacketProvider() {
-        super(new ProviderId("org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
     }
 
     @Activate

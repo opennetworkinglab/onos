@@ -74,7 +74,7 @@ public class DefaultTopologyProvider extends AbstractProvider
      * Creates a provider with the supplier identifier.
      */
     public DefaultTopologyProvider() {
-        super(new ProviderId("org.onlab.onos.provider.topology"));
+        super(new ProviderId("core", "org.onlab.onos.provider.topology"));
     }
 
     @Activate
