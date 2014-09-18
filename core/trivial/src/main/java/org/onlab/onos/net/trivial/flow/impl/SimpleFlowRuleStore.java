@@ -53,17 +53,20 @@ public class SimpleFlowRuleStore {
     FlowRuleEvent addOrUpdateFlowRule(FlowRule rule) {
         DeviceId did = rule.deviceId();
 
+        FlowEntry entry = new DefaultFlowEntry(
+                did,
+                rule.selector(),
+                rule.treatment(),
+                rule.priority());
+
         // check if this new rule is an update to an existing entry
         for (FlowEntry fe : flowEntries.get(did)) {
-            if (rule.equals(fe)) {
+            if (entry.equals(fe)) {
                 // TODO update the stats on this flowEntry?
                 return null;
             }
         }
-
-        FlowEntry newfe = new DefaultFlowEntry(did,
-                rule.selector(), rule.treatment(), rule.priority());
-        flowEntries.put(did, newfe);
+        flowEntries.put(did, entry);
         return new FlowRuleEvent(RULE_ADDED, rule);
     }
 
@@ -73,8 +76,11 @@ public class SimpleFlowRuleStore {
      * @return flow_removed event, or null if nothing removed
      */
     FlowRuleEvent removeFlowRule(FlowRule rule) {
+
+        FlowEntry rem = new DefaultFlowEntry(rule.deviceId(),
+                rule.selector(), rule.treatment(), rule.priority());
         synchronized (this) {
-            if (flowEntries.remove(rule.deviceId(), rule)) {
+            if (flowEntries.remove(rem.deviceId(), rem)) {
                 return new FlowRuleEvent(RULE_REMOVED, rule);
             } else {
                 return null;

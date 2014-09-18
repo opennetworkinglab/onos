@@ -19,7 +19,7 @@ public class FlowRuleEvent extends AbstractEvent<FlowRuleEvent.Type, FlowRule> {
         /**
          * Signifies that a flow rule has been removed.
          */
-        RULE_REMOVED,
+        RULE_REMOVED
     }
 
     /**

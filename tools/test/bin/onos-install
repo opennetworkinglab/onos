@@ -1,0 +1,24 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Remotely pushes bits to a remote machine and install & starts ONOS.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+# If the first option is -f attempt uninstall first.
+[ "$1" = "-f" ] && shift && onos-uninstall ${1:-$OCI}
+
+remote=$ONOS_USER@${1:-$OCI}
+
+scp -q $ONOS_TAR $remote:/tmp
+
+ssh $remote "
+    [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
+
+    sudo mkdir -p $ONOS_INSTALL_DIR && sudo chown sdn:sdn $ONOS_INSTALL_DIR
+    tar zxmf /tmp/$ONOS_BITS.tar.gz -C $ONOS_INSTALL_DIR --strip-components=1
+
+    ln -s /opt/onos/$KARAF_DIST/data/log /opt/onos/log
+
+"

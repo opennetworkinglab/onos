@@ -23,6 +23,8 @@ public interface FlowRuleService {
      */
     Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
+    // TODO: add createFlowRule factory method and execute operations method
+
     /**
      * Applies the specified flow rules onto their respective devices. These
      * flow rules will be retained by the system and re-applied anytime the
@@ -45,9 +47,6 @@ public interface FlowRuleService {
      */
     void removeFlowRules(FlowRule... flowRules);
 
-
-    // void addInitialFlowContributor(InitialFlowContributor contributor);
-    // void removeInitialFlowContributor(InitialFlowContributor contributor);
 
     /**
      * Adds the specified flow rule listener.
