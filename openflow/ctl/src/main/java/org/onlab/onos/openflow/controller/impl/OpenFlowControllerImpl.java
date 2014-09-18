@@ -1,8 +1,12 @@
 package org.onlab.onos.openflow.controller.impl;
 
+import static org.onlab.util.Tools.namedThreads;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -13,6 +17,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
@@ -27,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 @Component(immediate = true)
 @Service
@@ -34,6 +40,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(16,
+            namedThreads("of-event-%d"));
+
 
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
@@ -43,11 +53,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
-    protected Set<OpenFlowSwitchListener> ofEventListener = new HashSet<>();
+    protected Set<OpenFlowSwitchListener> ofSwitchListener = new HashSet<>();
 
     protected Multimap<Integer, PacketListener> ofPacketListener =
             ArrayListMultimap.create();
 
+    protected Set<OpenFlowEventListener> ofEventListener = Sets.newHashSet();
 
     private final Controller ctrl = new Controller();
 
@@ -93,14 +104,14 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void addListener(OpenFlowSwitchListener listener) {
-        if (!ofEventListener.contains(listener)) {
-            this.ofEventListener.add(listener);
+        if (!ofSwitchListener.contains(listener)) {
+            this.ofSwitchListener.add(listener);
         }
     }
 
     @Override
     public void removeListener(OpenFlowSwitchListener listener) {
-        this.ofEventListener.remove(listener);
+        this.ofSwitchListener.remove(listener);
     }
 
     @Override
@@ -114,6 +125,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     @Override
+    public void addEventListener(OpenFlowEventListener listener) {
+        ofEventListener.add(listener);
+    }
+
+    @Override
+    public void removeEventListener(OpenFlowEventListener listener) {
+        ofEventListener.remove(listener);
+    }
+
+    @Override
     public void write(Dpid dpid, OFMessage msg) {
         this.getSwitch(dpid).sendMsg(msg);
     }
@@ -122,7 +143,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     public void processPacket(Dpid dpid, OFMessage msg) {
         switch (msg.getType()) {
         case PORT_STATUS:
-            for (OpenFlowSwitchListener l : ofEventListener) {
+            for (OpenFlowSwitchListener l : ofSwitchListener) {
                 l.portChanged(dpid, (OFPortStatus) msg);
             }
             break;
@@ -133,6 +154,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(pktCtx);
             }
+            break;
+        case FLOW_REMOVED:
+        case ERROR:
+        case STATS_REPLY:
+        case BARRIER_REPLY:
+            executor.submit(new OFMessageHandler(dpid, msg));
             break;
         default:
             log.warn("Handling message type {} not yet implemented {}",
@@ -164,7 +191,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             } else {
                 log.error("Added switch {}", dpid);
                 connectedSwitches.put(dpid, sw);
-                for (OpenFlowSwitchListener l : ofEventListener) {
+                for (OpenFlowSwitchListener l : ofSwitchListener) {
                     l.switchAdded(dpid);
                 }
                 return true;
@@ -277,7 +304,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             if (sw == null) {
                 sw = activeEqualSwitches.remove(dpid);
             }
-            for (OpenFlowSwitchListener l : ofEventListener) {
+            for (OpenFlowSwitchListener l : ofSwitchListener) {
                 l.switchRemoved(dpid);
             }
         }
@@ -288,5 +315,23 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
     }
 
+    private final class OFMessageHandler implements Runnable {
+
+        private final OFMessage msg;
+        private final Dpid dpid;
+
+        public OFMessageHandler(Dpid dpid, OFMessage msg) {
+            this.msg = msg;
+            this.dpid = dpid;
+        }
+
+        @Override
+        public void run() {
+            for (OpenFlowEventListener listener : ofEventListener) {
+                listener.handleMessage(dpid, msg);
+            }
+        }
+
+    }
 
 }

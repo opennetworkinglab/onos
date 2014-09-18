@@ -1,0 +1,15 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Remotely stops & uninstalls ONOS.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+ssh $remote "
+    [ -f $ONOS_INSTALL_DIR/bin/onos ] && \
+        $ONOS_INSTALL_DIR/bin/onos halt 2>/dev/null
+    sudo rm -fr $ONOS_INSTALL_DIR
+"

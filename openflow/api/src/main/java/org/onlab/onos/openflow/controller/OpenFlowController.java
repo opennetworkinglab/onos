@@ -78,6 +78,20 @@ public interface OpenFlowController {
     public void removePacketListener(PacketListener listener);
 
     /**
+     * Register a listener for OF msg events.
+     *
+     * @param listener the listener to notify
+     */
+    public void addEventListener(OpenFlowEventListener listener);
+
+    /**
+     * Unregister a listener.
+     *
+     * @param listener the listener to unregister
+     */
+    public void removeEventListener(OpenFlowEventListener listener);
+
+    /**
      * Send a message to a particular switch.
      * @param dpid the switch to send to.
      * @param msg the message to send
