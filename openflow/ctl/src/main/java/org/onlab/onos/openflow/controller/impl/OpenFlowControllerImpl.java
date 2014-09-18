@@ -3,8 +3,6 @@ package org.onlab.onos.openflow.controller.impl;
 import static org.onlab.util.Tools.namedThreads;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -16,10 +14,10 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.of.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
@@ -29,13 +27,12 @@ import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
-import org.projectfloodlight.openflow.protocol.OFType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 @Component(immediate = true)
 @Service
@@ -45,7 +42,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
 
     private final ExecutorService executor = Executors.newFixedThreadPool(16,
-            namedThreads("of-event-dispatch-%d"));
+            namedThreads("of-event-%d"));
 
 
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
@@ -61,7 +58,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected Multimap<Integer, PacketListener> ofPacketListener =
             ArrayListMultimap.create();
 
-    protected Map<OFType, List<OpenFlowEventListener>> ofEventListener = Maps.newHashMap();
+    protected Set<OpenFlowEventListener> ofEventListener = Sets.newHashSet();
 
     private final Controller ctrl = new Controller();
 
@@ -125,6 +122,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void removePacketListener(PacketListener listener) {
         ofPacketListener.values().remove(listener);
+    }
+
+    @Override
+    public void addEventListener(OpenFlowEventListener listener) {
+        ofEventListener.add(listener);
+    }
+
+    @Override
+    public void removeEventListener(OpenFlowEventListener listener) {
+        ofEventListener.remove(listener);
     }
 
     @Override
@@ -320,14 +327,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
         @Override
         public void run() {
-            List<OpenFlowEventListener> listeners =
-                    ofEventListener.get(OFType.FLOW_REMOVED);
-            for (OpenFlowEventListener listener : listeners) {
+            for (OpenFlowEventListener listener : ofEventListener) {
                 listener.handleMessage(dpid, msg);
             }
         }
 
     }
-
 
 }

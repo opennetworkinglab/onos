@@ -2,6 +2,8 @@ package org.onlab.onos.provider.of.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Map;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,15 +19,17 @@ import org.onlab.onos.net.flow.FlowRuleProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.of.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.OpenFlowController;
+import org.onlab.onos.openflow.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Maps;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -47,6 +51,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private FlowRuleProviderService providerService;
 
+    private final InternalFlowProvider listener = new InternalFlowProvider();
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -57,6 +63,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
+        controller.addListener(listener);
+        controller.addEventListener(listener);
         log.info("Started");
     }
 
@@ -99,16 +107,18 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     private class InternalFlowProvider
     implements OpenFlowSwitchListener, OpenFlowEventListener {
 
+        private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
 
         @Override
         public void switchAdded(Dpid dpid) {
-
-
+            FlowStatsCollector fsc = new FlowStatsCollector(controller.getSwitch(dpid), 1);
+            fsc.start();
+            collectors.put(dpid, fsc);
         }
 
         @Override
         public void switchRemoved(Dpid dpid) {
-
+            collectors.remove(dpid).stop();
 
         }
 
@@ -121,11 +131,13 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         public void handleMessage(Dpid dpid, OFMessage msg) {
             switch (msg.getType()) {
             case FLOW_REMOVED:
+                //TODO: make this better
                 OFFlowRemoved removed = (OFFlowRemoved) msg;
                 FlowRule fr = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)), null, null);
                 providerService.flowRemoved(fr);
                 break;
             case STATS_REPLY:
+                break;
             case BARRIER_REPLY:
             case ERROR:
             default:

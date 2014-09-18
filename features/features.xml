@@ -7,6 +7,8 @@
              description="ONOS 3rd party dependencies">
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
+        
+        <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
     </feature>
 
     <feature name="onos-thirdparty-web" version="1.0.0"
@@ -18,6 +20,7 @@
         <bundle>mvn:com.sun.jersey/jersey-core/1.18.1</bundle>
         <bundle>mvn:com.sun.jersey/jersey-server/1.18.1</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/1.18.1</bundle>
+        
     </feature>
 
     <feature name="onos-api" version="1.0.0"
@@ -60,7 +63,6 @@
     <feature name="onos-openflow" version="1.0.0"
             description="ONOS OpenFlow API, Controller &amp; Providers">
         <feature>onos-api</feature>
-        <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
 
         <bundle>mvn:org.onlab.onos/onos-of-api/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
