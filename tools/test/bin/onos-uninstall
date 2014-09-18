@@ -9,6 +9,7 @@
 remote=$ONOS_USER@${1:-$OCI}
 
 ssh $remote "
-    [ -f $ONOS_INSTALL_DIR/bin/onos ] && $ONOS_INSTALL_DIR/bin/onos halt
+    [ -f $ONOS_INSTALL_DIR/bin/onos ] && \
+        $ONOS_INSTALL_DIR/bin/onos halt 2>/dev/null
     sudo rm -fr $ONOS_INSTALL_DIR
 "
