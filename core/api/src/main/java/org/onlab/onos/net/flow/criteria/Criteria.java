@@ -75,7 +75,7 @@ public final class Criteria {
      * @param vlanPcp vlan pcp value
      * @return match criterion
      */
-    public static Criterion matchVlanId(Byte vlanPcp) {
+    public static Criterion matchVlanPcp(Byte vlanPcp) {
         return new VlanPcpCriterion(vlanPcp);
     }
 
