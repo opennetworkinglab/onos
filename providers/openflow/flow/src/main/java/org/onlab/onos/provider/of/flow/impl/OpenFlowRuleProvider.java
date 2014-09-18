@@ -57,7 +57,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
      * Creates an OpenFlow host provider.
      */
     public OpenFlowRuleProvider() {
-        super(new ProviderId("org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
     }
 
     @Activate

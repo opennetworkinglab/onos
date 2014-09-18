@@ -40,7 +40,7 @@ import static org.onlab.onos.net.link.LinkEvent.Type.*;
  */
 public class SimpleLinkManagerTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final DeviceId DID3 = deviceId("of:goo");

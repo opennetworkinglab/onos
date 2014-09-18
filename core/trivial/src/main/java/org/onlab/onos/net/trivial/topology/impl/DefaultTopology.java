@@ -45,7 +45,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private static final TarjanGraphSearch<TopologyVertex, TopologyEdge> TARJAN =
             new TarjanGraphSearch<>();
 
-    private static final ProviderId PID = new ProviderId("org.onlab.onos.net");
+    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.net");
 
     private final long time;
     private final TopologyGraph graph;

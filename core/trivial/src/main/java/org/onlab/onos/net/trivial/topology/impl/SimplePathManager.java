@@ -45,7 +45,7 @@ public class SimplePathManager implements PathService {
 
     private static final String ELEMENT_ID_NULL = "Element ID cannot be null";
 
-    private static final ProviderId PID = new ProviderId("org.onlab.onos.core");
+    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core");
     private static final PortNumber P0 = PortNumber.portNumber(0);
 
     private static final EdgeLink NOT_HOST = new NotHost();

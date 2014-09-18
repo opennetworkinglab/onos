@@ -15,7 +15,7 @@ import static org.onlab.onos.net.PortNumber.portNumber;
  */
 public class DefaultEdgeLinkTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final HostId HID1 = hostId("nic:foobar");
     private static final HostId HID2 = hostId("nic:barfoo");

@@ -28,14 +28,14 @@ public class AbstractProviderRegistryTest {
         TestProviderRegistry registry = new TestProviderRegistry();
         assertEquals("incorrect provider count", 0, registry.getProviders().size());
 
-        ProviderId fooId = new ProviderId("foo");
+        ProviderId fooId = new ProviderId("of", "foo");
         TestProvider pFoo = new TestProvider(fooId);
         TestProviderService psFoo = registry.register(pFoo);
         assertEquals("incorrect provider count", 1, registry.getProviders().size());
         assertThat("provider not found", registry.getProviders().contains(fooId));
         assertEquals("incorrect provider", psFoo.provider(), pFoo);
 
-        ProviderId barId = new ProviderId("bar");
+        ProviderId barId = new ProviderId("of", "bar");
         TestProvider pBar = new TestProvider(barId);
         TestProviderService psBar = registry.register(pBar);
         assertEquals("incorrect provider count", 2, registry.getProviders().size());
@@ -52,7 +52,7 @@ public class AbstractProviderRegistryTest {
     @Test(expected = IllegalStateException.class)
     public void duplicateRegistration() {
         TestProviderRegistry registry = new TestProviderRegistry();
-        TestProvider pFoo = new TestProvider(new ProviderId("foo"));
+        TestProvider pFoo = new TestProvider(new ProviderId("of", "foo"));
         registry.register(pFoo);
         registry.register(pFoo);
     }
@@ -60,13 +60,13 @@ public class AbstractProviderRegistryTest {
     @Test
     public void voidUnregistration() {
         TestProviderRegistry registry = new TestProviderRegistry();
-        registry.unregister(new TestProvider(new ProviderId("foo")));
+        registry.unregister(new TestProvider(new ProviderId("of", "foo")));
     }
 
     @Test(expected = IllegalStateException.class)
     public void unregistration() {
         TestProviderRegistry registry = new TestProviderRegistry();
-        TestProvider pFoo = new TestProvider(new ProviderId("foo"));
+        TestProvider pFoo = new TestProvider(new ProviderId("of", "foo"));
         TestProviderService psFoo = registry.register(pFoo);
         registry.unregister(pFoo);
         psFoo.checkValidity();

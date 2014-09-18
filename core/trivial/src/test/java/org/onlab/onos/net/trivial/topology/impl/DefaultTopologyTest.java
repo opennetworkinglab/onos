@@ -29,7 +29,7 @@ import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest
  */
 public class DefaultTopologyTest {
 
-    public static final ProviderId PID = new ProviderId("foo.bar");
+    public static final ProviderId PID = new ProviderId("of", "foo.bar");
 
     public static final DeviceId D1 = deviceId("of:1");
     public static final DeviceId D2 = deviceId("of:2");

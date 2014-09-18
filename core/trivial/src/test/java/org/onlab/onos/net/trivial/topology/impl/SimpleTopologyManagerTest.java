@@ -43,7 +43,7 @@ import static org.onlab.onos.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
  */
 public class SimpleTopologyManagerTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
 
     private SimpleTopologyManager mgr;
 

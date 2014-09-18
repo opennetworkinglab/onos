@@ -1,6 +1,7 @@
 package org.onlab.onos.net.provider;
 
 import com.google.common.collect.ImmutableSet;
+import org.onlab.onos.net.DeviceId;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,7 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
 
     private final Map<ProviderId, P> providers = new HashMap<>();
     private final Map<ProviderId, S> services = new HashMap<>();
+    private final Map<String, P> providersByScheme = new HashMap<>();
 
     /**
      * Creates a new provider service bound to the specified provider.
@@ -63,6 +65,16 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
      */
     protected synchronized P getProvider(ProviderId providerId) {
         return providers.get(providerId);
+    }
+
+    /**
+     * Returns the provider for the specified device ID based on URI scheme.
+     *
+     * @param deviceId device identifier
+     * @return provider bound to the URI scheme
+     */
+    protected synchronized P getProvider(DeviceId deviceId) {
+        return providersByScheme.get(deviceId.uri().getScheme());
     }
 
 }
