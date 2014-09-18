@@ -1,0 +1,18 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Monitors remote ONOS log file.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+LOG=$ONOS_INSTALL_DIR/log/karaf.log
+
+ssh $remote "
+    while true; do
+        [ ! -f $LOG ] && sleep 2 && continue
+        tail -n 512 --follow=name $LOG --sleep-interval 2
+    done
+"

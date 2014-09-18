@@ -27,6 +27,7 @@ mkdir bin
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
 cp -r $ONOS_ROOT/tools/package/bin .
 cp -r $ONOS_ROOT/tools/package/wrapper/* $KARAF_DIST
+cp -r $ONOS_ROOT/tools/package/etc/* $KARAF_DIST/etc
 
 # Stage the ONOS bundles
 mkdir -p $KARAF_DIST/system/org/onlab 
