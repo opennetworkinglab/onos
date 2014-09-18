@@ -21,9 +21,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
@@ -91,7 +89,7 @@ public class SimpleFlowRuleManagerTest {
     private FlowRule flowRule(int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
-        return new DefaultFlowRule(DID, ts, tr);
+        return new DefaultFlowRule(DID, ts, tr, 0);
     }
 
     private void addFlowRule(int hval) {
@@ -142,14 +140,14 @@ public class SimpleFlowRuleManagerTest {
         FlowRule r3 = flowRule(1, 3);
 
         //current FlowRules always return 0. FlowEntries inherit the value
-        FlowEntry e1 = new DefaultFlowEntry(DID, ts, r1.treatment(), 0);
-        FlowEntry e2 = new DefaultFlowEntry(DID, ts, r2.treatment(), 0);
-        FlowEntry e3 = new DefaultFlowEntry(DID, ts, r3.treatment(), 0);
-        List<FlowEntry> fel = Lists.newArrayList(e1, e2, e3);
+        FlowRule e1 = new DefaultFlowRule(DID, ts, r1.treatment(), 0);
+        FlowRule e2 = new DefaultFlowRule(DID, ts, r2.treatment(), 0);
+        FlowRule e3 = new DefaultFlowRule(DID, ts, r3.treatment(), 0);
+        List<FlowRule> fel = Lists.newArrayList(e1, e2, e3);
 
         assertTrue("store should be empty",
                 Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
-        List<FlowEntry> ret = mgr.applyFlowRules(r1, r2, r3);
+        List<FlowRule> ret = mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
         assertTrue("3 entries should result", fel.containsAll(ret));
     }
@@ -256,7 +254,7 @@ public class SimpleFlowRuleManagerTest {
         }
 
         @Override
-        public Iterable<FlowEntry> getFlowMetrics(DeviceId deviceId) {
+        public Iterable<FlowRule> getFlowMetrics(DeviceId deviceId) {
             return null;
         }
 

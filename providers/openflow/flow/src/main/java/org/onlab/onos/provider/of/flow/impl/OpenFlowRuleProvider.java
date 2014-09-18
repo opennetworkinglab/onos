@@ -11,7 +11,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
@@ -96,7 +95,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     }
 
     @Override
-    public Iterable<FlowEntry> getFlowMetrics(DeviceId deviceId) {
+    public Iterable<FlowRule> getFlowMetrics(DeviceId deviceId) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -133,7 +132,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             case FLOW_REMOVED:
                 //TODO: make this better
                 OFFlowRemoved removed = (OFFlowRemoved) msg;
-                FlowRule fr = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)), null, null);
+                FlowRule fr = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)), null, null, 0);
                 providerService.flowRemoved(fr);
                 break;
             case STATS_REPLY:

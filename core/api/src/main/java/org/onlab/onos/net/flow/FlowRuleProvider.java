@@ -34,6 +34,6 @@ public interface FlowRuleProvider extends Provider {
      * @param deviceId device identifier
      * @return collection of flow entries
      */
-    Iterable<FlowEntry> getFlowMetrics(DeviceId deviceId);
+    Iterable<FlowRule> getFlowMetrics(DeviceId deviceId);
 
 }

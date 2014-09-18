@@ -21,7 +21,7 @@ public interface FlowRuleService {
      * @param deviceId device identifier
      * @return collection of flow rules
      */
-    Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
+    Iterable<FlowRule> getFlowEntries(DeviceId deviceId);
 
     // TODO: add createFlowRule factory method and execute operations method
 
@@ -34,7 +34,7 @@ public interface FlowRuleService {
      * throws SomeKindOfException that indicates which ones were applied and
      *                  which ones failed
      */
-    List<FlowEntry> applyFlowRules(FlowRule... flowRules);
+    List<FlowRule> applyFlowRules(FlowRule... flowRules);
 
     /**
      * Removes the specified flow rules from their respective devices. If the

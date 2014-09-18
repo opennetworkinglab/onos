@@ -169,7 +169,7 @@ public class ReactiveForwarding {
         treat.add(Instructions.createOutput(portNumber));
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                                         builder.build(), treat.build());
+                                         builder.build(), treat.build(), 0);
 
         flowRuleService.applyFlowRules(f);
     }
