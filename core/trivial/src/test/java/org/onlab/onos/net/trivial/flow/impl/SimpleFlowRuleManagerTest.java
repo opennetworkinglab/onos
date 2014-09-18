@@ -48,7 +48,7 @@ import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
  */
 public class SimpleFlowRuleManagerTest {
 
-    private static final ProviderId PID = new ProviderId("foo");
+    private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID = DeviceId.deviceId("of:001");
     private static final Device DEV = new DefaultDevice(
             PID, DID, Type.SWITCH, "", "", "", "");
