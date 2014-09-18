@@ -26,8 +26,8 @@ rm -fr $ONOS_STAGE # Remove this when package script is completed
 mkdir -p $ONOS_STAGE
 cd $ONOS_STAGE
 
-# Unroll the Apache Karaf bits and make the ONOS top-level directories.
-unzip $KARAF_ZIP
+# Unroll the Apache Karaf bits, prune them and make the ONOS top-level directories.
+unzip $KARAF_ZIP && rm -rm $KARAF_DIST/demos
 mkdir bin
 
 # Stage the ONOS admin scripts
@@ -43,11 +43,11 @@ perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-feature
 
 # Patch the Apache Karaf distribution file to load ONOS features
 perl -pi.old -e 's|^(featuresBoot=.*)|\1,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue|' \
-    /tmp/onos-1.0.0-SNAPSHOT/apache-karaf-3.0.1/etc/org.apache.karaf.features.cfg 
+    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
 cp $M2_REPO/org/onlab/onos/onos-branding/$ONOS_VERSION/onos-branding-*.jar \
-    $ONOS_STAGE/apache-karaf-*/lib
+    $ONOS_STAGE/$KARAF_DIST/lib
 
 # Now package up the ONOS tar file
 cd $ONOS_STAGE_ROOT

@@ -7,7 +7,6 @@
              description="ONOS 3rd party dependencies">
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
-        
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
     </feature>
 
@@ -63,7 +62,7 @@
     <feature name="onos-openflow" version="1.0.0"
             description="ONOS OpenFlow API, Controller &amp; Providers">
         <feature>onos-api</feature>
-
+        <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-api/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
 
@@ -77,8 +76,9 @@
 
     <feature name="onos-app-tvue" version="1.0.0"
              description="ONOS sample topology viewer application">
-        <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
+        <feature>onos-api</feature>
+        <feature>onos-core</feature>
         <bundle>mvn:org.onlab.onos/onos-app-tvue/1.0.0-SNAPSHOT</bundle>
     </feature>
     
