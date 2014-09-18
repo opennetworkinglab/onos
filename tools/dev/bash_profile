@@ -12,7 +12,8 @@ export KARAF_LOG=$KARAF/data/log/karaf.log
 
 # Setup a path
 export PS=":"
-export PATH="$PATH:$ONOS_ROOT/tools/dev:$ONOS_ROOT/tools/package"
+export PATH="$PATH:$ONOS_ROOT/tools/dev:$ONOS_ROOT/tools/build"
+export PATH="$PATH:$ONOS_ROOT/tools/test/bin"
 export PATH="$PATH:$MAVEN/bin:$KARAF/bin"
 export PATH="$PATH:."
 
@@ -39,3 +40,13 @@ alias pp='python -m json.tool'
 # Short-hand to launch API docs and sample topology viewer GUI
 alias docs='open $ONOS_ROOT/target/site/apidocs/index.html'
 alias gui='open http://localhost:8181/onos/tvue'
+
+
+# Miscellaneous
+function spy {
+    ps -ef | egrep "$@" | grep -v egrep
+}
+
+function nuke {
+    spy | cut -c7-11 | xargs kill
+}

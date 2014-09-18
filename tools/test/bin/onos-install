@@ -1,0 +1,17 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Remotely install & starts ONOS.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+ssh $remote "
+    [ -d $ONOS_INSTALL_DIR ] && echo \"ONOS is already installed\" && exit 1
+
+    sudo mkdir $ONOS_INSTALL_DIR && sudo chown sdn:sdn $ONOS_INSTALL_DIR
+    tar zxmf /tmp/$ONOS_BITS.tar.gz -C $ONOS_INSTALL_DIR --strip-components=1
+
+"

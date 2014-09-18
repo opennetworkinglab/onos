@@ -1,0 +1,22 @@
+# Environmental defaults for ONOS build, package and test
+
+# Root of the ONOS source tree
+export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
+
+# M2 repository and Karaf gold bits
+export M2_REPO=${M2_REPO:-~/.m2/repository}
+export KARAF_ZIP=${KARAF_ZIP:-~/Downloads/apache-karaf-3.0.1.zip}
+export KARAF_DIST=$(basename $KARAF_ZIP .zip)
+
+# ONOS Version and onos.tar.gz staging environment
+export ONOS_VERSION=${ONOS_VERSION:-1.0.0-SNAPSHOT}
+export ONOS_STAGE_ROOT=${ONOS_STAGE_ROOT:-/tmp}
+export ONOS_BITS=onos-$ONOS_VERSION
+export ONOS_STAGE=$ONOS_STAGE_ROOT/$ONOS_BITS
+export ONOS_TAR=$ONOS_STAGE.tar.gz
+
+# Defaults for ONOS testing using remote machines.
+export ONOS_INSTALL_DIR="/opt/onos"     # Installation directory on remote
+export OCI="${OCI:-192.168.56.101}"     # ONOS Controller Instance
+export ONOS_USER="sdn"                  # ONOS user on remote system
+export ONOS_PWD="rocks"                 # ONOS user password on remote system

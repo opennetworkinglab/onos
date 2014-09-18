@@ -3,14 +3,8 @@
 # Packages ONOS distributable into onos.tar.gz
 #-------------------------------------------------------------------------------
 
-export M2_REPO=${M2_REPO:-~/.m2/repository}
-export KARAF_ZIP=${KARAF_ZIP:-~/Downloads/apache-karaf-3.0.1.zip}
-export KARAF_DIST=$(basename $KARAF_ZIP .zip)
-
-export ONOS_VERSION=${ONOS_VERSION:-1.0.0-SNAPSHOT}
-export ONOS_STAGE_ROOT=${ONOS_STAGE_ROOT:-/tmp}
-export ONOS_BITS=onos-$ONOS_VERSION
-export ONOS_STAGE=$ONOS_STAGE_ROOT/$ONOS_BITS
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
 
 # Bail on any errors
 set -e
@@ -26,23 +20,24 @@ rm -fr $ONOS_STAGE # Remove this when package script is completed
 mkdir -p $ONOS_STAGE
 cd $ONOS_STAGE
 
-# Unroll the Apache Karaf bits, prune them and make the ONOS top-level directories.
-unzip $KARAF_ZIP && rm -rm $KARAF_DIST/demos
+# Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
+unzip -q $KARAF_ZIP && rm -rf $KARAF_DIST/demos
 mkdir bin
 
-# Stage the ONOS admin scripts
+# Stage the ONOS admin scripts and patch in Karaf service wrapper extras
 cp -r $ONOS_ROOT/tools/package/bin .
+cp -r $ONOS_ROOT/tools/package/wrapper/* $KARAF_DIST
 
 # Stage the ONOS bundles
-mkdir -p system/org/onlab 
-cp -r $M2_REPO/org/onlab system/org/
+mkdir -p $KARAF_DIST/system/org/onlab 
+cp -r $M2_REPO/org/onlab $KARAF_DIST/system/org/
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
 perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-features/$ONOS_VERSION/xml/features|" \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution file to load ONOS features
-perl -pi.old -e 's|^(featuresBoot=.*)|\1,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue|' \
+perl -pi.old -e 's|^(featuresBoot=.*)|\1,wrapper,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue|' \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
@@ -51,4 +46,5 @@ cp $M2_REPO/org/onlab/onos/onos-branding/$ONOS_VERSION/onos-branding-*.jar \
 
 # Now package up the ONOS tar file
 cd $ONOS_STAGE_ROOT
-tar zcf $ONOS_BITS.tar.gz $ONOS_BITS
+COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
+ls -l $ONOS_TAR >&2

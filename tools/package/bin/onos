@@ -1,10 +1,10 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Starts ONOS Apache Karaf container
+# ONOS command-line client
 #-------------------------------------------------------------------------------
 
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
 
 cd $(dirname $0)/../apache-karaf-*/bin
-./karaf "$@"
+./client -h localhost "$@"
 

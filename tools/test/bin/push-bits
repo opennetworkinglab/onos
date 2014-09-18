@@ -1,0 +1,11 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Pushes ONOS distributable bits in onos.tar.gz to a remote machine.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+scp $ONOS_TAR $remote:/tmp
