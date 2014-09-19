@@ -45,20 +45,35 @@ alias gui='open http://localhost:8181/onos/tvue'
 
 # Test related conveniences
 
-# Default virtual box ONOS instances 1,2 & 3
-export OC1="192.168.56.101"
-export OC2="192.168.56.102"
-export OC3="192.168.56.103"
-
-# Default instance is #1
-export OCI="$OC1"
-
 # SSH to a specified ONOS instance
 function sshctl {
     [ -n "$1" ] && OCI=$1 && shift
     ssh -Y sdn@$OCI "$@"
 }
 
+# Applies the settings in the specified cell file or lists current cell definition
+# if no cell file is given.
+function cell {
+    if [ -n "$1" ]; then
+        [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
+            echo "No such cell: $1" >&2 && return 1
+        . $ONOS_ROOT/tools/test/cells/$1
+        export OCI=$OC1
+        export ONOS_CELL=$1
+        cell
+    else
+        env | egrep "ONOS_CELL"
+        env | egrep "OCI"
+        env | egrep "OC[0-9]+" | sort
+    fi
+}
+
+cell local >/dev/null  # Default cell is the local VMs
+
+# Lists available cells
+function cells {
+    ls -1 $ONOS_ROOT/tools/test/cells
+}
 
 # Miscellaneous
 function spy {
