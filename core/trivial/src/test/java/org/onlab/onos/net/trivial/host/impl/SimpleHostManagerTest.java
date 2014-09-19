@@ -73,6 +73,7 @@ public class SimpleHostManagerTest {
     @Before
     public void setUp() {
         mgr = new SimpleHostManager();
+        mgr.store = new SimpleHostStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         registry = mgr;
         mgr.activate();

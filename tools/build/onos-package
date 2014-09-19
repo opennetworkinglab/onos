@@ -50,8 +50,8 @@ perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-feature
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution file to load ONOS features
-perl -pi.old -e 's|^(featuresBoot=.*)|\1,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue,onos-app-fwd|' \
-    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
+#perl -pi.old -e 's|^(featuresBoot=.*)|\1,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-tvue,onos-app-fwd|' \
+#    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
 cp $M2_REPO/org/onlab/onos/onos-branding/$ONOS_VERSION/onos-branding-*.jar \

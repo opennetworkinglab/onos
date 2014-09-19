@@ -4,7 +4,6 @@ import org.onlab.packet.IpAddress;
 
 /**
  * Abstraction of a single traffic treatment step.
- * @param <T> the type parameter for the instruction
  */
 public abstract class L3ModificationInstruction implements Instruction {
 

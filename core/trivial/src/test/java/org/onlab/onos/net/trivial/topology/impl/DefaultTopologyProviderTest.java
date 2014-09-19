@@ -15,8 +15,8 @@ import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
-import org.onlab.onos.net.trivial.device.impl.SimpleDeviceManager;
-import org.onlab.onos.net.trivial.link.impl.SimpleLinkManager;
+import org.onlab.onos.net.trivial.device.impl.DeviceManager;
+import org.onlab.onos.net.trivial.link.impl.LinkManager;
 
 import java.util.List;
 import java.util.Set;
@@ -27,8 +27,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.onlab.junit.TestTools.assertAfter;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
-import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest.device;
-import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest.link;
+import static org.onlab.onos.net.trivial.topology.impl.TopologyManagerTest.device;
+import static org.onlab.onos.net.trivial.topology.impl.TopologyManagerTest.link;
 
 /**
  * Test of the default topology provider implementation.
@@ -122,7 +122,7 @@ public class DefaultTopologyProviderTest {
         }
     }
 
-    private class TestDeviceService extends SimpleDeviceManager {
+    private class TestDeviceService extends DeviceManager {
         TestDeviceService() {
             eventDispatcher = new TestEventDispatcher();
             eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
@@ -140,7 +140,7 @@ public class DefaultTopologyProviderTest {
         }
     }
 
-    private class TestLinkService extends SimpleLinkManager {
+    private class TestLinkService extends LinkManager {
         TestLinkService() {
             eventDispatcher = new TestEventDispatcher();
             eventDispatcher.addSink(LinkEvent.class, listenerRegistry);

@@ -4,6 +4,7 @@ import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,6 +12,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;
@@ -18,6 +23,7 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
+import org.onlab.onos.net.host.HostStore;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -26,29 +32,37 @@ import org.onlab.packet.VlanId;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import org.slf4j.Logger;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
  * implementation.
  */
-public class SimpleHostStore {
+@Component(immediate = true)
+@Service
+public class SimpleHostStore implements HostStore {
 
+    private final Logger log = getLogger(getClass());
+
+    // Host inventory
     private final Map<HostId, Host> hosts = new ConcurrentHashMap<>();
 
-    // hosts sorted based on their location
+    // Hosts tracked by their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
 
-    /**
-     * Creates a new host or updates the existing one based on the specified
-     * description.
-     *
-     * @param providerId      provider identification
-     * @param hostId          host identification
-     * @param hostDescription host description data
-     * @return appropriate event or null if no change resulted
-     */
-    HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                 HostDescription hostDescription) {
+    @Activate
+    public void activate() {
+        log.info("Started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        log.info("Stopped");
+    }
+
+    @Override
+    public HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
+                                        HostDescription hostDescription) {
         Host host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
@@ -102,13 +116,8 @@ public class SimpleHostStore {
         return event;
     }
 
-    /**
-     * Removes the specified host from the inventory.
-     *
-     * @param hostId host identification
-     * @return remove event or null if host was not found
-     */
-    HostEvent removeHost(HostId hostId) {
+    @Override
+    public HostEvent removeHost(HostId hostId) {
         synchronized (this) {
             Host host = hosts.remove(hostId);
             if (host != null) {
@@ -119,41 +128,23 @@ public class SimpleHostStore {
         }
     }
 
-    /**
-     * Returns the number of hosts in the store.
-     *
-     * @return host count
-     */
-    int getHostCount() {
+    @Override
+    public int getHostCount() {
         return hosts.size();
     }
 
-    /**
-     * Returns a collection of all hosts in the store.
-     *
-     * @return iterable collection of all hosts
-     */
-    Iterable<Host> getHosts() {
+    @Override
+    public Iterable<Host> getHosts() {
         return Collections.unmodifiableSet(new HashSet<>(hosts.values()));
     }
 
-    /**
-     * Returns the host with the specified identifer.
-     *
-     * @param hostId host identification
-     * @return host or null if not found
-     */
-    Host getHost(HostId hostId) {
+    @Override
+    public Host getHost(HostId hostId) {
         return hosts.get(hostId);
     }
 
-    /**
-     * Returns the set of all hosts within the specified VLAN.
-     *
-     * @param vlanId vlan id
-     * @return set of hosts in the vlan
-     */
-    Set<Host> getHosts(VlanId vlanId) {
+    @Override
+    public Set<Host> getHosts(VlanId vlanId) {
         Set<Host> vlanset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.vlan().equals(vlanId)) {
@@ -163,13 +154,8 @@ public class SimpleHostStore {
         return vlanset;
     }
 
-    /**
-     * Returns the set of hosts with the specified MAC address.
-     *
-     * @param mac mac address
-     * @return set of hosts with the given mac
-     */
-    Set<Host> getHosts(MacAddress mac) {
+    @Override
+    public Set<Host> getHosts(MacAddress mac) {
         Set<Host> macset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.mac().equals(mac)) {
@@ -179,13 +165,8 @@ public class SimpleHostStore {
         return macset;
     }
 
-    /**
-     * Returns the set of hosts with the specified IP address.
-     *
-     * @param ip ip address
-     * @return set of hosts with the given IP
-     */
-    Set<Host> getHosts(IpAddress ip) {
+    @Override
+    public Set<Host> getHosts(IpAddress ip) {
         Set<Host> ipset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.ipAddresses().contains(ip)) {
@@ -195,22 +176,12 @@ public class SimpleHostStore {
         return ipset;
     }
 
-    /**
-     * Returns the set of hosts whose location falls on the given connection point.
-     *
-     * @param connectPoint connection point
-     * @return set of hosts
-     */
-    Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
+    @Override
+    public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
         return ImmutableSet.copyOf(locations.get(connectPoint));
     }
 
-    /**
-     * Returns the set of hosts whose location falls on the given device.
-     *
-     * @param deviceId infrastructure device identifier
-     * @return set of hosts
-     */
+    @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
         Set<Host> hostset = new HashSet<>();
         for (ConnectPoint p : locations.keySet()) {

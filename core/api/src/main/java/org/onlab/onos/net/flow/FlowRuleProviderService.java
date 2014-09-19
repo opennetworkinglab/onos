@@ -33,9 +33,8 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      * Pushes the collection of flow entries currently applied on the given
      * device.
      *
-     * @param deviceId device identifier
-     * @return collection of flow entries
+     * @param flowRules collection of flow rules
      */
-    void pushFlowMetrics(Iterable<FlowRule> flowEntries);
+    void pushFlowMetrics(Iterable<FlowRule> flowRules);
 
 }

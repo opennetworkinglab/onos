@@ -38,7 +38,7 @@
             </aws>
         </join>
         <interfaces enabled="true">
-            <interface>10.1.9.*</interface>
+            <interface>192.168.56.*</interface>
         </interfaces>
         <ssl enabled="false"/>
         <socket-interceptor enabled="false"/>
