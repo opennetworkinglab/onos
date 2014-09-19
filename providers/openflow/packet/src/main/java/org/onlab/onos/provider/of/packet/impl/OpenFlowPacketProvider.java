@@ -22,7 +22,6 @@ import org.onlab.onos.net.packet.PacketProviderRegistry;
 import org.onlab.onos.net.packet.PacketProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowPacketContext;

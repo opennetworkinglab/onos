@@ -99,9 +99,8 @@ public class OpenFlowPacketProviderTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void scheme() {
+    public void wrongScheme() {
         sw.setRole(RoleState.MASTER);
-        //device has wrong scheme
         OutboundPacket schemeFailPkt = outPacket(DID_WRONG, TR, null);
         provider.emit(schemeFailPkt);
         assertEquals("message sent incorrectly", 0, sw.sent.size());
@@ -235,7 +234,6 @@ public class OpenFlowPacketProviderTest {
 
     private class TestController implements OpenFlowController {
 
-        int prio;
         PacketListener pktListener;
         OpenFlowSwitch current;
 
@@ -284,7 +282,6 @@ public class OpenFlowPacketProviderTest {
 
         @Override
         public void addPacketListener(int priority, PacketListener listener) {
-            prio = priority;
             pktListener = listener;
         }
 
@@ -314,19 +311,6 @@ public class OpenFlowPacketProviderTest {
 
         @Override
         public void setRole(Dpid dpid, RoleState role) {
-        }
-
-    }
-
-    private class TestPacketProviderService implements PacketProviderService {
-
-        @Override
-        public PacketProvider provider() {
-            return null;
-        }
-
-        @Override
-        public void processPacket(PacketContext context) {
         }
 
     }
