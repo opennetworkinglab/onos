@@ -1,6 +1,7 @@
 package org.onlab.packet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -72,5 +73,27 @@ public class IPAddressTest {
         assertEquals("incorrect host address", umnet, ip2.network());
         assertTrue("incorrect netmask",
                 Arrays.equals(IpAddress.ANY, ip2.netmask().toOctets()));
+    }
+
+    @Test
+    public void testContains() {
+        IpAddress slash31 = IpAddress.valueOf(BYTES1, 31);
+        IpAddress slash32 = IpAddress.valueOf(BYTES1, 32);
+        IpAddress differentSlash32 = IpAddress.valueOf(BYTES2, 32);
+
+        assertTrue(slash31.contains(differentSlash32));
+        assertFalse(differentSlash32.contains(slash31));
+
+        assertTrue(slash31.contains(slash32));
+        assertFalse(slash32.contains(differentSlash32));
+        assertFalse(differentSlash32.contains(slash32));
+
+        IpAddress zero = IpAddress.valueOf("0.0.0.0/0");
+        assertTrue(zero.contains(differentSlash32));
+        assertFalse(differentSlash32.contains(zero));
+
+        IpAddress slash8 = IpAddress.valueOf("10.0.0.0/8");
+        assertTrue(slash8.contains(slash31));
+        assertFalse(slash31.contains(slash8));
     }
 }

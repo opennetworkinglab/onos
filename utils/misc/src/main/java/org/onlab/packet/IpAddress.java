@@ -234,6 +234,30 @@ public final class IpAddress {
         return mask() != 0;
     }
 
+    /**
+     * Determines whether a given address is contained within this IpAddress'
+     * network.
+     *
+     * @param other another IP address that could be contained in this network
+     * @return true if the other IP address is contained in this address'
+     * network, otherwise false
+     */
+    public boolean contains(IpAddress other) {
+        if (this.netmask <= other.netmask) {
+            // Special case where they're both /32 addresses
+            if (this.netmask == MAX_INET_MASK) {
+                return Arrays.equals(octets, other.octets);
+            }
+
+            // Mask the other address with our network mask
+            IpAddress otherMasked =
+                    IpAddress.valueOf(other.octets, netmask).network();
+
+            return network().equals(otherMasked);
+        }
+        return false;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
