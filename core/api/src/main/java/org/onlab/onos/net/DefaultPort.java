@@ -1,8 +1,12 @@
 package org.onlab.onos.net;
 
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
+
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+
+import org.onlab.packet.IpAddress;
 
 /**
  * Default port implementation.
@@ -13,6 +17,9 @@ public class DefaultPort implements Port {
     private final PortNumber number;
     private final boolean isEnabled;
 
+    // Attributes
+    private final Set<IpAddress> ipAddresses;
+
     /**
      * Creates a network element attributed to the specified provider.
      *
@@ -22,9 +29,24 @@ public class DefaultPort implements Port {
      */
     public DefaultPort(Element element, PortNumber number,
                        boolean isEnabled) {
+        this(element, number, isEnabled, null);
+    }
+
+    /**
+     * Creates a network element attributed to the specified provider.
+     *
+     * @param element     parent network element
+     * @param number      port number
+     * @param isEnabled   indicator whether the port is up and active
+     * @param ipAddresses set of IP addresses assigned to the port
+     */
+    public DefaultPort(Element element, PortNumber number,
+                       boolean isEnabled, Set<IpAddress> ipAddresses) {
         this.element = element;
         this.number = number;
         this.isEnabled = isEnabled;
+        this.ipAddresses = (ipAddresses == null) ? null :
+            Collections.unmodifiableSet(ipAddresses);
     }
 
     @Override
@@ -65,6 +87,11 @@ public class DefaultPort implements Port {
     @Override
     public Element element() {
         return element;
+    }
+
+    @Override
+    public Set<IpAddress> ipAddresses() {
+        return ipAddresses;
     }
 
 }
