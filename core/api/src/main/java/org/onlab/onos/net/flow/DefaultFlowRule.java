@@ -2,6 +2,8 @@ package org.onlab.onos.net.flow;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Objects;
+
 import org.onlab.onos.net.DeviceId;
 
 public class DefaultFlowRule implements FlowRule {
@@ -12,10 +14,10 @@ public class DefaultFlowRule implements FlowRule {
     private final TrafficTreatment treatment;
     private final FlowId id;
     private final long created;
-    private long life;
-    private long idle;
-    private long packets;
-    private long bytes;
+    private final long life;
+    private final long idle;
+    private final long packets;
+    private final long bytes;
 
 
     public DefaultFlowRule(DeviceId deviceId,
@@ -32,15 +34,21 @@ public class DefaultFlowRule implements FlowRule {
         this.created = System.currentTimeMillis();
     }
 
-    // TODO: Decide whether to take the flowId from the underlying flowentry.
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority,
-            long life, long idle, long packets, long bytes) {
-        this(deviceId, selector, treatment, priority);
+            long life, long idle, long packets, long bytes, Integer flowId) {
+        this.deviceId = deviceId;
+        this.priority = priority;
+        this.selector = selector;
+        this.treatment = treatment;
+
+        this.id = FlowId.valueOf(flowId);
+
         this.life = life;
         this.idle = idle;
         this.packets = packets;
         this.bytes = bytes;
+        this.created = System.currentTimeMillis();
     }
 
 
@@ -97,11 +105,7 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public int hashCode() {
-        final int prime = 31;
-        int result = prime * this.deviceId().hashCode();
-        result = prime * result + selector.hashCode();
-        result = prime * result + treatment.hashCode();
-        return result;
+        return Objects.hash(deviceId, selector, treatment);
     }
 
     @Override
@@ -139,5 +143,6 @@ public class DefaultFlowRule implements FlowRule {
                 .add("created", created)
                 .toString();
     }
+
 
 }

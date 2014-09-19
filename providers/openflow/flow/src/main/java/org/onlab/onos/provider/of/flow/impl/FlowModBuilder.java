@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
@@ -39,6 +40,7 @@ import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
@@ -54,6 +56,8 @@ public class FlowModBuilder {
 
     private final int priority;
 
+    private final FlowId cookie;
+
 
 
     public FlowModBuilder(FlowRule flowRule, OFFactory factory) {
@@ -61,6 +65,7 @@ public class FlowModBuilder {
         this.treatment = flowRule.treatment();
         this.selector = flowRule.selector();
         this.priority = flowRule.priority();
+        this.cookie = flowRule.id();
     }
 
     public OFFlowMod buildFlowMod() {
@@ -69,6 +74,7 @@ public class FlowModBuilder {
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
         OFFlowMod fm = factory.buildFlowModify()
+                .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
                 .setMatch(match)
