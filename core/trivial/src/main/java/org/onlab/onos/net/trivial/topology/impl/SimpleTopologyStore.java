@@ -1,5 +1,9 @@
 package org.onlab.onos.net.trivial.topology.impl;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
@@ -13,151 +17,96 @@ import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyCluster;
 import org.onlab.onos.net.topology.TopologyEvent;
 import org.onlab.onos.net.topology.TopologyGraph;
+import org.onlab.onos.net.topology.TopologyStore;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of topology snapshots using trivial in-memory
  * structures implementation.
  */
-class SimpleTopologyStore {
+@Component(immediate = true)
+@Service
+public class SimpleTopologyStore implements TopologyStore {
+
+    private final Logger log = getLogger(getClass());
 
     private volatile DefaultTopology current;
 
-    /**
-     * Returns the current topology snapshot.
-     *
-     * @return current topology descriptor
-     */
-    Topology currentTopology() {
+    @Activate
+    public void activate() {
+        log.info("Started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        log.info("Stopped");
+    }
+    @Override
+    public Topology currentTopology() {
         return current;
     }
 
-    /**
-     * Indicates whether the topology is the latest.
-     *
-     * @param topology topology descriptor
-     * @return true if topology is the most recent one
-     */
-    boolean isLatest(Topology topology) {
+    @Override
+    public boolean isLatest(Topology topology) {
         // Topology is current only if it is the same as our current topology
         return topology == current;
     }
 
-    /**
-     * Returns the immutable graph view of the current topology.
-     *
-     * @param topology topology descriptor
-     * @return graph view
-     */
-    TopologyGraph getGraph(DefaultTopology topology) {
-        return topology.getGraph();
+    @Override
+    public TopologyGraph getGraph(Topology topology) {
+        return defaultTopology(topology).getGraph();
     }
 
-    /**
-     * Returns the set of topology SCC clusters.
-     *
-     * @param topology topology descriptor
-     * @return set of clusters
-     */
-    Set<TopologyCluster> getClusters(DefaultTopology topology) {
-        return topology.getClusters();
+    @Override
+    public Set<TopologyCluster> getClusters(Topology topology) {
+        return defaultTopology(topology).getClusters();
     }
 
-    /**
-     * Returns the cluster of the specified topology.
-     *
-     * @param topology  topology descriptor
-     * @param clusterId cluster identity
-     * @return topology cluster
-     */
-    TopologyCluster getCluster(DefaultTopology topology, ClusterId clusterId) {
-        return topology.getCluster(clusterId);
+    @Override
+    public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
+        return defaultTopology(topology).getCluster(clusterId);
     }
 
-    /**
-     * Returns the cluster of the specified topology.
-     *
-     * @param topology  topology descriptor
-     * @param cluster topology cluster
-     * @return set of cluster links
-     */
-    Set<DeviceId> getClusterDevices(DefaultTopology topology, TopologyCluster cluster) {
-        return topology.getClusterDevices(cluster);
+    @Override
+    public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
+        return defaultTopology(topology).getClusterDevices(cluster);
     }
 
-    /**
-     * Returns the cluster of the specified topology.
-     *
-     * @param topology  topology descriptor
-     * @param cluster topology cluster
-     * @return set of cluster links
-     */
-    Set<Link> getClusterLinks(DefaultTopology topology, TopologyCluster cluster) {
-        return topology.getClusterLinks(cluster);
+    @Override
+    public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
+        return defaultTopology(topology).getClusterLinks(cluster);
     }
 
-    /**
-     * Returns the set of pre-computed shortest paths between src and dest.
-     *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
-     * @return set of shortest paths
-     */
-    Set<Path> getPaths(DefaultTopology topology, DeviceId src, DeviceId dst) {
-        return topology.getPaths(src, dst);
+    @Override
+    public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
+        return defaultTopology(topology).getPaths(src, dst);
     }
 
-    /**
-     * Computes and returns the set of shortest paths between src and dest.
-     *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
-     * @param weight   link weight function
-     * @return set of shortest paths
-     */
-    Set<Path> getPaths(DefaultTopology topology, DeviceId src, DeviceId dst,
-                       LinkWeight weight) {
-        return topology.getPaths(src, dst, weight);
+    @Override
+    public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
+                              LinkWeight weight) {
+        return defaultTopology(topology).getPaths(src, dst, weight);
     }
 
-    /**
-     * Indicates whether the given connect point is part of the network fabric.
-     *
-     * @param topology     topology descriptor
-     * @param connectPoint connection point
-     * @return true if infrastructure; false otherwise
-     */
-    boolean isInfrastructure(DefaultTopology topology, ConnectPoint connectPoint) {
-        return topology.isInfrastructure(connectPoint);
+    @Override
+    public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
+        return defaultTopology(topology).isInfrastructure(connectPoint);
     }
 
-    /**
-     * Indicates whether broadcast is allowed for traffic received on the
-     * given connection point.
-     *
-     * @param topology     topology descriptor
-     * @param connectPoint connection point
-     * @return true if broadcast allowed; false otherwise
-     */
-    boolean isBroadcastPoint(DefaultTopology topology, ConnectPoint connectPoint) {
-        return topology.isBroadcastPoint(connectPoint);
+    @Override
+    public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
+        return defaultTopology(topology).isBroadcastPoint(connectPoint);
     }
 
-    /**
-     * Generates a new topology snapshot from the specified description.
-     *
-     * @param providerId       provider identification
-     * @param graphDescription topology graph description
-     * @param reasons          list of events that triggered the update
-     * @return topology update event or null if the description is old
-     */
-    TopologyEvent updateTopology(ProviderId providerId,
-                                 GraphDescription graphDescription,
-                                 List<Event> reasons) {
+    @Override
+    public TopologyEvent updateTopology(ProviderId providerId,
+                                        GraphDescription graphDescription,
+                                        List<Event> reasons) {
         // First off, make sure that what we're given is indeed newer than
         // what we already have.
         if (current != null && graphDescription.timestamp() < current.time()) {
@@ -173,6 +122,15 @@ class SimpleTopologyStore {
             current = newTopology;
             return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, current);
         }
+    }
+
+    // Validates the specified topology and returns it as a default
+    private DefaultTopology defaultTopology(Topology topology) {
+        if (topology instanceof DefaultTopology) {
+            return (DefaultTopology) topology;
+        }
+        throw new IllegalArgumentException("Topology class " + topology.getClass() +
+                                                   " not supported");
     }
 
 }
