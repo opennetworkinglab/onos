@@ -20,6 +20,7 @@ import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.HostStore;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.onlab.packet.IpAddress;
@@ -47,7 +48,8 @@ public class SimpleHostManager
     private final AbstractListenerRegistry<HostEvent, HostListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final SimpleHostStore store = new SimpleHostStore();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;

@@ -8,7 +8,8 @@ import org.onlab.onos.net.provider.ProviderId;
 import java.util.Set;
 
 /**
- * Manages inventory of infrastructure links using whatever means are appropriate.
+ * Manages inventory of infrastructure links. It may do so using whatever
+ * means are appropriate.
  */
 public interface LinkStore {
 

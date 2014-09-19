@@ -60,6 +60,7 @@ public class SimpleDeviceStore implements DeviceStore {
     public void deactivate() {
         log.info("Stopped");
     }
+
     @Override
     public int getDeviceCount() {
         return devices.size();

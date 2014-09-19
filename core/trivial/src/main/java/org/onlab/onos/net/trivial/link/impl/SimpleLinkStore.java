@@ -3,7 +3,9 @@ package org.onlab.onos.net.trivial.link.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultLink;
@@ -13,6 +15,7 @@ import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.provider.ProviderId;
+import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
@@ -33,6 +37,8 @@ import static org.onlab.onos.net.link.LinkEvent.Type.*;
 @Service
 public class SimpleLinkStore implements LinkStore {
 
+    private final Logger log = getLogger(getClass());
+
     // Link inventory
     private final Map<LinkKey, DefaultLink> links = new ConcurrentHashMap<>();
 
@@ -40,7 +46,17 @@ public class SimpleLinkStore implements LinkStore {
     private final Multimap<DeviceId, Link> srcLinks = HashMultimap.create();
     private final Multimap<DeviceId, Link> dstLinks = HashMultimap.create();
 
-    private static final Set<Link> EMPTY = ImmutableSet.copyOf(new Link[]{});
+    private static final Set<Link> EMPTY = ImmutableSet.of();
+
+    @Activate
+    public void activate() {
+        log.info("Started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        log.info("Stopped");
+    }
 
     @Override
     public int getLinkCount() {
