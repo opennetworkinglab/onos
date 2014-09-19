@@ -5,6 +5,7 @@
 .pydevproject
 .settings
 .javacp*
+.checkstyle
 target
 *.iml
 dependency-reduced-pom.xml
