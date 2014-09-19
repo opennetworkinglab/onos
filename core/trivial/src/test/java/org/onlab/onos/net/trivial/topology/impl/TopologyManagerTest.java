@@ -41,11 +41,11 @@ import static org.onlab.onos.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
 /**
  * Test of the topology subsystem.
  */
-public class SimpleTopologyManagerTest {
+public class TopologyManagerTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
-    private SimpleTopologyManager mgr;
+    private TopologyManager mgr;
 
     protected TopologyService service;
     protected TopologyProviderRegistry registry;
@@ -55,10 +55,11 @@ public class SimpleTopologyManagerTest {
 
     @Before
     public void setUp() {
-        mgr = new SimpleTopologyManager();
+        mgr = new TopologyManager();
         service = mgr;
         registry = mgr;
 
+        mgr.store = new SimpleTopologyStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.activate();
 

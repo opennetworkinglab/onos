@@ -21,8 +21,8 @@ import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest.device;
-import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest.link;
+import static org.onlab.onos.net.trivial.topology.impl.TopologyManagerTest.device;
+import static org.onlab.onos.net.trivial.topology.impl.TopologyManagerTest.link;
 
 /**
  * Test of the default topology implementation.

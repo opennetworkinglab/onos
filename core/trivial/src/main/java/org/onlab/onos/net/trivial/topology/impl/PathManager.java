@@ -41,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimplePathManager implements PathService {
+public class PathManager implements PathService {
 
     private static final String ELEMENT_ID_NULL = "Element ID cannot be null";
 

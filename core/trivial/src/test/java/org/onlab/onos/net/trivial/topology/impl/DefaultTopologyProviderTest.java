@@ -27,8 +27,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.onlab.junit.TestTools.assertAfter;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
-import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest.device;
-import static org.onlab.onos.net.trivial.topology.impl.SimpleTopologyManagerTest.link;
+import static org.onlab.onos.net.trivial.topology.impl.TopologyManagerTest.device;
+import static org.onlab.onos.net.trivial.topology.impl.TopologyManagerTest.link;
 
 /**
  * Test of the default topology provider implementation.

@@ -27,6 +27,7 @@ import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
 import org.onlab.onos.net.topology.TopologyService;
+import org.onlab.onos.net.topology.TopologyStore;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -40,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleTopologyManager
+public class TopologyManager
         extends AbstractProviderRegistry<TopologyProvider, TopologyProviderService>
         implements TopologyService, TopologyProviderRegistry {
 
@@ -55,7 +56,8 @@ public class SimpleTopologyManager
     private final AbstractListenerRegistry<TopologyEvent, TopologyListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final SimpleTopologyStore store = new SimpleTopologyStore();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -81,49 +83,40 @@ public class SimpleTopologyManager
     @Override
     public boolean isLatest(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return store.isLatest(defaultTopology(topology));
-    }
-
-    // Validates the specified topology and returns it as a default
-    private DefaultTopology defaultTopology(Topology topology) {
-        if (topology instanceof DefaultTopology) {
-            return (DefaultTopology) topology;
-        }
-        throw new IllegalArgumentException("Topology class " + topology.getClass() +
-                                                   " not supported");
+        return store.isLatest(topology);
     }
 
     @Override
     public Set<TopologyCluster> getClusters(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return store.getClusters(defaultTopology(topology));
+        return store.getClusters(topology);
     }
 
     @Override
     public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_ID_NULL);
-        return store.getCluster(defaultTopology(topology), clusterId);
+        return store.getCluster(topology, clusterId);
     }
 
     @Override
     public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_NULL);
-        return store.getClusterDevices(defaultTopology(topology), cluster);
+        return store.getClusterDevices(topology, cluster);
     }
 
     @Override
     public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_NULL);
-        return store.getClusterLinks(defaultTopology(topology), cluster);
+        return store.getClusterLinks(topology, cluster);
     }
 
     @Override
     public TopologyGraph getGraph(Topology topology) {
         checkNotNull(topology, TOPOLOGY_NULL);
-        return store.getGraph(defaultTopology(topology));
+        return store.getGraph(topology);
     }
 
     @Override
@@ -131,7 +124,7 @@ public class SimpleTopologyManager
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
-        return store.getPaths(defaultTopology(topology), src, dst);
+        return store.getPaths(topology, src, dst);
     }
 
     @Override
@@ -140,21 +133,21 @@ public class SimpleTopologyManager
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
         checkNotNull(weight, "Link weight cannot be null");
-        return store.getPaths(defaultTopology(topology), src, dst, weight);
+        return store.getPaths(topology, src, dst, weight);
     }
 
     @Override
     public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return store.isInfrastructure(defaultTopology(topology), connectPoint);
+        return store.isInfrastructure(topology, connectPoint);
     }
 
     @Override
     public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
-        return store.isBroadcastPoint(defaultTopology(topology), connectPoint);
+        return store.isBroadcastPoint(topology, connectPoint);
     }
 
     @Override
