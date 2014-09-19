@@ -80,7 +80,7 @@ public class OpenFlowPacketProviderTest {
     private final TestPacketRegistry registry = new TestPacketRegistry();
     private final TestController controller = new TestController();
 
-    private final TestOpenFlowSwitch sw = new TestOpenFlowSwitch(PLIST);
+    private final TestOpenFlowSwitch sw = new TestOpenFlowSwitch();
 
     @Before
     public void startUp() {
@@ -317,14 +317,9 @@ public class OpenFlowPacketProviderTest {
 
     private class TestOpenFlowSwitch implements OpenFlowSwitch {
 
-        List<OFPortDesc> ports;
         RoleState state;
         List<OFMessage> sent = new ArrayList<OFMessage>();
         OFFactory factory = OFFactoryVer10.INSTANCE;
-
-        TestOpenFlowSwitch(List<OFPortDesc> p) {
-            ports = p;
-        }
 
         @Override
         public void sendMsg(OFMessage msg) {
@@ -351,7 +346,7 @@ public class OpenFlowPacketProviderTest {
 
         @Override
         public List<OFPortDesc> getPorts() {
-            return ports;
+            return PLIST;
         }
 
         @Override
