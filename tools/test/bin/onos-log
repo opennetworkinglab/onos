@@ -10,6 +10,8 @@ remote=$ONOS_USER@${1:-$OCI}
 
 LOG=$ONOS_INSTALL_DIR/log/karaf.log
 
+trap "ssh $remote 'ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | xargs kill'" EXIT
+
 ssh $remote "
     while true; do
         [ ! -f $LOG ] && sleep 2 && continue
