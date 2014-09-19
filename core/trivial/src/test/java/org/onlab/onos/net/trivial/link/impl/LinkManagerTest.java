@@ -38,7 +38,7 @@ import static org.onlab.onos.net.link.LinkEvent.Type.*;
 /**
  * Test codifying the link service & link provider service contracts.
  */
-public class SimpleLinkManagerTest {
+public class LinkManagerTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
@@ -50,7 +50,7 @@ public class SimpleLinkManagerTest {
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
 
-    private SimpleLinkManager mgr;
+    private LinkManager mgr;
 
     protected LinkService service;
     protected LinkAdminService admin;
@@ -61,10 +61,11 @@ public class SimpleLinkManagerTest {
 
     @Before
     public void setUp() {
-        mgr = new SimpleLinkManager();
+        mgr = new LinkManager();
         service = mgr;
         admin = mgr;
         registry = mgr;
+        mgr.store = new SimpleLinkStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.deviceService = new DeviceManager();
         mgr.activate();

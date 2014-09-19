@@ -27,6 +27,7 @@ import org.onlab.onos.net.link.LinkProvider;
 import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.link.LinkService;
+import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -38,7 +39,7 @@ import com.google.common.collect.Sets;
  */
 @Component(immediate = true)
 @Service
-public class SimpleLinkManager
+public class LinkManager
         extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
         implements LinkService, LinkAdminService, LinkProviderRegistry {
 
@@ -51,8 +52,10 @@ public class SimpleLinkManager
     protected final AbstractListenerRegistry<LinkEvent, LinkListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final SimpleLinkStore store = new SimpleLinkStore();
     private final DeviceListener deviceListener = new InnerDeviceListener();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;

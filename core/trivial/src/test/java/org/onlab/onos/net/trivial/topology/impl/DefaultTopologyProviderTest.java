@@ -16,7 +16,7 @@ import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
 import org.onlab.onos.net.trivial.device.impl.DeviceManager;
-import org.onlab.onos.net.trivial.link.impl.SimpleLinkManager;
+import org.onlab.onos.net.trivial.link.impl.LinkManager;
 
 import java.util.List;
 import java.util.Set;
@@ -140,7 +140,7 @@ public class DefaultTopologyProviderTest {
         }
     }
 
-    private class TestLinkService extends SimpleLinkManager {
+    private class TestLinkService extends LinkManager {
         TestLinkService() {
             eventDispatcher = new TestEventDispatcher();
             eventDispatcher.addSink(LinkEvent.class, listenerRegistry);
