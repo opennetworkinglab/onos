@@ -21,7 +21,7 @@ export PATH="$PATH:."
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {
-    cd $(find $ONOS_ROOT/ -type d | egrep -v '.git|target|src' | \
+    cd $(find $ONOS_ROOT/ -type d | egrep -v '\.git|target|src' | \
         egrep "${1:-$ONOS_ROOT}" | head -n 1)
 }
 
