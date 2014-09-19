@@ -78,7 +78,6 @@
              description="ONOS sample topology viewer application">
         <feature>onos-thirdparty-web</feature>
         <feature>onos-api</feature>
-        <feature>onos-core</feature>
         <bundle>mvn:org.onlab.onos/onos-app-tvue/1.0.0-SNAPSHOT</bundle>
     </feature>
     
