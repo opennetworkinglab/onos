@@ -36,7 +36,7 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 /**
  * Test codifying the device service & device provider service contracts.
  */
-public class SimpleDeviceManagerTest {
+public class DeviceManagerTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
@@ -51,8 +51,7 @@ public class SimpleDeviceManagerTest {
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
-
-    private SimpleDeviceManager mgr;
+    private DeviceManager mgr;
 
     protected DeviceService service;
     protected DeviceAdminService admin;
@@ -63,10 +62,11 @@ public class SimpleDeviceManagerTest {
 
     @Before
     public void setUp() {
-        mgr = new SimpleDeviceManager();
+        mgr = new DeviceManager();
         service = mgr;
         admin = mgr;
         registry = mgr;
+        mgr.store = new SimpleDeviceStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.activate();
 

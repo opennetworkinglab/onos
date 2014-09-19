@@ -15,7 +15,7 @@ import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
-import org.onlab.onos.net.trivial.device.impl.SimpleDeviceManager;
+import org.onlab.onos.net.trivial.device.impl.DeviceManager;
 import org.onlab.onos.net.trivial.link.impl.SimpleLinkManager;
 
 import java.util.List;
@@ -122,7 +122,7 @@ public class DefaultTopologyProviderTest {
         }
     }
 
-    private class TestDeviceService extends SimpleDeviceManager {
+    private class TestDeviceService extends DeviceManager {
         TestDeviceService() {
             eventDispatcher = new TestEventDispatcher();
             eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);

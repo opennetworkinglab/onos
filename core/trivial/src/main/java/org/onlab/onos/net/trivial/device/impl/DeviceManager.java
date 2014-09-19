@@ -21,6 +21,7 @@ import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
@@ -36,7 +37,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleDeviceManager
+public class DeviceManager
         extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
         implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
@@ -51,7 +52,8 @@ public class SimpleDeviceManager
     protected final AbstractListenerRegistry<DeviceEvent, DeviceListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final SimpleDeviceStore store = new SimpleDeviceStore();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;

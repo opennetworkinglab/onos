@@ -1,6 +1,10 @@
 package org.onlab.onos.net.trivial.device.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
@@ -10,8 +14,10 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
+import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,12 +32,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of infrastructure DEVICES using trivial in-memory
  * structures implementation.
  */
-class SimpleDeviceStore {
+@Component(immediate = true)
+@Service
+public class SimpleDeviceStore implements DeviceStore {
+
+    private final Logger log = getLogger(getClass());
 
     public static final String DEVICE_NOT_FOUND = "Device with ID %s not found";
 
@@ -40,44 +51,32 @@ class SimpleDeviceStore {
     private final Set<DeviceId> availableDevices = new HashSet<>();
     private final Map<DeviceId, Map<PortNumber, Port>> devicePorts = new HashMap<>();
 
-    /**
-     * Returns the number of devices known to the system.
-     *
-     * @return number of devices
-     */
-    int getDeviceCount() {
+    @Activate
+    public void activate() {
+        log.info("Started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        log.info("Stopped");
+    }
+    @Override
+    public int getDeviceCount() {
         return devices.size();
     }
 
-    /**
-     * Returns an iterable collection of all devices known to the system.
-     *
-     * @return device collection
-     */
-    Iterable<Device> getDevices() {
+    @Override
+    public Iterable<Device> getDevices() {
         return Collections.unmodifiableSet(new HashSet<Device>(devices.values()));
     }
 
-    /**
-     * Returns the device with the specified identifier.
-     *
-     * @param deviceId device identifier
-     * @return device
-     */
-    Device getDevice(DeviceId deviceId) {
+    @Override
+    public Device getDevice(DeviceId deviceId) {
         return devices.get(deviceId);
     }
 
-    /**
-     * Creates a new infrastructure device, or updates an existing one using
-     * the supplied device description.
-     *
-     * @param providerId        provider identifier
-     * @param deviceId          device identifier
-     * @param deviceDescription device description
-     * @return ready to send event describing what occurred; null if no change
-     */
-    DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
+    @Override
+    public DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
                                      DeviceDescription deviceDescription) {
         DefaultDevice device = devices.get(deviceId);
         if (device == null) {
@@ -130,13 +129,8 @@ class SimpleDeviceStore {
         }
     }
 
-    /**
-     * Removes the specified infrastructure device.
-     *
-     * @param deviceId device identifier
-     * @return ready to send event describing what occurred; null if no change
-     */
-    DeviceEvent markOffline(DeviceId deviceId) {
+    @Override
+    public DeviceEvent markOffline(DeviceId deviceId) {
         synchronized (this) {
             Device device = devices.get(deviceId);
             boolean removed = device != null && availableDevices.remove(deviceId);
@@ -145,15 +139,8 @@ class SimpleDeviceStore {
         }
     }
 
-    /**
-     * Updates the ports of the specified infrastructure device using the given
-     * list of port descriptions. The list is assumed to be comprehensive.
-     *
-     * @param deviceId         device identifier
-     * @param portDescriptions list of port descriptions
-     * @return ready to send events describing what occurred; empty list if no change
-     */
-    List<DeviceEvent> updatePorts(DeviceId deviceId,
+    @Override
+    public List<DeviceEvent> updatePorts(DeviceId deviceId,
                                   List<PortDescription> portDescriptions) {
         List<DeviceEvent> events = new ArrayList<>();
         synchronized (this) {
@@ -230,15 +217,8 @@ class SimpleDeviceStore {
         return ports;
     }
 
-    /**
-     * Updates the port status of the specified infrastructure device using the
-     * given port description.
-     *
-     * @param deviceId        device identifier
-     * @param portDescription port description
-     * @return ready to send event describing what occurred; null if no change
-     */
-    DeviceEvent updatePortStatus(DeviceId deviceId,
+    @Override
+    public DeviceEvent updatePortStatus(DeviceId deviceId,
                                  PortDescription portDescription) {
         synchronized (this) {
             Device device = devices.get(deviceId);
@@ -249,58 +229,31 @@ class SimpleDeviceStore {
         }
     }
 
-    /**
-     * Returns the list of ports that belong to the specified device.
-     *
-     * @param deviceId device identifier
-     * @return list of device ports
-     */
-    List<Port> getPorts(DeviceId deviceId) {
+    @Override
+    public List<Port> getPorts(DeviceId deviceId) {
         Map<PortNumber, Port> ports = devicePorts.get(deviceId);
         return ports == null ? new ArrayList<Port>() : ImmutableList.copyOf(ports.values());
     }
 
-    /**
-     * Returns the specified device port.
-     *
-     * @param deviceId   device identifier
-     * @param portNumber port number
-     * @return device port
-     */
-    Port getPort(DeviceId deviceId, PortNumber portNumber) {
+    @Override
+    public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         Map<PortNumber, Port> ports = devicePorts.get(deviceId);
         return ports == null ? null : ports.get(portNumber);
     }
 
-    /**
-     * Indicates whether the specified device is available/online.
-     *
-     * @param deviceId device identifier
-     * @return true if device is available
-     */
-    boolean isAvailable(DeviceId deviceId) {
+    @Override
+    public boolean isAvailable(DeviceId deviceId) {
         return availableDevices.contains(deviceId);
     }
 
-    /**
-     * Returns the mastership role determined for this device.
-     *
-     * @param deviceId device identifier
-     * @return mastership role
-     */
-    MastershipRole getRole(DeviceId deviceId) {
+    @Override
+    public MastershipRole getRole(DeviceId deviceId) {
         MastershipRole role = roles.get(deviceId);
         return role != null ? role : MastershipRole.NONE;
     }
 
-    /**
-     * Administratively sets the role of the specified device.
-     *
-     * @param deviceId device identifier
-     * @param role     mastership role to apply
-     * @return mastership role change event or null if no change
-     */
-    DeviceEvent setRole(DeviceId deviceId, MastershipRole role) {
+    @Override
+    public DeviceEvent setRole(DeviceId deviceId, MastershipRole role) {
         synchronized (this) {
             Device device = getDevice(deviceId);
             checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
@@ -310,12 +263,8 @@ class SimpleDeviceStore {
         }
     }
 
-    /**
-     * Administratively removes the specified device from the store.
-     *
-     * @param deviceId device to be removed
-     */
-    DeviceEvent removeDevice(DeviceId deviceId) {
+    @Override
+    public DeviceEvent removeDevice(DeviceId deviceId) {
         synchronized (this) {
             roles.remove(deviceId);
             Device device = devices.remove(deviceId);
