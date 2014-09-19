@@ -6,35 +6,24 @@
 
     <parent>
         <groupId>org.onlab.onos</groupId>
-        <artifactId>onos</artifactId>
+        <artifactId>onos-core</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-core</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-core-store</artifactId>
+    <packaging>bundle</packaging>
 
-    <description>ONOS Core root project</description>
-
-    <modules>
-        <module>api</module>
-        <module>net</module>
-        <module>store</module>
-        <module>trivial</module>
-    </modules>
+    <description>ONOS distributed store subsystems</description>
 
     <dependencies>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onlab-misc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onlab-junit</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
     </dependencies>
 
@@ -42,7 +31,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
+                <artifactId>maven-scr-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

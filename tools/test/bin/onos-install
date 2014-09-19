@@ -55,7 +55,7 @@ ssh $remote "
         $onos cluster:feature-install onos onos-api 1>>$LOG 2>&1
         $onos cluster:feature-install onos onos-core 1>>$LOG 2>&1
         $onos cluster:feature-install onos onos-openflow 1>>$LOG 2>&1
-        $onos cluster:feature-install onoe onos-cli 1>>$LOG 2>&1
+        $onos cluster:feature-install onos onos-cli 1>>$LOG 2>&1
       # $onos cluster:feature-install onos onos-gui 1>>$LOG 2>&1
       # $onos cluster:feature-install onos onos-rest 1>>$LOG 2>&1
         $onos cluster:feature-install onos onos-app-tvue 1>>$LOG 2>&1
