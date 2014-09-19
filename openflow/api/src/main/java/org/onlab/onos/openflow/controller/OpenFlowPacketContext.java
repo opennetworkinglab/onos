@@ -5,8 +5,9 @@ import org.projectfloodlight.openflow.types.OFPort;
 
 /**
  * A representation of a packet context which allows any provider
- * to view the packet in event but may block the response to the
- * event if blocked has been called.
+ * to view a packet in event, but may block the response to the
+ * event if blocked has been called. This packet context can be used
+ * to react to the packet in event with a packet out.
  */
 public interface OpenFlowPacketContext {
 
