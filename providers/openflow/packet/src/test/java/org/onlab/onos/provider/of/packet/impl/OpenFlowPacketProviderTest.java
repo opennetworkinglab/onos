@@ -36,7 +36,7 @@ import org.onlab.onos.openflow.controller.PacketListener;
 import org.onlab.onos.openflow.controller.RoleState;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
@@ -113,10 +113,10 @@ public class OpenFlowPacketProviderTest {
         MacAddress mac2 = MacAddress.of("00:00:00:22:00:02");
 
         ARP arp = new ARP();
-        arp.setSenderProtocolAddress(IpAddress.ANY)
+        arp.setSenderProtocolAddress(IpPrefix.ANY)
         .setSenderHardwareAddress(mac1.getBytes())
         .setTargetHardwareAddress(mac2.getBytes())
-        .setTargetProtocolAddress(IpAddress.ANY)
+        .setTargetProtocolAddress(IpPrefix.ANY)
         .setHardwareType((short) 0)
         .setProtocolType((short) 0)
         .setHardwareAddressLength((byte) 6)

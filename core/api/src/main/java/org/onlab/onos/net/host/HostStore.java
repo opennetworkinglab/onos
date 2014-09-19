@@ -5,7 +5,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -81,7 +81,7 @@ public interface HostStore {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
-    Set<Host> getHosts(IpAddress ip);
+    Set<Host> getHosts(IpPrefix ip);
 
     /**
      * Returns the set of hosts whose location falls on the given connection point.

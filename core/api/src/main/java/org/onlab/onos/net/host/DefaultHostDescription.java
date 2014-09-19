@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.onlab.onos.net.HostLocation;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -17,22 +17,22 @@ public class DefaultHostDescription implements HostDescription {
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
-    private final Set<IpAddress> ips;
+    private final Set<IpPrefix> ips;
 
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
             HostLocation loc) {
         this.mac = mac;
         this.vlan = vlan;
         this.location = loc;
-        this.ips = new HashSet<IpAddress>();
+        this.ips = new HashSet<IpPrefix>();
     }
 
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
-            HostLocation loc, Set<IpAddress> ips) {
+            HostLocation loc, Set<IpPrefix> ips) {
         this.mac = mac;
         this.vlan = vlan;
         this.location = loc;
-        this.ips = new HashSet<IpAddress>(ips);
+        this.ips = new HashSet<IpPrefix>(ips);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class DefaultHostDescription implements HostDescription {
     }
 
     @Override
-    public Set<IpAddress> ipAddresses() {
+    public Set<IpPrefix> ipAddresses() {
         return ImmutableSet.copyOf(ips);
     }
 

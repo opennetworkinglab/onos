@@ -1,6 +1,6 @@
 package org.onlab.onos.net.flow.instructions;
 
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 
 /**
  * Abstraction of a single traffic treatment step.
@@ -41,9 +41,9 @@ public abstract class L3ModificationInstruction implements Instruction {
     public static final class ModIPInstruction extends L3ModificationInstruction {
 
         private final L3SubType subtype;
-        private final IpAddress ip;
+        private final IpPrefix ip;
 
-        public ModIPInstruction(L3SubType subType, IpAddress addr) {
+        public ModIPInstruction(L3SubType subType, IpPrefix addr) {
 
             this.subtype = subType;
             this.ip = addr;
@@ -54,7 +54,7 @@ public abstract class L3ModificationInstruction implements Instruction {
             return this.subtype;
         }
 
-        public IpAddress ip() {
+        public IpPrefix ip() {
             return this.ip;
         }
 

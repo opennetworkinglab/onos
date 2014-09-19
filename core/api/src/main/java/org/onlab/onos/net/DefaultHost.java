@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -20,15 +20,15 @@ public class DefaultHost extends AbstractElement implements Host {
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
-    private final Set<IpAddress> ips;
+    private final Set<IpPrefix> ips;
 
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
-            VlanId vlan, HostLocation loc, Set<IpAddress> ips) {
+            VlanId vlan, HostLocation loc, Set<IpPrefix> ips) {
         super(providerId, id);
         this.mac = mac;
         this.vlan = vlan;
         this.location = loc;
-        this.ips = new HashSet<IpAddress>(ips);
+        this.ips = new HashSet<IpPrefix>(ips);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
-    public Set<IpAddress> ipAddresses() {
+    public Set<IpPrefix> ipAddresses() {
         return Collections.unmodifiableSet(ips);
     }
 

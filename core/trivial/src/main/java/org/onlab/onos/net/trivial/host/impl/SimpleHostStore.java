@@ -25,7 +25,7 @@ import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostStore;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -166,7 +166,7 @@ public class SimpleHostStore implements HostStore {
     }
 
     @Override
-    public Set<Host> getHosts(IpAddress ip) {
+    public Set<Host> getHosts(IpPrefix ip) {
         Set<Host> ipset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.ipAddresses().contains(ip)) {

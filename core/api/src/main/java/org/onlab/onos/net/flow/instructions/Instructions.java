@@ -7,7 +7,7 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -85,7 +85,7 @@ public final class Instructions {
      * @param addr the ip address to modify to.
      * @return a L3 modification
      */
-    public static L3ModificationInstruction modL3Src(IpAddress addr) {
+    public static L3ModificationInstruction modL3Src(IpPrefix addr) {
         checkNotNull(addr, "Src l3 address cannot be null");
         return new ModIPInstruction(L3SubType.L3_SRC, addr);
     }
@@ -95,7 +95,7 @@ public final class Instructions {
      * @param addr the ip address to modify to.
      * @return a L3 modification
      */
-    public static L3ModificationInstruction modL3Dst(IpAddress addr) {
+    public static L3ModificationInstruction modL3Dst(IpPrefix addr) {
         checkNotNull(addr, "Dst l3 address cannot be null");
         return new ModIPInstruction(L3SubType.L3_DST, addr);
     }

@@ -28,7 +28,7 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -51,10 +51,10 @@ public class SimpleHostManagerTest {
     private static final HostId HID1 = HostId.hostId(MAC1, VLAN1);
     private static final HostId HID2 = HostId.hostId(MAC2, VLAN1);
 
-    private static final IpAddress IP1 = IpAddress.valueOf("10.0.0.1");
-    private static final IpAddress IP2 = IpAddress.valueOf("10.0.0.2");
-    private static final Set<IpAddress> IPSET1 = Sets.newHashSet(IP1);
-    private static final Set<IpAddress> IPSET2 = Sets.newHashSet(IP2);
+    private static final IpPrefix IP1 = IpPrefix.valueOf("10.0.0.1");
+    private static final IpPrefix IP2 = IpPrefix.valueOf("10.0.0.2");
+    private static final Set<IpPrefix> IPSET1 = Sets.newHashSet(IP1);
+    private static final Set<IpPrefix> IPSET2 = Sets.newHashSet(IP2);
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:001");
     private static final DeviceId DID2 = DeviceId.deviceId("of:002");
@@ -98,7 +98,7 @@ public class SimpleHostManagerTest {
     }
 
     private void detect(HostId hid, MacAddress mac, VlanId vlan,
-            HostLocation loc, Set<IpAddress> ips) {
+            HostLocation loc, Set<IpPrefix> ips) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ips);
         providerService.hostDetected(hid, descr);
         assertNotNull("host should be found", mgr.getHost(hid));

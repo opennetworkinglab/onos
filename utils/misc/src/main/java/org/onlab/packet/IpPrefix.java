@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * A class representing an IPv4 address.
  */
-public final class IpAddress {
+public final class IpPrefix {
 
     // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
 
@@ -31,13 +31,13 @@ public final class IpAddress {
     protected byte[] octets;
     protected int netmask;
 
-    private IpAddress(Version ver, byte[] octets, int netmask) {
+    private IpPrefix(Version ver, byte[] octets, int netmask) {
         this.version = ver;
         this.octets = Arrays.copyOf(octets, INET_LEN);
         this.netmask = netmask;
     }
 
-    private IpAddress(Version ver, byte[] octets) {
+    private IpPrefix(Version ver, byte[] octets) {
         this.version = ver;
         this.octets = Arrays.copyOf(octets, INET_LEN);
         this.netmask = DEFAULT_MASK;
@@ -49,8 +49,8 @@ public final class IpAddress {
      * @param address a byte array
      * @return an IP address
      */
-    public static IpAddress valueOf(byte [] address) {
-        return new IpAddress(Version.INET, address);
+    public static IpPrefix valueOf(byte [] address) {
+        return new IpPrefix(Version.INET, address);
     }
 
     /**
@@ -60,8 +60,8 @@ public final class IpAddress {
      * @param netmask the CIDR value subnet mask
      * @return an IP address
      */
-    public static IpAddress valueOf(byte [] address, int netmask) {
-        return new IpAddress(Version.INET, address, netmask);
+    public static IpPrefix valueOf(byte [] address, int netmask) {
+        return new IpPrefix(Version.INET, address, netmask);
     }
 
     /**
@@ -85,8 +85,8 @@ public final class IpAddress {
      * @param address an integer representing an IP value
      * @return an IP address
      */
-    public static IpAddress valueOf(int address) {
-        return new IpAddress(Version.INET, bytes(address));
+    public static IpPrefix valueOf(int address) {
+        return new IpPrefix(Version.INET, bytes(address));
     }
 
     /**
@@ -96,8 +96,8 @@ public final class IpAddress {
      * @param netmask the CIDR value subnet mask
      * @return an IP address
      */
-    public static IpAddress valueOf(int address, int netmask) {
-        return new IpAddress(Version.INET, bytes(address), netmask);
+    public static IpPrefix valueOf(int address, int netmask) {
+        return new IpPrefix(Version.INET, bytes(address), netmask);
     }
 
     /**
@@ -108,7 +108,7 @@ public final class IpAddress {
      * @param address a IP address in string form, e.g. "10.0.0.1", "10.0.0.1/24"
      * @return an IP address
      */
-    public static IpAddress valueOf(String address) {
+    public static IpPrefix valueOf(String address) {
 
         final String [] parts = address.split("\\/");
         if (parts.length > 2) {
@@ -135,7 +135,7 @@ public final class IpAddress {
         for (int i = 0; i < INET_LEN; i++) {
             bytes[i] = (byte) Short.parseShort(net[i], 10);
         }
-        return new IpAddress(Version.INET, bytes, mask);
+        return new IpPrefix(Version.INET, bytes, mask);
     }
 
     /**
@@ -185,8 +185,8 @@ public final class IpAddress {
      *
      * @return the subnet mask
      */
-    public IpAddress netmask() {
-        return new IpAddress(Version.INET, bytes(mask()));
+    public IpPrefix netmask() {
+        return new IpPrefix(Version.INET, bytes(mask()));
     }
 
     /**
@@ -196,9 +196,9 @@ public final class IpAddress {
      *
      * @return the network address or null
      */
-    public IpAddress network() {
+    public IpPrefix network() {
         if (netmask == DEFAULT_MASK) {
-            return new IpAddress(version, ANY, DEFAULT_MASK);
+            return new IpPrefix(version, ANY, DEFAULT_MASK);
         }
 
         byte [] net = new byte [4];
@@ -206,7 +206,7 @@ public final class IpAddress {
         for (int i = 0; i < INET_LEN; i++) {
             net[i] = (byte) (octets[i] & mask[i]);
         }
-        return new IpAddress(version, net, netmask);
+        return new IpPrefix(version, net, netmask);
     }
 
     /**
@@ -217,9 +217,9 @@ public final class IpAddress {
      *
      * @return the host address
      */
-    public IpAddress host() {
+    public IpPrefix host() {
         if (netmask == DEFAULT_MASK) {
-            new IpAddress(version, octets, netmask);
+            new IpPrefix(version, octets, netmask);
         }
 
         byte [] host = new byte [INET_LEN];
@@ -227,7 +227,7 @@ public final class IpAddress {
         for (int i = 0; i < INET_LEN; i++) {
             host[i] = (byte) (octets[i] & ~mask[i]);
         }
-        return new IpAddress(version, host, netmask);
+        return new IpPrefix(version, host, netmask);
     }
 
     public boolean isMasked() {
@@ -242,7 +242,7 @@ public final class IpAddress {
      * @return true if the other IP address is contained in this address'
      * network, otherwise false
      */
-    public boolean contains(IpAddress other) {
+    public boolean contains(IpPrefix other) {
         if (this.netmask <= other.netmask) {
             // Special case where they're both /32 addresses
             if (this.netmask == MAX_INET_MASK) {
@@ -250,8 +250,8 @@ public final class IpAddress {
             }
 
             // Mask the other address with our network mask
-            IpAddress otherMasked =
-                    IpAddress.valueOf(other.octets, netmask).network();
+            IpPrefix otherMasked =
+                    IpPrefix.valueOf(other.octets, netmask).network();
 
             return network().equals(otherMasked);
         }
@@ -279,7 +279,7 @@ public final class IpAddress {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        IpAddress other = (IpAddress) obj;
+        IpPrefix other = (IpPrefix) obj;
         if (netmask != other.netmask) {
             return false;
         }

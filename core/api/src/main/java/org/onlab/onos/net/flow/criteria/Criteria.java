@@ -2,7 +2,7 @@ package org.onlab.onos.net.flow.criteria;
 
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.criteria.Criterion.Type;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -95,7 +95,7 @@ public final class Criteria {
      * @param ip ip src value
      * @return match criterion
      */
-    public static Criterion matchIPSrc(IpAddress ip) {
+    public static Criterion matchIPSrc(IpPrefix ip) {
         return new IPCriterion(ip, Type.IPV4_SRC);
     }
 
@@ -105,7 +105,7 @@ public final class Criteria {
      * @param ip ip src value
      * @return match criterion
      */
-    public static Criterion matchIPDst(IpAddress ip) {
+    public static Criterion matchIPDst(IpPrefix ip) {
         return new IPCriterion(ip, Type.IPV4_DST);
     }
 
@@ -173,10 +173,10 @@ public final class Criteria {
 
     public static final class IPCriterion implements Criterion {
 
-        private final IpAddress ip;
+        private final IpPrefix ip;
         private final Type type;
 
-        public IPCriterion(IpAddress ip, Type type) {
+        public IPCriterion(IpPrefix ip, Type type) {
             this.ip = ip;
             this.type = type;
         }
@@ -186,7 +186,7 @@ public final class Criteria {
             return this.type;
         }
 
-        public IpAddress ip() {
+        public IpPrefix ip() {
             return this.ip;
         }
 

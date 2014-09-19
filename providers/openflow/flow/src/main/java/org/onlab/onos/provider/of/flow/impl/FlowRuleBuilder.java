@@ -15,7 +15,7 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criteria;
 import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
@@ -120,20 +120,20 @@ public class FlowRuleBuilder {
                 OFActionSetNwDst nwdst = (OFActionSetNwDst) act;
                 IPv4Address di = nwdst.getNwAddr();
                 if (di.isCidrMask()) {
-                    builder.add(Instructions.modL3Dst(IpAddress.valueOf(di.getInt(),
+                    builder.add(Instructions.modL3Dst(IpPrefix.valueOf(di.getInt(),
                             di.asCidrMaskLength())));
                 } else {
-                    builder.add(Instructions.modL3Dst(IpAddress.valueOf(di.getInt())));
+                    builder.add(Instructions.modL3Dst(IpPrefix.valueOf(di.getInt())));
                 }
                 break;
             case SET_NW_SRC:
                 OFActionSetNwSrc nwsrc = (OFActionSetNwSrc) act;
                 IPv4Address si = nwsrc.getNwAddr();
                 if (si.isCidrMask()) {
-                    builder.add(Instructions.modL3Dst(IpAddress.valueOf(si.getInt(),
+                    builder.add(Instructions.modL3Dst(IpPrefix.valueOf(si.getInt(),
                             si.asCidrMaskLength())));
                 } else {
-                    builder.add(Instructions.modL3Dst(IpAddress.valueOf(si.getInt())));
+                    builder.add(Instructions.modL3Dst(IpPrefix.valueOf(si.getInt())));
                 }
                 break;
             case SET_TP_DST:
@@ -190,21 +190,21 @@ public class FlowRuleBuilder {
                 break;
             case IPV4_DST:
                 IPv4Address di = match.get(MatchField.IPV4_DST);
-                IpAddress dip;
+                IpPrefix dip;
                 if (di.isCidrMask()) {
-                    dip = IpAddress.valueOf(di.getInt(), di.asCidrMaskLength());
+                    dip = IpPrefix.valueOf(di.getInt(), di.asCidrMaskLength());
                 } else {
-                    dip = IpAddress.valueOf(di.getInt());
+                    dip = IpPrefix.valueOf(di.getInt());
                 }
                 builder.add(Criteria.matchIPDst(dip));
                 break;
             case IPV4_SRC:
                 IPv4Address si = match.get(MatchField.IPV4_SRC);
-                IpAddress sip;
+                IpPrefix sip;
                 if (si.isCidrMask()) {
-                    sip = IpAddress.valueOf(si.getInt(), si.asCidrMaskLength());
+                    sip = IpPrefix.valueOf(si.getInt(), si.asCidrMaskLength());
                 } else {
-                    sip = IpAddress.valueOf(si.getInt());
+                    sip = IpPrefix.valueOf(si.getInt());
                 }
                 builder.add(Criteria.matchIPSrc(sip));
                 break;

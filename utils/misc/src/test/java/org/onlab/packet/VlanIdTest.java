@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import com.google.common.testing.EqualsTester;
 
-public class VLANIDTest {
+public class VlanIdTest {
 
     @Test
     public void testEquality() {
