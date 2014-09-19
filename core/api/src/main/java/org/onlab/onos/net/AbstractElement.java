@@ -9,6 +9,11 @@ public class AbstractElement extends AbstractModel implements Element {
 
     protected final ElementId id;
 
+    // For serialization
+    public AbstractElement() {
+        id = null;
+    }
+
     /**
      * Creates a network element attributed to the specified provider.
      *

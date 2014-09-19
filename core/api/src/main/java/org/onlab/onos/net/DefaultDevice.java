@@ -17,6 +17,15 @@ public class DefaultDevice extends AbstractElement implements Device {
     private final String hwVersion;
     private final String swVersion;
 
+    // For serialization
+    private DefaultDevice() {
+        this.type = null;
+        this.manufacturer = null;
+        this.hwVersion = null;
+        this.swVersion = null;
+        this.serialNumber = null;
+    }
+
     /**
      * Creates a network element attributed to the specified provider.
      *

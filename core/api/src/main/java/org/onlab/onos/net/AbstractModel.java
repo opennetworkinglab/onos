@@ -9,6 +9,11 @@ public class AbstractModel implements Provided {
 
     private final ProviderId providerId;
 
+    // For serialization
+    public AbstractModel() {
+        providerId = null;
+    }
+
     /**
      * Creates a model entity attributed to the specified provider.
      *
