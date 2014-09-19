@@ -31,7 +31,7 @@ public final class Criteria {
      * Creates a match on ETH_SRC field using the specified value. This value
      * may be a wildcard mask.
      *
-     * @param macValue MAC address value or wildcard mask
+     * @param mac MAC address value or wildcard mask
      * @return match criterion
      */
     public static Criterion matchEthSrc(MacAddress mac) {
@@ -42,7 +42,7 @@ public final class Criteria {
      * Creates a match on ETH_DST field using the specified value. This value
      * may be a wildcard mask.
      *
-     * @param macValue MAC address value or wildcard mask
+     * @param mac MAC address value or wildcard mask
      * @return match criterion
      */
     public static Criterion matchEthDst(MacAddress mac) {

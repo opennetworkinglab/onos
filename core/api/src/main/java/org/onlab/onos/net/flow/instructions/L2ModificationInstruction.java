@@ -5,7 +5,6 @@ import org.onlab.packet.VlanId;
 
 /**
  * Abstraction of a single traffic treatment step.
- * @param <T> the type parameter for the instruction
  */
 public abstract class L2ModificationInstruction implements Instruction {
 
