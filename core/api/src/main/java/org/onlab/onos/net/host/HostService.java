@@ -1,5 +1,7 @@
 package org.onlab.onos.net.host;
 
+import java.util.Set;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
@@ -7,8 +9,6 @@ import org.onlab.onos.net.HostId;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-
-import java.util.Set;
 
 /**
  * Service for interacting with the inventory of end-station hosts.
@@ -80,6 +80,22 @@ public interface HostService {
      * @return set of hosts connected to the device
      */
     Set<Host> getConnectedHosts(DeviceId deviceId);
+
+    /**
+     * Requests the host service to monitor hosts with the given IP address and
+     * notify listeners of changes.
+     *
+     * @param ip IP address of the host to monitor
+     */
+    void monitorIp(IpPrefix ip);
+
+    /**
+     * Stops the host service from monitoring an IP address.
+     *
+     * @param ip IP address to stop monitoring
+     */
+    // TODO clients can cancel other client's requests
+    void stopMonitoringIp(IpPrefix ip);
 
     /**
      * Adds the specified host listener.

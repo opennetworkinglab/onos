@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 
 /**
  * Default port implementation.
@@ -18,7 +18,7 @@ public class DefaultPort implements Port {
     private final boolean isEnabled;
 
     // Attributes
-    private final Set<IpAddress> ipAddresses;
+    private final Set<IpPrefix> ipAddresses;
 
     /**
      * Creates a network element attributed to the specified provider.
@@ -41,7 +41,7 @@ public class DefaultPort implements Port {
      * @param ipAddresses set of IP addresses assigned to the port
      */
     public DefaultPort(Element element, PortNumber number,
-                       boolean isEnabled, Set<IpAddress> ipAddresses) {
+                       boolean isEnabled, Set<IpPrefix> ipAddresses) {
         this.element = element;
         this.number = number;
         this.isEnabled = isEnabled;
@@ -90,7 +90,7 @@ public class DefaultPort implements Port {
     }
 
     @Override
-    public Set<IpAddress> ipAddresses() {
+    public Set<IpPrefix> ipAddresses() {
         return ipAddresses;
     }
 

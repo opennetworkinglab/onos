@@ -1,5 +1,10 @@
 package org.onlab.onos.net.trivial.host.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -27,11 +32,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
-
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -115,6 +115,16 @@ public class SimpleHostManager
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
         checkNotNull(deviceId, "Device ID cannot be null");
         return store.getConnectedHosts(deviceId);
+    }
+
+    @Override
+    public void monitorIp(IpPrefix ip) {
+        // TODO pass through to SimpleHostMonitor
+    }
+
+    @Override
+    public void stopMonitoringIp(IpPrefix ip) {
+        // TODO pass through to SimpleHostMonitor
     }
 
     @Override

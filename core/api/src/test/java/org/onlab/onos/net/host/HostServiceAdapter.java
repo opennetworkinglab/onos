@@ -1,5 +1,7 @@
 package org.onlab.onos.net.host;
 
+import java.util.Set;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
@@ -7,8 +9,6 @@ import org.onlab.onos.net.HostId;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-
-import java.util.Set;
 
 /**
  * Test adapter for host service.
@@ -52,6 +52,14 @@ public class HostServiceAdapter implements HostService {
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
         return null;
+    }
+
+    @Override
+    public void monitorIp(IpPrefix ip) {
+    }
+
+    @Override
+    public void stopMonitoringIp(IpPrefix ip) {
     }
 
     @Override
