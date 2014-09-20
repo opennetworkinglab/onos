@@ -88,5 +88,4 @@
         <bundle>mvn:org.onlab.onos/onos-app-fwd/1.0.0-SNAPSHOT</bundle>
     </feature>
 
-
 </features>
