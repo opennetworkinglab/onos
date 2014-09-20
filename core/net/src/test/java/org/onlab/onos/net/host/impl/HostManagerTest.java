@@ -28,7 +28,7 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.trivial.host.impl.SimpleHostStore;
+import org.onlab.onos.net.trivial.impl.SimpleHostStore;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -41,7 +41,7 @@ import static org.onlab.onos.net.host.HostEvent.Type.*;
 /**
  * Test codifying the host service & host provider service contracts.
  */
-public class SimpleHostManagerTest {
+public class HostManagerTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
@@ -64,7 +64,7 @@ public class SimpleHostManagerTest {
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID1, P2, 123L);
 
-    private SimpleHostManager mgr;
+    private HostManager mgr;
 
     protected TestListener listener = new TestListener();
     protected HostProviderRegistry registry;
@@ -73,7 +73,7 @@ public class SimpleHostManagerTest {
 
     @Before
     public void setUp() {
-        mgr = new SimpleHostManager();
+        mgr = new HostManager();
         mgr.store = new SimpleHostStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         registry = mgr;

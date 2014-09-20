@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.topology.impl;
+package org.onlab.onos.net.trivial.impl;
 
 import org.junit.Before;
 import org.junit.Test;

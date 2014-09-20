@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 
 @Component(immediate = true)
 @Service
-public class SimpleFlowRuleManager
+public class FlowRuleManager
         extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 

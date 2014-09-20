@@ -17,7 +17,7 @@ import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.Timer;
 
-public class SimpleHostMonitor implements TimerTask {
+public class HostMonitor implements TimerTask {
 
     private final HostService hostService;
     private final TopologyService topologyService;
@@ -31,9 +31,9 @@ public class SimpleHostMonitor implements TimerTask {
 
     private Timeout timeout;
 
-    public SimpleHostMonitor(HostService hostService, TopologyService topologyService,
-            DeviceService deviceService,
-            HostProvider hostProvider, PacketProvider packetProvider) {
+    public HostMonitor(HostService hostService, TopologyService topologyService,
+                       DeviceService deviceService,
+                       HostProvider hostProvider, PacketProvider packetProvider) {
         this.hostService = hostService;
         this.topologyService = topologyService;
         this.deviceService = deviceService;

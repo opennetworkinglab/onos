@@ -23,7 +23,7 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.net.trivial.device.impl.SimpleDeviceStore;
+import org.onlab.onos.net.trivial.impl.SimpleDeviceStore;
 
 import java.util.ArrayList;
 import java.util.Iterator;

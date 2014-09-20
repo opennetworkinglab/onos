@@ -40,19 +40,19 @@ import org.onlab.onos.net.provider.ProviderId;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.onlab.onos.net.trivial.flow.impl.SimpleFlowRuleStore;
+import org.onlab.onos.net.trivial.impl.SimpleFlowRuleStore;
 
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
  */
-public class SimpleFlowRuleManagerTest {
+public class FlowRuleManagerTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID = DeviceId.deviceId("of:001");
     private static final Device DEV = new DefaultDevice(
             PID, DID, Type.SWITCH, "", "", "", "");
 
-    private SimpleFlowRuleManager mgr;
+    private FlowRuleManager mgr;
 
     protected FlowRuleService service;
     protected FlowRuleProviderRegistry registry;
@@ -62,7 +62,7 @@ public class SimpleFlowRuleManagerTest {
 
     @Before
     public void setUp() {
-        mgr = new SimpleFlowRuleManager();
+        mgr = new FlowRuleManager();
         mgr.store = new SimpleFlowRuleStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.deviceService = new TestDeviceService();

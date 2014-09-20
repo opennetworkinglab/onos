@@ -2,7 +2,6 @@ package org.onlab.onos.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.onos.GreetService;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.DefaultValue;
@@ -24,7 +23,7 @@ public class GreetResource extends BaseResource {
     public Response yo(@QueryParam("name") @DefaultValue("dude") String name) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root = mapper.createObjectNode();
-        root.put("greeting", get(GreetService.class).yo(name));
+        root.put("greeting", "Yo!!!!");
         return Response.ok(root.toString()).build();
     }
 

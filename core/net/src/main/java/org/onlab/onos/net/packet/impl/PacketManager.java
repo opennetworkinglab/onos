@@ -30,7 +30,7 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class SimplePacketManager
+public class PacketManager
 extends AbstractProviderRegistry<PacketProvider, PacketProviderService>
 implements PacketService, PacketProviderRegistry {
 

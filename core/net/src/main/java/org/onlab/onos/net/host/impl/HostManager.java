@@ -38,7 +38,7 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleHostManager
+public class HostManager
         extends AbstractProviderRegistry<HostProvider, HostProviderService>
         implements HostService, HostAdminService, HostProviderRegistry {
 

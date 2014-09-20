@@ -16,9 +16,9 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test of the even dispatcher mechanism.
  */
-public class SimpleEventDispatcherTest {
+public class CoreEventDispatcherTest {
 
-    private final SimpleEventDispatcher dispatcher = new SimpleEventDispatcher();
+    private final CoreEventDispatcher dispatcher = new CoreEventDispatcher();
     private final PrickleSink prickleSink = new PrickleSink();
     private final GooSink gooSink = new GooSink();
 

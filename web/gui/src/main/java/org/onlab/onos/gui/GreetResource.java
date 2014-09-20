@@ -1,6 +1,5 @@
 package org.onlab.onos.gui;
 
-import org.onlab.onos.GreetService;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.DefaultValue;
@@ -17,7 +16,7 @@ public class GreetResource extends BaseResource {
 
     @GET
     public Response yo(@QueryParam("name") @DefaultValue("dude") String name) {
-        return Response.ok(get(GreetService.class).yo(name)).build();
+        return Response.ok("Yo!!!").build();
     }
 
 }

@@ -24,7 +24,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleEventDispatcher extends DefaultEventSinkRegistry
+public class CoreEventDispatcher extends DefaultEventSinkRegistry
         implements EventDeliveryService {
 
     private final Logger log = getLogger(getClass());
