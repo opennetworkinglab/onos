@@ -250,10 +250,7 @@
                     </configuration>
                 </plugin>
 
-                <!-- TODO: add jacoco plugin for unit test coverage; for explicit invocation only -->
                 <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
-                <!-- TODO: add sonarqube plugin for code analysis; for explicit invocation only -->
-
             </plugins>
         </pluginManagement>
 
@@ -359,7 +356,7 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.net.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.impl:org.onlab.onos.event.impl
+                                org.onlab.onos.net.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.impl:org.onlab.onos.event.impl:org.onlab.onos.store.*
                             </packages>
                         </group>
                         <group>
