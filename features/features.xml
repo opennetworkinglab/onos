@@ -36,6 +36,7 @@
     <feature name="onos-core" version="1.0.0"
              description="ONOS core components">
         <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-core-net/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-core-trivial/1.0.0-SNAPSHOT</bundle>
     </feature>
 

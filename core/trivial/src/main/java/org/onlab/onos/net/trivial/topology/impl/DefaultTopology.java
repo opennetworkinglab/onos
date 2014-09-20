@@ -15,6 +15,7 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.ClusterId;
 import org.onlab.onos.net.topology.DefaultTopologyCluster;
+import org.onlab.onos.net.topology.DefaultTopologyVertex;
 import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;

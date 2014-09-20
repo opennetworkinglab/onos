@@ -28,7 +28,7 @@
     <br>
     <img src="doc-files/onos-subsystem.png" alt="ONOS subsystem structure"><br>
     For example, the device-subsystem comprises of a core
-    {@link org.onlab.onos.net.trivial.device.impl.DeviceManager},
+    {@link org.onlab.onos.net.device.impl.DeviceManager},
     which exposes a north-bound
     {@link org.onlab.onos.net.device.DeviceService} through which applications or other core components
     can learn about the global infrastructure device inventory and through
@@ -39,7 +39,7 @@
 </p>
 
 <p>
-    On the south-bound side, the core {@link org.onlab.onos.net.trivial.device.impl.DeviceManager}
+    On the south-bound side, the core {@link org.onlab.onos.net.device.impl.DeviceManager}
     exposes a {@link org.onlab.onos.net.device.DeviceProviderRegistry} through which any number of
     {@link org.onlab.onos.net.device.DeviceProvider} entities can register and in turn obtain a
     {@link org.onlab.onos.net.device.DeviceProviderService}. Device and port information can then be
