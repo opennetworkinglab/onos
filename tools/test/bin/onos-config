@@ -12,9 +12,6 @@ LOG=$ONOS_INSTALL_DIR/config.log
 onos=$ONOS_INSTALL_DIR/bin/onos
 
 ssh $remote "
-    echo 'Starting...'
-    nohup $ONOS_INSTALL_DIR/bin/onos-ctl server </dev/null | 1>/opt/onos/svc.log 2>&1 &
-
     # Wait until we reach the run-level 100
     echo 'Waiting for cluster bootstrap...'
     running=""
@@ -22,29 +19,13 @@ ssh $remote "
         $onos bundle:list 2>>$LOG | grep -q 'START LEVEL 100' && running=1 || sleep 2
     done
 
-    # Now create group onos and join it, while quitting the default one
-    if ! $onos cluster:group-list 2>>$LOG | cut -d \\  -f3 | grep -q onos; then
-        echo 'Creating ONOS group...'
-        installRole=primary
-        $onos cluster:group-create onos 1>>$LOG 2>&1
-    fi
-
-    echo 'Configuring group membership...'
-    node=\$($onos cluster:node-list 2>>$LOG | grep '^x' | cut -d \\  -f3)
-    $onos cluster:group-join onos \$node 1>>$LOG 2>&1
-    $onos cluster:group-quit default \$node 1>>$LOG 2>&1
-
-    if [ X\$installRole = Xprimary ]; then
-        echo 'Installing ONOS bundles...'
-        $onos cluster:feature-install onos onos-api 1>>$LOG 2>&1
-        $onos cluster:feature-install onos onos-core 1>>$LOG 2>&1
-        $onos cluster:feature-install onos onos-openflow 1>>$LOG 2>&1
-        $onos cluster:feature-install onos onos-cli 1>>$LOG 2>&1
-      # $onos cluster:feature-install onos onos-gui 1>>$LOG 2>&1
-      # $onos cluster:feature-install onos onos-rest 1>>$LOG 2>&1
-        $onos cluster:feature-install onos onos-app-tvue 1>>$LOG 2>&1
-        $onos cluster:feature-install onos onos-app-fwd 1>>$LOG 2>&1
-    fi
- 
-    echo 'Started...'
+    echo 'Installing ONOS bundles...'
+    $onos cluster:feature-install default onos-api 1>>$LOG 2>&1
+    $onos cluster:feature-install default onos-core 1>>$LOG 2>&1
+    $onos cluster:feature-install default onos-openflow 1>>$LOG 2>&1
+    $onos cluster:feature-install default onos-cli 1>>$LOG 2>&1
+  # $onos cluster:feature-install default onos-gui 1>>$LOG 2>&1
+  # $onos cluster:feature-install default onos-rest 1>>$LOG 2>&1
+    $onos cluster:feature-install default onos-app-tvue 1>>$LOG 2>&1
+    $onos cluster:feature-install default onos-app-fwd 1>>$LOG 2>&1
 "

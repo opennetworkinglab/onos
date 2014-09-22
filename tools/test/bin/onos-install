@@ -20,6 +20,13 @@ ssh $remote "
     sudo mkdir -p $ONOS_INSTALL_DIR && sudo chown sdn:sdn $ONOS_INSTALL_DIR
     tar zxmf /tmp/$ONOS_BITS.tar.gz -C $ONOS_INSTALL_DIR --strip-components=1
 
-    # Make a link to the log file directory.
+    # Make a link to the log file directory and make a home for auxiliaries
     ln -s $ONOS_INSTALL_DIR/$KARAF_DIST/data/log /opt/onos/log
+    mkdir $ONOS_INSTALL_DIR/var
+
+    # Install the upstart configuration file.
+    sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
+
+    # Ignite the ONOS service.
+    sudo service onos start
 "

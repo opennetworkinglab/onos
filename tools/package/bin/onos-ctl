@@ -3,8 +3,8 @@
 # Starts ONOS Apache Karaf container
 #-------------------------------------------------------------------------------
 
-export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+export JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-openjdk-amd64/}
 
-cd $(dirname $0)/../apache-karaf-*/bin
-./karaf "$@"
+cd /opt/onos
+/opt/onos/apache-karaf-3.0.1/bin/karaf "$@"
 
