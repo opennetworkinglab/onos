@@ -6,10 +6,13 @@
     <feature name="onos-thirdparty-base" version="1.0.0"
              description="ONOS 3rd party dependencies">
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
+        <bundle>mvn:org.apache.commons/commons-lang3/3.3.2</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
+
         <bundle>mvn:com.esotericsoftware.kryo/kryo/2.24.0</bundle>
-        <bundle>mvn:com.esotericsoftware.minlog/minlog/1.3</bundle>
+        <bundle>mvn:com.esotericsoftware/minlog/1.3.0</bundle>
+        <bundle>mvn:org.objenesis/objenesis/2.1</bundle>
     </feature>
 
     <feature name="onos-thirdparty-web" version="1.0.0"
