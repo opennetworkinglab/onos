@@ -38,6 +38,7 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
         S service = createProviderService(provider);
         services.put(provider.id(), service);
         providers.put(provider.id(), provider);
+        // FIXME populate scheme look-up
         return service;
     }
 
