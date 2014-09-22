@@ -37,7 +37,7 @@ public class DefaultFlowRule implements FlowRule {
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, FlowRuleState state,
-            long life, long packets, long bytes, Integer flowId) {
+            long life, long packets, long bytes, long flowId) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;

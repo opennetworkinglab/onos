@@ -13,7 +13,7 @@ public final class FlowId {
         this.flowid = id;
     }
 
-    public static FlowId valueOf(int id) {
+    public static FlowId valueOf(long id) {
         return new FlowId(id);
     }
 
