@@ -53,7 +53,7 @@ public class FlowRuleBuilder {
         this.match = entry.getMatch();
         this.actions = entry.getActions();
         this.dpid = dpid;
-        removed = null;
+        this.removed = null;
     }
 
     public FlowRuleBuilder(Dpid dpid, OFFlowRemoved removed) {
@@ -72,14 +72,14 @@ public class FlowRuleBuilder {
                     buildSelector(), buildTreatment(), stat.getPriority(),
                     FlowRuleState.ADDED, stat.getDurationNsec() / 1000000,
                     stat.getPacketCount().getValue(), stat.getByteCount().getValue(),
-                    (int) (stat.getCookie().getValue() & 0xFFFFFFFF));
+                    stat.getCookie().getValue());
         } else {
             // TODO: revisit potentially.
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), null, removed.getPriority(),
                     FlowRuleState.REMOVED, removed.getDurationNsec() / 1000000,
                     removed.getPacketCount().getValue(), removed.getByteCount().getValue(),
-                    (int) (removed.getCookie().getValue() & 0xFFFFFFFF));
+                    removed.getCookie().getValue());
         }
     }
 

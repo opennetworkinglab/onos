@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,10 +38,10 @@ import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.trivial.impl.SimpleFlowRuleStore;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.onlab.onos.net.trivial.impl.SimpleFlowRuleStore;
 
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
@@ -131,7 +132,7 @@ public class FlowRuleManagerTest {
 
         addFlowRule(1);
         assertEquals("should still be 2 rules", 2, flowCount());
-        validateEvents();
+        validateEvents(RULE_UPDATED);
     }
 
     @Test
@@ -149,9 +150,9 @@ public class FlowRuleManagerTest {
 
         assertTrue("store should be empty",
                 Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
-        List<FlowRule> ret = mgr.applyFlowRules(r1, r2, r3);
+        mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
-        assertTrue("3 entries should result", fel.containsAll(ret));
+        assertTrue("3 entries should result", fel.containsAll(Lists.newArrayList(r1, r2, r3)));
     }
 
     @Test
@@ -167,10 +168,10 @@ public class FlowRuleManagerTest {
         mgr.removeFlowRules(rem1, rem2);
         //removing from north, so no events generated
         validateEvents();
-        assertEquals("1 rule should exist", 1, flowCount());
+        assertEquals("3 rule should exist", 3, flowCount());
 
         mgr.removeFlowRules(rem1);
-        assertEquals("1 rule should still exist", 1, flowCount());
+        assertEquals("3 rule should still exist", 3, flowCount());
     }
 
     @Test

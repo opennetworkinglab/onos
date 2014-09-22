@@ -3,7 +3,6 @@ package org.onlab.onos.net.flow.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -73,18 +72,14 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     @Override
-    public List<FlowRule> applyFlowRules(FlowRule... flowRules) {
-        List<FlowRule> entries = new ArrayList<FlowRule>();
-
+    public void applyFlowRules(FlowRule... flowRules) {
         for (int i = 0; i < flowRules.length; i++) {
             FlowRule f = new DefaultFlowRule(flowRules[i], FlowRuleState.PENDING_ADD);
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
-            entries.add(store.storeFlowRule(f));
+            store.storeFlowRule(f);
             frp.applyFlowRule(f);
         }
-
-        return entries;
     }
 
     @Override
@@ -93,7 +88,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             FlowRule f = new DefaultFlowRule(flowRules[i], FlowRuleState.PENDING_REMOVE);
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
-            store.removeFlowRule(f);
+            store.deleteFlowRule(f);
             frp.removeFlowRule(f);
         }
 
@@ -139,8 +134,15 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void flowMissing(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            // TODO Auto-generated method stub
+            log.info("Flow {} has not been installed.");
 
+        }
+
+        @Override
+        public void extraneousFlow(FlowRule flowRule) {
+            checkNotNull(flowRule, FLOW_RULE_NULL);
+            checkValidity();
+            log.info("Flow {} is on switch but not in store.");
         }
 
         @Override
@@ -150,11 +152,12 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
             FlowRuleEvent event = store.addOrUpdateFlowRule(flowRule);
             if (event == null) {
-                log.debug("Flow {} updated", flowRule);
+                log.debug("No flow store event generated.");
             } else {
-                log.debug("Flow {} added", flowRule);
+                log.debug("Flow {} {}", flowRule, event.type());
                 post(event);
             }
+
         }
 
         // Posts the specified event to the local event dispatcher.
@@ -167,31 +170,23 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowRule> flowEntries) {
             List<FlowRule> storedRules = Lists.newLinkedList(store.getFlowEntries(deviceId));
-            List<FlowRule> switchRules = Lists.newLinkedList(flowEntries);
-            Iterator<FlowRule> switchRulesIterator = switchRules.iterator();
-            List<FlowRule> extraRules = Lists.newLinkedList();
+            //List<FlowRule> switchRules = Lists.newLinkedList(flowEntries);
+            Iterator<FlowRule> switchRulesIterator = flowEntries.iterator(); //switchRules.iterator();
 
             while (switchRulesIterator.hasNext()) {
                 FlowRule rule = switchRulesIterator.next();
                 if (storedRules.remove(rule)) {
-                    // we both have the rule let's update some info then.
-                    log.info("rule {} is added. {}", rule.id(), rule.state());
+                    // we both have the rule, let's update some info then.
                     flowAdded(rule);
                 } else {
-                    // the device a rule the store does not have
-                    extraRules.add(rule);
+                    // the device has a rule the store does not have
+                    extraneousFlow(rule);
                 }
             }
             for (FlowRule rule : storedRules) {
                 // there are rules in the store that aren't on the switch
                 flowMissing(rule);
             }
-            if (extraRules.size() > 0) {
-                log.warn("Device {} has extra flow rules: {}", deviceId, extraRules);
-                // TODO do something with this.
-            }
-
-
         }
     }
 

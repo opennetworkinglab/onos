@@ -1,22 +1,23 @@
 package org.onlab.onos.net.trivial.impl;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
+import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
 import org.slf4j.Logger;
 
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 
 /**
  * Manages inventory of flow rules using trivial in-memory implementation.
@@ -28,7 +29,7 @@ public class SimpleFlowRuleStore implements FlowRuleStore {
     private final Logger log = getLogger(getClass());
 
     // store entries as a pile of rules, no info about device tables
-    private final Multimap<DeviceId, FlowRule> flowEntries = HashMultimap.create();
+    private final Multimap<DeviceId, FlowRule> flowEntries = ArrayListMultimap.create();
 
     @Activate
     public void activate() {
@@ -46,12 +47,26 @@ public class SimpleFlowRuleStore implements FlowRuleStore {
     }
 
     @Override
-    public FlowRule storeFlowRule(FlowRule rule) {
+    public void storeFlowRule(FlowRule rule) {
         DeviceId did = rule.deviceId();
-        FlowRule entry = new DefaultFlowRule(did,
-                                             rule.selector(), rule.treatment(), rule.priority());
-        flowEntries.put(did, entry);
-        return entry;
+        flowEntries.put(did, rule);
+    }
+
+    @Override
+    public void deleteFlowRule(FlowRule rule) {
+        DeviceId did = rule.deviceId();
+
+        /*
+         *  find the rule and mark it for deletion.
+         *  Ultimately a flow removed will come remove it.
+         */
+        if (flowEntries.containsEntry(did, rule)) {
+            synchronized (flowEntries) {
+
+                flowEntries.remove(did, rule);
+                flowEntries.put(did, rule);
+            }
+        }
     }
 
     @Override
@@ -59,12 +74,17 @@ public class SimpleFlowRuleStore implements FlowRuleStore {
         DeviceId did = rule.deviceId();
 
         // check if this new rule is an update to an existing entry
-        for (FlowRule fe : flowEntries.get(did)) {
-            if (rule.equals(fe)) {
-                // TODO update the stats on this FlowRule?
-                return null;
+        if (flowEntries.containsEntry(did, rule)) {
+            synchronized (flowEntries) {
+                // Multimaps support duplicates so we have to remove our rule
+                // and replace it with the current version.
+
+                flowEntries.remove(did, rule);
+                flowEntries.put(did, rule);
             }
+            return new FlowRuleEvent(Type.RULE_UPDATED, rule);
         }
+
         flowEntries.put(did, rule);
         return new FlowRuleEvent(RULE_ADDED, rule);
     }
@@ -79,5 +99,7 @@ public class SimpleFlowRuleStore implements FlowRuleStore {
             }
         }
     }
+
+
 
 }

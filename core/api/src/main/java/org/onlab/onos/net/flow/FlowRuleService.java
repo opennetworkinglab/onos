@@ -1,7 +1,5 @@
 package org.onlab.onos.net.flow;
 
-import java.util.List;
-
 import org.onlab.onos.net.DeviceId;
 
 /**
@@ -31,10 +29,8 @@ public interface FlowRuleService {
      * device reconnects to the controller.
      *
      * @param flowRules one or more flow rules
-     * throws SomeKindOfException that indicates which ones were applied and
-     *                  which ones failed
      */
-    List<FlowRule> applyFlowRules(FlowRule... flowRules);
+    void applyFlowRules(FlowRule... flowRules);
 
     /**
      * Removes the specified flow rules from their respective devices. If the

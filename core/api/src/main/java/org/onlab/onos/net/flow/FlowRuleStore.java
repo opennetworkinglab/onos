@@ -16,12 +16,18 @@ public interface FlowRuleStore {
     Iterable<FlowRule> getFlowEntries(DeviceId deviceId);
 
     /**
-     * Stores a new flow rule, and generates a FlowRule for it.
+     * Stores a new flow rule without generating events.
      *
      * @param rule the flow rule to add
-     * @return a flow entry
      */
-    FlowRule storeFlowRule(FlowRule rule);
+    void storeFlowRule(FlowRule rule);
+
+    /**
+     * Deletes a flow rule without generating events.
+     *
+     * @param rule the flow rule to delete
+     */
+    void deleteFlowRule(FlowRule rule);
 
     /**
      * Stores a new flow rule, or updates an existing entry.
