@@ -6,10 +6,7 @@ import org.junit.Test;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.AbstractProvider;
@@ -35,7 +32,7 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.NetTestTools.*;
 import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.topology.ClusterId.clusterId;
 import static org.onlab.onos.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
@@ -182,24 +179,6 @@ public class TopologyManagerTest {
         Path path = paths.iterator().next();
         assertEquals("wrong path length", 2, path.links().size());
         assertEquals("wrong path cost", 6.6, path.cost(), 0.01);
-    }
-
-    // Short-hand for creating a link.
-    public static Link link(String src, int sp, String dst, int dp) {
-        return new DefaultLink(PID, new ConnectPoint(did(src), portNumber(sp)),
-                               new ConnectPoint(did(dst), portNumber(dp)),
-                               Link.Type.DIRECT);
-    }
-
-    // Crates a new device with the specified id
-    public static Device device(String id) {
-        return new DefaultDevice(PID, did(id), Device.Type.SWITCH,
-                                 "mfg", "1.0", "1.1", "1234");
-    }
-
-    // Short-hand for producing a device id from a string
-    public static DeviceId did(String id) {
-        return deviceId("of:" + id);
     }
 
     protected void validateEvents(Enum... types) {
