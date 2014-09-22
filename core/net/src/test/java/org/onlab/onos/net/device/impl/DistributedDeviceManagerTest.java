@@ -2,7 +2,6 @@ package org.onlab.onos.net.device.impl;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.Device;
@@ -46,7 +45,6 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 /**
  * Test codifying the device service & device provider service contracts.
  */
-@Ignore
 public class DistributedDeviceManagerTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
@@ -84,8 +82,12 @@ public class DistributedDeviceManagerTest {
         // avoid accidentally joining other cluster
         config.getGroupConfig().setName(UUID.randomUUID().toString());
         // quickly form single node cluster
-        config.getNetworkConfig().getJoin().getMulticastConfig()
-            .setMulticastTimeoutSeconds(0);
+        config.getNetworkConfig().getJoin()
+            .getTcpIpConfig()
+            .setEnabled(true).setConnectionTimeoutSeconds(0);
+        config.getNetworkConfig().getJoin()
+            .getMulticastConfig()
+            .setEnabled(false);
         dstore.theInstance = Hazelcast.newHazelcastInstance(config);
         dstore.activate();
         mgr.store = dstore;
