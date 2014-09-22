@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.provider.ProviderService;
 
 /**
@@ -35,6 +36,6 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      *
      * @param flowRules collection of flow rules
      */
-    void pushFlowMetrics(Iterable<FlowRule> flowRules);
+    void pushFlowMetrics(DeviceId deviceId, Iterable<FlowRule> flowRules);
 
 }

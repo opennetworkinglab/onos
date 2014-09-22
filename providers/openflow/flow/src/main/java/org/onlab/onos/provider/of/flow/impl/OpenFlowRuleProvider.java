@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
@@ -154,7 +155,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 entries.add(new FlowRuleBuilder(dpid, reply).build());
             }
             log.debug("sending flowstats to core {}", entries);
-            providerService.pushFlowMetrics(entries);
+            providerService.pushFlowMetrics(DeviceId.deviceId(Dpid.uri(dpid)), entries);
         }
 
     }

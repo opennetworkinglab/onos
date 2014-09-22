@@ -8,6 +8,42 @@ import org.onlab.onos.net.DeviceId;
  */
 public interface FlowRule {
 
+
+    public enum FlowRuleState {
+        /**
+         * Indicates that this rule has been created.
+         */
+        CREATED,
+
+        /**
+         * Indicates that this rule has been submitted for addition.
+         * Not necessarily in  the flow table.
+         */
+        PENDING_ADD,
+
+        /**
+         * Rule has been added which means it is in the flow table.
+         */
+        ADDED,
+
+        /**
+         * Flow has been marked for removal, might still be in flow table.
+         */
+        PENDING_REMOVE,
+
+        /**
+         * Flow has been removed from flow table and can be purged.
+         */
+        REMOVED
+    }
+
+    /**
+     * Returns the flow rule state.
+     *
+     * @return flow rule state
+     */
+    FlowRuleState state();
+
     //TODO: build cookie value
     /**
      * Returns the ID of this flow.
@@ -52,13 +88,6 @@ public interface FlowRule {
      * @return number of millis
      */
     long lifeMillis();
-
-    /**
-     * Returns the number of milliseconds this flow rule has been idle.
-     *
-     * @return number of millis
-     */
-    long idleMillis();
 
     /**
      * Returns the number of packets this flow rule has matched.
