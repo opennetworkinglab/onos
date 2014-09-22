@@ -10,6 +10,11 @@ public abstract class ElementId {
 
     private final URI uri;
 
+    // Default constructor for serialization
+    protected ElementId() {
+        this.uri = null;
+    }
+
     /**
      * Creates an element identifier using the supplied URI.
      *

@@ -128,6 +128,28 @@
                 <scope>provided</scope>
             </dependency>
 
+            <dependency>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast</artifactId>
+              <version>3.3</version>
+            </dependency>
+            <dependency>
+              <groupId>com.esotericsoftware.kryo</groupId>
+              <artifactId>kryo</artifactId>
+              <version>2.24.0</version>
+            </dependency>
+            <dependency>
+              <groupId>de.javakaffee</groupId>
+              <artifactId>kryo-serializers</artifactId>
+              <version>0.27</version>
+            </dependency>
+
+            <dependency>
+              <groupId>org.apache.commons</groupId>
+              <artifactId>commons-lang3</artifactId>
+              <version>3.3.2</version>
+            </dependency>
+
             <!-- ONOS related -->
             <dependency>
                 <groupId>org.onlab.onos</groupId>
