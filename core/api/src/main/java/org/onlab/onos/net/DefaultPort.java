@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.onlab.packet.IpPrefix;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Default port implementation.
  */
@@ -45,8 +47,8 @@ public class DefaultPort implements Port {
         this.element = element;
         this.number = number;
         this.isEnabled = isEnabled;
-        this.ipAddresses = (ipAddresses == null) ? null :
-            Collections.unmodifiableSet(ipAddresses);
+        this.ipAddresses = (ipAddresses == null) ? Collections.<IpPrefix>emptySet() :
+            ImmutableSet.copyOf(ipAddresses);
     }
 
     @Override
