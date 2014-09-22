@@ -115,6 +115,7 @@ public class OpenFlowDeviceProviderTest {
                 .setDesc(PD3)
                 .build();
         controller.listener.portChanged(DPID1, stat);
+        assertNotNull("never went throught the provider service", registry.descr);
         assertEquals("port status unhandled", 3, registry.ports.get(DID1).size());
     }
 
@@ -129,6 +130,7 @@ public class OpenFlowDeviceProviderTest {
         DeviceProvider provider;
         Set<DeviceId> connected = new HashSet<DeviceId>();
         Multimap<DeviceId, PortDescription> ports = HashMultimap.create();
+        PortDescription descr = null;
 
         @Override
         public DeviceProviderService register(DeviceProvider provider) {
@@ -175,9 +177,8 @@ public class OpenFlowDeviceProviderTest {
             @Override
             public void portStatusChanged(DeviceId deviceId,
                     PortDescription portDescription) {
-                System.err.println(deviceId + ":" + portDescription.toString());
-
-                System.err.println(ports.put(deviceId, portDescription));
+                ports.put(deviceId, portDescription);
+                descr = portDescription;
             }
 
         }
