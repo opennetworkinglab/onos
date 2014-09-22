@@ -1,5 +1,10 @@
 package org.onlab.onos.cluster;
 
+import java.util.Set;
+
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
+
 /**
  * Service responsible for determining the controller instance mastership of
  * a device in a clustered environment. This is the central authority for
@@ -8,12 +13,42 @@ package org.onlab.onos.cluster;
  */
 public interface MastershipService {
 
-    // InstanceId getMasterFor(DeviceId deviceId)
-    // Set<DeviceId> getDevicesOf(InstanceId instanceId);
+    /**
+     * Returns the current master for a given device.
+     *
+     * @param deviceId the identifier of the device
+     * @return the ID of the master controller for the device
+     */
+    InstanceId getMasterFor(DeviceId deviceId);
 
-    // MastershipRole requestRoleFor(DeviceId deviceId);
+    /**
+     * Returns the devices for which a controller is master.
+     *
+     * @param instanceId the ID of the controller
+     * @return a set of device IDs
+     */
+    Set<DeviceId> getDevicesOf(InstanceId instanceId);
 
-    // addListener/removeLister(MastershipListener listener);
-        // types of events would be MASTER_CHANGED (subject ==> deviceId; master ==> instanceId)
+    /**
+     * Returns the mastership status of this controller for a given device.
+     *
+     * @param deviceId the the identifier of the device
+     * @return the role of this controller instance
+     */
+    MastershipRole requestRoleFor(DeviceId deviceId);
+
+    /**
+     * Adds the specified mastership listener.
+     *
+     * @param listener the mastership listener
+     */
+    void addListener(MastershipListener listener);
+
+    /**
+     * Removes the specified device listener.
+     *
+     * @param listener the mastership listener
+     */
+    void removeListemer(MastershipListener listener);
 
 }
