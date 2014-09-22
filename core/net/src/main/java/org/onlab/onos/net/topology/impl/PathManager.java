@@ -1,5 +1,6 @@
 package org.onlab.onos.net.topology.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -59,12 +60,12 @@ public class PathManager implements PathService {
     protected HostService hostService;
 
     @Activate
-    public void setUp() {
+    public void activate() {
         log.info("Started");
     }
 
     @Deactivate
-    public void tearDown() {
+    public void deactivate() {
         log.info("Stopped");
     }
 
@@ -81,6 +82,11 @@ public class PathManager implements PathService {
         // Get the source and destination edge locations
         EdgeLink srcEdge = getEdgeLink(src, true);
         EdgeLink dstEdge = getEdgeLink(dst, false);
+
+        // If either edge is null, bail with no paths.
+        if (srcEdge == null || dstEdge == null) {
+            return ImmutableSet.of();
+        }
 
         DeviceId srcDevice = srcEdge != NOT_HOST ? srcEdge.dst().deviceId() : (DeviceId) src;
         DeviceId dstDevice = dstEdge != NOT_HOST ? dstEdge.src().deviceId() : (DeviceId) dst;
@@ -117,26 +123,12 @@ public class PathManager implements PathService {
         return NOT_HOST;
     }
 
-    // Produces a set of direct edge-to-edge paths.
+    // Produces a set of edge-to-edge paths using the set of infrastructure
+    // paths and the given edge links.
     private Set<Path> edgeToEdgePaths(EdgeLink srcLink, EdgeLink dstLink) {
         Set<Path> endToEndPaths = Sets.newHashSetWithExpectedSize(1);
-        if (srcLink != NOT_HOST || dstLink != NOT_HOST) {
-            endToEndPaths.add(edgeToEdgePath(srcLink, dstLink));
-        }
+        endToEndPaths.add(edgeToEdgePath(srcLink, dstLink, null));
         return endToEndPaths;
-    }
-
-    // Produces a direct edge-to-edge path.
-    private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink) {
-        List<Link> links = Lists.newArrayListWithCapacity(2);
-        // Add source and destination edge links only if they are real.
-        if (srcLink != NOT_HOST) {
-            links.add(srcLink);
-        }
-        if (dstLink != NOT_HOST) {
-            links.add(dstLink);
-        }
-        return new DefaultPath(PID, links, 2);
     }
 
     // Produces a set of edge-to-edge paths using the set of infrastructure
@@ -149,14 +141,21 @@ public class PathManager implements PathService {
         return endToEndPaths;
     }
 
-    // Produces an edge-to-edge path using the specified infrastructure path
-    // and edge links.
+    // Produces a direct edge-to-edge path.
     private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink, Path path) {
-        List<Link> links = Lists.newArrayListWithCapacity(path.links().size() + 2);
-        links.add(srcLink);
-        links.addAll(path.links());
-        links.add(dstLink);
-        return new DefaultPath(path.providerId(), links, path.cost() + 2);
+        List<Link> links = Lists.newArrayListWithCapacity(2);
+        // Add source and destination edge links only if they are real and
+        // add the infrastructure path only if it is not null.
+        if (srcLink != NOT_HOST) {
+            links.add(srcLink);
+        }
+        if (path != null) {
+            links.addAll(path.links());
+        }
+        if (dstLink != NOT_HOST) {
+            links.add(dstLink);
+        }
+        return new DefaultPath(PID, links, 2);
     }
 
     // Special value for edge link to represent that this is really not an

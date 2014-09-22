@@ -25,6 +25,8 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.onlab.junit.TestTools.assertAfter;
+import static org.onlab.onos.net.NetTestTools.device;
+import static org.onlab.onos.net.NetTestTools.link;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 
@@ -79,8 +81,8 @@ public class DefaultTopologyProviderTest {
             @Override
             public void run() {
                 validateSubmission();
-                deviceService.post(new DeviceEvent(DEVICE_ADDED, TopologyManagerTest.device("z"), null));
-                linkService.post(new LinkEvent(LINK_ADDED, TopologyManagerTest.link("z", 1, "a", 4)));
+                deviceService.post(new DeviceEvent(DEVICE_ADDED, device("z"), null));
+                linkService.post(new LinkEvent(LINK_ADDED, link("z", 1, "a", 4)));
                 validateSubmission();
             }
         });
@@ -128,9 +130,9 @@ public class DefaultTopologyProviderTest {
 
         @Override
         public Iterable<Device> getDevices() {
-            return ImmutableSet.of(TopologyManagerTest.device("a"), TopologyManagerTest.device("b"),
-                                   TopologyManagerTest.device("c"), TopologyManagerTest.device("d"),
-                                   TopologyManagerTest.device("e"), TopologyManagerTest.device("f"));
+            return ImmutableSet.of(device("a"), device("b"),
+                                   device("c"), device("d"),
+                                   device("e"), device("f"));
         }
 
         void post(DeviceEvent event) {
@@ -146,11 +148,11 @@ public class DefaultTopologyProviderTest {
 
         @Override
         public Iterable<Link> getLinks() {
-            return ImmutableSet.of(TopologyManagerTest.link("a", 1, "b", 1), TopologyManagerTest.link("b", 1, "a", 1),
-                                   TopologyManagerTest.link("b", 2, "c", 1), TopologyManagerTest.link("c", 1, "b", 2),
-                                   TopologyManagerTest.link("c", 2, "d", 1), TopologyManagerTest.link("d", 1, "c", 2),
-                                   TopologyManagerTest.link("d", 2, "a", 2), TopologyManagerTest.link("a", 2, "d", 2),
-                                   TopologyManagerTest.link("e", 1, "f", 1), TopologyManagerTest.link("f", 1, "e", 1));
+            return ImmutableSet.of(link("a", 1, "b", 1), link("b", 1, "a", 1),
+                                   link("b", 2, "c", 1), link("c", 1, "b", 2),
+                                   link("c", 2, "d", 1), link("d", 1, "c", 2),
+                                   link("d", 2, "a", 2), link("a", 2, "d", 2),
+                                   link("e", 1, "f", 1), link("f", 1, "e", 1));
         }
 
         void post(LinkEvent event) {
