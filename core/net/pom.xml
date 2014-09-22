@@ -33,6 +33,15 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
+
+        <!-- TODO Consider removing store dependency.
+              Currently required for DistributedDeviceManagerTest. -->
+        <dependency>
+          <groupId>org.onlab.onos</groupId>
+          <artifactId>onos-core-store</artifactId>
+            <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
