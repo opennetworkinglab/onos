@@ -24,7 +24,7 @@ public final class IpPrefix {
     /**
      * Default value indicating an unspecified address.
      */
-    public static final byte [] ANY = new byte [] {0, 0, 0, 0};
+    static final byte[] ANY = new byte [] {0, 0, 0, 0};
 
     protected Version version;
 
@@ -152,8 +152,17 @@ public final class IpPrefix {
      *
      * @return a byte array
      */
-    public byte [] toOctets() {
+    public byte[] toOctets() {
         return Arrays.copyOf(this.octets, INET_LEN);
+    }
+
+    /**
+     * Returns the IP address prefix length.
+     *
+     * @return prefix length
+     */
+    public int prefixLength() {
+        return netmask;
     }
 
     /**
