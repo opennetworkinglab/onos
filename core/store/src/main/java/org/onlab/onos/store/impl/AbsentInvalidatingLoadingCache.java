@@ -7,9 +7,24 @@ import com.google.common.base.Optional;
 import com.google.common.cache.ForwardingLoadingCache.SimpleForwardingLoadingCache;
 import com.google.common.cache.LoadingCache;
 
+/**
+ * Wrapper around LoadingCache to handle negative hit scenario.
+ * <p>
+ * When the LoadingCache returned Absent,
+ * this implementation will invalidate the entry immediately to avoid
+ * caching negative hits.
+ *
+ * @param <K> Cache key type
+ * @param <V> Cache value type. (Optional{@literal <V>})
+ */
 public class AbsentInvalidatingLoadingCache<K, V> extends
         SimpleForwardingLoadingCache<K, Optional<V>> {
 
+    /**
+     * Constructor.
+     *
+     * @param delegate actual {@link LoadingCache} to delegate loading.
+     */
     public AbsentInvalidatingLoadingCache(LoadingCache<K, Optional<V>> delegate) {
         super(delegate);
     }

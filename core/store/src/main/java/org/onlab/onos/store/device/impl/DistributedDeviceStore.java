@@ -2,7 +2,6 @@ package org.onlab.onos.store.device.impl;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -13,6 +12,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
 import com.hazelcast.core.MapEvent;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -33,6 +33,7 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.StoreService;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
+import org.onlab.onos.store.impl.OptionalCacheLoader;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -78,7 +79,6 @@ public class DistributedDeviceStore implements DeviceStore {
     private IMap<byte[], byte[]> rawDevicePorts;
     private LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> devicePorts;
 
-    // FIXME change to protected once we remove DistributedDeviceManagerTest.
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StoreService storeService;
 
@@ -95,30 +95,36 @@ public class DistributedDeviceStore implements DeviceStore {
 
         // TODO decide on Map name scheme to avoid collision
         rawDevices = theInstance.getMap("devices");
+        final OptionalCacheLoader<DeviceId, DefaultDevice> deviceLoader
+            = new OptionalCacheLoader<>(storeService, rawDevices);
         devices = new AbsentInvalidatingLoadingCache<>(
                 CacheBuilder.newBuilder()
-                        .build(new OptionalCacheLoader<DeviceId, DefaultDevice>(rawDevices)));
+                        .build(deviceLoader));
         // refresh/populate cache based on notification from other instance
         rawDevices.addEntryListener(
                 new RemoteEventHandler<>(devices),
                 includeValue);
 
         rawRoles = theInstance.getMap("roles");
+        final OptionalCacheLoader<DeviceId, MastershipRole> rolesLoader
+            = new OptionalCacheLoader<>(storeService, rawRoles);
         roles = new AbsentInvalidatingLoadingCache<>(
                 CacheBuilder.newBuilder()
-                        .build(new OptionalCacheLoader<DeviceId, MastershipRole>(rawRoles)));
+                        .build(rolesLoader));
         // refresh/populate cache based on notification from other instance
         rawRoles.addEntryListener(
                 new RemoteEventHandler<>(roles),
                 includeValue);
 
-        // TODO cache avai
+        // TODO cache availableDevices
         availableDevices = theInstance.getSet("availableDevices");
 
         rawDevicePorts = theInstance.getMap("devicePorts");
+        final OptionalCacheLoader<DeviceId, Map<PortNumber, Port>> devicePortLoader
+            = new OptionalCacheLoader<>(storeService, rawDevicePorts);
         devicePorts = new AbsentInvalidatingLoadingCache<>(
                 CacheBuilder.newBuilder()
-                        .build(new OptionalCacheLoader<DeviceId, Map<PortNumber, Port>>(rawDevicePorts)));
+                        .build(devicePortLoader));
         // refresh/populate cache based on notification from other instance
         rawDevicePorts.addEntryListener(
                 new RemoteEventHandler<>(devicePorts),
@@ -439,45 +445,12 @@ public class DistributedDeviceStore implements DeviceStore {
 
         @Override
         public void entryRemoved(EntryEvent<byte[], byte[]> event) {
-            cache.invalidate(storeService.<DeviceId>deserialize(event.getKey()));
+            cache.invalidate(storeService.<K>deserialize(event.getKey()));
         }
 
         @Override
         public void entryAdded(EntryEvent<byte[], byte[]> event) {
             entryUpdated(event);
-        }
-    }
-
-    /**
-     * CacheLoader to wrap Map value with Optional,
-     * to handle negative hit on underlying IMap.
-     *
-     * @param <K> IMap key type after deserialization
-     * @param <V> IMap value type after deserialization
-     */
-    public final class OptionalCacheLoader<K, V> extends
-            CacheLoader<K, Optional<V>> {
-
-        private IMap<byte[], byte[]> rawMap;
-
-        /**
-         * Constructor.
-         *
-         * @param rawMap underlying IMap
-         */
-        public OptionalCacheLoader(IMap<byte[], byte[]> rawMap) {
-            this.rawMap = checkNotNull(rawMap);
-        }
-
-        @Override
-        public Optional<V> load(K key) throws Exception {
-            byte[] keyBytes = storeService.serialize(key);
-            byte[] valBytes = rawMap.get(keyBytes);
-            if (valBytes == null) {
-                return Optional.absent();
-            }
-            V dev = deserialize(valBytes);
-            return Optional.of(dev);
         }
     }
 }
