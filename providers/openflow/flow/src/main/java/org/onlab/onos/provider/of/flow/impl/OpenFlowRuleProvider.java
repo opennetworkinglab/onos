@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
@@ -94,8 +95,16 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     @Override
     public void removeFlowRule(FlowRule... flowRules) {
-        // TODO Auto-generated method stub
+        for (int i = 0; i < flowRules.length; i++) {
+            removeRule(flowRules[i]);
+        }
 
+    }
+
+
+    private void removeRule(FlowRule flowRule) {
+        OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
+        sw.sendMsg(new FlowModBuilder(flowRule, sw.factory()).buildFlowDel());
     }
 
 
@@ -108,7 +117,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public void switchAdded(Dpid dpid) {
-            FlowStatsCollector fsc = new FlowStatsCollector(controller.getSwitch(dpid), 1);
+            FlowStatsCollector fsc = new FlowStatsCollector(controller.getSwitch(dpid), 5);
             fsc.start();
             collectors.put(dpid, fsc);
         }
@@ -154,7 +163,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 entries.add(new FlowRuleBuilder(dpid, reply).build());
             }
             log.debug("sending flowstats to core {}", entries);
-            providerService.pushFlowMetrics(entries);
+            providerService.pushFlowMetrics(DeviceId.deviceId(Dpid.uri(dpid)), entries);
         }
 
     }

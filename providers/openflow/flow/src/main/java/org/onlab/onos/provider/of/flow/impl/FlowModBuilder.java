@@ -88,6 +88,24 @@ public class FlowModBuilder {
 
     }
 
+    public OFFlowMod buildFlowDel() {
+        Match match = buildMatch();
+        List<OFAction> actions = buildActions();
+
+        OFFlowMod fm = factory.buildFlowDelete()
+                .setCookie(U64.of(cookie.value()))
+                .setBufferId(OFBufferId.NO_BUFFER)
+                .setActions(actions)
+                .setMatch(match)
+                .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
+                .setIdleTimeout(10)
+                .setHardTimeout(10)
+                .setPriority(priority)
+                .build();
+
+        return fm;
+    }
+
     private List<OFAction> buildActions() {
         List<OFAction> acts = new LinkedList<>();
         for (Instruction i : treatment.instructions()) {
@@ -245,5 +263,7 @@ public class FlowModBuilder {
         }
         return mBuilder.build();
     }
+
+
 
 }

@@ -1,53 +1,83 @@
 package org.onlab.onos.net.flow;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Objects;
 
 import org.onlab.onos.net.DeviceId;
+import org.slf4j.Logger;
 
 public class DefaultFlowRule implements FlowRule {
+
+    private final Logger log = getLogger(getClass());
 
     private final DeviceId deviceId;
     private final int priority;
     private final TrafficSelector selector;
     private final TrafficTreatment treatment;
-    private final FlowId id;
     private final long created;
     private final long life;
-    private final long idle;
     private final long packets;
     private final long bytes;
+    private final FlowRuleState state;
 
+    private final FlowId id;
 
-    public DefaultFlowRule(DeviceId deviceId,
-            TrafficSelector selector, TrafficTreatment treatment, int priority) {
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+            TrafficTreatment treatment, int priority, FlowRuleState state,
+            long life, long packets, long bytes, long flowId) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
         this.treatment = treatment;
+        this.state = state;
+
+        this.id = FlowId.valueOf(flowId);
+
+        this.life = life;
+        this.packets = packets;
+        this.bytes = bytes;
+        this.created = System.currentTimeMillis();
+    }
+
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+            TrafficTreatment treatement, int priority) {
+        this(deviceId, selector, treatement, priority, FlowRuleState.CREATED);
+    }
+
+    public DefaultFlowRule(FlowRule rule, FlowRuleState state) {
+        this(rule.deviceId(), rule.selector(), rule.treatment(),
+                rule.priority(), state, rule.id());
+    }
+
+    private DefaultFlowRule(DeviceId deviceId,
+            TrafficSelector selector, TrafficTreatment treatment,
+            int priority, FlowRuleState state) {
+        this.deviceId = deviceId;
+        this.priority = priority;
+        this.selector = selector;
+        this.treatment = treatment;
+        this.state = state;
         this.life = 0;
-        this.idle = 0;
         this.packets = 0;
         this.bytes = 0;
         this.id = FlowId.valueOf(this.hashCode());
         this.created = System.currentTimeMillis();
     }
 
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-            TrafficTreatment treatment, int priority,
-            long life, long idle, long packets, long bytes, Integer flowId) {
+    private DefaultFlowRule(DeviceId deviceId,
+            TrafficSelector selector, TrafficTreatment treatment,
+            int priority, FlowRuleState state, FlowId flowId) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
         this.treatment = treatment;
-
-        this.id = FlowId.valueOf(flowId);
-
-        this.life = life;
-        this.idle = idle;
-        this.packets = packets;
-        this.bytes = bytes;
+        this.state = state;
+        this.life = 0;
+        this.packets = 0;
+        this.bytes = 0;
+        this.id = flowId;
         this.created = System.currentTimeMillis();
     }
 
@@ -83,11 +113,6 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     @Override
-    public long idleMillis() {
-        return idle;
-    }
-
-    @Override
     public long packets() {
         return packets;
     }
@@ -96,6 +121,12 @@ public class DefaultFlowRule implements FlowRule {
     public long bytes() {
         return bytes;
     }
+
+    @Override
+    public FlowRuleState state() {
+        return this.state;
+    }
+
 
     @Override
     /*
@@ -116,18 +147,14 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof FlowRule) {
             DefaultFlowRule that = (DefaultFlowRule) obj;
-            if (!this.deviceId().equals(that.deviceId())) {
-                return false;
-            }
-            if (!this.treatment().equals(that.treatment())) {
-                return false;
-            }
-            if (!this.selector().equals(that.selector())) {
-                return false;
-            }
-            return true;
+            return Objects.equals(deviceId, that.deviceId) &&
+                    Objects.equals(id, that.id);
         }
         return false;
     }
@@ -141,8 +168,8 @@ public class DefaultFlowRule implements FlowRule {
                 .add("selector", selector)
                 .add("treatment", treatment)
                 .add("created", created)
+                .add("state", state)
                 .toString();
     }
-
 
 }

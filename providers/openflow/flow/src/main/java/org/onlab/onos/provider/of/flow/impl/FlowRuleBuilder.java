@@ -10,6 +10,7 @@ import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criteria;
@@ -52,7 +53,7 @@ public class FlowRuleBuilder {
         this.match = entry.getMatch();
         this.actions = entry.getActions();
         this.dpid = dpid;
-        removed = null;
+        this.removed = null;
     }
 
     public FlowRuleBuilder(Dpid dpid, OFFlowRemoved removed) {
@@ -69,16 +70,16 @@ public class FlowRuleBuilder {
         if (stat != null) {
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), buildTreatment(), stat.getPriority(),
-                    stat.getDurationNsec() / 1000000, stat.getIdleTimeout(),
+                    FlowRuleState.ADDED, stat.getDurationNsec() / 1000000,
                     stat.getPacketCount().getValue(), stat.getByteCount().getValue(),
-                    (int) (stat.getCookie().getValue() & 0xFFFFFFFF));
+                    stat.getCookie().getValue());
         } else {
             // TODO: revisit potentially.
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), null, removed.getPriority(),
-                    removed.getDurationNsec() / 1000000, removed.getIdleTimeout(),
+                    FlowRuleState.REMOVED, removed.getDurationNsec() / 1000000,
                     removed.getPacketCount().getValue(), removed.getByteCount().getValue(),
-                    (int) (removed.getCookie().getValue() & 0xFFFFFFFF));
+                    removed.getCookie().getValue());
         }
     }
 

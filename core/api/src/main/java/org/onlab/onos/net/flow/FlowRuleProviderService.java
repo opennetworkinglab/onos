@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.provider.ProviderService;
 
 /**
@@ -23,6 +24,13 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
     void flowMissing(FlowRule flowRule);
 
     /**
+     * Signals that a flow rule is on the switch but not in the store.
+     *
+     * @param flowRule the extra flow rule
+     */
+    void extraneousFlow(FlowRule flowRule);
+
+    /**
      * Signals that a flow rule was indeed added.
      *
      * @param flowRule the added flow rule
@@ -35,6 +43,8 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      *
      * @param flowRules collection of flow rules
      */
-    void pushFlowMetrics(Iterable<FlowRule> flowRules);
+    void pushFlowMetrics(DeviceId deviceId, Iterable<FlowRule> flowRules);
+
+
 
 }
