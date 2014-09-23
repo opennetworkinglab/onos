@@ -3,7 +3,7 @@ package org.onlab.onos.net.flow;
 import org.onlab.onos.net.DeviceId;
 
 /**
- * Manages inventory of flow rules.
+ * Manages inventory of flow rules; not intended for direct use.
  */
 public interface FlowRuleStore {
 

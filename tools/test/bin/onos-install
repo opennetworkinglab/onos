@@ -27,6 +27,9 @@ ssh $remote "
     # Install the upstart configuration file.
     sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
 
+    # Remove any previous ON.Lab bits from ~/.m2 repo
+    rm -fr ~/.m2/repository/org/onlab
+
     # Ignite the ONOS service.
     sudo service onos start
 "

@@ -12,8 +12,7 @@ import org.onlab.packet.VlanId;
 import java.util.Set;
 
 /**
- * Manages inventory of end-station hosts. It may do so using whatever
- * means are appropriate.
+ * Manages inventory of end-station hosts; not intended for direct use.
  */
 public interface HostStore {
 

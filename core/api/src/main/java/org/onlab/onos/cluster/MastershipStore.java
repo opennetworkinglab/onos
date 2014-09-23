@@ -6,11 +6,12 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 
 /**
- * Manages inventory of mastership roles for devices, across controller instances.
+ * Manages inventory of mastership roles for devices, across controller
+ * instances; not intended for direct use.
  */
 public interface MastershipStore {
 
-    // three things to map: InstanceId, DeviceId, MastershipRole
+    // three things to map: NodeId, DeviceId, MastershipRole
 
     /**
      * Sets a device's role for a specified controller instance.
@@ -20,8 +21,8 @@ public interface MastershipStore {
      * @param role     new role
      * @return a mastership event
      */
-    MastershipEvent setRole(
-            InstanceId instance, DeviceId deviceId, MastershipRole role);
+    MastershipEvent setRole(NodeId instance, DeviceId deviceId,
+                            MastershipRole role);
 
     /**
      * Adds or updates the mastership information for a device.
@@ -31,8 +32,8 @@ public interface MastershipStore {
      * @param role     new role
      * @return a mastership event
      */
-    MastershipEvent addOrUpdateDevice(
-            InstanceId instance, DeviceId deviceId, MastershipRole role);
+    MastershipEvent addOrUpdateDevice(NodeId instance, DeviceId deviceId,
+                                      MastershipRole role);
 
     /**
      * Returns the master for a device.
@@ -40,22 +41,22 @@ public interface MastershipStore {
      * @param deviceId the device identifier
      * @return the instance identifier of the master
      */
-    InstanceId getMaster(DeviceId deviceId);
+    NodeId getMaster(DeviceId deviceId);
 
     /**
      * Returns the devices that a controller instance is master of.
      *
-     * @param  instanceId the instance identifier
+     * @param nodeId the instance identifier
      * @return a set of device identifiers
      */
-    Set<DeviceId> getDevices(InstanceId instanceId);
+    Set<DeviceId> getDevices(NodeId nodeId);
 
     /**
      * Returns the role of a device for a specific controller instance.
      *
-     * @param instanceId the instance identifier
-     * @param deviceId the device identifiers
+     * @param nodeId the instance identifier
+     * @param deviceId   the device identifiers
      * @return the role
      */
-    MastershipRole getRole(InstanceId instanceId, DeviceId deviceId);
+    MastershipRole getRole(NodeId nodeId, DeviceId deviceId);
 }

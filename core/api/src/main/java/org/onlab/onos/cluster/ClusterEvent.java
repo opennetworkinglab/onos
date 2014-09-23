@@ -5,10 +5,10 @@ import org.onlab.onos.event.AbstractEvent;
 /**
  * Describes cluster-related event.
  */
-public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerInstance> {
+public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNode> {
 
     /**
-     * Type of device events.
+     * Type of cluster-related events.
      */
     public enum Type {
         /**
@@ -24,14 +24,13 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerIns
         /**
          * Signifies that a cluster instance became active.
          */
-        INSTANCE_ACTIVE,
+        INSTANCE_ACTIVATED,
 
         /**
          * Signifies that a cluster instance became inactive.
          */
-        INSTANCE_INACTIVE
+        INSTANCE_DEACTIVATED
     }
-    // TODO: do we need to fix the verv/adjective mix? discuss
 
     /**
      * Creates an event of a given type and for the specified instance and the
@@ -40,7 +39,7 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerIns
      * @param type     cluster event type
      * @param instance cluster device subject
      */
-    public ClusterEvent(Type type, ControllerInstance instance) {
+    public ClusterEvent(Type type, ControllerNode instance) {
         super(type, instance);
     }
 
@@ -51,7 +50,7 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerIns
      * @param instance event device subject
      * @param time     occurrence time
      */
-    public ClusterEvent(Type type, ControllerInstance instance, long time) {
+    public ClusterEvent(Type type, ControllerNode instance, long time) {
         super(type, instance, time);
     }
 

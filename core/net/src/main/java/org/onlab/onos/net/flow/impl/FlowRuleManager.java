@@ -33,6 +33,9 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 
+/**
+ * Provides implementation of the flow NB &amp; SB APIs.
+ */
 @Component(immediate = true)
 @Service
 public class FlowRuleManager

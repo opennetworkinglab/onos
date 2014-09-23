@@ -16,6 +16,9 @@ import com.esotericsoftware.kryo.serializers.CollectionSerializer;
 import com.google.common.collect.ImmutableSet;
 
 // TODO move to util, etc.
+/**
+ * Kryo Serializer for {@link DefaultPort}.
+ */
 public final class DefaultPortSerializer extends
         Serializer<DefaultPort> {
 
@@ -23,6 +26,9 @@ public final class DefaultPortSerializer extends
         = new CollectionSerializer(IpPrefix.class,
                             new IpPrefixSerializer(), false);
 
+    /**
+     * Default constructor.
+     */
     public DefaultPortSerializer() {
         // non-null, immutable
         super(false, true);

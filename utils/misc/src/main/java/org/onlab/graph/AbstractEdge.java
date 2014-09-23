@@ -41,6 +41,9 @@ public abstract class AbstractEdge<V extends Vertex> implements Edge<V> {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof AbstractEdge) {
             final AbstractEdge other = (AbstractEdge) obj;
             return Objects.equals(this.src, other.src) && Objects.equals(this.dst, other.dst);

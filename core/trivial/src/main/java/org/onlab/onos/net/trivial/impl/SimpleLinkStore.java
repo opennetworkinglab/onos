@@ -179,6 +179,9 @@ public class SimpleLinkStore implements LinkStore {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj instanceof LinkKey) {
                 final LinkKey other = (LinkKey) obj;
                 return Objects.equals(this.src, other.src) &&

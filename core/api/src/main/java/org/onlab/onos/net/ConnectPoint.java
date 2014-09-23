@@ -66,6 +66,9 @@ public class ConnectPoint {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof ConnectPoint) {
             final ConnectPoint other = (ConnectPoint) obj;
             return Objects.equals(this.elementId, other.elementId) &&

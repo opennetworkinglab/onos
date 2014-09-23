@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Manages inventory of topology snapshots. It may do so using whatever
- * means appropriate.
+ * Manages inventory of topology snapshots; not intended for direct use.
  */
 public interface TopologyStore {
 

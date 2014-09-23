@@ -46,10 +46,7 @@ alias gui='open http://localhost:8181/onos/tvue'
 # Test related conveniences
 
 # SSH to a specified ONOS instance
-function sshctl {
-    [ -n "$1" ] && OCI=$1 && shift
-    ssh -Y sdn@$OCI "$@"
-}
+alias sshctl=onos-ssh
 
 # Applies the settings in the specified cell file or lists current cell definition
 # if no cell file is given.

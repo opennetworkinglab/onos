@@ -2,6 +2,9 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
+            <action class="org.onlab.onos.cli.NodesListCommand"/>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.FlowsListCommand"/>
         </command>
         <command>

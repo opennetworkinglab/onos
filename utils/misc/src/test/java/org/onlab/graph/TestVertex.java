@@ -20,6 +20,9 @@ public class TestVertex implements Vertex {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof TestVertex) {
             final TestVertex other = (TestVertex) obj;
             return Objects.equals(this.name, other.name);

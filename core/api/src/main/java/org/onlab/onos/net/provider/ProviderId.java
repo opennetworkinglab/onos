@@ -12,12 +12,6 @@ public class ProviderId {
     private final String scheme;
     private final String id;
 
-    // Default constructor for serialization
-    protected ProviderId() {
-        scheme = null;
-        id = null;
-    }
-
     /**
      * Creates a new provider identifier from the specified string.
      * The providers are expected to follow the reverse DNS convention, e.g.
@@ -40,6 +34,15 @@ public class ProviderId {
         return scheme;
     }
 
+    /**
+     * Returns the device URI scheme specific id portion.
+     *
+     * @return id
+     */
+    public String id() {
+        return id;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(scheme, id);
@@ -50,12 +53,12 @@ public class ProviderId {
         if (this == obj) {
             return true;
         }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
+        if (obj instanceof ProviderId) {
+            final ProviderId other = (ProviderId) obj;
+            return Objects.equals(this.scheme, other.scheme) &&
+                    Objects.equals(this.id, other.id);
         }
-        final ProviderId other = (ProviderId) obj;
-        return Objects.equals(this.scheme, other.scheme) &&
-                Objects.equals(this.id, other.id);
+        return false;
     }
 
     @Override

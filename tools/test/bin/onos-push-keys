@@ -1,0 +1,13 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Pushes the local id_rsa.pub to the remote ONOS host authorized_keys.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+scp -q ~/.ssh/id_rsa.pub $remote:/tmp
+ssh $remote "cat /tmp/id_rsa.pub >> ~/.ssh/authorized_keys"
+ssh -n -o PasswordAuthentication=no $remote true

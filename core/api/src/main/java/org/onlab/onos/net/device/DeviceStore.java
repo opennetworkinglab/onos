@@ -10,7 +10,7 @@ import org.onlab.onos.net.provider.ProviderId;
 import java.util.List;
 
 /**
- * Manages inventory of infrastructure devices.
+ * Manages inventory of infrastructure devices; not intended for direct use.
  */
 public interface DeviceStore {
 

@@ -28,6 +28,9 @@ class PathKey {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof PathKey) {
             final PathKey other = (PathKey) obj;
             return Objects.equals(this.src, other.src) && Objects.equals(this.dst, other.dst);

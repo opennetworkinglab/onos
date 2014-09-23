@@ -166,6 +166,9 @@ public class Heap<T> {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof Heap) {
             Heap that = (Heap) obj;
             return this.getClass() == that.getClass() &&

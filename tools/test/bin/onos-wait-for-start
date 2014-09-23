@@ -1,0 +1,19 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Waits for ONOS to reach run-level 100.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+ssh $remote "
+    # Wait until we reach the run-level 100
+    running=""
+    while [ -z \$running ]; do
+        $ONOS_INSTALL_DIR/bin/onos bundle:list 2>/dev/null | \
+            grep -q 'START LEVEL 100' && running=1 || sleep 2
+    done
+
+"

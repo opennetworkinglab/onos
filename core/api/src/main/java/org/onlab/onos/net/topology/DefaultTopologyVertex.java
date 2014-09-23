@@ -32,6 +32,9 @@ public class DefaultTopologyVertex implements TopologyVertex {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultTopologyVertex) {
             final DefaultTopologyVertex other = (DefaultTopologyVertex) obj;
             return Objects.equals(this.deviceId, other.deviceId);

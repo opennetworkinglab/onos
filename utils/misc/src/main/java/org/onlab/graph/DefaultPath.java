@@ -72,6 +72,9 @@ public class DefaultPath<V extends Vertex, E extends Edge<V>> implements Path<V,
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultPath) {
             final DefaultPath other = (DefaultPath) obj;
             return Objects.equals(this.src, other.src) &&

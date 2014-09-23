@@ -1,0 +1,20 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Remotely patches the ONOS VM to tailor its hostname.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+address=${1:-$OCI}
+remote=$ONOS_USER@$address
+name=${2:-onos-1}
+
+[ -z "$address" ] && echo "Null address not allowed" >&2 && exit 1
+[ -z "$name" ] && echo "Null name not allowed" >&2 && exit 1
+
+ssh $remote "
+    sudo perl -pi.bak -e \"s/127.0.1.1.*/127.0.1.1       $name/g\" /etc/hosts
+    sudo echo $name /etc/hostname
+    sudo hostname $name
+"

@@ -58,6 +58,9 @@ public class DefaultPort implements Port {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultPort) {
             final DefaultPort other = (DefaultPort) obj;
             return Objects.equals(this.element.id(), other.element.id()) &&

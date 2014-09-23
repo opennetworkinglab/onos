@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Provides basic implementation of the device SB &amp; NB APIs.
+ * Provides implementation of the device SB &amp; NB APIs.
  */
 @Component(immediate = true)
 @Service

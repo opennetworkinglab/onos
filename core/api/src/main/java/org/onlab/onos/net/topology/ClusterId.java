@@ -43,6 +43,9 @@ public final class ClusterId {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof ClusterId) {
             final ClusterId other = (ClusterId) obj;
             return Objects.equals(this.id, other.id);
