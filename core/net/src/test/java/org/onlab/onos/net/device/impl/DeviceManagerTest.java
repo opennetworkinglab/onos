@@ -3,6 +3,9 @@ package org.onlab.onos.net.device.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.cluster.MastershipListener;
+import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -25,9 +28,12 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.trivial.impl.SimpleDeviceStore;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.Device.Type.SWITCH;
@@ -69,6 +75,7 @@ public class DeviceManagerTest {
         registry = mgr;
         mgr.store = new SimpleDeviceStore();
         mgr.eventDispatcher = new TestEventDispatcher();
+        mgr.mastershipService = new TestMastershipService();
         mgr.activate();
 
         service.addListener(listener);
@@ -250,6 +257,33 @@ public class DeviceManagerTest {
         public void event(DeviceEvent event) {
             events.add(event);
         }
+    }
+
+    private static class TestMastershipService implements MastershipService {
+
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return null;
+        }
+
+        @Override
+        public Set<DeviceId> getDevicesOf(NodeId nodeId) {
+            return Sets.newHashSet(DID1, DID2);
+        }
+
+        @Override
+        public MastershipRole requestRoleFor(DeviceId deviceId) {
+            return MastershipRole.MASTER;
+        }
+
+        @Override
+        public void addListener(MastershipListener listener) {
+        }
+
+        @Override
+        public void removeListener(MastershipListener listener) {
+        }
+
     }
 
 }
