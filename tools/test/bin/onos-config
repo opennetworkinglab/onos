@@ -21,7 +21,8 @@ ssh $remote "
 
     echo 'Installing ONOS bundles...'
     $onos cluster:feature-install default onos-api 1>>$LOG 2>&1
-    $onos cluster:feature-install default onos-core 1>>$LOG 2>&1
+  # $onos cluster:feature-install default onos-core 1>>$LOG 2>&1
+    $onos cluster:feature-install default onos-core-trivial 1>>$LOG 2>&1
     $onos cluster:feature-install default onos-openflow 1>>$LOG 2>&1
     $onos cluster:feature-install default onos-cli 1>>$LOG 2>&1
   # $onos cluster:feature-install default onos-gui 1>>$LOG 2>&1

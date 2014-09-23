@@ -13,7 +13,7 @@ rm -fr $ONOS_STAGE # Remove this when package script is completed
 
 # Make sure we have the original apache karaf bits first
 [ ! -d $M2_REPO ] && echo "M2 repository $M2_REPO not found" && exit 1
-[ ! -f $KARAF_ZIP ] && echo "Apache Karaf bits $KARAF_ZIP not found" && exit 1
+[ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
 [ -d $ONOS_STAGE ] && echo "ONOS stage $ONOS_STAGE already exists" && exit 1
 
 # Create the stage directory and warp into it
@@ -21,7 +21,8 @@ mkdir -p $ONOS_STAGE
 cd $ONOS_STAGE
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
-unzip -q $KARAF_ZIP && rm -rf $KARAF_DIST/demos
+[ -f $KARAF_ZIP ] && unzip -q $KARAF_ZIP && rm -rf $KARAF_DIST/demos
+[ -f $KARAF_TAR ] && tar zxf $KARAF_TAR && rm -rf $KARAF_DIST/demos
 mkdir bin
 
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
