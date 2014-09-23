@@ -44,10 +44,6 @@ import org.onlab.onos.store.StoreService;
 import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -442,20 +438,6 @@ public class DistributedDeviceStore implements DeviceStore {
             return null;
         }
         return POOL.deserialize(bytes);
-    }
-
-    public static final class DeviceIdSerializer extends Serializer<DeviceId> {
-
-        @Override
-        public void write(Kryo kryo, Output output, DeviceId object) {
-            kryo.writeObject(output, object.uri());
-        }
-
-        @Override
-        public DeviceId read(Kryo kryo, Input input, Class<DeviceId> type) {
-            final URI uri = kryo.readObject(input, URI.class);
-            return DeviceId.deviceId(uri);
-        }
     }
 
     /**
