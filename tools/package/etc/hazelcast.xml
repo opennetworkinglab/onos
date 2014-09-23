@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.2.xsd"
+<!--
+  ~ Copyright (c) 2008-2013, Hazelcast, Inc. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+    The default Hazelcast configuration. This is used when:
+
+    - no hazelcast.xml if present
+
+-->
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.3.xsd"
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <group>
@@ -11,8 +33,8 @@
         <port auto-increment="true" port-count="100">5701</port>
         <outbound-ports>
             <!--
-                Allowed port range when connecting to other nodes.
-                0 or * means use system provided port.
+            Allowed port range when connecting to other nodes.
+            0 or * means use system provided port.
             -->
             <ports>0</ports>
         </outbound-ports>
@@ -24,18 +46,6 @@
             <tcp-ip enabled="false">
                 <interface>127.0.0.1</interface>
             </tcp-ip>
-            <aws enabled="false">
-                <access-key>my-access-key</access-key>
-                <secret-key>my-secret-key</secret-key>
-                <!--optional, default is us-east-1 -->
-                <region>us-west-1</region>
-                <!--optional, default is ec2.amazonaws.com. If set, region shouldn't be set as it will override this property -->
-                <host-header>ec2.amazonaws.com</host-header>
-                <!-- optional, only instances belonging to this group will be discovered, default will try all running instances -->
-                <security-group-name>hazelcast-sg</security-group-name>
-                <tag-key>type</tag-key>
-                <tag-value>hz-nodes</tag-value>
-            </aws>
         </join>
         <interfaces enabled="true">
             <interface>192.168.56.*</interface>
@@ -61,9 +71,9 @@
         </symmetric-encryption>
     </network>
     <partition-group enabled="false"/>
-    <executor-service>
+    <executor-service name="default">
         <pool-size>16</pool-size>
-        <!-- Queue capacity. 0 means Integer.MAX_VALUE -->
+        <!--Queue capacity. 0 means Integer.MAX_VALUE.-->
         <queue-capacity>0</queue-capacity>
     </executor-service>
     <queue name="default">
@@ -81,22 +91,24 @@
             fail-safety. 0 means no backup.
         -->
         <backup-count>1</backup-count>
+
         <!--
             Number of async backups. 0 means no backup.
         -->
         <async-backup-count>0</async-backup-count>
+
         <empty-queue-ttl>-1</empty-queue-ttl>
     </queue>
-
     <map name="default">
         <!--
-            Data type that will be used for storing recordMap.
-            Possible values:
-                BINARY (default): keys and values will be stored as binary data
-                OBJECT : values will be stored in their object forms
-                OFFHEAP : values will be stored in non-heap region of JVM
+           Data type that will be used for storing recordMap.
+           Possible values:
+           BINARY (default): keys and values will be stored as binary data
+           OBJECT : values will be stored in their object forms
+           OFFHEAP : values will be stored in non-heap region of JVM
         -->
         <in-memory-format>BINARY</in-memory-format>
+
         <!--
             Number of backups. If 1 is set as the backup-count for example,
             then all entries of the map will be copied to another JVM for
@@ -144,6 +156,12 @@
         -->
         <eviction-percentage>25</eviction-percentage>
         <!--
+            Minimum time in milliseconds which should pass before checking
+            if a partition of this map is evictable or not.
+            Default value is 100 millis.
+        -->
+        <min-eviction-check-millis>100</min-eviction-check-millis>
+        <!--
             While recovering from split-brain (network partitioning),
             map entries in the small cluster will merge into the bigger cluster
             based on the policy set here. When an entry merge into the
@@ -159,6 +177,7 @@
             com.hazelcast.map.merge.LatestUpdateMapMergePolicy ; entry with the latest update wins.
         -->
         <merge-policy>com.hazelcast.map.merge.PassThroughMergePolicy</merge-policy>
+
     </map>
 
     <multimap name="default">
@@ -199,5 +218,6 @@
         <portable-version>0</portable-version>
     </serialization>
 
-    <services enable-defaults="true" />
+    <services enable-defaults="true"/>
+
 </hazelcast>

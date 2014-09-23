@@ -1,6 +1,5 @@
 package org.onlab.onos.cluster;
 
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.Provider;
 
 /**

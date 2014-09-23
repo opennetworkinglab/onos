@@ -9,5 +9,5 @@
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 onos-package
-for node in $nodes; do onos-install -f $node; done
+for node in $nodes; do printf "%s: " $node; onos-install -f $node; done
 for node in $nodes; do onos-wait-for-start $node; done
