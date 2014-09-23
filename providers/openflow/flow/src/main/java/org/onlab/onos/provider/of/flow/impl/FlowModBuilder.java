@@ -115,8 +115,10 @@ public class FlowModBuilder {
                 return new LinkedList<>();
             case L2MODIFICATION:
                 acts.add(buildL2Modification(i));
+                break;
             case L3MODIFICATION:
                 acts.add(buildL3Modification(i));
+                break;
             case OUTPUT:
                 OutputInstruction out = (OutputInstruction) i;
                 acts.add(factory.actions().buildOutput().setPort(
