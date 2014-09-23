@@ -6,6 +6,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -55,11 +56,15 @@ public class HostServiceAdapter implements HostService {
     }
 
     @Override
-    public void monitorIp(IpPrefix ip) {
+    public void startMonitoringIp(IpAddress ip) {
     }
 
     @Override
-    public void stopMonitoringIp(IpPrefix ip) {
+    public void stopMonitoringIp(IpAddress ip) {
+    }
+
+    @Override
+    public void requestMac(IpAddress ip) {
     }
 
     @Override

@@ -24,15 +24,16 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostStore;
+import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import org.slf4j.Logger;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
@@ -190,6 +191,30 @@ public class SimpleHostStore implements HostStore {
             }
         }
         return hostset;
+    }
+
+    @Override
+    public void updateAddressBindings(PortAddresses addresses) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void removeAddressBindings(ConnectPoint connectPoint) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Set<PortAddresses> getAddressBindings() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

@@ -6,6 +6,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -87,7 +88,7 @@ public interface HostService {
      *
      * @param ip IP address of the host to monitor
      */
-    void monitorIp(IpPrefix ip);
+    void startMonitoringIp(IpAddress ip);
 
     /**
      * Stops the host service from monitoring an IP address.
@@ -95,7 +96,18 @@ public interface HostService {
      * @param ip IP address to stop monitoring
      */
     // TODO clients can cancel other client's requests
-    void stopMonitoringIp(IpPrefix ip);
+    void stopMonitoringIp(IpAddress ip);
+
+    /**
+     * Requests the host service to resolve the MAC address for the given IP
+     * address.
+     * <p/>
+     * This will trigger a notification to the host listeners if the MAC
+     * address is found.
+     *
+     * @param ip IP address to find the MAC address for
+     */
+    void requestMac(IpAddress ip);
 
     /**
      * Adds the specified host listener.

@@ -1,5 +1,7 @@
 package org.onlab.onos.net.host;
 
+import java.util.Set;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
@@ -8,8 +10,6 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-
-import java.util.Set;
 
 /**
  * Manages inventory of end-station hosts; not intended for direct use.
@@ -98,4 +98,34 @@ public interface HostStore {
      */
     Set<Host> getConnectedHosts(DeviceId deviceId);
 
+    /**
+     * Updates the address information for a given port.
+     *
+     * @param addresses the port and address information
+     */
+    void updateAddressBindings(PortAddresses addresses);
+
+    /**
+     * Removes any previously stored address information for a given connection
+     * point.
+     *
+     * @param connectPoint the connection point
+     */
+    void removeAddressBindings(ConnectPoint connectPoint);
+
+    /**
+     * Returns the address bindings stored for all connection points.
+     *
+     * @return the set of address bindings
+     */
+    Set<PortAddresses> getAddressBindings();
+
+    /**
+     * Returns the address bindings for a particular connection point.
+     *
+     * @param connectPoint the connection point to return address information
+     * for
+     * @return address information for the connection point
+     */
+    PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint);
 }
