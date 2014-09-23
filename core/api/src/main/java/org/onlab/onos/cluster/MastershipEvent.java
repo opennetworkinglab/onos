@@ -8,7 +8,7 @@ import org.onlab.onos.net.DeviceId;
  */
 public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceId> {
 
-    InstanceId master;
+    NodeId master;
 
     /**
      * Type of mastership events.
@@ -28,7 +28,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param device event device subject
      * @param master master ID subject
      */
-    protected MastershipEvent(Type type, DeviceId device, InstanceId master) {
+    protected MastershipEvent(Type type, DeviceId device, NodeId master) {
         super(type, device);
         this.master = master;
     }
@@ -42,7 +42,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param master master ID subject
      * @param time   occurrence time
      */
-    protected MastershipEvent(Type type, DeviceId device, InstanceId master, long time) {
+    protected MastershipEvent(Type type, DeviceId device, NodeId master, long time) {
         super(type, device, time);
         this.master = master;
     }
@@ -52,7 +52,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      *
      * @return master ID subject
      */
-    public InstanceId master() {
+    public NodeId master() {
         return master;
     }
 }

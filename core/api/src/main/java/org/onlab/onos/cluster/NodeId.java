@@ -2,26 +2,24 @@ package org.onlab.onos.cluster;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Controller cluster identity.
  */
-public class InstanceId {
+public class NodeId {
 
     private final String id;
 
     // Default constructor for serialization
-    protected InstanceId() {
+    protected NodeId() {
         id = null;
     }
 
     /**
-     * Creates a new cluster instance identifier from the specified string.
+     * Creates a new cluster node identifier from the specified string.
      *
      * @param id string identifier
      */
-    public InstanceId(String id) {
+    public NodeId(String id) {
         this.id = id;
     }
 
@@ -35,8 +33,8 @@ public class InstanceId {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof InstanceId) {
-            final InstanceId other = (InstanceId) obj;
+        if (obj instanceof NodeId) {
+            final NodeId other = (NodeId) obj;
             return Objects.equals(this.id, other.id);
         }
         return false;
@@ -44,7 +42,7 @@ public class InstanceId {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("id", id).toString();
+        return id;
     }
 
 }

@@ -15,6 +15,6 @@ public interface MastershipAdminService {
      * @param deviceId device identifier
      * @param role     requested role
      */
-    void setRole(InstanceId instance, DeviceId deviceId, MastershipRole role);
+    void setRole(NodeId instance, DeviceId deviceId, MastershipRole role);
 
 }

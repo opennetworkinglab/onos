@@ -19,15 +19,15 @@ public interface MastershipService {
      * @param deviceId the identifier of the device
      * @return the ID of the master controller for the device
      */
-    InstanceId getMasterFor(DeviceId deviceId);
+    NodeId getMasterFor(DeviceId deviceId);
 
     /**
      * Returns the devices for which a controller is master.
      *
-     * @param instanceId the ID of the controller
+     * @param nodeId the ID of the controller
      * @return a set of device IDs
      */
-    Set<DeviceId> getDevicesOf(InstanceId instanceId);
+    Set<DeviceId> getDevicesOf(NodeId nodeId);
 
     /**
      * Returns the mastership status of this controller for a given device.

@@ -5,7 +5,7 @@ import org.onlab.packet.IpPrefix;
 /**
  * Represents a controller instance as a member in a cluster.
  */
-public interface ControllerInstance {
+public interface ControllerNode {
 
     /** Represents the operational state of the instance. */
     public enum State {
@@ -26,7 +26,7 @@ public interface ControllerInstance {
      *
      * @return instance identifier
      */
-    InstanceId id();
+    NodeId id();
 
     /**
      * Returns the IP address of the controller instance.
