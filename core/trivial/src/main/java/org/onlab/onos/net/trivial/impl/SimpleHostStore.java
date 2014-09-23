@@ -51,6 +51,9 @@ public class SimpleHostStore implements HostStore {
     // Hosts tracked by their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
 
+    private final Map<ConnectPoint, PortAddresses> portAddresses =
+            new ConcurrentHashMap<>();
+
     @Activate
     public void activate() {
         log.info("Started");
@@ -195,26 +198,22 @@ public class SimpleHostStore implements HostStore {
 
     @Override
     public void updateAddressBindings(PortAddresses addresses) {
-        // TODO Auto-generated method stub
-
+        portAddresses.put(addresses.connectPoint(), addresses);
     }
 
     @Override
     public void removeAddressBindings(ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-
+        portAddresses.remove(connectPoint);
     }
 
     @Override
     public Set<PortAddresses> getAddressBindings() {
-        // TODO Auto-generated method stub
-        return null;
+        return new HashSet<>(portAddresses.values());
     }
 
     @Override
     public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-        return null;
+        return portAddresses.get(connectPoint);
     }
 
 }
