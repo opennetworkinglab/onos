@@ -34,14 +34,13 @@ public class FlowsListCommand extends AbstractShellCommand {
     };
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         DeviceService deviceService = getService(DeviceService.class);
         FlowRuleService service = getService(FlowRuleService.class);
         Map<Device, List<FlowRule>> flows = getSortedFlows(deviceService, service);
         for (Device d : deviceService.getDevices()) {
             printFlows(d, flows.get(d));
         }
-        return null;
     }
 
 

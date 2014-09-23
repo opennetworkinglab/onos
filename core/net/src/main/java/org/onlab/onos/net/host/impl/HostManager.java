@@ -26,8 +26,10 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.HostStore;
+import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -118,13 +120,18 @@ public class HostManager
     }
 
     @Override
-    public void monitorIp(IpPrefix ip) {
-        // TODO pass through to SimpleHostMonitor
+    public void startMonitoringIp(IpAddress ip) {
+        // TODO pass through to HostMonitor
     }
 
     @Override
-    public void stopMonitoringIp(IpPrefix ip) {
-        // TODO pass through to SimpleHostMonitor
+    public void stopMonitoringIp(IpAddress ip) {
+        // TODO pass through to HostMonitor
+    }
+
+    @Override
+    public void requestMac(IpAddress ip) {
+        // TODO Auto-generated method stub
     }
 
     @Override
@@ -145,6 +152,27 @@ public class HostManager
             log.info("Host {} administratively removed", hostId);
             post(event);
         }
+    }
+
+    @Override
+    public void bindAddressesToPort(IpAddress ip, MacAddress mac,
+            ConnectPoint connectPoint) {
+        store.updateAddressBindings(new DefaultPortAddresses(connectPoint, ip, mac));
+    }
+
+    @Override
+    public void unbindAddressesFromPort(ConnectPoint connectPoint) {
+        store.removeAddressBindings(connectPoint);
+    }
+
+    @Override
+    public Set<PortAddresses> getAddressBindings() {
+        return store.getAddressBindings();
+    }
+
+    @Override
+    public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
+        return store.getAddressBindingsForPort(connectPoint);
     }
 
     // Personalized host provider service issued to the supplied provider.

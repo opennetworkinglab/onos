@@ -1,8 +1,5 @@
 package org.onlab.onos.net;
 
-import java.util.Set;
-
-import org.onlab.packet.IpPrefix;
 
 /**
  * Abstraction of a network port.
@@ -32,12 +29,4 @@ public interface Port {
 
     // set of port attributes
 
-    /**
-     * Returns the set of IP addresses that are logically configured on this
-     * port.
-     *
-     * @return the set of IP addresses configured on the port. The set is empty
-     * if no addresses are configured.
-     */
-    Set<IpPrefix> ipAddresses();
 }

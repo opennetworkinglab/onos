@@ -23,11 +23,10 @@ public class DeviceRoleCommand extends AbstractShellCommand {
     String role = null;
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         MastershipRole mastershipRole = MastershipRole.valueOf(role.toUpperCase());
         getService(DeviceAdminService.class).setRole(DeviceId.deviceId(uri),
                                                      mastershipRole);
-        return null;
     }
 
 }

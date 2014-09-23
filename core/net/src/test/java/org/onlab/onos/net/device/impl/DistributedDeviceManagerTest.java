@@ -1,10 +1,14 @@
 package org.onlab.onos.net.device.impl;
 
+import com.google.common.collect.Iterables;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.event.Event;
+import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -23,13 +27,9 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.store.StoreService;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
-
-import com.google.common.collect.Iterables;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
+import org.onlab.onos.store.impl.StoreManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -64,6 +64,7 @@ public class DistributedDeviceManagerTest {
 
     private DeviceManager mgr;
 
+    protected StoreManager storeManager;
     protected DeviceService service;
     protected DeviceAdminService admin;
     protected DeviceProviderRegistry registry;
@@ -89,7 +90,11 @@ public class DistributedDeviceManagerTest {
         config.getNetworkConfig().getJoin()
             .getMulticastConfig()
             .setEnabled(false);
-        dstore = new TestDistributedDeviceStore(Hazelcast.newHazelcastInstance(config));
+
+        storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
+        storeManager.activate();
+
+        dstore = new TestDistributedDeviceStore(storeManager);
         dstore.activate();
         mgr.store = dstore;
         mgr.eventDispatcher = new TestEventDispatcher();
@@ -112,7 +117,7 @@ public class DistributedDeviceManagerTest {
         mgr.deactivate();
 
         dstore.deactivate();
-        ((TestDistributedDeviceStore) dstore).shutdownHz();
+        storeManager.deactivate();
     }
 
     private void connectDevice(DeviceId deviceId, String swVersion) {
@@ -282,20 +287,19 @@ public class DistributedDeviceManagerTest {
     }
 
     private class TestDistributedDeviceStore extends DistributedDeviceStore {
-        public TestDistributedDeviceStore(final HazelcastInstance hazelcastInstance) {
-            storeService = new StoreService() {
-                @Override
-                public HazelcastInstance getHazelcastInstance() {
-                    return hazelcastInstance;
-                }
-            };
+        public TestDistributedDeviceStore(StoreService storeService) {
+            this.storeService = storeService;
+        }
+    }
+
+    private class TestStoreManager extends StoreManager {
+        TestStoreManager(HazelcastInstance instance) {
+            this.instance = instance;
         }
 
-        /**
-         * Shutdowns the hazelcast instance.
-         */
-        public void shutdownHz() {
-            theInstance.shutdown();
+        @Override
+        public void activate() {
+            setupKryoPool();
         }
     }
 }

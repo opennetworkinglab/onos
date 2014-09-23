@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.device.DeviceService;
@@ -89,7 +88,7 @@ public class HostMonitor implements TimerTask {
         // else (ip isn't in any configured subnet)
         //   send out all non-external edge ports
 
-        for (Device device : deviceService.getDevices()) {
+        /*for (Device device : deviceService.getDevices()) {
             for (Port port : deviceService.getPorts(device.id())) {
                 for (IpPrefix ip : port.ipAddresses()) {
                     if (ip.contains(targetIp)) {
@@ -98,7 +97,7 @@ public class HostMonitor implements TimerTask {
                     }
                 }
             }
-        }
+        }*/
 
     }
 

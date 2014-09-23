@@ -27,7 +27,7 @@ public class ClustersListCommand extends TopologyCommand {
             };
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         init();
         List<TopologyCluster> clusters = Lists.newArrayList(service.getClusters(topology));
         Collections.sort(clusters, ID_COMPARATOR);
@@ -35,7 +35,6 @@ public class ClustersListCommand extends TopologyCommand {
         for (TopologyCluster cluster : clusters) {
             print(FMT, cluster.id().index(), cluster.deviceCount(), cluster.linkCount());
         }
-        return null;
     }
 
 }

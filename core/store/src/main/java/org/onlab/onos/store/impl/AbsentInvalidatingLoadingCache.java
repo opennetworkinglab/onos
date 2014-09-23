@@ -1,4 +1,4 @@
-package org.onlab.onos.store.device.impl;
+package org.onlab.onos.store.impl;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
