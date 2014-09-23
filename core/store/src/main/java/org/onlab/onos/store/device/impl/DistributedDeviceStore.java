@@ -40,6 +40,7 @@ import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.StoreService;
 import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 
@@ -187,12 +188,15 @@ public class DistributedDeviceStore implements DeviceStore {
 
     // FIXME change to protected once we remove DistributedDeviceManagerTest.
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StoreService storeService;
+
     /*protected*/public HazelcastInstance theInstance;
 
 
     @Activate
     public void activate() {
         log.info("Started");
+        theInstance = storeService.getHazelcastInstance();
 
         // IMap event handler needs value
         final boolean includeValue = true;

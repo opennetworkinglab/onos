@@ -4,7 +4,7 @@ import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.DeviceId;
 
 /**
- * Describes infrastructure device event.
+ * Describes a device mastership event.
  */
 public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceId> {
 
