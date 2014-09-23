@@ -46,7 +46,8 @@ alias gui='open http://localhost:8181/onos/tvue'
 # Test related conveniences
 
 # SSH to a specified ONOS instance
-alias sshctl=onos-ssh
+alias sshctl='onos-ssh'
+alias sshnet='onos-ssh $OCN'
 
 # Applies the settings in the specified cell file or lists current cell definition
 # if no cell file is given.
@@ -62,6 +63,7 @@ function cell {
         env | egrep "ONOS_CELL"
         env | egrep "OCI"
         env | egrep "OC[0-9]+" | sort
+        env | egrep "OCN"
     fi
 }
 

@@ -1,4 +1,4 @@
-package org.onlab.onos.store.device.impl;
+package org.onlab.onos.store.serializers;
 
 import java.util.ArrayList;
 import java.util.Collection;

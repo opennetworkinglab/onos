@@ -29,12 +29,11 @@ public class DevicesListCommand extends AbstractShellCommand {
     };
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         DeviceService service = getService(DeviceService.class);
         for (Device device : getSortedDevices(service)) {
             printDevice(service, device);
         }
-        return null;
     }
 
     /**

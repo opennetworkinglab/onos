@@ -23,14 +23,13 @@ public class LinksListCommand extends AbstractShellCommand {
     String uri = null;
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         LinkService service = getService(LinkService.class);
         Iterable<Link> links = uri != null ?
                 service.getDeviceLinks(deviceId(uri)) : service.getLinks();
         for (Link link : links) {
             print(linkString(link));
         }
-        return null;
     }
 
     /**

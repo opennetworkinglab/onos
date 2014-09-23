@@ -29,13 +29,12 @@ public class PathListCommand extends TopologyCommand {
     String dst = null;
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         init();
         Set<Path> paths = service.getPaths(topology, deviceId(src), deviceId(dst));
         for (Path path : paths) {
             print(pathString(path));
         }
-        return null;
     }
 
     /**

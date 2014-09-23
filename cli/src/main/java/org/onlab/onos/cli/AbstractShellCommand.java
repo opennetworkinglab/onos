@@ -1,8 +1,8 @@
 package org.onlab.onos.cli;
 
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceNotFoundException;
 
 /**
  * Base abstraction of Karaf shell commands.
@@ -17,8 +17,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @return service implementation
      */
     public static <T> T get(Class<T> serviceClass) {
-        BundleContext bc = FrameworkUtil.getBundle(AbstractShellCommand.class).getBundleContext();
-        return bc.getService(bc.getServiceReference(serviceClass));
+        return DefaultServiceDirectory.getService(serviceClass);
     }
 
     /**
@@ -39,6 +38,21 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      */
     public static void error(String format, Object... args) {
         System.err.println(String.format(format, args));
+    }
+
+    /**
+     * Executes this command.
+     */
+    protected abstract void execute();
+
+    @Override
+    protected Object doExecute() throws Exception {
+        try {
+            execute();
+        } catch (ServiceNotFoundException e) {
+            error(e.getMessage());
+        }
+        return null;
     }
 
 }

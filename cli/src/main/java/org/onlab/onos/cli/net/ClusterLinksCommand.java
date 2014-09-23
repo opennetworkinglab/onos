@@ -20,7 +20,7 @@ public class ClusterLinksCommand extends ClustersListCommand {
     String id = null;
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         int cid = Integer.parseInt(id);
         init();
         TopologyCluster cluster = service.getCluster(topology, clusterId(cid));
@@ -31,7 +31,6 @@ public class ClusterLinksCommand extends ClustersListCommand {
                 print(linkString(link));
             }
         }
-        return null;
     }
 
 }

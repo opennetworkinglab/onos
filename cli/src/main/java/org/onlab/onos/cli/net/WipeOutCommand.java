@@ -16,7 +16,7 @@ import org.onlab.onos.net.host.HostService;
 public class WipeOutCommand extends ClustersListCommand {
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
         DeviceService deviceService = get(DeviceService.class);
         for (Device device : deviceService.getDevices()) {
@@ -28,7 +28,6 @@ public class WipeOutCommand extends ClustersListCommand {
         for (Host host : hostService.getHosts()) {
             hostAdminService.removeHost(host.id());
         }
-        return null;
     }
 
 

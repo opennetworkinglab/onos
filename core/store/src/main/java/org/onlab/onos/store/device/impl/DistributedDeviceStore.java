@@ -1,49 +1,5 @@
 package org.onlab.onos.store.device.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.PORT_ADDED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.PORT_REMOVED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.PORT_UPDATED;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.DefaultPort;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Element;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceStore;
-import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.StoreService;
-import org.onlab.util.KryoPool;
-import org.slf4j.Logger;
-
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -57,8 +13,42 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
 import com.hazelcast.core.MapEvent;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.DefaultDevice;
+import org.onlab.onos.net.DefaultPort;
+import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.Port;
+import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.device.DeviceDescription;
+import org.onlab.onos.net.device.DeviceEvent;
+import org.onlab.onos.net.device.DeviceStore;
+import org.onlab.onos.net.device.PortDescription;
+import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.StoreService;
+import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
+import org.slf4j.Logger;
 
-import de.javakaffee.kryoserializers.URISerializer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.net.device.DeviceEvent.Type.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -71,27 +61,6 @@ public class DistributedDeviceStore implements DeviceStore {
     private final Logger log = getLogger(getClass());
 
     public static final String DEVICE_NOT_FOUND = "Device with ID %s not found";
-
-    // FIXME Slice out types used in common to separate pool/namespace.
-    private static final KryoPool POOL = KryoPool.newBuilder()
-            .register(
-                    ArrayList.class,
-                    HashMap.class,
-
-                    Device.Type.class,
-
-                    DefaultDevice.class,
-                    MastershipRole.class,
-                    Port.class,
-                    Element.class
-                    )
-            .register(URI.class, new URISerializer())
-            .register(ProviderId.class, new ProviderIdSerializer())
-            .register(DeviceId.class, new DeviceIdSerializer())
-            .register(PortNumber.class, new PortNumberSerializer())
-            .register(DefaultPort.class, new DefaultPortSerializer())
-            .build()
-            .populate(10);
 
     // private IMap<DeviceId, DefaultDevice> cache;
     private IMap<byte[], byte[]> rawDevices;
@@ -126,33 +95,33 @@ public class DistributedDeviceStore implements DeviceStore {
 
         // TODO decide on Map name scheme to avoid collision
         rawDevices = theInstance.getMap("devices");
-        devices = new AbsentInvalidatingLoadingCache<DeviceId, DefaultDevice>(
+        devices = new AbsentInvalidatingLoadingCache<>(
                 CacheBuilder.newBuilder()
-                .build(new OptionalCacheLoader<DeviceId, DefaultDevice>(rawDevices)));
+                        .build(new OptionalCacheLoader<DeviceId, DefaultDevice>(rawDevices)));
         // refresh/populate cache based on notification from other instance
         rawDevices.addEntryListener(
-                new RemoteEventHandler<DeviceId, DefaultDevice>(devices),
+                new RemoteEventHandler<>(devices),
                 includeValue);
 
         rawRoles = theInstance.getMap("roles");
-        roles = new AbsentInvalidatingLoadingCache<DeviceId, MastershipRole>(
+        roles = new AbsentInvalidatingLoadingCache<>(
                 CacheBuilder.newBuilder()
-                .build(new OptionalCacheLoader<DeviceId, MastershipRole>(rawRoles)));
+                        .build(new OptionalCacheLoader<DeviceId, MastershipRole>(rawRoles)));
         // refresh/populate cache based on notification from other instance
         rawRoles.addEntryListener(
-                new RemoteEventHandler<DeviceId, MastershipRole>(roles),
+                new RemoteEventHandler<>(roles),
                 includeValue);
 
         // TODO cache avai
         availableDevices = theInstance.getSet("availableDevices");
 
         rawDevicePorts = theInstance.getMap("devicePorts");
-        devicePorts = new AbsentInvalidatingLoadingCache<DeviceId, Map<PortNumber, Port>>(
+        devicePorts = new AbsentInvalidatingLoadingCache<>(
                 CacheBuilder.newBuilder()
-                .build(new OptionalCacheLoader<DeviceId, Map<PortNumber, Port>>(rawDevicePorts)));
+                        .build(new OptionalCacheLoader<DeviceId, Map<PortNumber, Port>>(rawDevicePorts)));
         // refresh/populate cache based on notification from other instance
         rawDevicePorts.addEntryListener(
-                new RemoteEventHandler<DeviceId, Map<PortNumber, Port>>(devicePorts),
+                new RemoteEventHandler<>(devicePorts),
                 includeValue);
 
     }
@@ -181,7 +150,7 @@ public class DistributedDeviceStore implements DeviceStore {
 //        }
 
         // TODO builder v.s. copyOf. Guava semms to be using copyOf?
-        Builder<Device> builder = ImmutableSet.<Device>builder();
+        Builder<Device> builder = ImmutableSet.builder();
         for (Optional<DefaultDevice> e : devices.asMap().values()) {
             if (e.isPresent()) {
                 builder.add(e.get());
@@ -198,7 +167,7 @@ public class DistributedDeviceStore implements DeviceStore {
 
     @Override
     public DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
-                                     DeviceDescription deviceDescription) {
+                                            DeviceDescription deviceDescription) {
         DefaultDevice device = devices.getUnchecked(deviceId).orNull();
         if (device == null) {
             return createDevice(providerId, deviceId, deviceDescription);
@@ -223,7 +192,7 @@ public class DistributedDeviceStore implements DeviceStore {
 
             // For now claim the device as a master automatically.
             rawRoles.put(deviceIdBytes, serialize(MastershipRole.MASTER));
-            roles.put(deviceId,  Optional.of(MastershipRole.MASTER));
+            roles.put(deviceId, Optional.of(MastershipRole.MASTER));
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }
@@ -233,7 +202,7 @@ public class DistributedDeviceStore implements DeviceStore {
                                      DeviceDescription desc) {
         // We allow only certain attributes to trigger update
         if (!Objects.equals(device.hwVersion(), desc.hwVersion()) ||
-            !Objects.equals(device.swVersion(), desc.swVersion())) {
+                !Objects.equals(device.swVersion(), desc.swVersion())) {
 
             DefaultDevice updated = new DefaultDevice(providerId, device.id(),
                                                       desc.type(),
@@ -268,7 +237,7 @@ public class DistributedDeviceStore implements DeviceStore {
 
     @Override
     public List<DeviceEvent> updatePorts(DeviceId deviceId,
-                                  List<PortDescription> portDescriptions) {
+                                         List<PortDescription> portDescriptions) {
         List<DeviceEvent> events = new ArrayList<>();
         synchronized (this) {
             Device device = devices.getUnchecked(deviceId).orNull();
@@ -366,7 +335,7 @@ public class DistributedDeviceStore implements DeviceStore {
 
     @Override
     public DeviceEvent updatePortStatus(DeviceId deviceId,
-                                 PortDescription portDescription) {
+                                        PortDescription portDescription) {
         synchronized (this) {
             Device device = devices.getUnchecked(deviceId).orNull();
             checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
@@ -428,16 +397,12 @@ public class DistributedDeviceStore implements DeviceStore {
     }
 
     // TODO cache serialized DeviceID if we suffer from serialization cost
-
-    private static byte[] serialize(final Object obj) {
-        return POOL.serialize(obj);
+    private byte[] serialize(final Object obj) {
+        return storeService.serialize(obj);
     }
 
-    private static <T> T deserialize(final byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
-        return POOL.deserialize(bytes);
+    private <T> T deserialize(final byte[] bytes) {
+        return storeService.deserialize(bytes);
     }
 
     /**
@@ -446,7 +411,7 @@ public class DistributedDeviceStore implements DeviceStore {
      * @param <K> IMap key type after deserialization
      * @param <V> IMap value type after deserialization
      */
-    public static final class RemoteEventHandler<K, V> extends
+    public final class RemoteEventHandler<K, V> extends
             EntryAdapter<byte[], byte[]> {
 
         private LoadingCache<K, Optional<V>> cache;
@@ -468,14 +433,13 @@ public class DistributedDeviceStore implements DeviceStore {
 
         @Override
         public void entryUpdated(EntryEvent<byte[], byte[]> event) {
-            cache.put(POOL.<K>deserialize(event.getKey()),
-                        Optional.of(POOL.<V>deserialize(
-                                        event.getValue())));
+            cache.put(storeService.<K>deserialize(event.getKey()),
+                      Optional.of(storeService.<V>deserialize(event.getValue())));
         }
 
         @Override
         public void entryRemoved(EntryEvent<byte[], byte[]> event) {
-            cache.invalidate(POOL.<DeviceId>deserialize(event.getKey()));
+            cache.invalidate(storeService.<DeviceId>deserialize(event.getKey()));
         }
 
         @Override
@@ -491,7 +455,7 @@ public class DistributedDeviceStore implements DeviceStore {
      * @param <K> IMap key type after deserialization
      * @param <V> IMap value type after deserialization
      */
-    public static final class OptionalCacheLoader<K, V> extends
+    public final class OptionalCacheLoader<K, V> extends
             CacheLoader<K, Optional<V>> {
 
         private IMap<byte[], byte[]> rawMap;
@@ -507,7 +471,7 @@ public class DistributedDeviceStore implements DeviceStore {
 
         @Override
         public Optional<V> load(K key) throws Exception {
-            byte[] keyBytes = serialize(key);
+            byte[] keyBytes = storeService.serialize(key);
             byte[] valBytes = rawMap.get(keyBytes);
             if (valBytes == null) {
                 return Optional.absent();

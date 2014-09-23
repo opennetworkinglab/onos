@@ -29,12 +29,11 @@ public class HostsListCommand extends AbstractShellCommand {
     };
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         HostService service = getService(HostService.class);
         for (Host host : getSortedHosts(service)) {
             printHost(host);
         }
-        return null;
     }
 
     /**
