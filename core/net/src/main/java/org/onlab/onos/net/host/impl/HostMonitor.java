@@ -128,9 +128,11 @@ public class HostMonitor implements TimerTask {
                 ConnectPoint cp = new ConnectPoint(device.id(), port.number());
                 PortAddresses addresses = hostStore.getAddressBindingsForPort(cp);
 
-                if (addresses.ip().contains(targetIp)) {
-                    sendProbe(device.id(), port, addresses, targetIp);
-                }
+                /*for (IpPrefix prefix : addresses.ips()) {
+                    if (prefix.contains(targetIp)) {
+                        sendProbe(device.id(), port, addresses, targetIp);
+                    }
+                }*/
             }
         }
 
@@ -173,7 +175,7 @@ public class HostMonitor implements TimerTask {
         }
 
         arp.setSenderHardwareAddress(sourceMacAddress)
-           .setSenderProtocolAddress(portAddresses.ip().toOctets())
+           //TODO .setSenderProtocolAddress(portAddresses.ips().toOctets())
            .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
            .setTargetProtocolAddress(targetIp.toOctets());
 

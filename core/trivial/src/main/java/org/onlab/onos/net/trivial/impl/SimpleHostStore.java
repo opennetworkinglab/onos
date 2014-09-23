@@ -198,12 +198,19 @@ public class SimpleHostStore implements HostStore {
 
     @Override
     public void updateAddressBindings(PortAddresses addresses) {
-        portAddresses.put(addresses.connectPoint(), addresses);
+        // TODO portAddresses.put(addresses.connectPoint(), addresses);
     }
 
     @Override
-    public void removeAddressBindings(ConnectPoint connectPoint) {
-        portAddresses.remove(connectPoint);
+    public void removeAddressBindings(PortAddresses addresses) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void clearAddressBindings(ConnectPoint connectPoint) {
+        // TODO Auto-generated method stub
+
     }
 
     @Override

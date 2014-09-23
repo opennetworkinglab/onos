@@ -99,11 +99,20 @@ public interface HostStore {
     Set<Host> getConnectedHosts(DeviceId deviceId);
 
     /**
-     * Updates the address information for a given port.
+     * Updates the address information for a given port. The given address
+     * information is added to any previously held information for the port.
      *
      * @param addresses the port and address information
      */
     void updateAddressBindings(PortAddresses addresses);
+
+    /**
+     * Removes the given addresses from the set of address information held for
+     * a port.
+     *
+     * @param addresses the port and address information
+     */
+    void removeAddressBindings(PortAddresses addresses);
 
     /**
      * Removes any previously stored address information for a given connection
@@ -111,7 +120,7 @@ public interface HostStore {
      *
      * @param connectPoint the connection point
      */
-    void removeAddressBindings(ConnectPoint connectPoint);
+    void clearAddressBindings(ConnectPoint connectPoint);
 
     /**
      * Returns the address bindings stored for all connection points.

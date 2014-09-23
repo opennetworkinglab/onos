@@ -155,14 +155,18 @@ public class HostManager
     }
 
     @Override
-    public void bindAddressesToPort(IpAddress ip, MacAddress mac,
-            ConnectPoint connectPoint) {
-        store.updateAddressBindings(new DefaultPortAddresses(connectPoint, ip, mac));
+    public void bindAddressesToPort(PortAddresses addresses) {
+        store.updateAddressBindings(addresses);
     }
 
     @Override
-    public void unbindAddressesFromPort(ConnectPoint connectPoint) {
-        store.removeAddressBindings(connectPoint);
+    public void unbindAddressesFromPort(PortAddresses portAddresses) {
+        store.removeAddressBindings(portAddresses);
+    }
+
+    @Override
+    public void clearAddresses(ConnectPoint connectPoint) {
+        store.clearAddressBindings(connectPoint);
     }
 
     @Override

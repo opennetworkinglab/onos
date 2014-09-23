@@ -4,8 +4,6 @@ import java.util.Set;
 
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.HostId;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 
 /**
  * Service for administering the inventory of end-station hosts.
@@ -20,26 +18,34 @@ public interface HostAdminService {
     void removeHost(HostId hostId);
 
     /**
-     * Binds an IP address and optional MAC address to the given connection
-     * point.
+     * Binds IP and MAC addresses to the given connection point.
      * <p/>
-     * This method will overwrite any previously held address information for
-     * the connection point.
+     * The addresses are added to the set of addresses already bound to the
+     * connection point. If any of the fields in addresses is null, no change
+     * is made to the corresponding addresses in the store.
+     * {@link #unbindAddressesFromPort(PortAddresses)} must be use to unbind
+     * addresses that have previously been bound.
      *
-     * @param ip the IP address to bind to the connection point. This parameter
-     * is mandatory and cannot be null.
-     * @param mac the optional MAC address to bind to the connection point. Can
-     * be set to null if no MAC address needs to be bound.
-     * @param connectPoint the connection point to bind the addresses to
+     * @param addresses address object containing addresses to add and the port
+     * to add them to
      */
-    void bindAddressesToPort(IpAddress ip, MacAddress mac, ConnectPoint connectPoint);
+    void bindAddressesToPort(PortAddresses addresses);
+
+    /**
+     * Removes the addresses contained in the given PortAddresses object from
+     * the set of addresses bound to the port.
+     *
+     * @param portAddresses set of addresses to remove and port to remove them
+     * from
+     */
+    void unbindAddressesFromPort(PortAddresses portAddresses);
 
     /**
      * Removes all address information for the given connection point.
      *
      * @param connectPoint the connection point to remove address information
      */
-    void unbindAddressesFromPort(ConnectPoint connectPoint);
+    void clearAddresses(ConnectPoint connectPoint);
 
     /**
      * Returns the addresses information for all connection points.
