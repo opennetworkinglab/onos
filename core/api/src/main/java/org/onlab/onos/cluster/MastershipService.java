@@ -49,6 +49,6 @@ public interface MastershipService {
      *
      * @param listener the mastership listener
      */
-    void removeListemer(MastershipListener listener);
+    void removeListener(MastershipListener listener);
 
 }
