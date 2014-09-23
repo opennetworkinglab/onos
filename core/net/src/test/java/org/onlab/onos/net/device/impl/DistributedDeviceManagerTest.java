@@ -1,5 +1,6 @@
 package org.onlab.onos.net.device.impl;
 
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.store.StoreService;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
 
 import com.google.common.collect.Iterables;
@@ -76,7 +78,6 @@ public class DistributedDeviceManagerTest {
         service = mgr;
         admin = mgr;
         registry = mgr;
-        dstore = new DistributedDeviceStore();
         // FIXME should be reading the hazelcast.xml
         Config config = new Config();
         // avoid accidentally joining other cluster
@@ -88,7 +89,7 @@ public class DistributedDeviceManagerTest {
         config.getNetworkConfig().getJoin()
             .getMulticastConfig()
             .setEnabled(false);
-        dstore.theInstance = Hazelcast.newHazelcastInstance(config);
+        dstore = new TestDistributedDeviceStore(Hazelcast.newHazelcastInstance(config));
         dstore.activate();
         mgr.store = dstore;
         mgr.eventDispatcher = new TestEventDispatcher();
@@ -280,4 +281,14 @@ public class DistributedDeviceManagerTest {
         }
     }
 
+    private class TestDistributedDeviceStore extends DistributedDeviceStore {
+        public TestDistributedDeviceStore(final HazelcastInstance hazelcastInstance) {
+            storeService = new StoreService() {
+                @Override
+                public HazelcastInstance getHazelcastInstance() {
+                    return hazelcastInstance;
+                }
+            };
+        }
+    }
 }

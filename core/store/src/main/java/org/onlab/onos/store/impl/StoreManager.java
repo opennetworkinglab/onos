@@ -19,7 +19,7 @@ public class StoreManager implements StoreService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private HazelcastInstance instance;
+    protected HazelcastInstance instance;
 
     @Activate
     public void activate() {
