@@ -25,7 +25,7 @@ public class DeviceRoleCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         MastershipRole mastershipRole = MastershipRole.valueOf(role.toUpperCase());
-        getService(DeviceAdminService.class).setRole(DeviceId.deviceId(uri),
+        get(DeviceAdminService.class).setRole(DeviceId.deviceId(uri),
                                                      mastershipRole);
     }
 

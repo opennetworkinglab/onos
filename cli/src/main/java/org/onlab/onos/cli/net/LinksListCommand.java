@@ -24,7 +24,7 @@ public class LinksListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        LinkService service = getService(LinkService.class);
+        LinkService service = get(LinkService.class);
         Iterable<Link> links = uri != null ?
                 service.getDeviceLinks(deviceId(uri)) : service.getLinks();
         for (Link link : links) {

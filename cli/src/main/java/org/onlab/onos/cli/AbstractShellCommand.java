@@ -15,6 +15,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @param serviceClass service class
      * @param <T>          type of service
      * @return service implementation
+     * @throws org.onlab.osgi.ServiceNotFoundException if service is unavailable
      */
     public static <T> T get(Class<T> serviceClass) {
         return DefaultServiceDirectory.getService(serviceClass);
@@ -26,7 +27,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @param format format string; see {@link String#format}
      * @param args   arguments
      */
-    public static void print(String format, Object... args) {
+    public void print(String format, Object... args) {
         System.out.println(String.format(format, args));
     }
 
@@ -36,7 +37,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @param format format string; see {@link String#format}
      * @param args   arguments
      */
-    public static void error(String format, Object... args) {
+    public void error(String format, Object... args) {
         System.err.println(String.format(format, args));
     }
 

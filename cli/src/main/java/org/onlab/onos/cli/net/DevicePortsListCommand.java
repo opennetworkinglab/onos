@@ -36,7 +36,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
 
     @Override
     protected void execute() {
-        DeviceService service = getService(DeviceService.class);
+        DeviceService service = get(DeviceService.class);
         if (uri == null) {
             for (Device device : getSortedDevices(service)) {
                 printDevice(service, device);

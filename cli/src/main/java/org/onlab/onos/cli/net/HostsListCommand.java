@@ -30,7 +30,7 @@ public class HostsListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        HostService service = getService(HostService.class);
+        HostService service = get(HostService.class);
         for (Host host : getSortedHosts(service)) {
             printHost(host);
         }

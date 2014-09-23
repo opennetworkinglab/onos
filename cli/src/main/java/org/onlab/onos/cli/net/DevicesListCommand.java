@@ -30,7 +30,7 @@ public class DevicesListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        DeviceService service = getService(DeviceService.class);
+        DeviceService service = get(DeviceService.class);
         for (Device device : getSortedDevices(service)) {
             printDevice(service, device);
         }

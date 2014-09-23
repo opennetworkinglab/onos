@@ -23,7 +23,7 @@ public class TopologyCommand extends AbstractShellCommand {
      * Initializes the context for all cluster commands.
      */
     protected void init() {
-        service = getService(TopologyService.class);
+        service = get(TopologyService.class);
         topology = service.currentTopology();
     }
 

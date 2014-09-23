@@ -30,6 +30,7 @@ alias mci='mvn clean install'
 
 # Short-hand for ONOS build from the top of the source tree.
 alias ob='o && mvn clean install javadoc:aggregate'
+alias ot='onos-test'
 
 # Short-hand for tailing the ONOS (karaf) log 
 alias tl='$ONOS_ROOT/tools/dev/watchLog'

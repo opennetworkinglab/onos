@@ -19,7 +19,7 @@ public class DeviceRemoveCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        getService(DeviceAdminService.class).removeDevice(DeviceId.deviceId(uri));
+        get(DeviceAdminService.class).removeDevice(DeviceId.deviceId(uri));
     }
 
 }

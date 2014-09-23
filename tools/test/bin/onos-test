@@ -1,11 +1,13 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Remotely configures & starts ONOS for the first time.
+# Launches the ONOS tests on the current cell environment.
 #-------------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-remote=$ONOS_USER@${1:-$OCI}
+nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
-echo "Deprecated!"
+onos-package
+for node in $nodes; do onos-install -f $node; done
+for node in $nodes; do onos-wait-for-start $node; done
