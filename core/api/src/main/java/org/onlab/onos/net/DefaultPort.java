@@ -2,13 +2,7 @@ package org.onlab.onos.net;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Set;
-
-import org.onlab.packet.IpPrefix;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Default port implementation.
@@ -19,36 +13,18 @@ public class DefaultPort implements Port {
     private final PortNumber number;
     private final boolean isEnabled;
 
-    // Attributes
-    private final Set<IpPrefix> ipAddresses;
-
-    /**
-     * Creates a network element attributed to the specified provider.
-     *
-     * @param element   parent network element
-     * @param number    port number
-     * @param isEnabled indicator whether the port is up and active
-     */
-    public DefaultPort(Element element, PortNumber number,
-                       boolean isEnabled) {
-        this(element, number, isEnabled, null);
-    }
-
     /**
      * Creates a network element attributed to the specified provider.
      *
      * @param element     parent network element
      * @param number      port number
      * @param isEnabled   indicator whether the port is up and active
-     * @param ipAddresses set of IP addresses assigned to the port
      */
     public DefaultPort(Element element, PortNumber number,
-                       boolean isEnabled, Set<IpPrefix> ipAddresses) {
+                       boolean isEnabled) {
         this.element = element;
         this.number = number;
         this.isEnabled = isEnabled;
-        this.ipAddresses = (ipAddresses == null) ? Collections.<IpPrefix>emptySet() :
-            ImmutableSet.copyOf(ipAddresses);
     }
 
     @Override
@@ -92,11 +68,6 @@ public class DefaultPort implements Port {
     @Override
     public Element element() {
         return element;
-    }
-
-    @Override
-    public Set<IpPrefix> ipAddresses() {
-        return ipAddresses;
     }
 
 }

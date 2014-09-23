@@ -1,7 +1,8 @@
-# Default virtual box ONOS instances 1,2 & 3
+# Default virtual box ONOS instances 1,2 & ONOS mininet box
 
 export OC1="192.168.56.101"
 export OC2="192.168.56.102"
-export OC3="192.168.56.103"
+
+export OCN="192.168.56.103"
 
 

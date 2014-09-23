@@ -37,6 +37,9 @@ public interface MastershipService {
      */
     MastershipRole requestRoleFor(DeviceId deviceId);
 
+    // TODO: add facet for requesting a different master than the current one;
+    // abandon mastership (due to loss of connection)
+
     /**
      * Adds the specified mastership change listener.
      *

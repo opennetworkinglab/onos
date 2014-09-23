@@ -29,8 +29,8 @@ public class NodesListCommand extends AbstractShellCommand {
     };
 
     @Override
-    protected Object doExecute() throws Exception {
-        ClusterService service = getService(ClusterService.class);
+    protected void execute() {
+        ClusterService service = get(ClusterService.class);
         List<ControllerNode> nodes = newArrayList(service.getNodes());
         Collections.sort(nodes, ID_COMPARATOR);
         ControllerNode self = service.getLocalNode();
@@ -39,7 +39,6 @@ public class NodesListCommand extends AbstractShellCommand {
                   service.getState(node.id()),
                   node.equals(self) ? "*" : "");
         }
-        return null;
     }
 
 }

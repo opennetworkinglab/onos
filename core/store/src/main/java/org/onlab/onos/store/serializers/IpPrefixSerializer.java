@@ -1,4 +1,4 @@
-package org.onlab.onos.store.device.impl;
+package org.onlab.onos.store.serializers;
 
 import org.onlab.packet.IpPrefix;
 

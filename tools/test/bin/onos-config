@@ -8,25 +8,4 @@
 
 remote=$ONOS_USER@${1:-$OCI}
 
-LOG=$ONOS_INSTALL_DIR/config.log
-onos=$ONOS_INSTALL_DIR/bin/onos
-
-ssh $remote "
-    # Wait until we reach the run-level 100
-    echo 'Waiting for cluster bootstrap...'
-    running=""
-    while [ -z \$running ]; do
-        $onos bundle:list 2>>$LOG | grep -q 'START LEVEL 100' && running=1 || sleep 2
-    done
-
-    echo 'Installing ONOS bundles...'
-    $onos cluster:feature-install default onos-api 1>>$LOG 2>&1
-  # $onos cluster:feature-install default onos-core 1>>$LOG 2>&1
-    $onos cluster:feature-install default onos-core-trivial 1>>$LOG 2>&1
-    $onos cluster:feature-install default onos-openflow 1>>$LOG 2>&1
-    $onos cluster:feature-install default onos-cli 1>>$LOG 2>&1
-  # $onos cluster:feature-install default onos-gui 1>>$LOG 2>&1
-  # $onos cluster:feature-install default onos-rest 1>>$LOG 2>&1
-    $onos cluster:feature-install default onos-app-tvue 1>>$LOG 2>&1
-    $onos cluster:feature-install default onos-app-fwd 1>>$LOG 2>&1
-"
+echo "Deprecated!"

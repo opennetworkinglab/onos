@@ -23,16 +23,15 @@ public class TopologyCommand extends AbstractShellCommand {
      * Initializes the context for all cluster commands.
      */
     protected void init() {
-        service = getService(TopologyService.class);
+        service = get(TopologyService.class);
         topology = service.currentTopology();
     }
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         init();
         print(FMT, topology.time(), topology.deviceCount(), topology.linkCount(),
               topology.clusterCount(), topology.pathCount());
-        return null;
     }
 
 }

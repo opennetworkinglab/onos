@@ -35,8 +35,8 @@ public class DevicePortsListCommand extends DevicesListCommand {
     };
 
     @Override
-    protected Object doExecute() throws Exception {
-        DeviceService service = getService(DeviceService.class);
+    protected void execute() {
+        DeviceService service = get(DeviceService.class);
         if (uri == null) {
             for (Device device : getSortedDevices(service)) {
                 printDevice(service, device);
@@ -49,7 +49,6 @@ public class DevicePortsListCommand extends DevicesListCommand {
                 printDevice(service, device);
             }
         }
-        return null;
     }
 
     @Override

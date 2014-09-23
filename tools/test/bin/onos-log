@@ -14,6 +14,7 @@ trap "ssh $remote 'ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | 
 
 ssh $remote "
     while true; do
+        echo ==================================================================
         [ ! -f $LOG ] && sleep 2 && continue
         tail -n 512 --follow=name $LOG --sleep-interval 2
     done

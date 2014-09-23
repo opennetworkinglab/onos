@@ -31,7 +31,7 @@ public class ClusterDevicesCommand extends ClustersListCommand {
     };
 
     @Override
-    protected Object doExecute() throws Exception {
+    protected void execute() {
         int cid = Integer.parseInt(id);
         init();
         TopologyCluster cluster = service.getCluster(topology, clusterId(cid));
@@ -44,8 +44,6 @@ public class ClusterDevicesCommand extends ClustersListCommand {
                 print("%s", deviceId);
             }
         }
-
-        return null;
     }
 
 

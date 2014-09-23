@@ -15,7 +15,7 @@ public interface DeviceAdminService {
      * @param role     requested role
      * @deprecated Will be removed in favor of MastershipAdminService.setRole()
      */
-    @Deprecated
+//    @Deprecated
     void setRole(DeviceId deviceId, MastershipRole role);
 
     /**
