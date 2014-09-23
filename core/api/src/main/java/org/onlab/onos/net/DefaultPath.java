@@ -57,11 +57,14 @@ public class DefaultPath extends DefaultLink implements Path {
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + Objects.hash(links);
+        return Objects.hash(links);
     }
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultPath) {
             final DefaultPath other = (DefaultPath) obj;
             return Objects.equals(this.links, other.links);

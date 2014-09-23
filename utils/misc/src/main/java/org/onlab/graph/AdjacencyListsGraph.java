@@ -80,6 +80,9 @@ public class AdjacencyListsGraph<V extends Vertex, E extends Edge<V>>
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof AdjacencyListsGraph) {
             AdjacencyListsGraph that = (AdjacencyListsGraph) obj;
             return this.getClass() == that.getClass() &&

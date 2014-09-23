@@ -38,14 +38,14 @@ public interface MastershipService {
     MastershipRole requestRoleFor(DeviceId deviceId);
 
     /**
-     * Adds the specified mastership listener.
+     * Adds the specified mastership change listener.
      *
      * @param listener the mastership listener
      */
     void addListener(MastershipListener listener);
 
     /**
-     * Removes the specified device listener.
+     * Removes the specified mastership change listener.
      *
      * @param listener the mastership listener
      */

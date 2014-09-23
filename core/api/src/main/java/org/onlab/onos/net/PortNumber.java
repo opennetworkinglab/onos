@@ -79,6 +79,9 @@ public final class PortNumber {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof PortNumber) {
             final PortNumber other = (PortNumber) obj;
             return this.number == other.number;

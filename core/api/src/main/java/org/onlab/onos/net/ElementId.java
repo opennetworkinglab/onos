@@ -40,6 +40,9 @@ public abstract class ElementId {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof ElementId) {
             final ElementId that = (ElementId) obj;
             return this.getClass() == that.getClass() &&

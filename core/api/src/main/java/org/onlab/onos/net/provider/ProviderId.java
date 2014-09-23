@@ -50,12 +50,12 @@ public class ProviderId {
         if (this == obj) {
             return true;
         }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
+        if (obj instanceof ProviderId) {
+            final ProviderId other = (ProviderId) obj;
+            return Objects.equals(this.scheme, other.scheme) &&
+                    Objects.equals(this.id, other.id);
         }
-        final ProviderId other = (ProviderId) obj;
-        return Objects.equals(this.scheme, other.scheme) &&
-                Objects.equals(this.id, other.id);
+        return false;
     }
 
     @Override

@@ -21,9 +21,19 @@ public interface ClusterService {
      * @return availability state
      */
     ControllerInstance.State getState(ControllerInstance instance);
-    // TODO: determine if this would be better attached to ControllerInstance directly
 
+    /**
+     * Adds the specified cluster event listener.
+     *
+     * @param listener the cluster listener
+     */
+    void addListener(ClusterEventListener listener);
 
-    // addListener, removeListener
+    /**
+     * Removes the specified cluster event listener.
+     *
+     * @param listener the cluster listener
+     */
+    void removeListener(ClusterEventListener listener);
 
 }

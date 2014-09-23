@@ -53,6 +53,9 @@ public class DefaultLink extends AbstractModel implements Link {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultLink) {
             final DefaultLink other = (DefaultLink) obj;
             return Objects.equals(this.src, other.src) &&

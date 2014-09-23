@@ -107,6 +107,9 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultMutablePath) {
             final DefaultMutablePath other = (DefaultMutablePath) obj;
             return Objects.equals(this.cost, other.cost) &&

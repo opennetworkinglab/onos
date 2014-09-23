@@ -85,6 +85,9 @@ public class DefaultDevice extends AbstractElement implements Device {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof DefaultDevice) {
             final DefaultDevice other = (DefaultDevice) obj;
             return Objects.equals(this.id, other.id) &&

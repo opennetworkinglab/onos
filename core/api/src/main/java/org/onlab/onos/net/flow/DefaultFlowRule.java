@@ -147,7 +147,6 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public boolean equals(Object obj) {
-
         if (this == obj) {
             return true;
         }

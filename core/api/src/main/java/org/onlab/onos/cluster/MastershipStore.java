@@ -20,8 +20,8 @@ public interface MastershipStore {
      * @param role     new role
      * @return a mastership event
      */
-    MastershipEvent setRole(
-            InstanceId instance, DeviceId deviceId, MastershipRole role);
+    MastershipEvent setRole(InstanceId instance, DeviceId deviceId,
+                            MastershipRole role);
 
     /**
      * Adds or updates the mastership information for a device.
@@ -31,8 +31,8 @@ public interface MastershipStore {
      * @param role     new role
      * @return a mastership event
      */
-    MastershipEvent addOrUpdateDevice(
-            InstanceId instance, DeviceId deviceId, MastershipRole role);
+    MastershipEvent addOrUpdateDevice(InstanceId instance, DeviceId deviceId,
+                                      MastershipRole role);
 
     /**
      * Returns the master for a device.
@@ -45,7 +45,7 @@ public interface MastershipStore {
     /**
      * Returns the devices that a controller instance is master of.
      *
-     * @param  instanceId the instance identifier
+     * @param instanceId the instance identifier
      * @return a set of device identifiers
      */
     Set<DeviceId> getDevices(InstanceId instanceId);
@@ -54,7 +54,7 @@ public interface MastershipStore {
      * Returns the role of a device for a specific controller instance.
      *
      * @param instanceId the instance identifier
-     * @param deviceId the device identifiers
+     * @param deviceId   the device identifiers
      * @return the role
      */
     MastershipRole getRole(InstanceId instanceId, DeviceId deviceId);

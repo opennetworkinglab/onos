@@ -8,7 +8,7 @@ import org.onlab.onos.event.AbstractEvent;
 public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerInstance> {
 
     /**
-     * Type of device events.
+     * Type of cluster-related events.
      */
     public enum Type {
         /**
@@ -24,14 +24,13 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerIns
         /**
          * Signifies that a cluster instance became active.
          */
-        INSTANCE_ACTIVE,
+        INSTANCE_ACTIVATED,
 
         /**
          * Signifies that a cluster instance became inactive.
          */
-        INSTANCE_INACTIVE
+        INSTANCE_DEACTIVATED
     }
-    // TODO: do we need to fix the verv/adjective mix? discuss
 
     /**
      * Creates an event of a given type and for the specified instance and the

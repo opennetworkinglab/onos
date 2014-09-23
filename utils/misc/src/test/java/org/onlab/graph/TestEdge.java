@@ -39,6 +39,9 @@ public class TestEdge extends AbstractEdge<TestVertex> {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof TestEdge) {
             final TestEdge other = (TestEdge) obj;
             return super.equals(obj) && Objects.equals(this.weight, other.weight);

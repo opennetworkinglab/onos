@@ -54,6 +54,9 @@ public class DefaultInboundPacket implements InboundPacket {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof InboundPacket) {
             final DefaultInboundPacket other = (DefaultInboundPacket) obj;
             return Objects.equals(this.receivedFrom, other.receivedFrom) &&
