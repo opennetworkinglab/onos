@@ -168,6 +168,7 @@ public class DefaultFlowRule implements FlowRule {
                 .add("selector", selector)
                 .add("treatment", treatment)
                 .add("created", created)
+                .add("state", state)
                 .toString();
     }
 

@@ -84,8 +84,9 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
+        FlowRule f;
         for (int i = 0; i < flowRules.length; i++) {
-            FlowRule f = new DefaultFlowRule(flowRules[i], FlowRuleState.PENDING_REMOVE);
+            f = new DefaultFlowRule(flowRules[i], FlowRuleState.PENDING_REMOVE);
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
             store.deleteFlowRule(f);
@@ -134,7 +135,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void flowMissing(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            log.info("Flow {} has not been installed.");
+            log.info("Flow {} has not been installed.", flowRule);
 
         }
 
@@ -142,7 +143,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            log.info("Flow {} is on switch but not in store.");
+            log.info("Flow {} is on switch but not in store.", flowRule);
         }
 
         @Override
@@ -170,8 +171,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowRule> flowEntries) {
             List<FlowRule> storedRules = Lists.newLinkedList(store.getFlowEntries(deviceId));
-            //List<FlowRule> switchRules = Lists.newLinkedList(flowEntries);
-            Iterator<FlowRule> switchRulesIterator = flowEntries.iterator(); //switchRules.iterator();
+
+            Iterator<FlowRule> switchRulesIterator = flowEntries.iterator();
 
             while (switchRulesIterator.hasNext()) {
                 FlowRule rule = switchRulesIterator.next();

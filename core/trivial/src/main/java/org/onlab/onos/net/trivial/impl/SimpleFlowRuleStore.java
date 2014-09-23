@@ -60,6 +60,7 @@ public class SimpleFlowRuleStore implements FlowRuleStore {
          *  find the rule and mark it for deletion.
          *  Ultimately a flow removed will come remove it.
          */
+
         if (flowEntries.containsEntry(did, rule)) {
             synchronized (flowEntries) {
 
