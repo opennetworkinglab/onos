@@ -8,8 +8,14 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 // TODO move to util, etc.
+/**
+ * Kryo Serializer for {@link IpPrefix}.
+ */
 public final class IpPrefixSerializer extends Serializer<IpPrefix> {
 
+    /**
+     * Default constructor.
+     */
     public IpPrefixSerializer() {
         // non-null, immutable
         super(false, true);

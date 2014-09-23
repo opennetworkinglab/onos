@@ -7,9 +7,6 @@ import java.net.URI;
  */
 public final class DeviceId extends ElementId {
 
-    // Default constructor for serialization
-    protected DeviceId() {}
-
     // Public construction is prohibited
     private DeviceId(URI uri) {
         super(uri);

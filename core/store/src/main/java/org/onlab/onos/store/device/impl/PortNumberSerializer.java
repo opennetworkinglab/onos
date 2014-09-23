@@ -8,9 +8,15 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 // TODO move to util, etc.
+/**
+ * Serializer for {@link PortNumber}.
+ */
 public final class PortNumberSerializer extends
         Serializer<PortNumber> {
 
+    /**
+     * Default constructor.
+     */
     public PortNumberSerializer() {
         // non-null, immutable
         super(false, true);

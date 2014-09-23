@@ -44,6 +44,10 @@ import org.onlab.onos.store.StoreService;
 import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -68,103 +72,26 @@ import de.javakaffee.kryoserializers.URISerializer;
 @Service
 public class DistributedDeviceStore implements DeviceStore {
 
-    /**
-     * An IMap EntryListener, which reflects each remote event to cache.
-     *
-     * @param <K> IMap key type after deserialization
-     * @param <V> IMap value type after deserialization
-     */
-    public static final class RemoteEventHandler<K, V> extends
-            EntryAdapter<byte[], byte[]> {
-
-        private LoadingCache<K, Optional<V>> cache;
-
-        /**
-         * Constructor.
-         *
-         * @param cache cache to update
-         */
-        public RemoteEventHandler(
-                LoadingCache<K, Optional<V>> cache) {
-            this.cache = checkNotNull(cache);
-        }
-
-        @Override
-        public void mapCleared(MapEvent event) {
-            cache.invalidateAll();
-        }
-
-        @Override
-        public void entryUpdated(EntryEvent<byte[], byte[]> event) {
-            cache.put(POOL.<K>deserialize(event.getKey()),
-                        Optional.of(POOL.<V>deserialize(
-                                        event.getValue())));
-        }
-
-        @Override
-        public void entryRemoved(EntryEvent<byte[], byte[]> event) {
-            cache.invalidate(POOL.<DeviceId>deserialize(event.getKey()));
-        }
-
-        @Override
-        public void entryAdded(EntryEvent<byte[], byte[]> event) {
-            entryUpdated(event);
-        }
-    }
-
-    /**
-     * CacheLoader to wrap Map value with Optional,
-     * to handle negative hit on underlying IMap.
-     *
-     * @param <K> IMap key type after deserialization
-     * @param <V> IMap value type after deserialization
-     */
-    public static final class OptionalCacheLoader<K, V> extends
-            CacheLoader<K, Optional<V>> {
-
-        private IMap<byte[], byte[]> rawMap;
-
-        /**
-         * Constructor.
-         *
-         * @param rawMap underlying IMap
-         */
-        public OptionalCacheLoader(IMap<byte[], byte[]> rawMap) {
-            this.rawMap = checkNotNull(rawMap);
-        }
-
-        @Override
-        public Optional<V> load(K key) throws Exception {
-            byte[] keyBytes = serialize(key);
-            byte[] valBytes = rawMap.get(keyBytes);
-            if (valBytes == null) {
-                return Optional.absent();
-            }
-            V dev = deserialize(valBytes);
-            return Optional.of(dev);
-        }
-    }
-
     private final Logger log = getLogger(getClass());
 
     public static final String DEVICE_NOT_FOUND = "Device with ID %s not found";
 
     // FIXME Slice out types used in common to separate pool/namespace.
     private static final KryoPool POOL = KryoPool.newBuilder()
-            .register(URI.class, new URISerializer())
             .register(
                     ArrayList.class,
+                    HashMap.class,
 
-                    ProviderId.class,
                     Device.Type.class,
 
-                    DeviceId.class,
                     DefaultDevice.class,
                     MastershipRole.class,
-                    HashMap.class,
                     Port.class,
                     Element.class
                     )
+            .register(URI.class, new URISerializer())
+            .register(ProviderId.class, new ProviderIdSerializer())
+            .register(DeviceId.class, new DeviceIdSerializer())
             .register(PortNumber.class, new PortNumberSerializer())
             .register(DefaultPort.class, new DefaultPortSerializer())
             .build()
@@ -190,7 +117,7 @@ public class DistributedDeviceStore implements DeviceStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StoreService storeService;
 
-    /*protected*/public HazelcastInstance theInstance;
+    protected HazelcastInstance theInstance;
 
 
     @Activate
@@ -517,4 +444,94 @@ public class DistributedDeviceStore implements DeviceStore {
         return POOL.deserialize(bytes);
     }
 
+    public static final class DeviceIdSerializer extends Serializer<DeviceId> {
+
+        @Override
+        public void write(Kryo kryo, Output output, DeviceId object) {
+            kryo.writeObject(output, object.uri());
+        }
+
+        @Override
+        public DeviceId read(Kryo kryo, Input input, Class<DeviceId> type) {
+            final URI uri = kryo.readObject(input, URI.class);
+            return DeviceId.deviceId(uri);
+        }
+    }
+
+    /**
+     * An IMap EntryListener, which reflects each remote event to cache.
+     *
+     * @param <K> IMap key type after deserialization
+     * @param <V> IMap value type after deserialization
+     */
+    public static final class RemoteEventHandler<K, V> extends
+            EntryAdapter<byte[], byte[]> {
+
+        private LoadingCache<K, Optional<V>> cache;
+
+        /**
+         * Constructor.
+         *
+         * @param cache cache to update
+         */
+        public RemoteEventHandler(
+                LoadingCache<K, Optional<V>> cache) {
+            this.cache = checkNotNull(cache);
+        }
+
+        @Override
+        public void mapCleared(MapEvent event) {
+            cache.invalidateAll();
+        }
+
+        @Override
+        public void entryUpdated(EntryEvent<byte[], byte[]> event) {
+            cache.put(POOL.<K>deserialize(event.getKey()),
+                        Optional.of(POOL.<V>deserialize(
+                                        event.getValue())));
+        }
+
+        @Override
+        public void entryRemoved(EntryEvent<byte[], byte[]> event) {
+            cache.invalidate(POOL.<DeviceId>deserialize(event.getKey()));
+        }
+
+        @Override
+        public void entryAdded(EntryEvent<byte[], byte[]> event) {
+            entryUpdated(event);
+        }
+    }
+
+    /**
+     * CacheLoader to wrap Map value with Optional,
+     * to handle negative hit on underlying IMap.
+     *
+     * @param <K> IMap key type after deserialization
+     * @param <V> IMap value type after deserialization
+     */
+    public static final class OptionalCacheLoader<K, V> extends
+            CacheLoader<K, Optional<V>> {
+
+        private IMap<byte[], byte[]> rawMap;
+
+        /**
+         * Constructor.
+         *
+         * @param rawMap underlying IMap
+         */
+        public OptionalCacheLoader(IMap<byte[], byte[]> rawMap) {
+            this.rawMap = checkNotNull(rawMap);
+        }
+
+        @Override
+        public Optional<V> load(K key) throws Exception {
+            byte[] keyBytes = serialize(key);
+            byte[] valBytes = rawMap.get(keyBytes);
+            if (valBytes == null) {
+                return Optional.absent();
+            }
+            V dev = deserialize(valBytes);
+            return Optional.of(dev);
+        }
+    }
 }

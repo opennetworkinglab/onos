@@ -112,7 +112,7 @@ public class DistributedDeviceManagerTest {
         mgr.deactivate();
 
         dstore.deactivate();
-        dstore.theInstance.shutdown();
+        ((TestDistributedDeviceStore) dstore).shutdownHz();
     }
 
     private void connectDevice(DeviceId deviceId, String swVersion) {
@@ -289,6 +289,13 @@ public class DistributedDeviceManagerTest {
                     return hazelcastInstance;
                 }
             };
+        }
+
+        /**
+         * Shutdowns the hazelcast instance.
+         */
+        public void shutdownHz() {
+            theInstance.shutdown();
         }
     }
 }
