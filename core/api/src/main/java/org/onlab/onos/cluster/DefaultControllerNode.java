@@ -14,6 +14,12 @@ public class DefaultControllerNode implements ControllerNode {
     private final NodeId id;
     private final IpPrefix ip;
 
+    // For serialization
+    private DefaultControllerNode() {
+        this.id = null;
+        this.ip = null;
+    }
+
     /**
      * Creates a new instance with the specified id and IP address.
      *
