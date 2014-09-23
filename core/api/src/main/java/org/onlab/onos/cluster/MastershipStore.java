@@ -25,7 +25,7 @@ public interface MastershipStore {
                             MastershipRole role);
 
     /**
-     * Adds or updates the mastership information for a device.
+     * Adds or updates mastership information for a device.
      *
      * @param instance controller instance identifier
      * @param deviceId device identifier
