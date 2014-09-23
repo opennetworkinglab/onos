@@ -157,26 +157,22 @@ public class HostManager
     @Override
     public void bindAddressesToPort(IpAddress ip, MacAddress mac,
             ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-
+        store.updateAddressBindings(new DefaultPortAddresses(connectPoint, ip, mac));
     }
 
     @Override
     public void unbindAddressesFromPort(ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-
+        store.removeAddressBindings(connectPoint);
     }
 
     @Override
     public Set<PortAddresses> getAddressBindings() {
-        // TODO Auto-generated method stub
-        return null;
+        return store.getAddressBindings();
     }
 
     @Override
     public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-        return null;
+        return store.getAddressBindingsForPort(connectPoint);
     }
 
     // Personalized host provider service issued to the supplied provider.
