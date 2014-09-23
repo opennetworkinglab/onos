@@ -13,6 +13,6 @@ public interface MastershipProviderService extends
      * @param deviceId the device ID
      * @param role the new mastership role of this controller instance
      */
-    void roleChanged(DeviceId deviceId, MastershipRole role);
+    void roleChanged(NodeId nodeId, DeviceId deviceId, MastershipRole role);
 
 }

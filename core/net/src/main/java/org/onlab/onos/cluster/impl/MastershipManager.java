@@ -20,13 +20,15 @@ import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class MastershipManager implements MastershipService,
-        MastershipAdminService {
+public class MastershipManager
+        extends AbstractProviderRegistry<MastershipProvider, MastershipProviderService>
+        implements MastershipService, MastershipAdminService {
 
     private static final String NODE_ID_NULL = "Node ID cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -57,7 +59,6 @@ public class MastershipManager implements MastershipService,
         eventDispatcher.removeSink(MastershipEvent.class);
         log.info("Stopped");
     }
-
 
     @Override
     public void setRole(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
@@ -98,6 +99,12 @@ public class MastershipManager implements MastershipService,
         listenerRegistry.removeListener(listener);
     }
 
+    @Override
+    protected MastershipProviderService createProviderService(
+            MastershipProvider provider) {
+        return new InternalMastershipProviderService(provider);
+    }
+
     private class InternalMastershipProviderService
             extends AbstractProviderService<MastershipProvider>
             implements MastershipProviderService {
@@ -107,9 +114,11 @@ public class MastershipManager implements MastershipService,
         }
 
         @Override
-        public void roleChanged(DeviceId deviceId, MastershipRole role) {
+        public void roleChanged(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
             // TODO Auto-generated method stub
-
+            MastershipEvent event =
+                    store.addOrUpdateDevice(nodeId, deviceId, role);
+            post(event);
         }
     }
 
@@ -119,4 +128,5 @@ public class MastershipManager implements MastershipService,
             eventDispatcher.post(event);
         }
     }
+
 }
