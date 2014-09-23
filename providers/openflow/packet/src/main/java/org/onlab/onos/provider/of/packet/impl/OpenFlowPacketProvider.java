@@ -1,5 +1,6 @@
 package org.onlab.onos.provider.of.packet.impl;
 
+import static org.onlab.onos.openflow.controller.RoleState.SLAVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
@@ -16,6 +17,7 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.packet.DefaultInboundPacket;
+import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;
 import org.onlab.onos.net.packet.PacketProvider;
 import org.onlab.onos.net.packet.PacketProviderRegistry;
@@ -35,8 +37,6 @@ import org.projectfloodlight.openflow.protocol.ver10.OFFactoryVer10;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
-
-import static org.onlab.onos.openflow.controller.RoleState.*;
 
 
 /**
@@ -152,9 +152,15 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                     new ConnectPoint(id, PortNumber.portNumber(pktCtx.inPort())),
                     pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()));
 
+            DefaultOutboundPacket outPkt = null;
+            if (!pktCtx.isBuffered()) {
+                outPkt = new DefaultOutboundPacket(id, null,
+                        ByteBuffer.wrap(pktCtx.unparsed()));
+            }
+
             OpenFlowCorePacketContext corePktCtx =
                     new OpenFlowCorePacketContext(System.currentTimeMillis(),
-                            inPkt, null, pktCtx.isHandled(), pktCtx);
+                            inPkt, outPkt, pktCtx.isHandled(), pktCtx);
             providerService.processPacket(corePktCtx);
         }
 

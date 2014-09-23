@@ -1,5 +1,9 @@
 package org.onlab.onos.fwd;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,10 +30,6 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
-
-import java.util.Set;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive forwarding application.
@@ -101,8 +101,8 @@ public class ReactiveForwarding {
             // Otherwise, get a set of paths that lead from here to the
             // destination edge switch.
             Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
-                                                       pkt.receivedFrom().deviceId(),
-                                                       dst.location().deviceId());
+                    pkt.receivedFrom().deviceId(),
+                    dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
                 flood(context);
@@ -114,8 +114,8 @@ public class ReactiveForwarding {
             Path path = pickForwardPath(paths, pkt.receivedFrom().port());
             if (path == null) {
                 log.warn("Doh... don't know where to go... {} -> {} received on {}",
-                         ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
-                         pkt.receivedFrom().port());
+                        ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
+                        pkt.receivedFrom());
                 flood(context);
                 return;
             }
@@ -139,7 +139,7 @@ public class ReactiveForwarding {
     // Floods the specified packet if permissible.
     private void flood(PacketContext context) {
         if (topologyService.isBroadcastPoint(topologyService.currentTopology(),
-                                             context.inPacket().receivedFrom())) {
+                context.inPacket().receivedFrom())) {
             packetOut(context, PortNumber.FLOOD);
         } else {
             context.block();
@@ -161,15 +161,15 @@ public class ReactiveForwarding {
         Ethernet inPkt = context.inPacket().parsed();
         TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
         builder.add(Criteria.matchEthType(inPkt.getEtherType()))
-                .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
-                .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
-                .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
+        .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
+        .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
+        .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
 
         TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
         treat.add(Instructions.createOutput(portNumber));
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                                         builder.build(), treat.build(), 0);
+                builder.build(), treat.build(), 0);
 
         flowRuleService.applyFlowRules(f);
     }

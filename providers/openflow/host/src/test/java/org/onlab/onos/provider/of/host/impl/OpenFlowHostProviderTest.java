@@ -225,5 +225,10 @@ public class OpenFlowHostProviderTest {
             return false;
         }
 
+        @Override
+        public boolean isBuffered() {
+            return false;
+        }
+
     }
 }

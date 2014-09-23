@@ -25,9 +25,12 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     private final OFPacketIn pktin;
     private OFPacketOut pktout = null;
 
+    private final boolean isBuffered;
+
     private DefaultOpenFlowPacketContext(OpenFlowSwitch s, OFPacketIn pkt) {
         this.sw = s;
         this.pktin = pkt;
+        this.isBuffered = pktin.getBufferId() != OFBufferId.NO_BUFFER;
     }
 
     @Override
@@ -115,6 +118,11 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     @Override
     public boolean isHandled() {
         return !free.get();
+    }
+
+    @Override
+    public boolean isBuffered() {
+        return isBuffered;
     }
 
 }

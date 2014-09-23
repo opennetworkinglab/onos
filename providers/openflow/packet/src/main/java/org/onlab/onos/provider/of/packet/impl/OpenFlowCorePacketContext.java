@@ -32,18 +32,19 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
     public void send() {
         if (!this.block()) {
             if (outPacket() == null) {
-                sendBufferedPacket();
+                sendPacket(null);
             } else {
                 Ethernet eth = new Ethernet();
                 eth.deserialize(outPacket().data().array(), 0,
                         outPacket().data().array().length);
-                ofPktCtx.build(eth, OFPort.FLOOD);
+                sendPacket(eth);
+
             }
 
         }
     }
 
-    private void sendBufferedPacket() {
+    private void sendPacket(Ethernet eth) {
         List<Instruction> ins = treatmentBuilder().build().instructions();
         OFPort p = null;
         //TODO: support arbitrary list of treatments must be supported in ofPacketContext
@@ -53,10 +54,13 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
                 break; //for now...
             }
         }
-        ofPktCtx.build(p);
+        if (eth == null) {
+            ofPktCtx.build(p);
+        } else {
+            ofPktCtx.build(eth, p);
+        }
         ofPktCtx.send();
     }
-
     private OFPort buildPort(PortNumber port) {
         return OFPort.of((int) port.toLong());
     }

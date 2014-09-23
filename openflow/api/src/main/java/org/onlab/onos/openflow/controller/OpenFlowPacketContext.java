@@ -67,4 +67,10 @@ public interface OpenFlowPacketContext {
      * @return the port
      */
     public Integer inPort();
+
+    /**
+     * Indicates that this packet is buffered at the switch.
+     * @return buffer indication
+     */
+    boolean isBuffered();
 }
