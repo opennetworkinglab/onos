@@ -171,8 +171,8 @@ public class DistributedDeviceStore extends AbstractDistributedStore
             availableDevices.add(deviceIdBytes);
 
             // For now claim the device as a master automatically.
-            rawRoles.put(deviceIdBytes, serialize(MastershipRole.MASTER));
-            roles.put(deviceId, Optional.of(MastershipRole.MASTER));
+            //rawRoles.put(deviceIdBytes, serialize(MastershipRole.MASTER));
+            //roles.put(deviceId, Optional.of(MastershipRole.MASTER));
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }
