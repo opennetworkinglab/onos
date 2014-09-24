@@ -33,20 +33,18 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
 import org.onlab.onos.store.impl.StoreManager;
+import org.onlab.onos.store.impl.TestStoreManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
-// FIXME This test is painfully slow starting up Hazelcast on each test cases,
-//       turning it off in repository for now.
+// FIXME This test is slow starting up Hazelcast on each test cases.
 // FIXME DistributedDeviceStore should have it's own test cases.
 
 /**
@@ -84,17 +82,8 @@ public class DistributedDeviceManagerTest {
         service = mgr;
         admin = mgr;
         registry = mgr;
-        // FIXME should be reading the hazelcast.xml
-        Config config = new Config();
-        // avoid accidentally joining other cluster
-        config.getGroupConfig().setName(UUID.randomUUID().toString());
-        // quickly form single node cluster
-        config.getNetworkConfig().getJoin()
-                .getTcpIpConfig()
-                .setEnabled(true).setConnectionTimeoutSeconds(0);
-        config.getNetworkConfig().getJoin()
-                .getMulticastConfig()
-                .setEnabled(false);
+        // TODO should find a way to clean Hazelcast instance without shutdown.
+        Config config = TestStoreManager.getTestConfig();
 
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
@@ -288,18 +277,8 @@ public class DistributedDeviceManagerTest {
         }
     }
 
-    private class TestStoreManager extends StoreManager {
-        TestStoreManager(HazelcastInstance instance) {
-            this.instance = instance;
-        }
-
-        @Override
-        public void activate() {
-            setupKryoPool();
-        }
-    }
-
     private static class TestMastershipService extends MastershipServiceAdapter {
+
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
@@ -315,5 +294,4 @@ public class DistributedDeviceManagerTest {
             return MastershipRole.MASTER;
         }
     }
-
 }

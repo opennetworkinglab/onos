@@ -110,6 +110,7 @@ public class DistributedDeviceStore
 
     @Deactivate
     public void deactivate() {
+
         log.info("Stopped");
     }
 
