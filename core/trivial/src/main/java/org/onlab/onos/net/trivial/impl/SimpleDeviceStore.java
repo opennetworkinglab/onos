@@ -15,8 +15,10 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
+import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -40,7 +42,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleDeviceStore implements DeviceStore {
+public class SimpleDeviceStore
+        extends AbstractStore<DeviceEvent, DeviceStoreDelegate>
+        implements DeviceStore {
 
     private final Logger log = getLogger(getClass());
 

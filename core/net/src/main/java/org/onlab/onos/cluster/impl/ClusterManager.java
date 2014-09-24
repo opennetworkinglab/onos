@@ -11,6 +11,7 @@ import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ClusterStore;
+import org.onlab.onos.cluster.ClusterStoreDelegate;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
@@ -32,6 +33,8 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     public static final String INSTANCE_ID_NULL = "Instance ID cannot be null";
     private final Logger log = getLogger(getClass());
 
+    private ClusterStoreDelegate delegate = new InternalStoreDelegate();
+
     protected final AbstractListenerRegistry<ClusterEvent, ClusterEventListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
@@ -43,12 +46,14 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         eventDispatcher.addSink(ClusterEvent.class, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(ClusterEvent.class);
         log.info("Stopped");
     }
@@ -89,5 +94,14 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     @Override
     public void removeListener(ClusterEventListener listener) {
         listenerRegistry.removeListener(listener);
+    }
+
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements ClusterStoreDelegate {
+        @Override
+        public void notify(ClusterEvent event) {
+            checkNotNull(event, "Event cannot be null");
+            eventDispatcher.post(event);
+        }
     }
 }

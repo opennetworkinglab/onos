@@ -1,6 +1,7 @@
 package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.ProviderService;
 
 import java.util.List;
@@ -44,5 +45,14 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      * @param portDescription description of the port that changed
      */
     void portStatusChanged(DeviceId deviceId, PortDescription portDescription);
+
+    /**
+     * Notifies the core about the providers inability to assert the specified
+     * mastership role on the device.
+     *
+     * @param deviceId identity of the device
+     * @param role mastership role being asserted
+     */
+    void unableToAssertRole(DeviceId deviceId, MastershipRole role);
 
 }

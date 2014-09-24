@@ -26,6 +26,7 @@ import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.DeviceStore;
+import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
@@ -33,8 +34,8 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -57,7 +58,9 @@ public class DeviceManager
     protected final AbstractListenerRegistry<DeviceEvent, DeviceListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final MastershipListener mastershipListener = new InnerMastershipListener();
+    private DeviceStoreDelegate delegate = new InternalStoreDelegate();
+
+    private final MastershipListener mastershipListener = new InternalMastershipListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceStore store;
@@ -73,6 +76,7 @@ public class DeviceManager
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
         mastershipService.addListener(mastershipListener);
         log.info("Started");
@@ -80,6 +84,7 @@ public class DeviceManager
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         mastershipService.removeListener(mastershipListener);
         eventDispatcher.removeSink(DeviceEvent.class);
         log.info("Stopped");
@@ -224,6 +229,11 @@ public class DeviceManager
                 post(event);
             }
         }
+
+        @Override
+        public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
+            // FIXME: implement response to this notification
+        }
     }
 
     // Posts the specified event to the local event dispatcher.
@@ -234,13 +244,21 @@ public class DeviceManager
     }
 
     // Intercepts mastership events
-    private class InnerMastershipListener implements MastershipListener {
+    private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
             // FIXME: for now we're taking action only on becoming master
             if (event.master().equals(clusterService.getLocalNode().id())) {
                 applyRole(event.subject(), MastershipRole.MASTER);
             }
+        }
+    }
+
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements DeviceStoreDelegate {
+        @Override
+        public void notify(DeviceEvent event) {
+            post(event);
         }
     }
 }

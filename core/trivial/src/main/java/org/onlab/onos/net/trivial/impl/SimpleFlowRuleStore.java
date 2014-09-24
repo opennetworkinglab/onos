@@ -13,6 +13,8 @@ import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
+import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
+import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -24,7 +26,9 @@ import com.google.common.collect.Multimap;
  */
 @Component(immediate = true)
 @Service
-public class SimpleFlowRuleStore implements FlowRuleStore {
+public class SimpleFlowRuleStore
+        extends AbstractStore<FlowRuleEvent, FlowRuleStoreDelegate>
+        implements FlowRuleStore {
 
     private final Logger log = getLogger(getClass());
 

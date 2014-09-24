@@ -1,20 +1,21 @@
 package org.onlab.onos.net.host;
 
-import java.util.Set;
-
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Store;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
+import java.util.Set;
+
 /**
  * Manages inventory of end-station hosts; not intended for direct use.
  */
-public interface HostStore {
+public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
 
     /**
      * Creates a new host or updates the existing one based on the specified
@@ -133,7 +134,7 @@ public interface HostStore {
      * Returns the address bindings for a particular connection point.
      *
      * @param connectPoint the connection point to return address information
-     * for
+     *                     for
      * @return address information for the connection point
      */
     PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint);

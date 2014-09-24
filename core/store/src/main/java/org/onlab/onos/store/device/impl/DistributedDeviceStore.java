@@ -21,6 +21,7 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
+import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
@@ -48,7 +49,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class DistributedDeviceStore extends AbstractDistributedStore
+public class DistributedDeviceStore
+        extends AbstractDistributedStore<DeviceEvent, DeviceStoreDelegate>
         implements DeviceStore {
 
     private final Logger log = getLogger(getClass());
