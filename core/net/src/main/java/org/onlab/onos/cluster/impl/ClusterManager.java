@@ -6,6 +6,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterAdminService;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
@@ -26,7 +27,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class ClusterManager implements ClusterService {
+public class ClusterManager implements ClusterService, ClusterAdminService {
 
     public static final String INSTANCE_ID_NULL = "Instance ID cannot be null";
     private final Logger log = getLogger(getClass());
@@ -72,6 +73,12 @@ public class ClusterManager implements ClusterService {
     public ControllerNode.State getState(NodeId nodeId) {
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getState(nodeId);
+    }
+
+    @Override
+    public void removeNode(NodeId nodeId) {
+        checkNotNull(nodeId, INSTANCE_ID_NULL);
+        store.removeNode(nodeId);
     }
 
     @Override

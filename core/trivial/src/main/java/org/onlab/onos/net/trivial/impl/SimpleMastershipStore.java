@@ -38,7 +38,7 @@ public class SimpleMastershipStore implements MastershipStore {
     private ControllerNode instance;
 
     protected final ConcurrentMap<DeviceId, MastershipRole> roleMap =
-            new ConcurrentHashMap<DeviceId, MastershipRole>();
+            new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -53,20 +53,12 @@ public class SimpleMastershipStore implements MastershipStore {
 
     @Override
     public MastershipEvent setRole(NodeId nodeId, DeviceId deviceId,
-            MastershipRole role) {
+                                   MastershipRole role) {
         if (roleMap.get(deviceId) == null) {
             return null;
         }
         roleMap.put(deviceId, role);
         return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
-    }
-
-    @Override
-    public MastershipEvent addOrUpdateDevice(NodeId instance,
-            DeviceId deviceId, MastershipRole role) {
-        //TODO refine when we do listeners
-        roleMap.put(deviceId, role);
-        return null;
     }
 
     @Override
@@ -77,6 +69,11 @@ public class SimpleMastershipStore implements MastershipStore {
     @Override
     public Set<DeviceId> getDevices(NodeId nodeId) {
         return Collections.unmodifiableSet(roleMap.keySet());
+    }
+
+    @Override
+    public MastershipRole requestRole(DeviceId deviceId) {
+        return getRole(instance.id(), deviceId);
     }
 
     @Override

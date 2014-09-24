@@ -5,12 +5,10 @@ import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.cluster.MastershipListener;
-import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.MastershipServiceAdapter;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.impl.TestEventDispatcher;
@@ -50,6 +48,7 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 // FIXME This test is painfully slow starting up Hazelcast on each test cases,
 //       turning it off in repository for now.
 // FIXME DistributedDeviceStore should have it's own test cases.
+
 /**
  * Test codifying the device service & device provider service contracts.
  */
@@ -91,11 +90,11 @@ public class DistributedDeviceManagerTest {
         config.getGroupConfig().setName(UUID.randomUUID().toString());
         // quickly form single node cluster
         config.getNetworkConfig().getJoin()
-            .getTcpIpConfig()
-            .setEnabled(true).setConnectionTimeoutSeconds(0);
+                .getTcpIpConfig()
+                .setEnabled(true).setConnectionTimeoutSeconds(0);
         config.getNetworkConfig().getJoin()
-            .getMulticastConfig()
-            .setEnabled(false);
+                .getMulticastConfig()
+                .setEnabled(false);
 
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
@@ -183,16 +182,6 @@ public class DistributedDeviceManagerTest {
     public void getRole() {
         connectDevice(DID1, SW1);
         assertEquals("incorrect role", MastershipRole.MASTER, service.getRole(DID1));
-    }
-
-    @Test
-    public void setRole() throws InterruptedException {
-        connectDevice(DID1, SW1);
-        admin.setRole(DID1, MastershipRole.STANDBY);
-        validateEvents(DEVICE_ADDED, DEVICE_MASTERSHIP_CHANGED);
-        assertEquals("incorrect role", MastershipRole.STANDBY, service.getRole(DID1));
-        assertEquals("incorrect device", DID1, provider.deviceReceived.id());
-        assertEquals("incorrect role", MastershipRole.STANDBY, provider.roleReceived);
     }
 
     @Test
@@ -310,11 +299,10 @@ public class DistributedDeviceManagerTest {
         }
     }
 
-    private static class TestMastershipService implements MastershipService {
-
+    private static class TestMastershipService extends MastershipServiceAdapter {
         @Override
-        public NodeId getMasterFor(DeviceId deviceId) {
-            return null;
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return MastershipRole.MASTER;
         }
 
         @Override
@@ -326,15 +314,6 @@ public class DistributedDeviceManagerTest {
         public MastershipRole requestRoleFor(DeviceId deviceId) {
             return MastershipRole.MASTER;
         }
-
-        @Override
-        public void addListener(MastershipListener listener) {
-        }
-
-        @Override
-        public void removeListener(MastershipListener listener) {
-        }
-
     }
 
 }

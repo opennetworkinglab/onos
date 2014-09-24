@@ -1,23 +1,15 @@
 package org.onlab.onos.store.device.impl;
 
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
-import com.hazelcast.core.EntryAdapter;
-import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
-import com.hazelcast.core.MapEvent;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
@@ -31,8 +23,8 @@ import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.StoreService;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
+import org.onlab.onos.store.impl.AbstractDistributedStore;
 import org.onlab.onos.store.impl.OptionalCacheLoader;
 import org.slf4j.Logger;
 
@@ -47,17 +39,17 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.cache.CacheBuilder.newBuilder;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
-
 
 /**
  * Manages inventory of infrastructure devices using Hazelcast-backed map.
  */
 @Component(immediate = true)
 @Service
-public class DistributedDeviceStore implements DeviceStore {
+public class DistributedDeviceStore extends AbstractDistributedStore
+        implements DeviceStore {
 
     private final Logger log = getLogger(getClass());
 
@@ -79,16 +71,9 @@ public class DistributedDeviceStore implements DeviceStore {
     private IMap<byte[], byte[]> rawDevicePorts;
     private LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> devicePorts;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StoreService storeService;
-
-    protected HazelcastInstance theInstance;
-
-
     @Activate
     public void activate() {
-        log.info("Started");
-        theInstance = storeService.getHazelcastInstance();
+        super.activate();
 
         // IMap event handler needs value
         final boolean includeValue = true;
@@ -96,40 +81,29 @@ public class DistributedDeviceStore implements DeviceStore {
         // TODO decide on Map name scheme to avoid collision
         rawDevices = theInstance.getMap("devices");
         final OptionalCacheLoader<DeviceId, DefaultDevice> deviceLoader
-            = new OptionalCacheLoader<>(storeService, rawDevices);
-        devices = new AbsentInvalidatingLoadingCache<>(
-                CacheBuilder.newBuilder()
-                        .build(deviceLoader));
+                = new OptionalCacheLoader<>(storeService, rawDevices);
+        devices = new AbsentInvalidatingLoadingCache<>(newBuilder().build(deviceLoader));
         // refresh/populate cache based on notification from other instance
-        rawDevices.addEntryListener(
-                new RemoteEventHandler<>(devices),
-                includeValue);
+        rawDevices.addEntryListener(new RemoteEventHandler<>(devices), includeValue);
 
         rawRoles = theInstance.getMap("roles");
         final OptionalCacheLoader<DeviceId, MastershipRole> rolesLoader
-            = new OptionalCacheLoader<>(storeService, rawRoles);
-        roles = new AbsentInvalidatingLoadingCache<>(
-                CacheBuilder.newBuilder()
-                        .build(rolesLoader));
+                = new OptionalCacheLoader<>(storeService, rawRoles);
+        roles = new AbsentInvalidatingLoadingCache<>(newBuilder().build(rolesLoader));
         // refresh/populate cache based on notification from other instance
-        rawRoles.addEntryListener(
-                new RemoteEventHandler<>(roles),
-                includeValue);
+        rawRoles.addEntryListener(new RemoteEventHandler<>(roles), includeValue);
 
         // TODO cache availableDevices
         availableDevices = theInstance.getSet("availableDevices");
 
         rawDevicePorts = theInstance.getMap("devicePorts");
         final OptionalCacheLoader<DeviceId, Map<PortNumber, Port>> devicePortLoader
-            = new OptionalCacheLoader<>(storeService, rawDevicePorts);
-        devicePorts = new AbsentInvalidatingLoadingCache<>(
-                CacheBuilder.newBuilder()
-                        .build(devicePortLoader));
+                = new OptionalCacheLoader<>(storeService, rawDevicePorts);
+        devicePorts = new AbsentInvalidatingLoadingCache<>(newBuilder().build(devicePortLoader));
         // refresh/populate cache based on notification from other instance
-        rawDevicePorts.addEntryListener(
-                new RemoteEventHandler<>(devicePorts),
-                includeValue);
+        rawDevicePorts.addEntryListener(new RemoteEventHandler<>(devicePorts), includeValue);
 
+        log.info("Started");
     }
 
     @Deactivate
@@ -369,25 +343,6 @@ public class DistributedDeviceStore implements DeviceStore {
     }
 
     @Override
-    public MastershipRole getRole(DeviceId deviceId) {
-        MastershipRole role = roles.getUnchecked(deviceId).orNull();
-        return role != null ? role : MastershipRole.NONE;
-    }
-
-    @Override
-    public DeviceEvent setRole(DeviceId deviceId, MastershipRole role) {
-        synchronized (this) {
-            Device device = getDevice(deviceId);
-            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
-            MastershipRole oldRole = deserialize(
-                    rawRoles.put(serialize(deviceId), serialize(role)));
-            roles.put(deviceId, Optional.of(role));
-            return oldRole == role ? null :
-                    new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device, null);
-        }
-    }
-
-    @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
         synchronized (this) {
             byte[] deviceIdBytes = serialize(deviceId);
@@ -403,54 +358,5 @@ public class DistributedDeviceStore implements DeviceStore {
     }
 
     // TODO cache serialized DeviceID if we suffer from serialization cost
-    private byte[] serialize(final Object obj) {
-        return storeService.serialize(obj);
-    }
 
-    private <T> T deserialize(final byte[] bytes) {
-        return storeService.deserialize(bytes);
-    }
-
-    /**
-     * An IMap EntryListener, which reflects each remote event to cache.
-     *
-     * @param <K> IMap key type after deserialization
-     * @param <V> IMap value type after deserialization
-     */
-    public final class RemoteEventHandler<K, V> extends
-            EntryAdapter<byte[], byte[]> {
-
-        private LoadingCache<K, Optional<V>> cache;
-
-        /**
-         * Constructor.
-         *
-         * @param cache cache to update
-         */
-        public RemoteEventHandler(
-                LoadingCache<K, Optional<V>> cache) {
-            this.cache = checkNotNull(cache);
-        }
-
-        @Override
-        public void mapCleared(MapEvent event) {
-            cache.invalidateAll();
-        }
-
-        @Override
-        public void entryUpdated(EntryEvent<byte[], byte[]> event) {
-            cache.put(storeService.<K>deserialize(event.getKey()),
-                      Optional.of(storeService.<V>deserialize(event.getValue())));
-        }
-
-        @Override
-        public void entryRemoved(EntryEvent<byte[], byte[]> event) {
-            cache.invalidate(storeService.<K>deserialize(event.getKey()));
-        }
-
-        @Override
-        public void entryAdded(EntryEvent<byte[], byte[]> event) {
-            entryUpdated(event);
-        }
-    }
 }

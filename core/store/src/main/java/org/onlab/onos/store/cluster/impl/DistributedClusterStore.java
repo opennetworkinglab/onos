@@ -1,52 +1,74 @@
 package org.onlab.onos.store.cluster.impl;
 
+import com.google.common.base.Optional;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.Member;
+import com.hazelcast.core.MemberAttributeEvent;
+import com.hazelcast.core.MembershipEvent;
+import com.hazelcast.core.MembershipListener;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterStore;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.StoreService;
+import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
+import org.onlab.onos.store.impl.AbstractDistributedStore;
+import org.onlab.onos.store.impl.OptionalCacheLoader;
 import org.onlab.packet.IpPrefix;
-import org.slf4j.Logger;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.cache.CacheBuilder.newBuilder;
+import static org.onlab.onos.cluster.ControllerNode.State;
 
 /**
  * Distributed implementation of the cluster nodes store.
  */
 @Component(immediate = true)
 @Service
-public class DistributedClusterStore implements ClusterStore {
+public class DistributedClusterStore extends AbstractDistributedStore
+        implements ClusterStore {
 
-    private final Logger log = getLogger(getClass());
+    private IMap<byte[], byte[]> rawNodes;
+    private LoadingCache<NodeId, Optional<DefaultControllerNode>> nodes;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StoreService storeService;
-
-    private HazelcastInstance theInstance;
-
-    // FIXME: experimental implementation; enhance to assure persistence and
-    // visibility to nodes that are not currently in the cluster
+    private String listenerId;
+    private final MembershipListener listener = new InnerMembershipListener();
+    private final Map<NodeId, State> states = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
-        log.info("Started");
-        theInstance = storeService.getHazelcastInstance();
+        super.activate();
+        listenerId = theInstance.getCluster().addMembershipListener(listener);
 
+        rawNodes = theInstance.getMap("nodes");
+        OptionalCacheLoader<NodeId, DefaultControllerNode> nodeLoader
+                = new OptionalCacheLoader<>(storeService, rawNodes);
+        nodes = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
+        rawNodes.addEntryListener(new RemoteEventHandler<>(nodes), true);
+
+        loadClusterNodes();
+
+        log.info("Started");
+    }
+
+    // Loads the initial set of cluster nodes
+    private void loadClusterNodes() {
+        for (Member member : theInstance.getCluster().getMembers()) {
+            addMember(member);
+        }
     }
 
     @Deactivate
     public void deactivate() {
+        theInstance.getCluster().removeMembershipListener(listenerId);
         log.info("Stopped");
     }
 
@@ -58,30 +80,71 @@ public class DistributedClusterStore implements ClusterStore {
     @Override
     public Set<ControllerNode> getNodes() {
         ImmutableSet.Builder<ControllerNode> builder = ImmutableSet.builder();
-        for (Member member : theInstance.getCluster().getMembers()) {
-            builder.add(node(member));
+        for (Optional<DefaultControllerNode> optional : nodes.asMap().values()) {
+            builder.add(optional.get());
         }
         return builder.build();
     }
 
     @Override
     public ControllerNode getNode(NodeId nodeId) {
-        for (Member member : theInstance.getCluster().getMembers()) {
-            if (member.getUuid().equals(nodeId.toString())) {
-                return node(member);
-            }
-        }
-        return null;
+        return nodes.getUnchecked(nodeId).orNull();
     }
 
     @Override
-    public ControllerNode.State getState(NodeId nodeId) {
-        return ControllerNode.State.ACTIVE;
+    public State getState(NodeId nodeId) {
+        State state = states.get(nodeId);
+        return state == null ? State.INACTIVE : state;
+    }
+
+    @Override
+    public void removeNode(NodeId nodeId) {
+        synchronized (this) {
+            rawNodes.remove(serialize(nodeId));
+            nodes.invalidate(nodeId);
+        }
+    }
+
+    // Adds a new node based on the specified member
+    private synchronized void addMember(Member member) {
+        DefaultControllerNode node = node(member);
+        rawNodes.put(serialize(node.id()), serialize(node));
+        nodes.put(node.id(), Optional.of(node));
+        states.put(node.id(), State.ACTIVE);
     }
 
     // Creates a controller node descriptor from the Hazelcast member.
-    private ControllerNode node(Member member) {
-        return new DefaultControllerNode(new NodeId(member.getUuid()),
-                                         IpPrefix.valueOf(member.getSocketAddress().getAddress().getAddress()));
+    private DefaultControllerNode node(Member member) {
+        IpPrefix ip = memberAddress(member);
+        return new DefaultControllerNode(new NodeId(ip.toString()), ip);
+    }
+
+    private IpPrefix memberAddress(Member member) {
+        byte[] address = member.getSocketAddress().getAddress().getAddress();
+        return IpPrefix.valueOf(address);
+    }
+
+    // Interceptor for membership events.
+    private class InnerMembershipListener implements MembershipListener {
+        @Override
+        public void memberAdded(MembershipEvent membershipEvent) {
+            log.info("Member {} added", membershipEvent.getMember());
+            addMember(membershipEvent.getMember());
+        }
+
+        @Override
+        public void memberRemoved(MembershipEvent membershipEvent) {
+            log.info("Member {} removed", membershipEvent.getMember());
+            states.put(new NodeId(memberAddress(membershipEvent.getMember()).toString()),
+                       State.INACTIVE);
+        }
+
+        @Override
+        public void memberAttributeChanged(MemberAttributeEvent memberAttributeEvent) {
+            log.info("Member {} attribute {} changed to {}",
+                     memberAttributeEvent.getMember(),
+                     memberAttributeEvent.getKey(),
+                     memberAttributeEvent.getValue());
+        }
     }
 }

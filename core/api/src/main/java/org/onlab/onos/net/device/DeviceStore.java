@@ -2,7 +2,6 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
@@ -102,23 +101,6 @@ public interface DeviceStore {
      * @return true if device is available
      */
     boolean isAvailable(DeviceId deviceId);
-
-    /**
-     * Returns the mastership role determined for this device.
-     *
-     * @param deviceId device identifier
-     * @return mastership role
-     */
-    MastershipRole getRole(DeviceId deviceId);
-
-    /**
-     * Administratively sets the role of the specified device.
-     *
-     * @param deviceId device identifier
-     * @param role     mastership role to apply
-     * @return mastership role change event or null if no change
-     */
-    DeviceEvent setRole(DeviceId deviceId, MastershipRole role);
 
     /**
      * Administratively removes the specified device from the store.

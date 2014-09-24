@@ -62,4 +62,8 @@ public class SimpleClusterStore implements ClusterStore {
         return ControllerNode.State.ACTIVE;
     }
 
+    @Override
+    public void removeNode(NodeId nodeId) {
+    }
+
 }

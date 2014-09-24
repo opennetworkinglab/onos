@@ -14,26 +14,21 @@ public interface MastershipStore {
     // three things to map: NodeId, DeviceId, MastershipRole
 
     /**
-     * Sets a device's role for a specified controller instance.
+     * Requests role of the local node for the specified device.
      *
-     * @param instance controller instance identifier
      * @param deviceId device identifier
-     * @param role     new role
-     * @return a mastership event
+     * @return established or newly negotiated mastership role
      */
-    MastershipEvent setRole(NodeId instance, DeviceId deviceId,
-                            MastershipRole role);
+    MastershipRole requestRole(DeviceId deviceId);
 
     /**
-     * Adds or updates mastership information for a device.
+     * Returns the role of a device for a specific controller instance.
      *
-     * @param instance controller instance identifier
-     * @param deviceId device identifier
-     * @param role     new role
-     * @return a mastership event
+     * @param nodeId   the instance identifier
+     * @param deviceId the device identifiers
+     * @return the role
      */
-    MastershipEvent addOrUpdateDevice(NodeId instance, DeviceId deviceId,
-                                      MastershipRole role);
+    MastershipRole getRole(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Returns the master for a device.
@@ -52,11 +47,13 @@ public interface MastershipStore {
     Set<DeviceId> getDevices(NodeId nodeId);
 
     /**
-     * Returns the role of a device for a specific controller instance.
+     * Sets a device's role for a specified controller instance.
      *
-     * @param nodeId the instance identifier
-     * @param deviceId   the device identifiers
-     * @return the role
+     * @param nodeId   controller instance identifier
+     * @param deviceId device identifier
+     * @param role     new role
+     * @return a mastership event
      */
-    MastershipRole getRole(NodeId nodeId, DeviceId deviceId);
+    MastershipEvent setRole(NodeId nodeId, DeviceId deviceId,
+                            MastershipRole role);
 }

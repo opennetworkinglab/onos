@@ -248,23 +248,6 @@ public class SimpleDeviceStore implements DeviceStore {
     }
 
     @Override
-    public MastershipRole getRole(DeviceId deviceId) {
-        MastershipRole role = roles.get(deviceId);
-        return role != null ? role : MastershipRole.NONE;
-    }
-
-    @Override
-    public DeviceEvent setRole(DeviceId deviceId, MastershipRole role) {
-        synchronized (this) {
-            Device device = getDevice(deviceId);
-            checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
-            MastershipRole oldRole = roles.put(deviceId, role);
-            return oldRole == role ? null :
-                    new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device, null);
-        }
-    }
-
-    @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
         synchronized (this) {
             roles.remove(deviceId);

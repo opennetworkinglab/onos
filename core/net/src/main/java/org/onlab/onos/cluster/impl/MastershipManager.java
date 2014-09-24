@@ -1,9 +1,5 @@
 package org.onlab.onos.cluster.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -14,8 +10,6 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipAdminService;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipListener;
-import org.onlab.onos.cluster.MastershipProvider;
-import org.onlab.onos.cluster.MastershipProviderService;
 import org.onlab.onos.cluster.MastershipService;
 import org.onlab.onos.cluster.MastershipStore;
 import org.onlab.onos.cluster.NodeId;
@@ -23,16 +17,16 @@ import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.provider.AbstractProviderRegistry;
-import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import java.util.Set;
+
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
 @Service
 public class MastershipManager
-        extends AbstractProviderRegistry<MastershipProvider, MastershipProviderService>
         implements MastershipService, MastershipAdminService {
 
     private static final String NODE_ID_NULL = "Node ID cannot be null";
@@ -77,6 +71,24 @@ public class MastershipManager
     }
 
     @Override
+    public MastershipRole getLocalRole(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getRole(clusterService.getLocalNode().id(), deviceId);
+    }
+
+    @Override
+    public void relinquishMastership(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        // FIXME: add method to store to give up mastership and trigger new master selection process
+    }
+
+    @Override
+    public MastershipRole requestRoleFor(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.requestRole(deviceId);
+    }
+
+    @Override
     public NodeId getMasterFor(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getMaster(deviceId);
@@ -86,13 +98,6 @@ public class MastershipManager
     public Set<DeviceId> getDevicesOf(NodeId nodeId) {
         checkNotNull(nodeId, NODE_ID_NULL);
         return store.getDevices(nodeId);
-    }
-
-    @Override
-    public MastershipRole requestRoleFor(DeviceId deviceId) {
-        checkNotNull(deviceId, DEVICE_ID_NULL);
-        NodeId id = clusterService.getLocalNode().id();
-        return store.getRole(id, deviceId);
     }
 
     @Override
@@ -107,28 +112,7 @@ public class MastershipManager
         listenerRegistry.removeListener(listener);
     }
 
-    @Override
-    protected MastershipProviderService createProviderService(
-            MastershipProvider provider) {
-        return new InternalMastershipProviderService(provider);
-    }
-
-    private class InternalMastershipProviderService
-            extends AbstractProviderService<MastershipProvider>
-            implements MastershipProviderService {
-
-        protected InternalMastershipProviderService(MastershipProvider provider) {
-            super(provider);
-        }
-
-        @Override
-        public void roleChanged(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
-            // TODO Auto-generated method stub
-            MastershipEvent event =
-                    store.addOrUpdateDevice(nodeId, deviceId, role);
-            post(event);
-        }
-    }
+    // FIXME: provide wiring to allow events to be triggered by changes within the store
 
     // Posts the specified event to the local event dispatcher.
     private void post(MastershipEvent event) {

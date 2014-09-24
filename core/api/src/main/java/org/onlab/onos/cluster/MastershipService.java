@@ -14,6 +14,32 @@ import org.onlab.onos.net.MastershipRole;
 public interface MastershipService {
 
     /**
+     * Returns the role of the local node for the specified device, without
+     * triggering master selection.
+     *
+     * @return role of the current node
+     */
+    MastershipRole getLocalRole(DeviceId deviceId);
+
+    /**
+     * Returns the mastership status of the local controller for a given
+     * device forcing master selection if necessary.
+     *
+     * @param deviceId the the identifier of the device
+     * @return the role of this controller instance
+     */
+    MastershipRole requestRoleFor(DeviceId deviceId);
+
+    /**
+     * Abandons mastership of the specified device on the local node thus
+     * forcing selection of a new master. If the local node is not a master
+     * for this device, no action will be taken.
+     *
+     * @param deviceId the identifier of the device
+     */
+    void relinquishMastership(DeviceId deviceId);
+
+    /**
      * Returns the current master for a given device.
      *
      * @param deviceId the identifier of the device
@@ -28,17 +54,6 @@ public interface MastershipService {
      * @return a set of device IDs
      */
     Set<DeviceId> getDevicesOf(NodeId nodeId);
-
-    /**
-     * Returns the mastership status of this controller for a given device.
-     *
-     * @param deviceId the the identifier of the device
-     * @return the role of this controller instance
-     */
-    MastershipRole requestRoleFor(DeviceId deviceId);
-
-    // TODO: add facet for requesting a different master than the current one;
-    // abandon mastership (due to loss of connection)
 
     /**
      * Adds the specified mastership change listener.

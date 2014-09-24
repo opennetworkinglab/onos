@@ -9,11 +9,6 @@ public class NodeId {
 
     private final String id;
 
-    // Default constructor for serialization
-    protected NodeId() {
-        id = null;
-    }
-
     /**
      * Creates a new cluster node identifier from the specified string.
      *
