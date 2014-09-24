@@ -6,6 +6,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.MastershipService;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
+import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -57,6 +59,9 @@ public class DeviceManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     @Activate
     public void activate() {
@@ -171,6 +176,10 @@ public class DeviceManager
             // If there was a change of any kind, trigger role selection process.
             if (event != null) {
                 log.info("Device {} connected", deviceId);
+                if (event.type().equals(DEVICE_ADDED)) {
+                    MastershipRole role = mastershipService.requestRoleFor(deviceId);
+                    store.setRole(deviceId, role);
+                }
                 Device device = event.subject();
                 provider().roleChanged(device, store.getRole(device.id()));
                 post(event);

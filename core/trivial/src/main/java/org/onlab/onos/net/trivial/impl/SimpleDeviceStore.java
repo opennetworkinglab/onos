@@ -98,7 +98,7 @@ public class SimpleDeviceStore implements DeviceStore {
             availableDevices.add(deviceId);
 
             // For now claim the device as a master automatically.
-            roles.put(deviceId, MastershipRole.MASTER);
+            // roles.put(deviceId, MastershipRole.MASTER);
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }

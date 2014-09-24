@@ -65,7 +65,10 @@ public class MastershipManager
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
-        store.setRole(nodeId, deviceId, role);
+        MastershipEvent event = store.setRole(nodeId, deviceId, role);
+        if (event != null) {
+            post(event);
+        }
     }
 
     @Override
