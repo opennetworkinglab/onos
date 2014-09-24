@@ -27,6 +27,8 @@ import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
 import org.onlab.onos.net.flow.FlowRuleProviderService;
 import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.FlowRuleStore;
+import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
+import org.onlab.onos.net.host.HostStoreDelegate;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -48,6 +50,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
     listenerRegistry = new AbstractListenerRegistry<>();
 
+    private FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
 
@@ -59,12 +63,14 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(FlowRuleEvent.class);
         log.info("Stopped");
     }
@@ -196,4 +202,11 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         }
     }
 
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements FlowRuleStoreDelegate {
+        @Override
+        public void notify(FlowRuleEvent event) {
+            eventDispatcher.post(event);
+        }
+    }
 }

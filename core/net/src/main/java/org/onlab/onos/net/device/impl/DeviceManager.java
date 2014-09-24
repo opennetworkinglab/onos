@@ -60,7 +60,7 @@ public class DeviceManager
 
     private DeviceStoreDelegate delegate = new InternalStoreDelegate();
 
-    private final MastershipListener mastershipListener = new InnerMastershipListener();
+    private final MastershipListener mastershipListener = new InternalMastershipListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceStore store;
@@ -244,7 +244,7 @@ public class DeviceManager
     }
 
     // Intercepts mastership events
-    private class InnerMastershipListener implements MastershipListener {
+    private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
             // FIXME: for now we're taking action only on becoming master

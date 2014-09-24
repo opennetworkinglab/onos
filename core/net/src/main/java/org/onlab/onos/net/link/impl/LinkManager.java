@@ -28,6 +28,7 @@ import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.link.LinkStore;
+import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -52,7 +53,9 @@ public class LinkManager
     protected final AbstractListenerRegistry<LinkEvent, LinkListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final DeviceListener deviceListener = new InnerDeviceListener();
+    private LinkStoreDelegate delegate = new InternalStoreDelegate();
+
+    private final DeviceListener deviceListener = new InternalDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkStore store;
@@ -65,6 +68,7 @@ public class LinkManager
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         eventDispatcher.addSink(LinkEvent.class, listenerRegistry);
         deviceService.addListener(deviceListener);
         log.info("Started");
@@ -72,6 +76,7 @@ public class LinkManager
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(LinkEvent.class);
         deviceService.removeListener(deviceListener);
         log.info("Stopped");
@@ -154,7 +159,7 @@ public class LinkManager
 
     // Auxiliary interceptor for device remove events to prune links that
     // are associated with the removed device or its port.
-    private class InnerDeviceListener implements DeviceListener {
+    private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
             if (event.type() == DeviceEvent.Type.DEVICE_REMOVED) {
@@ -236,4 +241,11 @@ public class LinkManager
         }
     }
 
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements LinkStoreDelegate {
+        @Override
+        public void notify(LinkEvent event) {
+            post(event);
+        }
+    }
 }

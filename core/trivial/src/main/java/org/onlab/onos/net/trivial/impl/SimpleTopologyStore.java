@@ -18,6 +18,8 @@ import org.onlab.onos.net.topology.TopologyCluster;
 import org.onlab.onos.net.topology.TopologyEvent;
 import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyStore;
+import org.onlab.onos.net.topology.TopologyStoreDelegate;
+import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -31,7 +33,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleTopologyStore implements TopologyStore {
+public class SimpleTopologyStore
+        extends AbstractStore<TopologyEvent, TopologyStoreDelegate>
+        implements TopologyStore {
 
     private final Logger log = getLogger(getClass());
 
