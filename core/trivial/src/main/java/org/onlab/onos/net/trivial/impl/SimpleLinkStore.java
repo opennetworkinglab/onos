@@ -14,7 +14,9 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkStore;
+import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -35,7 +37,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleLinkStore implements LinkStore {
+public class SimpleLinkStore
+        extends AbstractStore<LinkEvent, LinkStoreDelegate>
+        implements LinkStore {
 
     private final Logger log = getLogger(getClass());
 

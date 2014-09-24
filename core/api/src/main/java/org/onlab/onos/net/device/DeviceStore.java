@@ -5,13 +5,14 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Store;
 
 import java.util.List;
 
 /**
  * Manages inventory of infrastructure devices; not intended for direct use.
  */
-public interface DeviceStore {
+public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
 
     /**
      * Returns the number of devices known to the system.

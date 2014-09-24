@@ -15,9 +15,11 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipStore;
+import org.onlab.onos.cluster.MastershipStoreDelegate;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
@@ -29,7 +31,9 @@ import static org.onlab.onos.cluster.MastershipEvent.Type.*;
  */
 @Component(immediate = true)
 @Service
-public class SimpleMastershipStore implements MastershipStore {
+public class SimpleMastershipStore
+        extends AbstractStore<MastershipEvent, MastershipStoreDelegate>
+        implements MastershipStore {
 
     public static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
 

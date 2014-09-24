@@ -53,6 +53,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(ClusterEvent.class);
         log.info("Stopped");
     }

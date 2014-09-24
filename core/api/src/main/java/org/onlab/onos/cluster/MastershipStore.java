@@ -4,12 +4,13 @@ import java.util.Set;
 
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.store.Store;
 
 /**
  * Manages inventory of mastership roles for devices, across controller
  * instances; not intended for direct use.
  */
-public interface MastershipStore {
+public interface MastershipStore extends Store<MastershipEvent, MastershipStoreDelegate> {
 
     // three things to map: NodeId, DeviceId, MastershipRole
 
