@@ -150,7 +150,7 @@ public class DefaultFlowRule implements FlowRule {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof FlowRule) {
+        if (obj instanceof DefaultFlowRule) {
             DefaultFlowRule that = (DefaultFlowRule) obj;
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(id, that.id);

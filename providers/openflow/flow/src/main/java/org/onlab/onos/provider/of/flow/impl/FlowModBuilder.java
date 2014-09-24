@@ -79,8 +79,6 @@ public class FlowModBuilder {
                 .setActions(actions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
-                .setIdleTimeout(10)
-                .setHardTimeout(10)
                 .setPriority(priority)
                 .build();
 
@@ -98,8 +96,6 @@ public class FlowModBuilder {
                 .setActions(actions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
-                .setIdleTimeout(10)
-                .setHardTimeout(10)
                 .setPriority(priority)
                 .build();
 

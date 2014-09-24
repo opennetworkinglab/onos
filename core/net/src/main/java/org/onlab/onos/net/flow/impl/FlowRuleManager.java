@@ -138,7 +138,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void flowMissing(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            log.info("Flow {} has not been installed.", flowRule);
+            log.debug("Flow {} has not been installed.", flowRule);
 
         }
 
@@ -146,7 +146,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            log.info("Flow {} is on switch but not in store.", flowRule);
+            log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
         @Override
@@ -188,8 +188,10 @@ implements FlowRuleService, FlowRuleProviderRegistry {
                 }
             }
             for (FlowRule rule : storedRules) {
+
                 // there are rules in the store that aren't on the switch
                 flowMissing(rule);
+
             }
         }
     }
