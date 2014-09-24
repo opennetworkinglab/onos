@@ -6,6 +6,7 @@ import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MapEvent;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -86,8 +87,12 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
 
         @Override
         public void entryUpdated(EntryEvent<byte[], byte[]> event) {
-            cache.put(storeService.<K>deserialize(event.getKey()),
-                      Optional.of(storeService.<V>deserialize(event.getValue())));
+            K key = storeService.<K>deserialize(event.getKey());
+            final V oldVal = storeService.<V>deserialize(event.getOldValue());
+            Optional<V> oldValue = Optional.fromNullable(oldVal);
+            final V newVal = storeService.<V>deserialize(event.getValue());
+            Optional<V> newValue = Optional.of(newVal);
+            cache.asMap().replace(key, oldValue, newValue);
         }
 
         @Override
@@ -97,7 +102,10 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
 
         @Override
         public void entryAdded(EntryEvent<byte[], byte[]> event) {
-            entryUpdated(event);
+            K key = storeService.<K>deserialize(event.getKey());
+            final V newVal = storeService.<V>deserialize(event.getValue());
+            Optional<V> newValue = Optional.of(newVal);
+            cache.asMap().putIfAbsent(key, newValue);
         }
     }
 

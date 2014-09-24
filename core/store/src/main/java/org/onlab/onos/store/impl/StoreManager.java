@@ -45,7 +45,7 @@ import java.util.HashMap;
 @Service
 public class StoreManager implements StoreService {
 
-    private static final String HAZELCAST_XML_FILE = "etc/hazelcast.xml";
+    protected static final String HAZELCAST_XML_FILE = "etc/hazelcast.xml";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

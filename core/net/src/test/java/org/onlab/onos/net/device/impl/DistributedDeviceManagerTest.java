@@ -4,13 +4,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipServiceAdapter;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.Event;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -30,23 +32,26 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
 import org.onlab.onos.store.impl.StoreManager;
+import org.onlab.onos.store.impl.TestStoreManager;
+import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
-// FIXME This test is painfully slow starting up Hazelcast on each test cases,
-//       turning it off in repository for now.
+// FIXME This test is slow starting up Hazelcast on each test cases.
 // FIXME DistributedDeviceStore should have it's own test cases.
 
 /**
@@ -67,6 +72,11 @@ public class DistributedDeviceManagerTest {
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
+    private static final DefaultControllerNode SELF
+        = new DefaultControllerNode(new NodeId("foobar"),
+                        IpPrefix.valueOf("127.0.0.1"));
+
+
     private DeviceManager mgr;
 
     protected StoreManager storeManager;
@@ -77,6 +87,8 @@ public class DistributedDeviceManagerTest {
     protected TestProvider provider;
     protected TestListener listener = new TestListener();
     private DistributedDeviceStore dstore;
+    private TestMastershipManager masterManager;
+    private EventDeliveryService eventService;
 
     @Before
     public void setUp() {
@@ -84,26 +96,21 @@ public class DistributedDeviceManagerTest {
         service = mgr;
         admin = mgr;
         registry = mgr;
-        // FIXME should be reading the hazelcast.xml
-        Config config = new Config();
-        // avoid accidentally joining other cluster
-        config.getGroupConfig().setName(UUID.randomUUID().toString());
-        // quickly form single node cluster
-        config.getNetworkConfig().getJoin()
-                .getTcpIpConfig()
-                .setEnabled(true).setConnectionTimeoutSeconds(0);
-        config.getNetworkConfig().getJoin()
-                .getMulticastConfig()
-                .setEnabled(false);
+        // TODO should find a way to clean Hazelcast instance without shutdown.
+        Config config = TestStoreManager.getTestConfig();
+
+        masterManager = new TestMastershipManager();
 
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
 
-        dstore = new TestDistributedDeviceStore(storeManager);
+        dstore = new TestDistributedDeviceStore();
         dstore.activate();
+
         mgr.store = dstore;
-        mgr.eventDispatcher = new TestEventDispatcher();
-        mgr.mastershipService = new TestMastershipService();
+        eventService = new TestEventDispatcher();
+        mgr.eventDispatcher = eventService;
+        mgr.mastershipService = masterManager;
         mgr.activate();
 
         service.addListener(listener);
@@ -283,23 +290,21 @@ public class DistributedDeviceManagerTest {
     }
 
     private class TestDistributedDeviceStore extends DistributedDeviceStore {
-        public TestDistributedDeviceStore(StoreService storeService) {
-            this.storeService = storeService;
+
+        public TestDistributedDeviceStore() {
+            this.storeService = storeManager;
         }
     }
 
-    private class TestStoreManager extends StoreManager {
-        TestStoreManager(HazelcastInstance instance) {
-            this.instance = instance;
-        }
+    private static class TestMastershipManager extends MastershipServiceAdapter {
 
-        @Override
-        public void activate() {
-            setupKryoPool();
-        }
-    }
+        private ConcurrentMap<DeviceId, NodeId> masters = new ConcurrentHashMap<>();
 
-    private static class TestMastershipService extends MastershipServiceAdapter {
+        public TestMastershipManager() {
+            // SELF master of all initially
+            masters.put(DID1, SELF.id());
+            masters.put(DID1, SELF.id());
+        }
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
@@ -307,13 +312,27 @@ public class DistributedDeviceManagerTest {
 
         @Override
         public Set<DeviceId> getDevicesOf(NodeId nodeId) {
-            return Sets.newHashSet(DID1, DID2);
+            HashSet<DeviceId> set = Sets.newHashSet();
+            for (Entry<DeviceId, NodeId> e : masters.entrySet()) {
+                if (e.getValue().equals(nodeId)) {
+                    set.add(e.getKey());
+                }
+            }
+            return set;
         }
 
         @Override
         public MastershipRole requestRoleFor(DeviceId deviceId) {
-            return MastershipRole.MASTER;
+            if (SELF.id().equals(masters.get(deviceId))) {
+                return MastershipRole.MASTER;
+            } else {
+                return MastershipRole.STANDBY;
+            }
+        }
+
+        @Override
+        public void relinquishMastership(DeviceId deviceId) {
+            masters.remove(deviceId, SELF.id());
         }
     }
-
 }
