@@ -73,6 +73,7 @@ public class DistributedDeviceStore
     private IMap<byte[], byte[]> rawDevicePorts;
     private LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> devicePorts;
 
+    @Override
     @Activate
     public void activate() {
         super.activate();
@@ -361,5 +362,4 @@ public class DistributedDeviceStore
     }
 
     // TODO cache serialized DeviceID if we suffer from serialization cost
-
 }
