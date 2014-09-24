@@ -52,7 +52,6 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      *
      * @param nodeId   controller instance identifier
      * @param deviceId device identifier
-     * @param role     new role
      * @return a mastership event
      */
     MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId);
