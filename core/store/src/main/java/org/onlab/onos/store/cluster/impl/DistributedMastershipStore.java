@@ -13,6 +13,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipStore;
+import org.onlab.onos.cluster.MastershipStoreDelegate;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -31,7 +32,8 @@ import static com.google.common.cache.CacheBuilder.newBuilder;
  */
 @Component(immediate = true)
 @Service
-public class DistributedMastershipStore extends AbstractDistributedStore
+public class DistributedMastershipStore
+        extends AbstractDistributedStore<MastershipEvent, MastershipStoreDelegate>
         implements MastershipStore {
 
     private IMap<byte[], byte[]> rawMasters;

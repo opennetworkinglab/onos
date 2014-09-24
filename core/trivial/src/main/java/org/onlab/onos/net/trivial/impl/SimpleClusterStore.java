@@ -5,10 +5,13 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterStore;
+import org.onlab.onos.cluster.ClusterStoreDelegate;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
@@ -22,7 +25,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleClusterStore implements ClusterStore {
+public class SimpleClusterStore
+        extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
+        implements ClusterStore {
 
     public static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
 

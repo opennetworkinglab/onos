@@ -21,7 +21,7 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.StoreService;
+import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.serializers.DefaultPortSerializer;
 import org.onlab.onos.store.serializers.DeviceIdSerializer;
 import org.onlab.onos.store.serializers.IpPrefixSerializer;

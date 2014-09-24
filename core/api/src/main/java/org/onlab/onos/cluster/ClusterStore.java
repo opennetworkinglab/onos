@@ -1,11 +1,13 @@
 package org.onlab.onos.cluster;
 
+import org.onlab.onos.store.Store;
+
 import java.util.Set;
 
 /**
  * Manages inventory of controller cluster nodes; not intended for direct use.
  */
-public interface ClusterStore {
+public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> {
 
     /**
      * Returns the local controller node.

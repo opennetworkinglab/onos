@@ -2,7 +2,7 @@ package org.onlab.onos.store.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.onlab.onos.store.StoreService;
+import org.onlab.onos.store.common.StoreService;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader;
