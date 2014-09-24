@@ -37,4 +37,4 @@ ssh $remote "
 onos-config $node
 
 # Ignite the ONOS service.
-onos-service $node start†
+onos-service $node start
