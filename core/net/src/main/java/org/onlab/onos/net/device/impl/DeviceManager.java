@@ -224,6 +224,11 @@ public class DeviceManager
                 post(event);
             }
         }
+
+        @Override
+        public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
+            // FIXME: implement response to this notification
+        }
     }
 
     // Posts the specified event to the local event dispatcher.

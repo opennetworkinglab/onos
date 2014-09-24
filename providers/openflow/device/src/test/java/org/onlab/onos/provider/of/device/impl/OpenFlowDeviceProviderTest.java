@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
@@ -179,6 +180,11 @@ public class OpenFlowDeviceProviderTest {
                     PortDescription portDescription) {
                 ports.put(deviceId, portDescription);
                 descr = portDescription;
+            }
+
+            @Override
+            public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
+                // FIXME: add fixture core when tests are done on this
             }
 
         }
