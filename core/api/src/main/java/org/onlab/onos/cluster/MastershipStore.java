@@ -54,6 +54,5 @@ public interface MastershipStore {
      * @param role     new role
      * @return a mastership event
      */
-    MastershipEvent setRole(NodeId nodeId, DeviceId deviceId,
-                            MastershipRole role);
+    MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId);
 }

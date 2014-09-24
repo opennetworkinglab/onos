@@ -40,6 +40,7 @@ public class DistributedMastershipStore extends AbstractDistributedStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Override
     @Activate
     public void activate() {
         super.activate();
@@ -59,10 +60,10 @@ public class DistributedMastershipStore extends AbstractDistributedStore
     }
 
     @Override
-    public MastershipEvent setRole(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
+    public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
         synchronized (this) {
             NodeId currentMaster = getMaster(deviceId);
-            if (role == MastershipRole.MASTER && Objects.equals(currentMaster, nodeId)) {
+            if (Objects.equals(currentMaster, nodeId)) {
                 return null;
             }
 
@@ -92,7 +93,7 @@ public class DistributedMastershipStore extends AbstractDistributedStore
     @Override
     public MastershipRole requestRole(DeviceId deviceId) {
         // FIXME: for now we are 'selecting' as master whoever asks
-        setRole(clusterService.getLocalNode().id(), deviceId, MastershipRole.MASTER);
+        setMaster(clusterService.getLocalNode().id(), deviceId);
         return MastershipRole.MASTER;
     }
 
