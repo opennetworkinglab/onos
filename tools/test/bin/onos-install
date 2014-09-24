@@ -1,6 +1,6 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Remotely pushes bits to a remote machine and installs ONOS.
+# Remotely pushes bits to a remote node and installs ONOS on it.
 #-------------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1

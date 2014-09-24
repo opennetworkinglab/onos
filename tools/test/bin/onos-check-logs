@@ -1,13 +1,13 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Launches the ONOS tests on the current cell environment.
+# Checks the logs of the remote ONOS instance and makes sure they are clean.
 #-------------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+remote=$ONOS_USER@${1:-$OCI}
 
-onos-package
-for node in $nodes; do onos-install -f $node; done
-for node in $nodes; do onos-wait-for-start $node; done
+LOG=$ONOS_INSTALL_DIR/log/karaf.log
+
+ssh $remote "egrep 'ERROR|Exception' $LOG"

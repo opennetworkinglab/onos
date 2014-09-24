@@ -1,16 +1,9 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Remotely stops & uninstalls ONOS on the specified node.
+# Remotely administers the ONOS service on the specified node.
 #-------------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-remote=$ONOS_USER@${1:-$OCI}
-
-ssh $remote "
-    sudo service onos stop 1>/dev/null 2>/dev/null
-    [ -f $ONOS_INSTALL_DIR/bin/onos ] && \
-        $ONOS_INSTALL_DIR/bin/onos halt 2>/dev/null
-    sudo rm -fr $ONOS_INSTALL_DIR
-"
+ssh $ONOS_USER@${1:-$OCI} "sudo service onos ${2:-status}"

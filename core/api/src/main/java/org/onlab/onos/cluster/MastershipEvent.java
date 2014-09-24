@@ -8,6 +8,8 @@ import org.onlab.onos.net.DeviceId;
  */
 public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceId> {
 
+    //do we worry about explicitly setting slaves/equals? probably not,
+    //to keep it simple
     NodeId master;
 
     /**
@@ -28,7 +30,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param device event device subject
      * @param master master ID subject
      */
-    protected MastershipEvent(Type type, DeviceId device, NodeId master) {
+    public MastershipEvent(Type type, DeviceId device, NodeId master) {
         super(type, device);
         this.master = master;
     }
@@ -42,7 +44,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param master master ID subject
      * @param time   occurrence time
      */
-    protected MastershipEvent(Type type, DeviceId device, NodeId master, long time) {
+    public MastershipEvent(Type type, DeviceId device, NodeId master, long time) {
         super(type, device, time);
         this.master = master;
     }

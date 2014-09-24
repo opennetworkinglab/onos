@@ -1,16 +1,13 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Remotely stops & uninstalls ONOS on the specified node.
+# Launches the ONOS tests on the current cell environment.
 #-------------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-remote=$ONOS_USER@${1:-$OCI}
+nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
-ssh $remote "
-    sudo service onos stop 1>/dev/null 2>/dev/null
-    [ -f $ONOS_INSTALL_DIR/bin/onos ] && \
-        $ONOS_INSTALL_DIR/bin/onos halt 2>/dev/null
-    sudo rm -fr $ONOS_INSTALL_DIR
-"
+onos-package
+for node in $nodes; do printf "%s: " $node; onos-install -f $node; done
+for node in $nodes; do onos-wait-for-start $node; done

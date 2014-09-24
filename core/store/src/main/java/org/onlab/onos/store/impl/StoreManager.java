@@ -1,5 +1,7 @@
 package org.onlab.onos.store.impl;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.FileSystemXmlConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import de.javakaffee.kryoserializers.URISerializer;
@@ -25,6 +27,7 @@ import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +39,8 @@ import java.util.HashMap;
 @Service
 public class StoreManager implements StoreService {
 
+    private static final String HAZELCAST_XML_FILE = "etc/hazelcast.xml";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     protected HazelcastInstance instance;
@@ -44,9 +49,14 @@ public class StoreManager implements StoreService {
 
     @Activate
     public void activate() {
-        instance = Hazelcast.newHazelcastInstance();
-        setupKryoPool();
-        log.info("Started");
+        try {
+            Config config = new FileSystemXmlConfig(HAZELCAST_XML_FILE);
+            instance = Hazelcast.newHazelcastInstance(config);
+            setupKryoPool();
+            log.info("Started");
+        } catch (FileNotFoundException e) {
+            log.error("Unable to configure Hazelcast", e);
+        }
     }
 
     /**

@@ -5,9 +5,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipAdminService;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipListener;
@@ -26,6 +29,8 @@ import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Component(immediate = true)
+@Service
 public class MastershipManager
         extends AbstractProviderRegistry<MastershipProvider, MastershipProviderService>
         implements MastershipService, MastershipAdminService {
@@ -46,7 +51,7 @@ public class MastershipManager
     protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterManager clusterManager;
+    protected ClusterService clusterService;
 
     @Activate
     public void activate() {
@@ -65,7 +70,10 @@ public class MastershipManager
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
-        store.setRole(nodeId, deviceId, role);
+        MastershipEvent event = store.setRole(nodeId, deviceId, role);
+        if (event != null) {
+            post(event);
+        }
     }
 
     @Override
@@ -83,7 +91,7 @@ public class MastershipManager
     @Override
     public MastershipRole requestRoleFor(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        NodeId id = clusterManager.getLocalNode().id();
+        NodeId id = clusterService.getLocalNode().id();
         return store.getRole(id, deviceId);
     }
 

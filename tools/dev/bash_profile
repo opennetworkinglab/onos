@@ -28,8 +28,9 @@ function o {
 # Short-hand for 'mvn clean install' for us lazy folk
 alias mci='mvn clean install'
 
-# Short-hand for ONOS build from the top of the source tree.
-alias ob='o && mvn clean install javadoc:aggregate'
+# Short-hand for ONOS build, package and test.
+alias ob='onos-build'
+alias op='onos-package'
 alias ot='onos-test'
 
 # Short-hand for tailing the ONOS (karaf) log 
@@ -41,7 +42,7 @@ alias pp='python -m json.tool'
 
 # Short-hand to launch API docs and sample topology viewer GUI
 alias docs='open $ONOS_ROOT/target/site/apidocs/index.html'
-alias gui='open http://localhost:8181/onos/tvue'
+alias gui='onos-gui'
 
 
 # Test related conveniences
