@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -15,7 +16,6 @@ import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
@@ -60,10 +59,6 @@ public class DistributedDeviceStore
     // private IMap<DeviceId, DefaultDevice> cache;
     private IMap<byte[], byte[]> rawDevices;
     private LoadingCache<DeviceId, Optional<DefaultDevice>> devices;
-
-    // private IMap<DeviceId, MastershipRole> roles;
-    private IMap<byte[], byte[]> rawRoles;
-    private LoadingCache<DeviceId, Optional<MastershipRole>> roles;
 
     // private ISet<DeviceId> availableDevices;
     private ISet<byte[]> availableDevices;
@@ -88,13 +83,6 @@ public class DistributedDeviceStore
         devices = new AbsentInvalidatingLoadingCache<>(newBuilder().build(deviceLoader));
         // refresh/populate cache based on notification from other instance
         rawDevices.addEntryListener(new RemoteEventHandler<>(devices), includeValue);
-
-        rawRoles = theInstance.getMap("roles");
-        final OptionalCacheLoader<DeviceId, MastershipRole> rolesLoader
-                = new OptionalCacheLoader<>(storeService, rawRoles);
-        roles = new AbsentInvalidatingLoadingCache<>(newBuilder().build(rolesLoader));
-        // refresh/populate cache based on notification from other instance
-        rawRoles.addEntryListener(new RemoteEventHandler<>(roles), includeValue);
 
         // TODO cache availableDevices
         availableDevices = theInstance.getSet("availableDevices");
@@ -173,10 +161,6 @@ public class DistributedDeviceStore
             devices.put(deviceId, Optional.of(device));
 
             availableDevices.add(deviceIdBytes);
-
-            // For now claim the device as a master automatically.
-            //rawRoles.put(deviceIdBytes, serialize(MastershipRole.MASTER));
-            //roles.put(deviceId, Optional.of(MastershipRole.MASTER));
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }
@@ -350,8 +334,6 @@ public class DistributedDeviceStore
     public DeviceEvent removeDevice(DeviceId deviceId) {
         synchronized (this) {
             byte[] deviceIdBytes = serialize(deviceId);
-            rawRoles.remove(deviceIdBytes);
-            roles.invalidate(deviceId);
 
             // TODO conditional remove?
             Device device = deserialize(rawDevices.remove(deviceIdBytes));
