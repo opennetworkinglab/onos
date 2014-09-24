@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
@@ -202,29 +203,75 @@ public class SimpleHostStore
 
     @Override
     public void updateAddressBindings(PortAddresses addresses) {
-        // TODO portAddresses.put(addresses.connectPoint(), addresses);
+        synchronized (portAddresses) {
+            PortAddresses existing = portAddresses.get(addresses.connectPoint());
+            if (existing == null) {
+                portAddresses.put(addresses.connectPoint(), addresses);
+            } else {
+                Set<IpPrefix> union = Sets.union(existing.ips(), addresses.ips())
+                        .immutableCopy();
+
+                MacAddress newMac = (addresses.mac() == null) ? existing.mac()
+                        : addresses.mac();
+
+                PortAddresses newAddresses =
+                        new PortAddresses(addresses.connectPoint(), union, newMac);
+
+                portAddresses.put(newAddresses.connectPoint(), newAddresses);
+            }
+        }
     }
 
     @Override
     public void removeAddressBindings(PortAddresses addresses) {
-        // TODO Auto-generated method stub
+        synchronized (portAddresses) {
+            PortAddresses existing = portAddresses.get(addresses.connectPoint());
+            if (existing != null) {
+                Set<IpPrefix> difference =
+                        Sets.difference(existing.ips(), addresses.ips()).immutableCopy();
 
+                // If they removed the existing mac, set the new mac to null.
+                // Otherwise, keep the existing mac.
+                MacAddress newMac = existing.mac();
+                if (addresses.mac() != null && addresses.mac().equals(existing.mac())) {
+                    newMac = null;
+                }
+
+                PortAddresses newAddresses =
+                        new PortAddresses(addresses.connectPoint(), difference, newMac);
+
+                portAddresses.put(newAddresses.connectPoint(), newAddresses);
+            }
+        }
     }
 
     @Override
     public void clearAddressBindings(ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-
+        synchronized (portAddresses) {
+            portAddresses.remove(connectPoint);
+        }
     }
 
     @Override
     public Set<PortAddresses> getAddressBindings() {
-        return new HashSet<>(portAddresses.values());
+        synchronized (portAddresses) {
+            return new HashSet<>(portAddresses.values());
+        }
     }
 
     @Override
     public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
-        return portAddresses.get(connectPoint);
+        PortAddresses addresses;
+
+        synchronized (portAddresses) {
+            addresses = portAddresses.get(connectPoint);
+        }
+
+        if (addresses == null) {
+            addresses = new PortAddresses(connectPoint, null, null);
+        }
+
+        return addresses;
     }
 
 }
