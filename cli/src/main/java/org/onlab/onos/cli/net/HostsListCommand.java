@@ -1,15 +1,14 @@
 package org.onlab.onos.cli.net;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.host.HostService;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Lists all currently-known hosts.
@@ -20,13 +19,6 @@ public class HostsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
             "id=%s, mac=%s, location=%s/%s, vlan=%s, ip(s)=%s";
-
-    protected static final Comparator<Host> ID_COMPARATOR = new Comparator<Host>() {
-        @Override
-        public int compare(Host h1, Host h2) {
-            return h1.id().uri().toString().compareTo(h2.id().uri().toString());
-        }
-    };
 
     @Override
     protected void execute() {
@@ -44,7 +36,7 @@ public class HostsListCommand extends AbstractShellCommand {
      */
     protected List<Host> getSortedHosts(HostService service) {
         List<Host> hosts = newArrayList(service.getHosts());
-        Collections.sort(hosts, ID_COMPARATOR);
+        Collections.sort(hosts, Comparators.ELEMENT_COMPARATOR);
         return hosts;
     }
 

@@ -5,7 +5,6 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.net.topology.TopologyCluster;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -18,19 +17,11 @@ public class ClustersListCommand extends TopologyCommand {
     private static final String FMT =
             "id=%d, devices=%d, links=%d";
 
-    protected static final Comparator<TopologyCluster> ID_COMPARATOR =
-            new Comparator<TopologyCluster>() {
-                @Override
-                public int compare(TopologyCluster c1, TopologyCluster c2) {
-                    return c1.id().index() - c2.id().index();
-                }
-            };
-
     @Override
     protected void execute() {
         init();
         List<TopologyCluster> clusters = Lists.newArrayList(service.getClusters(topology));
-        Collections.sort(clusters, ID_COMPARATOR);
+        Collections.sort(clusters, Comparators.CLUSTER_COMPARATOR);
 
         for (TopologyCluster cluster : clusters) {
             print(FMT, cluster.id().index(), cluster.deviceCount(), cluster.linkCount());

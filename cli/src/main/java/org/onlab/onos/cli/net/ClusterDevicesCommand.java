@@ -7,7 +7,6 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.topology.TopologyCluster;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.onlab.onos.net.topology.ClusterId.clusterId;
@@ -23,13 +22,6 @@ public class ClusterDevicesCommand extends ClustersListCommand {
               required = false, multiValued = false)
     String id = null;
 
-    protected static final Comparator<DeviceId> ID_COMPARATOR = new Comparator<DeviceId>() {
-        @Override
-        public int compare(DeviceId id1, DeviceId id2) {
-            return id1.uri().toString().compareTo(id2.uri().toString());
-        }
-    };
-
     @Override
     protected void execute() {
         int cid = Integer.parseInt(id);
@@ -39,7 +31,7 @@ public class ClusterDevicesCommand extends ClustersListCommand {
             error("No such cluster %s", cid);
         } else {
             List<DeviceId> ids = Lists.newArrayList(service.getClusterDevices(topology, cluster));
-            Collections.sort(ids, ID_COMPARATOR);
+            Collections.sort(ids, Comparators.ELEMENT_ID_COMPARATOR);
             for (DeviceId deviceId : ids) {
                 print("%s", deviceId);
             }

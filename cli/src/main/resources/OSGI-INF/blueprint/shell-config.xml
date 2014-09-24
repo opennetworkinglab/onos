@@ -5,8 +5,12 @@
             <action class="org.onlab.onos.cli.NodesListCommand"/>
         </command>
         <command>
-            <action class="org.onlab.onos.cli.net.FlowsListCommand"/>
+            <action class="org.onlab.onos.cli.MastersListCommand"/>
+            <completers>
+                <ref component-id="clusterIdCompleter"/>
+            </completers>
         </command>
+
         <command>
             <action class="org.onlab.onos.cli.net.DevicesListCommand"/>
         </command>
@@ -67,10 +71,15 @@
         </command>
 
         <command>
+            <action class="org.onlab.onos.cli.net.FlowsListCommand"/>
+        </command>
+
+        <command>
             <action class="org.onlab.onos.cli.net.WipeOutCommand"/>
         </command>
     </command-bundle>
 
+    <bean id="nodeIdCompleter" class="org.onlab.onos.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onlab.onos.cli.net.DeviceIdCompleter"/>
     <bean id="clusterIdCompleter" class="org.onlab.onos.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onlab.onos.cli.net.RoleCompleter"/>

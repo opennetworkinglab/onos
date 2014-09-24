@@ -1,12 +1,6 @@
 package org.onlab.onos.cli.net;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Maps;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.Device;
@@ -14,7 +8,11 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleService;
 
-import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Lists all currently-known hosts.
@@ -26,13 +24,6 @@ public class FlowsListCommand extends AbstractShellCommand {
     private static final String FMT =
             "   id=%s, selector=%s, treatment=%s, state=%s";
 
-    protected static final Comparator<FlowRule> ID_COMPARATOR = new Comparator<FlowRule>() {
-        @Override
-        public int compare(FlowRule f1, FlowRule f2) {
-            return Long.valueOf(f1.id().value()).compareTo(f2.id().value());
-        }
-    };
-
     @Override
     protected void execute() {
         DeviceService deviceService = get(DeviceService.class);
@@ -42,7 +33,6 @@ public class FlowsListCommand extends AbstractShellCommand {
             printFlows(d, flows.get(d));
         }
     }
-
 
     /**
      * Returns the list of devices sorted using the device ID URIs.
@@ -55,7 +45,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         List<FlowRule> rules;
         for (Device d : deviceService.getDevices()) {
             rules = newArrayList(service.getFlowEntries(d.id()));
-            Collections.sort(rules, ID_COMPARATOR);
+            Collections.sort(rules, Comparators.FLOW_RULE_COMPARATOR);
             flows.put(d, rules);
         }
         return flows;

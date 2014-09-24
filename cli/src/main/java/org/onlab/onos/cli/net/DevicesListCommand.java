@@ -6,7 +6,6 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.device.DeviceService;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -20,13 +19,6 @@ public class DevicesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
             "id=%s, available=%s, role=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s";
-
-    protected static final Comparator<Device> ID_COMPARATOR = new Comparator<Device>() {
-        @Override
-        public int compare(Device d1, Device d2) {
-            return d1.id().uri().toString().compareTo(d2.id().uri().toString());
-        }
-    };
 
     @Override
     protected void execute() {
@@ -44,7 +36,7 @@ public class DevicesListCommand extends AbstractShellCommand {
      */
     protected List<Device> getSortedDevices(DeviceService service) {
         List<Device> devices = newArrayList(service.getDevices());
-        Collections.sort(devices, ID_COMPARATOR);
+        Collections.sort(devices, Comparators.ELEMENT_COMPARATOR);
         return devices;
     }
 

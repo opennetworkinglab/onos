@@ -41,7 +41,6 @@ public class LinksListCommand extends AbstractShellCommand {
     public static String linkString(Link link) {
         return String.format(FMT, link.src().deviceId(), link.src().port(),
                              link.dst().deviceId(), link.dst().port(), link.type());
-
     }
 
     /**
