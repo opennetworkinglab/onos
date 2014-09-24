@@ -28,8 +28,9 @@ function o {
 # Short-hand for 'mvn clean install' for us lazy folk
 alias mci='mvn clean install'
 
-# Short-hand for ONOS build from the top of the source tree.
-alias ob='o && mvn clean install javadoc:aggregate'
+# Short-hand for ONOS build, package and test.
+alias ob='onos-build'
+alias op='onos-package'
 alias ot='onos-test'
 
 # Short-hand for tailing the ONOS (karaf) log 
