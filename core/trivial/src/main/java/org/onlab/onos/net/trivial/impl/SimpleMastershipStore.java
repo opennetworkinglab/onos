@@ -3,6 +3,8 @@ package org.onlab.onos.net.trivial.impl;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -27,7 +29,7 @@ import static org.onlab.onos.cluster.MastershipEvent.Type.*;
 
 /**
  * Manages inventory of controller mastership over devices using
- * trivial in-memory structures implementation.
+ * trivial, non-distributed in-memory structures implementation.
  */
 @Component(immediate = true)
 @Service
@@ -35,18 +37,19 @@ public class SimpleMastershipStore
         extends AbstractStore<MastershipEvent, MastershipStoreDelegate>
         implements MastershipStore {
 
-    public static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
-
     private final Logger log = getLogger(getClass());
 
-    private ControllerNode instance;
+    public static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
 
-    protected final ConcurrentMap<DeviceId, MastershipRole> roleMap =
+    private ControllerNode instance =
+            new DefaultControllerNode(new NodeId("local"), LOCALHOST);
+
+    //devices mapped to their masters, to emulate multiple nodes
+    protected final ConcurrentMap<DeviceId, NodeId> masterMap =
             new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
-        instance = new DefaultControllerNode(new NodeId("local"), LOCALHOST);
         log.info("Started");
     }
 
@@ -56,23 +59,36 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public MastershipEvent setRole(NodeId nodeId, DeviceId deviceId,
-                                   MastershipRole role) {
-        if (roleMap.get(deviceId) == null) {
-            return null;
+    public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
+
+        NodeId node = masterMap.get(deviceId);
+        if (node == null) {
+            masterMap.put(deviceId, nodeId);
+            return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
         }
-        roleMap.put(deviceId, role);
-        return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+
+        if (node.equals(nodeId)) {
+            return null;
+        } else {
+            masterMap.put(deviceId, nodeId);
+            return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+        }
     }
 
     @Override
     public NodeId getMaster(DeviceId deviceId) {
-        return instance.id();
+        return masterMap.get(deviceId);
     }
 
     @Override
     public Set<DeviceId> getDevices(NodeId nodeId) {
-        return Collections.unmodifiableSet(roleMap.keySet());
+        Set<DeviceId> ids = new HashSet<>();
+        for (Map.Entry<DeviceId, NodeId> d : masterMap.entrySet()) {
+            if (d.getValue().equals(nodeId)) {
+                ids.add(d.getKey());
+            }
+        }
+        return Collections.unmodifiableSet(ids);
     }
 
     @Override
@@ -82,11 +98,18 @@ public class SimpleMastershipStore
 
     @Override
     public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
-        MastershipRole role = roleMap.get(deviceId);
-        if (role == null) {
-            //say MASTER. If clustered, we'd figure out if anyone's got dibs here.
+        NodeId node = masterMap.get(deviceId);
+        MastershipRole role;
+        if (node != null) {
+            if (node.equals(nodeId)) {
+                role = MastershipRole.MASTER;
+            } else {
+                role = MastershipRole.STANDBY;
+            }
+        } else {
+            //masterMap doesn't contain it.
             role = MastershipRole.MASTER;
-            roleMap.put(deviceId, role);
+            masterMap.put(deviceId, nodeId);
         }
         return role;
     }

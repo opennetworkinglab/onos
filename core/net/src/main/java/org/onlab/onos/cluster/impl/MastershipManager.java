@@ -64,9 +64,12 @@ public class MastershipManager
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
-        MastershipEvent event = store.setRole(nodeId, deviceId, role);
-        if (event != null) {
-            post(event);
+        //TODO figure out appropriate action for non-MASTER roles, if we even set those
+        if (role.equals(MastershipRole.MASTER)) {
+            MastershipEvent event = store.setMaster(nodeId, deviceId);
+            if (event != null) {
+                post(event);
+            }
         }
     }
 
