@@ -51,7 +51,7 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      * mastership role on the device.
      *
      * @param deviceId identity of the device
-     * @param role mastership role being asserted
+     * @param role mastership role that was asserted but failed
      */
     void unableToAssertRole(DeviceId deviceId, MastershipRole role);
 

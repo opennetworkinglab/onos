@@ -9,7 +9,6 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-//TODO move to util, etc.
 /**
 * Kryo Serializer for {@link DeviceId}.
 */

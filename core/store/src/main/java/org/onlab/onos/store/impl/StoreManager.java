@@ -4,7 +4,9 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.FileSystemXmlConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+
 import de.javakaffee.kryoserializers.URISerializer;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,6 +28,7 @@ import org.onlab.onos.store.serializers.DefaultPortSerializer;
 import org.onlab.onos.store.serializers.DeviceIdSerializer;
 import org.onlab.onos.store.serializers.IpPrefixSerializer;
 import org.onlab.onos.store.serializers.NodeIdSerializer;
+import org.onlab.onos.store.serializers.OnosTimestampSerializer;
 import org.onlab.onos.store.serializers.PortNumberSerializer;
 import org.onlab.onos.store.serializers.ProviderIdSerializer;
 import org.onlab.packet.IpPrefix;
@@ -90,6 +93,7 @@ public class StoreManager implements StoreService {
                 .register(DeviceId.class, new DeviceIdSerializer())
                 .register(PortNumber.class, new PortNumberSerializer())
                 .register(DefaultPort.class, new DefaultPortSerializer())
+                .register(OnosTimestamp.class, new OnosTimestampSerializer())
                 .build()
                 .populate(10);
     }
