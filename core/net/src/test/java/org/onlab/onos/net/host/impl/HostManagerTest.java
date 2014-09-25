@@ -2,9 +2,13 @@ package org.onlab.onos.net.host.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
 
 import java.util.List;
 import java.util.Set;
@@ -14,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
@@ -26,6 +31,7 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
+import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.trivial.impl.SimpleHostStore;
@@ -35,8 +41,6 @@ import org.onlab.packet.VlanId;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import static org.onlab.onos.net.host.HostEvent.Type.*;
 
 /**
  * Test codifying the host service & host provider service contracts.
@@ -63,6 +67,12 @@ public class HostManagerTest {
     private static final PortNumber P2 = PortNumber.portNumber(200);
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID1, P2, 123L);
+    private static final ConnectPoint CP1 = new ConnectPoint(DID1, P1);
+    private static final ConnectPoint CP2 = new ConnectPoint(DID2, P2);
+
+    private static final IpPrefix PREFIX1 = IpPrefix.valueOf("10.0.1.0/24");
+    private static final IpPrefix PREFIX2 = IpPrefix.valueOf("10.1.0.0/16");
+    private static final IpPrefix PREFIX3 = IpPrefix.valueOf("5.8.2.0/23");
 
     private HostManager mgr;
 
@@ -195,5 +205,131 @@ public class HostManagerTest {
             events.add(event);
         }
 
+    }
+
+    @Test
+    public void bindAddressesToPort() {
+        PortAddresses add1 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+
+        mgr.bindAddressesToPort(add1);
+        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(add1.ips().equals(storedAddresses.ips()));
+        assertTrue(add1.mac().equals(storedAddresses.mac()));
+
+        // Add some more addresses and check that they're added correctly
+        PortAddresses add2 = new PortAddresses(CP1, Sets.newHashSet(PREFIX3), null);
+
+        mgr.bindAddressesToPort(add2);
+        storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().equals(
+                Sets.newHashSet(PREFIX1, PREFIX2, PREFIX3)));
+        assertTrue(storedAddresses.mac().equals(MAC1));
+
+        PortAddresses add3 = new PortAddresses(CP1, null, MAC2);
+
+        mgr.bindAddressesToPort(add3);
+        storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().equals(
+                Sets.newHashSet(PREFIX1, PREFIX2, PREFIX3)));
+        assertTrue(storedAddresses.mac().equals(MAC2));
+    }
+
+    @Test
+    public void unbindAddressesFromPort() {
+        PortAddresses add1 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+
+        mgr.bindAddressesToPort(add1);
+        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().size() == 2);
+        assertNotNull(storedAddresses.mac());
+
+        PortAddresses rem1 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX1), null);
+
+        mgr.unbindAddressesFromPort(rem1);
+        storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().equals(Sets.newHashSet(PREFIX2)));
+        assertTrue(storedAddresses.mac().equals(MAC1));
+
+        PortAddresses rem2 = new PortAddresses(CP1, null, MAC1);
+
+        mgr.unbindAddressesFromPort(rem2);
+        storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().equals(Sets.newHashSet(PREFIX2)));
+        assertNull(storedAddresses.mac());
+
+        PortAddresses rem3 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX2), MAC1);
+
+        mgr.unbindAddressesFromPort(rem3);
+        storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().isEmpty());
+        assertNull(storedAddresses.mac());
+    }
+
+    @Test
+    public void clearAddresses() {
+        PortAddresses add1 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+
+        mgr.bindAddressesToPort(add1);
+        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().size() == 2);
+        assertNotNull(storedAddresses.mac());
+
+        mgr.clearAddresses(CP1);
+        storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.ips().isEmpty());
+        assertNull(storedAddresses.mac());
+    }
+
+    @Test
+    public void getAddressBindingsForPort() {
+        PortAddresses add1 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+
+        mgr.bindAddressesToPort(add1);
+        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+
+        assertTrue(storedAddresses.connectPoint().equals(CP1));
+        assertTrue(storedAddresses.ips().equals(Sets.newHashSet(PREFIX1, PREFIX2)));
+        assertTrue(storedAddresses.mac().equals(MAC1));
+    }
+
+    @Test
+    public void getAddressBindings() {
+        Set<PortAddresses> storedAddresses = mgr.getAddressBindings();
+
+        assertTrue(storedAddresses.isEmpty());
+
+        PortAddresses add1 = new PortAddresses(CP1,
+                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+
+        mgr.bindAddressesToPort(add1);
+
+        storedAddresses = mgr.getAddressBindings();
+
+        assertTrue(storedAddresses.size() == 1);
+
+        PortAddresses add2 = new PortAddresses(CP2,
+                Sets.newHashSet(PREFIX3), MAC2);
+
+        mgr.bindAddressesToPort(add2);
+
+        storedAddresses = mgr.getAddressBindings();
+
+        assertTrue(storedAddresses.size() == 2);
+        assertTrue(storedAddresses.equals(Sets.newHashSet(add1, add2)));
     }
 }

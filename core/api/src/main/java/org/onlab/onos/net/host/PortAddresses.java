@@ -1,6 +1,8 @@
 package org.onlab.onos.net.host;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.onos.net.ConnectPoint;
@@ -29,7 +31,7 @@ public class PortAddresses {
     public PortAddresses(ConnectPoint connectPoint,
             Set<IpPrefix> ips, MacAddress mac) {
         this.connectPoint = connectPoint;
-        this.ipAddresses = (ips == null) ? null : new HashSet<>(ips);
+        this.ipAddresses = (ips == null) ? Collections.<IpPrefix>emptySet() : new HashSet<>(ips);
         this.macAddress = mac;
     }
 
@@ -60,4 +62,25 @@ public class PortAddresses {
         return macAddress;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof PortAddresses)) {
+            return false;
+        }
+
+        PortAddresses otherPa = (PortAddresses) other;
+
+        return Objects.equals(this.connectPoint, otherPa.connectPoint)
+                && Objects.equals(this.ipAddresses, otherPa.ipAddresses)
+                && Objects.equals(this.macAddress, otherPa.macAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(connectPoint, ipAddresses, macAddress);
+    }
 }
