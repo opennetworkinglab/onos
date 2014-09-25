@@ -4,13 +4,14 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Store;
 
 import java.util.Set;
 
 /**
  * Manages inventory of infrastructure links; not intended for direct use.
  */
-public interface LinkStore {
+public interface LinkStore extends Store<LinkEvent, LinkStoreDelegate> {
 
     /**
      * Returns the number of links in the store.

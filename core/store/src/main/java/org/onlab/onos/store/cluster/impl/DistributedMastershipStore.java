@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.IMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,6 +43,7 @@ public class DistributedMastershipStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Override
     @Activate
     public void activate() {
         super.activate();
@@ -52,7 +54,16 @@ public class DistributedMastershipStore
         masters = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
         rawMasters.addEntryListener(new RemoteEventHandler<>(masters), true);
 
+        loadMasters();
+
         log.info("Started");
+    }
+
+    private void loadMasters() {
+        for (byte[] keyBytes : rawMasters.keySet()) {
+            final DeviceId id = deserialize(keyBytes);
+            masters.refresh(id);
+        }
     }
 
     @Deactivate
@@ -61,10 +72,10 @@ public class DistributedMastershipStore
     }
 
     @Override
-    public MastershipEvent setRole(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
+    public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
         synchronized (this) {
             NodeId currentMaster = getMaster(deviceId);
-            if (role == MastershipRole.MASTER && Objects.equals(currentMaster, nodeId)) {
+            if (Objects.equals(currentMaster, nodeId)) {
                 return null;
             }
 
@@ -94,7 +105,7 @@ public class DistributedMastershipStore
     @Override
     public MastershipRole requestRole(DeviceId deviceId) {
         // FIXME: for now we are 'selecting' as master whoever asks
-        setRole(clusterService.getLocalNode().id(), deviceId, MastershipRole.MASTER);
+        setMaster(clusterService.getLocalNode().id(), deviceId);
         return MastershipRole.MASTER;
     }
 

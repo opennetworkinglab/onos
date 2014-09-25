@@ -6,6 +6,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Store;
 
 import java.util.List;
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.Set;
 /**
  * Manages inventory of topology snapshots; not intended for direct use.
  */
-public interface TopologyStore {
+public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegate> {
 
     /**
      * Returns the current topology snapshot.

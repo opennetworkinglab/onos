@@ -8,6 +8,11 @@ import org.onlab.onos.event.Event;
  */
 public interface StoreDelegate<E extends Event> {
 
+    /**
+     * Notifies the delegate via the specified event.
+     *
+     * @param event store generated event
+     */
     void notify(E event);
 
 }

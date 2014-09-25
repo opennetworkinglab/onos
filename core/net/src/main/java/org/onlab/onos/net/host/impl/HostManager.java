@@ -1,10 +1,5 @@
 package org.onlab.onos.net.host.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,6 +21,7 @@ import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.HostStore;
+import org.onlab.onos.net.host.HostStoreDelegate;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
@@ -34,6 +30,11 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
+
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -50,6 +51,8 @@ public class HostManager
     private final AbstractListenerRegistry<HostEvent, HostListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
+    private HostStoreDelegate delegate = new InternalStoreDelegate();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostStore store;
 
@@ -59,12 +62,14 @@ public class HostManager
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(HostEvent.class);
         log.info("Stopped");
     }
@@ -219,4 +224,11 @@ public class HostManager
         }
     }
 
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements HostStoreDelegate {
+        @Override
+        public void notify(HostEvent event) {
+            post(event);
+        }
+    }
 }
