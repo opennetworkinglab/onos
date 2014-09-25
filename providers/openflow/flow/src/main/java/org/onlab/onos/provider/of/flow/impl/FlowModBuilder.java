@@ -133,10 +133,10 @@ public class FlowModBuilder {
         L3ModificationInstruction l3m = (L3ModificationInstruction) i;
         ModIPInstruction ip;
         switch (l3m.subtype()) {
-        case L3_DST:
+        case IP_DST:
             ip = (ModIPInstruction) i;
             return factory.actions().setNwDst(IPv4Address.of(ip.ip().toInt()));
-        case L3_SRC:
+        case IP_SRC:
             ip = (ModIPInstruction) i;
             return factory.actions().setNwSrc(IPv4Address.of(ip.ip().toInt()));
         default:
@@ -150,10 +150,10 @@ public class FlowModBuilder {
         L2ModificationInstruction l2m = (L2ModificationInstruction) i;
         ModEtherInstruction eth;
         switch (l2m.subtype()) {
-        case L2_DST:
+        case ETH_DST:
             eth = (ModEtherInstruction) l2m;
             return factory.actions().setDlDst(MacAddress.of(eth.mac().toLong()));
-        case L2_SRC:
+        case ETH_SRC:
             eth = (ModEtherInstruction) l2m;
             return factory.actions().setDlSrc(MacAddress.of(eth.mac().toLong()));
         case VLAN_ID:

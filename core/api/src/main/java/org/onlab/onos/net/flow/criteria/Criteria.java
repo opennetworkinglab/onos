@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow.criteria;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.criteria.Criterion.Type;
 import org.onlab.packet.IpPrefix;
@@ -129,6 +131,12 @@ public final class Criteria {
         public PortNumber port() {
             return this.port;
         }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("port", port).toString();
+        }
     }
 
 
@@ -149,6 +157,13 @@ public final class Criteria {
         public MacAddress mac() {
             return this.mac;
         }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("mac", mac).toString();
+        }
+
     }
 
     public static final class EthTypeCriterion implements Criterion {
@@ -166,6 +181,12 @@ public final class Criteria {
 
         public Short ethType() {
             return ethType;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("ethType", Long.toHexString(ethType)).toString();
         }
 
     }
@@ -190,6 +211,11 @@ public final class Criteria {
             return this.ip;
         }
 
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("ip", ip).toString();
+        }
 
     }
 
@@ -209,6 +235,12 @@ public final class Criteria {
 
         public Byte protocol() {
             return proto;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("protocol", Long.toHexString(proto)).toString();
         }
 
     }
@@ -231,6 +263,12 @@ public final class Criteria {
             return vlanPcp;
         }
 
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("pcp", Long.toHexString(vlanPcp)).toString();
+        }
+
     }
 
 
@@ -250,6 +288,12 @@ public final class Criteria {
 
         public VlanId vlanId() {
             return vlanId;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("id", vlanId).toString();
         }
 
     }

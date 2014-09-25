@@ -72,6 +72,9 @@
 
         <command>
             <action class="org.onlab.onos.cli.net.FlowsListCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
         </command>
 
         <command>

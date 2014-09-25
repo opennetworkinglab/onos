@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow.instructions;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -15,12 +17,12 @@ public abstract class L2ModificationInstruction implements Instruction {
         /**
          * Ether src modification.
          */
-        L2_SRC,
+        ETH_SRC,
 
         /**
          * Ether dst modification.
          */
-        L2_DST,
+        ETH_DST,
 
         /**
          * VLAN id modification.
@@ -66,6 +68,13 @@ public abstract class L2ModificationInstruction implements Instruction {
             return this.mac;
         }
 
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("mac", mac).toString();
+        }
+
+
     }
 
     /**
@@ -88,6 +97,12 @@ public abstract class L2ModificationInstruction implements Instruction {
             return this.vlanId;
         }
 
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("id", vlanId).toString();
+        }
+
     }
 
     /**
@@ -108,6 +123,12 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         public Byte vlanPcp() {
             return this.vlanPcp;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("pcp", Long.toHexString(vlanPcp)).toString();
         }
 
     }
