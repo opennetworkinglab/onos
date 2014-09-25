@@ -6,7 +6,6 @@ import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MapEvent;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -25,7 +24,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(componentAbstract = true)
 public abstract class AbstractDistributedStore<E extends Event, D extends StoreDelegate<E>>
-            extends AbstractStore<E, D> {
+        extends AbstractStore<E, D> {
 
     protected final Logger log = getLogger(getClass());
 
@@ -67,7 +66,7 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
      * @param <K> IMap key type after deserialization
      * @param <V> IMap value type after deserialization
      */
-    public final class RemoteEventHandler<K, V> extends EntryAdapter<byte[], byte[]> {
+    public class RemoteEventHandler<K, V> extends EntryAdapter<byte[], byte[]> {
 
         private LoadingCache<K, Optional<V>> cache;
 
@@ -86,26 +85,58 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
         }
 
         @Override
+        public void entryAdded(EntryEvent<byte[], byte[]> event) {
+            K key = deserialize(event.getKey());
+            V newVal = deserialize(event.getValue());
+            Optional<V> newValue = Optional.of(newVal);
+            cache.asMap().putIfAbsent(key, newValue);
+            onAdd(key, newVal);
+        }
+
+        @Override
         public void entryUpdated(EntryEvent<byte[], byte[]> event) {
-            K key = storeService.<K>deserialize(event.getKey());
-            final V oldVal = storeService.<V>deserialize(event.getOldValue());
+            K key = deserialize(event.getKey());
+            V oldVal = deserialize(event.getOldValue());
             Optional<V> oldValue = Optional.fromNullable(oldVal);
-            final V newVal = storeService.<V>deserialize(event.getValue());
+            V newVal = deserialize(event.getValue());
             Optional<V> newValue = Optional.of(newVal);
             cache.asMap().replace(key, oldValue, newValue);
+            onUpdate(key, newVal);
         }
 
         @Override
         public void entryRemoved(EntryEvent<byte[], byte[]> event) {
-            cache.invalidate(storeService.<K>deserialize(event.getKey()));
+            K key = deserialize(event.getKey());
+            V val = deserialize(event.getValue());
+            cache.invalidate(key);
+            onRemove(key, val);
         }
 
-        @Override
-        public void entryAdded(EntryEvent<byte[], byte[]> event) {
-            K key = storeService.<K>deserialize(event.getKey());
-            final V newVal = storeService.<V>deserialize(event.getValue());
-            Optional<V> newValue = Optional.of(newVal);
-            cache.asMap().putIfAbsent(key, newValue);
+        /**
+         * Cache entry addition hook.
+         *
+         * @param key    new key
+         * @param newVal new value
+         */
+        protected void onAdd(K key, V newVal) {
+        }
+
+        /**
+         * Cache entry update hook.
+         *
+         * @param key    new key
+         * @param newVal new value
+         */
+        protected void onUpdate(K key, V newVal) {
+        }
+
+        /**
+         * Cache entry remove hook.
+         *
+         * @param key new key
+         * @param val old value
+         */
+        protected void onRemove(K key, V val) {
         }
     }
 
