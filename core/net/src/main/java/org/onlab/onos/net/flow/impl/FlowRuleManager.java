@@ -252,7 +252,6 @@ implements FlowRuleService, FlowRuleProviderRegistry {
                 }
             }
             for (FlowRule rule : storedRules) {
-                log.info("missing rule is {}", rule);
                 // there are rules in the store that aren't on the switch
                 flowMissing(rule);
 
