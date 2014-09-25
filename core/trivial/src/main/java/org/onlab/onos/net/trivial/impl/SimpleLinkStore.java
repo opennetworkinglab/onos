@@ -3,6 +3,7 @@ package org.onlab.onos.net.trivial.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -11,6 +12,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkStore;
@@ -22,7 +24,6 @@ import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -123,7 +124,7 @@ public class SimpleLinkStore
     // Creates and stores the link and returns the appropriate event.
     private LinkEvent createLink(ProviderId providerId, LinkKey key,
                                  LinkDescription linkDescription) {
-        DefaultLink link = new DefaultLink(providerId, key.src, key.dst,
+        DefaultLink link = new DefaultLink(providerId, key.src(), key.dst(),
                                            linkDescription.type());
         synchronized (this) {
             links.put(key, link);
@@ -163,35 +164,6 @@ public class SimpleLinkStore
                 return new LinkEvent(LINK_REMOVED, link);
             }
             return null;
-        }
-    }
-
-    // Auxiliary key to track links.
-    private class LinkKey {
-        final ConnectPoint src;
-        final ConnectPoint dst;
-
-        LinkKey(ConnectPoint src, ConnectPoint dst) {
-            this.src = src;
-            this.dst = dst;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(src, dst);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof LinkKey) {
-                final LinkKey other = (LinkKey) obj;
-                return Objects.equals(this.src, other.src) &&
-                        Objects.equals(this.dst, other.dst);
-            }
-            return false;
         }
     }
 }
