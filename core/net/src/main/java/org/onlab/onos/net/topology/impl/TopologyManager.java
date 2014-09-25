@@ -28,6 +28,7 @@ import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.onos.net.topology.TopologyStore;
+import org.onlab.onos.net.topology.TopologyStoreDelegate;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -56,6 +57,8 @@ public class TopologyManager
     private final AbstractListenerRegistry<TopologyEvent, TopologyListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
+    private TopologyStoreDelegate delegate = new InternalStoreDelegate();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyStore store;
 
@@ -65,12 +68,14 @@ public class TopologyManager
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         eventDispatcher.addSink(TopologyEvent.class, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(TopologyEvent.class);
         log.info("Stopped");
     }
@@ -188,4 +193,11 @@ public class TopologyManager
         }
     }
 
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements TopologyStoreDelegate {
+        @Override
+        public void notify(TopologyEvent event) {
+            eventDispatcher.post(event);
+        }
+    }
 }

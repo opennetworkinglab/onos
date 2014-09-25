@@ -2,11 +2,12 @@ package org.onlab.onos.net.flow;
 
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.store.Store;
 
 /**
  * Manages inventory of flow rules; not intended for direct use.
  */
-public interface FlowRuleStore {
+public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegate> {
 
     /**
      * Returns the stored flow.

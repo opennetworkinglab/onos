@@ -9,7 +9,8 @@
 # If the first option is -f attempt uninstall first.
 [ "$1" = "-f" ] && shift && onos-uninstall ${1:-$OCI}
 
-remote=$ONOS_USER@${1:-$OCI}
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
 
 scp -q $ONOS_TAR $remote:/tmp
 
@@ -30,7 +31,10 @@ ssh $remote "
 
     # Remove any previous ON.Lab bits from ~/.m2 repo
     rm -fr ~/.m2/repository/org/onlab
-
-    # Ignite the ONOS service.
-    sudo service onos start
 "
+
+# Configure the ONOS installation
+onos-config $node
+
+# Ignite the ONOS service.
+onos-service $node start

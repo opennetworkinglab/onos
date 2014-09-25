@@ -24,8 +24,10 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostStore;
+import org.onlab.onos.net.host.HostStoreDelegate;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -41,7 +43,9 @@ import com.google.common.collect.Multimap;
  */
 @Component(immediate = true)
 @Service
-public class SimpleHostStore implements HostStore {
+public class SimpleHostStore
+        extends AbstractStore<HostEvent, HostStoreDelegate>
+        implements HostStore {
 
     private final Logger log = getLogger(getClass());
 

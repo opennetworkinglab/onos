@@ -15,7 +15,6 @@ import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -61,10 +60,6 @@ public class DistributedDeviceStore
     private IMap<byte[], byte[]> rawDevices;
     private LoadingCache<DeviceId, Optional<DefaultDevice>> devices;
 
-    // private IMap<DeviceId, MastershipRole> roles;
-    private IMap<byte[], byte[]> rawRoles;
-    private LoadingCache<DeviceId, Optional<MastershipRole>> roles;
-
     // private ISet<DeviceId> availableDevices;
     private ISet<byte[]> availableDevices;
 
@@ -73,6 +68,7 @@ public class DistributedDeviceStore
     private IMap<byte[], byte[]> rawDevicePorts;
     private LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> devicePorts;
 
+    @Override
     @Activate
     public void activate() {
         super.activate();
@@ -86,14 +82,7 @@ public class DistributedDeviceStore
                 = new OptionalCacheLoader<>(storeService, rawDevices);
         devices = new AbsentInvalidatingLoadingCache<>(newBuilder().build(deviceLoader));
         // refresh/populate cache based on notification from other instance
-        rawDevices.addEntryListener(new RemoteEventHandler<>(devices), includeValue);
-
-        rawRoles = theInstance.getMap("roles");
-        final OptionalCacheLoader<DeviceId, MastershipRole> rolesLoader
-                = new OptionalCacheLoader<>(storeService, rawRoles);
-        roles = new AbsentInvalidatingLoadingCache<>(newBuilder().build(rolesLoader));
-        // refresh/populate cache based on notification from other instance
-        rawRoles.addEntryListener(new RemoteEventHandler<>(roles), includeValue);
+        rawDevices.addEntryListener(new RemoteDeviceEventHandler(devices), includeValue);
 
         // TODO cache availableDevices
         availableDevices = theInstance.getSet("availableDevices");
@@ -103,7 +92,9 @@ public class DistributedDeviceStore
                 = new OptionalCacheLoader<>(storeService, rawDevicePorts);
         devicePorts = new AbsentInvalidatingLoadingCache<>(newBuilder().build(devicePortLoader));
         // refresh/populate cache based on notification from other instance
-        rawDevicePorts.addEntryListener(new RemoteEventHandler<>(devicePorts), includeValue);
+        rawDevicePorts.addEntryListener(new RemotePortEventHandler(devicePorts), includeValue);
+
+        loadDeviceCache();
 
         log.info("Started");
     }
@@ -115,22 +106,11 @@ public class DistributedDeviceStore
 
     @Override
     public int getDeviceCount() {
-        // TODO IMap size or cache size?
-        return rawDevices.size();
+        return devices.asMap().size();
     }
 
     @Override
     public Iterable<Device> getDevices() {
-// TODO Revisit if we ever need to do this.
-//        log.info("{}:{}", rawMap.size(), cache.size());
-//        if (rawMap.size() != cache.size()) {
-//            for (Entry<byte[], byte[]> e : rawMap.entrySet()) {
-//                final DeviceId key = deserialize(e.getKey());
-//                final DefaultDevice val = deserialize(e.getValue());
-//                cache.put(key, val);
-//            }
-//        }
-
         // TODO builder v.s. copyOf. Guava semms to be using copyOf?
         Builder<Device> builder = ImmutableSet.builder();
         for (Optional<DefaultDevice> e : devices.asMap().values()) {
@@ -139,6 +119,17 @@ public class DistributedDeviceStore
             }
         }
         return builder.build();
+    }
+
+    private void loadDeviceCache() {
+        log.info("{}:{}", rawDevices.size(), devices.size());
+        if (rawDevices.size() != devices.size()) {
+            for (Map.Entry<byte[], byte[]> e : rawDevices.entrySet()) {
+                final DeviceId key = deserialize(e.getKey());
+                final DefaultDevice val = deserialize(e.getValue());
+                devices.put(key, Optional.of(val));
+            }
+        }
     }
 
     @Override
@@ -171,12 +162,8 @@ public class DistributedDeviceStore
             devices.put(deviceId, Optional.of(device));
 
             availableDevices.add(deviceIdBytes);
-
-            // For now claim the device as a master automatically.
-            //rawRoles.put(deviceIdBytes, serialize(MastershipRole.MASTER));
-            //roles.put(deviceId, Optional.of(MastershipRole.MASTER));
         }
-        return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
+        return new DeviceEvent(DEVICE_ADDED, device, null);
     }
 
     // Updates the device and returns the appropriate event if necessary.
@@ -348,8 +335,6 @@ public class DistributedDeviceStore
     public DeviceEvent removeDevice(DeviceId deviceId) {
         synchronized (this) {
             byte[] deviceIdBytes = serialize(deviceId);
-            rawRoles.remove(deviceIdBytes);
-            roles.invalidate(deviceId);
 
             // TODO conditional remove?
             Device device = deserialize(rawDevices.remove(deviceIdBytes));
@@ -359,6 +344,48 @@ public class DistributedDeviceStore
         }
     }
 
-    // TODO cache serialized DeviceID if we suffer from serialization cost
+    private class RemoteDeviceEventHandler extends RemoteEventHandler<DeviceId, DefaultDevice> {
+        public RemoteDeviceEventHandler(LoadingCache<DeviceId, Optional<DefaultDevice>> cache) {
+            super(cache);
+        }
 
+        @Override
+        protected void onAdd(DeviceId deviceId, DefaultDevice device) {
+            delegate.notify(new DeviceEvent(DEVICE_ADDED, device));
+        }
+
+        @Override
+        protected void onRemove(DeviceId deviceId, DefaultDevice device) {
+            delegate.notify(new DeviceEvent(DEVICE_REMOVED, device));
+        }
+
+        @Override
+        protected void onUpdate(DeviceId deviceId, DefaultDevice device) {
+            delegate.notify(new DeviceEvent(DEVICE_UPDATED, device));
+        }
+    }
+
+    private class RemotePortEventHandler extends RemoteEventHandler<DeviceId, Map<PortNumber, Port>> {
+        public RemotePortEventHandler(LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> cache) {
+            super(cache);
+        }
+
+        @Override
+        protected void onAdd(DeviceId deviceId, Map<PortNumber, Port> ports) {
+//            delegate.notify(new DeviceEvent(PORT_ADDED, getDevice(deviceId)));
+        }
+
+        @Override
+        protected void onRemove(DeviceId deviceId, Map<PortNumber, Port> ports) {
+//            delegate.notify(new DeviceEvent(PORT_REMOVED, getDevice(deviceId)));
+        }
+
+        @Override
+        protected void onUpdate(DeviceId deviceId, Map<PortNumber, Port> ports) {
+//            delegate.notify(new DeviceEvent(PORT_UPDATED, getDevice(deviceId)));
+        }
+    }
+
+
+    // TODO cache serialized DeviceID if we suffer from serialization cost
 }
