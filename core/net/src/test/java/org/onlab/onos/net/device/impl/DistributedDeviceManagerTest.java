@@ -43,8 +43,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.Device.Type.SWITCH;
@@ -182,7 +185,7 @@ public class DistributedDeviceManagerTest {
         validateEvents(DEVICE_ADDED, DEVICE_ADDED);
 
         connectDevice(DID1, SW2);
-        validateEvents(DEVICE_UPDATED);
+        validateEvents(DEVICE_UPDATED, DEVICE_UPDATED);
     }
 
     @Test
@@ -251,12 +254,16 @@ public class DistributedDeviceManagerTest {
     }
 
     protected void validateEvents(Enum... types) {
-        int i = 0;
-        assertEquals("wrong events received", types.length, listener.events.size());
-        for (Event event : listener.events) {
-            assertEquals("incorrect event type", types[i], event.type());
-            i++;
+        for (Enum type : types) {
+            try {
+                Event event = listener.events.poll(1, TimeUnit.SECONDS);
+                assertNotNull("Timed out waiting for " + event, event);
+                assertEquals("incorrect event type", type, event.type());
+            } catch (InterruptedException e) {
+                fail("Unexpected interrupt");
+            }
         }
+        assertTrue("Unexpected events left", listener.events.isEmpty());
         listener.events.clear();
     }
 
@@ -281,7 +288,7 @@ public class DistributedDeviceManagerTest {
     }
 
     private static class TestListener implements DeviceListener {
-        final List<DeviceEvent> events = new ArrayList<>();
+        final BlockingQueue<DeviceEvent> events = new LinkedBlockingQueue<>();
 
         @Override
         public void event(DeviceEvent event) {
