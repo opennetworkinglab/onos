@@ -107,7 +107,7 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
         @Override
         public void entryRemoved(EntryEvent<byte[], byte[]> event) {
             K key = deserialize(event.getKey());
-            V val = deserialize(event.getValue());
+            V val = deserialize(event.getOldValue());
             cache.invalidate(key);
             onRemove(key, val);
         }
