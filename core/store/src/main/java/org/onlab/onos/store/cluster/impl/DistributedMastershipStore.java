@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.IMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -53,7 +54,16 @@ public class DistributedMastershipStore
         masters = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
         rawMasters.addEntryListener(new RemoteEventHandler<>(masters), true);
 
+        loadMasters();
+
         log.info("Started");
+    }
+
+    private void loadMasters() {
+        for (byte[] keyBytes : rawMasters.keySet()) {
+            final DeviceId id = deserialize(keyBytes);
+            masters.refresh(id);
+        }
     }
 
     @Deactivate
