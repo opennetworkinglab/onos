@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
@@ -61,6 +62,7 @@ public class FlowRuleManagerTest {
     protected FlowRuleProviderService providerService;
     protected TestProvider provider;
     protected TestListener listener = new TestListener();
+    private ApplicationId appId;
 
     @Before
     public void setUp() {
@@ -75,6 +77,7 @@ public class FlowRuleManagerTest {
         mgr.addListener(listener);
         provider = new TestProvider(PID);
         providerService = registry.register(provider);
+        appId = ApplicationId.getAppId();
         assertTrue("provider should be registered",
                 registry.getProviders().contains(provider.id()));
     }
@@ -93,7 +96,7 @@ public class FlowRuleManagerTest {
     private FlowRule flowRule(int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
-        return new DefaultFlowRule(DID, ts, tr, 0);
+        return new DefaultFlowRule(DID, ts, tr, 0, appId);
     }
 
     private FlowRule flowRule(FlowRule rule, FlowRuleState state) {
@@ -159,8 +162,8 @@ public class FlowRuleManagerTest {
     public void applyFlowRules() {
 
         FlowRule r1 = flowRule(1, 1);
-        FlowRule r2 = flowRule(1, 2);
-        FlowRule r3 = flowRule(1, 3);
+        FlowRule r2 = flowRule(2, 2);
+        FlowRule r3 = flowRule(3, 3);
 
         assertTrue("store should be empty",
                 Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
@@ -196,6 +199,7 @@ public class FlowRuleManagerTest {
     @Test
     public void flowRemoved() {
         FlowRule f1 = addFlowRule(1);
+        service.removeFlowRules(f1);
         addFlowRule(2);
         FlowRule rem1 = flowRule(f1, FlowRuleState.REMOVED);
         providerService.flowRemoved(rem1);
@@ -292,6 +296,11 @@ public class FlowRuleManagerTest {
         @Override
         public void removeFlowRule(FlowRule... flowRules) {
         }
+
+        @Override
+        public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
+        }
+
 
     }
 

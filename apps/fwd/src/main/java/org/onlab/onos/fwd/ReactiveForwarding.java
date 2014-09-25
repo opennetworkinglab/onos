@@ -9,6 +9,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.Path;
@@ -53,14 +54,18 @@ public class ReactiveForwarding {
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
+    private ApplicationId appId;
+
     @Activate
     public void activate() {
+        appId = ApplicationId.getAppId();
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
-        log.info("Started");
+        log.info("Started with Application ID {}", appId.id());
     }
 
     @Deactivate
     public void deactivate() {
+        flowRuleService.removeFlowRulesById(appId);
         packetService.removeProcessor(processor);
         processor = null;
         log.info("Stopped");
@@ -169,7 +174,7 @@ public class ReactiveForwarding {
         treat.add(Instructions.createOutput(portNumber));
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                builder.build(), treat.build(), 0);
+                builder.build(), treat.build(), 0, appId);
 
         flowRuleService.applyFlowRules(f);
     }

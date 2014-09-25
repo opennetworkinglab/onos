@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 
 /**
@@ -51,6 +52,13 @@ public interface FlowRule {
      * @return the flow ID
      */
     FlowId id();
+
+    /**
+     * Returns the application id of this flow.
+     *
+     * @return an applicationId
+     */
+    ApplicationId appId();
 
     /**
      * Returns the flow rule priority given in natural order; higher numbers

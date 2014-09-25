@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.provider.Provider;
 
 /**
@@ -24,5 +25,11 @@ public interface FlowRuleProvider extends Provider {
      *                  which ones failed
      */
     void removeFlowRule(FlowRule... flowRules);
+
+    /**
+     * Removes rules by their id.
+     * @param id the id to remove
+     */
+    void removeRulesById(ApplicationId id, FlowRule... flowRules);
 
 }

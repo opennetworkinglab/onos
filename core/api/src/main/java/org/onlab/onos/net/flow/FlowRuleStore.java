@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 
 /**
@@ -8,12 +9,27 @@ import org.onlab.onos.net.DeviceId;
 public interface FlowRuleStore {
 
     /**
+     * Returns the stored flow.
+     * @param rule the rule to look for
+     * @return a flow rule
+     */
+    FlowRule getFlowRule(FlowRule rule);
+
+    /**
      * Returns the flow entries associated with a device.
      *
      * @param deviceId the device ID
      * @return the flow entries
      */
     Iterable<FlowRule> getFlowEntries(DeviceId deviceId);
+
+    /**
+     * Returns the flow entries associated with an application.
+     *
+     * @param appId the application id
+     * @return the flow entries
+     */
+    Iterable<FlowRule> getFlowEntriesByAppId(ApplicationId appId);
 
     /**
      * Stores a new flow rule without generating events.

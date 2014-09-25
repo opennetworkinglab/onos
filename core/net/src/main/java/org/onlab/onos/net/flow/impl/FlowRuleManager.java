@@ -12,14 +12,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleProvider;
@@ -77,7 +76,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     @Override
     public void applyFlowRules(FlowRule... flowRules) {
         for (int i = 0; i < flowRules.length; i++) {
-            FlowRule f = new DefaultFlowRule(flowRules[i], FlowRuleState.PENDING_ADD);
+            FlowRule f = flowRules[i];
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
             store.storeFlowRule(f);
@@ -88,14 +87,33 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
         FlowRule f;
+        FlowRuleProvider frp;
+        Device device;
         for (int i = 0; i < flowRules.length; i++) {
-            f = new DefaultFlowRule(flowRules[i], FlowRuleState.PENDING_REMOVE);
-            final Device device = deviceService.getDevice(f.deviceId());
-            final FlowRuleProvider frp = getProvider(device.providerId());
+            f = flowRules[i];
+            device = deviceService.getDevice(f.deviceId());
+            frp = getProvider(device.providerId());
             store.deleteFlowRule(f);
             frp.removeFlowRule(f);
         }
+    }
 
+    @Override
+    public void removeFlowRulesById(ApplicationId id) {
+        Iterable<FlowRule> rules =  getFlowRulesById(id);
+        FlowRuleProvider frp;
+        Device device;
+        for (FlowRule f : rules) {
+            store.deleteFlowRule(f);
+            device = deviceService.getDevice(f.deviceId());
+            frp = getProvider(device.providerId());
+            frp.removeRulesById(id, f);
+        }
+    }
+
+    @Override
+    public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
+        return store.getFlowEntriesByAppId(id);
     }
 
     @Override
@@ -126,8 +144,27 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void flowRemoved(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            FlowRuleEvent event = store.removeFlowRule(flowRule);
+            FlowRule stored = store.getFlowRule(flowRule);
+            if (stored == null) {
+                log.debug("Rule already evicted from store: {}", flowRule);
+                return;
+            }
+            Device device = deviceService.getDevice(flowRule.deviceId());
+            FlowRuleProvider frp = getProvider(device.providerId());
+            FlowRuleEvent event = null;
+            switch (stored.state()) {
+            case ADDED:
+            case PENDING_ADD:
+                frp.applyFlowRule(flowRule);
+                break;
+            case PENDING_REMOVE:
+            case REMOVED:
+                event = store.removeFlowRule(flowRule);
+                break;
+            default:
+                break;
 
+            }
             if (event != null) {
                 log.debug("Flow {} removed", flowRule);
                 post(event);
@@ -138,7 +175,22 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void flowMissing(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            log.debug("Flow {} has not been installed.", flowRule);
+            Device device = deviceService.getDevice(flowRule.deviceId());
+            FlowRuleProvider frp = getProvider(device.providerId());
+            switch (flowRule.state()) {
+            case PENDING_REMOVE:
+            case REMOVED:
+                store.removeFlowRule(flowRule);
+                frp.removeFlowRule(flowRule);
+                break;
+            case ADDED:
+            case PENDING_ADD:
+                frp.applyFlowRule(flowRule);
+                break;
+            default:
+                log.debug("Flow {} has not been installed.", flowRule);
+            }
+
 
         }
 
@@ -146,6 +198,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         public void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
+            removeFlowRules(flowRule);
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 

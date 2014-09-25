@@ -9,6 +9,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleProvider;
@@ -102,10 +103,15 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     }
 
-
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
         sw.sendMsg(new FlowModBuilder(flowRule, sw.factory()).buildFlowDel());
+    }
+
+    @Override
+    public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
+        // TODO: optimize using the ApplicationId
+        removeFlowRule(flowRules);
     }
 
 
@@ -177,6 +183,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
     }
+
+
 
 
 }

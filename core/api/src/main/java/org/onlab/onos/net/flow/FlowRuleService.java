@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 
 /**
@@ -43,6 +44,20 @@ public interface FlowRuleService {
      */
     void removeFlowRules(FlowRule... flowRules);
 
+    /**
+     * Removes all rules by id.
+     *
+     * @param appId id to remove
+     */
+    void removeFlowRulesById(ApplicationId appId);
+
+    /**
+     * Returns a list of rules with this application id.
+     *
+     * @param id the id to look up
+     * @return collection of flow rules
+     */
+    Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
     /**
      * Adds the specified flow rule listener.
@@ -57,5 +72,7 @@ public interface FlowRuleService {
      * @param listener flow rule listener
      */
     void removeListener(FlowRuleListener listener);
+
+
 
 }
