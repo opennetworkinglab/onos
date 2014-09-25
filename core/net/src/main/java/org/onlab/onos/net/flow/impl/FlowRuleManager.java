@@ -1,6 +1,11 @@
 package org.onlab.onos.net.flow.impl;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,11 +31,7 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Iterator;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Lists;
 
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
@@ -47,7 +48,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
     listenerRegistry = new AbstractListenerRegistry<>();
 
-    private FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
+    private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
@@ -107,6 +108,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         Iterable<FlowRule> rules =  getFlowRulesById(id);
         FlowRuleProvider frp;
         Device device;
+
         for (FlowRule f : rules) {
             store.deleteFlowRule(f);
             device = deviceService.getDevice(f.deviceId());
@@ -181,10 +183,11 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             checkValidity();
             Device device = deviceService.getDevice(flowRule.deviceId());
             FlowRuleProvider frp = getProvider(device.providerId());
+            FlowRuleEvent event = null;
             switch (flowRule.state()) {
             case PENDING_REMOVE:
             case REMOVED:
-                store.removeFlowRule(flowRule);
+                event = store.removeFlowRule(flowRule);
                 frp.removeFlowRule(flowRule);
                 break;
             case ADDED:
@@ -195,6 +198,10 @@ implements FlowRuleService, FlowRuleProviderRegistry {
                 log.debug("Flow {} has not been installed.", flowRule);
             }
 
+            if (event != null) {
+                log.debug("Flow {} removed", flowRule);
+                post(event);
+            }
 
         }
 
@@ -245,7 +252,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
                 }
             }
             for (FlowRule rule : storedRules) {
-
+                log.info("missing rule is {}", rule);
                 // there are rules in the store that aren't on the switch
                 flowMissing(rule);
 

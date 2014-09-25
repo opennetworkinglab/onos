@@ -116,6 +116,7 @@ public class FlowRuleManagerTest {
         }
 
         int i = 0;
+        System.err.println("events :" + listener.events);
         for (FlowRuleEvent e : listener.events) {
             assertTrue("unexpected event", e.type().equals(events[i]));
             i++;
@@ -207,6 +208,12 @@ public class FlowRuleManagerTest {
 
         providerService.flowRemoved(rem1);
         validateEvents();
+
+        FlowRule f3 = flowRule(flowRule(3, 3), FlowRuleState.ADDED);
+        providerService.flowAdded(f3);
+        validateEvents(RULE_ADDED);
+        providerService.flowRemoved(f3);
+        validateEvents();
     }
 
     @Test
@@ -214,6 +221,7 @@ public class FlowRuleManagerTest {
         FlowRule f1 = flowRule(1, 1);
         FlowRule f2 = flowRule(2, 2);
         FlowRule f3 = flowRule(3, 3);
+
 
         FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
         FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
@@ -224,7 +232,71 @@ public class FlowRuleManagerTest {
         assertTrue("Entries should be added.",
                 validateState(FlowRuleState.PENDING_ADD, FlowRuleState.ADDED,
                         FlowRuleState.ADDED));
-        //TODO: add tests for flowmissing and extraneous flows
+
+        validateEvents(RULE_UPDATED, RULE_UPDATED);
+    }
+
+    @Test
+    public void extraneousFlow() {
+        FlowRule f1 = flowRule(1, 1);
+        FlowRule f2 = flowRule(2, 2);
+        FlowRule f3 = flowRule(3, 3);
+
+        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
+        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
+        FlowRule updatedF3 = flowRule(f3, FlowRuleState.ADDED);
+        mgr.applyFlowRules(f1, f2);
+
+        providerService.pushFlowMetrics(DID, Lists.newArrayList(updatedF1, updatedF2, updatedF3));
+
+        validateEvents(RULE_UPDATED, RULE_UPDATED);
+
+    }
+
+    /*
+     * Tests whether a rule that was marked for removal but no flowRemoved was received
+     * is indeed removed at the next stats update.
+     */
+    @Test
+    public void flowMissingRemove() {
+        FlowRule f1 = flowRule(1, 1);
+        FlowRule f2 = flowRule(2, 2);
+        FlowRule f3 = flowRule(3, 3);
+
+        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
+        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
+        mgr.applyFlowRules(f1, f2, f3);
+
+        mgr.removeFlowRules(f3);
+
+        providerService.pushFlowMetrics(DID, Lists.newArrayList(updatedF1, updatedF2));
+
+        validateEvents(RULE_UPDATED, RULE_UPDATED, RULE_REMOVED);
+
+    }
+
+    @Test
+    public void getByAppId() {
+        FlowRule f1 = flowRule(1, 1);
+        FlowRule f2 = flowRule(2, 2);
+        mgr.applyFlowRules(f1, f2);
+
+        assertTrue("should have two rules",
+                Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
+    }
+
+    @Test
+    public void removeByAppId() {
+        FlowRule f1 = flowRule(1, 1);
+        FlowRule f2 = flowRule(2, 2);
+        mgr.applyFlowRules(f1, f2);
+
+
+        mgr.removeFlowRulesById(appId);
+
+        //only check that we are in pending remove. Events and actual remove state will
+        // be set by flowRemoved call.
+        validateState(FlowRuleState.PENDING_REMOVE, FlowRuleState.PENDING_REMOVE);
     }
 
     private static class TestListener implements FlowRuleListener {
