@@ -13,7 +13,6 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
 import org.onlab.onos.net.flow.FlowRuleService;
 
 import com.google.common.collect.Maps;
@@ -30,11 +29,7 @@ public class FlowsListCommand extends AbstractShellCommand {
     private static final String TFMT = "      treatment=%s";
     private static final String SFMT = "      selector=%s";
 
-    @Argument(index = 0, name = "state", description = "Flow rule state",
-            required = false, multiValued = false)
-    FlowRuleState state = null;
-
-    @Argument(index = 1, name = "uri", description = "Device ID",
+    @Argument(index = 0, name = "uri", description = "Device ID",
             required = false, multiValued = false)
     String uri = null;
 
