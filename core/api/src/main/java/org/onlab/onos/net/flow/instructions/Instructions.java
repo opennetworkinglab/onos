@@ -1,5 +1,6 @@
 package org.onlab.onos.net.flow.instructions;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onlab.onos.net.PortNumber;
@@ -47,7 +48,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Src(MacAddress addr) {
         checkNotNull(addr, "Src l2 address cannot be null");
-        return new ModEtherInstruction(L2SubType.L2_SRC, addr);
+        return new ModEtherInstruction(L2SubType.ETH_SRC, addr);
     }
 
     /**
@@ -57,7 +58,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Dst(MacAddress addr) {
         checkNotNull(addr, "Dst l2 address cannot be null");
-        return new L2ModificationInstruction.ModEtherInstruction(L2SubType.L2_DST, addr);
+        return new L2ModificationInstruction.ModEtherInstruction(L2SubType.ETH_DST, addr);
     }
 
     /**
@@ -87,7 +88,7 @@ public final class Instructions {
      */
     public static L3ModificationInstruction modL3Src(IpPrefix addr) {
         checkNotNull(addr, "Src l3 address cannot be null");
-        return new ModIPInstruction(L3SubType.L3_SRC, addr);
+        return new ModIPInstruction(L3SubType.IP_SRC, addr);
     }
 
     /**
@@ -97,7 +98,7 @@ public final class Instructions {
      */
     public static L3ModificationInstruction modL3Dst(IpPrefix addr) {
         checkNotNull(addr, "Dst l3 address cannot be null");
-        return new ModIPInstruction(L3SubType.L3_DST, addr);
+        return new ModIPInstruction(L3SubType.IP_DST, addr);
     }
 
 
@@ -109,6 +110,12 @@ public final class Instructions {
         @Override
         public Type type() {
             return Type.DROP;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type()).toString();
+
         }
     }
 
@@ -127,6 +134,11 @@ public final class Instructions {
         @Override
         public Type type() {
             return Type.OUTPUT;
+        }
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("port", port).toString();
         }
     }
 

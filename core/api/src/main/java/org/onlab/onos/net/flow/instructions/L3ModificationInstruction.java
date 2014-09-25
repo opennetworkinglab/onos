@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow.instructions;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import org.onlab.packet.IpPrefix;
 
 /**
@@ -14,12 +16,12 @@ public abstract class L3ModificationInstruction implements Instruction {
         /**
          * Ether src modification.
          */
-        L3_SRC,
+        IP_SRC,
 
         /**
          * Ether dst modification.
          */
-        L3_DST
+        IP_DST
 
         //TODO: remaining types
     }
@@ -56,6 +58,12 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         public IpPrefix ip() {
             return this.ip;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("ip", ip).toString();
         }
 
     }

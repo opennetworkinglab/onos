@@ -1,18 +1,22 @@
 package org.onlab.onos.cli.net;
 
-import com.google.common.collect.Maps;
-import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleService;
+import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.Lists.newArrayList;
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.onlab.onos.cli.AbstractShellCommand;
+import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
+import org.onlab.onos.net.flow.FlowRuleService;
+
+import com.google.common.collect.Maps;
 
 /**
  * Lists all currently-known hosts.
@@ -22,14 +26,24 @@ description = "Lists all currently-known flows.")
 public class FlowsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "   id=%s, selector=%s, treatment=%s, state=%s";
+            "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s";
+    private static final String TFMT = "      treatment=%s";
+    private static final String SFMT = "      selector=%s";
+
+    @Argument(index = 0, name = "state", description = "Flow rule state",
+            required = false, multiValued = false)
+    FlowRuleState state = null;
+
+    @Argument(index = 1, name = "uri", description = "Device ID",
+            required = false, multiValued = false)
+    String uri = null;
 
     @Override
     protected void execute() {
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
         Map<Device, List<FlowRule>> flows = getSortedFlows(deviceService, service);
-        for (Device d : deviceService.getDevices()) {
+        for (Device d : flows.keySet()) {
             printFlows(d, flows.get(d));
         }
     }
@@ -42,8 +56,10 @@ public class FlowsListCommand extends AbstractShellCommand {
      */
     protected Map<Device, List<FlowRule>> getSortedFlows(DeviceService deviceService, FlowRuleService service) {
         Map<Device, List<FlowRule>> flows = Maps.newHashMap();
-        List<FlowRule> rules;
-        for (Device d : deviceService.getDevices()) {
+        List<FlowRule> rules = newArrayList();
+        Iterable<Device> devices = uri == null ?  deviceService.getDevices() :
+            Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
+        for (Device d : devices) {
             rules = newArrayList(service.getFlowEntries(d.id()));
             Collections.sort(rules, Comparators.FLOW_RULE_COMPARATOR);
             flows.put(d, rules);
@@ -58,8 +74,15 @@ public class FlowsListCommand extends AbstractShellCommand {
      */
     protected void printFlows(Device d, List<FlowRule> flows) {
         print("Device: " + d.id());
+        if (flows == null | flows.isEmpty()) {
+            print(" %s", "No flows installed.");
+            return;
+        }
         for (FlowRule f : flows) {
-            print(FMT, f.id().value(), f.selector(), f.treatment(), f.state());
+            print(FMT, Long.toHexString(f.id().value()), f.state(), f.bytes(),
+                    f.packets(), f.lifeMillis(), f.priority());
+            print(SFMT, f.selector().criteria());
+            print(TFMT, f.treatment().instructions());
         }
 
     }
