@@ -56,6 +56,13 @@ public interface MastershipService {
     Set<DeviceId> getDevicesOf(NodeId nodeId);
 
     /**
+     * Returns the mastership term service for getting term information.
+     *
+     * @return the MastershipTermService for this mastership manager
+     */
+    MastershipTermService requestTermService();
+
+    /**
      * Adds the specified mastership change listener.
      *
      * @param listener the mastership listener

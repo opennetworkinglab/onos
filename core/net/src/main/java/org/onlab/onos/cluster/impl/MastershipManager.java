@@ -12,6 +12,8 @@ import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipListener;
 import org.onlab.onos.cluster.MastershipService;
 import org.onlab.onos.cluster.MastershipStore;
+import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
@@ -103,6 +105,12 @@ public class MastershipManager
         return store.getDevices(nodeId);
     }
 
+
+    @Override
+    public MastershipTermService requestTermService() {
+        return new InternalMastershipTermService();
+    }
+
     @Override
     public void addListener(MastershipListener listener) {
         checkNotNull(listener);
@@ -122,6 +130,15 @@ public class MastershipManager
         if (event != null && eventDispatcher != null) {
             eventDispatcher.post(event);
         }
+    }
+
+    private class InternalMastershipTermService implements MastershipTermService {
+
+        @Override
+        public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+            return store.getTermFor(deviceId);
+        }
+
     }
 
 }

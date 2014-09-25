@@ -40,4 +40,9 @@ public class MastershipServiceAdapter implements MastershipService {
     @Override
     public void removeListener(MastershipListener listener) {
     }
+
+    @Override
+    public MastershipTermService requestTermService() {
+        return null;
+    }
 }

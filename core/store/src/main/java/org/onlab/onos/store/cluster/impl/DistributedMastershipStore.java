@@ -15,6 +15,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipStore;
 import org.onlab.onos.cluster.MastershipStoreDelegate;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -113,6 +114,12 @@ public class DistributedMastershipStore
     public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
         NodeId master = masters.getUnchecked(deviceId).orNull();
         return nodeId.equals(master) ? MastershipRole.MASTER : MastershipRole.STANDBY;
+    }
+
+    @Override
+    public MastershipTerm getTermFor(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
