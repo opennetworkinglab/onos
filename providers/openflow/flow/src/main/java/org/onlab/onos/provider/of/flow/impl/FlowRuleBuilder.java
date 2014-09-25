@@ -183,7 +183,7 @@ public class FlowRuleBuilder {
                 break;
             case ETH_DST:
                 MacAddress dMac = MacAddress.valueOf(match.get(MatchField.ETH_DST).getLong());
-                builder.add(Criteria.matchEthSrc(dMac));
+                builder.add(Criteria.matchEthDst(dMac));
                 break;
             case ETH_TYPE:
                 int ethType = match.get(MatchField.ETH_TYPE).getValue();

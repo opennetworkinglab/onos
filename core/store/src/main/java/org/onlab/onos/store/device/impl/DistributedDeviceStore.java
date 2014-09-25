@@ -1,12 +1,15 @@
 package org.onlab.onos.store.device.impl;
 
+import static com.google.common.base.Predicates.notNull;
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -95,6 +98,7 @@ public class DistributedDeviceStore
         rawDevicePorts.addEntryListener(new RemotePortEventHandler(devicePorts), includeValue);
 
         loadDeviceCache();
+        loadDevicePortsCache();
 
         log.info("Started");
     }
@@ -122,13 +126,16 @@ public class DistributedDeviceStore
     }
 
     private void loadDeviceCache() {
-        log.info("{}:{}", rawDevices.size(), devices.size());
-        if (rawDevices.size() != devices.size()) {
-            for (Map.Entry<byte[], byte[]> e : rawDevices.entrySet()) {
-                final DeviceId key = deserialize(e.getKey());
-                final DefaultDevice val = deserialize(e.getValue());
-                devices.put(key, Optional.of(val));
-            }
+        for (byte[] keyBytes : rawDevices.keySet()) {
+            final DeviceId id = deserialize(keyBytes);
+            devices.refresh(id);
+        }
+    }
+
+    private void loadDevicePortsCache() {
+        for (byte[] keyBytes : rawDevicePorts.keySet()) {
+            final DeviceId id = deserialize(keyBytes);
+            devicePorts.refresh(id);
         }
     }
 
@@ -180,10 +187,12 @@ public class DistributedDeviceStore
                                                       desc.swVersion(),
                                                       desc.serialNumber());
             synchronized (this) {
+                final byte[] deviceIdBytes = serialize(device.id());
+                rawDevices.put(deviceIdBytes, serialize(updated));
                 devices.put(device.id(), Optional.of(updated));
                 availableDevices.add(serialize(device.id()));
             }
-            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, device, null);
+            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, updated, null);
         }
 
         // Otherwise merely attempt to change availability
@@ -227,7 +236,7 @@ public class DistributedDeviceStore
 
             events.addAll(pruneOldPorts(device, ports, processed));
         }
-        return events;
+        return FluentIterable.from(events).filter(notNull()).toList();
     }
 
     // Creates a new port based on the port description adds it to the map and
@@ -254,7 +263,7 @@ public class DistributedDeviceStore
                                     portDescription.isEnabled());
             ports.put(port.number(), updatedPort);
             updatePortMap(device.id(), ports);
-            return new DeviceEvent(PORT_UPDATED, device, port);
+            return new DeviceEvent(PORT_UPDATED, device, updatedPort);
         }
         return null;
     }
@@ -351,17 +360,17 @@ public class DistributedDeviceStore
 
         @Override
         protected void onAdd(DeviceId deviceId, DefaultDevice device) {
-            delegate.notify(new DeviceEvent(DEVICE_ADDED, device));
+            notifyDelegate(new DeviceEvent(DEVICE_ADDED, device));
         }
 
         @Override
         protected void onRemove(DeviceId deviceId, DefaultDevice device) {
-            delegate.notify(new DeviceEvent(DEVICE_REMOVED, device));
+            notifyDelegate(new DeviceEvent(DEVICE_REMOVED, device));
         }
 
         @Override
         protected void onUpdate(DeviceId deviceId, DefaultDevice device) {
-            delegate.notify(new DeviceEvent(DEVICE_UPDATED, device));
+            notifyDelegate(new DeviceEvent(DEVICE_UPDATED, device));
         }
     }
 
@@ -372,17 +381,17 @@ public class DistributedDeviceStore
 
         @Override
         protected void onAdd(DeviceId deviceId, Map<PortNumber, Port> ports) {
-//            delegate.notify(new DeviceEvent(PORT_ADDED, getDevice(deviceId)));
+//            notifyDelegate(new DeviceEvent(PORT_ADDED, getDevice(deviceId)));
         }
 
         @Override
         protected void onRemove(DeviceId deviceId, Map<PortNumber, Port> ports) {
-//            delegate.notify(new DeviceEvent(PORT_REMOVED, getDevice(deviceId)));
+//            notifyDelegate(new DeviceEvent(PORT_REMOVED, getDevice(deviceId)));
         }
 
         @Override
         protected void onUpdate(DeviceId deviceId, Map<PortNumber, Port> ports) {
-//            delegate.notify(new DeviceEvent(PORT_UPDATED, getDevice(deviceId)));
+//            notifyDelegate(new DeviceEvent(PORT_UPDATED, getDevice(deviceId)));
         }
     }
 

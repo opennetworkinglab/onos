@@ -1,6 +1,8 @@
 package org.onlab.onos.net.trivial.impl;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -33,6 +35,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Predicates.notNull;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -123,7 +126,7 @@ public class SimpleDeviceStore
                 devices.put(device.id(), updated);
                 availableDevices.add(device.id());
             }
-            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, device, null);
+            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, updated, null);
         }
 
         // Otherwise merely attempt to change availability
@@ -165,7 +168,7 @@ public class SimpleDeviceStore
 
             events.addAll(pruneOldPorts(device, ports, processed));
         }
-        return events;
+        return FluentIterable.from(events).filter(notNull()).toList();
     }
 
     // Creates a new port based on the port description adds it to the map and
