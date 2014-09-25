@@ -105,4 +105,11 @@ public interface OpenFlowSwitch {
      */
     public void disconnectSwitch();
 
+    /**
+     * Notifies the controller that role assertion has failed.
+     *
+     * @param role the failed role
+     */
+    void returnRoleAssertFailure(RoleState role);
+
 }

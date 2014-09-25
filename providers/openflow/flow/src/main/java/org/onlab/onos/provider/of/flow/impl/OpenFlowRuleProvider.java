@@ -23,6 +23,7 @@ import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
+import org.onlab.onos.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
@@ -159,6 +160,12 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             default:
                 log.warn("Unhandled message type: {}", msg.getType());
             }
+
+        }
+
+        @Override
+        public void roleAssertFailed(Dpid dpid, RoleState role) {
+            // TODO Auto-generated method stub
 
         }
 

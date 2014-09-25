@@ -25,4 +25,12 @@ public interface OpenFlowSwitchListener {
      * @param status the new state of the port.
      */
     public void portChanged(Dpid dpid, OFPortStatus status);
+
+    /**
+     * Notify that a role imposed on a switch failed to take hold.
+     *
+     * @param dpid the switch that failed role assertion
+     * @param role the role imposed by the controller
+     */
+    public void roleAssertFailed(Dpid dpid, RoleState role);
 }

@@ -344,6 +344,10 @@ public class OpenFlowDeviceProviderTest {
         public void disconnectSwitch() {
         }
 
+        @Override
+        public void returnRoleAssertFailure(RoleState role) {
+        }
+
     }
 
 }

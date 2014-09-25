@@ -142,6 +142,26 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.portStatusChanged(deviceId(uri(dpid)), portDescription);
         }
 
+        @Override
+        public void roleAssertFailed(Dpid dpid, RoleState role) {
+            MastershipRole failed;
+            switch (role) {
+                case MASTER:
+                    failed = MastershipRole.MASTER;
+                    break;
+                case EQUAL:
+                    failed = MastershipRole.STANDBY;
+                    break;
+                case SLAVE:
+                    failed = MastershipRole.NONE;
+                    break;
+                default:
+                    LOG.warn("unknown role {}", role);
+                    return;
+            }
+            providerService.unableToAssertRole(deviceId(uri(dpid)), failed);
+        }
+
         /**
          * Builds a list of port descriptions for a given list of ports.
          *
@@ -169,6 +189,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             return new DefaultPortDescription(portNo, enabled);
         }
+
     }
 
 }

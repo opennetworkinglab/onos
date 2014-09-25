@@ -22,6 +22,7 @@ import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.PacketListener;
+import org.onlab.onos.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
@@ -133,6 +134,11 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
                 ld.removePort(port);
             }
 
+        }
+
+        @Override
+        public void roleAssertFailed(Dpid dpid, RoleState role) {
+            // TODO Auto-generated method stub
         }
 
     }

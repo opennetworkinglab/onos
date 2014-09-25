@@ -394,6 +394,10 @@ public class OpenFlowPacketProviderTest {
         public void disconnectSwitch() {
         }
 
+        @Override
+        public void returnRoleAssertFailure(RoleState role) {
+        }
+
     }
 
 }

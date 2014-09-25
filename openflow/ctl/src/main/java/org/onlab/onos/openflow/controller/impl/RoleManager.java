@@ -232,6 +232,8 @@ class RoleManager implements RoleHandler {
             } else {
                 return RoleRecvStatus.OTHER_EXPECTATION;
             }
+        } else {
+            sw.returnRoleAssertFailure(pendingRole);
         }
 
         // if xids match but role's don't, perhaps its a query (OF1.3)

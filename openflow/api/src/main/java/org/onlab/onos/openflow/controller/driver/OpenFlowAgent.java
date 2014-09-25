@@ -2,6 +2,7 @@ package org.onlab.onos.openflow.controller.driver;
 
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
+import org.onlab.onos.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 
 /**
@@ -74,4 +75,12 @@ public interface OpenFlowAgent {
      * @param m the message to process
      */
     public void processMessage(Dpid dpid, OFMessage m);
+
+    /**
+     * Notifies the controller that role assertion has failed.
+     *
+     * @param dpid the switch that failed role assertion
+     * @param role the failed role
+     */
+    public void returnRoleAssertFailed(Dpid dpid, RoleState role);
 }

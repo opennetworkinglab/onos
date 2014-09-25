@@ -11,7 +11,6 @@ import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -54,7 +53,6 @@ public class SimpleDeviceStore
     public static final String DEVICE_NOT_FOUND = "Device with ID %s not found";
 
     private final Map<DeviceId, DefaultDevice> devices = new ConcurrentHashMap<>();
-    private final Map<DeviceId, MastershipRole> roles = new ConcurrentHashMap<>();
     private final Set<DeviceId> availableDevices = new HashSet<>();
     private final Map<DeviceId, Map<PortNumber, Port>> devicePorts = new HashMap<>();
 
@@ -257,7 +255,6 @@ public class SimpleDeviceStore
     @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
         synchronized (this) {
-            roles.remove(deviceId);
             Device device = devices.remove(deviceId);
             return device == null ? null :
                     new DeviceEvent(DEVICE_REMOVED, device, null);

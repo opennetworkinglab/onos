@@ -213,6 +213,11 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     }
 
     @Override
+    public void returnRoleAssertFailure(RoleState role) {
+        this.agent.returnRoleAssertFailed(dpid, role);
+    }
+
+    @Override
     public abstract void startDriverHandshake();
 
     @Override

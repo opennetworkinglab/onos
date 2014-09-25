@@ -313,6 +313,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         public void processMessage(Dpid dpid, OFMessage m) {
             processPacket(dpid, m);
         }
+
+        @Override
+        public void returnRoleAssertFailed(Dpid dpid, RoleState role) {
+            for (OpenFlowSwitchListener l : ofSwitchListener) {
+                l.roleAssertFailed(dpid, role);
+            }
+        }
     }
 
     private final class OFMessageHandler implements Runnable {

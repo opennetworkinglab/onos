@@ -233,6 +233,8 @@ public class DeviceManager
         @Override
         public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
             // FIXME: implement response to this notification
+            log.warn("Falied to assert role [{}] onto Device {}",
+                    role, deviceId);
         }
     }
 
