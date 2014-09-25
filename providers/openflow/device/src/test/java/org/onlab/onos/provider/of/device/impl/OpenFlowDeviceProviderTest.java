@@ -120,6 +120,16 @@ public class OpenFlowDeviceProviderTest {
         assertEquals("port status unhandled", 3, registry.ports.get(DID1).size());
     }
 
+    @Test
+    public void roleAssertFailed() {
+        controller.listener.roleAssertFailed(DPID1, RoleState.MASTER);
+        assertEquals("wrong role reported", DPID1, registry.roles.get(MASTER));
+        controller.listener.roleAssertFailed(DPID1, RoleState.EQUAL);
+        assertEquals("wrong role reported", DPID1, registry.roles.get(STANDBY));
+        controller.listener.roleAssertFailed(DPID1, RoleState.SLAVE);
+        assertEquals("wrong role reported", DPID1, registry.roles.get(NONE));
+    }
+
     private static OFPortDesc portDesc(int port) {
         OFPortDesc.Builder builder = OFFactoryVer10.INSTANCE.buildPortDesc();
         builder.setPortNo(OFPort.of(port));
@@ -129,9 +139,11 @@ public class OpenFlowDeviceProviderTest {
 
     private class TestDeviceRegistry implements DeviceProviderRegistry {
         DeviceProvider provider;
-        Set<DeviceId> connected = new HashSet<DeviceId>();
+
+        Set<DeviceId> connected = new HashSet<>();
         Multimap<DeviceId, PortDescription> ports = HashMultimap.create();
         PortDescription descr = null;
+        Map<MastershipRole, Dpid> roles = new HashMap<>();
 
         @Override
         public DeviceProviderService register(DeviceProvider provider) {
@@ -184,7 +196,7 @@ public class OpenFlowDeviceProviderTest {
 
             @Override
             public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
-                // FIXME: add fixture core when tests are done on this
+                roles.put(role, Dpid.dpid(deviceId.uri()));
             }
 
         }
