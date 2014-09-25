@@ -95,6 +95,7 @@ public class DistributedDeviceStore
         rawDevicePorts.addEntryListener(new RemotePortEventHandler(devicePorts), includeValue);
 
         loadDeviceCache();
+        loadDevicePortsCache();
 
         log.info("Started");
     }
@@ -122,13 +123,16 @@ public class DistributedDeviceStore
     }
 
     private void loadDeviceCache() {
-        log.info("{}:{}", rawDevices.size(), devices.size());
-        if (rawDevices.size() != devices.size()) {
-            for (Map.Entry<byte[], byte[]> e : rawDevices.entrySet()) {
-                final DeviceId key = deserialize(e.getKey());
-                final DefaultDevice val = deserialize(e.getValue());
-                devices.put(key, Optional.of(val));
-            }
+        for (byte[] keyBytes : rawDevices.keySet()) {
+            final DeviceId id = deserialize(keyBytes);
+            devices.refresh(id);
+        }
+    }
+
+    private void loadDevicePortsCache() {
+        for (byte[] keyBytes : rawDevicePorts.keySet()) {
+            final DeviceId id = deserialize(keyBytes);
+            devicePorts.refresh(id);
         }
     }
 
