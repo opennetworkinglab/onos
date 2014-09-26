@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.channels.Selector;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * Abstraction of an I/O processing loop based on an NIO selector.
@@ -117,5 +118,42 @@ public abstract class SelectorLoop implements Runnable {
         state = State.STOPPED;
         notifyAll();
     }
+
+    /**
+     * Waits for the loop execution to start.
+     *
+     * @param timeout number of milliseconds to wait
+     * @return true if loop started in time
+     */
+    public final synchronized boolean awaitStart(long timeout) {
+        long max = currentTimeMillis() + timeout;
+        while (state != State.STARTED && (currentTimeMillis() < max)) {
+            try {
+                wait(timeout);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Interrupted", e);
+            }
+        }
+        return state == State.STARTED;
+    }
+
+    /**
+     * Waits for the loop execution to stop.
+     *
+     * @param timeout number of milliseconds to wait
+     * @return true if loop finished in time
+     */
+    public final synchronized boolean awaitStop(long timeout) {
+        long max = currentTimeMillis() + timeout;
+        while (state != State.STOPPED && (currentTimeMillis() < max)) {
+            try {
+                wait(timeout);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Interrupted", e);
+            }
+        }
+        return state == State.STOPPED;
+    }
+
 
 }

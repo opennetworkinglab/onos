@@ -18,15 +18,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.String.format;
+import static java.lang.System.out;
 import static org.onlab.junit.TestTools.delay;
 import static org.onlab.util.Tools.namedThreads;
 
 /**
  * Auxiliary test fixture to measure speed of NIO-based channels.
  */
-public class IOLoopServer {
+public class IOLoopTestServer {
 
-    private static Logger log = LoggerFactory.getLogger(IOLoopServer.class);
+    private static Logger log = LoggerFactory.getLogger(IOLoopTestServer.class);
 
     private static final int PRUNE_FREQUENCY = 1000;
 
@@ -34,8 +36,8 @@ public class IOLoopServer {
     static final long TIMEOUT = 1000;
 
     static final boolean SO_NO_DELAY = false;
-    static final int SO_SEND_BUFFER_SIZE = 1024 * 1024;
-    static final int SO_RCV_BUFFER_SIZE = 1024 * 1024;
+    static final int SO_SEND_BUFFER_SIZE = 128 * 1024;
+    static final int SO_RCV_BUFFER_SIZE = 128 * 1024;
 
     static final DecimalFormat FORMAT = new DecimalFormat("#,##0");
 
@@ -59,19 +61,29 @@ public class IOLoopServer {
      * @throws IOException if unable to crate IO loops
      */
     public static void main(String[] args) throws IOException {
+        startStandalone(args);
+        System.exit(0);
+    }
+
+    /**
+     * Starts a standalone IO loop test server.
+     *
+     * @param args command-line arguments
+     */
+    private static void startStandalone(String[] args) throws IOException {
         InetAddress ip = InetAddress.getByName(args.length > 0 ? args[0] : "127.0.0.1");
         int wc = args.length > 1 ? Integer.parseInt(args[1]) : 6;
         int ml = args.length > 2 ? Integer.parseInt(args[2]) : 128;
 
         log.info("Setting up the server with {} workers, {} byte messages on {}... ",
                  wc, ml, ip);
-        IOLoopServer ss = new IOLoopServer(ip, wc, ml, PORT);
-        ss.start();
+        IOLoopTestServer server = new IOLoopTestServer(ip, wc, ml, PORT);
+        server.start();
 
         // Start pruning clients.
         while (true) {
             delay(PRUNE_FREQUENCY);
-            ss.prune();
+            server.prune();
         }
     }
 
@@ -84,7 +96,7 @@ public class IOLoopServer {
      * @param port listen port
      * @throws IOException if unable to create IO loops
      */
-    public IOLoopServer(InetAddress ip, int wc, int ml, int port) throws IOException {
+    public IOLoopTestServer(InetAddress ip, int wc, int ml, int port) throws IOException {
         this.workerCount = wc;
         this.msgLength = ml;
         this.ipool = Executors.newFixedThreadPool(workerCount, namedThreads("io-loop"));
@@ -107,9 +119,10 @@ public class IOLoopServer {
         }
         apool.execute(aloop);
 
-//        for (CustomIOLoop l : iloops)
-//            l.waitForStart(TIMEOUT);
-//        aloop.waitForStart(TIMEOUT);
+        for (CustomIOLoop l : iloops) {
+            l.awaitStart(TIMEOUT);
+        }
+        aloop.awaitStart(TIMEOUT);
     }
 
     /**
@@ -121,10 +134,11 @@ public class IOLoopServer {
             l.shutdown();
         }
 
-//        for (CustomIOLoop l : iloops)
-//            l.waitForFinish(TIMEOUT);
-//        aloop.waitForFinish(TIMEOUT);
-//
+        for (CustomIOLoop l : iloops) {
+            l.awaitStop(TIMEOUT);
+        }
+        aloop.awaitStop(TIMEOUT);
+
         messages.freeze();
         bytes.freeze();
     }
@@ -134,11 +148,10 @@ public class IOLoopServer {
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
-        log.info("{} messages; {} bytes; {} mps; {} Mbs",
-                 f.format(messages.total()),
-                 f.format(bytes.total()),
-                 f.format(messages.throughput()),
-                 f.format(bytes.throughput() / (1024 * 128)));
+        out.println(format("Server: %s messages; %s bytes; %s mps; %s Mbs",
+                           f.format(messages.total()), f.format(bytes.total()),
+                           f.format(messages.throughput()),
+                           f.format(bytes.throughput() / (1024 * msgLength))));
     }
 
     /**
@@ -175,11 +188,11 @@ public class IOLoopServer {
             messages.add(stream.messagesIn().total());
             bytes.add(stream.bytesIn().total());
 
-            log.info("Disconnected client; inbound {} mps, {} Mbps; outbound {} mps, {} Mbps",
-                     FORMAT.format(stream.messagesIn().throughput()),
-                     FORMAT.format(stream.bytesIn().throughput() / (1024 * 128)),
-                     FORMAT.format(stream.messagesOut().throughput()),
-                     FORMAT.format(stream.bytesOut().throughput() / (1024 * 128)));
+//            out.println(format("Disconnected server; inbound %s mps, %s Mbps; outbound %s mps, %s Mbps",
+//                               FORMAT.format(stream.messagesIn().throughput()),
+//                               FORMAT.format(stream.bytesIn().throughput() / (1024 * msgLength)),
+//                               FORMAT.format(stream.messagesOut().throughput()),
+//                               FORMAT.format(stream.bytesOut().throughput() / (1024 * msgLength))));
         }
 
         @Override

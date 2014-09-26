@@ -22,15 +22,18 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static java.lang.String.format;
+import static java.lang.System.out;
 import static org.onlab.junit.TestTools.delay;
+import static org.onlab.nio.IOLoopTestServer.PORT;
 import static org.onlab.util.Tools.namedThreads;
 
 /**
  * Auxiliary test fixture to measure speed of NIO-based channels.
  */
-public class IOLoopClient {
+public class IOLoopTestClient {
 
-    private static Logger log = LoggerFactory.getLogger(IOLoopClient.class);
+    private static Logger log = LoggerFactory.getLogger(IOLoopTestClient.class);
 
     private final InetAddress ip;
     private final int port;
@@ -55,6 +58,18 @@ public class IOLoopClient {
      */
     public static void main(String[] args)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        startStandalone(args);
+
+        System.exit(0);
+    }
+
+    /**
+     * Starts a standalone IO loop test client.
+     *
+     * @param args command-line arguments
+     */
+    public static void startStandalone(String[] args)
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
         InetAddress ip = InetAddress.getByName(args.length > 0 ? args[0] : "127.0.0.1");
         int wc = args.length > 1 ? Integer.parseInt(args[1]) : 6;
         int mc = args.length > 2 ? Integer.parseInt(args[2]) : 50 * 1000000;
@@ -63,15 +78,13 @@ public class IOLoopClient {
 
         log.info("Setting up client with {} workers sending {} {}-byte messages to {} server... ",
                  wc, mc, ml, ip);
-        IOLoopClient sc = new IOLoopClient(ip, wc, mc, ml, IOLoopServer.PORT);
+        IOLoopTestClient client = new IOLoopTestClient(ip, wc, mc, ml, PORT);
 
-        sc.start();
+        client.start();
         delay(2000);
 
-        sc.await(to);
-        sc.report();
-
-        System.exit(0);
+        client.await(to);
+        client.report();
     }
 
     /**
@@ -84,7 +97,7 @@ public class IOLoopClient {
      * @param port socket port
      * @throws IOException if unable to create IO loops
      */
-    public IOLoopClient(InetAddress ip, int wc, int mc, int ml, int port) throws IOException {
+    public IOLoopTestClient(InetAddress ip, int wc, int mc, int ml, int port) throws IOException {
         this.ip = ip;
         this.port = port;
         this.msgCount = mc;
@@ -112,8 +125,9 @@ public class IOLoopClient {
         }
 
         // Wait for all of them to get going
-//        for (CustomIOLoop l : iloops)
-//            l.waitForStart(TIMEOUT);
+        for (CustomIOLoop l : iloops) {
+            l.awaitStart(1000);
+        }
 
         // ... and Next open all connections; one-per-loop
         for (CustomIOLoop l : iloops) {
@@ -162,11 +176,10 @@ public class IOLoopClient {
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
-        log.info("{} messages; {} bytes; {} mps; {} Mbs",
-                 f.format(messages.total()),
-                 f.format(bytes.total()),
-                 f.format(messages.throughput()),
-                 f.format(bytes.throughput() / (1024 * 128)));
+        out.println(format("Client: %s messages; %s bytes; %s mps; %s Mbs",
+                           f.format(messages.total()), f.format(bytes.total()),
+                           f.format(messages.throughput()),
+                           f.format(bytes.throughput() / (1024 * msgLength))));
     }
 
 
@@ -186,19 +199,20 @@ public class IOLoopClient {
         }
 
         @Override
-        protected synchronized void removeStream(MessageStream<TestMessage> b) {
-            super.removeStream(b);
+        protected synchronized void removeStream(MessageStream<TestMessage> stream) {
+            super.removeStream(stream);
 
-            messages.add(b.messagesIn().total());
-            bytes.add(b.bytesIn().total());
-            b.messagesOut().reset();
-            b.bytesOut().reset();
-//
-            log.info("Disconnected client; inbound {} mps, {} Mbps; outbound {} mps, {} Mbps",
-                     IOLoopServer.FORMAT.format(b.messagesIn().throughput()),
-                     IOLoopServer.FORMAT.format(b.bytesIn().throughput() / (1024 * 128)),
-                     IOLoopServer.FORMAT.format(b.messagesOut().throughput()),
-                     IOLoopServer.FORMAT.format(b.bytesOut().throughput() / (1024 * 128)));
+            messages.add(stream.messagesIn().total());
+            bytes.add(stream.bytesIn().total());
+
+//            out.println(format("Disconnected client; inbound %s mps, %s Mbps; outbound %s mps, %s Mbps",
+//                               FORMAT.format(stream.messagesIn().throughput()),
+//                               FORMAT.format(stream.bytesIn().throughput() / (1024 * msgLength)),
+//                               FORMAT.format(stream.messagesOut().throughput()),
+//                               FORMAT.format(stream.bytesOut().throughput() / (1024 * msgLength))));
+
+            stream.messagesOut().reset();
+            stream.bytesOut().reset();
         }
 
         @Override
