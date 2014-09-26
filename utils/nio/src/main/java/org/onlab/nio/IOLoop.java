@@ -259,13 +259,16 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
 
     /**
      * Prunes the registered streams by discarding any stale ones.
+     *
+     * @return number of remaining streams
      */
-    public synchronized void pruneStaleStreams() {
+    public synchronized int pruneStaleStreams() {
         for (MessageStream<M> stream : streams) {
             if (stream.isStale()) {
                 stream.close();
             }
         }
+        return streams.size();
     }
 
 }

@@ -298,7 +298,7 @@ public class IOLoopTestClient {
             List<TestMessage> batch = Lists.newArrayListWithCapacity(size);
             for (int i = 0; i < size; i++) {
                 batch.add(new TestMessage(msgLength, currentTimeMillis(), 0,
-                                          this.stream.padding(msgLength)));
+                                          stream.padding()));
             }
             acquire(size);
             stream.write(batch);
