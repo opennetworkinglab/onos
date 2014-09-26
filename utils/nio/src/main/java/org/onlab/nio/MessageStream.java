@@ -1,5 +1,6 @@
 package org.onlab.nio;
 
+import org.onlab.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,10 @@ public abstract class MessageStream<M extends Message> {
     private Exception ioError;
     private long lastActiveTime;
 
+    private final Counter bytesIn = new Counter();
+    private final Counter messagesIn = new Counter();
+    private final Counter bytesOut = new Counter();
+    private final Counter messagesOut = new Counter();
 
     /**
      * Creates a message stream associated with the specified IO loop and
@@ -92,6 +97,11 @@ public abstract class MessageStream<M extends Message> {
             }
             closed = true;
         }
+
+        bytesIn.freeze();
+        bytesOut.freeze();
+        messagesIn.freeze();
+        messagesOut.freeze();
 
         loop.removeStream(this);
         if (key != null) {
@@ -176,6 +186,8 @@ public abstract class MessageStream<M extends Message> {
                 inbound.flip();
                 while ((message = read(inbound)) != null) {
                     messages.add(message);
+                    messagesIn.add(1);
+                    bytesIn.add(message.length());
                 }
                 inbound.compact();
 
@@ -226,8 +238,9 @@ public abstract class MessageStream<M extends Message> {
         while (outbound.remaining() < message.length()) {
             doubleSize();
         }
-        // Place the message into the buffer and bump the output trackers.
         write(message, outbound);
+        messagesOut.add(1);
+        bytesOut.add(message.length());
     }
 
     // Forces a flush, unless one is planned already.
@@ -270,6 +283,18 @@ public abstract class MessageStream<M extends Message> {
     boolean isWritePending() {
         synchronized (this) {
             return writePending;
+        }
+    }
+
+
+    /**
+     * Indicates whether data has been written but not flushed yet.
+     *
+     * @return true if flush is required
+     */
+    boolean isFlushRequired() {
+        synchronized (this) {
+            return outbound.position() > 0;
         }
     }
 
@@ -342,6 +367,42 @@ public abstract class MessageStream<M extends Message> {
      */
     boolean isStale() {
         return currentTimeMillis() - lastActiveTime > maxIdleMillis() && key != null;
+    }
+
+    /**
+     * Returns the inbound bytes counter.
+     *
+     * @return inbound bytes counter
+     */
+    public Counter bytesIn() {
+        return bytesIn;
+    }
+
+    /**
+     * Returns the outbound bytes counter.
+     *
+     * @return outbound bytes counter
+     */
+    public Counter bytesOut() {
+        return bytesOut;
+    }
+
+    /**
+     * Returns the inbound messages counter.
+     *
+     * @return inbound messages counter
+     */
+    public Counter messagesIn() {
+        return messagesIn;
+    }
+
+    /**
+     * Returns the outbound messages counter.
+     *
+     * @return outbound messages counter
+     */
+    public Counter messagesOut() {
+        return messagesOut;
     }
 
 }

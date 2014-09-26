@@ -48,11 +48,11 @@ public class IOLoopIntegrationTest {
 
         // Setup the test on a random port to avoid intermittent test failures
         // due to the port being already bound.
-        int port = StandaloneSpeedServer.PORT + new Random().nextInt(100);
+        int port = IOLoopServer.PORT + new Random().nextInt(100);
 
         InetAddress ip = InetAddress.getLoopbackAddress();
-        StandaloneSpeedServer sss = new StandaloneSpeedServer(ip, THREADS, size, port);
-        StandaloneSpeedClient ssc = new StandaloneSpeedClient(ip, THREADS, count, size, port);
+        IOLoopServer sss = new IOLoopServer(ip, THREADS, size, port);
+        IOLoopClient ssc = new IOLoopClient(ip, THREADS, count, size, port);
 
         sss.start();
         ssc.start();
@@ -64,32 +64,6 @@ public class IOLoopIntegrationTest {
         delay(1000);
         sss.stop();
         sss.report();
-
-        // Note that the client and server will have potentially significantly
-        // differing rates. This is due to the wide variance in how tightly
-        // the throughput tracking starts & stops relative to to the short
-        // test duration.
-//        System.out.println(f.format(ssc.messages.throughput()) + " mps");
-
-//        // Make sure client sent everything.
-//        assertEquals("incorrect client message count sent",
-//                     (long) count * THREADS, ssc.messages.total());
-//        assertEquals("incorrect client bytes count sent",
-//                     (long) size * count * THREADS, ssc.bytes.total());
-//
-//        // Make sure server received everything.
-//        assertEquals("incorrect server message count received",
-//                     (long) count * THREADS, sss.messages.total());
-//        assertEquals("incorrect server bytes count received",
-//                     (long) size * count * THREADS, sss.bytes.total());
-//
-//        // Make sure speeds were reasonable.
-//        if (mps > 0.0) {
-//            assertAboveThreshold("insufficient client speed", mps,
-//                                 ssc.messages.throughput());
-//            assertAboveThreshold("insufficient server speed", mps / 2,
-//                                 sss.messages.throughput());
-//        }
     }
 
 }

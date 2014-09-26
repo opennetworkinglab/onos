@@ -1,5 +1,6 @@
 package org.onlab.nio;
 
+import org.onlab.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,7 @@ import java.net.SocketAddress;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -26,9 +28,9 @@ import static org.onlab.util.Tools.namedThreads;
 /**
  * Auxiliary test fixture to measure speed of NIO-based channels.
  */
-public class StandaloneSpeedClient {
+public class IOLoopClient {
 
-    private static Logger log = LoggerFactory.getLogger(StandaloneSpeedClient.class);
+    private static Logger log = LoggerFactory.getLogger(IOLoopClient.class);
 
     private final InetAddress ip;
     private final int port;
@@ -39,8 +41,8 @@ public class StandaloneSpeedClient {
     private final ExecutorService ipool;
     private final ExecutorService wpool;
 
-//    ThroughputTracker messages;
-//    ThroughputTracker bytes;
+    Counter messages;
+    Counter bytes;
 
     /**
      * Main entry point to launch the client.
@@ -61,7 +63,7 @@ public class StandaloneSpeedClient {
 
         log.info("Setting up client with {} workers sending {} {}-byte messages to {} server... ",
                  wc, mc, ml, ip);
-        StandaloneSpeedClient sc = new StandaloneSpeedClient(ip, wc, mc, ml, StandaloneSpeedServer.PORT);
+        IOLoopClient sc = new IOLoopClient(ip, wc, mc, ml, IOLoopServer.PORT);
 
         sc.start();
         delay(2000);
@@ -82,7 +84,7 @@ public class StandaloneSpeedClient {
      * @param port socket port
      * @throws IOException if unable to create IO loops
      */
-    public StandaloneSpeedClient(InetAddress ip, int wc, int mc, int ml, int port) throws IOException {
+    public IOLoopClient(InetAddress ip, int wc, int mc, int ml, int port) throws IOException {
         this.ip = ip;
         this.port = port;
         this.msgCount = mc;
@@ -101,15 +103,15 @@ public class StandaloneSpeedClient {
      * @throws IOException if unable to open connection
      */
     public void start() throws IOException {
-//        messages = new ThroughputTracker();
-//        bytes = new ThroughputTracker();
+        messages = new Counter();
+        bytes = new Counter();
 
         // First start up all the IO loops
         for (CustomIOLoop l : iloops) {
             ipool.execute(l);
         }
 
-//        // Wait for all of them to get going
+        // Wait for all of them to get going
 //        for (CustomIOLoop l : iloops)
 //            l.waitForStart(TIMEOUT);
 
@@ -151,20 +153,20 @@ public class StandaloneSpeedClient {
                 l.worker.task.get(secs, TimeUnit.SECONDS);
             }
         }
-//        messages.freeze();
-//        bytes.freeze();
+        messages.freeze();
+        bytes.freeze();
     }
 
     /**
      * Reports on the accumulated throughput trackers.
      */
     public void report() {
-//        DecimalFormat f = new DecimalFormat("#,##0");
-//        log.info("{} messages; {} bytes; {} mps; {} Mbs",
-//                 f.format(messages.total()),
-//                 f.format(bytes.total()),
-//                 f.format(messages.throughput()),
-//                 f.format(bytes.throughput() / (1024 * 128)));
+        DecimalFormat f = new DecimalFormat("#,##0");
+        log.info("{} messages; {} bytes; {} mps; {} Mbs",
+                 f.format(messages.total()),
+                 f.format(bytes.total()),
+                 f.format(messages.throughput()),
+                 f.format(bytes.throughput() / (1024 * 128)));
     }
 
 
@@ -187,16 +189,16 @@ public class StandaloneSpeedClient {
         protected synchronized void removeStream(MessageStream<TestMessage> b) {
             super.removeStream(b);
 
-//            messages.add(b.inMessages().total());
-//            bytes.add(b.inBytes().total());
-//            b.inMessages().reset();
-//            b.inBytes().reset();
-
-//            log.info("Disconnected client; inbound {} mps, {} Mbps; outbound {} mps, {} Mbps",
-//                     StandaloneSpeedServer.format.format(b.inMessages().throughput()),
-//                     StandaloneSpeedServer.format.format(b.inBytes().throughput() / (1024 * 128)),
-//                     StandaloneSpeedServer.format.format(b.outMessages().throughput()),
-//                     StandaloneSpeedServer.format.format(b.outBytes().throughput() / (1024 * 128)));
+            messages.add(b.messagesIn().total());
+            bytes.add(b.bytesIn().total());
+            b.messagesOut().reset();
+            b.bytesOut().reset();
+//
+            log.info("Disconnected client; inbound {} mps, {} Mbps; outbound {} mps, {} Mbps",
+                     IOLoopServer.FORMAT.format(b.messagesIn().throughput()),
+                     IOLoopServer.FORMAT.format(b.bytesIn().throughput() / (1024 * 128)),
+                     IOLoopServer.FORMAT.format(b.messagesOut().throughput()),
+                     IOLoopServer.FORMAT.format(b.bytesOut().throughput() / (1024 * 128)));
         }
 
         @Override

@@ -23,57 +23,36 @@ import static org.junit.Assert.assertNull;
  */
 public class MessageStreamTest {
 
-    private static final int LENGTH = 16;
-
-    private static final TestMessage TM1 = new TestMessage(LENGTH);
-    private static final TestMessage TM2 = new TestMessage(LENGTH);
-    private static final TestMessage TM3 = new TestMessage(LENGTH);
-    private static final TestMessage TM4 = new TestMessage(LENGTH);
+    private static final int SIZE = 16;
+    private static final TestMessage MESSAGE = new TestMessage(SIZE);
 
     private static final int BIG_SIZE = 32 * 1024;
     private static final TestMessage BIG_MESSAGE = new TestMessage(BIG_SIZE);
 
-    private static enum WritePending {
-        ON, OFF;
-
-        public boolean on() {
-            return this == ON;
-        }
-    }
-
-    private static enum FlushRequired {
-        ON, OFF;
-
-        public boolean on() {
-            return this == ON;
-        }
-    }
-
-    private FakeIOLoop loop;
+    private TestIOLoop loop;
     private TestByteChannel channel;
-    private TestMessageStream buffer;
+    private TestMessageStream stream;
     private TestKey key;
 
     @Before
     public void setUp() throws IOException {
-        loop = new FakeIOLoop();
+        loop = new TestIOLoop();
         channel = new TestByteChannel();
         key = new TestKey(channel);
-        buffer = loop.createStream(channel);
-        buffer.setKey(key);
+        stream = loop.createStream(channel);
+        stream.setKey(key);
     }
 
     @After
     public void tearDown() {
         loop.shutdown();
-        buffer.close();
+        stream.close();
     }
 
-    // Check state of the message buffer
-    private void assertState(WritePending wp, FlushRequired fr,
-                             int read, int written) {
-        assertEquals(wp.on(), buffer.isWritePending());
-//        assertEquals(fr.on(), buffer.requiresFlush());
+    // Validates the state of the message stream
+    private void validate(boolean wp, boolean fr, int read, int written) {
+        assertEquals(wp, stream.isWritePending());
+        assertEquals(fr, stream.isFlushRequired());
         assertEquals(read, channel.readBytes);
         assertEquals(written, channel.writtenBytes);
     }
@@ -81,155 +60,155 @@ public class MessageStreamTest {
     @Test
     public void endOfStream() throws IOException {
         channel.close();
-        List<TestMessage> messages = buffer.read();
+        List<TestMessage> messages = stream.read();
         assertNull(messages);
     }
 
     @Test
     public void bufferGrowth() throws IOException {
-        // Create a buffer for big messages and test the growth.
-        buffer = new TestMessageStream(BIG_SIZE, channel, loop);
-        buffer.write(BIG_MESSAGE);
-        buffer.write(BIG_MESSAGE);
-        buffer.write(BIG_MESSAGE);
-        buffer.write(BIG_MESSAGE);
-        buffer.write(BIG_MESSAGE);
+        // Create a stream for big messages and test the growth.
+        stream = new TestMessageStream(BIG_SIZE, channel, loop);
+        stream.write(BIG_MESSAGE);
+        stream.write(BIG_MESSAGE);
+        stream.write(BIG_MESSAGE);
+        stream.write(BIG_MESSAGE);
+        stream.write(BIG_MESSAGE);
     }
 
     @Test
     public void discardBeforeKey() {
-        // Create a buffer that does not yet have the key set and discard it.
-        buffer = loop.createStream(channel);
-        assertNull(buffer.key());
-        buffer.close();
+        // Create a stream that does not yet have the key set and discard it.
+        stream = loop.createStream(channel);
+        assertNull(stream.key());
+        stream.close();
         // There is not key, so nothing to check; we just expect no problem.
     }
 
     @Test
     public void bufferedRead() throws IOException {
-        channel.bytesToRead = LENGTH + 4;
-        List<TestMessage> messages = buffer.read();
+        channel.bytesToRead = SIZE + 4;
+        List<TestMessage> messages = stream.read();
         assertEquals(1, messages.size());
-        assertState(WritePending.OFF, FlushRequired.OFF, LENGTH + 4, 0);
+        validate(false, false, SIZE + 4, 0);
 
-        channel.bytesToRead = LENGTH - 4;
-        messages = buffer.read();
+        channel.bytesToRead = SIZE - 4;
+        messages = stream.read();
         assertEquals(1, messages.size());
-        assertState(WritePending.OFF, FlushRequired.OFF, LENGTH * 2, 0);
+        validate(false, false, SIZE * 2, 0);
     }
 
     @Test
     public void bufferedWrite() throws IOException {
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, 0);
+        validate(false, false, 0, 0);
 
         // First write is immediate...
-        buffer.write(TM1);
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH);
+        stream.write(MESSAGE);
+        validate(false, false, 0, SIZE);
 
         // Second and third get buffered...
-        buffer.write(TM2);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH);
-        buffer.write(TM3);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH);
+        stream.write(MESSAGE);
+        validate(false, true, 0, SIZE);
+        stream.write(MESSAGE);
+        validate(false, true, 0, SIZE);
 
         // Reset write, which will flush if needed; the next write is again buffered
-        buffer.flushIfWriteNotPending();
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH * 3);
-        buffer.write(TM4);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH * 3);
+        stream.flushIfWriteNotPending();
+        validate(false, false, 0, SIZE * 3);
+        stream.write(MESSAGE);
+        validate(false, true, 0, SIZE * 3);
 
         // Select reset, which will flush if needed; the next write is again buffered
-        buffer.flushIfPossible();
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH * 4);
-        buffer.write(TM1);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH * 4);
-        buffer.flush();
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH * 4);
+        stream.flushIfPossible();
+        validate(false, false, 0, SIZE * 4);
+        stream.write(MESSAGE);
+        validate(false, true, 0, SIZE * 4);
+        stream.flush();
+        validate(false, true, 0, SIZE * 4);
     }
 
     @Test
     public void bufferedWriteList() throws IOException {
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, 0);
+        validate(false, false, 0, 0);
 
         // First write is immediate...
-        List<TestMessage> messages = new ArrayList<TestMessage>();
-        messages.add(TM1);
-        messages.add(TM2);
-        messages.add(TM3);
-        messages.add(TM4);
+        List<TestMessage> messages = new ArrayList<>();
+        messages.add(MESSAGE);
+        messages.add(MESSAGE);
+        messages.add(MESSAGE);
+        messages.add(MESSAGE);
 
-        buffer.write(messages);
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH * 4);
+        stream.write(messages);
+        validate(false, false, 0, SIZE * 4);
 
-        buffer.write(messages);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH * 4);
+        stream.write(messages);
+        validate(false, true, 0, SIZE * 4);
 
-        buffer.flushIfPossible();
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH * 8);
+        stream.flushIfPossible();
+        validate(false, false, 0, SIZE * 8);
     }
 
     @Test
     public void bufferedPartialWrite() throws IOException {
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, 0);
+        validate(false, false, 0, 0);
 
         // First write is immediate...
-        buffer.write(TM1);
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH);
+        stream.write(MESSAGE);
+        validate(false, false, 0, SIZE);
 
         // Tell test channel to accept only half.
-        channel.bytesToWrite = LENGTH / 2;
+        channel.bytesToWrite = SIZE / 2;
 
         // Second and third get buffered...
-        buffer.write(TM2);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH);
-        buffer.flushIfPossible();
-        assertState(WritePending.ON, FlushRequired.ON, 0, LENGTH + LENGTH / 2);
+        stream.write(MESSAGE);
+        validate(false, true, 0, SIZE);
+        stream.flushIfPossible();
+        validate(true, true, 0, SIZE + SIZE / 2);
     }
 
     @Test
     public void bufferedPartialWrite2() throws IOException {
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, 0);
+        validate(false, false, 0, 0);
 
         // First write is immediate...
-        buffer.write(TM1);
-        assertState(WritePending.OFF, FlushRequired.OFF, 0, LENGTH);
+        stream.write(MESSAGE);
+        validate(false, false, 0, SIZE);
 
         // Tell test channel to accept only half.
-        channel.bytesToWrite = LENGTH / 2;
+        channel.bytesToWrite = SIZE / 2;
 
         // Second and third get buffered...
-        buffer.write(TM2);
-        assertState(WritePending.OFF, FlushRequired.ON, 0, LENGTH);
-        buffer.flushIfWriteNotPending();
-        assertState(WritePending.ON, FlushRequired.ON, 0, LENGTH + LENGTH / 2);
+        stream.write(MESSAGE);
+        validate(false, true, 0, SIZE);
+        stream.flushIfWriteNotPending();
+        validate(true, true, 0, SIZE + SIZE / 2);
     }
 
     @Test
     public void bufferedReadWrite() throws IOException {
-        channel.bytesToRead = LENGTH + 4;
-        List<TestMessage> messages = buffer.read();
+        channel.bytesToRead = SIZE + 4;
+        List<TestMessage> messages = stream.read();
         assertEquals(1, messages.size());
-        assertState(WritePending.OFF, FlushRequired.OFF, LENGTH + 4, 0);
+        validate(false, false, SIZE + 4, 0);
 
-        buffer.write(TM1);
-        assertState(WritePending.OFF, FlushRequired.OFF, LENGTH + 4, LENGTH);
+        stream.write(MESSAGE);
+        validate(false, false, SIZE + 4, SIZE);
 
-        channel.bytesToRead = LENGTH - 4;
-        messages = buffer.read();
+        channel.bytesToRead = SIZE - 4;
+        messages = stream.read();
         assertEquals(1, messages.size());
-        assertState(WritePending.OFF, FlushRequired.OFF, LENGTH * 2, LENGTH);
+        validate(false, false, SIZE * 2, SIZE);
     }
 
     // Fake IO driver loop
-    private static class FakeIOLoop extends IOLoop<TestMessage, TestMessageStream> {
+    private static class TestIOLoop extends IOLoop<TestMessage, TestMessageStream> {
 
-        public FakeIOLoop() throws IOException {
+        public TestIOLoop() throws IOException {
             super(500);
         }
 
         @Override
         protected TestMessageStream createStream(ByteChannel channel) {
-            return new TestMessageStream(LENGTH, channel, this);
+            return new TestMessageStream(SIZE, channel, this);
         }
 
         @Override

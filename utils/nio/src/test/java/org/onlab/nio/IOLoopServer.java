@@ -1,5 +1,6 @@
 package org.onlab.nio;
 
+import org.onlab.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,9 +24,9 @@ import static org.onlab.util.Tools.namedThreads;
 /**
  * Auxiliary test fixture to measure speed of NIO-based channels.
  */
-public class StandaloneSpeedServer {
+public class IOLoopServer {
 
-    private static Logger log = LoggerFactory.getLogger(StandaloneSpeedServer.class);
+    private static Logger log = LoggerFactory.getLogger(IOLoopServer.class);
 
     private static final int PRUNE_FREQUENCY = 1000;
 
@@ -48,8 +49,8 @@ public class StandaloneSpeedServer {
     private final int msgLength;
     private int lastWorker = -1;
 
-//    ThroughputTracker messages;
-//    ThroughputTracker bytes;
+    Counter messages;
+    Counter bytes;
 
     /**
      * Main entry point to launch the server.
@@ -64,7 +65,7 @@ public class StandaloneSpeedServer {
 
         log.info("Setting up the server with {} workers, {} byte messages on {}... ",
                  wc, ml, ip);
-        StandaloneSpeedServer ss = new StandaloneSpeedServer(ip, wc, ml, PORT);
+        IOLoopServer ss = new IOLoopServer(ip, wc, ml, PORT);
         ss.start();
 
         // Start pruning clients.
@@ -83,7 +84,7 @@ public class StandaloneSpeedServer {
      * @param port listen port
      * @throws IOException if unable to create IO loops
      */
-    public StandaloneSpeedServer(InetAddress ip, int wc, int ml, int port) throws IOException {
+    public IOLoopServer(InetAddress ip, int wc, int ml, int port) throws IOException {
         this.workerCount = wc;
         this.msgLength = ml;
         this.ipool = Executors.newFixedThreadPool(workerCount, namedThreads("io-loop"));
@@ -98,14 +99,14 @@ public class StandaloneSpeedServer {
      * Start the server IO loops and kicks off throughput tracking.
      */
     public void start() {
-//        messages = new ThroughputTracker();
-//        bytes = new ThroughputTracker();
+        messages = new Counter();
+        bytes = new Counter();
 
         for (CustomIOLoop l : iloops) {
             ipool.execute(l);
         }
         apool.execute(aloop);
-//
+
 //        for (CustomIOLoop l : iloops)
 //            l.waitForStart(TIMEOUT);
 //        aloop.waitForStart(TIMEOUT);
@@ -124,20 +125,20 @@ public class StandaloneSpeedServer {
 //            l.waitForFinish(TIMEOUT);
 //        aloop.waitForFinish(TIMEOUT);
 //
-//        messages.freeze();
-//        bytes.freeze();
+        messages.freeze();
+        bytes.freeze();
     }
 
     /**
      * Reports on the accumulated throughput trackers.
      */
     public void report() {
-//        DecimalFormat f = new DecimalFormat("#,##0");
-//        log.info("{} messages; {} bytes; {} mps; {} Mbs",
-//                 f.format(messages.total()),
-//                 f.format(bytes.total()),
-//                 f.format(messages.throughput()),
-//                 f.format(bytes.throughput() / (1024 * 128)));
+        DecimalFormat f = new DecimalFormat("#,##0");
+        log.info("{} messages; {} bytes; {} mps; {} Mbs",
+                 f.format(messages.total()),
+                 f.format(bytes.total()),
+                 f.format(messages.throughput()),
+                 f.format(bytes.throughput() / (1024 * 128)));
     }
 
     /**
@@ -170,15 +171,15 @@ public class StandaloneSpeedServer {
         @Override
         protected void removeStream(MessageStream<TestMessage> stream) {
             super.removeStream(stream);
-//
-//            messages.add(b.inMessages().total());
-//            bytes.add(b.inBytes().total());
-//
-//            log.info("Disconnected client; inbound {} mps, {} Mbps; outbound {} mps, {} Mbps",
-//                     format.format(b.inMessages().throughput()),
-//                     format.format(b.inBytes().throughput() / (1024 * 128)),
-//                     format.format(b.outMessages().throughput()),
-//                     format.format(b.outBytes().throughput() / (1024 * 128)));
+
+            messages.add(stream.messagesIn().total());
+            bytes.add(stream.bytesIn().total());
+
+            log.info("Disconnected client; inbound {} mps, {} Mbps; outbound {} mps, {} Mbps",
+                     FORMAT.format(stream.messagesIn().throughput()),
+                     FORMAT.format(stream.bytesIn().throughput() / (1024 * 128)),
+                     FORMAT.format(stream.messagesOut().throughput()),
+                     FORMAT.format(stream.bytesOut().throughput() / (1024 * 128)));
         }
 
         @Override
