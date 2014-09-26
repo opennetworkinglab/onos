@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
-import static java.lang.System.currentTimeMillis;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static org.onlab.onos.foo.IOLoopTestServer.PORT;
@@ -82,7 +81,7 @@ public class IOLoopTestClient {
         int wc = args.length > 1 ? Integer.parseInt(args[1]) : 6;
         int mc = args.length > 2 ? Integer.parseInt(args[2]) : 50 * 1000000;
         int ml = args.length > 3 ? Integer.parseInt(args[3]) : 128;
-        int to = args.length > 4 ? Integer.parseInt(args[4]) : 30;
+        int to = args.length > 4 ? Integer.parseInt(args[4]) : 60;
 
         log.info("Setting up client with {} workers sending {} {}-byte messages to {} server... ",
                  wc, mc, ml, ip);
@@ -186,7 +185,7 @@ public class IOLoopTestClient {
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
-        out.println(format("Client: %s messages; %s bytes; %s mps; %s Mbs; %s ns latency",
+        out.println(format("Client: %s messages; %s bytes; %s mps; %s MBs; %s ns latency",
                            f.format(messages.total()), f.format(bytes.total()),
                            f.format(messages.throughput()),
                            f.format(bytes.throughput() / (1024 * msgLength)),
@@ -218,13 +217,6 @@ public class IOLoopTestClient {
 
             messages.add(stream.messagesIn().total());
             bytes.add(stream.bytesIn().total());
-
-//            out.println(format("Disconnected client; inbound %s mps, %s Mbps; outbound %s mps, %s Mbps",
-//                               FORMAT.format(stream.messagesIn().throughput()),
-//                               FORMAT.format(stream.bytesIn().throughput() / (1024 * msgLength)),
-//                               FORMAT.format(stream.messagesOut().throughput()),
-//                               FORMAT.format(stream.bytesOut().throughput() / (1024 * msgLength))));
-
             stream.messagesOut().reset();
             stream.bytesOut().reset();
         }

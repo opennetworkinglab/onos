@@ -23,7 +23,7 @@ public class TestIOClientCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "messageCount", description = "Message count",
               required = false, multiValued = false)
-    String messageCount = "10000000";
+    String messageCount = "1000000";
 
     @Argument(index = 3, name = "messageLength", description = "Message length (bytes)",
               required = false, multiValued = false)
@@ -31,7 +31,7 @@ public class TestIOClientCommand extends AbstractShellCommand {
 
     @Argument(index = 4, name = "timeoutSecs", description = "Test timeout (seconds)",
               required = false, multiValued = false)
-    String timeoutSecs = "30";
+    String timeoutSecs = "60";
 
     @Override
     protected void execute() {

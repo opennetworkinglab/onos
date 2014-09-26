@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
-import static java.lang.System.currentTimeMillis;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static org.onlab.util.Tools.delay;
@@ -157,7 +156,7 @@ public class IOLoopTestServer {
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
-        out.println(format("Server: %s messages; %s bytes; %s mps; %s Mbs",
+        out.println(format("Server: %s messages; %s bytes; %s mps; %s MBs",
                            f.format(messages.total()), f.format(bytes.total()),
                            f.format(messages.throughput()),
                            f.format(bytes.throughput() / (1024 * msgLength))));
@@ -197,15 +196,8 @@ public class IOLoopTestServer {
         @Override
         protected void removeStream(MessageStream<TestMessage> stream) {
             super.removeStream(stream);
-
             messages.add(stream.messagesIn().total());
             bytes.add(stream.bytesIn().total());
-
-//            out.println(format("Disconnected server; inbound %s mps, %s Mbps; outbound %s mps, %s Mbps",
-//                               FORMAT.format(stream.messagesIn().throughput()),
-//                               FORMAT.format(stream.bytesIn().throughput() / (1024 * msgLength)),
-//                               FORMAT.format(stream.messagesOut().throughput()),
-//                               FORMAT.format(stream.bytesOut().throughput() / (1024 * msgLength))));
         }
 
         @Override
