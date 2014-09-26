@@ -33,6 +33,7 @@ public class FlowsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String uri = null;
 
+
     @Override
     protected void execute() {
         DeviceService deviceService = get(DeviceService.class);

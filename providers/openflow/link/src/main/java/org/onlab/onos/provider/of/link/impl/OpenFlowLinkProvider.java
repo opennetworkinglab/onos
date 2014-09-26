@@ -29,6 +29,7 @@ import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 
+
 /**
  * Provider which uses an OpenFlow controller to detect network
  * infrastructure links.
@@ -50,7 +51,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
     private final InternalLinkProvider listener = new InternalLinkProvider();
 
-    private final Map<Dpid, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
+    protected final Map<Dpid, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
 
     /**
      * Creates an OpenFlow link provider.
@@ -138,7 +139,7 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
 
         @Override
         public void roleAssertFailed(Dpid dpid, RoleState role) {
-            // TODO Auto-generated method stub
+            // do nothing for this.
         }
 
     }

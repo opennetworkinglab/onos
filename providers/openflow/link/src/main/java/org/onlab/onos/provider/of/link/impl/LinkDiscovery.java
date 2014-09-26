@@ -86,7 +86,7 @@ public class LinkDiscovery implements TimerTask {
     private final boolean useBDDP;
     private final OpenFlowController ctrl;
     private final LinkProviderService linkProvider;
-    private final Map<Integer, OFPortDesc> ports;
+    protected final Map<Integer, OFPortDesc> ports;
     private Timeout timeout;
 
     /**
