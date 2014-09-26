@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
+import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static org.onlab.onos.foo.IOLoopTestServer.PORT;
 import static org.onlab.util.Tools.delay;
@@ -185,7 +186,7 @@ public class IOLoopTestClient {
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
-        out.println(format("Client: %s messages; %s bytes; %s mps; %s Mbs; %s ms latency",
+        out.println(format("Client: %s messages; %s bytes; %s mps; %s Mbs; %s ns latency",
                            f.format(messages.total()), f.format(bytes.total()),
                            f.format(messages.throughput()),
                            f.format(bytes.throughput() / (1024 * msgLength)),
@@ -233,7 +234,7 @@ public class IOLoopTestClient {
                                        MessageStream<TestMessage> stream) {
             for (TestMessage message : messages) {
                 // TODO: summarize latency data better
-                latencyTotal += currentTimeMillis() - message.requestorTime();
+                latencyTotal += nanoTime() - message.requestorTime();
                 latencyCount++;
             }
             worker.release(messages.size());
@@ -254,7 +255,7 @@ public class IOLoopTestClient {
      */
     private class Worker implements Runnable {
 
-        private static final int BATCH_SIZE = 1000;
+        private static final int BATCH_SIZE = 10;
         private static final int PERMITS = 2 * BATCH_SIZE;
 
         private TestMessageStream stream;
@@ -297,7 +298,7 @@ public class IOLoopTestClient {
             // Build a batch of messages
             List<TestMessage> batch = Lists.newArrayListWithCapacity(size);
             for (int i = 0; i < size; i++) {
-                batch.add(new TestMessage(msgLength, currentTimeMillis(), 0,
+                batch.add(new TestMessage(msgLength, nanoTime(), 0,
                                           stream.padding()));
             }
             acquire(size);

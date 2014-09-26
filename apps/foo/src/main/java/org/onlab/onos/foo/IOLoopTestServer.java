@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
+import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
@@ -92,6 +93,7 @@ public class IOLoopTestServer {
             int r = server.prune();
             remaining = remaining == -1 && r == 0 ? remaining : r;
         }
+        server.stop();
     }
 
     /**
@@ -220,7 +222,7 @@ public class IOLoopTestServer {
             List<TestMessage> responses = Lists.newArrayListWithCapacity(messages.size());
             for (TestMessage message : messages) {
                 responses.add(new TestMessage(message.length(), message.requestorTime(),
-                                              currentTimeMillis(), message.padding()));
+                                              nanoTime(), message.padding()));
             }
             return responses;
         }

@@ -82,11 +82,14 @@ public class IOLoopTestServer {
         IOLoopTestServer server = new IOLoopTestServer(ip, wc, ml, PORT);
         server.start();
 
-        // Start pruning clients.
-        while (true) {
+        // Start pruning clients and keep going until their number goes to 0.
+        int remaining = -1;
+        while (remaining == -1 || remaining > 0) {
             delay(PRUNE_FREQUENCY);
-            server.prune();
+            int r = server.prune();
+            remaining = remaining == -1 && r == 0 ? remaining : r;
         }
+        server.stop();
     }
 
     /**
@@ -158,11 +161,15 @@ public class IOLoopTestServer {
 
     /**
      * Prunes the IO loops of stale message buffers.
+     *
+     * @return number of remaining IO loops among all workers.
      */
-    public void prune() {
+    public int prune() {
+        int count = 0;
         for (CustomIOLoop l : iloops) {
-            l.pruneStaleStreams();
+            count += l.pruneStaleStreams();
         }
+        return count;
     }
 
     // Get the next worker to which a client should be assigned
@@ -211,7 +218,7 @@ public class IOLoopTestServer {
             List<TestMessage> responses = Lists.newArrayListWithCapacity(messages.size());
             for (TestMessage message : messages) {
                 responses.add(new TestMessage(message.length(), message.requestorTime(),
-                                              currentTimeMillis(), message.padding()));
+                                              System.nanoTime(), message.padding()));
             }
             return responses;
         }
