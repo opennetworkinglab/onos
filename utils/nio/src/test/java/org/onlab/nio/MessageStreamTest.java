@@ -23,11 +23,10 @@ import static org.junit.Assert.assertNull;
  */
 public class MessageStreamTest {
 
-    private static final int SIZE = 16;
-    private static final TestMessage MESSAGE = new TestMessage(SIZE);
-
+    private static final int SIZE = 64;
     private static final int BIG_SIZE = 32 * 1024;
-    private static final TestMessage BIG_MESSAGE = new TestMessage(BIG_SIZE);
+
+    private TestMessage message;
 
     private TestIOLoop loop;
     private TestByteChannel channel;
@@ -41,6 +40,8 @@ public class MessageStreamTest {
         key = new TestKey(channel);
         stream = loop.createStream(channel);
         stream.setKey(key);
+        stream.setNonStrict();
+        message = new TestMessage(SIZE, 0, 0, stream.padding());
     }
 
     @After
@@ -68,11 +69,13 @@ public class MessageStreamTest {
     public void bufferGrowth() throws IOException {
         // Create a stream for big messages and test the growth.
         stream = new TestMessageStream(BIG_SIZE, channel, loop);
-        stream.write(BIG_MESSAGE);
-        stream.write(BIG_MESSAGE);
-        stream.write(BIG_MESSAGE);
-        stream.write(BIG_MESSAGE);
-        stream.write(BIG_MESSAGE);
+        TestMessage bigMessage = new TestMessage(BIG_SIZE, 0, 0, stream.padding());
+
+        stream.write(bigMessage);
+        stream.write(bigMessage);
+        stream.write(bigMessage);
+        stream.write(bigMessage);
+        stream.write(bigMessage);
     }
 
     @Test
@@ -102,25 +105,25 @@ public class MessageStreamTest {
         validate(false, false, 0, 0);
 
         // First write is immediate...
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, false, 0, SIZE);
 
         // Second and third get buffered...
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, true, 0, SIZE);
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, true, 0, SIZE);
 
         // Reset write, which will flush if needed; the next write is again buffered
         stream.flushIfWriteNotPending();
         validate(false, false, 0, SIZE * 3);
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, true, 0, SIZE * 3);
 
         // Select reset, which will flush if needed; the next write is again buffered
         stream.flushIfPossible();
         validate(false, false, 0, SIZE * 4);
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, true, 0, SIZE * 4);
         stream.flush();
         validate(false, true, 0, SIZE * 4);
@@ -132,10 +135,10 @@ public class MessageStreamTest {
 
         // First write is immediate...
         List<TestMessage> messages = new ArrayList<>();
-        messages.add(MESSAGE);
-        messages.add(MESSAGE);
-        messages.add(MESSAGE);
-        messages.add(MESSAGE);
+        messages.add(message);
+        messages.add(message);
+        messages.add(message);
+        messages.add(message);
 
         stream.write(messages);
         validate(false, false, 0, SIZE * 4);
@@ -152,14 +155,14 @@ public class MessageStreamTest {
         validate(false, false, 0, 0);
 
         // First write is immediate...
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, false, 0, SIZE);
 
         // Tell test channel to accept only half.
         channel.bytesToWrite = SIZE / 2;
 
         // Second and third get buffered...
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, true, 0, SIZE);
         stream.flushIfPossible();
         validate(true, true, 0, SIZE + SIZE / 2);
@@ -170,14 +173,14 @@ public class MessageStreamTest {
         validate(false, false, 0, 0);
 
         // First write is immediate...
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, false, 0, SIZE);
 
         // Tell test channel to accept only half.
         channel.bytesToWrite = SIZE / 2;
 
         // Second and third get buffered...
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, true, 0, SIZE);
         stream.flushIfWriteNotPending();
         validate(true, true, 0, SIZE + SIZE / 2);
@@ -190,7 +193,7 @@ public class MessageStreamTest {
         assertEquals(1, messages.size());
         validate(false, false, SIZE + 4, 0);
 
-        stream.write(MESSAGE);
+        stream.write(message);
         validate(false, false, SIZE + 4, SIZE);
 
         channel.bytesToRead = SIZE - 4;
