@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
+import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;

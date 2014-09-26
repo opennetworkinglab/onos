@@ -1,4 +1,4 @@
-package org.onlab.onos.cli.net;
+package org.onlab.onos.cli;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.net.Element;

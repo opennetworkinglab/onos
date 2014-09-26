@@ -2,6 +2,7 @@ package org.onlab.onos.cli.net;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
+import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.host.HostService;
 

@@ -1,7 +1,6 @@
 package org.onlab.onos.cli;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.net.Comparators;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 

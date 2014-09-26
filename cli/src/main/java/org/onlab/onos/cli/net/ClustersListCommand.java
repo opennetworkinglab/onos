@@ -2,6 +2,7 @@ package org.onlab.onos.cli.net;
 
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.topology.TopologyCluster;
 
 import java.util.Collections;
