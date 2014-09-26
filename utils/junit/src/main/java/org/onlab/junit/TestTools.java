@@ -12,6 +12,10 @@ public final class TestTools {
     private TestTools() {
     }
 
+    public static void print(String msg) {
+        System.out.print(msg);
+    }
+
     /**
      * Suspends the current thread for a specified number of millis.
      *

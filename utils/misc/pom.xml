@@ -20,7 +20,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-junit</artifactId>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>

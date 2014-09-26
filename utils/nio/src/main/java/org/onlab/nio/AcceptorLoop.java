@@ -28,7 +28,7 @@ public abstract class AcceptorLoop extends SelectorLoop {
     public AcceptorLoop(long selectTimeout, SocketAddress listenAddress)
             throws IOException {
         super(selectTimeout);
-        this.listenAddress = checkNotNull(this.listenAddress, "Address cannot be null");
+        this.listenAddress = checkNotNull(listenAddress, "Address cannot be null");
     }
 
     /**
