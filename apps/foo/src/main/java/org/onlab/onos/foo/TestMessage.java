@@ -2,40 +2,42 @@ package org.onlab.onos.foo;
 
 import org.onlab.nio.AbstractMessage;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Fixed-length message.
+ * Test message for measuring rate and round-trip latency.
  */
 public class TestMessage extends AbstractMessage {
 
-    private final byte[] data;
+    private final byte[] padding;
 
-    /**
-     * Creates a new message with the specified length.
-     *
-     * @param length message length
-     */
-    public TestMessage(int length) {
-        this.length = length;
-        data = new byte[length];
-    }
+    private final long requestorTime;
+    private final long responderTime;
 
     /**
      * Creates a new message with the specified data.
      *
-     * @param data message data
+     * @param requestorTime requester time
+     * @param responderTime responder time
+     * @param padding       message padding
      */
-    TestMessage(byte[] data) {
-        this.length = data.length;
-        this.data = data;
+    TestMessage(int length, long requestorTime, long responderTime, byte[] padding) {
+        this.length = length;
+        this.requestorTime = requestorTime;
+        this.responderTime = responderTime;
+        this.padding = checkNotNull(padding, "Padding cannot be null");
     }
 
-    /**
-     * Gets the backing byte array data.
-     *
-     * @return backing byte array
-     */
-    public byte[] data() {
-        return data;
+    public long requestorTime() {
+        return requestorTime;
+    }
+
+    public long responderTime() {
+        return responderTime;
+    }
+
+    public byte[] padding() {
+        return padding;
     }
 
 }

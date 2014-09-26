@@ -1,5 +1,6 @@
 package org.onlab.onos.foo;
 
+import com.google.common.collect.Lists;
 import org.onlab.nio.AcceptorLoop;
 import org.onlab.nio.IOLoop;
 import org.onlab.nio.MessageStream;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
 import static java.lang.System.out;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
@@ -202,10 +204,19 @@ public class IOLoopTestServer {
         protected void processMessages(List<TestMessage> messages,
                                        MessageStream<TestMessage> stream) {
             try {
-                stream.write(messages);
+                stream.write(createResponses(messages));
             } catch (IOException e) {
                 log.error("Unable to echo messages", e);
             }
+        }
+
+        private List<TestMessage> createResponses(List<TestMessage> messages) {
+            List<TestMessage> responses = Lists.newArrayListWithCapacity(messages.size());
+            for (TestMessage message : messages) {
+                responses.add(new TestMessage(message.length(), message.requestorTime(),
+                                              currentTimeMillis(), message.padding()));
+            }
+            return responses;
         }
     }
 
