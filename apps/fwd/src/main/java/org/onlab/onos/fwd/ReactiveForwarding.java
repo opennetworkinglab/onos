@@ -21,8 +21,6 @@ import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.criteria.Criteria;
-import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.PacketContext;
@@ -153,7 +151,7 @@ public class ReactiveForwarding {
 
     // Sends a packet out the specified port.
     private void packetOut(PacketContext context, PortNumber portNumber) {
-        context.treatmentBuilder().add(Instructions.createOutput(portNumber));
+        context.treatmentBuilder().setOutput(portNumber);
         context.send();
     }
 
@@ -165,13 +163,13 @@ public class ReactiveForwarding {
         // Install the flow rule to handle this type of message from now on.
         Ethernet inPkt = context.inPacket().parsed();
         TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
-        builder.add(Criteria.matchEthType(inPkt.getEtherType()))
-        .add(Criteria.matchEthSrc(inPkt.getSourceMAC()))
-        .add(Criteria.matchEthDst(inPkt.getDestinationMAC()))
-        .add(Criteria.matchInPort(context.inPacket().receivedFrom().port()));
+        builder.matchEthType(inPkt.getEtherType())
+        .matchEthSrc(inPkt.getSourceMAC())
+        .matchEthDst(inPkt.getDestinationMAC())
+        .matchInport(context.inPacket().receivedFrom().port());
 
         TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
-        treat.add(Instructions.createOutput(portNumber));
+        treat.setOutput(portNumber);
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
                 builder.build(), treat.build(), 0, appId);
