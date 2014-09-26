@@ -68,6 +68,11 @@ public class SimpleClusterStore
     }
 
     @Override
+    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+        return null;
+    }
+
+    @Override
     public void removeNode(NodeId nodeId) {
     }
 

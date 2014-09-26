@@ -67,7 +67,7 @@ public class DistributedClusterStore
     // Loads the initial set of cluster nodes
     private void loadClusterNodes() {
         for (Member member : theInstance.getCluster().getMembers()) {
-            addMember(member);
+            addNode(node(member));
         }
     }
 
@@ -103,6 +103,11 @@ public class DistributedClusterStore
     }
 
     @Override
+    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+        return addNode(new DefaultControllerNode(nodeId, ip, tcpPort));
+    }
+
+    @Override
     public void removeNode(NodeId nodeId) {
         synchronized (this) {
             rawNodes.remove(serialize(nodeId));
@@ -111,8 +116,7 @@ public class DistributedClusterStore
     }
 
     // Adds a new node based on the specified member
-    private synchronized ControllerNode addMember(Member member) {
-        DefaultControllerNode node = node(member);
+    private synchronized ControllerNode addNode(DefaultControllerNode node) {
         rawNodes.put(serialize(node.id()), serialize(node));
         nodes.put(node.id(), Optional.of(node));
         states.put(node.id(), State.ACTIVE);
@@ -135,7 +139,7 @@ public class DistributedClusterStore
         @Override
         public void memberAdded(MembershipEvent membershipEvent) {
             log.info("Member {} added", membershipEvent.getMember());
-            ControllerNode node = addMember(membershipEvent.getMember());
+            ControllerNode node = addNode(node(membershipEvent.getMember()));
             notifyDelegate(new ClusterEvent(INSTANCE_ACTIVATED, node));
         }
 

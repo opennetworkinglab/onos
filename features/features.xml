@@ -9,6 +9,7 @@
         <bundle>mvn:org.apache.commons/commons-lang3/3.3.2</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
+        <bundle>mvn:org.livetribe.slp/livetribe-slp-osgi/2.2.1</bundle>
 
         <bundle>mvn:com.hazelcast/hazelcast/3.3</bundle>
         <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.1</bundle>
