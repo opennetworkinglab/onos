@@ -65,12 +65,12 @@ public class HostMonitor implements TimerTask {
 
     private final long probeRate;
 
-    private Timeout timeout;
+    private final Timeout timeout;
 
     public HostMonitor(HostService hostService, TopologyService topologyService,
-                       DeviceService deviceService,
-                       HostProvider hostProvider, PacketService packetService,
-                       HostStore hostStore) {
+            DeviceService deviceService,
+            HostProvider hostProvider, PacketService packetService,
+            HostStore hostStore) {
         this.hostService = hostService;
         this.topologyService = topologyService;
         this.deviceService = deviceService;
@@ -147,10 +147,9 @@ public class HostMonitor implements TimerTask {
         List<Instruction> instructions = new ArrayList<>();
         instructions.add(Instructions.createOutput(port.number()));
 
-        TrafficTreatment treatment =
-                new DefaultTrafficTreatment.Builder()
-                .add(Instructions.createOutput(port.number()))
-                .build();
+        TrafficTreatment treatment = new DefaultTrafficTreatment.Builder()
+        .setOutput(port.number())
+        .build();
 
         OutboundPacket outboundPacket =
                 new DefaultOutboundPacket(deviceId, treatment,
@@ -163,9 +162,9 @@ public class HostMonitor implements TimerTask {
 
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
-           .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
-           .setProtocolType(ARP.PROTO_TYPE_IP)
-           .setProtocolAddressLength((byte) IpPrefix.INET_LEN);
+        .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
+        .setProtocolType(ARP.PROTO_TYPE_IP)
+        .setProtocolAddressLength((byte) IpPrefix.INET_LEN);
 
         byte[] sourceMacAddress;
         if (portAddresses.mac() == null) {
@@ -175,15 +174,15 @@ public class HostMonitor implements TimerTask {
         }
 
         arp.setSenderHardwareAddress(sourceMacAddress)
-           //TODO .setSenderProtocolAddress(portAddresses.ips().toOctets())
-           .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
-           .setTargetProtocolAddress(targetIp.toOctets());
+        //TODO .setSenderProtocolAddress(portAddresses.ips().toOctets())
+        .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
+        .setTargetProtocolAddress(targetIp.toOctets());
 
         Ethernet ethernet = new Ethernet();
         ethernet.setEtherType(Ethernet.TYPE_ARP)
-                .setDestinationMACAddress(BROADCAST_MAC)
-                .setSourceMACAddress(sourceMacAddress)
-                .setPayload(arp);
+        .setDestinationMACAddress(BROADCAST_MAC)
+        .setSourceMACAddress(sourceMacAddress)
+        .setPayload(arp);
 
         return ethernet;
     }
