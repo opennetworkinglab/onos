@@ -6,6 +6,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterEvent;
+import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipAdminService;
 import org.onlab.onos.cluster.MastershipEvent;
@@ -49,15 +51,19 @@ public class MastershipManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    private ClusterEventListener clusterListener = new InternalClusterEventListener();
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
+        clusterService.addListener(clusterListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(MastershipEvent.class);
+        clusterService.removeListener(clusterListener);
         log.info("Stopped");
     }
 
@@ -141,4 +147,27 @@ public class MastershipManager
 
     }
 
+    //callback for reacting to cluster events
+    private class InternalClusterEventListener implements ClusterEventListener {
+
+        @Override
+        public void event(ClusterEvent event) {
+            switch (event.type()) {
+                //FIXME: worry about addition when the time comes
+                case INSTANCE_ADDED:
+                case INSTANCE_ACTIVATED:
+                     break;
+                case INSTANCE_REMOVED:
+                case INSTANCE_DEACTIVATED:
+                    for (DeviceId d : getDevicesOf(event.subject().id())) {
+                        //this method should be an admin iface?
+                        relinquishMastership(d);
+                    }
+                    break;
+                default:
+                    log.warn("unknown cluster event {}", event);
+            }
+        }
+
+    }
 }

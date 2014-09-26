@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -48,9 +46,9 @@ public class SimpleMastershipStore
             new DefaultControllerNode(new NodeId("local"), LOCALHOST);
 
     //devices mapped to their masters, to emulate multiple nodes
-    protected final ConcurrentMap<DeviceId, NodeId> masterMap =
-            new ConcurrentHashMap<>();
+    protected final Map<DeviceId, NodeId> masterMap = new HashMap<>();
     protected final Map<DeviceId, AtomicInteger> termMap = new HashMap<>();
+    protected final Set<NodeId> masters = new HashSet<>();
 
     @Activate
     public void activate() {
