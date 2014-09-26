@@ -1,5 +1,7 @@
-package org.onlab.nio;
+package org.onlab.onos.foo;
 
+import org.onlab.nio.IOLoop;
+import org.onlab.nio.MessageStream;
 import org.onlab.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
-import static org.onlab.nio.IOLoopTestServer.PORT;
+import static org.onlab.onos.foo.IOLoopTestServer.PORT;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 
@@ -51,10 +53,10 @@ public class IOLoopTestClient {
      * Main entry point to launch the client.
      *
      * @param args command-line arguments
-     * @throws IOException          if unable to connect to server
+     * @throws java.io.IOException          if unable to connect to server
      * @throws InterruptedException if latch wait gets interrupted
-     * @throws ExecutionException   if wait gets interrupted
-     * @throws TimeoutException     if timeout occurred while waiting for completion
+     * @throws java.util.concurrent.ExecutionException   if wait gets interrupted
+     * @throws java.util.concurrent.TimeoutException     if timeout occurred while waiting for completion
      */
     public static void main(String[] args)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
@@ -95,7 +97,7 @@ public class IOLoopTestClient {
      * @param mc   message count to send per client
      * @param ml   message length in bytes
      * @param port socket port
-     * @throws IOException if unable to create IO loops
+     * @throws java.io.IOException if unable to create IO loops
      */
     public IOLoopTestClient(InetAddress ip, int wc, int mc, int ml, int port) throws IOException {
         this.ip = ip;
@@ -113,7 +115,7 @@ public class IOLoopTestClient {
     /**
      * Starts the client workers.
      *
-     * @throws IOException if unable to open connection
+     * @throws java.io.IOException if unable to open connection
      */
     public void start() throws IOException {
         messages = new Counter();
@@ -141,7 +143,7 @@ public class IOLoopTestClient {
      * channel with the given IO loop.
      *
      * @param loop loop with which the channel should be registered
-     * @throws IOException if the socket could not be open or connected
+     * @throws java.io.IOException if the socket could not be open or connected
      */
     private void openConnection(CustomIOLoop loop) throws IOException {
         SocketAddress sa = new InetSocketAddress(ip, port);
@@ -156,9 +158,9 @@ public class IOLoopTestClient {
      * Waits for the client workers to complete.
      *
      * @param secs timeout in seconds
-     * @throws ExecutionException   if execution failed
+     * @throws java.util.concurrent.ExecutionException   if execution failed
      * @throws InterruptedException if interrupt occurred while waiting
-     * @throws TimeoutException     if timeout occurred
+     * @throws java.util.concurrent.TimeoutException     if timeout occurred
      */
     public void await(int secs) throws InterruptedException,
             ExecutionException, TimeoutException {

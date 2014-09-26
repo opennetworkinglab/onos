@@ -16,4 +16,20 @@
 
     <description>ONOS application for miscellaneous experiments</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-nio</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
+    </dependencies>
 </project>

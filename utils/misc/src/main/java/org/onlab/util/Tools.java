@@ -52,4 +52,18 @@ public abstract class Tools {
     public static String toHex(long value, int width) {
         return Strings.padStart(UnsignedLongs.toString(value, 16), width, '0');
     }
+
+    /**
+     * Suspends the current thread for a specified number of millis.
+     *
+     * @param ms number of millis
+     */
+    public static void delay(int ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted", e);
+        }
+    }
+
 }

@@ -66,7 +66,7 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      *
      * @param stream message stream to remove
      */
-    void removeStream(MessageStream<M> stream) {
+    protected void removeStream(MessageStream<M> stream) {
         streams.remove(stream);
     }
 

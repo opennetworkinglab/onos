@@ -17,6 +17,8 @@
         <bundle>mvn:com.esotericsoftware/minlog/1.3.0</bundle>
         <bundle>mvn:org.objenesis/objenesis/2.1</bundle>
         <bundle>mvn:de.javakaffee/kryo-serializers/0.27</bundle>
+
+        <bundle>mvn:org.onlab.onos/onlab-nio/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-thirdparty-web" version="1.0.0"

@@ -1,5 +1,8 @@
-package org.onlab.nio;
+package org.onlab.onos.foo;
 
+import org.onlab.nio.AcceptorLoop;
+import org.onlab.nio.IOLoop;
+import org.onlab.nio.MessageStream;
 import org.onlab.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +23,7 @@ import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
-import static org.onlab.junit.TestTools.delay;
+import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 
 /**
@@ -58,7 +61,7 @@ public class IOLoopTestServer {
      * Main entry point to launch the server.
      *
      * @param args command-line arguments
-     * @throws IOException if unable to crate IO loops
+     * @throws java.io.IOException if unable to crate IO loops
      */
     public static void main(String[] args) throws IOException {
         startStandalone(args);
@@ -94,7 +97,7 @@ public class IOLoopTestServer {
      * @param wc   worker count
      * @param ml   message length in bytes
      * @param port listen port
-     * @throws IOException if unable to create IO loops
+     * @throws java.io.IOException if unable to create IO loops
      */
     public IOLoopTestServer(InetAddress ip, int wc, int ml, int port) throws IOException {
         this.workerCount = wc;
