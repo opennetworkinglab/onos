@@ -13,6 +13,7 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
 import org.onlab.onos.net.flow.FlowRuleService;
 
 import com.google.common.collect.Maps;
@@ -24,15 +25,20 @@ import com.google.common.collect.Maps;
 description = "Lists all currently-known flows.")
 public class FlowsListCommand extends AbstractShellCommand {
 
+    public static final String ANY = "any";
+
     private static final String FMT =
             "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s";
     private static final String TFMT = "      treatment=%s";
     private static final String SFMT = "      selector=%s";
 
-    @Argument(index = 0, name = "uri", description = "Device ID",
+    @Argument(index = 1, name = "uri", description = "Device ID",
             required = false, multiValued = false)
     String uri = null;
 
+    @Argument(index = 0, name = "state", description = "Flow Rule state",
+            required = false, multiValued = false)
+    String state = null;
 
     @Override
     protected void execute() {
@@ -52,11 +58,24 @@ public class FlowsListCommand extends AbstractShellCommand {
      */
     protected Map<Device, List<FlowRule>> getSortedFlows(DeviceService deviceService, FlowRuleService service) {
         Map<Device, List<FlowRule>> flows = Maps.newHashMap();
-        List<FlowRule> rules = newArrayList();
+        List<FlowRule> rules;
+        FlowRuleState s = null;
+        if (state != null && !state.equals("any")) {
+            s = FlowRuleState.valueOf(state.toUpperCase());
+        }
         Iterable<Device> devices = uri == null ?  deviceService.getDevices() :
             Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
         for (Device d : devices) {
-            rules = newArrayList(service.getFlowEntries(d.id()));
+            if (s == null) {
+                rules = newArrayList(service.getFlowEntries(d.id()));
+            } else {
+                rules = newArrayList();
+                for (FlowRule f : service.getFlowEntries(d.id())) {
+                    if (f.state().equals(s)) {
+                        rules.add(f);
+                    }
+                }
+            }
             Collections.sort(rules, Comparators.FLOW_RULE_COMPARATOR);
             flows.put(d, rules);
         }
@@ -71,7 +90,7 @@ public class FlowsListCommand extends AbstractShellCommand {
     protected void printFlows(Device d, List<FlowRule> flows) {
         print("Device: " + d.id());
         if (flows == null | flows.isEmpty()) {
-            print(" %s", "No flows installed.");
+            print(" %s", "No flows.");
             return;
         }
         for (FlowRule f : flows) {

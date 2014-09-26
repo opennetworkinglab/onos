@@ -73,6 +73,7 @@
         <command>
             <action class="org.onlab.onos.cli.net.FlowsListCommand"/>
             <completers>
+                <ref component-id="flowRuleStatusCompleter"/>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
@@ -87,5 +88,6 @@
     <bean id="clusterIdCompleter" class="org.onlab.onos.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onlab.onos.cli.net.RoleCompleter"/>
     <bean id="hostIdCompleter" class="org.onlab.onos.cli.net.HostIdCompleter"/>
+    <bean id="flowRuleStatusCompleter" class="org.onlab.onos.cli.net.FlowRuleStatusCompleter"/>
 
 </blueprint>
