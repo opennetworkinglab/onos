@@ -11,6 +11,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.DeviceId;
@@ -98,6 +99,20 @@ public class MastershipManagerTest {
         //hand both devices to NID_LOCAL
         mgr.setRole(NID_LOCAL, DEV_OTHER, MASTER);
         assertEquals("should be two devices:", 2, mgr.getDevicesOf(NID_LOCAL).size());
+    }
+
+    @Test
+    public void termService() {
+        MastershipTermService ts = mgr.requestTermService();
+
+        //term = 0 for both
+        mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
+        assertEquals("inconsistent term: ", 0, ts.getMastershipTerm(DEV_MASTER).termNumber());
+
+        //hand devices to NID_LOCAL and back: term = 2
+        mgr.setRole(NID_OTHER, DEV_MASTER, MASTER);
+        mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
+        assertEquals("inconsistent terms: ", 2, ts.getMastershipTerm(DEV_MASTER).termNumber());
     }
 
     private final class TestClusterService implements ClusterService {

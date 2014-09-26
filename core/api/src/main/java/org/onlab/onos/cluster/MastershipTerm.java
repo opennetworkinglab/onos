@@ -31,6 +31,9 @@ public final class MastershipTerm {
 
     @Override
     public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
         if (other instanceof MastershipTerm) {
             MastershipTerm that = (MastershipTerm) other;
             if (!this.master.equals(that.master)) {
