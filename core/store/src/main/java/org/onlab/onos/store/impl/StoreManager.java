@@ -14,19 +14,26 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultDevice;
+import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Element;
+import org.onlab.onos.net.Link;
+import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.StoreService;
+import org.onlab.onos.store.serializers.ConnectPointSerializer;
+import org.onlab.onos.store.serializers.DefaultLinkSerializer;
 import org.onlab.onos.store.serializers.DefaultPortSerializer;
 import org.onlab.onos.store.serializers.DeviceIdSerializer;
 import org.onlab.onos.store.serializers.IpPrefixSerializer;
+import org.onlab.onos.store.serializers.LinkKeySerializer;
 import org.onlab.onos.store.serializers.NodeIdSerializer;
 import org.onlab.onos.store.serializers.OnosTimestampSerializer;
 import org.onlab.onos.store.serializers.PortNumberSerializer;
@@ -84,7 +91,9 @@ public class StoreManager implements StoreService {
                           DefaultDevice.class,
                           MastershipRole.class,
                           Port.class,
-                          Element.class
+                          Element.class,
+
+                          Link.Type.class
                 )
                 .register(IpPrefix.class, new IpPrefixSerializer())
                 .register(URI.class, new URISerializer())
@@ -94,6 +103,9 @@ public class StoreManager implements StoreService {
                 .register(PortNumber.class, new PortNumberSerializer())
                 .register(DefaultPort.class, new DefaultPortSerializer())
                 .register(OnosTimestamp.class, new OnosTimestampSerializer())
+                .register(LinkKey.class, new LinkKeySerializer())
+                .register(ConnectPoint.class, new ConnectPointSerializer())
+                .register(DefaultLink.class, new DefaultLinkSerializer())
                 .build()
                 .populate(10);
     }

@@ -101,7 +101,7 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
             V newVal = deserialize(event.getValue());
             Optional<V> newValue = Optional.of(newVal);
             cache.asMap().replace(key, oldValue, newValue);
-            onUpdate(key, newVal);
+            onUpdate(key, oldVal, newVal);
         }
 
         @Override
@@ -125,9 +125,10 @@ public abstract class AbstractDistributedStore<E extends Event, D extends StoreD
          * Cache entry update hook.
          *
          * @param key    new key
+         * @param oldValue old value
          * @param newVal new value
          */
-        protected void onUpdate(K key, V newVal) {
+        protected void onUpdate(K key, V oldValue, V newVal) {
         }
 
         /**

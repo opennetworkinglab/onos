@@ -3,11 +3,13 @@ package org.onlab.onos.net.trivial.impl;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -18,6 +20,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipStore;
 import org.onlab.onos.cluster.MastershipStoreDelegate;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -47,6 +50,7 @@ public class SimpleMastershipStore
     //devices mapped to their masters, to emulate multiple nodes
     protected final ConcurrentMap<DeviceId, NodeId> masterMap =
             new ConcurrentHashMap<>();
+    protected final Map<DeviceId, AtomicInteger> termMap = new HashMap<>();
 
     @Activate
     public void activate() {
@@ -63,15 +67,21 @@ public class SimpleMastershipStore
 
         NodeId node = masterMap.get(deviceId);
         if (node == null) {
-            masterMap.put(deviceId, nodeId);
+            synchronized (this) {
+                masterMap.put(deviceId, nodeId);
+                termMap.put(deviceId, new AtomicInteger());
+            }
             return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
         }
 
         if (node.equals(nodeId)) {
             return null;
         } else {
-            masterMap.put(deviceId, nodeId);
-            return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+            synchronized (this) {
+                masterMap.put(deviceId, nodeId);
+                termMap.get(deviceId).incrementAndGet();
+                return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+            }
         }
     }
 
@@ -112,6 +122,15 @@ public class SimpleMastershipStore
             masterMap.put(deviceId, nodeId);
         }
         return role;
+    }
+
+    @Override
+    public MastershipTerm getTermFor(DeviceId deviceId) {
+        if (masterMap.get(deviceId) == null) {
+            return null;
+        }
+        return MastershipTerm.of(
+                masterMap.get(deviceId), termMap.get(deviceId).get());
     }
 
 }

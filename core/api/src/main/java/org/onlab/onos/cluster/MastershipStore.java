@@ -55,4 +55,13 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @return a mastership event
      */
     MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId);
+
+    /**
+     * Returns the current master and number of past mastership hand-offs
+     * (terms) for a device.
+     *
+     * @param deviceId the device identifier
+     * @return the current master's ID and the term value for device, or null
+     */
+    MastershipTerm getTermFor(DeviceId deviceId);
 }

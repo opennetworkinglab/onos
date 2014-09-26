@@ -369,7 +369,7 @@ public class DistributedDeviceStore
         }
 
         @Override
-        protected void onUpdate(DeviceId deviceId, DefaultDevice device) {
+        protected void onUpdate(DeviceId deviceId, DefaultDevice oldDevice, DefaultDevice device) {
             notifyDelegate(new DeviceEvent(DEVICE_UPDATED, device));
         }
     }
@@ -390,7 +390,7 @@ public class DistributedDeviceStore
         }
 
         @Override
-        protected void onUpdate(DeviceId deviceId, Map<PortNumber, Port> ports) {
+        protected void onUpdate(DeviceId deviceId, Map<PortNumber, Port> oldPorts, Map<PortNumber, Port> ports) {
 //            notifyDelegate(new DeviceEvent(PORT_UPDATED, getDevice(deviceId)));
         }
     }
