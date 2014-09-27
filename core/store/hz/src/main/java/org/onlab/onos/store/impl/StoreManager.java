@@ -35,7 +35,6 @@ import org.onlab.onos.store.serializers.DeviceIdSerializer;
 import org.onlab.onos.store.serializers.IpPrefixSerializer;
 import org.onlab.onos.store.serializers.LinkKeySerializer;
 import org.onlab.onos.store.serializers.NodeIdSerializer;
-import org.onlab.onos.store.serializers.OnosTimestampSerializer;
 import org.onlab.onos.store.serializers.PortNumberSerializer;
 import org.onlab.onos.store.serializers.ProviderIdSerializer;
 import org.onlab.packet.IpPrefix;
@@ -102,7 +101,6 @@ public class StoreManager implements StoreService {
                 .register(DeviceId.class, new DeviceIdSerializer())
                 .register(PortNumber.class, new PortNumberSerializer())
                 .register(DefaultPort.class, new DefaultPortSerializer())
-                .register(OnosTimestamp.class, new OnosTimestampSerializer())
                 .register(LinkKey.class, new LinkKeySerializer())
                 .register(ConnectPoint.class, new ConnectPointSerializer())
                 .register(DefaultLink.class, new DefaultLinkSerializer())

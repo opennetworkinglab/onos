@@ -6,56 +6,37 @@
 
     <parent>
         <groupId>org.onlab.onos</groupId>
-        <artifactId>onos-core</artifactId>
+        <artifactId>onos-core-store</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-core-net</artifactId>
+    <artifactId>onos-core-hz</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS network control core subsystems</description>
+    <description>ONOS Hazelcast based distributed store subsystems</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onos-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-api</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-core-trivial</artifactId>
+            <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
-
-        <!-- TODO Consider removing store dependency.
-              Currently required for DistributedDeviceManagerTest. -->
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-core-hz</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <!-- FIXME: should be somewhere else -->
-            <artifactId>onos-core-hz</artifactId>
-            <version>${project.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>com.hazelcast</groupId>
+          <artifactId>hazelcast</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>de.javakaffee</groupId>
+          <artifactId>kryo-serializers</artifactId>
         </dependency>
     </dependencies>
 
