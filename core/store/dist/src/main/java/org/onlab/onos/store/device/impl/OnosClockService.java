@@ -12,21 +12,21 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.common.ClockService;
 import org.onlab.onos.store.impl.OnosTimestamp;
 import org.slf4j.Logger;
 
 @Component(immediate = true)
 @Service
 public class OnosClockService implements ClockService {
-    
+
     private final Logger log = getLogger(getClass());
 
     // TODO: Implement per device ticker that is reset to 0 at the beginning of a new term.
     private final AtomicInteger ticker = new AtomicInteger(0);
     private ConcurrentMap<DeviceId, MastershipTerm> deviceMastershipTerms = new ConcurrentHashMap<>();
-    
+
     @Activate
     public void activate() {
         log.info("Started");
@@ -36,7 +36,7 @@ public class OnosClockService implements ClockService {
     public void deactivate() {
         log.info("Stopped");
     }
-    
+
     @Override
     public Timestamp getTimestamp(DeviceId deviceId) {
         MastershipTerm term = deviceMastershipTerms.get(deviceId);

@@ -19,7 +19,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
-import org.onlab.onos.store.impl.AbstractDistributedStore;
+import org.onlab.onos.store.impl.AbstractHazelcastStore;
 import org.onlab.onos.store.impl.OptionalCacheLoader;
 import org.onlab.packet.IpPrefix;
 
@@ -38,7 +38,7 @@ import static org.onlab.onos.cluster.ControllerNode.State;
 @Component(immediate = true)
 @Service
 public class DistributedClusterStore
-        extends AbstractDistributedStore<ClusterEvent, ClusterStoreDelegate>
+        extends AbstractHazelcastStore<ClusterEvent, ClusterStoreDelegate>
         implements ClusterStore {
 
     private IMap<byte[], byte[]> rawNodes;

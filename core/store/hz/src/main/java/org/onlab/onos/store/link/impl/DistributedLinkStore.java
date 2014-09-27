@@ -25,7 +25,7 @@ import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
-import org.onlab.onos.store.impl.AbstractDistributedStore;
+import org.onlab.onos.store.impl.AbstractHazelcastStore;
 import org.onlab.onos.store.impl.OptionalCacheLoader;
 import org.slf4j.Logger;
 
@@ -43,7 +43,7 @@ import com.hazelcast.core.IMap;
 @Component(immediate = true)
 @Service
 public class DistributedLinkStore
-    extends AbstractDistributedStore<LinkEvent, LinkStoreDelegate>
+    extends AbstractHazelcastStore<LinkEvent, LinkStoreDelegate>
     implements LinkStore {
 
     private final Logger log = getLogger(getClass());

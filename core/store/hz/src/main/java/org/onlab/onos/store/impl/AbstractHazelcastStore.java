@@ -23,7 +23,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Abstraction of a distributed store based on Hazelcast.
  */
 @Component(componentAbstract = true)
-public abstract class AbstractDistributedStore<E extends Event, D extends StoreDelegate<E>>
+public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDelegate<E>>
         extends AbstractStore<E, D> {
 
     protected final Logger log = getLogger(getClass());

@@ -27,7 +27,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
-import org.onlab.onos.store.impl.AbstractDistributedStore;
+import org.onlab.onos.store.impl.AbstractHazelcastStore;
 import org.onlab.onos.store.impl.OptionalCacheLoader;
 import org.slf4j.Logger;
 
@@ -52,7 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class DistributedDeviceStore
-        extends AbstractDistributedStore<DeviceEvent, DeviceStoreDelegate>
+        extends AbstractHazelcastStore<DeviceEvent, DeviceStoreDelegate>
         implements DeviceStore {
 
     private final Logger log = getLogger(getClass());

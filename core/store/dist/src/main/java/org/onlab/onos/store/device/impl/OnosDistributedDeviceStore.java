@@ -1,8 +1,8 @@
 package org.onlab.onos.store.device.impl;
 
 import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
@@ -25,9 +25,9 @@ import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.AbstractStore;
+import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.common.ClockService;
-import org.onlab.onos.store.impl.AbstractDistributedStore;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class OnosDistributedDeviceStore
-        extends AbstractDistributedStore<DeviceEvent, DeviceStoreDelegate>
+        extends AbstractStore<DeviceEvent, DeviceStoreDelegate>
         implements DeviceStore {
 
     private final Logger log = getLogger(getClass());
@@ -61,21 +61,19 @@ public class OnosDistributedDeviceStore
 
     private ConcurrentHashMap<DeviceId, VersionedValue<Device>> devices;
     private ConcurrentHashMap<DeviceId, Map<PortNumber, VersionedValue<Port>>> devicePorts;
-    
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClockService clockService;
 
-    @Override
     @Activate
     public void activate() {
-        super.activate();
 
         devices = new ConcurrentHashMap<>();
         devicePorts = new ConcurrentHashMap<>();
 
         log.info("Started");
     }
-    
+
     @Deactivate
     public void deactivate() {
         log.info("Stopped");
@@ -107,12 +105,13 @@ public class OnosDistributedDeviceStore
                                             DeviceDescription deviceDescription) {
         Timestamp now = clockService.getTimestamp(deviceId);
         VersionedValue<Device> device = devices.get(deviceId);
-        
+
         if (device == null) {
             return createDevice(providerId, deviceId, deviceDescription, now);
         }
-        
-        Preconditions.checkState(now.compareTo(device.timestamp()) > 0, "Existing device has a timestamp in the future!");
+
+        checkState(now.compareTo(device.timestamp()) > 0,
+                "Existing device has a timestamp in the future!");
 
         return updateDevice(providerId, device.entity(), deviceDescription, now);
     }
@@ -156,7 +155,8 @@ public class OnosDistributedDeviceStore
                 desc.swVersion(),
                 desc.serialNumber());
 
-        VersionedValue<Device> oldDevice = devices.put(device.id(), new VersionedValue<Device>(updated, true, timestamp));
+        VersionedValue<Device> oldDevice = devices.put(device.id(),
+                new VersionedValue<Device>(updated, true, timestamp));
         if (!oldDevice.isUp()) {
             return new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
         } else {
@@ -168,21 +168,20 @@ public class OnosDistributedDeviceStore
     public DeviceEvent markOffline(DeviceId deviceId) {
         VersionedValue<Device> device = devices.get(deviceId);
         boolean willRemove = device != null && device.isUp();
-        if (!willRemove) return null;
+        if (!willRemove) {
+            return null;
+        }
         Timestamp timestamp = clockService.getTimestamp(deviceId);
-        if (replaceIfLatest(device.entity(), false, timestamp))
-        {
+        if (replaceIfLatest(device.entity(), false, timestamp)) {
             return new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device.entity(), null);
         }
         return null;
     }
-    
+
     // Replace existing value if its timestamp is older.
-    private synchronized boolean replaceIfLatest(Device device, boolean isUp, Timestamp timestamp)
-    {
+    private synchronized boolean replaceIfLatest(Device device, boolean isUp, Timestamp timestamp) {
         VersionedValue<Device> existingValue = devices.get(device.id());
-        if (timestamp.compareTo(existingValue.timestamp()) > 0)
-        {
+        if (timestamp.compareTo(existingValue.timestamp()) > 0) {
             devices.put(device.id(), new VersionedValue<Device>(device, isUp, timestamp));
             return true;
         }
@@ -203,8 +202,11 @@ public class OnosDistributedDeviceStore
             Set<PortNumber> processed = new HashSet<>();
             for (PortDescription portDescription : portDescriptions) {
                 VersionedValue<Port> port = ports.get(portDescription.portNumber());
-                if (port == null) events.add(createPort(device, portDescription, ports, timestamp));
-                Preconditions.checkState(timestamp.compareTo(port.timestamp()) > 0, "Existing port state has a timestamp in the future!");
+                if (port == null) {
+                    events.add(createPort(device, portDescription, ports, timestamp));
+                }
+                checkState(timestamp.compareTo(port.timestamp()) > 0,
+                        "Existing port state has a timestamp in the future!");
                 events.add(updatePort(device, port, portDescription, ports, timestamp));
                 processed.add(portDescription.portNumber());
             }
@@ -304,8 +306,10 @@ public class OnosDistributedDeviceStore
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
         Map<PortNumber, VersionedValue<Port>> versionedPorts = devicePorts.get(deviceId);
-        if (versionedPorts == null) return Collections.emptyList();
-        List<Port> ports = new ArrayList<Port>(); 
+        if (versionedPorts == null) {
+            return Collections.emptyList();
+        }
+        List<Port> ports = new ArrayList<>();
         for (VersionedValue<Port> port : versionedPorts.values()) {
             ports.add(port.entity());
         }

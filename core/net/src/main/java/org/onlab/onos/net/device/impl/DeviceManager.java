@@ -37,7 +37,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.store.common.ClockService;
+import org.onlab.onos.store.ClockService;
 import org.slf4j.Logger;
 
 /**

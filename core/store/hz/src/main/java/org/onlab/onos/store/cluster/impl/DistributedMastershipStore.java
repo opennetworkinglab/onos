@@ -22,7 +22,7 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
-import org.onlab.onos.store.impl.AbstractDistributedStore;
+import org.onlab.onos.store.impl.AbstractHazelcastStore;
 import org.onlab.onos.store.impl.OptionalCacheLoader;
 
 import com.google.common.base.Optional;
@@ -36,7 +36,7 @@ import com.hazelcast.core.IMap;
 @Component(immediate = true)
 @Service
 public class DistributedMastershipStore
-extends AbstractDistributedStore<MastershipEvent, MastershipStoreDelegate>
+extends AbstractHazelcastStore<MastershipEvent, MastershipStoreDelegate>
 implements MastershipStore {
 
     private IMap<byte[], byte[]> rawMasters;
