@@ -16,6 +16,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipListener;
 import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
@@ -36,6 +37,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onlab.onos.store.common.ClockService;
 import org.slf4j.Logger;
 
 /**
@@ -73,6 +75,9 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClockService clockService;
 
     @Activate
     public void activate() {
@@ -250,6 +255,8 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
         @Override
         public void event(MastershipEvent event) {
             if (event.master().equals(clusterService.getLocalNode().id())) {
+                MastershipTerm term = mastershipService.requestTermService().getMastershipTerm(event.subject());
+                clockService.setMastershipTerm(event.subject(), term);
                 applyRole(event.subject(), MastershipRole.MASTER);
             } else {
                 applyRole(event.subject(), MastershipRole.STANDBY);
