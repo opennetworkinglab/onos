@@ -5,7 +5,7 @@ import java.util.Objects;
 public final class MastershipTerm {
 
     private final NodeId master;
-    private int termNumber;
+    private final int termNumber;
 
     private MastershipTerm(NodeId master, int term) {
         this.master = master;

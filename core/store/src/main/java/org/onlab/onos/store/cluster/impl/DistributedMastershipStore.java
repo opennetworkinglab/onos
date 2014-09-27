@@ -1,9 +1,11 @@
 package org.onlab.onos.store.cluster.impl;
 
-import com.google.common.base.Optional;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableSet;
-import com.hazelcast.core.IMap;
+import static com.google.common.cache.CacheBuilder.newBuilder;
+import static org.onlab.onos.cluster.MastershipEvent.Type.MASTER_CHANGED;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -23,11 +25,10 @@ import org.onlab.onos.store.impl.AbsentInvalidatingLoadingCache;
 import org.onlab.onos.store.impl.AbstractDistributedStore;
 import org.onlab.onos.store.impl.OptionalCacheLoader;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.google.common.cache.CacheBuilder.newBuilder;
+import com.google.common.base.Optional;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
+import com.hazelcast.core.IMap;
 
 /**
  * Distributed implementation of the cluster nodes store.
@@ -35,8 +36,8 @@ import static com.google.common.cache.CacheBuilder.newBuilder;
 @Component(immediate = true)
 @Service
 public class DistributedMastershipStore
-        extends AbstractDistributedStore<MastershipEvent, MastershipStoreDelegate>
-        implements MastershipStore {
+extends AbstractDistributedStore<MastershipEvent, MastershipStoreDelegate>
+implements MastershipStore {
 
     private IMap<byte[], byte[]> rawMasters;
     private LoadingCache<DeviceId, Optional<NodeId>> masters;
@@ -51,9 +52,9 @@ public class DistributedMastershipStore
 
         rawMasters = theInstance.getMap("masters");
         OptionalCacheLoader<DeviceId, NodeId> nodeLoader
-                = new OptionalCacheLoader<>(storeService, rawMasters);
+        = new OptionalCacheLoader<>(storeService, rawMasters);
         masters = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
-        rawMasters.addEntryListener(new RemoteEventHandler<>(masters), true);
+        rawMasters.addEntryListener(new RemoteMasterShipEventHandler(masters), true);
 
         loadMasters();
 
@@ -120,6 +121,27 @@ public class DistributedMastershipStore
     public MastershipTerm getTermFor(DeviceId deviceId) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    private class RemoteMasterShipEventHandler extends RemoteEventHandler<DeviceId, NodeId> {
+        public RemoteMasterShipEventHandler(LoadingCache<DeviceId, Optional<NodeId>> cache) {
+            super(cache);
+        }
+
+        @Override
+        protected void onAdd(DeviceId deviceId, NodeId nodeId) {
+            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+        }
+
+        @Override
+        protected void onRemove(DeviceId deviceId, NodeId nodeId) {
+            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+        }
+
+        @Override
+        protected void onUpdate(DeviceId deviceId, NodeId oldNodeId, NodeId nodeId) {
+            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+        }
     }
 
 }

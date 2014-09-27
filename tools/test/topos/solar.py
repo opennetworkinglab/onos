@@ -17,22 +17,22 @@ class CustomCLI(CLI):
 class Solar(object):
     """ Create a tiered topology from semi-scratch in Mininet """
 
-    def __init__(self, cname='onos', cip='192.168.56.1', islands=3, edges=2, hosts=2,
-                 proto=None):
+    def __init__(self, cname='onos', cips=['192.168.56.1'], islands=3, edges=2, hosts=2):
         """Create tower topology for mininet"""
 
         # We are creating the controller with local-loopback on purpose to avoid
         # having the switches connect immediately. Instead, we'll set controller
         # explicitly for each switch after configuring it as we want.
-        self.flare = RemoteController(cname, cip, 6633)
-        self.net = Mininet(controller=self.flare, switch = OVSKernelSwitch,
+        self.ctrls = [ RemoteController(cname, cip, 6633) for cip in cips ]
+        self.net = Mininet(controller=RemoteController, switch = OVSKernelSwitch,
                            build=False)
 
-        self.cip = cip
+        self.cips = cips
         self.spines = []
         self.leaves = []
         self.hosts = []
-        self.proto = proto
+        for ctrl in self.ctrls:
+            self.net.addController(ctrl)
 
         # Create the two core switches and links between them
         c1 = self.net.addSwitch('c1',dpid='1111000000000000')
@@ -83,28 +83,10 @@ class Solar(object):
 
     def run(self):
         """ Runs the created network topology and launches mininet cli"""
-        self.run_silent()
+        self.net.build()
+        self.net.start()
         CustomCLI(self.net)
         self.net.stop()
-
-    def run_silent(self):
-        """ Runs silently - for unit testing """
-        self.net.build()
-
-        # Start the switches, configure them with desired protocols and only
-        # then set the controller
-        for sw in self.spines:
-            sw.start([self.flare])
-            if self.proto:
-                sw.cmd('ovs-vsctl set bridge %(sw)s protocols=%(proto)s' % \
-                           { 'sw': sw.name, 'proto': self.proto})
-            sw.cmdPrint('ovs-vsctl set-controller %(sw)s tcp:%(ctl)s:6633' % \
-                            {'sw': sw.name, 'ctl': self.cip})
-
-        for sw in self.leaves:
-            sw.start([self.flare])
-            sw.cmdPrint('ovs-vsctl set-controller %(sw)s tcp:%(ctl)s:6633' % \
-                            {'sw': sw.name, 'ctl': self.cip})
 
     def pingAll(self):
         """ PingAll to create flows - for unit testing """

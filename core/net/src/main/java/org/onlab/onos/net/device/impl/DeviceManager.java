@@ -1,5 +1,11 @@
 package org.onlab.onos.net.device.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,20 +38,14 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * Provides implementation of the device SB &amp; NB APIs.
  */
 @Component(immediate = true)
 @Service
 public class DeviceManager
-        extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
-        implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
+extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
+implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String PORT_NUMBER_NULL = "Port number cannot be null";
@@ -56,9 +56,9 @@ public class DeviceManager
     private final Logger log = getLogger(getClass());
 
     protected final AbstractListenerRegistry<DeviceEvent, DeviceListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    listenerRegistry = new AbstractListenerRegistry<>();
 
-    private DeviceStoreDelegate delegate = new InternalStoreDelegate();
+    private final DeviceStoreDelegate delegate = new InternalStoreDelegate();
 
     private final MastershipListener mastershipListener = new InternalMastershipListener();
 
@@ -170,8 +170,8 @@ public class DeviceManager
 
     // Personalized device provider service issued to the supplied provider.
     private class InternalDeviceProviderService
-            extends AbstractProviderService<DeviceProvider>
-            implements DeviceProviderService {
+    extends AbstractProviderService<DeviceProvider>
+    implements DeviceProviderService {
 
         InternalDeviceProviderService(DeviceProvider provider) {
             super(provider);
@@ -183,14 +183,14 @@ public class DeviceManager
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
-                                                           deviceId, deviceDescription);
+                    deviceId, deviceDescription);
 
             // If there was a change of any kind, trigger role selection process.
             if (event != null) {
                 log.info("Device {} connected", deviceId);
                 mastershipService.requestRoleFor(deviceId);
                 provider().roleChanged(event.subject(),
-                                       mastershipService.getLocalRole(deviceId));
+                        mastershipService.getLocalRole(deviceId));
                 post(event);
             }
         }
@@ -225,7 +225,7 @@ public class DeviceManager
             DeviceEvent event = store.updatePortStatus(deviceId, portDescription);
             if (event != null) {
                 log.info("Device {} port {} status changed", deviceId,
-                         event.port().number());
+                        event.port().number());
                 post(event);
             }
         }
@@ -249,9 +249,10 @@ public class DeviceManager
     private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-            // FIXME: for now we're taking action only on becoming master
             if (event.master().equals(clusterService.getLocalNode().id())) {
                 applyRole(event.subject(), MastershipRole.MASTER);
+            } else {
+                applyRole(event.subject(), MastershipRole.STANDBY);
             }
         }
     }

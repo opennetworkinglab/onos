@@ -521,9 +521,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     // if two controllers are master (even if its only for
                     // a brief period). We might need to see if these errors
                     // persist before we reassert
-                    log.warn("Received permission error from switch {} while" +
-                            "being master. Reasserting master role.",
-                            h.getSwitchInfoString());
+
                     h.sw.reassertRole();
                 } else if (m.getErrType() == OFErrorType.FLOW_MOD_FAILED &&
                         ((OFFlowModFailedErrorMsg) m).getCode() ==
