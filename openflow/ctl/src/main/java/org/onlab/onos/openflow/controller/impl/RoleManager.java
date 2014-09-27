@@ -142,9 +142,9 @@ class RoleManager implements RoleHandler {
             }
             // OF1.0 switch with support for NX_ROLE_REQUEST vendor extn.
             // make Role.EQUAL become Role.SLAVE
+            pendingRole = role;
             role = (role == RoleState.EQUAL) ? RoleState.SLAVE : role;
             pendingXid = sendNxRoleRequest(role);
-            pendingRole = role;
             requestPending = true;
         } else {
             // OF1.3 switch, use OFPT_ROLE_REQUEST message
