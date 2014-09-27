@@ -6,6 +6,7 @@ import org.onlab.nio.MessageStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -19,10 +20,16 @@ public class TestMessageStream extends MessageStream<TestMessage> {
     private static final int META_LENGTH = 40;
 
     private final int length;
+    private boolean isStrict = true;
 
     public TestMessageStream(int length, ByteChannel ch, IOLoop<TestMessage, ?> loop) {
         super(loop, ch, 64 * 1024, 500);
+        checkArgument(length >= META_LENGTH, "Length must be greater than header length of 40");
         this.length = length;
+    }
+
+    void setNonStrict() {
+        isStrict = false;
     }
 
     @Override
@@ -32,16 +39,20 @@ public class TestMessageStream extends MessageStream<TestMessage> {
         }
 
         long startTag = rb.getLong();
-        checkState(startTag == START_TAG, "Incorrect message start");
+        if (isStrict) {
+            checkState(startTag == START_TAG, "Incorrect message start");
+        }
 
         long size = rb.getLong();
         long requestorTime = rb.getLong();
         long responderTime = rb.getLong();
-        byte[] padding = padding(length);
+        byte[] padding = padding();
         rb.get(padding);
 
         long endTag = rb.getLong();
-        checkState(endTag == END_TAG, "Incorrect message end");
+        if (isStrict) {
+            checkState(endTag == END_TAG, "Incorrect message end");
+        }
 
         return new TestMessage((int) size, requestorTime, responderTime, padding);
     }
@@ -60,7 +71,7 @@ public class TestMessageStream extends MessageStream<TestMessage> {
         wb.putLong(END_TAG);
     }
 
-    public byte[] padding(int msgLength) {
-        return new byte[msgLength - META_LENGTH];
+    public byte[] padding() {
+        return new byte[length - META_LENGTH];
     }
 }

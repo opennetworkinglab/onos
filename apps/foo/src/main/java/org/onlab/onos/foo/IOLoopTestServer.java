@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
-import static java.lang.System.currentTimeMillis;
+import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
@@ -85,11 +85,14 @@ public class IOLoopTestServer {
         IOLoopTestServer server = new IOLoopTestServer(ip, wc, ml, PORT);
         server.start();
 
-        // Start pruning clients.
-        while (true) {
+        // Start pruning clients and keep going until their number goes to 0.
+        int remaining = -1;
+        while (remaining == -1 || remaining > 0) {
             delay(PRUNE_FREQUENCY);
-            server.prune();
+            int r = server.prune();
+            remaining = remaining == -1 && r == 0 ? remaining : r;
         }
+        server.stop();
     }
 
     /**
@@ -153,7 +156,7 @@ public class IOLoopTestServer {
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
-        out.println(format("Server: %s messages; %s bytes; %s mps; %s Mbs",
+        out.println(format("Server: %s messages; %s bytes; %s mps; %s MBs",
                            f.format(messages.total()), f.format(bytes.total()),
                            f.format(messages.throughput()),
                            f.format(bytes.throughput() / (1024 * msgLength))));
@@ -161,11 +164,15 @@ public class IOLoopTestServer {
 
     /**
      * Prunes the IO loops of stale message buffers.
+     *
+     * @return number of remaining IO loops among all workers.
      */
-    public void prune() {
+    public int prune() {
+        int count = 0;
         for (CustomIOLoop l : iloops) {
-            l.pruneStaleStreams();
+            count += l.pruneStaleStreams();
         }
+        return count;
     }
 
     // Get the next worker to which a client should be assigned
@@ -189,15 +196,8 @@ public class IOLoopTestServer {
         @Override
         protected void removeStream(MessageStream<TestMessage> stream) {
             super.removeStream(stream);
-
             messages.add(stream.messagesIn().total());
             bytes.add(stream.bytesIn().total());
-
-//            out.println(format("Disconnected server; inbound %s mps, %s Mbps; outbound %s mps, %s Mbps",
-//                               FORMAT.format(stream.messagesIn().throughput()),
-//                               FORMAT.format(stream.bytesIn().throughput() / (1024 * msgLength)),
-//                               FORMAT.format(stream.messagesOut().throughput()),
-//                               FORMAT.format(stream.bytesOut().throughput() / (1024 * msgLength))));
         }
 
         @Override
@@ -214,7 +214,7 @@ public class IOLoopTestServer {
             List<TestMessage> responses = Lists.newArrayListWithCapacity(messages.size());
             for (TestMessage message : messages) {
                 responses.add(new TestMessage(message.length(), message.requestorTime(),
-                                              currentTimeMillis(), message.padding()));
+                                              nanoTime(), message.padding()));
             }
             return responses;
         }
