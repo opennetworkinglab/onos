@@ -354,7 +354,7 @@ public class DistributedDeviceStore
         }
     }
 
-    private class RemoteDeviceEventHandler extends RemoteEventHandler<DeviceId, DefaultDevice> {
+    private class RemoteDeviceEventHandler extends RemoteCacheEventHandler<DeviceId, DefaultDevice> {
         public RemoteDeviceEventHandler(LoadingCache<DeviceId, Optional<DefaultDevice>> cache) {
             super(cache);
         }
@@ -375,7 +375,7 @@ public class DistributedDeviceStore
         }
     }
 
-    private class RemotePortEventHandler extends RemoteEventHandler<DeviceId, Map<PortNumber, Port>> {
+    private class RemotePortEventHandler extends RemoteCacheEventHandler<DeviceId, Map<PortNumber, Port>> {
         public RemotePortEventHandler(LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> cache) {
             super(cache);
         }

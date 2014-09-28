@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -329,6 +330,7 @@ public class DistributedDeviceStoreTest {
     }
 
     // TODO add test for Port events when we have them
+    @Ignore("Ignore until Delegate spec. is clear.")
     @Test
     public final void testEvents() throws InterruptedException {
         final CountDownLatch addLatch = new CountDownLatch(1);

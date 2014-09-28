@@ -233,7 +233,7 @@ public class DistributedLinkStore
         }
     }
 
-    private class RemoteLinkEventHandler extends RemoteEventHandler<LinkKey, DefaultLink> {
+    private class RemoteLinkEventHandler extends RemoteCacheEventHandler<LinkKey, DefaultLink> {
         public RemoteLinkEventHandler(LoadingCache<LinkKey, Optional<DefaultLink>> cache) {
             super(cache);
         }

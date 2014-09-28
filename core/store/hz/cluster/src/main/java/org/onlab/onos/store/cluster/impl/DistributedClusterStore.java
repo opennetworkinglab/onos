@@ -58,7 +58,7 @@ public class DistributedClusterStore
         OptionalCacheLoader<NodeId, DefaultControllerNode> nodeLoader
                 = new OptionalCacheLoader<>(storeService, rawNodes);
         nodes = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
-        rawNodes.addEntryListener(new RemoteEventHandler<>(nodes), true);
+        rawNodes.addEntryListener(new RemoteCacheEventHandler<>(nodes), true);
 
         loadClusterNodes();
 

@@ -123,7 +123,7 @@ implements MastershipStore {
         return null;
     }
 
-    private class RemoteMasterShipEventHandler extends RemoteEventHandler<DeviceId, NodeId> {
+    private class RemoteMasterShipEventHandler extends RemoteCacheEventHandler<DeviceId, NodeId> {
         public RemoteMasterShipEventHandler(LoadingCache<DeviceId, Optional<NodeId>> cache) {
             super(cache);
         }
