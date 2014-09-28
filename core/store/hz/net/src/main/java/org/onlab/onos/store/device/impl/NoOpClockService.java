@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.store.device.impl;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
@@ -7,7 +7,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
 
-//FIXME: Code clone in onos-core-trivial, onos-core-hz-net
+// FIXME: Code clone in onos-core-trivial, onos-core-hz-net
 /**
  * Dummy implementation of {@link ClockService}.
  */

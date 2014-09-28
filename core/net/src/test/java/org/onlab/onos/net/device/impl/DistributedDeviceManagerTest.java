@@ -32,9 +32,9 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.common.StoreManager;
+import org.onlab.onos.store.common.TestStoreManager;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
-import org.onlab.onos.store.impl.StoreManager;
-import org.onlab.onos.store.impl.TestStoreManager;
 import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
