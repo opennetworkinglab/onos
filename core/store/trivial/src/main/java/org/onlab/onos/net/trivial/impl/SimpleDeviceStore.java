@@ -101,9 +101,6 @@ public class SimpleDeviceStore
         synchronized (this) {
             devices.put(deviceId, device);
             availableDevices.add(deviceId);
-
-            // For now claim the device as a master automatically.
-            // roles.put(deviceId, MastershipRole.MASTER);
         }
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, null);
     }
@@ -189,7 +186,7 @@ public class SimpleDeviceStore
                     new DefaultPort(device, portDescription.portNumber(),
                                     portDescription.isEnabled());
             ports.put(port.number(), updatedPort);
-            return new DeviceEvent(PORT_UPDATED, device, port);
+            return new DeviceEvent(PORT_UPDATED, device, updatedPort);
         }
         return null;
     }

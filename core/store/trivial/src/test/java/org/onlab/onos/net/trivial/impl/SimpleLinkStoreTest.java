@@ -1,4 +1,4 @@
-package org.onlab.onos.store.link.impl;
+package org.onlab.onos.net.trivial.impl;
 
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.DeviceId.deviceId;
@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
@@ -24,20 +25,16 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
+import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.common.StoreManager;
-import org.onlab.onos.store.common.StoreService;
-import org.onlab.onos.store.common.TestStoreManager;
 
 import com.google.common.collect.Iterables;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
 
 /**
- * Test of the Hazelcast based distributed LinkStore implementation.
+ * Test of the simple LinkStore implementation.
  */
-public class DistributedLinkStoreTest {
+public class SimpleLinkStoreTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
@@ -47,9 +44,9 @@ public class DistributedLinkStoreTest {
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
-    private StoreManager storeManager;
 
-    private DistributedLinkStore linkStore;
+    private SimpleLinkStore simpleLinkStore;
+    private LinkStore linkStore;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -61,20 +58,14 @@ public class DistributedLinkStoreTest {
 
     @Before
     public void setUp() throws Exception {
-        // TODO should find a way to clean Hazelcast instance without shutdown.
-        Config config = TestStoreManager.getTestConfig();
-
-        storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
-        storeManager.activate();
-
-        linkStore = new TestDistributedLinkStore(storeManager);
-        linkStore.activate();
+        simpleLinkStore = new SimpleLinkStore();
+        simpleLinkStore.activate();
+        linkStore = simpleLinkStore;
     }
 
     @After
     public void tearDown() throws Exception {
-        linkStore.deactivate();
-        storeManager.deactivate();
+        simpleLinkStore.deactivate();
     }
 
     private void putLink(DeviceId srcId, PortNumber srcNum,
@@ -300,6 +291,9 @@ public class DistributedLinkStoreTest {
         assertLink(linkId2, DIRECT, linkStore.getLink(d2P2, d1P1));
     }
 
+    // If Delegates should be called only on remote events,
+    // then Simple* should never call them, thus not test required.
+    @Ignore("Ignore until Delegate spec. is clear.")
     @Test
     public final void testEvents() throws InterruptedException {
 
@@ -348,12 +342,5 @@ public class DistributedLinkStoreTest {
         linkStore.setDelegate(checkRemove);
         linkStore.removeLink(d1P1, d2P2);
         assertTrue("Remove event fired", removeLatch.await(1, TimeUnit.SECONDS));
-    }
-
-
-    class TestDistributedLinkStore extends DistributedLinkStore {
-        TestDistributedLinkStore(StoreService storeService) {
-            this.storeService = storeService;
-        }
     }
 }
