@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.StoreDelegate;
+import org.onlab.onos.store.serializers.KryoSerializationService;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -32,6 +33,9 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StoreService storeService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected KryoSerializationService kryoSerializationService;
+
     protected HazelcastInstance theInstance;
 
     @Activate
@@ -46,7 +50,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
      * @return serialized object
      */
     protected byte[] serialize(Object obj) {
-        return storeService.serialize(obj);
+        return kryoSerializationService.serialize(obj);
     }
 
     /**
@@ -57,7 +61,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
      * @return deserialized object
      */
     protected <T> T deserialize(byte[] bytes) {
-        return storeService.deserialize(bytes);
+        return kryoSerializationService.deserialize(bytes);
     }
 
 
