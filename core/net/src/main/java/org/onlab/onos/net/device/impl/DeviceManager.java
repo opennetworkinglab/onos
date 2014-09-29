@@ -45,9 +45,9 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class DeviceManager extends
-    AbstractProviderRegistry<DeviceProvider, DeviceProviderService> implements
-        DeviceService, DeviceAdminService, DeviceProviderRegistry {
+public class DeviceManager
+    extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
+    implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String PORT_NUMBER_NULL = "Port number cannot be null";
@@ -57,7 +57,8 @@ public class DeviceManager extends
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<DeviceEvent, DeviceListener> listenerRegistry = new AbstractListenerRegistry<>();
+    protected final AbstractListenerRegistry<DeviceEvent, DeviceListener> listenerRegistry =
+            new AbstractListenerRegistry<>();
 
     private final DeviceStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -174,9 +175,9 @@ public class DeviceManager extends
     }
 
     // Personalized device provider service issued to the supplied provider.
-    private class InternalDeviceProviderService extends
-    AbstractProviderService<DeviceProvider> implements
-    DeviceProviderService {
+    private class InternalDeviceProviderService
+    extends AbstractProviderService<DeviceProvider>
+    implements DeviceProviderService {
 
         InternalDeviceProviderService(DeviceProvider provider) {
             super(provider);
@@ -258,7 +259,8 @@ public class DeviceManager extends
     }
 
     // Intercepts mastership events
-    private class InternalMastershipListener implements MastershipListener {
+    private class InternalMastershipListener
+    implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
             if (event.master().equals(clusterService.getLocalNode().id())) {
@@ -273,7 +275,8 @@ public class DeviceManager extends
     }
 
     // Store delegate to re-post events emitted from the store.
-    private class InternalStoreDelegate implements DeviceStoreDelegate {
+    private class InternalStoreDelegate
+    implements DeviceStoreDelegate {
         @Override
         public void notify(DeviceEvent event) {
             post(event);
