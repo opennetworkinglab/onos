@@ -45,9 +45,9 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class DeviceManager
-extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
-implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
+public class DeviceManager extends
+    AbstractProviderRegistry<DeviceProvider, DeviceProviderService> implements
+        DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String PORT_NUMBER_NULL = "Port number cannot be null";
@@ -57,8 +57,7 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<DeviceEvent, DeviceListener>
-    listenerRegistry = new AbstractListenerRegistry<>();
+    protected final AbstractListenerRegistry<DeviceEvent, DeviceListener> listenerRegistry = new AbstractListenerRegistry<>();
 
     private final DeviceStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -169,28 +168,31 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
     }
 
     @Override
-    protected DeviceProviderService createProviderService(DeviceProvider provider) {
+    protected DeviceProviderService createProviderService(
+            DeviceProvider provider) {
         return new InternalDeviceProviderService(provider);
     }
 
     // Personalized device provider service issued to the supplied provider.
-    private class InternalDeviceProviderService
-    extends AbstractProviderService<DeviceProvider>
-    implements DeviceProviderService {
+    private class InternalDeviceProviderService extends
+    AbstractProviderService<DeviceProvider> implements
+    DeviceProviderService {
 
         InternalDeviceProviderService(DeviceProvider provider) {
             super(provider);
         }
 
         @Override
-        public void deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription) {
+        public void deviceConnected(DeviceId deviceId,
+                DeviceDescription deviceDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                     deviceId, deviceDescription);
 
-            // If there was a change of any kind, trigger role selection process.
+            // If there was a change of any kind, trigger role selection
+            // process.
             if (event != null) {
                 log.info("Device {} connected", deviceId);
                 mastershipService.requestRoleFor(deviceId);
@@ -212,25 +214,30 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
         }
 
         @Override
-        public void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions) {
+        public void updatePorts(DeviceId deviceId,
+                List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
-            checkNotNull(portDescriptions, "Port descriptions list cannot be null");
+            checkNotNull(portDescriptions,
+                    "Port descriptions list cannot be null");
             checkValidity();
-            List<DeviceEvent> events = store.updatePorts(deviceId, portDescriptions);
+            List<DeviceEvent> events = store.updatePorts(deviceId,
+                    portDescriptions);
             for (DeviceEvent event : events) {
                 post(event);
             }
         }
 
         @Override
-        public void portStatusChanged(DeviceId deviceId, PortDescription portDescription) {
+        public void portStatusChanged(DeviceId deviceId,
+                PortDescription portDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
-            DeviceEvent event = store.updatePortStatus(deviceId, portDescription);
+            DeviceEvent event = store.updatePortStatus(deviceId,
+                    portDescription);
             if (event != null) {
-                log.info("Device {} port {} status changed", deviceId,
-                        event.port().number());
+                log.info("Device {} port {} status changed", deviceId, event
+                        .port().number());
                 post(event);
             }
         }
@@ -238,8 +245,8 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
         @Override
         public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
             // FIXME: implement response to this notification
-            log.warn("Failed to assert role [{}] onto Device {}",
-                    role, deviceId);
+            log.warn("Failed to assert role [{}] onto Device {}", role,
+                    deviceId);
         }
     }
 
@@ -255,7 +262,8 @@ implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
         @Override
         public void event(MastershipEvent event) {
             if (event.master().equals(clusterService.getLocalNode().id())) {
-                MastershipTerm term = mastershipService.requestTermService().getMastershipTerm(event.subject());
+                MastershipTerm term = mastershipService.requestTermService()
+                        .getMastershipTerm(event.subject());
                 clockService.setMastershipTerm(event.subject(), term);
                 applyRole(event.subject(), MastershipRole.MASTER);
             } else {
