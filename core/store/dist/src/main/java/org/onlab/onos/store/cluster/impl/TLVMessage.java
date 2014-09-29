@@ -1,4 +1,4 @@
-package org.onlab.onos.ccc;
+package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.nio.AbstractMessage;
 
@@ -12,17 +12,16 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class TLVMessage extends AbstractMessage {
 
     private final int type;
-    private final Object data;
+    private final byte[] data;
 
     /**
      * Creates an immutable TLV message.
      *
      * @param type   message type
-     * @param length message length
-     * @param data   message data
+     * @param data   message data bytes
      */
-    public TLVMessage(int type, int length, Object data) {
-        this.length = length;
+    public TLVMessage(int type, byte[] data) {
+        this.length = data.length + TLVMessageStream.METADATA_LENGTH;
         this.type = type;
         this.data = data;
     }
@@ -37,11 +36,11 @@ public class TLVMessage extends AbstractMessage {
     }
 
     /**
-     * Returns the data object.
+     * Returns the data bytes.
      *
      * @return message data
      */
-    public Object data() {
+    public byte[] data() {
         return data;
     }
 
