@@ -1,7 +1,8 @@
-package org.onlab.onos.ccc;
+package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.nio.IOLoop;
 import org.onlab.nio.MessageStream;
+import org.onlab.onos.cluster.DefaultControllerNode;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
@@ -13,7 +14,12 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class TLVMessageStream extends MessageStream<TLVMessage> {
 
+    public static final int METADATA_LENGTH = 16; // 8 + 4 + 4
+
+    private static final int LENGTH_OFFSET = 12;
     private static final long MARKER = 0xfeedcafecafefeedL;
+
+    private DefaultControllerNode node;
 
     /**
      * Creates a message stream associated with the specified IO loop and
@@ -29,17 +35,51 @@ public class TLVMessageStream extends MessageStream<TLVMessage> {
         super(loop, byteChannel, bufferSize, maxIdleMillis);
     }
 
+    /**
+     * Returns the node with which this stream is associated.
+     *
+     * @return controller node
+     */
+    DefaultControllerNode node() {
+        return node;
+    }
+
+    /**
+     * Sets the node with which this stream is affiliated.
+     *
+     * @param node controller node
+     */
+    void setNode(DefaultControllerNode node) {
+        checkState(this.node == null, "Stream is already bound to a node");
+        this.node = node;
+    }
+
     @Override
     protected TLVMessage read(ByteBuffer buffer) {
+        // Do we have enough bytes to read the header? If not, bail.
+        if (buffer.remaining() < METADATA_LENGTH) {
+            return null;
+        }
+
+        // Peek at the length and if we have enough to read the entire message
+        // go ahead, otherwise bail.
+        int length = buffer.getInt(buffer.position() + LENGTH_OFFSET);
+        if (buffer.remaining() < length) {
+            return null;
+        }
+
+        // At this point, we have enough data to read a complete message.
         long marker = buffer.getLong();
         checkState(marker == MARKER, "Incorrect message marker");
 
         int type = buffer.getInt();
-        int length = buffer.getInt();
+        length = buffer.getInt();
 
         // TODO: add deserialization hook here
+        byte[] data = new byte[length - METADATA_LENGTH];
+        buffer.get(data);
 
-        return new TLVMessage(type, length, null);
+        return new TLVMessage(type, data);
     }
 
     @Override
@@ -49,5 +89,7 @@ public class TLVMessageStream extends MessageStream<TLVMessage> {
         buffer.putInt(message.length());
 
         // TODO: add serialization hook here
+        buffer.put(message.data());
     }
+
 }

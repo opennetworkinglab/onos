@@ -9,7 +9,6 @@
         <bundle>mvn:org.apache.commons/commons-lang3/3.3.2</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
-        <bundle>mvn:org.livetribe.slp/livetribe-slp-osgi/2.2.1</bundle>
 
         <bundle>mvn:com.hazelcast/hazelcast/3.3</bundle>
         <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.1</bundle>
@@ -49,14 +48,11 @@
              description="ONOS core components">
         <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-core-net/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-core-hz-common/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-core-serializers/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-core-hz-cluster/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-core-hz-net/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-core-dist/1.0.0-SNAPSHOT</bundle>
     </feature>
 
-    <feature name="onos-core-dist" version="1.0.0"
-             description="ONOS core components">
+    <feature name="onos-core-hazelcast" version="1.0.0"
+             description="ONOS core components built on hazelcast">
         <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-core-net/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-core-hz-common/1.0.0-SNAPSHOT</bundle>

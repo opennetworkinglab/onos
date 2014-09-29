@@ -170,7 +170,7 @@ public abstract class MessageStream<M extends Message> {
     }
 
     /**
-     * Reads, withouth blocking, a list of messages from the stream.
+     * Reads, without blocking, a list of messages from the stream.
      * The list will be empty if there were not messages pending.
      *
      * @return list of messages or null if backing channel has been closed

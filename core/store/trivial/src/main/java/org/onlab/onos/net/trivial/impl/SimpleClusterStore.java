@@ -20,7 +20,7 @@ import java.util.Set;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Manages inventory of infrastructure DEVICES using trivial in-memory
+ * Manages inventory of infrastructure devices using trivial in-memory
  * structures implementation.
  */
 @Component(immediate = true)
