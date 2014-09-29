@@ -24,6 +24,7 @@ ssh $remote "
     # Make a link to the log file directory and make a home for auxiliaries
     ln -s $ONOS_INSTALL_DIR/$KARAF_DIST/data/log /opt/onos/log
     mkdir $ONOS_INSTALL_DIR/var
+    mkdir $ONOS_INSTALL_DIR/config
 
     # Install the upstart configuration file and setup options for debugging
     sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
