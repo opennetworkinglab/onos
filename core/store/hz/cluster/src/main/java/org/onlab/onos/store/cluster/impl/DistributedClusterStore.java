@@ -49,6 +49,7 @@ public class DistributedClusterStore
     private final MembershipListener listener = new InternalMembershipListener();
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
 
+    @Override
     @Activate
     public void activate() {
         super.activate();
@@ -56,7 +57,7 @@ public class DistributedClusterStore
 
         rawNodes = theInstance.getMap("nodes");
         OptionalCacheLoader<NodeId, DefaultControllerNode> nodeLoader
-                = new OptionalCacheLoader<>(storeService, rawNodes);
+                = new OptionalCacheLoader<>(kryoSerializationService, rawNodes);
         nodes = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
         rawNodes.addEntryListener(new RemoteCacheEventHandler<>(nodes), true);
 

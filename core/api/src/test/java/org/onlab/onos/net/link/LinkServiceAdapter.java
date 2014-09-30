@@ -1,10 +1,10 @@
 package org.onlab.onos.net.link;
 
+import java.util.Set;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
-
-import java.util.Set;
 
 /**
  * Test adapter for link service.
@@ -62,5 +62,6 @@ public class LinkServiceAdapter implements LinkService {
     @Override
     public void removeListener(LinkListener listener) {
     }
+
 
 }

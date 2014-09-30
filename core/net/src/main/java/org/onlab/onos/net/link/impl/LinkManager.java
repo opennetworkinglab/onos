@@ -53,7 +53,7 @@ public class LinkManager
     protected final AbstractListenerRegistry<LinkEvent, LinkListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private LinkStoreDelegate delegate = new InternalStoreDelegate();
+    private final LinkStoreDelegate delegate = new InternalStoreDelegate();
 
     private final DeviceListener deviceListener = new InternalDeviceListener();
 

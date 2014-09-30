@@ -52,7 +52,7 @@ implements MastershipStore {
 
         rawMasters = theInstance.getMap("masters");
         OptionalCacheLoader<DeviceId, NodeId> nodeLoader
-        = new OptionalCacheLoader<>(storeService, rawMasters);
+        = new OptionalCacheLoader<>(kryoSerializationService, rawMasters);
         masters = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
         rawMasters.addEntryListener(new RemoteMasterShipEventHandler(masters), true);
 
