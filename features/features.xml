@@ -119,6 +119,14 @@
         <bundle>mvn:org.onlab.onos/onos-app-fwd/1.0.0-SNAPSHOT</bundle>
     </feature>
 
+    <feature name="onos-app-mobility" version="1.0.0"
+             description="ONOS sample forwarding application">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-mobility/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+
+
     <feature name="onos-app-foo" version="1.0.0"
              description="ONOS sample playground application">
         <feature>onos-api</feature>

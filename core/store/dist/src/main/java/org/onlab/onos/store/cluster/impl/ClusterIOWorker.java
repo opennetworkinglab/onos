@@ -3,8 +3,9 @@ package org.onlab.onos.store.cluster.impl;
 import org.onlab.nio.IOLoop;
 import org.onlab.nio.MessageStream;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageStream;
+import org.onlab.onos.store.cluster.messaging.HelloMessage;
 import org.onlab.onos.store.cluster.messaging.SerializationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,27 +30,23 @@ public class ClusterIOWorker extends
 
     private static final long SELECT_TIMEOUT = 50;
 
-    private final ConnectionManager connectionManager;
-    private final CommunicationsDelegate commsDelegate;
+    private final ClusterCommunicationManager manager;
     private final SerializationService serializationService;
     private final ClusterMessage helloMessage;
 
     /**
      * Creates a new cluster IO worker.
      *
-     * @param connectionManager    parent connection manager
-     * @param commsDelegate        communications delegate for dispatching
+     * @param manager              parent comms manager
      * @param serializationService serialization service for encode/decode
      * @param helloMessage         hello message for greeting peers
      * @throws IOException if errors occur during IO loop ignition
      */
-    ClusterIOWorker(ConnectionManager connectionManager,
-                    CommunicationsDelegate commsDelegate,
+    ClusterIOWorker(ClusterCommunicationManager manager,
                     SerializationService serializationService,
                     ClusterMessage helloMessage) throws IOException {
         super(SELECT_TIMEOUT);
-        this.connectionManager = connectionManager;
-        this.commsDelegate = commsDelegate;
+        this.manager = manager;
         this.serializationService = serializationService;
         this.helloMessage = helloMessage;
     }
@@ -61,9 +58,25 @@ public class ClusterIOWorker extends
 
     @Override
     protected void processMessages(List<ClusterMessage> messages, MessageStream<ClusterMessage> stream) {
+        NodeId nodeId = getNodeId(messages, (ClusterMessageStream) stream);
         for (ClusterMessage message : messages) {
-            commsDelegate.dispatch(message);
+            manager.dispatch(message, nodeId);
         }
+    }
+
+    // Retrieves the node from the stream. If one is not bound, it attempts
+    // to bind it using the knowledge that the first message must be a hello.
+    private NodeId getNodeId(List<ClusterMessage> messages, ClusterMessageStream stream) {
+        DefaultControllerNode node = stream.node();
+        if (node == null && !messages.isEmpty()) {
+            ClusterMessage firstMessage = messages.get(0);
+            if (firstMessage instanceof HelloMessage) {
+                HelloMessage hello = (HelloMessage) firstMessage;
+                node = manager.addNodeStream(hello.nodeId(), hello.ipAddress(),
+                                             hello.tcpPort(), stream);
+            }
+        }
+        return node != null ? node.id() : null;
     }
 
     @Override
@@ -99,7 +112,7 @@ public class ClusterIOWorker extends
         DefaultControllerNode node = ((ClusterMessageStream) stream).node();
         if (node != null) {
             log.info("Closed connection to node {}", node.id());
-            connectionManager.removeNodeStream(node);
+            manager.removeNodeStream(node);
         }
         super.removeStream(stream);
     }

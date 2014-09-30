@@ -6,18 +6,10 @@ import org.onlab.packet.IpPrefix;
 /**
  * Hello message that nodes use to greet each other.
  */
-public class HelloMessage extends ClusterMessage {
-
-    private NodeId nodeId;
-    private IpPrefix ipAddress;
-    private int tcpPort;
+public class HelloMessage extends ClusterMembershipMessage {
 
     // For serialization
     private HelloMessage() {
-        super(MessageSubject.HELLO);
-        nodeId = null;
-        ipAddress = null;
-        tcpPort = 0;
     }
 
     /**
@@ -28,36 +20,7 @@ public class HelloMessage extends ClusterMessage {
      * @param tcpPort   sending node TCP port
      */
     public HelloMessage(NodeId nodeId, IpPrefix ipAddress, int tcpPort) {
-        super(MessageSubject.HELLO);
-        nodeId = nodeId;
-        ipAddress = ipAddress;
-        tcpPort = tcpPort;
+        super(MessageSubject.HELLO, nodeId, ipAddress, tcpPort);
     }
 
-    /**
-     * Returns the sending node identifer.
-     *
-     * @return node identifier
-     */
-    public NodeId nodeId() {
-        return nodeId;
-    }
-
-    /**
-     * Returns the sending node IP address.
-     *
-     * @return node IP address
-     */
-    public IpPrefix ipAddress() {
-        return ipAddress;
-    }
-
-    /**
-     * Returns the sending node TCP listen port.
-     *
-     * @return TCP listen port
-     */
-    public int tcpPort() {
-        return tcpPort;
-    }
 }

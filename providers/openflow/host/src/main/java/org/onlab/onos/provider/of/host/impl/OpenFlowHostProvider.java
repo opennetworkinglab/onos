@@ -31,6 +31,7 @@ import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.PacketListener;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
@@ -92,25 +93,33 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
         public void handlePacket(OpenFlowPacketContext pktCtx) {
             Ethernet eth = pktCtx.parsed();
 
+            VlanId vlan = VlanId.vlanId(eth.getVlanID());
+            ConnectPoint heardOn = new ConnectPoint(deviceId(Dpid.uri(pktCtx.dpid())),
+                    portNumber(pktCtx.inPort()));
+
+         // If this is not an edge port, bail out.
+            Topology topology = topologyService.currentTopology();
+            if (topologyService.isInfrastructure(topology, heardOn)) {
+                return;
+            }
+
+            HostLocation hloc = new HostLocation(deviceId(Dpid.uri(pktCtx.dpid())),
+                    portNumber(pktCtx.inPort()),
+                    System.currentTimeMillis());
+            HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
             // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
-                VlanId vlan = VlanId.vlanId(eth.getVlanID());
-                ConnectPoint heardOn = new ConnectPoint(deviceId(Dpid.uri(pktCtx.dpid())),
-                        portNumber(pktCtx.inPort()));
 
-                // If this is not an edge port, bail out.
-                Topology topology = topologyService.currentTopology();
-                if (topologyService.isInfrastructure(topology, heardOn)) {
-                    return;
-                }
 
-                HostLocation hloc = new HostLocation(deviceId(Dpid.uri(pktCtx.dpid())),
-                        portNumber(pktCtx.inPort()),
-                        System.currentTimeMillis());
-
-                HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
                 ARP arp = (ARP) eth.getPayload();
                 Set<IpPrefix> ips = newHashSet(IpPrefix.valueOf(arp.getSenderProtocolAddress()));
+                HostDescription hdescr =
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ips);
+                providerService.hostDetected(hid, hdescr);
+
+            } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
+                IPv4 ip = (IPv4) eth.getPayload();
+                Set<IpPrefix> ips = newHashSet(IpPrefix.valueOf(ip.getSourceAddress()));
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ips);
                 providerService.hostDetected(hid, hdescr);
