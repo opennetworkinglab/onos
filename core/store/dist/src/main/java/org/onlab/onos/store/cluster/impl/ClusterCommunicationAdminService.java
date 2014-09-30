@@ -29,4 +29,8 @@ public interface ClusterCommunicationAdminService {
      */
     void startUp(DefaultControllerNode localNode, ClusterNodesDelegate delegate);
 
+    /**
+     * Clears all nodes and streams as part of leaving the cluster.
+     */
+    void clearAllNodesAndStreams();
 }

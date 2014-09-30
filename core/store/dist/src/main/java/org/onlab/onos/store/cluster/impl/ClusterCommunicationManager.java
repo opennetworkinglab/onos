@@ -13,6 +13,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.GoodbyeMessage;
 import org.onlab.onos.store.cluster.messaging.HelloMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.cluster.messaging.MessageSubscriber;
@@ -83,9 +84,11 @@ public class ClusterCommunicationManager
 
     private final Timer timer = new Timer("onos-comm-initiator");
     private final TimerTask connectionCustodian = new ConnectionCustodian();
+    private GoodbyeSubscriber goodbyeSubscriber = new GoodbyeSubscriber();
 
     @Activate
     public void activate() {
+        addSubscriber(MessageSubject.GOODBYE, goodbyeSubscriber);
         log.info("Activated but waiting for delegate");
     }
 
@@ -102,9 +105,20 @@ public class ClusterCommunicationManager
     }
 
     @Override
+    public boolean send(ClusterMessage message) {
+        boolean ok = true;
+        for (DefaultControllerNode node : nodes) {
+            if (!node.equals(localNode)) {
+                ok = send(message, node.id()) && ok;
+            }
+        }
+        return ok;
+    }
+
+    @Override
     public boolean send(ClusterMessage message, NodeId toNodeId) {
         ClusterMessageStream stream = streams.get(toNodeId);
-        if (stream != null) {
+        if (stream != null && !toNodeId.equals(localNode.id())) {
             try {
                 stream.write(message);
                 return true;
@@ -140,6 +154,7 @@ public class ClusterCommunicationManager
 
     @Override
     public void removeNode(DefaultControllerNode node) {
+        send(new GoodbyeMessage(node.id()));
         nodes.remove(node);
         ClusterMessageStream stream = streams.remove(node.id());
         if (stream != null) {
@@ -157,6 +172,16 @@ public class ClusterCommunicationManager
         startListening();
         startInitiatingConnections();
         log.info("Started");
+    }
+
+    @Override
+    public void clearAllNodesAndStreams() {
+        nodes.clear();
+        send(new GoodbyeMessage(localNode.id()));
+        for (ClusterMessageStream stream : streams.values()) {
+            stream.close();
+        }
+        streams.clear();
     }
 
     /**
@@ -304,4 +329,11 @@ public class ClusterCommunicationManager
         }
     }
 
+    private class GoodbyeSubscriber implements MessageSubscriber {
+        @Override
+        public void receive(ClusterMessage message, NodeId fromNodeId) {
+            log.info("Received goodbye message from {}", fromNodeId);
+            nodesDelegate.nodeRemoved(fromNodeId);
+        }
+    }
 }

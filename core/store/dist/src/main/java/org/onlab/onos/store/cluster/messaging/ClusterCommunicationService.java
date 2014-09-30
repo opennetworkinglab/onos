@@ -10,6 +10,15 @@ import java.util.Set;
 public interface ClusterCommunicationService {
 
     /**
+     * Sends a message to all controller nodes.
+     *
+     * @param message  message to send
+     * @return true if the message was sent sucessfully to all nodes; false
+     * if there is no stream or if there was an error for some node
+     */
+    boolean send(ClusterMessage message);
+
+    /**
      * Sends a message to the specified controller node.
      *
      * @param message  message to send

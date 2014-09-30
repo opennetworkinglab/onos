@@ -127,9 +127,17 @@ public class DistributedClusterStore
 
     @Override
     public void removeNode(NodeId nodeId) {
-        DefaultControllerNode node = nodes.remove(nodeId);
-        if (node != null) {
-            communicationAdminService.removeNode(node);
+        if (nodeId.equals(localNode.id())) {
+            // FIXME: this is still broken
+            // We are being ejected from the cluster, so remove all other nodes.
+            communicationAdminService.clearAllNodesAndStreams();
+            nodes.clear();
+        } else {
+            // Remove the other node.
+            DefaultControllerNode node = nodes.remove(nodeId);
+            if (node != null) {
+                communicationAdminService.removeNode(node);
+            }
         }
     }
 
@@ -147,6 +155,11 @@ public class DistributedClusterStore
         @Override
         public void nodeVanished(NodeId nodeId) {
             states.put(nodeId, State.INACTIVE);
+        }
+
+        @Override
+        public void nodeRemoved(NodeId nodeId) {
+            removeNode(nodeId);
         }
     }
 

@@ -27,4 +27,11 @@ public interface ClusterNodesDelegate {
      */
     void nodeVanished(NodeId nodeId);
 
+    /**
+     * Notifies about remote request to remove node from cluster.
+     *
+     * @param nodeId identifier of the cluster node that was removed
+     */
+    void nodeRemoved(NodeId nodeId);
+
 }
