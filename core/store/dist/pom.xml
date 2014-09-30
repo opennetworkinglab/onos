@@ -51,6 +51,15 @@
           <groupId>de.javakaffee</groupId>
           <artifactId>kryo-serializers</artifactId>
         </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-all</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>commons-pool</groupId>
+          <artifactId>commons-pool</artifactId>
+          <version>1.6</version>
+        </dependency>
     </dependencies>
 
     <build>

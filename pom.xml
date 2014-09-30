@@ -69,6 +69,12 @@
 
              <dependency>
                 <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>4.0.23.Final</version>
+            </dependency>
+
+             <dependency>
+                <groupId>io.netty</groupId>
                 <artifactId>netty</artifactId>
                 <version>3.9.0.Final</version>
             </dependency>
