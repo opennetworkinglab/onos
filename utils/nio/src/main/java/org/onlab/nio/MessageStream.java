@@ -10,6 +10,7 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -170,7 +171,7 @@ public abstract class MessageStream<M extends Message> {
     }
 
     /**
-     * Reads, withouth blocking, a list of messages from the stream.
+     * Reads, without blocking, a list of messages from the stream.
      * The list will be empty if there were not messages pending.
      *
      * @return list of messages or null if backing channel has been closed
@@ -262,7 +263,7 @@ public abstract class MessageStream<M extends Message> {
                 try {
                     channel.write(outbound);
                 } catch (IOException e) {
-                    if (!closed && !e.getMessage().equals("Broken pipe")) {
+                    if (!closed && !Objects.equals(e.getMessage(), "Broken pipe")) {
                         log.warn("Unable to write data", e);
                         ioError = e;
                     }

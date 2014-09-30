@@ -7,10 +7,10 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.packet.IpPrefix;
 
 /**
- * Lists all controller cluster nodes.
+ * Adds a new controller cluster node.
  */
 @Command(scope = "onos", name = "add-node",
-         description = "Lists all controller cluster nodes")
+         description = "Adds a new controller cluster node")
 public class NodeAddCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "nodeId", description = "Node ID",
@@ -21,7 +21,7 @@ public class NodeAddCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String ip = null;
 
-    @Argument(index = 2, name = "tcpPort", description = "TCP port",
+    @Argument(index = 2, name = "tcpPort", description = "Node TCP listen port",
               required = false, multiValued = false)
     int tcpPort = 9876;
 

@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
@@ -29,27 +30,28 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
+import org.onlab.onos.store.serializers.KryoSerializationManager;
+import org.onlab.onos.store.serializers.KryoSerializationService;
 
 import com.google.common.collect.Iterables;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 
+/**
+ * Test of the Hazelcast based distributed LinkStore implementation.
+ */
 public class DistributedLinkStoreTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
-//    private static final String MFR = "whitebox";
-//    private static final String HW = "1.1.x";
-//    private static final String SW1 = "3.8.1";
-//    private static final String SW2 = "3.9.5";
-//    private static final String SN = "43311-12345";
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
     private StoreManager storeManager;
+    private KryoSerializationManager serializationMgr;
 
     private DistributedLinkStore linkStore;
 
@@ -69,13 +71,17 @@ public class DistributedLinkStoreTest {
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
 
-        linkStore = new TestDistributedLinkStore(storeManager);
+        serializationMgr = new KryoSerializationManager();
+        serializationMgr.activate();
+
+        linkStore = new TestDistributedLinkStore(storeManager, serializationMgr);
         linkStore.activate();
     }
 
     @After
     public void tearDown() throws Exception {
         linkStore.deactivate();
+        serializationMgr.deactivate();
         storeManager.deactivate();
     }
 
@@ -302,6 +308,7 @@ public class DistributedLinkStoreTest {
         assertLink(linkId2, DIRECT, linkStore.getLink(d2P2, d1P1));
     }
 
+    @Ignore("Ignore until Delegate spec. is clear.")
     @Test
     public final void testEvents() throws InterruptedException {
 
@@ -354,8 +361,10 @@ public class DistributedLinkStoreTest {
 
 
     class TestDistributedLinkStore extends DistributedLinkStore {
-        TestDistributedLinkStore(StoreService storeService) {
+        TestDistributedLinkStore(StoreService storeService,
+                            KryoSerializationService kryoSerializationService) {
             this.storeService = storeService;
+            this.kryoSerializationService = kryoSerializationService;
         }
     }
 }

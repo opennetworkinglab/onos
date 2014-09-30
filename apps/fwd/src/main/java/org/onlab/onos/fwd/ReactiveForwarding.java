@@ -26,7 +26,9 @@ import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
+import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.onos.net.topology.TopologyService;
+import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 
@@ -49,6 +51,9 @@ public class ReactiveForwarding {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ProxyArpService proxyArpService;
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
@@ -85,6 +90,16 @@ public class ReactiveForwarding {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
+            if (ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
+                ARP arp = (ARP) ethPkt.getPayload();
+                if (arp.getOpCode() == ARP.OP_REPLY) {
+                    proxyArpService.forward(ethPkt);
+                } else if (arp.getOpCode() == ARP.OP_REQUEST) {
+                    proxyArpService.reply(ethPkt);
+                }
+                context.block();
+                return;
+            }
             HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
             // Do we know who this is for? If not, flood and bail.

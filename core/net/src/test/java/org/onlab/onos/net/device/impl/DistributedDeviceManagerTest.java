@@ -33,8 +33,11 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.StoreManager;
+import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
+import org.onlab.onos.store.serializers.KryoSerializationManager;
+import org.onlab.onos.store.serializers.KryoSerializationService;
 import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
@@ -92,6 +95,7 @@ public class DistributedDeviceManagerTest {
     private DistributedDeviceStore dstore;
     private TestMastershipManager masterManager;
     private EventDeliveryService eventService;
+    private KryoSerializationManager serializationMgr;
 
     @Before
     public void setUp() {
@@ -107,7 +111,10 @@ public class DistributedDeviceManagerTest {
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
 
-        dstore = new TestDistributedDeviceStore();
+        serializationMgr = new KryoSerializationManager();
+        serializationMgr.activate();
+
+        dstore = new TestDistributedDeviceStore(storeManager, serializationMgr);
         dstore.activate();
 
         mgr.store = dstore;
@@ -133,6 +140,7 @@ public class DistributedDeviceManagerTest {
         mgr.deactivate();
 
         dstore.deactivate();
+        serializationMgr.deactivate();
         storeManager.deactivate();
     }
 
@@ -163,7 +171,7 @@ public class DistributedDeviceManagerTest {
     public void deviceDisconnected() {
         connectDevice(DID1, SW1);
         connectDevice(DID2, SW1);
-        validateEvents(DEVICE_ADDED, DEVICE_ADDED, DEVICE_ADDED, DEVICE_ADDED);
+        validateEvents(DEVICE_ADDED, DEVICE_ADDED);
         assertTrue("device should be available", service.isAvailable(DID1));
 
         // Disconnect
@@ -182,10 +190,10 @@ public class DistributedDeviceManagerTest {
     @Test
     public void deviceUpdated() {
         connectDevice(DID1, SW1);
-        validateEvents(DEVICE_ADDED, DEVICE_ADDED);
+        validateEvents(DEVICE_ADDED);
 
         connectDevice(DID1, SW2);
-        validateEvents(DEVICE_UPDATED, DEVICE_UPDATED);
+        validateEvents(DEVICE_UPDATED);
     }
 
     @Test
@@ -202,7 +210,7 @@ public class DistributedDeviceManagerTest {
         pds.add(new DefaultPortDescription(P2, true));
         pds.add(new DefaultPortDescription(P3, true));
         providerService.updatePorts(DID1, pds);
-        validateEvents(DEVICE_ADDED, DEVICE_ADDED, PORT_ADDED, PORT_ADDED, PORT_ADDED);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED, PORT_ADDED);
         pds.clear();
 
         pds.add(new DefaultPortDescription(P1, false));
@@ -218,7 +226,7 @@ public class DistributedDeviceManagerTest {
         pds.add(new DefaultPortDescription(P1, true));
         pds.add(new DefaultPortDescription(P2, true));
         providerService.updatePorts(DID1, pds);
-        validateEvents(DEVICE_ADDED, DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
 
         providerService.portStatusChanged(DID1, new DefaultPortDescription(P1, false));
         validateEvents(PORT_UPDATED);
@@ -233,7 +241,7 @@ public class DistributedDeviceManagerTest {
         pds.add(new DefaultPortDescription(P1, true));
         pds.add(new DefaultPortDescription(P2, true));
         providerService.updatePorts(DID1, pds);
-        validateEvents(DEVICE_ADDED, DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
         assertEquals("wrong port count", 2, service.getPorts(DID1).size());
 
         Port port = service.getPort(DID1, P1);
@@ -247,7 +255,7 @@ public class DistributedDeviceManagerTest {
         connectDevice(DID2, SW2);
         assertEquals("incorrect device count", 2, service.getDeviceCount());
         admin.removeDevice(DID1);
-        validateEvents(DEVICE_ADDED, DEVICE_ADDED, DEVICE_ADDED, DEVICE_ADDED, DEVICE_REMOVED, DEVICE_REMOVED);
+        validateEvents(DEVICE_ADDED, DEVICE_ADDED, DEVICE_REMOVED);
         assertNull("device should not be found", service.getDevice(DID1));
         assertNotNull("device should be found", service.getDevice(DID2));
         assertEquals("incorrect device count", 1, service.getDeviceCount());
@@ -298,8 +306,10 @@ public class DistributedDeviceManagerTest {
 
     private class TestDistributedDeviceStore extends DistributedDeviceStore {
 
-        public TestDistributedDeviceStore() {
-            this.storeService = storeManager;
+        public TestDistributedDeviceStore(StoreService storeService,
+                                    KryoSerializationService kryoSerializationService) {
+            this.storeService = storeService;
+            this.kryoSerializationService = kryoSerializationService;
         }
     }
 

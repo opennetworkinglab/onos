@@ -46,9 +46,8 @@ public class TestStoreManager extends StoreManager {
         this.instance = instance;
     }
 
-    // Hazelcast setup removed from original code.
     @Override
     public void activate() {
-        setupKryoPool();
+        // Hazelcast setup removed from original code.
     }
 }

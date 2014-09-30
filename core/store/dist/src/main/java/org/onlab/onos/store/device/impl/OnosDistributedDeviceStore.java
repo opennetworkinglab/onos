@@ -86,46 +86,48 @@ public class OnosDistributedDeviceStore
 
     @Override
     public Iterable<Device> getDevices() {
-        // TODO builder v.s. copyOf. Guava semms to be using copyOf?
-        // FIXME: synchronize.
         Builder<Device> builder = ImmutableSet.builder();
-        for (VersionedValue<? extends Device> device : devices.values()) {
-            builder.add(device.entity());
+        synchronized (this) {
+            for (VersionedValue<Device> device : devices.values()) {
+                builder.add(device.entity());
+            }
+            return builder.build();
         }
-        return builder.build();
     }
 
     @Override
     public Device getDevice(DeviceId deviceId) {
-        return devices.get(deviceId).entity();
+        VersionedValue<Device> device = devices.get(deviceId);
+        checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
+        return device.entity();
     }
 
     @Override
     public DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
                                             DeviceDescription deviceDescription) {
-        Timestamp now = clockService.getTimestamp(deviceId);
+        Timestamp newTimestamp = clockService.getTimestamp(deviceId);
         VersionedValue<Device> device = devices.get(deviceId);
 
         if (device == null) {
-            return createDevice(providerId, deviceId, deviceDescription, now);
+            return createDevice(providerId, deviceId, deviceDescription, newTimestamp);
         }
 
-        checkState(now.compareTo(device.timestamp()) > 0,
+        checkState(newTimestamp.compareTo(device.timestamp()) > 0,
                 "Existing device has a timestamp in the future!");
 
-        return updateDevice(providerId, device.entity(), deviceDescription, now);
+        return updateDevice(providerId, device.entity(), deviceDescription, newTimestamp);
     }
 
     // Creates the device and returns the appropriate event if necessary.
     private DeviceEvent createDevice(ProviderId providerId, DeviceId deviceId,
                                      DeviceDescription desc, Timestamp timestamp) {
-        DefaultDevice device = new DefaultDevice(providerId, deviceId, desc.type(),
+        Device device = new DefaultDevice(providerId, deviceId, desc.type(),
                                                  desc.manufacturer(),
                                                  desc.hwVersion(), desc.swVersion(),
                                                  desc.serialNumber());
 
-        devices.put(deviceId, new VersionedValue<Device>(device, true, timestamp));
-        // FIXME: broadcast a message telling peers of a device event.
+        devices.put(deviceId, new VersionedValue<>(device, true, timestamp));
+        // TODO,FIXME: broadcast a message telling peers of a device event.
         return new DeviceEvent(DEVICE_ADDED, device, null);
     }
 
@@ -148,7 +150,7 @@ public class OnosDistributedDeviceStore
         }
 
         // Otherwise merely attempt to change availability
-        DefaultDevice updated = new DefaultDevice(providerId, device.id(),
+        Device updated = new DefaultDevice(providerId, device.id(),
                 desc.type(),
                 desc.manufacturer(),
                 desc.hwVersion(),
@@ -196,18 +198,18 @@ public class OnosDistributedDeviceStore
             VersionedValue<Device> device = devices.get(deviceId);
             checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
             Map<PortNumber, VersionedValue<Port>> ports = getPortMap(deviceId);
-            Timestamp timestamp = clockService.getTimestamp(deviceId);
+            Timestamp newTimestamp = clockService.getTimestamp(deviceId);
 
             // Add new ports
             Set<PortNumber> processed = new HashSet<>();
             for (PortDescription portDescription : portDescriptions) {
                 VersionedValue<Port> port = ports.get(portDescription.portNumber());
                 if (port == null) {
-                    events.add(createPort(device, portDescription, ports, timestamp));
+                    events.add(createPort(device, portDescription, ports, newTimestamp));
                 }
-                checkState(timestamp.compareTo(port.timestamp()) > 0,
+                checkState(newTimestamp.compareTo(port.timestamp()) > 0,
                         "Existing port state has a timestamp in the future!");
-                events.add(updatePort(device, port, portDescription, ports, timestamp));
+                events.add(updatePort(device.entity(), port.entity(), portDescription, ports, newTimestamp));
                 processed.add(portDescription.portNumber());
             }
 
@@ -233,19 +235,19 @@ public class OnosDistributedDeviceStore
     // Checks if the specified port requires update and if so, it replaces the
     // existing entry in the map and returns corresponding event.
     //@GuardedBy("this")
-    private DeviceEvent updatePort(VersionedValue<Device> device, VersionedValue<Port> port,
+    private DeviceEvent updatePort(Device device, Port port,
                                    PortDescription portDescription,
                                    Map<PortNumber, VersionedValue<Port>> ports,
                                    Timestamp timestamp) {
-        if (port.entity().isEnabled() != portDescription.isEnabled()) {
+        if (port.isEnabled() != portDescription.isEnabled()) {
             VersionedValue<Port> updatedPort = new VersionedValue<Port>(
-                    new DefaultPort(device.entity(), portDescription.portNumber(),
+                    new DefaultPort(device, portDescription.portNumber(),
                                     portDescription.isEnabled()),
                     portDescription.isEnabled(),
                     timestamp);
-            ports.put(port.entity().number(), updatedPort);
-            updatePortMap(device.entity().id(), ports);
-            return new DeviceEvent(PORT_UPDATED, device.entity(), updatedPort.entity());
+            ports.put(port.number(), updatedPort);
+            updatePortMap(device.id(), ports);
+            return new DeviceEvent(PORT_UPDATED, device, updatedPort.entity());
         }
         return null;
     }
@@ -300,7 +302,7 @@ public class OnosDistributedDeviceStore
         Map<PortNumber, VersionedValue<Port>> ports = getPortMap(deviceId);
         VersionedValue<Port> port = ports.get(portDescription.portNumber());
         Timestamp timestamp = clockService.getTimestamp(deviceId);
-        return updatePort(device, port, portDescription, ports, timestamp);
+        return updatePort(device.entity(), port.entity(), portDescription, ports, timestamp);
     }
 
     @Override

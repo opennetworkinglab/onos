@@ -54,9 +54,9 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
     }
 
     /**
-     * Returns the number of streams in custody of the IO loop.
+     * Returns the number of message stream in custody of the loop.
      *
-     * @return number of message streams using this loop
+     * @return number of message streams
      */
     public int streamCount() {
         return streams.size();
@@ -93,14 +93,9 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      *
      * @param key selection key holding the pending connect operation.
      */
-    protected void connect(SelectionKey key) {
-        try {
-            SocketChannel ch = (SocketChannel) key.channel();
-            ch.finishConnect();
-        } catch (IOException | IllegalStateException e) {
-            log.warn("Unable to complete connection", e);
-        }
-
+    protected void connect(SelectionKey key) throws IOException {
+        SocketChannel ch = (SocketChannel) key.channel();
+        ch.finishConnect();
         if (key.isValid()) {
             key.interestOps(SelectionKey.OP_READ);
         }
@@ -124,7 +119,11 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
 
             // If there is a pending connect operation, complete it.
             if (key.isConnectable()) {
-                connect(key);
+                try {
+                    connect(key);
+                } catch (IOException | IllegalStateException e) {
+                    log.warn("Unable to complete connection", e);
+                }
             }
 
             // If there is a read operation, slurp as much data as possible.

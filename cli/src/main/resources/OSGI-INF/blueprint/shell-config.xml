@@ -8,6 +8,9 @@
             <action class="org.onlab.onos.cli.NodeAddCommand"/>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.NodeRemoveCommand"/>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.MastersListCommand"/>
             <completers>
                 <ref component-id="clusterIdCompleter"/>

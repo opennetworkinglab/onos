@@ -72,6 +72,10 @@ public class DistributedDeviceStore
     private IMap<byte[], byte[]> rawDevicePorts;
     private LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> devicePorts;
 
+    private String devicesListener;
+
+    private String portsListener;
+
     @Override
     @Activate
     public void activate() {
@@ -83,20 +87,20 @@ public class DistributedDeviceStore
         // TODO decide on Map name scheme to avoid collision
         rawDevices = theInstance.getMap("devices");
         final OptionalCacheLoader<DeviceId, DefaultDevice> deviceLoader
-                = new OptionalCacheLoader<>(storeService, rawDevices);
+                = new OptionalCacheLoader<>(kryoSerializationService, rawDevices);
         devices = new AbsentInvalidatingLoadingCache<>(newBuilder().build(deviceLoader));
         // refresh/populate cache based on notification from other instance
-        rawDevices.addEntryListener(new RemoteDeviceEventHandler(devices), includeValue);
+        devicesListener = rawDevices.addEntryListener(new RemoteDeviceEventHandler(devices), includeValue);
 
         // TODO cache availableDevices
         availableDevices = theInstance.getSet("availableDevices");
 
         rawDevicePorts = theInstance.getMap("devicePorts");
         final OptionalCacheLoader<DeviceId, Map<PortNumber, Port>> devicePortLoader
-                = new OptionalCacheLoader<>(storeService, rawDevicePorts);
+                = new OptionalCacheLoader<>(kryoSerializationService, rawDevicePorts);
         devicePorts = new AbsentInvalidatingLoadingCache<>(newBuilder().build(devicePortLoader));
         // refresh/populate cache based on notification from other instance
-        rawDevicePorts.addEntryListener(new RemotePortEventHandler(devicePorts), includeValue);
+        portsListener = rawDevicePorts.addEntryListener(new RemotePortEventHandler(devicePorts), includeValue);
 
         loadDeviceCache();
         loadDevicePortsCache();
@@ -106,6 +110,8 @@ public class DistributedDeviceStore
 
     @Deactivate
     public void deactivate() {
+        rawDevicePorts.removeEntryListener(portsListener);
+        rawDevices.removeEntryListener(devicesListener);
         log.info("Stopped");
     }
 
@@ -354,7 +360,7 @@ public class DistributedDeviceStore
         }
     }
 
-    private class RemoteDeviceEventHandler extends RemoteEventHandler<DeviceId, DefaultDevice> {
+    private class RemoteDeviceEventHandler extends RemoteCacheEventHandler<DeviceId, DefaultDevice> {
         public RemoteDeviceEventHandler(LoadingCache<DeviceId, Optional<DefaultDevice>> cache) {
             super(cache);
         }
@@ -375,7 +381,7 @@ public class DistributedDeviceStore
         }
     }
 
-    private class RemotePortEventHandler extends RemoteEventHandler<DeviceId, Map<PortNumber, Port>> {
+    private class RemotePortEventHandler extends RemoteCacheEventHandler<DeviceId, Map<PortNumber, Port>> {
         public RemotePortEventHandler(LoadingCache<DeviceId, Optional<Map<PortNumber, Port>>> cache) {
             super(cache);
         }
