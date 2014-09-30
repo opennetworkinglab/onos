@@ -105,11 +105,9 @@ public class SimpleFlowRuleStore
          */
 
         if (flowEntries.containsEntry(did, f)) {
-            //synchronized (flowEntries) {
             flowEntries.remove(did, f);
             flowEntries.put(did, f);
             flowEntriesById.remove(rule.appId(), rule);
-            //}
         }
     }
 
