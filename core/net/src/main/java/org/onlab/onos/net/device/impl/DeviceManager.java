@@ -16,6 +16,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipListener;
 import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
@@ -76,6 +77,8 @@ public class DeviceManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    protected MastershipTermService termService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClockService clockService;
 
@@ -84,6 +87,7 @@ public class DeviceManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
         mastershipService.addListener(mastershipListener);
+        termService = mastershipService.requestTermService();
         log.info("Started");
     }
 
@@ -198,7 +202,7 @@ public class DeviceManager
                 log.info("Device {} connected", deviceId);
                 mastershipService.requestRoleFor(deviceId);
                 provider().roleChanged(event.subject(),
-                        mastershipService.getLocalRole(deviceId));
+                        mastershipService.requestRoleFor(deviceId));
                 post(event);
             }
         }
@@ -208,8 +212,11 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
             DeviceEvent event = store.markOffline(deviceId);
+
+            //we're no longer capable of mastership.
             if (event != null) {
                 log.info("Device {} disconnected", deviceId);
+                mastershipService.relinquishMastership(deviceId);
                 post(event);
             }
         }

@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -48,8 +46,10 @@ public class SimpleMastershipStore
             new DefaultControllerNode(new NodeId("local"), LOCALHOST);
 
     //devices mapped to their masters, to emulate multiple nodes
-    protected final ConcurrentMap<DeviceId, NodeId> masterMap =
-            new ConcurrentHashMap<>();
+    protected final Map<DeviceId, NodeId> masterMap = new HashMap<>();
+    //emulate backups with pile of nodes
+    protected final Set<NodeId> backups = new HashSet<>();
+    //terms
     protected final Map<DeviceId, AtomicInteger> termMap = new HashMap<>();
 
     @Activate
@@ -64,25 +64,29 @@ public class SimpleMastershipStore
 
     @Override
     public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
+        MastershipRole role = getRole(nodeId, deviceId);
 
-        NodeId node = masterMap.get(deviceId);
-        if (node == null) {
-            synchronized (this) {
-                masterMap.put(deviceId, nodeId);
-                termMap.put(deviceId, new AtomicInteger());
+        synchronized (this) {
+            switch (role) {
+                case MASTER:
+                    return null;
+                case STANDBY:
+                    masterMap.put(deviceId, nodeId);
+                    termMap.get(deviceId).incrementAndGet();
+                    backups.add(nodeId);
+                    break;
+                case NONE:
+                    masterMap.put(deviceId, nodeId);
+                    termMap.put(deviceId, new AtomicInteger());
+                    backups.add(nodeId);
+                    break;
+                default:
+                    log.warn("unknown Mastership Role {}", role);
+                    return null;
             }
-            return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
         }
 
-        if (node.equals(nodeId)) {
-            return null;
-        } else {
-            synchronized (this) {
-                masterMap.put(deviceId, nodeId);
-                termMap.get(deviceId).incrementAndGet();
-                return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
-            }
-        }
+        return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
     }
 
     @Override
@@ -103,34 +107,112 @@ public class SimpleMastershipStore
 
     @Override
     public MastershipRole requestRole(DeviceId deviceId) {
-        return getRole(instance.id(), deviceId);
+        //query+possible reelection
+        NodeId node = instance.id();
+        MastershipRole role = getRole(node, deviceId);
+
+        switch (role) {
+            case MASTER:
+                break;
+            case STANDBY:
+                synchronized (this) {
+                    //try to "re-elect", since we're really not distributed
+                    NodeId rel = reelect(node);
+                    if (rel == null) {
+                        masterMap.put(deviceId, node);
+                        termMap.put(deviceId, new AtomicInteger());
+                        role = MastershipRole.MASTER;
+                    }
+                    backups.add(node);
+                }
+                break;
+            case NONE:
+                //first to get to it, say we are master
+                synchronized (this) {
+                    masterMap.put(deviceId, node);
+                    termMap.put(deviceId, new AtomicInteger());
+                    backups.add(node);
+                    role = MastershipRole.MASTER;
+                }
+                break;
+            default:
+                log.warn("unknown Mastership Role {}", role);
+        }
+        return role;
     }
 
     @Override
     public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
-        NodeId node = masterMap.get(deviceId);
+        //just query
+        NodeId current = masterMap.get(deviceId);
         MastershipRole role;
-        if (node != null) {
-            if (node.equals(nodeId)) {
+
+        if (current == null) {
+            //degenerate case - only node is its own backup
+            if (backups.contains(nodeId)) {
+                role = MastershipRole.STANDBY;
+            } else {
+                role = MastershipRole.NONE;
+            }
+        } else {
+            if (current.equals(nodeId)) {
                 role = MastershipRole.MASTER;
             } else {
                 role = MastershipRole.STANDBY;
             }
-        } else {
-            //masterMap doesn't contain it.
-            role = MastershipRole.MASTER;
-            masterMap.put(deviceId, nodeId);
         }
         return role;
     }
 
     @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
-        if (masterMap.get(deviceId) == null) {
+        if ((masterMap.get(deviceId) == null) ||
+                (termMap.get(deviceId) == null)) {
             return null;
         }
         return MastershipTerm.of(
                 masterMap.get(deviceId), termMap.get(deviceId).get());
+    }
+
+    @Override
+    public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
+        MastershipRole role = getRole(nodeId, deviceId);
+        synchronized (this) {
+            switch (role) {
+                case MASTER:
+                    NodeId backup = reelect(nodeId);
+                    if (backup == null) {
+                        masterMap.remove(deviceId);
+                    } else {
+                        masterMap.put(deviceId, backup);
+                        termMap.get(deviceId).incrementAndGet();
+                        return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
+                    }
+                case STANDBY:
+                case NONE:
+                    if (!termMap.containsKey(deviceId)) {
+                        termMap.put(deviceId, new AtomicInteger());
+                    }
+                    backups.add(nodeId);
+                    break;
+                default:
+                    log.warn("unknown Mastership Role {}", role);
+            }
+        }
+        return null;
+    }
+
+    //dumbly selects next-available node that's not the current one
+    //emulate leader election
+    private NodeId reelect(NodeId nodeId) {
+        NodeId backup = null;
+        for (NodeId n : backups) {
+            if (!n.equals(nodeId)) {
+                backup = n;
+                break;
+            }
+        }
+        return backup;
     }
 
 }

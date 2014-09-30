@@ -66,6 +66,7 @@ function cell {
         env | egrep "OCI"
         env | egrep "OC[0-9]+" | sort
         env | egrep "OCN"
+        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL'
     fi
 }
 
