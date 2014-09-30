@@ -72,9 +72,20 @@ public class MastershipManager
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
-        //TODO figure out appropriate action for non-MASTER roles, if we even set those
-        if (role.equals(MastershipRole.MASTER)) {
-            MastershipEvent event = store.setMaster(nodeId, deviceId);
+
+        MastershipRole current = store.getRole(nodeId, deviceId);
+        if (role.equals(current)) {
+            return;
+        } else {
+            MastershipEvent event = null;
+            if (role.equals(MastershipRole.MASTER)) {
+                //current was STANDBY, wanted MASTER
+                event = store.setMaster(nodeId, deviceId);
+            } else {
+                //current was MASTER, wanted STANDBY
+                event = store.unsetMaster(nodeId, deviceId);
+            }
+
             if (event != null) {
                 post(event);
             }
@@ -90,7 +101,18 @@ public class MastershipManager
     @Override
     public void relinquishMastership(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        // FIXME: add method to store to give up mastership and trigger new master selection process
+
+        MastershipRole role = store.getRole(
+                clusterService.getLocalNode().id(), deviceId);
+        if (!role.equals(MastershipRole.MASTER)) {
+            return;
+        }
+
+        MastershipEvent event = store.unsetMaster(
+                clusterService.getLocalNode().id(), deviceId);
+        if (event != null) {
+            post(event);
+        }
     }
 
     @Override
@@ -159,10 +181,6 @@ public class MastershipManager
                      break;
                 case INSTANCE_REMOVED:
                 case INSTANCE_DEACTIVATED:
-                    for (DeviceId d : getDevicesOf(event.subject().id())) {
-                        //this method should be an admin iface?
-                        relinquishMastership(d);
-                    }
                     break;
                 default:
                     log.warn("unknown cluster event {}", event);

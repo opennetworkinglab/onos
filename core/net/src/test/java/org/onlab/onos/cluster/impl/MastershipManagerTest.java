@@ -19,6 +19,7 @@ import org.onlab.onos.net.trivial.impl.SimpleMastershipStore;
 import org.onlab.packet.IpPrefix;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.onlab.onos.net.MastershipRole.*;
 
 /**
@@ -65,7 +66,24 @@ public class MastershipManagerTest {
 
     @Test
     public void relinquishMastership() {
-        //TODO
+        //no backups - should turn to standby and no master for device
+        mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
+        assertEquals("wrong role:", MASTER, mgr.getLocalRole(DEV_MASTER));
+        mgr.relinquishMastership(DEV_MASTER);
+        assertNull("wrong master:", mgr.getMasterFor(DEV_OTHER));
+        assertEquals("wrong role:", STANDBY, mgr.getLocalRole(DEV_MASTER));
+
+        //not master, nothing should happen
+        mgr.setRole(NID_LOCAL, DEV_OTHER, STANDBY);
+        mgr.relinquishMastership(DEV_OTHER);
+        assertNull("wrong role:", mgr.getMasterFor(DEV_OTHER));
+
+        //provide NID_OTHER as backup and relinquish
+        mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
+        assertEquals("wrong master:", NID_LOCAL, mgr.getMasterFor(DEV_MASTER));
+        mgr.setRole(NID_OTHER, DEV_MASTER, STANDBY);
+        mgr.relinquishMastership(DEV_MASTER);
+        assertEquals("wrong master:", NID_OTHER, mgr.getMasterFor(DEV_MASTER));
     }
 
     @Test

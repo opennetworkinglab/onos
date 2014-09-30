@@ -204,8 +204,11 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
             DeviceEvent event = store.markOffline(deviceId);
+
+            //we're no longer capable of mastership.
             if (event != null) {
                 log.info("Device {} disconnected", deviceId);
+                mastershipService.relinquishMastership(deviceId);
                 post(event);
             }
         }

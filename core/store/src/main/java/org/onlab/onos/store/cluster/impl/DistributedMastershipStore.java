@@ -122,4 +122,10 @@ public class DistributedMastershipStore
         return null;
     }
 
+    @Override
+    public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

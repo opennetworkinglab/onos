@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,6 +26,8 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Lists;
 
 import static org.onlab.onos.cluster.MastershipEvent.Type.*;
 
@@ -47,8 +50,10 @@ public class SimpleMastershipStore
 
     //devices mapped to their masters, to emulate multiple nodes
     protected final Map<DeviceId, NodeId> masterMap = new HashMap<>();
+    //emulate backups
+    protected final Map<DeviceId, List<NodeId>> backupMap = new HashMap<>();
+    //terms
     protected final Map<DeviceId, AtomicInteger> termMap = new HashMap<>();
-    protected final Set<NodeId> masters = new HashSet<>();
 
     @Activate
     public void activate() {
@@ -63,24 +68,38 @@ public class SimpleMastershipStore
     @Override
     public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
 
-        NodeId node = masterMap.get(deviceId);
-        if (node == null) {
-            synchronized (this) {
-                masterMap.put(deviceId, nodeId);
-                termMap.put(deviceId, new AtomicInteger());
-            }
-            return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
-        }
+        NodeId current = masterMap.get(deviceId);
+        List<NodeId> backups = backupMap.get(deviceId);
 
-        if (node.equals(nodeId)) {
+        if (current == null) {
+            if (backups == null) {
+                //add new mapping to everything
+                synchronized (this) {
+                    masterMap.put(deviceId, nodeId);
+                    backups = Lists.newLinkedList();
+                    backupMap.put(deviceId, backups);
+                    termMap.put(deviceId, new AtomicInteger());
+                }
+            } else {
+                //set master to new node and remove from backups if there
+                synchronized (this) {
+                    masterMap.put(deviceId, nodeId);
+                    backups.remove(nodeId);
+                    termMap.get(deviceId).incrementAndGet();
+                }
+            }
+        } else if (current.equals(nodeId)) {
             return null;
         } else {
-            synchronized (this) {
-                masterMap.put(deviceId, nodeId);
-                termMap.get(deviceId).incrementAndGet();
-                return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
-            }
+            //add current to backup, set master to new node
+            masterMap.put(deviceId, nodeId);
+            backups.add(current);
+            backups.remove(nodeId);
+            termMap.get(deviceId).incrementAndGet();
         }
+
+        updateStandby(nodeId, deviceId);
+        return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
     }
 
     @Override
@@ -106,29 +125,97 @@ public class SimpleMastershipStore
 
     @Override
     public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
-        NodeId node = masterMap.get(deviceId);
-        MastershipRole role;
-        if (node != null) {
-            if (node.equals(nodeId)) {
-                role = MastershipRole.MASTER;
-            } else {
-                role = MastershipRole.STANDBY;
+        NodeId current = masterMap.get(deviceId);
+        List<NodeId> backups = backupMap.get(deviceId);
+
+        if (current == null) {
+            //masterMap or backup doesn't contain device. Say new node is MASTER
+            if (backups == null) {
+                synchronized (this) {
+                    masterMap.put(deviceId, nodeId);
+                    backups = Lists.newLinkedList();
+                    backupMap.put(deviceId, backups);
+                    termMap.put(deviceId, new AtomicInteger());
+                }
+                updateStandby(nodeId, deviceId);
+                return MastershipRole.MASTER;
             }
+
+            //device once existed, but got removed, and is now getting a backup.
+            if (!backups.contains(nodeId)) {
+                synchronized (this) {
+                    backups.add(nodeId);
+                    termMap.put(deviceId, new AtomicInteger());
+                }
+                updateStandby(nodeId, deviceId);
+            }
+
+        } else if (current.equals(nodeId)) {
+            return  MastershipRole.MASTER;
         } else {
-            //masterMap doesn't contain it.
-            role = MastershipRole.MASTER;
-            masterMap.put(deviceId, nodeId);
+            //once created, a device never has a null backups list.
+            if (!backups.contains(nodeId)) {
+                //we must have requested STANDBY setting
+                synchronized (this) {
+                    backups.add(nodeId);
+                    termMap.put(deviceId, new AtomicInteger());
+                }
+                updateStandby(nodeId, deviceId);
+            }
         }
-        return role;
+
+        return MastershipRole.STANDBY;
     }
 
     @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
-        if (masterMap.get(deviceId) == null) {
+        if ((masterMap.get(deviceId) == null) ||
+                (termMap.get(deviceId) == null)) {
             return null;
         }
         return MastershipTerm.of(
                 masterMap.get(deviceId), termMap.get(deviceId).get());
+    }
+
+    @Override
+    public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
+        NodeId node = masterMap.get(deviceId);
+
+        //TODO case where node is completely removed from the cluster?
+        if (node.equals(nodeId)) {
+            synchronized (this) {
+                //pick new node.
+                List<NodeId> backups = backupMap.get(deviceId);
+
+                //no backups, so device is hosed
+                if (backups.isEmpty()) {
+                    masterMap.remove(deviceId);
+                    backups.add(nodeId);
+                    return null;
+                }
+                NodeId backup = backups.remove(0);
+                masterMap.put(deviceId, backup);
+                backups.add(nodeId);
+                return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
+            }
+        }
+        return null;
+    }
+
+    //add node as STANDBY to maps un-scalably.
+    private void updateStandby(NodeId nodeId, DeviceId deviceId) {
+        for (Map.Entry<DeviceId, List<NodeId>> e : backupMap.entrySet()) {
+            DeviceId dev = e.getKey();
+            if (dev.equals(deviceId)) {
+                continue;
+            }
+            synchronized (this) {
+                List<NodeId> nodes = e.getValue();
+                if (!nodes.contains(nodeId)) {
+                    nodes.add(nodeId);
+                }
+            }
+        }
     }
 
 }
