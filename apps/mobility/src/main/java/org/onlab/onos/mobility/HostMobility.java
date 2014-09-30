@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 
 
 /**
- * Sample reactive forwarding application.
+ * Sample mobility application. Cleans up flowmods when a host moves.
  */
 @Component(immediate = true)
 public class HostMobility {
@@ -82,6 +82,10 @@ public class HostMobility {
 
         }
 
+        /**
+         * For a given host, remove any flow rule which references it's addresses.
+         * @param host the host to clean up for
+         */
         private void cleanup(Host host) {
             Iterable<Device> devices = deviceService.getDevices();
             List<FlowRule> flowRules = Lists.newLinkedList();
@@ -102,7 +106,6 @@ public class HostMobility {
                         EthCriterion eth = (EthCriterion) c;
                         if (eth.mac().equals(mac)) {
                             flowRules.add(rule);
-                            break;
                         }
                     }
                 }
