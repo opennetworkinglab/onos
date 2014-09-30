@@ -21,6 +21,7 @@
         <module>fwd</module>
         <module>foo</module>
         <module>mobility</module>
+	    <module>config</module>
     </modules>
 
     <properties>
