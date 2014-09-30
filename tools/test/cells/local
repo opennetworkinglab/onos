@@ -1,6 +1,8 @@
 # Default virtual box ONOS instances 1,2 & ONOS mininet box
 . $ONOS_ROOT/tools/test/cells/.reset
 
+export ONOS_NIC=192.168.56.*
+
 export OC1="192.168.56.101"
 export OC2="192.168.56.102"
 

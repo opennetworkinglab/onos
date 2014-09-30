@@ -16,10 +16,12 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
+import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -78,6 +80,14 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     public ControllerNode.State getState(NodeId nodeId) {
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getState(nodeId);
+    }
+
+    @Override
+    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+        checkNotNull(nodeId, INSTANCE_ID_NULL);
+        checkNotNull(ip, "IP address cannot be null");
+        checkArgument(tcpPort > 5000, "TCP port must be > 5000");
+        return store.addNode(nodeId, ip, tcpPort);
     }
 
     @Override

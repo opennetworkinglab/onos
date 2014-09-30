@@ -17,7 +17,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class NodesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, ip=%s, state=%s %s";
+            "id=%s, address=%s:%s, state=%s %s";
 
     @Override
     protected void execute() {
@@ -26,7 +26,7 @@ public class NodesListCommand extends AbstractShellCommand {
         Collections.sort(nodes, Comparators.NODE_COMPARATOR);
         ControllerNode self = service.getLocalNode();
         for (ControllerNode node : nodes) {
-            print(FMT, node.id(), node.ip(),
+            print(FMT, node.id(), node.ip(), node.tcpPort(),
                   service.getState(node.id()),
                   node.equals(self) ? "*" : "");
         }

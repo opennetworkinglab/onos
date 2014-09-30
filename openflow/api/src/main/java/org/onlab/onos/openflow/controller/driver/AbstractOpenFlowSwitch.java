@@ -93,12 +93,16 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
     @Override
     public final void sendMsg(OFMessage m) {
-        this.write(m);
+        if (role == RoleState.MASTER) {
+            this.write(m);
+        }
     }
 
     @Override
     public final void sendMsg(List<OFMessage> msgs) {
-        this.write(msgs);
+        if (role == RoleState.MASTER) {
+            this.write(msgs);
+        }
     }
 
     @Override
@@ -164,7 +168,9 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
      */
     @Override
     public final void handleMessage(OFMessage m) {
-        this.agent.processMessage(dpid, m);
+        if (this.role == RoleState.MASTER) {
+            this.agent.processMessage(dpid, m);
+        }
     }
 
     @Override
@@ -226,19 +232,34 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     @Override
     public abstract void processDriverHandshakeMessage(OFMessage m);
 
+
+    // Role Handling
+
     @Override
     public void setRole(RoleState role) {
         try {
-            log.info("Sending role {} to switch {}", role, getStringId());
             if (this.roleMan.sendRoleRequest(role, RoleRecvStatus.MATCHED_SET_ROLE)) {
-                this.role = role;
+                log.info("Sending role {} to switch {}", role, getStringId());
+                if (role == RoleState.SLAVE || role == RoleState.EQUAL) {
+                    this.role = role;
+                }
             }
         } catch (IOException e) {
             log.error("Unable to write to switch {}.", this.dpid);
         }
     }
 
-    // Role Handling
+    @Override
+    public void reassertRole() {
+        if (this.getRole() == RoleState.MASTER) {
+            log.warn("Received permission error from switch {} while " +
+                    "being master. Reasserting master role.",
+                    this.getStringId());
+            this.setRole(RoleState.MASTER);
+        }
+    }
+
+
 
     @Override
     public void handleRole(OFMessage m) throws SwitchStateException {
@@ -246,11 +267,15 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         RoleRecvStatus rrs = roleMan.deliverRoleReply(rri);
         if (rrs == RoleRecvStatus.MATCHED_SET_ROLE) {
             if (rri.getRole() == RoleState.MASTER) {
+                this.role = rri.getRole();
                 this.transitionToMasterSwitch();
             } else if (rri.getRole() == RoleState.EQUAL ||
-                    rri.getRole() == RoleState.MASTER) {
+                    rri.getRole() == RoleState.SLAVE) {
                 this.transitionToEqualSwitch();
             }
+        }  else {
+            return;
+            //TODO: tell people that we failed.
         }
     }
 
@@ -267,11 +292,15 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
                 new RoleReplyInfo(r, null, m.getXid()));
         if (rrs == RoleRecvStatus.MATCHED_SET_ROLE) {
             if (r == RoleState.MASTER) {
+                this.role = r;
                 this.transitionToMasterSwitch();
             } else if (r == RoleState.EQUAL ||
                     r == RoleState.SLAVE) {
                 this.transitionToEqualSwitch();
             }
+        } else {
+            return;
+            //TODO: tell people that we failed.
         }
     }
 
@@ -285,12 +314,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         return true;
     }
 
-    @Override
-    public void reassertRole() {
-        if (this.getRole() == RoleState.MASTER) {
-            this.setRole(RoleState.MASTER);
-        }
-    }
+
 
     @Override
     public final void setAgent(OpenFlowAgent ag) {

@@ -11,13 +11,17 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultControllerNode implements ControllerNode {
 
+    private static final int DEFAULT_PORT = 9876;
+
     private final NodeId id;
     private final IpPrefix ip;
+    private final int tcpPort;
 
     // For serialization
     private DefaultControllerNode() {
         this.id = null;
         this.ip = null;
+        this.tcpPort = 0;
     }
 
     /**
@@ -27,8 +31,19 @@ public class DefaultControllerNode implements ControllerNode {
      * @param ip instance IP address
      */
     public DefaultControllerNode(NodeId id, IpPrefix ip) {
+        this(id, ip, DEFAULT_PORT);
+    }
+
+    /**
+     * Creates a new instance with the specified id and IP address and TCP port.
+     *
+     * @param id instance identifier
+     * @param ip instance IP address
+     */
+    public DefaultControllerNode(NodeId id, IpPrefix ip, int tcpPort) {
         this.id = id;
         this.ip = ip;
+        this.tcpPort = tcpPort;
     }
 
     @Override
@@ -39,6 +54,11 @@ public class DefaultControllerNode implements ControllerNode {
     @Override
     public IpPrefix ip() {
         return ip;
+    }
+
+    @Override
+    public int tcpPort() {
+        return tcpPort;
     }
 
     @Override
@@ -60,7 +80,8 @@ public class DefaultControllerNode implements ControllerNode {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("id", id).add("ip", ip).toString();
+        return toStringHelper(this).add("id", id)
+                .add("ip", ip).add("tcpPort", tcpPort).toString();
     }
 
 }

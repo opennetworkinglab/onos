@@ -1,0 +1,17 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Verifies connectivity to each node in ONOS cell.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+SSHCMD="ssh -o PasswordAuthentication=no"
+SCPCMD="scp -q -o PasswordAuthentication=no"
+
+echo "Copying topology files to mininet vm."
+$SSHCMD -n $ONOS_USER@$OCN mkdir -p topos
+$SCPCMD $ONOS_ROOT/tools/test/topos/* $ONOS_USER@$OCN:topos/
+
+echo "Starting Network."
+$SSHCMD -t $ONOS_USER@$OCN sudo python topos/sol.py $(env | sort | egrep "OC[0-9]+" | cut -d= -f2) 

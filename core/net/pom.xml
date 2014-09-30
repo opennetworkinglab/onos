@@ -40,13 +40,14 @@
               Currently required for DistributedDeviceManagerTest. -->
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-core-store</artifactId>
+            <artifactId>onos-core-hz-net</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-core-store</artifactId>
+            <!-- FIXME: should be somewhere else -->
+            <artifactId>onos-core-hz-common</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>

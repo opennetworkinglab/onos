@@ -20,7 +20,6 @@
         <module>api</module>
         <module>net</module>
         <module>store</module>
-        <module>trivial</module>
     </modules>
 
     <dependencies>

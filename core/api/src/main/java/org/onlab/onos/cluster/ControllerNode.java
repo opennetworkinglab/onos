@@ -35,4 +35,12 @@ public interface ControllerNode {
      */
     IpPrefix ip();
 
+
+    /**
+     * Returns the TCP port on which the node listens for connections.
+     *
+     * @return TCP port
+     */
+    int tcpPort();
+
 }
