@@ -1,10 +1,10 @@
 package org.onlab.onos.net.link;
 
+import java.util.Set;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
-
-import java.util.Set;
 
 /**
  * Service for interacting with the inventory of infrastructure links.

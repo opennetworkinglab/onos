@@ -106,10 +106,10 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
         for (Instruction inst : packet.treatment().instructions()) {
             if (inst.type().equals(Instruction.Type.OUTPUT)) {
                 p = portDesc(((OutputInstruction) inst).port());
-                if (!sw.getPorts().contains(p)) {
-                    log.warn("Tried to write out non-existint port {}", p.getPortNo());
+                /*if (!sw.getPorts().contains(p)) {
+                    log.warn("Tried to write out non-existent port {}", p.getPortNo());
                     continue;
-                }
+                }*/
                 OFPacketOut po = packetOut(sw, eth, p.getPortNo());
                 sw.sendMsg(po);
             }
