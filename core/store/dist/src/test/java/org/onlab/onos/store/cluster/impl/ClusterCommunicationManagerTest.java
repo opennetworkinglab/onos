@@ -5,14 +5,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.cluster.messaging.SerializationService;
 import org.onlab.packet.IpPrefix;
-import sun.jvm.hotspot.TestDebugger;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests of the cluster communication manager.
