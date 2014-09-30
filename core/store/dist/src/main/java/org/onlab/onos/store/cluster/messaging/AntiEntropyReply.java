@@ -11,6 +11,13 @@ import org.onlab.onos.store.device.impl.VersionedValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Anti-Entropy reply message.
+ * <p>
+ * Message to send in reply to advertisement or another reply.
+ * Suggest to the sender about the more up-to-date data this node has,
+ * and request for more recent data that the receiver has.
+ */
 public class AntiEntropyReply<ID, VALUE> extends ClusterMessage {
 
     private final NodeId sender;
