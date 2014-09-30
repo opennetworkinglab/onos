@@ -34,6 +34,8 @@ cp -r $ONOS_ROOT/tools/package/etc/* $KARAF_DIST/etc
 mkdir -p $KARAF_DIST/system/org/onlab 
 cp -r $M2_REPO/org/onlab $KARAF_DIST/system/org/
 
+export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo}"
+
 # Cellar Patching --------------------------------------------------------------
 
 # Patch the Apache Karaf distribution file to add Cellar features repository
@@ -51,7 +53,7 @@ perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-feature
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution file to load ONOS features
-perl -pi.old -e 's|^(featuresBoot=.*)|\1,webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo|' \
+perl -pi.old -e "s|^(featuresBoot=.*)|\1,$ONOS_FEATURES|" \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
