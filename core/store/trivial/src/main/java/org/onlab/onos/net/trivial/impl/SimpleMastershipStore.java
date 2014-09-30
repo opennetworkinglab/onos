@@ -148,7 +148,6 @@ public class SimpleMastershipStore
         MastershipRole role;
 
         if (current == null) {
-            //degenerate case - only node is its own backup
             if (backups.contains(nodeId)) {
                 role = MastershipRole.STANDBY;
             } else {
