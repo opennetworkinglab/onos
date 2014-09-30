@@ -1,0 +1,12 @@
+# Default virtual box ONOS instances 1,2 & ONOS mininet box
+
+export ONOS_NIC=192.168.56.*
+
+export ONOS_FEATURES="webconsole,onos-api,onos-core-trivial,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo"
+
+export OC1="192.168.56.101"
+export OC2="192.168.56.102"
+export OC3="192.168.56.104"
+
+export OCN="192.168.56.103"
+
