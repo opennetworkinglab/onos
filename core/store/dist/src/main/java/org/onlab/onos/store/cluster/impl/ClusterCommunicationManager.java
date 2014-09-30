@@ -13,7 +13,6 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageStream;
 import org.onlab.onos.store.cluster.messaging.HelloMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.cluster.messaging.MessageSubscriber;
@@ -50,8 +49,8 @@ public class ClusterCommunicationManager
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final long CONNECTION_CUSTODIAN_DELAY = 1000L;
-    private static final long CONNECTION_CUSTODIAN_FREQUENCY = 5000;
+    private static final long CONNECTION_CUSTODIAN_DELAY = 100L;
+    private static final long CONNECTION_CUSTODIAN_FREQUENCY = 2000;
 
     private static final long START_TIMEOUT = 1000;
     private static final int WORKERS = 3;
