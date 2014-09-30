@@ -23,12 +23,12 @@ public class ClusterConnectionListener extends AcceptorLoop {
     private static final int SO_SEND_BUFFER_SIZE = COMM_BUFFER_SIZE;
     private static final int SO_RCV_BUFFER_SIZE = COMM_BUFFER_SIZE;
 
-    private final WorkerFinder workerFinder;
+    private final ClusterCommunicationManager manager;
 
-    ClusterConnectionListener(IpPrefix ip, int tcpPort,
-                              WorkerFinder workerFinder) throws IOException {
+    ClusterConnectionListener(ClusterCommunicationManager manager,
+                              IpPrefix ip, int tcpPort) throws IOException {
         super(SELECT_TIMEOUT, new InetSocketAddress(getByAddress(ip.toOctets()), tcpPort));
-        this.workerFinder = workerFinder;
+        this.manager = manager;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ClusterConnectionListener extends AcceptorLoop {
         so.setReceiveBufferSize(SO_RCV_BUFFER_SIZE);
         so.setSendBufferSize(SO_SEND_BUFFER_SIZE);
 
-        workerFinder.findWorker().acceptStream(sc);
+        manager.findWorker().acceptStream(sc);
     }
 
 }

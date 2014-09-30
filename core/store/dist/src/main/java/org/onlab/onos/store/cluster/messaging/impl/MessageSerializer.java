@@ -1,8 +1,15 @@
 package org.onlab.onos.store.cluster.messaging.impl;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.HelloMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.cluster.messaging.SerializationService;
+import org.onlab.packet.IpPrefix;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
@@ -11,7 +18,11 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Factory for parsing messages sent between cluster members.
  */
+@Component(immediate = true)
+@Service
 public class MessageSerializer implements SerializationService {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final int METADATA_LENGTH = 16; // 8 + 4 + 4
     private static final int LENGTH_OFFSET = 12;
@@ -46,11 +57,12 @@ public class MessageSerializer implements SerializationService {
             buffer.get(data);
 
             // TODO: add deserialization hook here; for now this hack
-            return null; // actually deserialize
+            String[] fields = new String(data).split(":");
+            return new HelloMessage(new NodeId(fields[0]), IpPrefix.valueOf(fields[1]), Integer.parseInt(fields[2]));
 
         } catch (Exception e) {
             // TODO: recover from exceptions by forwarding stream to next marker
-            e.printStackTrace();
+            log.warn("Unable to decode message due to: " + e);
         }
         return null;
     }
@@ -58,11 +70,18 @@ public class MessageSerializer implements SerializationService {
     @Override
     public void encode(ClusterMessage message, ByteBuffer buffer) {
         try {
-            int i = 0;
-            // Type based lookup for proper encoder
+            HelloMessage helloMessage = (HelloMessage) message;
+            buffer.putLong(MARKER);
+            buffer.putInt(message.subject().ordinal());
+
+            String str = helloMessage.nodeId() + ":" + helloMessage.ipAddress() + ":" + helloMessage.tcpPort();
+            byte[] data = str.getBytes();
+            buffer.putInt(data.length + METADATA_LENGTH);
+            buffer.put(data);
+
         } catch (Exception e) {
             // TODO: recover from exceptions by forwarding stream to next marker
-            e.printStackTrace();
+            log.warn("Unable to encode message due to: " + e);
         }
     }
 

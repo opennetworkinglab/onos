@@ -29,9 +29,9 @@ public class HelloMessage extends ClusterMessage {
      */
     public HelloMessage(NodeId nodeId, IpPrefix ipAddress, int tcpPort) {
         super(MessageSubject.HELLO);
-        nodeId = nodeId;
-        ipAddress = ipAddress;
-        tcpPort = tcpPort;
+        this.nodeId = nodeId;
+        this.ipAddress = ipAddress;
+        this.tcpPort = tcpPort;
     }
 
     /**
@@ -60,4 +60,5 @@ public class HelloMessage extends ClusterMessage {
     public int tcpPort() {
         return tcpPort;
     }
+
 }
