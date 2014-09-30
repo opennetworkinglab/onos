@@ -14,7 +14,6 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.cluster.messaging.SerializationService;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,20 +42,20 @@ public class DistributedClusterStore
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private CommunicationsDelegate commsDelegate;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private SerializationService serializationService;
+    private ClusterCommunicationAdminService communicationAdminService;
 
     private final ClusterNodesDelegate nodesDelegate = new InnerNodesDelegate();
-    private ConnectionManager connectionManager;
 
     @Activate
     public void activate() {
         loadClusterDefinition();
         establishSelfIdentity();
-        connectionManager = new ConnectionManager(localNode, nodesDelegate,
-                                                  commsDelegate, serializationService);
+
+        // Start-up the comm service and prime it with the loaded nodes.
+        communicationAdminService.startUp(localNode, nodesDelegate);
+        for (DefaultControllerNode node : nodes.values()) {
+            communicationAdminService.addNode(node);
+        }
         log.info("Started");
     }
 
@@ -92,8 +91,8 @@ public class DistributedClusterStore
         if (localNode == null) {
             localNode = new DefaultControllerNode(new NodeId(ip.toString()), ip);
             nodes.put(localNode.id(), localNode);
-            states.put(localNode.id(), State.ACTIVE);
         }
+        states.put(localNode.id(), State.ACTIVE);
     }
 
     @Override
@@ -122,29 +121,46 @@ public class DistributedClusterStore
     public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
         DefaultControllerNode node = new DefaultControllerNode(nodeId, ip, tcpPort);
         nodes.put(nodeId, node);
-        connectionManager.addNode(node);
+        communicationAdminService.addNode(node);
         return node;
     }
 
     @Override
     public void removeNode(NodeId nodeId) {
-        DefaultControllerNode node = nodes.remove(nodeId);
-        if (node != null) {
-            connectionManager.removeNode(node);
+        if (nodeId.equals(localNode.id())) {
+            // FIXME: this is still broken
+            // We are being ejected from the cluster, so remove all other nodes.
+            communicationAdminService.clearAllNodesAndStreams();
+            nodes.clear();
+        } else {
+            // Remove the other node.
+            DefaultControllerNode node = nodes.remove(nodeId);
+            if (node != null) {
+                communicationAdminService.removeNode(node);
+            }
         }
     }
 
     // Entity to handle back calls from the connection manager.
     private class InnerNodesDelegate implements ClusterNodesDelegate {
         @Override
-        public void nodeDetected(DefaultControllerNode node) {
-            nodes.put(node.id(), node);
-            states.put(node.id(), State.ACTIVE);
+        public DefaultControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort) {
+            DefaultControllerNode node = nodes.get(nodeId);
+            if (node == null) {
+                node = (DefaultControllerNode) addNode(nodeId, ip, tcpPort);
+            }
+            states.put(nodeId, State.ACTIVE);
+            return node;
+        }
+        @Override
+        public void nodeVanished(NodeId nodeId) {
+            states.put(nodeId, State.INACTIVE);
         }
 
         @Override
-        public void nodeVanished(DefaultControllerNode node) {
-            states.put(node.id(), State.INACTIVE);
+        public void nodeRemoved(NodeId nodeId) {
+            removeNode(nodeId);
         }
     }
+
 }

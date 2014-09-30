@@ -1,6 +1,8 @@
 package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.NodeId;
+import org.onlab.packet.IpPrefix;
 
 /**
  * Simple back interface through which connection manager can interact with
@@ -9,17 +11,27 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 public interface ClusterNodesDelegate {
 
     /**
-     * Notifies about a new cluster node being detected.
+     * Notifies about cluster node coming online.
      *
-     * @param node newly detected cluster node
+     * @param nodeId  newly detected cluster node id
+     * @param ip      node IP listen address
+     * @param tcpPort node TCP listen port
+     * @return the controller node
      */
-    void nodeDetected(DefaultControllerNode node);
+    DefaultControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort);
 
     /**
      * Notifies about cluster node going offline.
      *
-     * @param node cluster node that vanished
+     * @param nodeId identifier of the cluster node that vanished
      */
-    void nodeVanished(DefaultControllerNode node);
+    void nodeVanished(NodeId nodeId);
+
+    /**
+     * Notifies about remote request to remove node from cluster.
+     *
+     * @param nodeId identifier of the cluster node that was removed
+     */
+    void nodeRemoved(NodeId nodeId);
 
 }

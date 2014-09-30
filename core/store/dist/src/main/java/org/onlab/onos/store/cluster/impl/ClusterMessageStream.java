@@ -1,8 +1,10 @@
-package org.onlab.onos.store.cluster.messaging;
+package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.nio.IOLoop;
 import org.onlab.nio.MessageStream;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.SerializationService;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;

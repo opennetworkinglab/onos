@@ -3,5 +3,7 @@
 # ONOS remote command-line client.
 #-------------------------------------------------------------------------------
 
+[ "$1" = "-w" ] && shift && onos-wait-for-start $1
+
 [ -n "$1" ] && OCI=$1 && shift
-client -h $OCI "$@"
+client -h $OCI "$@" 2>/dev/null
