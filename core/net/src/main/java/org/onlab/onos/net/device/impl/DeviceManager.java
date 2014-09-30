@@ -202,7 +202,7 @@ public class DeviceManager
                 log.info("Device {} connected", deviceId);
                 mastershipService.requestRoleFor(deviceId);
                 provider().roleChanged(event.subject(),
-                        mastershipService.getLocalRole(deviceId));
+                        mastershipService.requestRoleFor(deviceId));
                 post(event);
             }
         }

@@ -113,7 +113,6 @@ public class MastershipManagerTest {
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
         mgr.setRole(NID_LOCAL, DEV_OTHER, STANDBY);
         assertEquals("should be one device:", 1, mgr.getDevicesOf(NID_LOCAL).size());
-
         //hand both devices to NID_LOCAL
         mgr.setRole(NID_LOCAL, DEV_OTHER, MASTER);
         assertEquals("should be two devices:", 2, mgr.getDevicesOf(NID_LOCAL).size());

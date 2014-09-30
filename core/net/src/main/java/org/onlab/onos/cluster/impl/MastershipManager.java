@@ -78,22 +78,15 @@ implements MastershipService, MastershipAdminService {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
 
-        MastershipRole current = store.getRole(nodeId, deviceId);
-        if (role.equals(current)) {
-            return;
+        MastershipEvent event = null;
+        if (role.equals(MastershipRole.MASTER)) {
+            event = store.setMaster(nodeId, deviceId);
         } else {
-            MastershipEvent event = null;
-            if (role.equals(MastershipRole.MASTER)) {
-                //current was STANDBY, wanted MASTER
-                event = store.setMaster(nodeId, deviceId);
-            } else {
-                //current was MASTER, wanted STANDBY
-                event = store.unsetMaster(nodeId, deviceId);
-            }
+            event = store.unsetMaster(nodeId, deviceId);
+        }
 
-            if (event != null) {
-                post(event);
-            }
+        if (event != null) {
+            post(event);
         }
     }
 
@@ -105,10 +98,7 @@ implements MastershipService, MastershipAdminService {
 
     @Override
     public void relinquishMastership(DeviceId deviceId) {
-        checkNotNull(deviceId, DEVICE_ID_NULL);
-
-        MastershipRole role = store.getRole(
-                clusterService.getLocalNode().id(), deviceId);
+        MastershipRole role = getLocalRole(deviceId);
         if (!role.equals(MastershipRole.MASTER)) {
             return;
         }
