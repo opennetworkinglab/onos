@@ -239,12 +239,41 @@ public final class KryoPool {
         Kryo kryo = new Kryo();
         kryo.setRegistrationRequired(registrationRequired);
         for (Pair<Class<?>, Serializer<?>> registry : registeredTypes) {
-            if (registry.getRight() == null) {
+            final Serializer<?> serializer = registry.getRight();
+            if (serializer == null) {
                 kryo.register(registry.getLeft());
             } else {
-                kryo.register(registry.getLeft(), registry.getRight());
+                kryo.register(registry.getLeft(), serializer);
+                if (serializer instanceof FamilySerializer) {
+                    FamilySerializer<?> fser = (FamilySerializer<?>) serializer;
+                    fser.registerFamilies(kryo);
+                }
             }
         }
         return kryo;
+    }
+
+    /**
+     * Serializer implementation, which required registration of family of Classes.
+     * @param <T> base type of this serializer.
+     */
+    public abstract static class FamilySerializer<T> extends Serializer<T> {
+
+
+        public FamilySerializer(boolean acceptsNull) {
+            super(acceptsNull);
+        }
+
+        public FamilySerializer(boolean acceptsNull, boolean immutable) {
+            super(acceptsNull, immutable);
+        }
+
+        /**
+         * Registers other classes this Serializer supports.
+         *
+         * @param kryo instance to register classes to
+         */
+        public void registerFamilies(Kryo kryo) {
+        }
     }
 }
