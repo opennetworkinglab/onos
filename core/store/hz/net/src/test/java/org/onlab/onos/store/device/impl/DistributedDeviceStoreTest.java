@@ -36,6 +36,8 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
+import org.onlab.onos.store.serializers.KryoSerializationManager;
+import org.onlab.onos.store.serializers.KryoSerializationService;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -61,6 +63,7 @@ public class DistributedDeviceStoreTest {
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
     private DistributedDeviceStore deviceStore;
+    private KryoSerializationManager serializationMgr;
 
     private StoreManager storeManager;
 
@@ -82,13 +85,18 @@ public class DistributedDeviceStoreTest {
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
 
-        deviceStore = new TestDistributedDeviceStore(storeManager);
+        serializationMgr = new KryoSerializationManager();
+        serializationMgr.activate();
+
+        deviceStore = new TestDistributedDeviceStore(storeManager, serializationMgr);
         deviceStore.activate();
     }
 
     @After
     public void tearDown() throws Exception {
         deviceStore.deactivate();
+
+        serializationMgr.deactivate();
 
         storeManager.deactivate();
     }
@@ -384,8 +392,10 @@ public class DistributedDeviceStoreTest {
     }
 
     private class TestDistributedDeviceStore extends DistributedDeviceStore {
-        public TestDistributedDeviceStore(StoreService storeService) {
+        public TestDistributedDeviceStore(StoreService storeService,
+                                KryoSerializationService kryoSerializationService) {
             this.storeService = storeService;
+            this.kryoSerializationService = kryoSerializationService;
         }
     }
 }

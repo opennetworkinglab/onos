@@ -9,6 +9,8 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Represents address information bound to a port.
  */
@@ -82,5 +84,14 @@ public class PortAddresses {
     @Override
     public int hashCode() {
         return Objects.hash(connectPoint, ipAddresses, macAddress);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+            .add("connect-point", connectPoint)
+            .add("ip-addresses", ipAddresses)
+            .add("mac-address", macAddress)
+            .toString();
     }
 }

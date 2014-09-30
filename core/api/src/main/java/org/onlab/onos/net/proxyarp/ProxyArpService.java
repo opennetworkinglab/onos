@@ -21,9 +21,16 @@ public interface ProxyArpService {
      * Sends a reply for a given request. If the host is not known then the arp
      * will be flooded at all edge ports.
      *
-     * @param request
+     * @param eth
      *            an arp request
      */
-    void reply(Ethernet request);
+    void reply(Ethernet eth);
+
+    /**
+     * Forwards an ARP request to its destination. Floods at the edge the ARP request if the
+     * destination is not known.
+     * @param eth an ethernet frame containing an ARP request.
+     */
+    void forward(Ethernet eth);
 
 }

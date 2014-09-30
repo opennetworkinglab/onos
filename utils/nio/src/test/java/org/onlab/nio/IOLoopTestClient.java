@@ -230,7 +230,7 @@ public class IOLoopTestClient {
         }
 
         @Override
-        protected void connect(SelectionKey key) {
+        protected void connect(SelectionKey key) throws IOException {
             super.connect(key);
             TestMessageStream b = (TestMessageStream) key.attachment();
             Worker w = ((CustomIOLoop) b.loop()).worker;
