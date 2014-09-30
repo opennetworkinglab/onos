@@ -23,9 +23,10 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.EchoMessage;
-import org.onlab.onos.store.cluster.messaging.GoodbyeMessage;
+import org.onlab.onos.store.cluster.messaging.LeavingMemberMessage;
 import org.onlab.onos.store.cluster.messaging.HelloMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onlab.onos.store.cluster.messaging.NewMemberMessage;
 import org.onlab.onos.store.cluster.messaging.SerializationService;
 import org.onlab.onos.store.serializers.ConnectPointSerializer;
 import org.onlab.onos.store.serializers.DefaultLinkSerializer;
@@ -97,7 +98,8 @@ public class MessageSerializer implements SerializationService {
 
                           MessageSubject.class,
                           HelloMessage.class,
-                          GoodbyeMessage.class,
+                          NewMemberMessage.class,
+                          LeavingMemberMessage.class,
                           EchoMessage.class
                 )
                 .register(IpPrefix.class, new IpPrefixSerializer())

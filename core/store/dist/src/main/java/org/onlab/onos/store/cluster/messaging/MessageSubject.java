@@ -8,8 +8,11 @@ public enum MessageSubject {
     /** Represents a first greeting message. */
     HELLO,
 
-    /** Signifies node's intent to leave the cluster. */
-    GOODBYE,
+    /** Signifies announcement about new member. */
+    NEW_MEMBER,
+
+    /** Signifies announcement about leaving member. */
+    LEAVING_MEMBER,
 
     /** Signifies a heart-beat message. */
     ECHO
