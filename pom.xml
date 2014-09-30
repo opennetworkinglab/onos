@@ -92,6 +92,17 @@
                 <version>3.3.2</version>
             </dependency>
 
+	    <dependency>
+	      <groupId>org.codehaus.jackson</groupId>
+	      <artifactId>jackson-core-asl</artifactId>
+	      <version>1.9.13</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.codehaus.jackson</groupId>
+	      <artifactId>jackson-mapper-asl</artifactId>
+	      <version>1.9.13</version>
+	    </dependency>
+
 
             <!-- Web related -->
             <dependency>
