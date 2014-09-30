@@ -15,6 +15,12 @@ public enum MessageSubject {
     LEAVING_MEMBER,
 
     /** Signifies a heart-beat message. */
-    ECHO
+    ECHO,
+
+    /** Anti-Entropy advertisement message. */
+    AE_ADVERTISEMENT,
+
+    /** Anti-Entropy reply message. */
+    AE_REPLY,
 
 }

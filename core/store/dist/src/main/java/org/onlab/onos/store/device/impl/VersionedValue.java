@@ -42,4 +42,12 @@ public class VersionedValue<T> {
     public Timestamp timestamp() {
         return timestamp;
     }
+
+
+    // Default constructor for serializer
+    protected VersionedValue() {
+        this.entity = null;
+        this.isUp = false;
+        this.timestamp = null;
+    }
 }
