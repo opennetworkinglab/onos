@@ -51,8 +51,6 @@ public class SimpleLinkStore
     private final Multimap<DeviceId, Link> srcLinks = HashMultimap.create();
     private final Multimap<DeviceId, Link> dstLinks = HashMultimap.create();
 
-    private static final Set<Link> EMPTY = ImmutableSet.of();
-
     @Activate
     public void activate() {
         log.info("Started");

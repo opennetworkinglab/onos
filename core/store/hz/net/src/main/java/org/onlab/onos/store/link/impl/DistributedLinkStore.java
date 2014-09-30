@@ -58,6 +58,8 @@ public class DistributedLinkStore
     private final Multimap<DeviceId, Link> srcLinks = HashMultimap.create();
     private final Multimap<DeviceId, Link> dstLinks = HashMultimap.create();
 
+    private String linksListener;
+
     @Override
     @Activate
     public void activate() {
@@ -68,10 +70,10 @@ public class DistributedLinkStore
         // TODO decide on Map name scheme to avoid collision
         rawLinks = theInstance.getMap("links");
         final OptionalCacheLoader<LinkKey, DefaultLink> linkLoader
-                = new OptionalCacheLoader<>(storeService, rawLinks);
+                = new OptionalCacheLoader<>(kryoSerializationService, rawLinks);
         links = new AbsentInvalidatingLoadingCache<>(newBuilder().build(linkLoader));
         // refresh/populate cache based on notification from other instance
-        rawLinks.addEntryListener(new RemoteLinkEventHandler(links), includeValue);
+        linksListener = rawLinks.addEntryListener(new RemoteLinkEventHandler(links), includeValue);
 
         loadLinkCache();
 
@@ -80,7 +82,7 @@ public class DistributedLinkStore
 
     @Deactivate
     public void deactivate() {
-        super.activate();
+        rawLinks.removeEntryListener(linksListener);
         log.info("Stopped");
     }
 
@@ -233,7 +235,7 @@ public class DistributedLinkStore
         }
     }
 
-    private class RemoteLinkEventHandler extends RemoteEventHandler<LinkKey, DefaultLink> {
+    private class RemoteLinkEventHandler extends RemoteCacheEventHandler<LinkKey, DefaultLink> {
         public RemoteLinkEventHandler(LoadingCache<LinkKey, Optional<DefaultLink>> cache) {
             super(cache);
         }

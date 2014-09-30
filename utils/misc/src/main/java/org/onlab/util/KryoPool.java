@@ -1,5 +1,6 @@
 package org.onlab.util;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -8,6 +9,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.ByteBufferInput;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableList;
@@ -174,6 +177,22 @@ public final class KryoPool {
     }
 
     /**
+     * Serializes given object to byte buffer using Kryo instance in pool.
+     *
+     * @param obj Object to serialize
+     * @param buffer to write to
+     */
+    public void serialize(final Object obj, final ByteBuffer buffer) {
+        ByteBufferOutput out = new ByteBufferOutput(buffer);
+        Kryo kryo = getKryo();
+        try {
+            kryo.writeClassAndObject(out, obj);
+        } finally {
+            putKryo(kryo);
+        }
+    }
+
+    /**
      * Deserializes given byte array to Object using Kryo instance in pool.
      *
      * @param bytes serialized bytes
@@ -192,6 +211,24 @@ public final class KryoPool {
         }
     }
 
+    /**
+     * Deserializes given byte buffer to Object using Kryo instance in pool.
+     *
+     * @param buffer input with serialized bytes
+     * @param <T> deserialized Object type
+     * @return deserialized Object
+     */
+    public <T> T deserialize(final ByteBuffer buffer) {
+        ByteBufferInput in = new ByteBufferInput(buffer);
+        Kryo kryo = getKryo();
+        try {
+            @SuppressWarnings("unchecked")
+            T obj = (T) kryo.readClassAndObject(in);
+            return obj;
+        } finally {
+            putKryo(kryo);
+        }
+    }
 
     /**
      * Creates a Kryo instance with {@link #registeredTypes} pre-registered.

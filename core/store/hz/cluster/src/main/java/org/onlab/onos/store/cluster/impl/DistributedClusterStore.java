@@ -49,6 +49,7 @@ public class DistributedClusterStore
     private final MembershipListener listener = new InternalMembershipListener();
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
 
+    @Override
     @Activate
     public void activate() {
         super.activate();
@@ -56,9 +57,9 @@ public class DistributedClusterStore
 
         rawNodes = theInstance.getMap("nodes");
         OptionalCacheLoader<NodeId, DefaultControllerNode> nodeLoader
-                = new OptionalCacheLoader<>(storeService, rawNodes);
+                = new OptionalCacheLoader<>(kryoSerializationService, rawNodes);
         nodes = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
-        rawNodes.addEntryListener(new RemoteEventHandler<>(nodes), true);
+        rawNodes.addEntryListener(new RemoteCacheEventHandler<>(nodes), true);
 
         loadClusterNodes();
 
@@ -68,7 +69,7 @@ public class DistributedClusterStore
     // Loads the initial set of cluster nodes
     private void loadClusterNodes() {
         for (Member member : theInstance.getCluster().getMembers()) {
-            addMember(member);
+            addNode(node(member));
         }
     }
 
@@ -104,6 +105,11 @@ public class DistributedClusterStore
     }
 
     @Override
+    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+        return addNode(new DefaultControllerNode(nodeId, ip, tcpPort));
+    }
+
+    @Override
     public void removeNode(NodeId nodeId) {
         synchronized (this) {
             rawNodes.remove(serialize(nodeId));
@@ -112,8 +118,7 @@ public class DistributedClusterStore
     }
 
     // Adds a new node based on the specified member
-    private synchronized ControllerNode addMember(Member member) {
-        DefaultControllerNode node = node(member);
+    private synchronized ControllerNode addNode(DefaultControllerNode node) {
         rawNodes.put(serialize(node.id()), serialize(node));
         nodes.put(node.id(), Optional.of(node));
         states.put(node.id(), State.ACTIVE);
@@ -136,7 +141,7 @@ public class DistributedClusterStore
         @Override
         public void memberAdded(MembershipEvent membershipEvent) {
             log.info("Member {} added", membershipEvent.getMember());
-            ControllerNode node = addMember(membershipEvent.getMember());
+            ControllerNode node = addNode(node(membershipEvent.getMember()));
             notifyDelegate(new ClusterEvent(INSTANCE_ACTIVATED, node));
         }
 

@@ -52,7 +52,7 @@ implements MastershipStore {
 
         rawMasters = theInstance.getMap("masters");
         OptionalCacheLoader<DeviceId, NodeId> nodeLoader
-        = new OptionalCacheLoader<>(storeService, rawMasters);
+        = new OptionalCacheLoader<>(kryoSerializationService, rawMasters);
         masters = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
         rawMasters.addEntryListener(new RemoteMasterShipEventHandler(masters), true);
 
@@ -123,7 +123,7 @@ implements MastershipStore {
         return null;
     }
 
-    private class RemoteMasterShipEventHandler extends RemoteEventHandler<DeviceId, NodeId> {
+    private class RemoteMasterShipEventHandler extends RemoteCacheEventHandler<DeviceId, NodeId> {
         public RemoteMasterShipEventHandler(LoadingCache<DeviceId, Optional<NodeId>> cache) {
             super(cache);
         }

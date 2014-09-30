@@ -54,6 +54,15 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
     }
 
     /**
+     * Returns the number of message stream in custody of the loop.
+     *
+     * @return number of message streams
+     */
+    public int streamCount() {
+        return streams.size();
+    }
+
+    /**
      * Creates a new message stream backed by the specified socket channel.
      *
      * @param byteChannel backing byte channel
@@ -84,14 +93,9 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      *
      * @param key selection key holding the pending connect operation.
      */
-    protected void connect(SelectionKey key) {
-        try {
-            SocketChannel ch = (SocketChannel) key.channel();
-            ch.finishConnect();
-        } catch (IOException | IllegalStateException e) {
-            log.warn("Unable to complete connection", e);
-        }
-
+    protected void connect(SelectionKey key) throws IOException {
+        SocketChannel ch = (SocketChannel) key.channel();
+        ch.finishConnect();
         if (key.isValid()) {
             key.interestOps(SelectionKey.OP_READ);
         }
@@ -115,7 +119,11 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
 
             // If there is a pending connect operation, complete it.
             if (key.isConnectable()) {
-                connect(key);
+                try {
+                    connect(key);
+                } catch (IOException | IllegalStateException e) {
+                    log.warn("Unable to complete connection", e);
+                }
             }
 
             // If there is a read operation, slurp as much data as possible.
@@ -182,9 +190,10 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      * with a pending accept operation.
      *
      * @param channel backing socket channel
+     * @return newly accepted message stream
      */
-    public void acceptStream(SocketChannel channel) {
-        createAndAdmit(channel, SelectionKey.OP_READ);
+    public S acceptStream(SocketChannel channel) {
+        return createAndAdmit(channel, SelectionKey.OP_READ);
     }
 
 
@@ -193,9 +202,10 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      * with a pending connect operation.
      *
      * @param channel backing socket channel
+     * @return newly connected message stream
      */
-    public void connectStream(SocketChannel channel) {
-        createAndAdmit(channel, SelectionKey.OP_CONNECT);
+    public S connectStream(SocketChannel channel) {
+        return createAndAdmit(channel, SelectionKey.OP_CONNECT);
     }
 
     /**
@@ -205,12 +215,14 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      * @param channel socket channel
      * @param op      pending operations mask to be applied to the selection
      *                key as a set of initial interestedOps
+     * @return newly created message stream
      */
-    private synchronized void createAndAdmit(SocketChannel channel, int op) {
+    private synchronized S createAndAdmit(SocketChannel channel, int op) {
         S stream = createStream(channel);
         streams.add(stream);
         newStreamRequests.add(new NewStreamRequest(stream, channel, op));
         selector.wakeup();
+        return stream;
     }
 
     /**
