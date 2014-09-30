@@ -93,7 +93,7 @@ public class FlowModBuilder {
         OFFlowMod fm = factory.buildFlowDelete()
                 .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
+                //.setActions(actions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(priority)
@@ -104,6 +104,9 @@ public class FlowModBuilder {
 
     private List<OFAction> buildActions() {
         List<OFAction> acts = new LinkedList<>();
+        if (treatment == null) {
+            return acts;
+        }
         for (Instruction i : treatment.instructions()) {
             switch (i.type()) {
             case DROP:
