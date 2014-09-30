@@ -651,7 +651,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * @param error The error message
          */
         protected void logError(OFChannelHandler h, OFErrorMsg error) {
-            log.error("{} from switch {} in state {}",
+            log.debug("{} from switch {} in state {}",
                     new Object[] {
                     error,
                     h.getSwitchInfoString(),
