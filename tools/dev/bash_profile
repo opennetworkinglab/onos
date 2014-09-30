@@ -6,7 +6,7 @@
 export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
 
 # Setup some environmental context for developers
-export JAVA_HOME=$(/usr/libexec/java_home)
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.2.2}
 export KARAF=${KARAF:-~/Applications/apache-karaf-3.0.1}
 export KARAF_LOG=$KARAF/data/log/karaf.log
@@ -21,7 +21,7 @@ export PATH="$PATH:."
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {
-    cd $(find $ONOS_ROOT/ -type d | egrep -v '\.git|target|src' | \
+    cd $(find $ONOS_ROOT/ -type d | egrep -v '\.git|target' | \
         egrep "${1:-$ONOS_ROOT}" | head -n 1)
 }
 
