@@ -5,6 +5,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -17,9 +19,9 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.host.HostAdminService;
 import org.onlab.onos.net.host.PortAddresses;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
-
-import com.google.common.collect.Sets;
 
 /**
  * Simple configuration module to read in supplementary network configuration
@@ -51,9 +53,29 @@ public class NetworkConfigReader {
                         DeviceId.deviceId(dpidToUri(entry.getDpid())),
                         PortNumber.portNumber(entry.getPortNumber()));
 
+                Set<IpPrefix> ipAddresses = new HashSet<IpPrefix>();
+
+                for (String strIp : entry.getIpAddresses()) {
+                    try {
+                        IpPrefix address = IpPrefix.valueOf(strIp);
+                        ipAddresses.add(address);
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Bad format for IP address in config: {}", strIp);
+                    }
+                }
+
+                MacAddress macAddress = null;
+                if (entry.getMacAddress() != null) {
+                    try {
+                        macAddress = MacAddress.valueOf(entry.getMacAddress());
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Bad format for MAC address in config: {}",
+                                entry.getMacAddress());
+                    }
+                }
+
                 PortAddresses addresses = new PortAddresses(cp,
-                        Sets.newHashSet(entry.getIpAddresses()),
-                        entry.getMacAddress());
+                        ipAddresses, macAddress);
 
                 hostAdminService.bindAddressesToPort(addresses);
             }
