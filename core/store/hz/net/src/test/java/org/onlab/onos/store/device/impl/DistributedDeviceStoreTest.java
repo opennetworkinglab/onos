@@ -201,7 +201,7 @@ public class DistributedDeviceStoreTest {
                 new DefaultPortDescription(P2, true)
                 );
 
-        List<DeviceEvent> events = deviceStore.updatePorts(DID1, pds);
+        List<DeviceEvent> events = deviceStore.updatePorts(PID, DID1, pds);
 
         Set<PortNumber> expectedPorts = Sets.newHashSet(P1, P2);
         for (DeviceEvent event : events) {
@@ -220,7 +220,7 @@ public class DistributedDeviceStoreTest {
                 new DefaultPortDescription(P3, true)
                 );
 
-        events = deviceStore.updatePorts(DID1, pds2);
+        events = deviceStore.updatePorts(PID, DID1, pds2);
         assertFalse("event should be triggered", events.isEmpty());
         for (DeviceEvent event : events) {
             PortNumber num = event.port().number();
@@ -243,7 +243,7 @@ public class DistributedDeviceStoreTest {
                 new DefaultPortDescription(P1, false),
                 new DefaultPortDescription(P2, true)
                 );
-        events = deviceStore.updatePorts(DID1, pds3);
+        events = deviceStore.updatePorts(PID, DID1, pds3);
         assertFalse("event should be triggered", events.isEmpty());
         for (DeviceEvent event : events) {
             PortNumber num = event.port().number();
@@ -268,9 +268,9 @@ public class DistributedDeviceStoreTest {
         List<PortDescription> pds = Arrays.<PortDescription>asList(
                 new DefaultPortDescription(P1, true)
                 );
-        deviceStore.updatePorts(DID1, pds);
+        deviceStore.updatePorts(PID, DID1, pds);
 
-        DeviceEvent event = deviceStore.updatePortStatus(DID1,
+        DeviceEvent event = deviceStore.updatePortStatus(PID, DID1,
                 new DefaultPortDescription(P1, false));
         assertEquals(PORT_UPDATED, event.type());
         assertDevice(DID1, SW1, event.subject());
@@ -286,7 +286,7 @@ public class DistributedDeviceStoreTest {
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, true)
                 );
-        deviceStore.updatePorts(DID1, pds);
+        deviceStore.updatePorts(PID, DID1, pds);
 
         Set<PortNumber> expectedPorts = Sets.newHashSet(P1, P2);
         List<Port> ports = deviceStore.getPorts(DID1);
@@ -309,7 +309,7 @@ public class DistributedDeviceStoreTest {
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, false)
                 );
-        deviceStore.updatePorts(DID1, pds);
+        deviceStore.updatePorts(PID, DID1, pds);
 
         Port port1 = deviceStore.getPort(DID1, P1);
         assertEquals(P1, port1.number());

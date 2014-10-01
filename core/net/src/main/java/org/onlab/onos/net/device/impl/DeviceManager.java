@@ -228,8 +228,9 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                     "Port descriptions list cannot be null");
             checkValidity();
-            List<DeviceEvent> events = store.updatePorts(deviceId,
-                    portDescriptions);
+            this.provider().id();
+            List<DeviceEvent> events = store.updatePorts(this.provider().id(),
+                    deviceId, portDescriptions);
             for (DeviceEvent event : events) {
                 post(event);
             }
@@ -241,8 +242,8 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
-            DeviceEvent event = store.updatePortStatus(deviceId,
-                    portDescription);
+            DeviceEvent event = store.updatePortStatus(this.provider().id(),
+                    deviceId, portDescription);
             if (event != null) {
                 log.info("Device {} port {} status changed", deviceId, event
                         .port().number());

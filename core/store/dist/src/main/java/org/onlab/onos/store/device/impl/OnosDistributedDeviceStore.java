@@ -192,7 +192,7 @@ public class OnosDistributedDeviceStore
     }
 
     @Override
-    public List<DeviceEvent> updatePorts(DeviceId deviceId,
+    public List<DeviceEvent> updatePorts(ProviderId providerId, DeviceId deviceId,
                                          List<PortDescription> portDescriptions) {
         List<DeviceEvent> events = new ArrayList<>();
         synchronized (this) {
@@ -296,7 +296,7 @@ public class OnosDistributedDeviceStore
     }
 
     @Override
-    public DeviceEvent updatePortStatus(DeviceId deviceId,
+    public DeviceEvent updatePortStatus(ProviderId providerId, DeviceId deviceId,
                                         PortDescription portDescription) {
         VersionedValue<Device> device = devices.get(deviceId);
         checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
