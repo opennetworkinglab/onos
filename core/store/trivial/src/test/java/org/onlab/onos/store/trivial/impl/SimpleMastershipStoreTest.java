@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.store.trivial.impl;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;

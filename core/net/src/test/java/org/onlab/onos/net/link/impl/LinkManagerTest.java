@@ -23,7 +23,7 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.device.impl.DeviceManager;
-import org.onlab.onos.net.trivial.impl.SimpleLinkStore;
+import org.onlab.onos.store.trivial.impl.SimpleLinkStore;
 
 import java.util.ArrayList;
 import java.util.Iterator;

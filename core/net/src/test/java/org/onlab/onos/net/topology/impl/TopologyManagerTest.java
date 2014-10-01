@@ -24,7 +24,7 @@ import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
 import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.net.trivial.impl.SimpleTopologyStore;
+import org.onlab.onos.store.trivial.impl.SimpleTopologyStore;
 
 import java.util.ArrayList;
 import java.util.List;

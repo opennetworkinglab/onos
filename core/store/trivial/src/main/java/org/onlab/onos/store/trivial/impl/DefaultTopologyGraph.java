@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.store.trivial.impl;
 
 import org.onlab.graph.AdjacencyListsGraph;
 import org.onlab.onos.net.topology.TopologyEdge;

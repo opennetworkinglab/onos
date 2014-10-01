@@ -34,7 +34,7 @@ import org.onlab.onos.net.host.HostProviderService;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.trivial.impl.SimpleHostStore;
+import org.onlab.onos.store.trivial.impl.SimpleHostStore;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

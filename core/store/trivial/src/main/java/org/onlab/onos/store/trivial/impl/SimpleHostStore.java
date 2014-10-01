@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.store.trivial.impl;
 
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;

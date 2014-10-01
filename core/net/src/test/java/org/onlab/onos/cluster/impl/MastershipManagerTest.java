@@ -15,7 +15,7 @@ import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.trivial.impl.SimpleMastershipStore;
+import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
 import org.onlab.packet.IpPrefix;
 
 import static org.junit.Assert.assertEquals;
