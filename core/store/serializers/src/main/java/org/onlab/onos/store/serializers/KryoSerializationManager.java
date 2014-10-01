@@ -1,6 +1,7 @@
 package org.onlab.onos.store.serializers;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -98,6 +99,16 @@ public class KryoSerializationManager implements KryoSerializationService {
             return null;
         }
         return serializerPool.deserialize(bytes);
+    }
+
+    @Override
+    public void serialize(Object obj, ByteBuffer buffer) {
+        serializerPool.serialize(obj, buffer);
+    }
+
+    @Override
+    public <T> T deserialize(ByteBuffer buffer) {
+        return serializerPool.deserialize(buffer);
     }
 
 }
