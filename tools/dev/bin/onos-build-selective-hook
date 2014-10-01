@@ -1,0 +1,18 @@
+#------------------------------------------------------------------------------
+# Echoes project-level directory if a Java file within is newer than its
+# class file counterpart
+#------------------------------------------------------------------------------
+
+javaFile=${1#*\/src\/*\/java/}
+basename=${1/*\//}
+
+[ $basename = "package-info.java" ] && exit 0
+
+src=${1/$javaFile/}
+project=${src/src*/}
+classFile=${javaFile/.java/.class}
+
+[ ${project}target/classes/$classFile -nt ${src}$javaFile -o \
+    ${project}target/test-classes/$classFile -nt ${src}$javaFile ] \
+    || echo ${src/src*/}
+

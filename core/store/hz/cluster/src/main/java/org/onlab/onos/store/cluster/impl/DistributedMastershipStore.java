@@ -123,6 +123,12 @@ implements MastershipStore {
         return null;
     }
 
+    @Override
+    public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     private class RemoteMasterShipEventHandler extends RemoteCacheEventHandler<DeviceId, NodeId> {
         public RemoteMasterShipEventHandler(LoadingCache<DeviceId, Optional<NodeId>> cache) {
             super(cache);

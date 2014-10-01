@@ -221,7 +221,7 @@ public class DistributedDeviceStore
     }
 
     @Override
-    public List<DeviceEvent> updatePorts(DeviceId deviceId,
+    public List<DeviceEvent> updatePorts(ProviderId providerId, DeviceId deviceId,
                                          List<PortDescription> portDescriptions) {
         List<DeviceEvent> events = new ArrayList<>();
         synchronized (this) {
@@ -319,7 +319,7 @@ public class DistributedDeviceStore
     }
 
     @Override
-    public DeviceEvent updatePortStatus(DeviceId deviceId,
+    public DeviceEvent updatePortStatus(ProviderId providerId, DeviceId deviceId,
                                         PortDescription portDescription) {
         synchronized (this) {
             Device device = devices.getUnchecked(deviceId).orNull();

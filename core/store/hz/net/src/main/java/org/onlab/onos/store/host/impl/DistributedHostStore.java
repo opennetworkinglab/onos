@@ -39,8 +39,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
- * Manages inventory of end-station hosts using trivial in-memory
- * implementation.
+ * TEMPORARY: Manages inventory of end-station hosts using distributed
+ * structures implementation.
  */
 //FIXME: I LIE I AM NOT DISTRIBUTED
 @Component(immediate = true)

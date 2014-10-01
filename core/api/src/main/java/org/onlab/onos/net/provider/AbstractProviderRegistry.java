@@ -35,10 +35,22 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
     public synchronized S register(P provider) {
         checkNotNull(provider, "Provider cannot be null");
         checkState(!services.containsKey(provider.id()), "Provider %s already registered", provider.id());
+
+        // If the provider is a primary one, check for a conflict.
+        ProviderId pid = provider.id();
+        checkState(pid.isAncillary() || !providersByScheme.containsKey(pid.scheme()),
+                   "A primary provider with id %s is already registered",
+                   providersByScheme.get(pid.scheme()));
+
         S service = createProviderService(provider);
         services.put(provider.id(), service);
         providers.put(provider.id(), provider);
-        // FIXME populate scheme look-up
+
+        // Register the provider by URI scheme only if it is not ancillary.
+        if (!pid.isAncillary()) {
+            providersByScheme.put(pid.scheme(), provider);
+        }
+
         return service;
     }
 

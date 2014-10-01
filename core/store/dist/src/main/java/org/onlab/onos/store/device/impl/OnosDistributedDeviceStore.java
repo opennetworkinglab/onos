@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
@@ -59,8 +60,8 @@ public class OnosDistributedDeviceStore
 
     public static final String DEVICE_NOT_FOUND = "Device with ID %s not found";
 
-    private ConcurrentHashMap<DeviceId, VersionedValue<Device>> devices;
-    private ConcurrentHashMap<DeviceId, Map<PortNumber, VersionedValue<Port>>> devicePorts;
+    private ConcurrentMap<DeviceId, VersionedValue<Device>> devices;
+    private ConcurrentMap<DeviceId, Map<PortNumber, VersionedValue<Port>>> devicePorts;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClockService clockService;
@@ -191,7 +192,7 @@ public class OnosDistributedDeviceStore
     }
 
     @Override
-    public List<DeviceEvent> updatePorts(DeviceId deviceId,
+    public List<DeviceEvent> updatePorts(ProviderId providerId, DeviceId deviceId,
                                          List<PortDescription> portDescriptions) {
         List<DeviceEvent> events = new ArrayList<>();
         synchronized (this) {
@@ -295,7 +296,7 @@ public class OnosDistributedDeviceStore
     }
 
     @Override
-    public DeviceEvent updatePortStatus(DeviceId deviceId,
+    public DeviceEvent updatePortStatus(ProviderId providerId, DeviceId deviceId,
                                         PortDescription portDescription) {
         VersionedValue<Device> device = devices.get(deviceId);
         checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);

@@ -40,7 +40,7 @@ import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.trivial.impl.SimpleFlowRuleStore;
+import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

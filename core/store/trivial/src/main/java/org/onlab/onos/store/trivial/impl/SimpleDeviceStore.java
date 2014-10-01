@@ -1,4 +1,4 @@
-package org.onlab.onos.net.trivial.impl;
+package org.onlab.onos.store.trivial.impl;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -143,7 +143,7 @@ public class SimpleDeviceStore
     }
 
     @Override
-    public List<DeviceEvent> updatePorts(DeviceId deviceId,
+    public List<DeviceEvent> updatePorts(ProviderId providerId, DeviceId deviceId,
                                   List<PortDescription> portDescriptions) {
         List<DeviceEvent> events = new ArrayList<>();
         synchronized (this) {
@@ -221,7 +221,7 @@ public class SimpleDeviceStore
     }
 
     @Override
-    public DeviceEvent updatePortStatus(DeviceId deviceId,
+    public DeviceEvent updatePortStatus(ProviderId providerId, DeviceId deviceId,
                                  PortDescription portDescription) {
         synchronized (this) {
             Device device = devices.get(deviceId);

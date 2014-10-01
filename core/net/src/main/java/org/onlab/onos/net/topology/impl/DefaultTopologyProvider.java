@@ -65,8 +65,8 @@ public class DefaultTopologyProvider extends AbstractProvider
     private volatile boolean isStarted = false;
 
     private TopologyProviderService providerService;
-    private DeviceListener deviceListener = new InnerDeviceListener();
-    private LinkListener linkListener = new InnerLinkListener();
+    private DeviceListener deviceListener = new InternalDeviceListener();
+    private LinkListener linkListener = new InternalLinkListener();
 
     private EventAccumulator accumulator;
     private ExecutorService executor;
@@ -132,7 +132,7 @@ public class DefaultTopologyProvider extends AbstractProvider
     }
 
     // Callback for device events
-    private class InnerDeviceListener implements DeviceListener {
+    private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
             DeviceEvent.Type type = event.type();
@@ -144,7 +144,7 @@ public class DefaultTopologyProvider extends AbstractProvider
     }
 
     // Callback for link events
-    private class InnerLinkListener implements LinkListener {
+    private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
             accumulator.add(event);
