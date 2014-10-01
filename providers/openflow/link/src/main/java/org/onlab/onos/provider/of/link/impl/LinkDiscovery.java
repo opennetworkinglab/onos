@@ -131,7 +131,7 @@ public class LinkDiscovery implements TimerTask {
         }
         timeout = Timer.getTimer().newTimeout(this, 0,
                 TimeUnit.MILLISECONDS);
-        this.log.debug("Started discovery manager for switch {}",
+        this.log.info("Started discovery manager for switch {}",
                 sw.getId());
 
     }

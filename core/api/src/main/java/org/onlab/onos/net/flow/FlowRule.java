@@ -111,4 +111,11 @@ public interface FlowRule {
      */
     long bytes();
 
+    /**
+     * Indicates that this flow has expired at the device.
+     *
+     * @return true if it has expired, false otherwise
+     */
+    boolean expired();
+
 }

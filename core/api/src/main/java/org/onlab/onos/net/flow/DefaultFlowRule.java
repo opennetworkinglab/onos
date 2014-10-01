@@ -27,9 +27,11 @@ public class DefaultFlowRule implements FlowRule {
 
     private final ApplicationId appId;
 
+    private boolean expired;
+
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, FlowRuleState state,
-            long life, long packets, long bytes, long flowId) {
+            long life, long packets, long bytes, long flowId, boolean expired) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
@@ -37,7 +39,7 @@ public class DefaultFlowRule implements FlowRule {
         this.state = state;
         this.appId = ApplicationId.valueOf((int) (flowId >> 32));
         this.id = FlowId.valueOf(flowId);
-
+        this.expired = expired;
         this.life = life;
         this.packets = packets;
         this.bytes = bytes;
@@ -184,6 +186,11 @@ public class DefaultFlowRule implements FlowRule {
                 .add("created", created)
                 .add("state", state)
                 .toString();
+    }
+
+    @Override
+    public boolean expired() {
+        return expired;
     }
 
 }

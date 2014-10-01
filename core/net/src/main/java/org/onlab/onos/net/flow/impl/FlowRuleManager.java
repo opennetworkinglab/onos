@@ -161,7 +161,11 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             switch (stored.state()) {
             case ADDED:
             case PENDING_ADD:
-                frp.applyFlowRule(stored);
+                if (flowRule.expired()) {
+                    event = store.removeFlowRule(flowRule);
+                } else {
+                    frp.applyFlowRule(stored);
+                }
                 break;
             case PENDING_REMOVE:
             case REMOVED:
