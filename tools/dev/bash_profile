@@ -57,6 +57,7 @@ function cell {
     if [ -n "$1" ]; then
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
+        unset OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
         . $ONOS_ROOT/tools/test/cells/$1
         export OCI=$OC1
         export ONOS_CELL=$1
@@ -74,7 +75,11 @@ cell local >/dev/null  # Default cell is the local VMs
 
 # Lists available cells
 function cells {
-    ls -1 $ONOS_ROOT/tools/test/cells
+    for cell in $(ls -1 $ONOS_ROOT/tools/test/cells); do
+        printf "%-12s  %s\n" \
+            "$([ $cell = $ONOS_CELL ] && echo $cell '*' || echo $cell)" \
+            "$(grep '^#' $ONOS_ROOT/tools/test/cells/$cell | head -n 1)"
+    done
 }
 
 # Miscellaneous
