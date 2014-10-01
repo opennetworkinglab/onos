@@ -11,6 +11,7 @@ public class ProviderId {
 
     private final String scheme;
     private final String id;
+    private final boolean ancillary;
 
     /**
      * Creates a new provider identifier from the specified string.
@@ -21,8 +22,22 @@ public class ProviderId {
      * @param id     string identifier
      */
     public ProviderId(String scheme, String id) {
+        this(scheme, id, false);
+    }
+
+    /**
+     * Creates a new provider identifier from the specified string.
+     * The providers are expected to follow the reverse DNS convention, e.g.
+     * {@code org.onlab.onos.provider.of.device}
+     *
+     * @param scheme device URI scheme to which this provider is bound, e.g. "of", "snmp"
+     * @param id     string identifier
+     * @param ancillary ancillary provider indicator
+     */
+    public ProviderId(String scheme, String id, boolean ancillary) {
         this.scheme = scheme;
         this.id = id;
+        this.ancillary = ancillary;
     }
 
     /**
@@ -32,6 +47,15 @@ public class ProviderId {
      */
     public String scheme() {
         return scheme;
+    }
+
+    /**
+     * Indicates whether the provider id belongs to an ancillary provider.
+     *
+     * @return true for ancillary; false for primary provider
+     */
+    public boolean isAncillary() {
+        return ancillary;
     }
 
     /**
@@ -56,14 +80,16 @@ public class ProviderId {
         if (obj instanceof ProviderId) {
             final ProviderId other = (ProviderId) obj;
             return Objects.equals(this.scheme, other.scheme) &&
-                    Objects.equals(this.id, other.id);
+                    Objects.equals(this.id, other.id) &&
+                    this.ancillary == other.ancillary;
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("scheme", scheme).add("id", id).toString();
+        return toStringHelper(this).add("scheme", scheme).add("id", id)
+                .add("ancillary", ancillary).toString();
     }
 
 }
