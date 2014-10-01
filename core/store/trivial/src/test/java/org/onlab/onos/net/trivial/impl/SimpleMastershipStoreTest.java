@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.provider.ProviderId;
 
 import com.google.common.collect.Sets;
 
@@ -23,8 +22,6 @@ import static org.onlab.onos.cluster.MastershipEvent.Type.*;
  * Test for the simple MastershipStore implementation.
  */
 public class SimpleMastershipStoreTest {
-
-    private static final ProviderId PID = new ProviderId("of", "foo");
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:01");
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
