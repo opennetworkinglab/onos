@@ -11,10 +11,17 @@ import org.onlab.onos.store.device.impl.VersionedValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public class AntiEntropyReply<ID, VALUE> extends ClusterMessage {
+/**
+ * Anti-Entropy reply message.
+ * <p>
+ * Message to send in reply to advertisement or another reply.
+ * Suggest to the sender about the more up-to-date data this node has,
+ * and request for more recent data that the receiver has.
+ */
+public class AntiEntropyReply<ID, V extends VersionedValue<?>> extends ClusterMessage {
 
     private final NodeId sender;
-    private final ImmutableMap<ID, VersionedValue<VALUE>> suggestion;
+    private final ImmutableMap<ID, V> suggestion;
     private final ImmutableSet<ID> request;
 
     /**
@@ -25,7 +32,7 @@ public class AntiEntropyReply<ID, VALUE> extends ClusterMessage {
      * @param request Collection of identifiers
      */
     public AntiEntropyReply(NodeId sender,
-                            Map<ID, VersionedValue<VALUE>> suggestion,
+                            Map<ID, V> suggestion,
                             Set<ID> request) {
         super(AE_REPLY);
         this.sender = sender;
@@ -37,12 +44,32 @@ public class AntiEntropyReply<ID, VALUE> extends ClusterMessage {
         return sender;
     }
 
-    public ImmutableMap<ID, VersionedValue<VALUE>> suggestion() {
+    /**
+     * Returns collection of values, which the recipient of this reply is likely
+     * to be missing or has outdated version.
+     *
+     * @return
+     */
+    public ImmutableMap<ID, V> suggestion() {
         return suggestion;
     }
 
+    /**
+     * Returns collection of identifier to request.
+     *
+     * @return collection of identifier to request
+     */
     public ImmutableSet<ID> request() {
         return request;
+    }
+
+    /**
+     * Checks if reply contains any suggestion or request.
+     *
+     * @return true if nothing is suggested and requested
+     */
+    public boolean isEmpty() {
+        return suggestion.isEmpty() && request.isEmpty();
     }
 
     // Default constructor for serializer

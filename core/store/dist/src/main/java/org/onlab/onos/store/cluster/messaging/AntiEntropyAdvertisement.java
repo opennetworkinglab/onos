@@ -10,6 +10,8 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * Anti-Entropy advertisement message.
+ * <p>
+ * Message to advertise the information this node holds.
  *
  * @param <ID> ID type
  */
