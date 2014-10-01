@@ -1,0 +1,12 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# Selectively builds only those projects that contained modified Java files.
+#------------------------------------------------------------------------------
+
+projects=$(find $ONOS_ROOT -name '*.java' \
+    -not -path '*/openflowj/*' -and -not -path '.git/*' \
+    -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
+    sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
+    sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
+
+[ -n "$projects" ] && cd $ONOS_ROOT && mvn --projects $projects ${@:-clean install}

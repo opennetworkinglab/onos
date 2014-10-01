@@ -12,9 +12,8 @@ export KARAF=${KARAF:-~/Applications/apache-karaf-3.0.1}
 export KARAF_LOG=$KARAF/data/log/karaf.log
 
 # Setup a path
-export PS=":"
-export PATH="$PATH:$ONOS_ROOT/tools/dev:$ONOS_ROOT/tools/build"
-export PATH="$PATH:$ONOS_ROOT/tools/test/bin"
+export PATH="$PATH:$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin"
+export PATH="$PATH:$ONOS_ROOT/tools/build"
 export PATH="$PATH:$MAVEN/bin:$KARAF/bin"
 export PATH="$PATH:."
 
@@ -30,11 +29,12 @@ alias mci='mvn clean install'
 
 # Short-hand for ONOS build, package and test.
 alias ob='onos-build'
+alias obs='onos-build-selective'
 alias op='onos-package'
 alias ot='onos-test'
 
 # Short-hand for tailing the ONOS (karaf) log 
-alias tl='$ONOS_ROOT/tools/dev/watchLog'
+alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
 alias tlo='tl | grep --colour=always org.onlab'
 
 # Pretty-print JSON output
