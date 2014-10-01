@@ -48,7 +48,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
         OFAction act = buildOutput(outPort.getPortNumber());
         pktout = builder.setXid(pktin.getXid())
-                .setInPort(pktin.getInPort())
+                .setInPort(inport())
                 .setBufferId(pktin.getBufferId())
                 .setActions(Collections.singletonList(act))
                 .build();
@@ -63,7 +63,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         OFAction act = buildOutput(outPort.getPortNumber());
         pktout = builder.setXid(pktin.getXid())
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setInPort(pktin.getInPort())
+                .setInPort(inport())
                 .setActions(Collections.singletonList(act))
                 .setData(ethFrame.serialize())
                 .build();
@@ -88,10 +88,16 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public Integer inPort() {
+        return inport().getPortNumber();
+    }
+
+
+    private OFPort inport() {
+        //FIXME: this has to change in fucking loxi
         try {
-            return pktin.getInPort().getPortNumber();
+            return pktin.getInPort();
         } catch (UnsupportedOperationException e) {
-            return pktin.getMatch().get(MatchField.IN_PORT).getPortNumber();
+            return pktin.getMatch().get(MatchField.IN_PORT);
         }
     }
 

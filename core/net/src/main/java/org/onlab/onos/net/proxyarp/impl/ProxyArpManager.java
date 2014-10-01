@@ -231,6 +231,7 @@ public class ProxyArpManager implements ProxyArpService {
         arp.setOpCode(ARP.OP_REPLY);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+
         arp.setProtocolAddressLength((byte) IpPrefix.INET_LEN);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
         arp.setSenderHardwareAddress(h.mac().getAddress());
@@ -238,7 +239,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         arp.setTargetProtocolAddress(((ARP) request.getPayload())
                 .getSenderProtocolAddress());
-        arp.setSenderProtocolAddress(h.ipAddresses().iterator().next().toInt());
+        arp.setSenderProtocolAddress(h.ipAddresses().iterator().next().toRealInt());
         eth.setPayload(arp);
         return eth;
     }
@@ -291,7 +292,6 @@ public class ProxyArpManager implements ProxyArpService {
                 case DEVICE_MASTERSHIP_CHANGED:
                 case DEVICE_SUSPENDED:
                 case DEVICE_UPDATED:
-                case PORT_UPDATED:
                  // nothing to do in these cases; handled when links get reported
                     break;
                 case DEVICE_REMOVED:
@@ -301,9 +301,12 @@ public class ProxyArpManager implements ProxyArpService {
                     }
                     break;
                 case PORT_ADDED:
+                case PORT_UPDATED:
                     synchronized (externalPorts) {
-                        externalPorts.put(device, event.port().number());
-                        internalPorts.remove(device, event.port().number());
+                        if (event.port().isEnabled()) {
+                            externalPorts.put(device, event.port().number());
+                            internalPorts.remove(device, event.port().number());
+                        }
                     }
                     break;
                 case PORT_REMOVED:

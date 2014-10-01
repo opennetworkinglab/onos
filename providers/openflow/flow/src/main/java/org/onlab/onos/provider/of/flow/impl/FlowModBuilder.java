@@ -73,7 +73,7 @@ public class FlowModBuilder {
         List<OFAction> actions = buildActions();
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
-        OFFlowMod fm = factory.buildFlowModify()
+        OFFlowMod fm = factory.buildFlowAdd()
                 .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)

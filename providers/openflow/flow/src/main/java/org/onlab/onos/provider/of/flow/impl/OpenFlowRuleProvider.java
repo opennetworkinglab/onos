@@ -158,7 +158,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             case BARRIER_REPLY:
             case ERROR:
             default:
-                log.warn("Unhandled message type: {}", msg.getType());
+                log.debug("Unhandled message type: {}", msg.getType());
             }
 
         }

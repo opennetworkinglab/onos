@@ -1,6 +1,5 @@
 package org.onlab.onos.provider.of.packet.impl;
 
-import static org.onlab.onos.openflow.controller.RoleState.SLAVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
@@ -94,9 +93,6 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
         OpenFlowSwitch sw = controller.getSwitch(dpid);
         if (sw == null) {
             log.warn("Device {} isn't available?", devId);
-            return;
-        } else if (sw.getRole().equals(SLAVE)) {
-            log.warn("Can't write to Device {} as slave", devId);
             return;
         }
 

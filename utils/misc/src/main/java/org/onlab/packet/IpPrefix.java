@@ -180,6 +180,15 @@ public final class IpPrefix {
         return address;
     }
 
+    public int toRealInt() {
+        int val = 0;
+        for (int i = 0; i < octets.length; i++) {
+          val <<= 8;
+          val |= octets[i] & 0xff;
+        }
+        return val;
+    }
+
     /**
      * Helper for computing the mask value from CIDR.
      *
