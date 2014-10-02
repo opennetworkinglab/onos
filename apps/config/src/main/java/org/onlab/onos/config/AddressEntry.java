@@ -3,8 +3,6 @@ package org.onlab.onos.config;
 import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 
 /**
  * Represents a set of addresses bound to a port.
@@ -12,8 +10,8 @@ import org.onlab.packet.MacAddress;
 public class AddressEntry {
     private String dpid;
     private short portNumber;
-    private List<IpPrefix> ipAddresses;
-    private MacAddress macAddress;
+    private List<String> ipAddresses;
+    private String macAddress;
 
     public String getDpid() {
         return dpid;
@@ -33,21 +31,21 @@ public class AddressEntry {
         this.portNumber = portNumber;
     }
 
-    public List<IpPrefix> getIpAddresses() {
+    public List<String> getIpAddresses() {
         return ipAddresses;
     }
 
     @JsonProperty("ips")
-    public void setIpAddresses(List<IpPrefix> ipAddresses) {
-        this.ipAddresses = ipAddresses;
+    public void setIpAddresses(List<String> strIps) {
+        this.ipAddresses = strIps;
     }
 
-    public MacAddress getMacAddress() {
+    public String getMacAddress() {
         return macAddress;
     }
 
     @JsonProperty("mac")
-    public void setMacAddress(MacAddress macAddress) {
+    public void setMacAddress(String macAddress) {
         this.macAddress = macAddress;
     }
 }

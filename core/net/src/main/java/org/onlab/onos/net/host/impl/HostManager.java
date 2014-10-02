@@ -1,5 +1,10 @@
 package org.onlab.onos.net.host.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -12,6 +17,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostAdminService;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
@@ -23,6 +29,7 @@ import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.HostStore;
 import org.onlab.onos.net.host.HostStoreDelegate;
 import org.onlab.onos.net.host.PortAddresses;
+import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.onlab.packet.IpAddress;
@@ -30,11 +37,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
-
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -59,12 +61,22 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
+
+    private HostMonitor monitor;
 
     @Activate
     public void activate() {
+        log.info("Started");
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
-        log.info("Started");
+
+        monitor = new HostMonitor(deviceService,  packetService, this);
+
     }
 
     @Deactivate
@@ -76,6 +88,8 @@ public class HostManager
 
     @Override
     protected HostProviderService createProviderService(HostProvider provider) {
+        monitor.registerHostProvider(provider);
+
         return new InternalHostProviderService(provider);
     }
 
@@ -126,12 +140,12 @@ public class HostManager
 
     @Override
     public void startMonitoringIp(IpAddress ip) {
-        // TODO pass through to HostMonitor
+        monitor.addMonitoringFor(ip);
     }
 
     @Override
     public void stopMonitoringIp(IpAddress ip) {
-        // TODO pass through to HostMonitor
+        monitor.stopMonitoring(ip);
     }
 
     @Override

@@ -76,7 +76,7 @@ public class IpPrefixTest {
     }
 
     @Test
-    public void testContains() {
+    public void testContainsIpPrefix() {
         IpPrefix slash31 = IpPrefix.valueOf(BYTES1, 31);
         IpPrefix slash32 = IpPrefix.valueOf(BYTES1, 32);
         IpPrefix differentSlash32 = IpPrefix.valueOf(BYTES2, 32);
@@ -95,5 +95,18 @@ public class IpPrefixTest {
         IpPrefix slash8 = IpPrefix.valueOf("10.0.0.0/8");
         assertTrue(slash8.contains(slash31));
         assertFalse(slash31.contains(slash8));
+    }
+
+    @Test
+    public void testContainsIpAddress() {
+        IpPrefix slash31 = IpPrefix.valueOf(BYTES1, 31);
+        IpAddress slash32 = IpAddress.valueOf(BYTES1, 32);
+
+        assertTrue(slash31.contains(slash32));
+
+        IpPrefix intf = IpPrefix.valueOf("192.168.10.101/24");
+        IpAddress addr = IpAddress.valueOf("192.168.10.1");
+
+        assertTrue(intf.contains(addr));
     }
 }

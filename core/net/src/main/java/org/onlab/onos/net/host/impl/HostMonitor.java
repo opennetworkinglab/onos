@@ -2,10 +2,11 @@ package org.onlab.onos.net.host.impl;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.util.Timeout;
@@ -21,19 +22,19 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.host.HostStore;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;
 import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Monitors hosts on the dataplane to detect changes in host data.
@@ -43,9 +44,7 @@ import org.onlab.util.Timer;
  * probe for hosts that have not yet been detected (specified by IP address).
  */
 public class HostMonitor implements TimerTask {
-
-    private static final byte[] DEFAULT_MAC_ADDRESS =
-            MacAddress.valueOf("00:00:00:00:00:01").getAddress();
+    private static final Logger log = LoggerFactory.getLogger(HostMonitor.class);
 
     private static final byte[] ZERO_MAC_ADDRESS =
             MacAddress.valueOf("00:00:00:00:00:00").getAddress();
@@ -54,59 +53,77 @@ public class HostMonitor implements TimerTask {
     private static final byte[] BROADCAST_MAC =
             MacAddress.valueOf("ff:ff:ff:ff:ff:ff").getAddress();
 
-    private final HostService hostService;
-    private final TopologyService topologyService;
-    private final DeviceService deviceService;
-    private final HostProvider hostProvider;
-    private final PacketService packetService;
-    private final HostStore hostStore;
+    private DeviceService deviceService;
+    private PacketService packetService;
+    private HostManager hostManager;
 
     private final Set<IpAddress> monitoredAddresses;
+
+    private final Map<ProviderId, HostProvider> hostProviders;
 
     private final long probeRate;
 
     private final Timeout timeout;
 
-    public HostMonitor(HostService hostService, TopologyService topologyService,
+    public HostMonitor(
             DeviceService deviceService,
-            HostProvider hostProvider, PacketService packetService,
-            HostStore hostStore) {
-        this.hostService = hostService;
-        this.topologyService = topologyService;
+            PacketService packetService,
+            HostManager hostService) {
+
         this.deviceService = deviceService;
-        this.hostProvider = hostProvider;
         this.packetService = packetService;
-        this.hostStore = hostStore;
+        this.hostManager = hostService;
 
         monitoredAddresses = new HashSet<>();
+        hostProviders = new ConcurrentHashMap<>();
 
         probeRate = 30000; // milliseconds
 
         timeout = Timer.getTimer().newTimeout(this, 0, TimeUnit.MILLISECONDS);
+
+        addDefaultAddresses();
     }
 
-    public void addMonitoringFor(IpAddress ip) {
+    private void addDefaultAddresses() {
+        //monitoredAddresses.add(IpAddress.valueOf("10.0.0.1"));
+    }
+
+    void addMonitoringFor(IpAddress ip) {
         monitoredAddresses.add(ip);
     }
 
-    public void stopMonitoring(IpAddress ip) {
+    void stopMonitoring(IpAddress ip) {
         monitoredAddresses.remove(ip);
     }
 
-    public void shutdown() {
+    void shutdown() {
         timeout.cancel();
+    }
+
+    void registerHostProvider(HostProvider provider) {
+        hostProviders.put(provider.id(), provider);
+    }
+
+    void unregisterHostProvider(HostProvider provider) {
+        // TODO find out how to call this
     }
 
     @Override
     public void run(Timeout timeout) throws Exception {
         for (IpAddress ip : monitoredAddresses) {
-            Set<Host> hosts = Collections.emptySet(); //TODO hostService.getHostsByIp(ip);
+            // TODO have to convert right now because the HostService API uses IpPrefix
+            IpPrefix prefix = IpPrefix.valueOf(ip.toOctets());
+
+            Set<Host> hosts = hostManager.getHostsByIp(prefix);
 
             if (hosts.isEmpty()) {
                 sendArpRequest(ip);
             } else {
                 for (Host host : hosts) {
-                    hostProvider.triggerProbe(host);
+                    HostProvider provider = hostProviders.get(host.providerId());
+                    if (provider != null) {
+                        provider.triggerProbe(host);
+                    }
                 }
             }
         }
@@ -120,29 +137,26 @@ public class HostMonitor implements TimerTask {
      * @param targetIp IP address to ARP for
      */
     private void sendArpRequest(IpAddress targetIp) {
-
         // Find ports with an IP address in the target's subnet and sent ARP
         // probes out those ports.
         for (Device device : deviceService.getDevices()) {
             for (Port port : deviceService.getPorts(device.id())) {
                 ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-                PortAddresses addresses = hostStore.getAddressBindingsForPort(cp);
+                PortAddresses addresses = hostManager.getAddressBindingsForPort(cp);
 
-                /*for (IpPrefix prefix : addresses.ips()) {
+                for (IpPrefix prefix : addresses.ips()) {
                     if (prefix.contains(targetIp)) {
-                        sendProbe(device.id(), port, addresses, targetIp);
+                        sendProbe(device.id(), port, targetIp,
+                                prefix.toIpAddress(), addresses.mac());
                     }
-                }*/
+                }
             }
         }
-
-        // TODO case where no address was found.
-        // Broadcast out internal edge ports?
     }
 
-    private void sendProbe(DeviceId deviceId, Port port, PortAddresses portAddresses,
-            IpAddress targetIp) {
-        Ethernet arpPacket = createArpFor(targetIp, portAddresses);
+    private void sendProbe(DeviceId deviceId, Port port, IpAddress targetIp,
+            IpAddress sourceIp, MacAddress sourceMac) {
+        Ethernet arpPacket = buildArpRequest(targetIp, sourceIp, sourceMac);
 
         List<Instruction> instructions = new ArrayList<>();
         instructions.add(Instructions.createOutput(port.number()));
@@ -158,31 +172,26 @@ public class HostMonitor implements TimerTask {
         packetService.emit(outboundPacket);
     }
 
-    private Ethernet createArpFor(IpAddress targetIp, PortAddresses portAddresses) {
+    private Ethernet buildArpRequest(IpAddress targetIp, IpAddress sourceIp,
+            MacAddress sourceMac) {
 
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
-        .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
-        .setProtocolType(ARP.PROTO_TYPE_IP)
-        .setProtocolAddressLength((byte) IpPrefix.INET_LEN);
+           .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
+           .setProtocolType(ARP.PROTO_TYPE_IP)
+           .setProtocolAddressLength((byte) IpPrefix.INET_LEN)
+           .setOpCode(ARP.OP_REQUEST);
 
-        byte[] sourceMacAddress;
-        if (portAddresses.mac() == null) {
-            sourceMacAddress = DEFAULT_MAC_ADDRESS;
-        } else {
-            sourceMacAddress = portAddresses.mac().getAddress();
-        }
-
-        arp.setSenderHardwareAddress(sourceMacAddress)
-        //TODO .setSenderProtocolAddress(portAddresses.ips().toOctets())
-        .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
-        .setTargetProtocolAddress(targetIp.toOctets());
+        arp.setSenderHardwareAddress(sourceMac.getAddress())
+           .setSenderProtocolAddress(sourceIp.toOctets())
+           .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
+           .setTargetProtocolAddress(targetIp.toOctets());
 
         Ethernet ethernet = new Ethernet();
         ethernet.setEtherType(Ethernet.TYPE_ARP)
-        .setDestinationMACAddress(BROADCAST_MAC)
-        .setSourceMACAddress(sourceMacAddress)
-        .setPayload(arp);
+                .setDestinationMACAddress(BROADCAST_MAC)
+                .setSourceMACAddress(sourceMac.getAddress())
+                .setPayload(arp);
 
         return ethernet;
     }
