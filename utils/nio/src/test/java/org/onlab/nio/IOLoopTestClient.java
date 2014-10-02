@@ -179,7 +179,7 @@ public class IOLoopTestClient {
     }
 
     /**
-     * Reports on the accumulated throughput trackers.
+     * Reports on the accumulated throughput and latency.
      */
     public void report() {
         DecimalFormat f = new DecimalFormat("#,##0");
