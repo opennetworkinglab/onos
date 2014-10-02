@@ -45,7 +45,7 @@ public class DefaultHost extends AbstractElement implements Host {
 
     @Override
     public HostId id() {
-        return (HostId) super.id();
+        return (HostId) id;
     }
 
     @Override

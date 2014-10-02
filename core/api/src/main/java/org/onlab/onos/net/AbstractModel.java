@@ -5,7 +5,7 @@ import org.onlab.onos.net.provider.ProviderId;
 /**
  * Base implementation of a network model entity.
  */
-public class AbstractModel extends AbstractAnnotated implements Provided {
+public abstract class AbstractModel extends AbstractAnnotated implements Provided {
 
     private final ProviderId providerId;
 

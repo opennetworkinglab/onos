@@ -5,7 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Base abstraction of an annotated entity.
  */
-public class AbstractAnnotated implements Annotated {
+public abstract class AbstractAnnotated implements Annotated {
 
     private static final Annotations EMPTY = DefaultAnnotations.builder().build();
 

@@ -40,6 +40,18 @@ public class DefaultDeviceTest {
     @Test
     public void basics() {
         Device device = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1);
+        validate(device);
+    }
+
+    @Test
+    public void annotations() {
+        Device device = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1,
+                                          DefaultAnnotations.builder().set("foo", "bar").build());
+        validate(device);
+        assertEquals("incorrect provider", "bar", device.annotations().value("foo"));
+    }
+
+    private void validate(Device device) {
         assertEquals("incorrect provider", PID, device.providerId());
         assertEquals("incorrect id", DID1, device.id());
         assertEquals("incorrect type", SWITCH, device.type());

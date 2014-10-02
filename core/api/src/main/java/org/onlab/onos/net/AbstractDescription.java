@@ -5,7 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Base implementation of an annotated model description.
  */
-public class AbstractDescription implements Annotated {
+public abstract class AbstractDescription implements Annotated {
 
     private static final SparseAnnotations EMPTY = DefaultAnnotations.builder().build();
 

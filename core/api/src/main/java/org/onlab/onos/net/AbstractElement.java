@@ -5,7 +5,7 @@ import org.onlab.onos.net.provider.ProviderId;
 /**
  * Base implementation of network elements, i.e. devices or hosts.
  */
-public class AbstractElement extends AbstractModel implements Element {
+public abstract class AbstractElement extends AbstractModel implements Element {
 
     protected final ElementId id;
 
@@ -25,11 +25,6 @@ public class AbstractElement extends AbstractModel implements Element {
                               Annotations... annotations) {
         super(providerId, annotations);
         this.id = id;
-    }
-
-    @Override
-    public ElementId id() {
-        return id;
     }
 
 }

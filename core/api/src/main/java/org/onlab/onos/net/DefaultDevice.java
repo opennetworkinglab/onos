@@ -51,7 +51,7 @@ public class DefaultDevice extends AbstractElement implements Device {
 
     @Override
     public DeviceId id() {
-        return (DeviceId) super.id();
+        return (DeviceId) id;
     }
 
     @Override
