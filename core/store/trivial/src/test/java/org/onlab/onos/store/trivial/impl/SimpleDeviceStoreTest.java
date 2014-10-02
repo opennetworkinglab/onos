@@ -44,6 +44,7 @@ import com.google.common.collect.Sets;
 public class SimpleDeviceStoreTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
+    private static final ProviderId PIDA = new ProviderId("of", "bar", true);
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final String MFR = "whitebox";
@@ -87,6 +88,13 @@ public class SimpleDeviceStoreTest {
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
                         HW, swVersion, SN);
         deviceStore.createOrUpdateDevice(PID, deviceId, description);
+    }
+
+    private void putDeviceAncillary(DeviceId deviceId, String swVersion) {
+        DeviceDescription description =
+                new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
+                        HW, swVersion, SN);
+        deviceStore.createOrUpdateDevice(PIDA, deviceId, description);
     }
 
     private static void assertDevice(DeviceId id, String swVersion, Device device) {
@@ -158,6 +166,33 @@ public class SimpleDeviceStoreTest {
 
         assertNull("No change expected", deviceStore.createOrUpdateDevice(PID, DID1, description2));
     }
+
+    @Test
+    public final void testCreateOrUpdateDeviceAncillary() {
+        DeviceDescription description =
+                new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
+                        HW, SW1, SN);
+        DeviceEvent event = deviceStore.createOrUpdateDevice(PIDA, DID1, description);
+        assertEquals(DEVICE_ADDED, event.type());
+        assertDevice(DID1, SW1, event.subject());
+        assertEquals(PIDA, event.subject().providerId());
+        assertFalse("Ancillary will not bring device up", deviceStore.isAvailable(DID1));
+
+        DeviceDescription description2 =
+                new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
+                        HW, SW2, SN);
+        DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
+        assertEquals(DEVICE_UPDATED, event2.type());
+        assertDevice(DID1, SW2, event2.subject());
+        assertEquals(PID, event2.subject().providerId());
+        assertTrue(deviceStore.isAvailable(DID1));
+
+        assertNull("No change expected", deviceStore.createOrUpdateDevice(PID, DID1, description2));
+
+        // For now, Ancillary is ignored once primary appears
+        assertNull("No change expected", deviceStore.createOrUpdateDevice(PIDA, DID1, description));
+    }
+
 
     @Test
     public final void testMarkOffline() {
@@ -257,6 +292,34 @@ public class SimpleDeviceStoreTest {
         assertDevice(DID1, SW1, event.subject());
         assertEquals(P1, event.port().number());
         assertFalse("Port is disabled", event.port().isEnabled());
+
+    }
+    @Test
+    public final void testUpdatePortStatusAncillary() {
+        putDeviceAncillary(DID1, SW1);
+        putDevice(DID1, SW1);
+        List<PortDescription> pds = Arrays.<PortDescription>asList(
+                new DefaultPortDescription(P1, true)
+                );
+        deviceStore.updatePorts(PID, DID1, pds);
+
+        DeviceEvent event = deviceStore.updatePortStatus(PID, DID1,
+                new DefaultPortDescription(P1, false));
+        assertEquals(PORT_UPDATED, event.type());
+        assertDevice(DID1, SW1, event.subject());
+        assertEquals(P1, event.port().number());
+        assertFalse("Port is disabled", event.port().isEnabled());
+
+        DeviceEvent event2 = deviceStore.updatePortStatus(PIDA, DID1,
+                new DefaultPortDescription(P1, true));
+        assertNull("Ancillary is ignored if primary exists", event2);
+
+        DeviceEvent event3 = deviceStore.updatePortStatus(PIDA, DID1,
+                new DefaultPortDescription(P2, true));
+        assertEquals(PORT_ADDED, event3.type());
+        assertDevice(DID1, SW1, event3.subject());
+        assertEquals(P2, event3.port().number());
+        assertFalse("Port is disabled if not given from provider", event3.port().isEnabled());
     }
 
     @Test
