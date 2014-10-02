@@ -1,9 +1,14 @@
 package org.onlab.metrics;
 
+import java.io.File;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -54,12 +59,24 @@ public final class MetricsManager implements MetricsService {
     /**
      * Registry for the Metrics objects created in the system.
      */
-    private final MetricRegistry metricsRegistry = new MetricRegistry();
+    private final MetricRegistry metricsRegistry;
 
-    public MetricsManager(
-            ConcurrentMap<String, MetricsComponent> componentsRegistry) {
-        this.componentsRegistry = componentsRegistry;
+    /**
+     * Default Reporter for this metrics manager.
+     */
+    private final CsvReporter reporter;
 
+    public MetricsManager() {
+        this.componentsRegistry = new ConcurrentHashMap<>();
+        this.metricsRegistry = new MetricRegistry();
+
+        this.reporter = CsvReporter.forRegistry(metricsRegistry)
+                .formatFor(Locale.US)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .build(new File("/tmp/"));
+
+        reporter.start(10, TimeUnit.SECONDS);
     }
 
     /**
