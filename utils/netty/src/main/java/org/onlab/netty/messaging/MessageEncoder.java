@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

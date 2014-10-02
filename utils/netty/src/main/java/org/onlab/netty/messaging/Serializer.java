@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 /**
  * Interface for encoding/decoding message payloads.

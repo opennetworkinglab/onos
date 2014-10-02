@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import org.onlab.util.KryoPool;
 import org.slf4j.Logger;

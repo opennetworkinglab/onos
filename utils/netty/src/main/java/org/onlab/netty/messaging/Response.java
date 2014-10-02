@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging;
+package org.onlab.netty;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;

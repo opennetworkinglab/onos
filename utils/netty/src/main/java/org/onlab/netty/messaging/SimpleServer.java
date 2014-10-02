@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 public final class SimpleServer {
     private SimpleServer() {}

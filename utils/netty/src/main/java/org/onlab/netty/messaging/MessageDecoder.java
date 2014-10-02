@@ -1,18 +1,16 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import org.onlab.onos.store.messaging.Endpoint;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 /**
- * Decode bytes into a InrenalMessage.
+ * Decode bytes into a InternalMessage.
  */
 public class MessageDecoder extends ByteToMessageDecoder {
 

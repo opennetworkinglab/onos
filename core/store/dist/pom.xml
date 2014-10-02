@@ -33,6 +33,12 @@
             <artifactId>onlab-nio</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-netty</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -50,15 +56,6 @@
         <dependency>
           <groupId>de.javakaffee</groupId>
           <artifactId>kryo-serializers</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>commons-pool</groupId>
-          <artifactId>commons-pool</artifactId>
-          <version>1.6</version>
         </dependency>
     </dependencies>
 

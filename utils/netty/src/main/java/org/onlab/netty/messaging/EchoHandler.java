@@ -1,9 +1,6 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import java.io.IOException;
-
-import org.onlab.onos.store.messaging.Message;
-import org.onlab.onos.store.messaging.MessageHandler;
 
 /**
  * Message handler that echos the message back to the sender.

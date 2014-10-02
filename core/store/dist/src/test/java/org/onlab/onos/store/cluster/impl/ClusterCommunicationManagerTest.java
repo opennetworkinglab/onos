@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.impl.OnosClusterCommunicationManager;
-import org.onlab.onos.store.messaging.impl.NettyMessagingService;
+import org.onlab.netty.NettyMessagingService;
 import org.onlab.packet.IpPrefix;
 
 import java.util.concurrent.CountDownLatch;

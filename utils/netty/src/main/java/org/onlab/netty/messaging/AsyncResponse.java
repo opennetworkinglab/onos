@@ -1,9 +1,7 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import org.onlab.onos.store.messaging.Response;
 
 /**
  * An asynchronous response.

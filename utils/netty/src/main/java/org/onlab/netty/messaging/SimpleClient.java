@@ -1,9 +1,6 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import java.util.concurrent.TimeUnit;
-
-import org.onlab.onos.store.messaging.Endpoint;
-import org.onlab.onos.store.messaging.Response;
 
 public final class SimpleClient {
     private SimpleClient() {}
