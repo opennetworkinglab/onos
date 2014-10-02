@@ -1,9 +1,8 @@
 package org.onlab.onos.net;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Map;
 import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default port implementation.
@@ -22,10 +21,8 @@ public class DefaultPort extends AbstractAnnotated implements Port {
      * @param isEnabled   indicator whether the port is up and active
      * @param annotations optional key/value annotations
      */
-    @SafeVarargs
     public DefaultPort(Element element, PortNumber number,
-                       boolean isEnabled,
-                       Map<String, String>... annotations) {
+                       boolean isEnabled, Annotations... annotations) {
         super(annotations);
         this.element = element;
         this.number = number;

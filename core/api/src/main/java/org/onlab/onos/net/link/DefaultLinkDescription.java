@@ -1,12 +1,15 @@
 package org.onlab.onos.net.link;
 
+import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.SparseAnnotations;
 
 /**
  * Default implementation of immutable link description entity.
  */
-public class DefaultLinkDescription implements LinkDescription {
+public class DefaultLinkDescription extends AbstractDescription
+        implements LinkDescription {
 
     private final ConnectPoint src;
     private final ConnectPoint dst;
@@ -18,8 +21,11 @@ public class DefaultLinkDescription implements LinkDescription {
      * @param src  link source
      * @param dst  link destination
      * @param type link type
+     * @param annotations optional key/value annotations
      */
-    public DefaultLinkDescription(ConnectPoint src, ConnectPoint dst, Link.Type type) {
+    public DefaultLinkDescription(ConnectPoint src, ConnectPoint dst,
+                                  Link.Type type, SparseAnnotations... annotations) {
+        super(annotations);
         this.src = src;
         this.dst = dst;
         this.type = type;

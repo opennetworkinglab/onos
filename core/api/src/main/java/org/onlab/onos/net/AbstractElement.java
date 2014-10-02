@@ -17,11 +17,13 @@ public class AbstractElement extends AbstractModel implements Element {
     /**
      * Creates a network element attributed to the specified provider.
      *
-     * @param providerId identity of the provider
-     * @param id         element identifier
+     * @param providerId  identity of the provider
+     * @param id          element identifier
+     * @param annotations optional key/value annotations
      */
-    protected AbstractElement(ProviderId providerId, ElementId id) {
-        super(providerId);
+    protected AbstractElement(ProviderId providerId, ElementId id,
+                              Annotations... annotations) {
+        super(providerId, annotations);
         this.id = id;
     }
 

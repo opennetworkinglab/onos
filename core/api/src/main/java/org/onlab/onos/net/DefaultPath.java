@@ -24,9 +24,11 @@ public class DefaultPath extends DefaultLink implements Path {
      * @param providerId provider identity
      * @param links      contiguous links that comprise the path
      * @param cost       unit-less path cost
+     * @param annotations optional key/value annotations
      */
-    public DefaultPath(ProviderId providerId, List<Link> links, double cost) {
-        super(providerId, source(links), destination(links), Type.INDIRECT);
+    public DefaultPath(ProviderId providerId, List<Link> links, double cost,
+                       Annotations... annotations) {
+        super(providerId, source(links), destination(links), Type.INDIRECT, annotations);
         this.links = ImmutableList.copyOf(links);
         this.cost = cost;
     }

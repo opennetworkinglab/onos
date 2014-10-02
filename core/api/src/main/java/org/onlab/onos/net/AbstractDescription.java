@@ -3,16 +3,16 @@ package org.onlab.onos.net;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Base abstraction of an annotated entity.
+ * Base implementation of an annotated model description.
  */
-public class AbstractAnnotated implements Annotated {
+public class AbstractDescription implements Annotated {
 
-    private static final Annotations EMPTY = DefaultAnnotations.builder().build();
+    private static final SparseAnnotations EMPTY = DefaultAnnotations.builder().build();
 
-    private final Annotations annotations;
+    private final SparseAnnotations annotations;
 
     // For serialization
-    protected AbstractAnnotated() {
+    protected AbstractDescription() {
         this.annotations = null;
     }
 
@@ -21,13 +21,13 @@ public class AbstractAnnotated implements Annotated {
      *
      * @param annotations optional key/value annotations map
      */
-    protected AbstractAnnotated(Annotations... annotations) {
+    protected AbstractDescription(SparseAnnotations... annotations) {
         checkArgument(annotations.length <= 1, "Only one set of annotations is expected");
         this.annotations = annotations.length == 1 ? annotations[0] : EMPTY;
     }
 
     @Override
-    public Annotations annotations() {
+    public SparseAnnotations annotations() {
         return annotations;
     }
 

@@ -6,6 +6,7 @@ import org.onlab.packet.IpPrefix;
 /**
  * Service for processing arp requests on behalf of applications.
  */
+// TODO: move to the peer host package
 public interface ProxyArpService {
 
     /**

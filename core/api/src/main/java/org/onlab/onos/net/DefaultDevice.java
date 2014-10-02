@@ -36,11 +36,12 @@ public class DefaultDevice extends AbstractElement implements Device {
      * @param hwVersion    device HW version
      * @param swVersion    device SW version
      * @param serialNumber device serial number
+     * @param annotations optional key/value annotations
      */
     public DefaultDevice(ProviderId providerId, DeviceId id, Type type,
                          String manufacturer, String hwVersion, String swVersion,
-                         String serialNumber) {
-        super(providerId, id);
+                         String serialNumber, Annotations... annotations) {
+        super(providerId, id, annotations);
         this.type = type;
         this.manufacturer = manufacturer;
         this.hwVersion = hwVersion;

@@ -2,18 +2,19 @@ package org.onlab.onos.net.topology;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.onlab.onos.net.AbstractAnnotated;
+import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.SparseAnnotations;
 
 import java.util.Map;
 
 /**
  * Default implementation of an immutable topology graph data carrier.
  */
-public class DefaultGraphDescription extends AbstractAnnotated
+public class DefaultGraphDescription extends AbstractDescription
         implements GraphDescription {
 
     private final long nanos;
@@ -32,10 +33,9 @@ public class DefaultGraphDescription extends AbstractAnnotated
      * @param links       collection of infrastructure links
      * @param annotations optional key/value annotations map
      */
-    @SafeVarargs
     public DefaultGraphDescription(long nanos, Iterable<Device> devices,
                                    Iterable<Link> links,
-                                   Map<String, String>... annotations) {
+                                   SparseAnnotations... annotations) {
         super(annotations);
         this.nanos = nanos;
         this.vertexes = buildVertexes(devices);

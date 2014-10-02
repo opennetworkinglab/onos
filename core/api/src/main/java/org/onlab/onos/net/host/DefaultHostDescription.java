@@ -1,14 +1,14 @@
 package org.onlab.onos.net.host;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.net.AbstractAnnotated;
+import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.HostLocation;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -16,7 +16,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Default implementation of an immutable host description.
  */
-public class DefaultHostDescription extends AbstractAnnotated
+public class DefaultHostDescription extends AbstractDescription
         implements HostDescription {
 
     private final MacAddress mac;
@@ -32,10 +32,9 @@ public class DefaultHostDescription extends AbstractAnnotated
      * @param location    host location
      * @param annotations optional key/value annotations map
      */
-    @SafeVarargs
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location,
-                                  Map<String, String>... annotations) {
+                                  SparseAnnotations... annotations) {
         this(mac, vlan, location, new HashSet<IpPrefix>(), annotations);
     }
 
@@ -48,10 +47,9 @@ public class DefaultHostDescription extends AbstractAnnotated
      * @param ips         of host IP addresses
      * @param annotations optional key/value annotations map
      */
-    @SafeVarargs
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location, Set<IpPrefix> ips,
-                                  Map<String, String>... annotations) {
+                                  SparseAnnotations... annotations) {
         super(annotations);
         this.mac = mac;
         this.vlan = vlan;

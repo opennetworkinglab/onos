@@ -22,10 +22,11 @@ public class DefaultLink extends AbstractModel implements Link {
      * @param src        link source
      * @param dst        link destination
      * @param type       link type
+     * @param annotations optional key/value annotations
      */
     public DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
-                       Type type) {
-        super(providerId);
+                       Type type, Annotations... annotations) {
+        super(providerId, annotations);
         this.src = src;
         this.dst = dst;
         this.type = type;

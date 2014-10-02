@@ -1,16 +1,16 @@
 package org.onlab.onos.net;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * A basic implementation of a Host.
@@ -22,12 +22,24 @@ public class DefaultHost extends AbstractElement implements Host {
     private final HostLocation location;
     private final Set<IpPrefix> ips;
 
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId provider identity
+     * @param id         host identifier
+     * @param mac        host MAC address
+     * @param vlan       host VLAN identifier
+     * @param location   host location
+     * @param ips        host IP addresses
+     * @param annotations optional key/value annotations
+     */
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
-            VlanId vlan, HostLocation loc, Set<IpPrefix> ips) {
-        super(providerId, id);
+                       VlanId vlan, HostLocation location, Set<IpPrefix> ips,
+                       Annotations... annotations) {
+        super(providerId, id, annotations);
         this.mac = mac;
         this.vlan = vlan;
-        this.location = loc;
+        this.location = location;
         this.ips = new HashSet<IpPrefix>(ips);
     }
 

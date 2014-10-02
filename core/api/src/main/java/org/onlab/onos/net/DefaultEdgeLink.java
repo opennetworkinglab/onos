@@ -20,11 +20,13 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
      * @param hostLocation location where host attaches to the network
      * @param isIngress    true to indicated host-to-network direction; false
      *                     for network-to-host direction
+     * @param annotations optional key/value annotations
      */
     public DefaultEdgeLink(ProviderId providerId, ConnectPoint hostPoint,
-                           HostLocation hostLocation, boolean isIngress) {
+                           HostLocation hostLocation, boolean isIngress,
+                           Annotations... annotations) {
         super(providerId, isIngress ? hostPoint : hostLocation,
-              isIngress ? hostLocation : hostPoint, Type.EDGE);
+              isIngress ? hostLocation : hostPoint, Type.EDGE, annotations);
         checkArgument(hostPoint.elementId() instanceof HostId,
                       "Host point does not refer to a host ID");
         this.hostId = (HostId) hostPoint.elementId();

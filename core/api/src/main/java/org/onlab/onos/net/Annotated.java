@@ -1,25 +1,15 @@
 package org.onlab.onos.net;
 
-import java.util.Set;
-
 /**
  * Represents an entity that carries arbitrary annotations.
  */
 public interface Annotated {
 
     /**
-     * Returns the set of annotation keys currently available.
+     * Returns the key/value annotations.
      *
-     * @return set of annotation keys
+     * @return key/value annotations
      */
-    Set<String> annotationKeys();
-
-    /**
-     * Returns the annotation value for the specified key.
-     *
-     * @param key annotation key
-     * @return annotation value; null if there is no annotation
-     */
-    String annotation(String key);
+    Annotations annotations();
 
 }

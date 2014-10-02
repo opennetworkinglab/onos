@@ -1,10 +1,6 @@
 package org.onlab.onos.store.serializers;
 
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-
+import de.javakaffee.kryoserializers.URISerializer;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -13,6 +9,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DefaultPort;
@@ -30,7 +27,10 @@ import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.javakaffee.kryoserializers.URISerializer;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Serialization service using Kryo.
@@ -66,6 +66,7 @@ public class KryoSerializationManager implements KryoSerializationService {
                           ControllerNode.State.class,
                           Device.Type.class,
 
+                          DefaultAnnotations.class,
                           DefaultControllerNode.class,
                           DefaultDevice.class,
                           MastershipRole.class,
