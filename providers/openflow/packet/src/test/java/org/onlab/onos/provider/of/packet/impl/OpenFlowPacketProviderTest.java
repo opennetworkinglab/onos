@@ -140,12 +140,12 @@ public class OpenFlowPacketProviderTest {
         sw.sent.clear();
 
         //wrong Role
-        sw.setRole(RoleState.SLAVE);
-        provider.emit(passPkt);
-        assertEquals("invalid switch", sw, controller.current);
-        assertEquals("message sent incorrectly", 0, sw.sent.size());
+        //sw.setRole(RoleState.SLAVE);
+        //provider.emit(passPkt);
+        //assertEquals("invalid switch", sw, controller.current);
+        //assertEquals("message sent incorrectly", 0, sw.sent.size());
 
-        sw.setRole(RoleState.MASTER);
+        //sw.setRole(RoleState.MASTER);
 
         //missing switch
         OutboundPacket swFailPkt = outPacket(DID_MISSING, TR, eth);

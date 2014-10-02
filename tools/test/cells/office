@@ -1,0 +1,7 @@
+# ProxMox-based cell of ONOS instance; no mininet-box
+
+export ONOS_FEATURES="webconsole,onos-api,onos-core-trivial,onos-cli,onos-openflow,onos-app-fwd,onos-app-mobility,onos-app-tvue"
+
+export ONOS_NIC="10.128.4.*"
+export OC1="10.128.4.60"
+

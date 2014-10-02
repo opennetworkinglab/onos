@@ -100,6 +100,7 @@ public class ReactiveForwarding {
                 context.block();
                 return;
             }
+
             HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
             // Do we know who this is for? If not, flood and bail.
@@ -112,7 +113,9 @@ public class ReactiveForwarding {
             // Are we on an edge switch that our destination is on? If so,
             // simply forward out to the destination and bail.
             if (pkt.receivedFrom().deviceId().equals(dst.location().deviceId())) {
-                installRule(context, dst.location().port());
+                if (!context.inPacket().receivedFrom().port().equals(dst.location().port())) {
+                    installRule(context, dst.location().port());
+                }
                 return;
             }
 
@@ -175,21 +178,24 @@ public class ReactiveForwarding {
         // We don't yet support bufferids in the flowservice so packet out first.
         packetOut(context, portNumber);
 
-        // Install the flow rule to handle this type of message from now on.
-        Ethernet inPkt = context.inPacket().parsed();
-        TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
-        builder.matchEthType(inPkt.getEtherType())
-        .matchEthSrc(inPkt.getSourceMAC())
-        .matchEthDst(inPkt.getDestinationMAC())
-        .matchInport(context.inPacket().receivedFrom().port());
+        if (context.inPacket().parsed().getEtherType() == Ethernet.TYPE_IPV4) {
 
-        TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
-        treat.setOutput(portNumber);
+            // Install the flow rule to handle this type of message from now on.
+            Ethernet inPkt = context.inPacket().parsed();
+            TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
+            builder.matchEthType(inPkt.getEtherType())
+            .matchEthSrc(inPkt.getSourceMAC())
+            .matchEthDst(inPkt.getDestinationMAC())
+            .matchInport(context.inPacket().receivedFrom().port());
 
-        FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                builder.build(), treat.build(), 0, appId);
+            TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
+            treat.setOutput(portNumber);
 
-        flowRuleService.applyFlowRules(f);
+            FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
+                    builder.build(), treat.build(), 0, appId);
+
+            flowRuleService.applyFlowRules(f);
+        }
     }
 
 }

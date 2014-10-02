@@ -28,7 +28,7 @@ import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
 /**
- * Manages inventory of topology snapshots using trivial in-memory
+ * TEMPORARY: Manages inventory of topology snapshots using distributed
  * structures implementation.
  */
 //FIXME: I LIE I AM NOT DISTRIBUTED

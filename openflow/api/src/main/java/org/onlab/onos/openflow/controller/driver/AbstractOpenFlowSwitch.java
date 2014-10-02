@@ -243,6 +243,8 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
                 if (role == RoleState.SLAVE || role == RoleState.EQUAL) {
                     this.role = role;
                 }
+            } else {
+                this.role = role;
             }
         } catch (IOException e) {
             log.error("Unable to write to switch {}.", this.dpid);

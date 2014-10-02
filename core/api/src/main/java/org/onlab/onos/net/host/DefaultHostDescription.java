@@ -1,38 +1,62 @@
 package org.onlab.onos.net.host;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import org.onlab.onos.net.AbstractAnnotated;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-public class DefaultHostDescription implements HostDescription {
+import static com.google.common.base.MoreObjects.toStringHelper;
+
+/**
+ * Default implementation of an immutable host description.
+ */
+public class DefaultHostDescription extends AbstractAnnotated
+        implements HostDescription {
 
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
     private final Set<IpPrefix> ips;
 
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param location    host location
+     * @param annotations optional key/value annotations map
+     */
+    @SafeVarargs
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
-            HostLocation loc) {
-        this.mac = mac;
-        this.vlan = vlan;
-        this.location = loc;
-        this.ips = new HashSet<IpPrefix>();
+                                  HostLocation location,
+                                  Map<String, String>... annotations) {
+        this(mac, vlan, location, new HashSet<IpPrefix>(), annotations);
     }
 
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param location    host location
+     * @param ips         of host IP addresses
+     * @param annotations optional key/value annotations map
+     */
+    @SafeVarargs
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
-            HostLocation loc, Set<IpPrefix> ips) {
+                                  HostLocation location, Set<IpPrefix> ips,
+                                  Map<String, String>... annotations) {
+        super(annotations);
         this.mac = mac;
         this.vlan = vlan;
-        this.location = loc;
-        this.ips = new HashSet<IpPrefix>(ips);
+        this.location = location;
+        this.ips = new HashSet<>(ips);
     }
 
     @Override

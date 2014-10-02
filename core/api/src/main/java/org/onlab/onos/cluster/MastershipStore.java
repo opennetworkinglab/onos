@@ -64,4 +64,14 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @return the current master's ID and the term value for device, or null
      */
     MastershipTerm getTermFor(DeviceId deviceId);
+
+    /**
+     * Revokes a controller instance's mastership over a device and hands
+     * over mastership to another controller instance.
+     *
+     * @param nodeId   the controller instance identifier
+     * @param deviceId device to revoke mastership for
+     * @return a mastership event
+     */
+    MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId);
 }

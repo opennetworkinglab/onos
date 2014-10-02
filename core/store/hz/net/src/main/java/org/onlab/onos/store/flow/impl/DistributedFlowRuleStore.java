@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 /**
- * Manages inventory of flow rules using trivial in-memory implementation.
+ * TEMPORARY: Manages inventory of flow rules using distributed store implementation.
  */
 //FIXME: I LIE I AM NOT DISTRIBUTED
 @Component(immediate = true)

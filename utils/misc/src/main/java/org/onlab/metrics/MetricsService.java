@@ -1,0 +1,143 @@
+package org.onlab.metrics;
+
+import java.util.Map;
+
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.Timer;
+
+/**
+ * Metrics Service to collect metrics.
+ */
+interface MetricsService {
+
+    /**
+     * Registers a component.
+     *
+     * @param name name of the Component to register
+     * @return MetricsComponent object that can be used to create Metrics.
+     */
+    MetricsComponent registerComponent(String name);
+
+    /**
+     * Creates a Counter metric.
+     *
+     * @param component component the Counter is defined in
+     * @param feature feature the Counter is defined in
+     * @param metricName local name of the metric
+     * @return the created Counter Meteric
+     */
+    Counter createCounter(MetricsComponent component,
+            MetricsFeature feature,
+            String metricName);
+
+    /**
+     * Creates a Histogram metric.
+     *
+     * @param component component the Histogram is defined in
+     * @param feature feature the Histogram is defined in
+     * @param metricName local name of the metric
+     * @return the created Histogram Metric
+     */
+    Histogram createHistogram(MetricsComponent component,
+            MetricsFeature feature,
+            String metricName);
+
+    /**
+     * Creates a Timer metric.
+     *
+     * @param component component the Timer is defined in
+     * @param feature feature the Timer is defined in
+     * @param metricName local name of the metric
+     * @return the created Timer Metric
+     */
+    Timer createTimer(MetricsComponent component,
+            MetricsFeature feature,
+            String metricName);
+
+    /**
+     * Creates a Meter metric.
+     *
+     * @param component component the Meter is defined in
+     * @param feature feature the Meter is defined in
+     * @param metricName local name of the metric
+     * @return the created Meter Metric
+     */
+    Meter createMeter(MetricsComponent component,
+            MetricsFeature feature,
+            String metricName);
+
+    /**
+     * Registers an already created Metric.  This is used for situation where a
+     * caller needs to allocate its own Metric, but still register it with the
+     * system.
+     *
+     * @param <T> Metric type
+     * @param component component the Metric is defined in
+     * @param feature feature the Metric is defined in
+     * @param metricName local name of the metric
+     * @param metric Metric to register
+     * @return the registered Metric
+     */
+     <T extends Metric> T registerMetric(
+             MetricsComponent component,
+             MetricsFeature feature,
+             String metricName,
+             T metric);
+
+    /**
+     * Fetches the existing Timers.
+     *
+     * @param filter filter to use to select Timers
+     * @return a map of the Timers that match the filter, with the key as the
+     *         name String to the Timer.
+     */
+     Map<String, Timer> getTimers(MetricFilter filter);
+
+    /**
+     * Fetches the existing Gauges.
+     *
+     * @param filter filter to use to select Gauges
+     * @return a map of the Gauges that match the filter, with the key as the
+     *         name String to the Gauge.
+     */
+     Map<String, Gauge> getGauges(MetricFilter filter);
+
+    /**
+     * Fetches the existing Counters.
+     *
+     * @param filter filter to use to select Counters
+     * @return a map of the Counters that match the filter, with the key as the
+     *         name String to the Counter.
+     */
+     Map<String, Counter> getCounters(MetricFilter filter);
+
+    /**
+     * Fetches the existing Meters.
+     *
+     * @param filter filter to use to select Meters
+     * @return a map of the Meters that match the filter, with the key as the
+     *         name String to the Meter.
+     */
+     Map<String, Meter> getMeters(MetricFilter filter);
+
+    /**
+     * Fetches the existing Histograms.
+     *
+     * @param filter filter to use to select Histograms
+     * @return a map of the Histograms that match the filter, with the key as the
+     *         name String to the Histogram.
+     */
+     Map<String, Histogram> getHistograms(MetricFilter filter);
+    /**
+     * Removes all Metrics that match a given filter.
+     *
+     * @param filter filter to use to select the Metrics to remove.
+     */
+     void removeMatching(MetricFilter filter);
+
+}

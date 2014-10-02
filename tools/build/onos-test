@@ -9,5 +9,10 @@
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 onos-package
-for node in $nodes; do (printf "%s: %s\n" "$node" "`onos-install -f $node`")& done
+for node in $nodes; do onos-install -f $node 1>/dev/null & done
+
+# Wait for shutdown before waiting for restart
+sleep 3
+
 for node in $nodes; do onos-wait-for-start $node; done
+for node in $nodes; do onos-check-logs $node; done

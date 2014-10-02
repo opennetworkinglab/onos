@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.onos.openflow.controller.RoleState;
 import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriverFactory;
@@ -59,6 +60,11 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
         log.warn("DriverManager could not identify switch desc: {}. "
                 + "Assigning AbstractOpenFlowSwich", desc);
         return new AbstractOpenFlowSwitch(dpid, desc) {
+
+            @Override
+            public void setRole(RoleState state) {
+                this.role = RoleState.MASTER;
+            }
 
             @Override
             public void write(List<OFMessage> msgs) {

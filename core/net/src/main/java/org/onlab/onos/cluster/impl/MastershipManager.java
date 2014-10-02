@@ -11,6 +11,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterEvent;
+import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipAdminService;
 import org.onlab.onos.cluster.MastershipEvent;
@@ -52,9 +54,12 @@ implements MastershipService, MastershipAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    private ClusterEventListener clusterListener = new InternalClusterEventListener();
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
+        clusterService.addListener(clusterListener);
         store.setDelegate(delegate);
         log.info("Started");
     }
@@ -62,6 +67,7 @@ implements MastershipService, MastershipAdminService {
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(MastershipEvent.class);
+        clusterService.removeListener(clusterListener);
         store.unsetDelegate(delegate);
         log.info("Stopped");
     }
@@ -71,12 +77,16 @@ implements MastershipService, MastershipAdminService {
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
-        //TODO figure out appropriate action for non-MASTER roles, if we even set those
+
+        MastershipEvent event = null;
         if (role.equals(MastershipRole.MASTER)) {
-            MastershipEvent event = store.setMaster(nodeId, deviceId);
-            if (event != null) {
-                post(event);
-            }
+            event = store.setMaster(nodeId, deviceId);
+        } else {
+            event = store.unsetMaster(nodeId, deviceId);
+        }
+
+        if (event != null) {
+            post(event);
         }
     }
 
@@ -88,8 +98,16 @@ implements MastershipService, MastershipAdminService {
 
     @Override
     public void relinquishMastership(DeviceId deviceId) {
-        checkNotNull(deviceId, DEVICE_ID_NULL);
-        // FIXME: add method to store to give up mastership and trigger new master selection process
+        MastershipRole role = getLocalRole(deviceId);
+        if (!role.equals(MastershipRole.MASTER)) {
+            return;
+        }
+
+        MastershipEvent event = store.unsetMaster(
+                clusterService.getLocalNode().id(), deviceId);
+        if (event != null) {
+            post(event);
+        }
     }
 
     @Override
@@ -142,6 +160,26 @@ implements MastershipService, MastershipAdminService {
         @Override
         public MastershipTerm getMastershipTerm(DeviceId deviceId) {
             return store.getTermFor(deviceId);
+        }
+
+    }
+
+    //callback for reacting to cluster events
+    private class InternalClusterEventListener implements ClusterEventListener {
+
+        @Override
+        public void event(ClusterEvent event) {
+            switch (event.type()) {
+                //FIXME: worry about addition when the time comes
+                case INSTANCE_ADDED:
+                case INSTANCE_ACTIVATED:
+                     break;
+                case INSTANCE_REMOVED:
+                case INSTANCE_DEACTIVATED:
+                    break;
+                default:
+                    log.warn("unknown cluster event {}", event);
+            }
         }
 
     }

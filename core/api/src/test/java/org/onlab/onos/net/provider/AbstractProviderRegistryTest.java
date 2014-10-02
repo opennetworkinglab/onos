@@ -35,7 +35,7 @@ public class AbstractProviderRegistryTest {
         assertThat("provider not found", registry.getProviders().contains(fooId));
         assertEquals("incorrect provider", psFoo.provider(), pFoo);
 
-        ProviderId barId = new ProviderId("of", "bar");
+        ProviderId barId = new ProviderId("snmp", "bar");
         TestProvider pBar = new TestProvider(barId);
         TestProviderService psBar = registry.register(pBar);
         assertEquals("incorrect provider count", 2, registry.getProviders().size());
@@ -49,12 +49,31 @@ public class AbstractProviderRegistryTest {
         assertThat("provider not found", registry.getProviders().contains(barId));
     }
 
+    @Test
+    public void ancillaryProviders() {
+        TestProviderRegistry registry = new TestProviderRegistry();
+        TestProvider pFoo = new TestProvider(new ProviderId("of", "foo"));
+        TestProvider pBar = new TestProvider(new ProviderId("of", "bar", true));
+        registry.register(pFoo);
+        registry.register(pBar);
+        assertEquals("incorrect provider count", 2, registry.getProviders().size());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void duplicateRegistration() {
         TestProviderRegistry registry = new TestProviderRegistry();
         TestProvider pFoo = new TestProvider(new ProviderId("of", "foo"));
         registry.register(pFoo);
         registry.register(pFoo);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void duplicateSchemeRegistration() {
+        TestProviderRegistry registry = new TestProviderRegistry();
+        TestProvider pFoo = new TestProvider(new ProviderId("of", "foo"));
+        TestProvider pBar = new TestProvider(new ProviderId("of", "bar"));
+        registry.register(pFoo);
+        registry.register(pBar);
     }
 
     @Test

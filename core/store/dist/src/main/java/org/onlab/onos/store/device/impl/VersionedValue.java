@@ -1,5 +1,7 @@
 package org.onlab.onos.store.device.impl;
 
+import java.util.Objects;
+
 import org.onlab.onos.store.Timestamp;
 
 /**
@@ -41,5 +43,36 @@ public class VersionedValue<T> {
      */
     public Timestamp timestamp() {
         return timestamp;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entity, timestamp, isUp);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        VersionedValue<T> that = (VersionedValue<T>) obj;
+        return Objects.equals(this.entity, that.entity) &&
+                Objects.equals(this.timestamp, that.timestamp) &&
+                Objects.equals(this.isUp, that.isUp);
+    }
+
+    // Default constructor for serializer
+    protected VersionedValue() {
+        this.entity = null;
+        this.isUp = false;
+        this.timestamp = null;
     }
 }

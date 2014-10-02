@@ -1,8 +1,6 @@
 # ProxMox-based cell of ONOS instances 1,2 & ONOS mininet box
-. $ONOS_ROOT/tools/test/cells/.reset
 
 export ONOS_NIC="10.1.9.*"
-
 export OC1="10.1.9.94"
 export OC2="10.1.9.82"
 

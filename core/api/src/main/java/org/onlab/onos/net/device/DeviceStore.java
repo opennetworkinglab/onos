@@ -48,6 +48,7 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
                                      DeviceDescription deviceDescription);
 
+    // TODO: We may need to enforce that ancillary cannot interfere this state
     /**
      * Removes the specified infrastructure device.
      *
@@ -60,22 +61,24 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * Updates the ports of the specified infrastructure device using the given
      * list of port descriptions. The list is assumed to be comprehensive.
      *
+     * @param providerId        provider identifier
      * @param deviceId         device identifier
      * @param portDescriptions list of port descriptions
      * @return ready to send events describing what occurred; empty list if no change
      */
-    List<DeviceEvent> updatePorts(DeviceId deviceId,
+    List<DeviceEvent> updatePorts(ProviderId providerId, DeviceId deviceId,
                                   List<PortDescription> portDescriptions);
 
     /**
      * Updates the port status of the specified infrastructure device using the
      * given port description.
      *
+     * @param providerId        provider identifier
      * @param deviceId        device identifier
      * @param portDescription port description
      * @return ready to send event describing what occurred; null if no change
      */
-    DeviceEvent updatePortStatus(DeviceId deviceId,
+    DeviceEvent updatePortStatus(ProviderId providerId, DeviceId deviceId,
                                  PortDescription portDescription);
 
     /**
