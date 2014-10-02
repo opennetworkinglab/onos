@@ -1,5 +1,6 @@
 package org.onlab.onos.net;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -71,9 +72,33 @@ public final class DefaultAnnotations implements SparseAnnotations {
         return new DefaultAnnotations(merged);
     }
 
+    /**
+     * Convert Annotations to DefaultAnnotations if needed and merges.
+     *
+     * @see #merge(DefaultAnnotations, SparseAnnotations)
+     *
+     * @param annotations       base annotations
+     * @param sparseAnnotations additional sparse annotations
+     * @return combined annotations or the original base annotations if there
+     * are not additional annotations
+     */
+    public static DefaultAnnotations merge(Annotations annotations,
+                                    SparseAnnotations sparseAnnotations) {
+        if (annotations instanceof DefaultAnnotations) {
+            return merge((DefaultAnnotations) annotations, sparseAnnotations);
+        }
+
+        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+        for (String key : annotations.keys()) {
+            builder.set(key, annotations.value(key));
+        }
+        return merge(builder.build(), sparseAnnotations);
+    }
+
     @Override
     public Set<String> keys() {
-        return map.keySet();
+        // TODO: unmodifiable to be removed after switching to ImmutableMap;
+        return Collections.unmodifiableSet(map.keySet());
     }
 
     @Override

@@ -9,6 +9,8 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
@@ -16,6 +18,9 @@ import org.onlab.onos.net.Device.Type;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.SparseAnnotations;
+import org.onlab.onos.net.device.DefaultDeviceDescription;
+import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
@@ -45,6 +50,7 @@ import static com.google.common.base.Predicates.notNull;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
+import static org.onlab.onos.net.DefaultAnnotations.merge;
 
 // TODO: synchronization should be done in more fine-grained manner.
 /**
@@ -112,8 +118,8 @@ public class SimpleDeviceStore
             = createIfAbsentUnchecked(providerDescs, providerId,
                     new InitDeviceDescs(deviceDescription));
 
+        // update description
         descs.putDeviceDesc(deviceDescription);
-
         Device newDevice = composeDevice(deviceId, providerDescs);
 
         if (oldDevice == null) {
@@ -144,7 +150,8 @@ public class SimpleDeviceStore
 
         // We allow only certain attributes to trigger update
         if (!Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
-            !Objects.equals(oldDevice.swVersion(), newDevice.swVersion())) {
+            !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
+            !isAnnotationsEqual(oldDevice.annotations(), newDevice.annotations())) {
 
             synchronized (this) {
                 devices.replace(newDevice.id(), oldDevice, newDevice);
@@ -203,7 +210,7 @@ public class SimpleDeviceStore
                 PortNumber number = portDescription.portNumber();
                 Port oldPort = ports.get(number);
                 // update description
-                descs.putPortDesc(number, portDescription);
+                descs.putPortDesc(portDescription);
                 Port newPort = composePort(device, number, descsMap);
 
                 events.add(oldPort == null ?
@@ -225,12 +232,14 @@ public class SimpleDeviceStore
         return new DeviceEvent(PORT_ADDED, device, newPort);
     }
 
-    // CHecks if the specified port requires update and if so, it replaces the
+    // Checks if the specified port requires update and if so, it replaces the
     // existing entry in the map and returns corresponding event.
     private DeviceEvent updatePort(Device device, Port oldPort,
                                    Port newPort,
                                    ConcurrentMap<PortNumber, Port> ports) {
-        if (oldPort.isEnabled() != newPort.isEnabled()) {
+        if (oldPort.isEnabled() != newPort.isEnabled() ||
+            !isAnnotationsEqual(oldPort.annotations(), newPort.annotations())) {
+
             ports.put(oldPort.number(), newPort);
             return new DeviceEvent(PORT_UPDATED, device, newPort);
         }
@@ -272,17 +281,17 @@ public class SimpleDeviceStore
         checkArgument(descsMap != null, DEVICE_NOT_FOUND, deviceId);
 
         DeviceDescriptions descs = descsMap.get(providerId);
+        // assuming all providers must to give DeviceDescription
         checkArgument(descs != null,
                 "Device description for Device ID %s from Provider %s was not found",
                 deviceId, providerId);
 
-        // TODO: implement multi-provider
         synchronized (this) {
             ConcurrentMap<PortNumber, Port> ports = getPortMap(deviceId);
             final PortNumber number = portDescription.portNumber();
             Port oldPort = ports.get(number);
             // update description
-            descs.putPortDesc(number, portDescription);
+            descs.putPortDesc(portDescription);
             Port newPort = composePort(device, number, descsMap);
             if (oldPort == null) {
                 return createPort(device, newPort, ports);
@@ -321,6 +330,26 @@ public class SimpleDeviceStore
         }
     }
 
+    private static boolean isAnnotationsEqual(Annotations lhs, Annotations rhs) {
+        if (lhs == rhs) {
+            return true;
+        }
+        if (lhs == null || rhs == null) {
+            return false;
+        }
+
+        if (!lhs.keys().equals(rhs.keys())) {
+            return false;
+        }
+
+        for (String key : lhs.keys()) {
+            if (!lhs.value(key).equals(rhs.value(key))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Returns a Device, merging description given from multiple Providers.
      *
@@ -336,46 +365,67 @@ public class SimpleDeviceStore
         ProviderId primary = pickPrimaryPID(providerDescs);
 
         DeviceDescriptions desc = providerDescs.get(primary);
+
+        // base
         Type type = desc.getDeviceDesc().type();
         String manufacturer = desc.getDeviceDesc().manufacturer();
         String hwVersion = desc.getDeviceDesc().hwVersion();
         String swVersion = desc.getDeviceDesc().swVersion();
         String serialNumber = desc.getDeviceDesc().serialNumber();
+        DefaultAnnotations annotations = DefaultAnnotations.builder().build();
+        annotations = merge(annotations, desc.getDeviceDesc().annotations());
 
         for (Entry<ProviderId, DeviceDescriptions> e : providerDescs.entrySet()) {
             if (e.getKey().equals(primary)) {
                 continue;
             }
-            // FIXME: implement attribute merging once we have K-V attributes
+            // TODO: should keep track of Description timestamp
+            // and only merge conflicting keys when timestamp is newer
+            // Currently assuming there will never be a key conflict between
+            // providers
+
+            // annotation merging. not so efficient, should revisit later
+            annotations = merge(annotations, e.getValue().getDeviceDesc().annotations());
         }
 
-        return new DefaultDevice(primary, deviceId , type, manufacturer, hwVersion, swVersion, serialNumber);
+        return new DefaultDevice(primary, deviceId , type, manufacturer,
+                            hwVersion, swVersion, serialNumber, annotations);
     }
 
-    // probably want composePorts
+    // probably want composePort"s" also
     private Port composePort(Device device, PortNumber number,
                 ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs) {
 
         ProviderId primary = pickPrimaryPID(providerDescs);
         DeviceDescriptions primDescs = providerDescs.get(primary);
+        // if no primary, assume not enabled
+        // TODO: revisit this default port enabled/disabled behavior
+        boolean isEnabled = false;
+        DefaultAnnotations annotations = DefaultAnnotations.builder().build();
+
         final PortDescription portDesc = primDescs.getPortDesc(number);
-        boolean isEnabled;
         if (portDesc != null) {
             isEnabled = portDesc.isEnabled();
-        } else {
-            // if no primary, assume not enabled
-            // TODO: revisit this port enabled/disabled behavior
-            isEnabled = false;
+            annotations = merge(annotations, portDesc.annotations());
         }
 
         for (Entry<ProviderId, DeviceDescriptions> e : providerDescs.entrySet()) {
             if (e.getKey().equals(primary)) {
                 continue;
             }
-            // FIXME: implement attribute merging once we have K-V attributes
+            // TODO: should keep track of Description timestamp
+            // and only merge conflicting keys when timestamp is newer
+            // Currently assuming there will never be a key conflict between
+            // providers
+
+            // annotation merging. not so efficient, should revisit later
+            final PortDescription otherPortDesc = e.getValue().getPortDesc(number);
+            if (otherPortDesc != null) {
+                annotations = merge(annotations, otherPortDesc.annotations());
+            }
         }
 
-        return new DefaultPort(device, number, isEnabled);
+        return new DefaultPort(device, number, isEnabled, annotations);
     }
 
     /**
@@ -428,7 +478,7 @@ public class SimpleDeviceStore
         private final ConcurrentMap<PortNumber, PortDescription> portDescs;
 
         public DeviceDescriptions(DeviceDescription desc) {
-            this.deviceDesc = new AtomicReference<>(desc);
+            this.deviceDesc = new AtomicReference<>(checkNotNull(desc));
             this.portDescs = new ConcurrentHashMap<>();
         }
 
@@ -444,12 +494,38 @@ public class SimpleDeviceStore
             return Collections.unmodifiableCollection(portDescs.values());
         }
 
-        public DeviceDescription putDeviceDesc(DeviceDescription newDesc) {
-            return deviceDesc.getAndSet(newDesc);
+        /**
+         * Puts DeviceDescription, merging annotations as necessary.
+         *
+         * @param newDesc new DeviceDescription
+         * @return previous DeviceDescription
+         */
+        public synchronized DeviceDescription putDeviceDesc(DeviceDescription newDesc) {
+            DeviceDescription oldOne = deviceDesc.get();
+            DeviceDescription newOne = newDesc;
+            if (oldOne != null) {
+                SparseAnnotations merged = merge(oldOne.annotations(),
+                                                 newDesc.annotations());
+                newOne = new DefaultDeviceDescription(newOne, merged);
+            }
+            return deviceDesc.getAndSet(newOne);
         }
 
-        public PortDescription putPortDesc(PortNumber number, PortDescription newDesc) {
-            return portDescs.put(number, newDesc);
+        /**
+         * Puts PortDescription, merging annotations as necessary.
+         *
+         * @param newDesc new PortDescription
+         * @return previous PortDescription
+         */
+        public synchronized PortDescription putPortDesc(PortDescription newDesc) {
+            PortDescription oldOne = portDescs.get(newDesc.portNumber());
+            PortDescription newOne = newDesc;
+            if (oldOne != null) {
+                SparseAnnotations merged = merge(oldOne.annotations(),
+                                                 newDesc.annotations());
+                newOne = new DefaultPortDescription(newOne, merged);
+            }
+            return portDescs.put(newOne.portNumber(), newOne);
         }
     }
 }

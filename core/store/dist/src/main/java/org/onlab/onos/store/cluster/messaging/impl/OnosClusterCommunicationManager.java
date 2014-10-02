@@ -23,10 +23,10 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.messaging.Endpoint;
-import org.onlab.onos.store.messaging.Message;
-import org.onlab.onos.store.messaging.MessageHandler;
-import org.onlab.onos.store.messaging.MessagingService;
+import org.onlab.netty.Endpoint;
+import org.onlab.netty.Message;
+import org.onlab.netty.MessageHandler;
+import org.onlab.netty.MessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
