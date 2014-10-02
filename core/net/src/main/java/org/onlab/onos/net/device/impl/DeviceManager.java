@@ -200,7 +200,7 @@ public class DeviceManager
             // process.
             if (event != null) {
                 log.info("Device {} connected", deviceId);
-                mastershipService.requestRoleFor(deviceId);
+                //mastershipService.requestRoleFor(deviceId);
                 provider().roleChanged(event.subject(),
                         mastershipService.requestRoleFor(deviceId));
                 post(event);
