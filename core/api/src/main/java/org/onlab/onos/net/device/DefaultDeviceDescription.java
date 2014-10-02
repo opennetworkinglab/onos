@@ -1,6 +1,9 @@
 package org.onlab.onos.net.device;
 
+import org.onlab.onos.net.AbstractAnnotated;
+
 import java.net.URI;
+import java.util.Map;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -9,7 +12,8 @@ import static org.onlab.onos.net.Device.Type;
 /**
  * Default implementation of immutable device description entity.
  */
-public class DefaultDeviceDescription implements DeviceDescription {
+public class DefaultDeviceDescription extends AbstractAnnotated
+        implements DeviceDescription {
     private final URI uri;
     private final Type type;
     private final String manufacturer;
@@ -26,10 +30,14 @@ public class DefaultDeviceDescription implements DeviceDescription {
      * @param hwVersion    device HW version
      * @param swVersion    device SW version
      * @param serialNumber device serial number
+     * @param annotations  optional key/value annotations map
      */
+    @SafeVarargs
     public DefaultDeviceDescription(URI uri, Type type, String manufacturer,
                                     String hwVersion, String swVersion,
-                                    String serialNumber) {
+                                    String serialNumber,
+                                    Map<String, String>... annotations) {
+        super(annotations);
         this.uri = checkNotNull(uri, "Device URI cannot be null");
         this.type = checkNotNull(type, "Device type cannot be null");
         this.manufacturer = manufacturer;

@@ -2,6 +2,7 @@ package org.onlab.onos.net.topology;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.onlab.onos.net.AbstractAnnotated;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -12,7 +13,8 @@ import java.util.Map;
 /**
  * Default implementation of an immutable topology graph data carrier.
  */
-public class DefaultGraphDescription implements GraphDescription {
+public class DefaultGraphDescription extends AbstractAnnotated
+        implements GraphDescription {
 
     private final long nanos;
     private final ImmutableSet<TopologyVertex> vertexes;
@@ -25,11 +27,16 @@ public class DefaultGraphDescription implements GraphDescription {
      * Creates a minimal topology graph description to allow core to construct
      * and process the topology graph.
      *
-     * @param nanos   time in nanos of when the topology description was created
-     * @param devices collection of infrastructure devices
-     * @param links   collection of infrastructure links
+     * @param nanos       time in nanos of when the topology description was created
+     * @param devices     collection of infrastructure devices
+     * @param links       collection of infrastructure links
+     * @param annotations optional key/value annotations map
      */
-    public DefaultGraphDescription(long nanos, Iterable<Device> devices, Iterable<Link> links) {
+    @SafeVarargs
+    public DefaultGraphDescription(long nanos, Iterable<Device> devices,
+                                   Iterable<Link> links,
+                                   Map<String, String>... annotations) {
+        super(annotations);
         this.nanos = nanos;
         this.vertexes = buildVertexes(devices);
         this.edges = buildEdges(links);
