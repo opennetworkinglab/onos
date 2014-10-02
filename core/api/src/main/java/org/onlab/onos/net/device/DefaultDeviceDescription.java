@@ -45,6 +45,18 @@ public class DefaultDeviceDescription extends AbstractDescription
         this.serialNumber = serialNumber;
     }
 
+    /**
+     * Creates a device description using the supplied information.
+     * @param base DeviceDescription to basic information
+     * @param annotations Annotations to use.
+     */
+    public DefaultDeviceDescription(DeviceDescription base,
+                                    SparseAnnotations... annotations) {
+        this(base.deviceURI(), base.type(), base.manufacturer(),
+             base.hwVersion(), base.swVersion(), base.serialNumber(),
+             annotations);
+    }
+
     @Override
     public URI deviceURI() {
         return uri;

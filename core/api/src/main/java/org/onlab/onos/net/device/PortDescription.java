@@ -1,11 +1,12 @@
 package org.onlab.onos.net.device;
 
+import org.onlab.onos.net.Description;
 import org.onlab.onos.net.PortNumber;
 
 /**
  * Information about a port.
  */
-public interface PortDescription {
+public interface PortDescription extends Description {
 
     // TODO: possibly relocate this to a common ground so that this can also used by host tracking if required
 
