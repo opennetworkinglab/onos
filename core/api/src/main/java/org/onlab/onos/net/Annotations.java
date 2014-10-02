@@ -3,7 +3,7 @@ package org.onlab.onos.net;
 import java.util.Set;
 
 /**
- * Represents an set of simply key/value string annotations.
+ * Represents an set of simple key/value string annotations.
  */
 public interface Annotations {
 

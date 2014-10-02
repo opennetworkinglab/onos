@@ -3,7 +3,8 @@ package org.onlab.onos.net;
 import java.util.Set;
 
 /**
- * Represents an set of simply key/value string annotations.
+ * Represents an set of sparse key/value string annotations capable of carrying
+ * annotation keys tagged for removal.
  */
 public interface SparseAnnotations extends Annotations {
 
