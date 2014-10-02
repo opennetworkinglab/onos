@@ -59,6 +59,14 @@ interface MetricsService {
             MetricsFeature feature,
             String metricName);
 
+    /**
+     * Creates a Meter metric.
+     *
+     * @param component component the Meter is defined in
+     * @param feature feature the Meter is defined in
+     * @param metricName local name of the metric
+     * @return the created Meter Metric
+     */
     Meter createMeter(MetricsComponent component,
             MetricsFeature feature,
             String metricName);
