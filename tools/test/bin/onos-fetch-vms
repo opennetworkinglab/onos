@@ -1,0 +1,11 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Remotely fetches the ONOS test VMs from a local share into ~/Downloads.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+mkdir -p /tmp/onos
+mount -t smbfs smb://guest:@10.254.1.15/onos /tmp/onos
+cp /tmp/onos/*.ova ~/Downloads
