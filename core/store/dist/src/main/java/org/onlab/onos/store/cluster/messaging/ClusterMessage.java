@@ -1,24 +1,35 @@
 package org.onlab.onos.store.cluster.messaging;
 
-import org.onlab.nio.AbstractMessage;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.onos.cluster.NodeId;
 
 /**
  * Base message for cluster-wide communications.
  */
-public abstract class ClusterMessage extends AbstractMessage {
+public class ClusterMessage {
 
+    private final NodeId sender;
     private final MessageSubject subject;
+    private final Object payload;
 
     /**
      * Creates a cluster message.
      *
      * @param subject message subject
      */
-    protected ClusterMessage(MessageSubject subject) {
+    public ClusterMessage(NodeId sender, MessageSubject subject, Object payload) {
+        this.sender = sender;
         this.subject = subject;
+        this.payload = payload;
     }
+
+    /**
+     * Returns the id of the controller sending this message.
+     *
+     * @return message sender id.
+     */
+     public NodeId sender() {
+         return sender;
+     }
 
     /**
      * Returns the message subject indicator.
@@ -29,9 +40,12 @@ public abstract class ClusterMessage extends AbstractMessage {
         return subject;
     }
 
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("subject", subject).add("length", length).toString();
+    /**
+     * Returns the message payload.
+     *
+     * @return message payload.
+     */
+    public Object payload() {
+        return payload;
     }
-
 }

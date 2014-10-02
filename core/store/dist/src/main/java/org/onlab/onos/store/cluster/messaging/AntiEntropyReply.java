@@ -1,7 +1,5 @@
 package org.onlab.onos.store.cluster.messaging;
 
-import static org.onlab.onos.store.cluster.messaging.MessageSubject.AE_REPLY;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -18,7 +16,7 @@ import com.google.common.collect.ImmutableSet;
  * Suggest to the sender about the more up-to-date data this node has,
  * and request for more recent data that the receiver has.
  */
-public class AntiEntropyReply<ID, V extends VersionedValue<?>> extends ClusterMessage {
+public class AntiEntropyReply<ID, V extends VersionedValue<?>> {
 
     private final NodeId sender;
     private final ImmutableMap<ID, V> suggestion;
@@ -34,7 +32,6 @@ public class AntiEntropyReply<ID, V extends VersionedValue<?>> extends ClusterMe
     public AntiEntropyReply(NodeId sender,
                             Map<ID, V> suggestion,
                             Set<ID> request) {
-        super(AE_REPLY);
         this.sender = sender;
         this.suggestion = ImmutableMap.copyOf(suggestion);
         this.request = ImmutableSet.copyOf(request);
@@ -74,7 +71,6 @@ public class AntiEntropyReply<ID, V extends VersionedValue<?>> extends ClusterMe
 
     // Default constructor for serializer
     protected AntiEntropyReply() {
-        super(AE_REPLY);
         this.sender = null;
         this.suggestion = null;
         this.request = null;

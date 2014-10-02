@@ -1,7 +1,5 @@
 package org.onlab.onos.store.cluster.messaging;
 
-import java.nio.ByteBuffer;
-
 /**
  * Service for encoding &amp; decoding intra-cluster messages.
  */
@@ -13,7 +11,7 @@ public interface SerializationService {
      * @param buffer byte buffer with message(s)
      * @return parsed message
      */
-    ClusterMessage decode(ByteBuffer buffer);
+    Object decode(byte[] data);
 
     /**
      * Encodes the specified message into the given byte buffer.
@@ -21,6 +19,6 @@ public interface SerializationService {
      * @param message message to be encoded
      * @param buffer byte buffer to receive the message data
      */
-    void encode(ClusterMessage message, ByteBuffer buffer);
+    byte[] encode(Object message);
 
 }

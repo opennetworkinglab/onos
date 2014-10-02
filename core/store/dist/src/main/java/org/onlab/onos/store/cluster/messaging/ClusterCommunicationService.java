@@ -1,8 +1,9 @@
 package org.onlab.onos.store.cluster.messaging;
 
-import org.onlab.onos.cluster.NodeId;
-
+import java.io.IOException;
 import java.util.Set;
+
+import org.onlab.onos.cluster.NodeId;
 
 /**
  * Service for assisting communications between controller cluster nodes.
@@ -10,23 +11,29 @@ import java.util.Set;
 public interface ClusterCommunicationService {
 
     /**
-     * Sends a message to all controller nodes.
+     * Broadcast a message to all controller nodes.
      *
      * @param message  message to send
-     * @return true if the message was sent sucessfully to all nodes; false
-     * if there is no stream or if there was an error for some node
+     * @return true if the message was sent successfully to all nodes; false otherwise.
      */
-    boolean send(ClusterMessage message);
+    boolean broadcast(ClusterMessage message) throws IOException;
 
     /**
      * Sends a message to the specified controller node.
      *
      * @param message  message to send
      * @param toNodeId node identifier
-     * @return true if the message was sent sucessfully; false if there is
-     * no stream or if there was an error
+     * @return true if the message was sent successfully; false otherwise.
      */
-    boolean send(ClusterMessage message, NodeId toNodeId);
+    boolean unicast(ClusterMessage message, NodeId toNodeId) throws IOException;
+
+    /**
+     * Multicast a message to a set of controller nodes.
+     *
+     * @param message  message to send
+     * @return true if the message was sent successfully to all nodes in the group; false otherwise.
+     */
+    boolean multicast(ClusterMessage message, Set<NodeId> nodeIds) throws IOException;
 
     /**
      * Adds a new subscriber for the specified message subject.
@@ -34,22 +41,5 @@ public interface ClusterCommunicationService {
      * @param subject    message subject
      * @param subscriber message subscriber
      */
-    void addSubscriber(MessageSubject subject, MessageSubscriber subscriber);
-
-    /**
-     * Removes the specified subscriber from the given message subject.
-     *
-     * @param subject    message subject
-     * @param subscriber message subscriber
-     */
-    void removeSubscriber(MessageSubject subject, MessageSubscriber subscriber);
-
-    /**
-     * Returns the set of subscribers for the specified message subject.
-     *
-     * @param subject message subject
-     * @return set of message subscribers
-     */
-    Set<MessageSubscriber> getSubscribers(MessageSubject subject);
-
+    void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber);
 }

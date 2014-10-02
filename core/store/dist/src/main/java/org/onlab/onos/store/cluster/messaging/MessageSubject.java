@@ -3,24 +3,20 @@ package org.onlab.onos.store.cluster.messaging;
 /**
  * Representation of a message subject.
  */
-public enum MessageSubject {
+public class MessageSubject {
 
-    /** Represents a first greeting message. */
-    HELLO,
+    private final String value;
 
-    /** Signifies announcement about new member. */
-    NEW_MEMBER,
+    public MessageSubject(String value) {
+        this.value = value;
+    }
 
-    /** Signifies announcement about leaving member. */
-    LEAVING_MEMBER,
+    public String value() {
+        return value;
+    }
 
-    /** Signifies a heart-beat message. */
-    ECHO,
-
-    /** Anti-Entropy advertisement message. */
-    AE_ADVERTISEMENT,
-
-    /** Anti-Entropy reply message. */
-    AE_REPLY,
-
+    @Override
+    public String toString() {
+        return value;
+    }
 }

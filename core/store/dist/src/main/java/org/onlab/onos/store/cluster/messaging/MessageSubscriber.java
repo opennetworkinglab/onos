@@ -13,6 +13,6 @@ public interface MessageSubscriber {
      * @param message    message to be received
      * @param fromNodeId node from which the message was received
      */
-    void receive(ClusterMessage message, NodeId fromNodeId);
+    void receive(Object messagePayload, NodeId fromNodeId);
 
 }
