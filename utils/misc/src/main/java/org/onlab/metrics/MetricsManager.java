@@ -7,6 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.Gauge;
@@ -49,6 +53,7 @@ import com.codahale.metrics.Timer;
  *   </code>
  * </pre>
  */
+@Component(immediate = true)
 public final class MetricsManager implements MetricsService {
 
     /**
@@ -77,6 +82,14 @@ public final class MetricsManager implements MetricsService {
                 .build(new File("/tmp/"));
 
         reporter.start(10, TimeUnit.SECONDS);
+    }
+
+    @Activate
+    public void activate() {
+    }
+
+    @Deactivate
+    public void deactivate() {
     }
 
     /**
