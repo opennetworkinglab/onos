@@ -5,7 +5,17 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Notion of provider identity.
+ * External identity of a {@link org.onlab.onos.net.provider.Provider} family.
+ * It also carriers two designations of external characteristics, the URI
+ * scheme and primary/ancillary indicator.
+ * <p/>
+ * The device URI scheme is used to determine applicability of a provider to
+ * operations on a specific device. The ancillary indicator serves to designate
+ * a provider as a primary or ancillary.
+ *
+ * A {@link org.onlab.onos.net.provider.ProviderRegistry} uses this designation
+ * to permit only one primary provider per device URI scheme. Multiple
+ * ancillary providers can register with the same device URI scheme however.
  */
 public class ProviderId {
 
@@ -14,12 +24,12 @@ public class ProviderId {
     private final boolean ancillary;
 
     /**
-     * Creates a new provider identifier from the specified string.
+     * Creates a new primary provider identifier from the specified string.
      * The providers are expected to follow the reverse DNS convention, e.g.
      * {@code org.onlab.onos.provider.of.device}
      *
-     * @param scheme device URI scheme to which this provider is bound, e.g. "of", "snmp"
-     * @param id     string identifier
+     * @param scheme    device URI scheme to which this provider is bound, e.g. "of", "snmp"
+     * @param id        string identifier
      */
     public ProviderId(String scheme, String id) {
         this(scheme, id, false);
@@ -50,21 +60,21 @@ public class ProviderId {
     }
 
     /**
-     * Indicates whether the provider id belongs to an ancillary provider.
-     *
-     * @return true for ancillary; false for primary provider
-     */
-    public boolean isAncillary() {
-        return ancillary;
-    }
-
-    /**
      * Returns the device URI scheme specific id portion.
      *
      * @return id
      */
     public String id() {
         return id;
+    }
+
+    /**
+     * Indicates whether this identifier designates an ancillary providers.
+     *
+     * @return true if the provider is ancillary; false if primary
+     */
+    public boolean isAncillary() {
+        return ancillary;
     }
 
     @Override
