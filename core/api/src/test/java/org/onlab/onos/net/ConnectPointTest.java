@@ -3,8 +3,7 @@ package org.onlab.onos.net;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static org.onlab.onos.net.Device.Type.SWITCH;
+import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
 
@@ -13,10 +12,10 @@ import static org.onlab.onos.net.PortNumber.portNumber;
  */
 public class ConnectPointTest {
 
-    public static final DeviceId DID1 = deviceId("1");
-    public static final DeviceId DID2 = deviceId("2");
-    public static final PortNumber P1 = portNumber(1);
-    public static final PortNumber P2 = portNumber(2);
+    private static final DeviceId DID1 = deviceId("1");
+    private static final DeviceId DID2 = deviceId("2");
+    private static final PortNumber P1 = portNumber(1);
+    private static final PortNumber P2 = portNumber(2);
 
     @Test
     public void basics() {

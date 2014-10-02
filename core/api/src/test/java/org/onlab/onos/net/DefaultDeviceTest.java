@@ -13,15 +13,14 @@ import static org.onlab.onos.net.DeviceId.deviceId;
  */
 public class DefaultDeviceTest {
 
-    private static final ProviderId PID = new ProviderId("of", "foo");
-    private static final DeviceId DID1 = deviceId("of:foo");
-    private static final DeviceId DID2 = deviceId("of:bar");
-    private static final String MFR = "whitebox";
-    private static final String HW = "1.1.x";
-    private static final String SW = "3.9.1";
-    private static final String SN1 = "43311-12345";
-    private static final String SN2 = "42346-43512";
-
+    static final ProviderId PID = new ProviderId("of", "foo");
+    static final DeviceId DID1 = deviceId("of:foo");
+    static final DeviceId DID2 = deviceId("of:bar");
+    static final String MFR = "whitebox";
+    static final String HW = "1.1.x";
+    static final String SW = "3.9.1";
+    static final String SN1 = "43311-12345";
+    static final String SN2 = "42346-43512";
 
     @Test
     public void testEquality() {

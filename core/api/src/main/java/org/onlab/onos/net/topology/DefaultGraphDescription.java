@@ -23,7 +23,6 @@ public class DefaultGraphDescription extends AbstractDescription
 
     private final Map<DeviceId, TopologyVertex> vertexesById = Maps.newHashMap();
 
-
     /**
      * Creates a minimal topology graph description to allow core to construct
      * and process the topology graph.
@@ -84,9 +83,7 @@ public class DefaultGraphDescription extends AbstractDescription
         DeviceId id = connectPoint.deviceId();
         TopologyVertex vertex = vertexesById.get(id);
         if (vertex == null) {
-            // If vertex does not exist, create one and register it.
-            vertex = new DefaultTopologyVertex(id);
-            vertexesById.put(id, vertex);
+            throw new IllegalArgumentException("Vertex missing for " + id);
         }
         return vertex;
     }
