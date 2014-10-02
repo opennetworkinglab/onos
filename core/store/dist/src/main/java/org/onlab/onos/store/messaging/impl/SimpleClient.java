@@ -2,7 +2,6 @@ package org.onlab.onos.store.messaging.impl;
 
 import java.util.concurrent.TimeUnit;
 
-import org.onlab.onos.store.cluster.impl.MessageSerializer;
 import org.onlab.onos.store.messaging.Endpoint;
 import org.onlab.onos.store.messaging.Response;
 
@@ -21,9 +20,8 @@ public final class SimpleClient {
     public static class TestNettyMessagingService extends NettyMessagingService {
         public TestNettyMessagingService(int port) throws Exception {
             super(port);
-            MessageSerializer mgr = new MessageSerializer();
-            mgr.activate();
-            this.serializationService = mgr;
+            Serializer serializer = new KryoSerializer();
+            this.serializer = serializer;
         }
     }
 }

@@ -22,10 +22,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -56,6 +59,23 @@ public class SimpleDeviceStoreTest {
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
+
+    private static final SparseAnnotations A1 = DefaultAnnotations.builder()
+            .set("A1", "a1")
+            .set("B1", "b1")
+            .build();
+    private static final SparseAnnotations A1_2 = DefaultAnnotations.builder()
+            .remove("A1")
+            .set("B3", "b3")
+            .build();
+    private static final SparseAnnotations A2 = DefaultAnnotations.builder()
+            .set("A2", "a2")
+            .set("B2", "b2")
+            .build();
+    private static final SparseAnnotations A2_2 = DefaultAnnotations.builder()
+            .remove("A2")
+            .set("B4", "b4")
+            .build();
 
     private SimpleDeviceStore simpleDeviceStore;
     private DeviceStore deviceStore;
@@ -104,6 +124,24 @@ public class SimpleDeviceStoreTest {
         assertEquals(HW, device.hwVersion());
         assertEquals(swVersion, device.swVersion());
         assertEquals(SN, device.serialNumber());
+    }
+
+    /**
+     * Verifies that Annotations created by merging {@code annotations} is
+     * equal to actual Annotations.
+     *
+     * @param actual Annotations to check
+     * @param annotations
+     */
+    private static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+        DefaultAnnotations expected = DefaultAnnotations.builder().build();
+        for (SparseAnnotations a : annotations) {
+            expected = DefaultAnnotations.merge(expected, a);
+        }
+        assertEquals(expected.keys(), actual.keys());
+        for (String key : expected.keys()) {
+            assertEquals(expected.value(key), actual.value(key));
+        }
     }
 
     @Test
@@ -171,26 +209,41 @@ public class SimpleDeviceStoreTest {
     public final void testCreateOrUpdateDeviceAncillary() {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN);
+                        HW, SW1, SN, A2);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PIDA, DID1, description);
         assertEquals(DEVICE_ADDED, event.type());
         assertDevice(DID1, SW1, event.subject());
         assertEquals(PIDA, event.subject().providerId());
+        assertAnnotationsEquals(event.subject().annotations(), A2);
         assertFalse("Ancillary will not bring device up", deviceStore.isAvailable(DID1));
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN);
+                        HW, SW2, SN, A1);
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
         assertEquals(DEVICE_UPDATED, event2.type());
         assertDevice(DID1, SW2, event2.subject());
         assertEquals(PID, event2.subject().providerId());
+        assertAnnotationsEquals(event2.subject().annotations(), A1, A2);
         assertTrue(deviceStore.isAvailable(DID1));
 
         assertNull("No change expected", deviceStore.createOrUpdateDevice(PID, DID1, description2));
 
         // For now, Ancillary is ignored once primary appears
         assertNull("No change expected", deviceStore.createOrUpdateDevice(PIDA, DID1, description));
+
+        // But, Ancillary annotations will be in effect
+        DeviceDescription description3 =
+                new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
+                        HW, SW1, SN, A2_2);
+        DeviceEvent event3 = deviceStore.createOrUpdateDevice(PIDA, DID1, description3);
+        assertEquals(DEVICE_UPDATED, event3.type());
+        // basic information will be the one from Primary
+        assertDevice(DID1, SW2, event3.subject());
+        assertEquals(PID, event3.subject().providerId());
+        // but annotation from Ancillary will be merged
+        assertAnnotationsEquals(event3.subject().annotations(), A1, A2, A2_2);
+        assertTrue(deviceStore.isAvailable(DID1));
     }
 
 
@@ -299,27 +352,40 @@ public class SimpleDeviceStoreTest {
         putDeviceAncillary(DID1, SW1);
         putDevice(DID1, SW1);
         List<PortDescription> pds = Arrays.<PortDescription>asList(
-                new DefaultPortDescription(P1, true)
+                new DefaultPortDescription(P1, true, A1)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
         DeviceEvent event = deviceStore.updatePortStatus(PID, DID1,
-                new DefaultPortDescription(P1, false));
+                new DefaultPortDescription(P1, false, A1_2));
         assertEquals(PORT_UPDATED, event.type());
         assertDevice(DID1, SW1, event.subject());
         assertEquals(P1, event.port().number());
+        assertAnnotationsEquals(event.port().annotations(), A1, A1_2);
         assertFalse("Port is disabled", event.port().isEnabled());
 
         DeviceEvent event2 = deviceStore.updatePortStatus(PIDA, DID1,
                 new DefaultPortDescription(P1, true));
         assertNull("Ancillary is ignored if primary exists", event2);
 
+        // but, Ancillary annotation update will be notified
         DeviceEvent event3 = deviceStore.updatePortStatus(PIDA, DID1,
-                new DefaultPortDescription(P2, true));
-        assertEquals(PORT_ADDED, event3.type());
+                new DefaultPortDescription(P1, true, A2));
+        assertEquals(PORT_UPDATED, event3.type());
         assertDevice(DID1, SW1, event3.subject());
-        assertEquals(P2, event3.port().number());
-        assertFalse("Port is disabled if not given from provider", event3.port().isEnabled());
+        assertEquals(P1, event3.port().number());
+        assertAnnotationsEquals(event3.port().annotations(), A1, A1_2, A2);
+        assertFalse("Port is disabled", event3.port().isEnabled());
+
+        // port only reported from Ancillary will be notified as down
+        DeviceEvent event4 = deviceStore.updatePortStatus(PIDA, DID1,
+                new DefaultPortDescription(P2, true));
+        assertEquals(PORT_ADDED, event4.type());
+        assertDevice(DID1, SW1, event4.subject());
+        assertEquals(P2, event4.port().number());
+        assertAnnotationsEquals(event4.port().annotations());
+        assertFalse("Port is disabled if not given from primary provider",
+                        event4.port().isEnabled());
     }
 
     @Test

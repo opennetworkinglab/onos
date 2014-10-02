@@ -31,7 +31,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.store.cluster.messaging.SerializationService;
 import org.onlab.onos.store.messaging.Endpoint;
 import org.onlab.onos.store.messaging.MessageHandler;
 import org.onlab.onos.store.messaging.MessagingService;
@@ -61,7 +60,7 @@ public class NettyMessagingService implements MessagingService {
     private final Endpoint localEp;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected SerializationService serializationService;
+    protected Serializer serializer;
 
     public NettyMessagingService() {
         // TODO: Default port should be configurable.
@@ -213,8 +212,8 @@ public class NettyMessagingService implements MessagingService {
         @Override
         protected void initChannel(SocketChannel channel) throws Exception {
             channel.pipeline()
-                .addLast(new MessageEncoder(serializationService))
-                .addLast(new MessageDecoder(NettyMessagingService.this, serializationService))
+                .addLast(new MessageEncoder(serializer))
+                .addLast(new MessageDecoder(NettyMessagingService.this, serializer))
                 .addLast(new NettyMessagingService.InboundMessageDispatcher());
         }
     }

@@ -5,7 +5,6 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import org.onlab.onos.store.cluster.messaging.SerializationService;
 import org.onlab.onos.store.messaging.Endpoint;
 
 import io.netty.buffer.ByteBuf;
@@ -18,11 +17,11 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 public class MessageDecoder extends ByteToMessageDecoder {
 
     private final NettyMessagingService messagingService;
-    private final SerializationService serializationService;
+    private final Serializer serializer;
 
-    public MessageDecoder(NettyMessagingService messagingService, SerializationService serializationService) {
+    public MessageDecoder(NettyMessagingService messagingService, Serializer serializer) {
         this.messagingService = messagingService;
-        this.serializationService = serializationService;
+        this.serializer = serializer;
     }
 
     @Override
@@ -47,7 +46,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
         Endpoint sender = new Endpoint(host, port);
 
         // read message payload; first read size and then bytes.
-        Object payload = serializationService.decode(in.readBytes(in.readInt()).array());
+        Object payload = serializer.decode(in.readBytes(in.readInt()).array());
 
         InternalMessage message = new InternalMessage.Builder(messagingService)
                 .withId(id)

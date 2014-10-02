@@ -1,7 +1,5 @@
 package org.onlab.onos.store.messaging.impl;
 
-import org.onlab.onos.store.cluster.messaging.SerializationService;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -14,10 +12,10 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
     // onosiscool in ascii
     public static final byte[] PREAMBLE = "onosiscool".getBytes();
 
-    private final SerializationService serializationService;
+    private final Serializer serializer;
 
-    public MessageEncoder(SerializationService serializationService) {
-        this.serializationService = serializationService;
+    public MessageEncoder(Serializer serializer) {
+        this.serializer = serializer;
     }
 
     @Override
@@ -46,12 +44,12 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         out.writeInt(message.sender().port());
 
         try {
-            serializationService.encode(message.payload());
+            serializer.encode(message.payload());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        byte[] payload = serializationService.encode(message.payload());
+        byte[] payload = serializer.encode(message.payload());
 
         // write payload length.
         out.writeInt(payload.length);
