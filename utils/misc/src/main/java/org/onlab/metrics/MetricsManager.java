@@ -1,7 +1,6 @@
 package org.onlab.metrics;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.codahale.metrics.Counter;
@@ -50,19 +49,18 @@ public final class MetricsManager implements MetricsService {
     /**
      * Registry to hold the Components defined in the system.
      */
-    private ConcurrentMap<String, MetricsComponent> componentsRegistry =
-            new ConcurrentHashMap<>();
+    private ConcurrentMap<String, MetricsComponent> componentsRegistry;
 
     /**
      * Registry for the Metrics objects created in the system.
      */
     private final MetricRegistry metricsRegistry = new MetricRegistry();
 
-    /**
-     * Hide constructor.  The only way to get the registry is through the
-     * singleton getter.
-     */
-    private MetricsManager() {}
+    public MetricsManager(
+            ConcurrentMap<String, MetricsComponent> componentsRegistry) {
+        this.componentsRegistry = componentsRegistry;
+
+    }
 
     /**
      * Registers a component.
