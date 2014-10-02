@@ -11,6 +11,7 @@
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
 
         <bundle>mvn:com.hazelcast/hazelcast/3.3</bundle>
+        <bundle>mvn:com.codahale.metrics/metrics-core/3.0.2</bundle>
         <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.1</bundle>
 
         <bundle>mvn:com.esotericsoftware.kryo/kryo/2.24.0</bundle>
