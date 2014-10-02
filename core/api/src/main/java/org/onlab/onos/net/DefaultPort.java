@@ -2,12 +2,13 @@ package org.onlab.onos.net;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * Default port implementation.
  */
-public class DefaultPort implements Port {
+public class DefaultPort extends AbstractAnnotated implements Port {
 
     private final Element element;
     private final PortNumber number;
@@ -19,9 +20,13 @@ public class DefaultPort implements Port {
      * @param element     parent network element
      * @param number      port number
      * @param isEnabled   indicator whether the port is up and active
+     * @param annotations optional key/value annotations
      */
+    @SafeVarargs
     public DefaultPort(Element element, PortNumber number,
-                       boolean isEnabled) {
+                       boolean isEnabled,
+                       Map<String, String>... annotations) {
+        super(annotations);
         this.element = element;
         this.number = number;
         this.isEnabled = isEnabled;

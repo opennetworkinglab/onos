@@ -4,7 +4,7 @@ package org.onlab.onos.net;
 /**
  * Abstraction of a network port.
  */
-public interface Port {
+public interface Port extends Annotated {
 
     /**
      * Returns the port number.
