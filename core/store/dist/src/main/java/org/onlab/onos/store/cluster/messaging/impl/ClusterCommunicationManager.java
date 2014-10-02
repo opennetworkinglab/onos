@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 @Component(immediate = true)
 @Service
-public class OnosClusterCommunicationManager
+public class ClusterCommunicationManager
         implements ClusterCommunicationService, ClusterCommunicationAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

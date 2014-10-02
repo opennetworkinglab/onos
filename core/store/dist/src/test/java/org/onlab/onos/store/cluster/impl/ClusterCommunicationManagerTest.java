@@ -6,7 +6,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.cluster.messaging.impl.OnosClusterCommunicationManager;
+import org.onlab.onos.store.cluster.messaging.impl.ClusterCommunicationManager;
 import org.onlab.netty.NettyMessagingService;
 import org.onlab.packet.IpPrefix;
 
@@ -29,8 +29,8 @@ public class ClusterCommunicationManagerTest {
 
     private static final IpPrefix IP = IpPrefix.valueOf("127.0.0.1");
 
-    private OnosClusterCommunicationManager ccm1;
-    private OnosClusterCommunicationManager ccm2;
+    private ClusterCommunicationManager ccm1;
+    private ClusterCommunicationManager ccm2;
 
     private TestDelegate cnd1 = new TestDelegate();
     private TestDelegate cnd2 = new TestDelegate();
@@ -46,11 +46,11 @@ public class ClusterCommunicationManagerTest {
         NettyMessagingService messagingService = new NettyMessagingService();
         messagingService.activate();
 
-        ccm1 = new OnosClusterCommunicationManager();
+        ccm1 = new ClusterCommunicationManager();
 //        ccm1.serializationService = messageSerializer;
         ccm1.activate();
 
-        ccm2 = new OnosClusterCommunicationManager();
+        ccm2 = new ClusterCommunicationManager();
 //        ccm2.serializationService = messageSerializer;
         ccm2.activate();
 
