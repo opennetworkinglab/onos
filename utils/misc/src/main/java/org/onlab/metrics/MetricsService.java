@@ -59,6 +59,10 @@ interface MetricsService {
             MetricsFeature feature,
             String metricName);
 
+    Meter createMeter(MetricsComponent component,
+            MetricsFeature feature,
+            String metricName);
+
     /**
      * Registers an already created Metric.  This is used for situation where a
      * caller needs to allocate its own Metric, but still register it with the

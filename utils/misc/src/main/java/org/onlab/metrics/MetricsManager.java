@@ -70,6 +70,7 @@ public final class MetricsManager implements MetricsService {
      * @param name name of the Component to register
      * @return MetricsComponent object that can be used to create Metrics.
      */
+  @Override
   public MetricsComponent registerComponent(final String name) {
         MetricsComponent component = componentsRegistry.get(name);
         if (component == null) {
@@ -91,7 +92,7 @@ public final class MetricsManager implements MetricsService {
      *
      * @return full name of the metric
      */
-  public String generateName(final MetricsComponent component,
+  private String generateName(final MetricsComponent component,
                                       final MetricsFeature feature,
                                       final String metricName) {
         return MetricRegistry.name(component.getName(),
@@ -107,6 +108,7 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Counter Meteric
      */
+  @Override
   public Counter createCounter(final MetricsComponent component,
                                         final MetricsFeature feature,
                                         final String metricName) {
@@ -122,6 +124,7 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Histogram Metric
      */
+  @Override
   public Histogram createHistogram(final MetricsComponent component,
                                             final MetricsFeature feature,
                                             final String metricName) {
@@ -137,6 +140,7 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Timer Metric
      */
+  @Override
   public Timer createTimer(final MetricsComponent component,
                                     final MetricsFeature feature,
                                     final String metricName) {
@@ -152,6 +156,7 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Meter Metric
      */
+  @Override
   public Meter createMeter(final MetricsComponent component,
                                     final MetricsFeature feature,
                                     final String metricName) {
@@ -171,6 +176,7 @@ public final class MetricsManager implements MetricsService {
      * @param metric Metric to register
      * @return the registered Metric
      */
+  @Override
   public <T extends Metric> T registerMetric(
                                         final MetricsComponent component,
                                         final MetricsFeature feature,
@@ -188,6 +194,7 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Timers that match the filter, with the key as the
      *         name String to the Timer.
      */
+  @Override
   public Map<String, Timer> getTimers(final MetricFilter filter) {
         return metricsRegistry.getTimers(filter);
     }
@@ -199,7 +206,7 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Gauges that match the filter, with the key as the
      *         name String to the Gauge.
      */
-    @SuppressWarnings("rawtypes")
+  @Override
   public Map<String, Gauge> getGauges(final MetricFilter filter) {
         return metricsRegistry.getGauges(filter);
     }
@@ -211,6 +218,7 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Counters that match the filter, with the key as the
      *         name String to the Counter.
      */
+  @Override
   public Map<String, Counter> getCounters(final MetricFilter filter) {
         return metricsRegistry.getCounters(filter);
     }
@@ -222,6 +230,7 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Meters that match the filter, with the key as the
      *         name String to the Meter.
      */
+  @Override
   public Map<String, Meter> getMeters(final MetricFilter filter) {
         return metricsRegistry.getMeters(filter);
     }
@@ -233,6 +242,7 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Histograms that match the filter, with the key as the
      *         name String to the Histogram.
      */
+  @Override
   public Map<String, Histogram> getHistograms(final MetricFilter filter) {
         return metricsRegistry.getHistograms(filter);
     }
@@ -242,6 +252,7 @@ public final class MetricsManager implements MetricsService {
      *
      * @param filter filter to use to select the Metrics to remove.
      */
+  @Override
   public void removeMatching(final MetricFilter filter) {
         metricsRegistry.removeMatching(filter);
     }
