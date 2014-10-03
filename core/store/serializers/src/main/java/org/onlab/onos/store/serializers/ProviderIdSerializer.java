@@ -13,7 +13,7 @@ import com.esotericsoftware.kryo.io.Output;
 public class ProviderIdSerializer extends Serializer<ProviderId> {
 
     /**
-     * Default constructor.
+     * Creates {@link ProviderId} serializer instance.
      */
     public ProviderIdSerializer() {
         // non-null, immutable

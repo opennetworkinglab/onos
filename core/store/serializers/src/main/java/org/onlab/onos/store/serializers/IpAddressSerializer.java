@@ -1,28 +1,27 @@
 package org.onlab.onos.store.serializers;
 
-import org.onlab.packet.IpPrefix;
-
+import org.onlab.packet.IpAddress;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Kryo Serializer for {@link IpPrefix}.
+ * Kryo Serializer for {@link IpAddress}.
  */
-public final class IpPrefixSerializer extends Serializer<IpPrefix> {
+public class IpAddressSerializer extends Serializer<IpAddress> {
 
     /**
-     * Creates {@link IpPrefix} serializer instance.
+     * Creates {@link IpAddress} serializer instance.
      */
-    public IpPrefixSerializer() {
+    public IpAddressSerializer() {
         // non-null, immutable
         super(false, true);
     }
 
     @Override
     public void write(Kryo kryo, Output output,
-            IpPrefix object) {
+            IpAddress object) {
         byte[] octs = object.toOctets();
         output.writeInt(octs.length);
         output.writeBytes(octs);
@@ -30,12 +29,13 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
     }
 
     @Override
-    public IpPrefix read(Kryo kryo, Input input,
-            Class<IpPrefix> type) {
+    public IpAddress read(Kryo kryo, Input input,
+            Class<IpAddress> type) {
         int octLen = input.readInt();
         byte[] octs = new byte[octLen];
         input.read(octs);
         int prefLen = input.readInt();
-        return IpPrefix.valueOf(octs, prefLen);
+        return IpAddress.valueOf(octs, prefLen);
     }
+
 }

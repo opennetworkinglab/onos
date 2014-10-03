@@ -3,16 +3,11 @@ package org.onlab.onos.store.serializers;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultDevice;
@@ -22,7 +17,6 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpPrefix;
@@ -31,8 +25,6 @@ import org.onlab.util.KryoPool;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
-
-import de.javakaffee.kryoserializers.URISerializer;
 
 public class KryoSerializerTests {
     private static final ProviderId PID = new ProviderId("of", "foo");
@@ -54,38 +46,12 @@ public class KryoSerializerTests {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         kryos = KryoPool.newBuilder()
-                .register(
-                        ArrayList.class,
-                        HashMap.class
-                        )
-                .register(
-                        Device.Type.class,
-                        Link.Type.class
-
-//                      ControllerNode.State.class,
-//                        DefaultControllerNode.class,
-//                        MastershipRole.class,
-//                        Port.class,
-//                        Element.class,
-                        )
-                .register(ConnectPoint.class, new ConnectPointSerializer())
-                .register(DefaultLink.class, new DefaultLinkSerializer())
-                .register(DefaultPort.class, new DefaultPortSerializer())
-                .register(DeviceId.class, new DeviceIdSerializer())
+                .register(KryoPoolUtil.API)
                 .register(ImmutableMap.class, new ImmutableMapSerializer())
                 .register(ImmutableSet.class, new ImmutableSetSerializer())
-                .register(IpPrefix.class, new IpPrefixSerializer())
-                .register(LinkKey.class, new LinkKeySerializer())
-                .register(NodeId.class, new NodeIdSerializer())
-                .register(PortNumber.class, new PortNumberSerializer())
-                .register(ProviderId.class, new ProviderIdSerializer())
 
-                .register(DefaultDevice.class)
 
-                .register(URI.class, new URISerializer())
 
-                .register(MastershipRole.class, new MastershipRoleSerializer())
-                .register(MastershipTerm.class, new MastershipTermSerializer())
                 .build();
     }
 

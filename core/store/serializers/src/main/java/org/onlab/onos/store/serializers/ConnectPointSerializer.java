@@ -3,7 +3,6 @@ package org.onlab.onos.store.serializers;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.PortNumber;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -15,7 +14,7 @@ import com.esotericsoftware.kryo.io.Output;
 public class ConnectPointSerializer extends Serializer<ConnectPoint> {
 
     /**
-     * Default constructor.
+     * Creates {@link ConnectPointSerializer} serializer instance.
      */
     public ConnectPointSerializer() {
         // non-null, immutable

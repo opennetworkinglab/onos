@@ -16,7 +16,7 @@ import com.esotericsoftware.kryo.io.Output;
 public class DefaultLinkSerializer extends Serializer<DefaultLink> {
 
     /**
-     * Default constructor.
+     * Creates {@link DefaultLink} serializer instance.
      */
     public DefaultLinkSerializer() {
         // non-null, immutable
