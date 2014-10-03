@@ -1,17 +1,16 @@
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Abstraction of point-to-point connectivity.
+ * Abstraction of end-station to end-station connectivity.
  */
 public class HostToHostIntent extends ConnectivityIntent {
 
@@ -22,17 +21,15 @@ public class HostToHostIntent extends ConnectivityIntent {
      * Creates a new point-to-point intent with the supplied ingress/egress
      * ports.
      *
-     * @param id intent identifier
-     * @param match traffic match
-     * @param action action
-     * @param ingressPort ingress port
-     * @param egressPort egress port
+     * @param intentId  intent identifier
+     * @param selector  action
+     * @param treatment ingress port
      * @throws NullPointerException if {@code ingressPort} or {@code egressPort}
-     *         is null.
+     *                              is null.
      */
-    public HostToHostIntent(IntentId id, HostId src, HostId dst,
-            TrafficSelector selector, TrafficTreatment treatment) {
-        super(id, selector, treatment);
+    public HostToHostIntent(IntentId intentId, HostId src, HostId dst,
+                            TrafficSelector selector, TrafficTreatment treatment) {
+        super(intentId, selector, treatment);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
     }

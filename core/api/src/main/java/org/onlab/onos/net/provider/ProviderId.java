@@ -3,6 +3,7 @@ package org.onlab.onos.net.provider;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * External identity of a {@link org.onlab.onos.net.provider.Provider} family.
@@ -19,9 +20,21 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class ProviderId {
 
+    /**
+     * Represents no provider ID.
+     */
+    public static final ProviderId NONE = new ProviderId();
+
     private final String scheme;
     private final String id;
     private final boolean ancillary;
+
+    // For serialization
+    private ProviderId() {
+        scheme = null;
+        id = null;
+        ancillary = false;
+    }
 
     /**
      * Creates a new primary provider identifier from the specified string.
@@ -45,8 +58,8 @@ public class ProviderId {
      * @param ancillary ancillary provider indicator
      */
     public ProviderId(String scheme, String id, boolean ancillary) {
-        this.scheme = scheme;
-        this.id = id;
+        this.scheme = checkNotNull(scheme, "Scheme cannot be null");
+        this.id = checkNotNull(id, "ID cannot be null");
         this.ancillary = ancillary;
     }
 

@@ -1,17 +1,16 @@
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
+import java.util.Objects;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of single source, multiple destination connectivity intent.
@@ -25,23 +24,24 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      * Creates a new single-to-multi point connectivity intent.
      *
      * @param id          intent identifier
-     * @param match       traffic match
-     * @param action      action
+     * @param selector    traffic selector
+     * @param treatment   treatment
      * @param ingressPort port on which traffic will ingress
      * @param egressPorts set of ports on which traffic will egress
-     * @throws NullPointerException if {@code ingressPort} or
-     * {@code egressPorts} is null
+     * @throws NullPointerException     if {@code ingressPort} or
+     *                                  {@code egressPorts} is null
      * @throws IllegalArgumentException if the size of {@code egressPorts} is
-     * not more than 1
+     *                                  not more than 1
      */
-    public SinglePointToMultiPointIntent(IntentId id, TrafficSelector match, TrafficTreatment action,
+    public SinglePointToMultiPointIntent(IntentId id, TrafficSelector selector,
+                                         TrafficTreatment treatment,
                                          ConnectPoint ingressPort,
                                          Set<ConnectPoint> egressPorts) {
-        super(id, match, action);
+        super(id, selector, treatment);
 
         checkNotNull(egressPorts);
         checkArgument(!egressPorts.isEmpty(),
-                "there should be at least one egress port");
+                      "there should be at least one egress port");
 
         this.ingressPort = checkNotNull(ingressPort);
         this.egressPorts = Sets.newHashSet(egressPorts);

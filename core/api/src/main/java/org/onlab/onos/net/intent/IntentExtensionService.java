@@ -10,9 +10,9 @@ public interface IntentExtensionService {
     /**
      * Registers the specified compiler for the given intent class.
      *
-     * @param cls intent class
+     * @param cls      intent class
      * @param compiler intent compiler
-     * @param <T> the type of intent
+     * @param <T>      the type of intent
      */
     <T extends Intent> void registerCompiler(Class<T> cls, IntentCompiler<T> compiler);
 
@@ -34,9 +34,9 @@ public interface IntentExtensionService {
     /**
      * Registers the specified installer for the given installable intent class.
      *
-     * @param cls installable intent class
+     * @param cls       installable intent class
      * @param installer intent installer
-     * @param <T> the type of installable intent
+     * @param <T>       the type of installable intent
      */
     <T extends InstallableIntent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer);
 

@@ -3,7 +3,7 @@ package org.onlab.onos.net.intent.impl;
 import org.onlab.onos.net.intent.IntentId;
 
 /**
- * An implementation of {@link net.onrc.onos.core.util.IdGenerator} of intent ID,
+ * An implementation of {@link org.onlab.onos.net.intent.IdGenerator} of intent ID,
  * which uses {@link IdBlockAllocator}.
  */
 public class IdBlockAllocatorBasedIntentIdGenerator extends AbstractBlockAllocatorBasedIdGenerator<IntentId> {

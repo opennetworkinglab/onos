@@ -1,8 +1,8 @@
 package org.onlab.onos.net.intent;
 
-import java.util.List;
-
 import org.onlab.onos.store.Store;
+
+import java.util.List;
 
 /**
  * Manages inventory of end-station intents; not intended for direct use.
@@ -21,13 +21,12 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * Removes the specified intent from the inventory.
      *
      * @param intentId intent identification
-     * @return remove event or null if intent was not found
+     * @return removed state transition event or null if intent was not found
      */
-    IntentEvent removeIntent(IntentId intent);
+    IntentEvent removeIntent(IntentId intentId);
 
     /**
      * Returns the number of intents in the store.
-     *
      */
     long getIntentCount();
 
@@ -46,19 +45,52 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      */
     Intent getIntent(IntentId intentId);
 
-    IntentState getIntentState(IntentId id);
+    /**
+     * Returns the state of the specified intent.
+     *
+     * @param intentId intent identification
+     * @return current intent state
+     */
+    IntentState getIntentState(IntentId intentId);
 
     /**
      * Sets the state of the specified intent to the new state.
      *
-     * @param intent intent whose state is to be changed
+     * @param intent   intent whose state is to be changed
      * @param newState new state
+     * @return state transition event
      */
     IntentEvent setState(Intent intent, IntentState newState);
 
-    IntentEvent addInstallableIntents(IntentId intentId, List<InstallableIntent> result);
+    /**
+     * Adds the installable intents which resulted from compilation of the
+     * specified original intent.
+     *
+     * @param intentId           original intent identifier
+     * @param installableIntents compiled installable intents
+     * @return compiled state transition event
+     */
+    IntentEvent addInstallableIntents(IntentId intentId,
+                                      List<InstallableIntent> installableIntents);
 
+    /**
+     * Returns the list of the installable events associated with the specified
+     * original intent.
+     *
+     * @param intentId original intent identifier
+     * @return compiled installable intents
+     */
     List<InstallableIntent> getInstallableIntents(IntentId intentId);
 
+    // TODO: this should be triggered from with the store as a result of removeIntent call
+
+    /**
+     * Removes any installable intents which resulted from compilation of the
+     * specified original intent.
+     *
+     * @param intentId original intent identifier
+     * @return compiled state transition event
+     */
     void removeInstalledIntents(IntentId intentId);
+
 }

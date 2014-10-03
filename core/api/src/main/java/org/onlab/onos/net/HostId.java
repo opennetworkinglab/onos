@@ -10,6 +10,14 @@ import java.net.URI;
  */
 public final class HostId extends ElementId {
 
+    private static final String NIC = "nic";
+
+    /**
+     * Represents either no host, or an unspecified host; used for creating
+     * open ingress/egress edge links.
+     */
+    public static final HostId NONE = hostId(NIC + ":none-0");
+
     // Public construction is prohibited
     private HostId(URI uri) {
         super(uri);
@@ -43,8 +51,7 @@ public final class HostId extends ElementId {
      * @return host identifier
      */
     public static HostId hostId(MacAddress mac, VlanId vlanId) {
-        // FIXME: use more efficient means of encoding
-        return hostId("nic" + ":" + mac + "-" + vlanId);
+        return hostId(NIC + ":" + mac + "-" + vlanId);
     }
 
     /**

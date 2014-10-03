@@ -7,7 +7,7 @@ package org.onlab.onos.net.intent;
 public interface IntentService {
     /**
      * Submits an intent into the system.
-     *
+     * <p/>
      * This is an asynchronous request meaning that any compiling or
      * installation activities may be done at later time.
      *
@@ -17,7 +17,7 @@ public interface IntentService {
 
     /**
      * Withdraws an intent from the system.
-     *
+     * <p/>
      * This is an asynchronous request meaning that the environment may be
      * affected at later time.
      *
@@ -28,7 +28,7 @@ public interface IntentService {
     /**
      * Submits a batch of submit &amp; withdraw operations. Such a batch is
      * assumed to be processed together.
-     *
+     * <p/>
      * This is an asynchronous request meaning that the environment may be
      * affected at later time.
      *
@@ -63,7 +63,7 @@ public interface IntentService {
      *
      * @param id intent identifier
      * @return the intent state or null if one with the given identifier is not
-     *         found
+     * found
      */
     IntentState getIntentState(IntentId id);
 

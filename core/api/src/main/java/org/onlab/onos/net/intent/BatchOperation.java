@@ -1,20 +1,20 @@
 package org.onlab.onos.net.intent;
 //TODO is this the right package?
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A list of BatchOperationEntry.
  *
  * @param <T> the enum of operators <br>
- *        This enum must be defined in each sub-classes.
- *
+ *            This enum must be defined in each sub-classes.
  */
 public abstract class BatchOperation<T extends BatchOperationEntry<?, ?>> {
+
     private List<T> ops;
 
     /**

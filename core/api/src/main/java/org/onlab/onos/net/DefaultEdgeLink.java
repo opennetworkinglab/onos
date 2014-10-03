@@ -18,9 +18,9 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
      * @param providerId   provider identity
      * @param hostPoint    host-side connection point
      * @param hostLocation location where host attaches to the network
-     * @param isIngress    true to indicated host-to-network direction; false
+     * @param isIngress    true to indicate host-to-network direction; false
      *                     for network-to-host direction
-     * @param annotations optional key/value annotations
+     * @param annotations  optional key/value annotations
      */
     public DefaultEdgeLink(ProviderId providerId, ConnectPoint hostPoint,
                            HostLocation hostLocation, boolean isIngress,
@@ -41,5 +41,21 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
     @Override
     public HostLocation hostLocation() {
         return hostLocation;
+    }
+
+    /**
+     * Creates a phantom edge link, to an unspecified end-station. This link
+     * does not represent any actually discovered link stored in the system.
+     *
+     * @param edgePort  network edge port
+     * @param isIngress true to indicate host-to-network direction; false
+     *                  for network-to-host direction
+     * @return new phantom edge link
+     */
+    public static DefaultEdgeLink createEdgeLink(HostLocation edgePort,
+                                                 boolean isIngress) {
+        return new DefaultEdgeLink(ProviderId.NONE,
+                                   new ConnectPoint(HostId.NONE, PortNumber.P0),
+                                   edgePort, isIngress);
     }
 }

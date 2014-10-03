@@ -3,30 +3,30 @@ package org.onlab.onos.net.intent;
 import org.onlab.onos.net.ConnectPoint;
 
 // TODO: consider if this intent should be sub-class of ConnectivityIntent
+
 /**
  * An optical layer Intent for a connectivity from a transponder port to another
  * transponder port.
- * <p>
+ * <p/>
  * This class doesn't accepts lambda specifier. This class computes path between
  * ports and assign lambda automatically. The lambda can be specified using
  * OpticalPathFlow class.
  */
 public class OpticalConnectivityIntent extends AbstractIntent {
-    protected ConnectPoint srcConnectPoint;
-    protected ConnectPoint dstConnectPoint;
+    protected ConnectPoint src;
+    protected ConnectPoint dst;
 
     /**
      * Constructor.
      *
-     * @param id ID for this new Intent object.
-     * @param srcConnectPoint The source transponder port.
-     * @param dstConnectPoint The destination transponder port.
+     * @param id  ID for this new Intent object.
+     * @param src The source transponder port.
+     * @param dst The destination transponder port.
      */
-    public OpticalConnectivityIntent(IntentId id,
-            ConnectPoint srcConnectPoint, ConnectPoint dstConnectPoint) {
+    public OpticalConnectivityIntent(IntentId id, ConnectPoint src, ConnectPoint dst) {
         super(id);
-        this.srcConnectPoint = srcConnectPoint;
-        this.dstConnectPoint = dstConnectPoint;
+        this.src = src;
+        this.dst = dst;
     }
 
     /**
@@ -34,8 +34,8 @@ public class OpticalConnectivityIntent extends AbstractIntent {
      */
     protected OpticalConnectivityIntent() {
         super();
-        this.srcConnectPoint = null;
-        this.dstConnectPoint = null;
+        this.src = null;
+        this.dst = null;
     }
 
     /**
@@ -44,7 +44,7 @@ public class OpticalConnectivityIntent extends AbstractIntent {
      * @return The source transponder port.
      */
     public ConnectPoint getSrcConnectPoint() {
-        return srcConnectPoint;
+        return src;
     }
 
     /**
@@ -52,7 +52,7 @@ public class OpticalConnectivityIntent extends AbstractIntent {
      *
      * @return The source transponder port.
      */
-    public ConnectPoint getDstConnectPoint() {
-        return dstConnectPoint;
+    public ConnectPoint getDst() {
+        return dst;
     }
 }
