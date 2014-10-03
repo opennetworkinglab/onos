@@ -8,6 +8,8 @@ import org.onlab.onos.net.provider.Provider;
  */
 public interface FlowRuleProvider extends Provider {
 
+    static final int POLL_INTERVAL = 5;
+
     /**
      * Instructs the provider to apply the specified flow rules to their
      * respective devices.

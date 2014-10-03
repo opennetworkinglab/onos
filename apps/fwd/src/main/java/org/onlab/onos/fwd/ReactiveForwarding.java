@@ -38,6 +38,8 @@ import org.slf4j.Logger;
 @Component(immediate = true)
 public class ReactiveForwarding {
 
+    private static final int TIMEOUT = 10;
+
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -184,15 +186,15 @@ public class ReactiveForwarding {
             Ethernet inPkt = context.inPacket().parsed();
             TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
             builder.matchEthType(inPkt.getEtherType())
-            .matchEthSrc(inPkt.getSourceMAC())
-            .matchEthDst(inPkt.getDestinationMAC())
-            .matchInport(context.inPacket().receivedFrom().port());
+                .matchEthSrc(inPkt.getSourceMAC())
+                .matchEthDst(inPkt.getDestinationMAC())
+                .matchInport(context.inPacket().receivedFrom().port());
 
             TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
             treat.setOutput(portNumber);
 
             FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                    builder.build(), treat.build(), 0, appId);
+                    builder.build(), treat.build(), 0, appId, TIMEOUT);
 
             flowRuleService.applyFlowRules(f);
         }

@@ -9,6 +9,7 @@ import org.onlab.onos.net.DeviceId;
  */
 public interface FlowRule {
 
+    static final int MAX_TIMEOUT = 60;
 
     public enum FlowRuleState {
         /**
@@ -112,10 +113,9 @@ public interface FlowRule {
     long bytes();
 
     /**
-     * Indicates that this flow has expired at the device.
-     *
-     * @return true if it has expired, false otherwise
+     * Returns the timeout for this flow requested by an application.
+     * @return integer value of the timeout
      */
-    boolean expired();
+    int timeout();
 
 }

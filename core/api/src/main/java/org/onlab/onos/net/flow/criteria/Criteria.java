@@ -2,6 +2,8 @@ package org.onlab.onos.net.flow.criteria;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Objects;
+
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.criteria.Criterion.Type;
 import org.onlab.packet.IpPrefix;
@@ -137,6 +139,25 @@ public final class Criteria {
             return toStringHelper(type().toString())
                     .add("port", port).toString();
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(port);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof PortCriterion) {
+                PortCriterion that = (PortCriterion) obj;
+                return Objects.equals(port, that.port);
+
+            }
+            return false;
+        }
+
     }
 
 
@@ -164,6 +185,27 @@ public final class Criteria {
                     .add("mac", mac).toString();
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(mac, type);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof EthCriterion) {
+                EthCriterion that = (EthCriterion) obj;
+                return Objects.equals(mac, that.mac) &&
+                        Objects.equals(type, that.type);
+
+
+            }
+            return false;
+        }
+
+
     }
 
     public static final class EthTypeCriterion implements Criterion {
@@ -187,6 +229,25 @@ public final class Criteria {
         public String toString() {
             return toStringHelper(type().toString())
                     .add("ethType", Long.toHexString(ethType)).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(ethType);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof EthTypeCriterion) {
+                EthTypeCriterion that = (EthTypeCriterion) obj;
+                return Objects.equals(ethType, that.ethType);
+
+
+            }
+            return false;
         }
 
     }
@@ -217,6 +278,26 @@ public final class Criteria {
                     .add("ip", ip).toString();
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(ip, type);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof IPCriterion) {
+                IPCriterion that = (IPCriterion) obj;
+                return Objects.equals(ip, that.ip) &&
+                        Objects.equals(type, that.type);
+
+
+            }
+            return false;
+        }
+
     }
 
 
@@ -241,6 +322,25 @@ public final class Criteria {
         public String toString() {
             return toStringHelper(type().toString())
                     .add("protocol", Long.toHexString(proto)).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(proto);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof IPProtocolCriterion) {
+                IPProtocolCriterion that = (IPProtocolCriterion) obj;
+                return Objects.equals(proto, that.proto);
+
+
+            }
+            return false;
         }
 
     }
@@ -269,6 +369,25 @@ public final class Criteria {
                     .add("pcp", Long.toHexString(vlanPcp)).toString();
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(vlanPcp);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof VlanPcpCriterion) {
+                VlanPcpCriterion that = (VlanPcpCriterion) obj;
+                return Objects.equals(vlanPcp, that.vlanPcp);
+
+
+            }
+            return false;
+        }
+
     }
 
 
@@ -294,6 +413,25 @@ public final class Criteria {
         public String toString() {
             return toStringHelper(type().toString())
                     .add("id", vlanId).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(vlanId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof VlanIdCriterion) {
+                VlanIdCriterion that = (VlanIdCriterion) obj;
+                return Objects.equals(vlanId, that.vlanId);
+
+
+            }
+            return false;
         }
 
     }

@@ -1,6 +1,6 @@
 package org.onlab.onos.net.flow;
 
-import java.util.List;
+import java.util.Set;
 
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -18,7 +18,7 @@ public interface TrafficSelector {
      *
      * @return list of criteria
      */
-    List<Criterion> criteria();
+    Set<Criterion> criteria();
 
     /**
      * Builder of traffic selector entities.

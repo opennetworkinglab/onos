@@ -17,27 +17,6 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
     void flowRemoved(FlowRule flowRule);
 
     /**
-     * Signals that a flow rule is missing for some network traffic.
-     *
-     * @param flowRule information about traffic in need of flow rule(s)
-     */
-    void flowMissing(FlowRule flowRule);
-
-    /**
-     * Signals that a flow rule is on the switch but not in the store.
-     *
-     * @param flowRule the extra flow rule
-     */
-    void extraneousFlow(FlowRule flowRule);
-
-    /**
-     * Signals that a flow rule was indeed added.
-     *
-     * @param flowRule the added flow rule
-     */
-    void flowAdded(FlowRule flowRule);
-
-    /**
      * Pushes the collection of flow entries currently applied on the given
      * device.
      *

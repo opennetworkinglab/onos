@@ -5,6 +5,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -59,6 +62,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    private final Map<FlowRule, AtomicInteger> deadRounds = new ConcurrentHashMap<>();
+
     @Activate
     public void activate() {
         store.setDelegate(delegate);
@@ -84,6 +89,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             FlowRule f = flowRules[i];
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
+            deadRounds.put(f, new AtomicInteger(0));
             store.storeFlowRule(f);
             frp.applyFlowRule(f);
         }
@@ -98,6 +104,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             f = flowRules[i];
             device = deviceService.getDevice(f.deviceId());
             frp = getProvider(device.providerId());
+            deadRounds.remove(f);
             store.deleteFlowRule(f);
             frp.removeFlowRule(f);
         }
@@ -161,11 +168,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             switch (stored.state()) {
             case ADDED:
             case PENDING_ADD:
-                if (flowRule.expired()) {
-                    event = store.removeFlowRule(flowRule);
-                } else {
                     frp.applyFlowRule(stored);
-                }
                 break;
             case PENDING_REMOVE:
             case REMOVED:
@@ -181,8 +184,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             }
         }
 
-        @Override
-        public void flowMissing(FlowRule flowRule) {
+
+        private void flowMissing(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
             Device device = deviceService.getDevice(flowRule.deviceId());
@@ -209,26 +212,44 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
         }
 
-        @Override
-        public void extraneousFlow(FlowRule flowRule) {
+
+        private void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
             removeFlowRules(flowRule);
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
-        @Override
-        public void flowAdded(FlowRule flowRule) {
+
+        private void flowAdded(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
 
-            FlowRuleEvent event = store.addOrUpdateFlowRule(flowRule);
-            if (event == null) {
-                log.debug("No flow store event generated.");
+            if (deadRounds.containsKey(flowRule) &&
+                    checkRuleLiveness(flowRule, store.getFlowRule(flowRule))) {
+
+                FlowRuleEvent event = store.addOrUpdateFlowRule(flowRule);
+                if (event == null) {
+                    log.debug("No flow store event generated.");
+                } else {
+                    log.debug("Flow {} {}", flowRule, event.type());
+                    post(event);
+                }
             } else {
-                log.debug("Flow {} {}", flowRule, event.type());
-                post(event);
+                removeFlowRules(flowRule);
             }
+
+        }
+
+        private boolean checkRuleLiveness(FlowRule swRule, FlowRule storedRule) {
+            int timeout = storedRule.timeout();
+            if (storedRule.packets() != swRule.packets()) {
+                deadRounds.get(swRule).set(0);
+                return true;
+            }
+
+            return (deadRounds.get(swRule).getAndIncrement() *
+                    FlowRuleProvider.POLL_INTERVAL) <= timeout;
 
         }
 

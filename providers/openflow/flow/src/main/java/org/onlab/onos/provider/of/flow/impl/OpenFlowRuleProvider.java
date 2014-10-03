@@ -127,7 +127,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public void switchAdded(Dpid dpid) {
-            FlowStatsCollector fsc = new FlowStatsCollector(controller.getSwitch(dpid), 5);
+            FlowStatsCollector fsc = new FlowStatsCollector(controller.getSwitch(dpid), POLL_INTERVAL);
             fsc.start();
             collectors.put(dpid, fsc);
         }
