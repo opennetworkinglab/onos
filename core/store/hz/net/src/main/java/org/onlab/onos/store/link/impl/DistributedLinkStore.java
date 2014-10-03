@@ -38,6 +38,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.hazelcast.core.IMap;
 
+//TODO: Add support for multiple provider and annotations
 /**
  * Manages inventory of infrastructure links using Hazelcast-backed map.
  */

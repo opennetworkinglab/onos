@@ -46,6 +46,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+//TODO: Add support for multiple provider and annotations
 /**
  * Manages inventory of infrastructure devices using a protocol that takes into consideration
  * the order in which device events occur.

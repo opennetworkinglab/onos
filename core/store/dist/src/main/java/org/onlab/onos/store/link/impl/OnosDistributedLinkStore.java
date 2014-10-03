@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableSet.Builder;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+//TODO: Add support for multiple provider and annotations
 /**
  * Manages inventory of infrastructure links using a protocol that takes into consideration
  * the order in which events occur.
