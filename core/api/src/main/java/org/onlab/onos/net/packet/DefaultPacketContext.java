@@ -24,7 +24,7 @@ public abstract class DefaultPacketContext implements PacketContext {
         this.inPkt = inPkt;
         this.outPkt = outPkt;
         this.block = new AtomicBoolean(block);
-        this.builder = new DefaultTrafficTreatment.Builder();
+        this.builder = DefaultTrafficTreatment.builder();
     }
 
     @Override

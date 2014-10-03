@@ -242,15 +242,16 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         }
 
         private boolean checkRuleLiveness(FlowRule swRule, FlowRule storedRule) {
-            int timeout = storedRule.timeout();
-            if (storedRule.packets() != swRule.packets()) {
-                deadRounds.get(swRule).set(0);
-                return true;
-            }
-
-            return (deadRounds.get(swRule).getAndIncrement() *
-                    FlowRuleProvider.POLL_INTERVAL) <= timeout;
-
+            return true;
+//            int timeout = storedRule.timeout();
+//            if (storedRule.packets() != swRule.packets()) {
+//                deadRounds.get(swRule).set(0);
+//                return true;
+//            }
+//
+//            return (deadRounds.get(swRule).getAndIncrement() *
+//                    FlowRuleProvider.POLL_INTERVAL) <= timeout;
+//
         }
 
         // Posts the specified event to the local event dispatcher.

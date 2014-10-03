@@ -39,19 +39,15 @@ public class IntentInstallCommand extends AbstractShellCommand {
         HostId srcId = HostId.hostId(src);
         HostId dstId = HostId.hostId(dst);
 
-        TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
-        builder
-            .matchEthSrc(hosts.getHost(srcId).mac())
-            .matchEthDst(hosts.getHost(dstId).mac());
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+        builder.matchEthSrc(hosts.getHost(srcId).mac())
+                .matchEthDst(hosts.getHost(dstId).mac());
 
-        TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
+        TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
 
-        HostToHostIntent intent = new HostToHostIntent(
-                new IntentId(id++),
-                srcId,
-                dstId,
-                builder.build(),
-                treat.build());
+        HostToHostIntent intent =
+                new HostToHostIntent(new IntentId(id++), srcId, dstId,
+                                     builder.build(), treat.build());
 
         log.info("Adding intent {}", intent);
 

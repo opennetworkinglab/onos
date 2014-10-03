@@ -1,11 +1,5 @@
 package org.onlab.onos.net.flow;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions;
@@ -14,10 +8,24 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * Default traffic treatment implementation.
+ */
 public final class DefaultTrafficTreatment implements TrafficTreatment {
 
     private final List<Instruction> instructions;
 
+    /**
+     * Creates a new traffic treatment from the specified list of instructions.
+     *
+     * @param instructions treatment instructions
+     */
     private DefaultTrafficTreatment(List<Instruction> instructions) {
         this.instructions = Collections.unmodifiableList(instructions);
     }
@@ -28,12 +36,19 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     }
 
     /**
+     * Returns a new traffic treatment builder.
+     *
+     * @return traffic treatment builder
+     */
+    public static TrafficTreatment.Builder builder() {
+        return new Builder();
+    }
+
+    /**
      * Builds a list of treatments following the following order.
      * Modifications -> Group -> Output (including drop)
-     *
      */
-
-    public static class Builder implements TrafficTreatment.Builder {
+    public static final class Builder implements TrafficTreatment.Builder {
 
         private final Logger log = getLogger(getClass());
 
@@ -47,27 +62,31 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         // TODO: should be a list of instructions based on modification objects
         List<Instruction> modifications = new LinkedList<>();
 
+        // Creates a new builder
+        private Builder() {
+        }
+
         public Builder add(Instruction instruction) {
             if (drop) {
                 return this;
             }
             switch (instruction.type()) {
-            case DROP:
-                drop = true;
-                break;
-            case OUTPUT:
-                outputs.add(instruction);
-                break;
-            case L2MODIFICATION:
-            case L3MODIFICATION:
-                // TODO: enforce modification order if any
-                modifications.add(instruction);
-                break;
-            case GROUP:
-                groups.add(instruction);
-                break;
-            default:
-                log.warn("Unknown instruction type {}", instruction.type());
+                case DROP:
+                    drop = true;
+                    break;
+                case OUTPUT:
+                    outputs.add(instruction);
+                    break;
+                case L2MODIFICATION:
+                case L3MODIFICATION:
+                    // TODO: enforce modification order if any
+                    modifications.add(instruction);
+                    break;
+                case GROUP:
+                    groups.add(instruction);
+                    break;
+                default:
+                    log.warn("Unknown instruction type {}", instruction.type());
             }
             return this;
         }

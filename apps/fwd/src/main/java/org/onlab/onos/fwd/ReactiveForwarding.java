@@ -184,13 +184,13 @@ public class ReactiveForwarding {
 
             // Install the flow rule to handle this type of message from now on.
             Ethernet inPkt = context.inPacket().parsed();
-            TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
+            TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
             builder.matchEthType(inPkt.getEtherType())
                 .matchEthSrc(inPkt.getSourceMAC())
                 .matchEthDst(inPkt.getDestinationMAC())
                 .matchInport(context.inPacket().receivedFrom().port());
 
-            TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
+            TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
             treat.setOutput(portNumber);
 
             FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),

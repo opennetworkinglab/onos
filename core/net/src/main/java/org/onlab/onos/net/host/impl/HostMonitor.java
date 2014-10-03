@@ -150,7 +150,7 @@ public class HostMonitor implements TimerTask {
         List<Instruction> instructions = new ArrayList<>();
         instructions.add(Instructions.createOutput(port.number()));
 
-        TrafficTreatment treatment = new DefaultTrafficTreatment.Builder()
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
         .setOutput(port.number())
         .build();
 

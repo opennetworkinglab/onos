@@ -1,7 +1,5 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.Iterator;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,24 +15,25 @@ import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.PathIntent;
 
+import java.util.Iterator;
+
 /**
- * An intent installer for {@link PathIntent}.
+ * Installer for {@link PathIntent path connectivity intents}.
  */
 @Component(immediate = true)
-public class PathIntentInstaller
-        implements IntentInstaller<PathIntent> {
+public class PathIntentInstaller implements IntentInstaller<PathIntent> {
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private FlowRuleService flowRuleService;
+    protected FlowRuleService flowRuleService;
 
-    private final ApplicationId appId = ApplicationId.valueOf(1);
+    private final ApplicationId appId = ApplicationId.getAppId();
 
     @Activate
     public void activate() {
@@ -48,24 +47,21 @@ public class PathIntentInstaller
 
     @Override
     public void install(PathIntent intent) {
-        TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
-        TrafficSelector selector = intent.getTrafficSelector();
-        for (Criterion c : selector.criteria()) {
-            builder.add(c);
-        }
-
+        TrafficSelector.Builder builder =
+                DefaultTrafficSelector.builder(intent.getTrafficSelector());
         Iterator<Link> links = intent.getPath().links().iterator();
         ConnectPoint prev = links.next().dst();
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
 
-            TrafficTreatment.Builder treat = new DefaultTrafficTreatment.Builder();
+            TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
             treat.setOutput(link.src().port());
 
-            FlowRule f = new DefaultFlowRule(link.src().deviceId(),
-                                             builder.build(), treat.build(), 0, appId, 0);
-            flowRuleService.applyFlowRules(f);
+            FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
+                                                builder.build(), treat.build(),
+                                                0, appId, 30);
+            flowRuleService.applyFlowRules(rule);
 
             prev = link.dst();
         }

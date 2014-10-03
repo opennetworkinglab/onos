@@ -43,7 +43,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
-
 @Component(immediate = true)
 @Service
 public class ProxyArpManager implements ProxyArpService {
@@ -128,7 +127,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         Ethernet arpReply = buildArpReply(dst, eth);
         // TODO: check send status with host service.
-        TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         builder.setOutput(src.location().port());
         packetService.emit(new DefaultOutboundPacket(src.location().deviceId(),
                 builder.build(), ByteBuffer.wrap(arpReply.serialize())));
@@ -148,7 +147,7 @@ public class ProxyArpManager implements ProxyArpService {
         if (h == null) {
             flood(eth);
         } else {
-            TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();
+            TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
             builder.setOutput(h.location().port());
             packetService.emit(new DefaultOutboundPacket(h.location().deviceId(),
                     builder.build(), ByteBuffer.wrap(eth.serialize())));
@@ -166,7 +165,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         synchronized (externalPorts) {
             for (Entry<Device, PortNumber> entry : externalPorts.entries()) {
-                builder = new DefaultTrafficTreatment.Builder();
+                builder = DefaultTrafficTreatment.builder();
                 builder.setOutput(entry.getValue());
                 packetService.emit(new DefaultOutboundPacket(entry.getKey().id(),
                         builder.build(), buf));
