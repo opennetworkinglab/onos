@@ -4,9 +4,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.util.Timeout;
@@ -59,15 +59,14 @@ public class HostMonitor implements TimerTask {
 
     private final Set<IpAddress> monitoredAddresses;
 
-    private final Map<ProviderId, HostProvider> hostProviders;
+    private final ConcurrentMap<ProviderId, HostProvider> hostProviders;
 
-    private final long probeRate;
+    private static final long DEFAULT_PROBE_RATE = 30000; // milliseconds
+    private long probeRate = DEFAULT_PROBE_RATE;
 
     private final Timeout timeout;
 
-    public HostMonitor(
-            DeviceService deviceService,
-            PacketService packetService,
+    public HostMonitor(DeviceService deviceService, PacketService packetService,
             HostManager hostService) {
 
         this.deviceService = deviceService;
@@ -77,15 +76,7 @@ public class HostMonitor implements TimerTask {
         monitoredAddresses = new HashSet<>();
         hostProviders = new ConcurrentHashMap<>();
 
-        probeRate = 30000; // milliseconds
-
         timeout = Timer.getTimer().newTimeout(this, 0, TimeUnit.MILLISECONDS);
-
-        addDefaultAddresses();
-    }
-
-    private void addDefaultAddresses() {
-        //monitoredAddresses.add(IpAddress.valueOf("10.0.0.1"));
     }
 
     void addMonitoringFor(IpAddress ip) {
@@ -104,10 +95,6 @@ public class HostMonitor implements TimerTask {
         hostProviders.put(provider.id(), provider);
     }
 
-    void unregisterHostProvider(HostProvider provider) {
-        // TODO find out how to call this
-    }
-
     @Override
     public void run(Timeout timeout) throws Exception {
         for (IpAddress ip : monitoredAddresses) {
@@ -121,7 +108,9 @@ public class HostMonitor implements TimerTask {
             } else {
                 for (Host host : hosts) {
                     HostProvider provider = hostProviders.get(host.providerId());
-                    if (provider != null) {
+                    if (provider == null) {
+                        hostProviders.remove(host.providerId(), null);
+                    } else {
                         provider.triggerProbe(host);
                     }
                 }
