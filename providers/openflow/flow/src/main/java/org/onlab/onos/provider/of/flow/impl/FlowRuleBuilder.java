@@ -82,10 +82,9 @@ public class FlowRuleBuilder {
             // TODO: revisit potentially.
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), null, removed.getPriority(),
-                    FlowRuleState.REMOVED, stat.getDurationSec(),
+                    FlowRuleState.REMOVED, removed.getDurationSec(),
                     removed.getPacketCount().getValue(), removed.getByteCount().getValue(),
-                    removed.getCookie().getValue(),
-                    stat.getIdleTimeout());
+                    removed.getCookie().getValue(), removed.getIdleTimeout());
         }
     }
 

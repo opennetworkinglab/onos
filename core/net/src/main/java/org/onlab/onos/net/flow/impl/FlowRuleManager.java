@@ -158,7 +158,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             checkValidity();
             FlowRule stored = store.getFlowRule(flowRule);
             if (stored == null) {
-                log.debug("Rule already evicted from store: {}", flowRule);
+                log.info("Rule already evicted from store: {}", flowRule);
                 return;
             }
             Device device = deviceService.getDevice(flowRule.deviceId());
@@ -247,8 +247,12 @@ implements FlowRuleService, FlowRuleProviderRegistry {
                 idleTime.put(swRule, currentTime);
                 return true;
             }
-            return (currentTime - idleTime.get(swRule)) <= timeout;
 
+            if ((currentTime - idleTime.get(swRule)) <= timeout) {
+                idleTime.put(swRule, currentTime);
+                return true;
+            }
+            return false;
         }
 
         // Posts the specified event to the local event dispatcher.

@@ -26,9 +26,7 @@ import org.onlab.onos.net.packet.InboundPacket;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 
@@ -55,9 +53,6 @@ public class ReactiveForwarding {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ProxyArpService proxyArpService;
-
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
     private ApplicationId appId;
@@ -65,7 +60,7 @@ public class ReactiveForwarding {
     @Activate
     public void activate() {
         appId = ApplicationId.getAppId();
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
+        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         log.info("Started with Application ID {}", appId.id());
     }
 
@@ -93,16 +88,6 @@ public class ReactiveForwarding {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
-            if (ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
-                ARP arp = (ARP) ethPkt.getPayload();
-                if (arp.getOpCode() == ARP.OP_REPLY) {
-                    proxyArpService.forward(ethPkt);
-                } else if (arp.getOpCode() == ARP.OP_REQUEST) {
-                    proxyArpService.reply(ethPkt);
-                }
-                context.block();
-                return;
-            }
 
             HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
@@ -181,24 +166,24 @@ public class ReactiveForwarding {
         // We don't yet support bufferids in the flowservice so packet out first.
         packetOut(context, portNumber);
 
-        if (context.inPacket().parsed().getEtherType() == Ethernet.TYPE_IPV4) {
 
-            // Install the flow rule to handle this type of message from now on.
-            Ethernet inPkt = context.inPacket().parsed();
-            TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
-            builder.matchEthType(inPkt.getEtherType())
-                .matchEthSrc(inPkt.getSourceMAC())
-                .matchEthDst(inPkt.getDestinationMAC())
-                .matchInport(context.inPacket().receivedFrom().port());
 
-            TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
-            treat.setOutput(portNumber);
+        // Install the flow rule to handle this type of message from now on.
+        Ethernet inPkt = context.inPacket().parsed();
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+        builder.matchEthType(inPkt.getEtherType())
+        .matchEthSrc(inPkt.getSourceMAC())
+        .matchEthDst(inPkt.getDestinationMAC())
+        .matchInport(context.inPacket().receivedFrom().port());
 
-            FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                    builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
+        TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
+        treat.setOutput(portNumber);
 
-            flowRuleService.applyFlowRules(f);
-        }
+        FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
+                builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
+
+        flowRuleService.applyFlowRules(f);
+
     }
 
 }

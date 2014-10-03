@@ -31,6 +31,8 @@ import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
+import org.onlab.onos.net.packet.InboundPacket;
+import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.packet.ARP;
@@ -153,6 +155,23 @@ public class ProxyArpManager implements ProxyArpService {
                     builder.build(), ByteBuffer.wrap(eth.serialize())));
         }
 
+    }
+
+    @Override
+    public boolean handleArp(PacketContext context) {
+        InboundPacket pkt = context.inPacket();
+        Ethernet ethPkt = pkt.parsed();
+        if (ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
+            ARP arp = (ARP) ethPkt.getPayload();
+            if (arp.getOpCode() == ARP.OP_REPLY) {
+                forward(ethPkt);
+            } else if (arp.getOpCode() == ARP.OP_REQUEST) {
+                reply(ethPkt);
+            }
+            context.block();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -321,7 +340,6 @@ public class ProxyArpManager implements ProxyArpService {
 
         }
 
-}
-
+    }
 
 }
