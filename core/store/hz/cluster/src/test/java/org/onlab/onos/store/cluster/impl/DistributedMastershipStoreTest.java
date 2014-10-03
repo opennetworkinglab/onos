@@ -6,18 +6,23 @@ import static org.junit.Assert.assertTrue;
 import static org.onlab.onos.net.MastershipRole.*;
 
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.MastershipEvent;
 import org.onlab.onos.cluster.MastershipEvent.Type;
+import org.onlab.onos.cluster.MastershipStoreDelegate;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
@@ -40,7 +45,6 @@ public class DistributedMastershipStoreTest {
     private static final DeviceId DID1 = DeviceId.deviceId("of:01");
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
     private static final DeviceId DID3 = DeviceId.deviceId("of:03");
-    private static final DeviceId DID4 = DeviceId.deviceId("of:04");
 
     private static final IpPrefix IP = IpPrefix.valueOf("127.0.0.1");
 
@@ -189,6 +193,28 @@ public class DistributedMastershipStoreTest {
         //NONE - nothing happens
         assertNull("wrong event:", dms.unsetMaster(N1, DID2));
         assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID2));
+    }
+
+    @Ignore("Ignore until Delegate spec. is clear.")
+    @Test
+    public void testEvents() throws InterruptedException {
+        //shamelessly copy other distributed store tests
+        final CountDownLatch addLatch = new CountDownLatch(1);
+
+        MastershipStoreDelegate checkAdd = new MastershipStoreDelegate() {
+            @Override
+            public void notify(MastershipEvent event) {
+                assertEquals("wrong event:", Type.MASTER_CHANGED, event.type());
+                assertEquals("wrong subject", DID1, event.subject());
+                assertEquals("wrong subject", N1, event.master());
+                addLatch.countDown();
+            }
+        };
+
+        dms.setDelegate(checkAdd);
+        dms.setMaster(N1, DID1);
+        //this will fail until we do something about single-instance-ness
+        assertTrue("Add event fired", addLatch.await(1, TimeUnit.SECONDS));
     }
 
     private class TestDistributedMastershipStore extends

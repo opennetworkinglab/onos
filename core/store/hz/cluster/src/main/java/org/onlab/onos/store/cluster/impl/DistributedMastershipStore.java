@@ -1,6 +1,5 @@
 package org.onlab.onos.store.cluster.impl;
 
-import static com.google.common.cache.CacheBuilder.newBuilder;
 import static org.onlab.onos.cluster.MastershipEvent.Type.MASTER_CHANGED;
 
 import java.util.Map;
@@ -20,12 +19,8 @@ import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.common.AbsentInvalidatingLoadingCache;
 import org.onlab.onos.store.common.AbstractHazelcastStore;
-import org.onlab.onos.store.common.OptionalCacheLoader;
 
-import com.google.common.base.Optional;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
@@ -53,9 +48,6 @@ implements MastershipStore {
     //collection of nodes. values are ignored, as it's used as a makeshift 'set'
     protected IMap<byte[], Byte> backups;
 
-    //TODO - remove
-    //private LoadingCache<DeviceId, Optional<NodeId>> masters;
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
@@ -68,11 +60,7 @@ implements MastershipStore {
         rawTerms = theInstance.getMap("terms");
         backups = theInstance.getMap("backups");
 
-        //TODO: hook up maps to event notification
-        //OptionalCacheLoader<DeviceId, NodeId> nodeLoader
-        //= new OptionalCacheLoader<>(kryoSerializationService, rawMasters);
-        //masters = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
-        //rawMasters.addEntryListener(new RemoteMasterShipEventHandler(masters), true);
+        rawMasters.addEntryListener(new RemoteMasterShipEventHandler(), true);
 
         log.info("Started");
     }
@@ -253,27 +241,26 @@ implements MastershipStore {
 
     //adds node to pool(s) of backup
     private void backup(NodeId nodeId, DeviceId deviceId) {
-        //TODO might be useful to isolate out
+        //TODO might be useful to isolate out this function and reelect() if we
+        //get more backup/election schemes
     }
 
-    private class RemoteMasterShipEventHandler extends RemoteCacheEventHandler<DeviceId, NodeId> {
-        public RemoteMasterShipEventHandler(LoadingCache<DeviceId, Optional<NodeId>> cache) {
-            super(cache);
-        }
+    private class RemoteMasterShipEventHandler extends RemoteEventHandler<DeviceId, NodeId> {
 
         @Override
         protected void onAdd(DeviceId deviceId, NodeId nodeId) {
+            //only addition indicates a change in mastership
             notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
         }
 
         @Override
         protected void onRemove(DeviceId deviceId, NodeId nodeId) {
-            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+            //notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
         }
 
         @Override
         protected void onUpdate(DeviceId deviceId, NodeId oldNodeId, NodeId nodeId) {
-            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+            //notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
         }
     }
 
