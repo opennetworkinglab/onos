@@ -20,6 +20,7 @@ import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowRemovedReason;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
@@ -28,10 +29,14 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetNwDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetNwSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Lists;
 
 public class FlowRuleBuilder {
     private final Logger log = getLogger(getClass());
@@ -44,15 +49,16 @@ public class FlowRuleBuilder {
 
     private final Dpid dpid;
 
-
+    private final boolean addedRule;
 
 
     public FlowRuleBuilder(Dpid dpid, OFFlowStatsEntry entry) {
         this.stat = entry;
         this.match = entry.getMatch();
-        this.actions = entry.getActions();
+        this.actions = getActions(entry);
         this.dpid = dpid;
         this.removed = null;
+        this.addedRule = true;
     }
 
     public FlowRuleBuilder(Dpid dpid, OFFlowRemoved removed) {
@@ -62,11 +68,12 @@ public class FlowRuleBuilder {
         this.dpid = dpid;
         this.actions = null;
         this.stat = null;
+        this.addedRule = false;
 
     }
 
     public FlowRule build() {
-        if (stat != null) {
+        if (addedRule) {
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), buildTreatment(), stat.getPriority(),
                     FlowRuleState.ADDED, stat.getDurationNsec() / 1000000,
@@ -84,6 +91,26 @@ public class FlowRuleBuilder {
         }
     }
 
+    private List<OFAction> getActions(OFFlowStatsEntry entry) {
+        switch (entry.getVersion()) {
+            case OF_10:
+                return entry.getActions();
+            case OF_11:
+            case OF_12:
+            case OF_13:
+                List<OFInstruction> ins = entry.getInstructions();
+                for (OFInstruction in : ins) {
+                    if (in.getType().equals(OFInstructionType.APPLY_ACTIONS)) {
+                        OFInstructionApplyActions apply = (OFInstructionApplyActions) in;
+                        return apply.getActions();
+                    }
+                }
+                return Lists.newLinkedList();
+            default:
+                log.warn("Unknown OF version {}", entry.getVersion());
+        }
+        return Lists.newLinkedList();
+    }
 
     private TrafficTreatment buildTreatment() {
         TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();

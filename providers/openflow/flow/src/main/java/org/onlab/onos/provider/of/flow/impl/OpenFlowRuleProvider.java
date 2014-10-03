@@ -2,6 +2,7 @@ package org.onlab.onos.provider.of.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -24,14 +25,22 @@ import org.onlab.onos.openflow.controller.OpenFlowEventListener;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.RoleState;
+import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
+import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
+import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -178,8 +187,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             //final List<FlowRule> entries = Lists.newLinkedList();
 
             for (OFFlowStatsEntry reply : replies.getEntries()) {
-                completeEntries.put(did, new FlowRuleBuilder(dpid, reply).build());
-                //entries.add(new FlowRuleBuilder(dpid, reply).build());
+                if (!tableMissRule(dpid, reply)) {
+                    completeEntries.put(did, new FlowRuleBuilder(dpid, reply).build());
+                }
             }
 
             if (!stats.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
@@ -187,6 +197,29 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 providerService.pushFlowMetrics(did, completeEntries.get(did));
                 completeEntries.removeAll(did);
             }
+        }
+
+        private boolean tableMissRule(Dpid dpid, OFFlowStatsEntry reply) {
+            // TODO NEED TO FIND A BETTER WAY TO AVOID DOING THIS
+            if (reply.getVersion().equals(OFVersion.OF_10) ||
+                    reply.getMatch().getMatchFields().iterator().hasNext()) {
+                return false;
+            }
+            for (OFInstruction ins : reply.getInstructions()) {
+                if (ins.getType() == OFInstructionType.APPLY_ACTIONS) {
+                    OFInstructionApplyActions apply = (OFInstructionApplyActions) ins;
+                    List<OFAction> acts = apply.getActions();
+                    for (OFAction act : acts) {
+                        if (act.getType() == OFActionType.OUTPUT) {
+                            OFActionOutput out = (OFActionOutput) act;
+                            if (out.getPort() == OFPort.CONTROLLER) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
     }
