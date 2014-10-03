@@ -9,7 +9,8 @@ import org.onlab.metrics.MetricsManager;
 import com.codahale.metrics.Timer;
 
 public final class SimpleClient {
-    private SimpleClient() {}
+    private SimpleClient() {
+    }
 
     public static void main(String... args) throws Exception {
         NettyMessagingService messaging = new TestNettyMessagingService(9081);
@@ -29,11 +30,11 @@ public final class SimpleClient {
 
         Timer sendAndRecieveTimer = metrics.createTimer(component, feature, "SendAndReceive");
         final int iterations = 1000000;
-        for (int i=0; i < iterations; i++) {
+        for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAndRecieveTimer.time();
             Response<String> response = messaging
                     .sendAndReceive(new Endpoint("localhost", 8080), "echo",
-                            "Hello World");
+                                    "Hello World");
             System.out.println("Got back:" + response.get(2, TimeUnit.SECONDS));
             context.stop();
         }
