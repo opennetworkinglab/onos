@@ -50,7 +50,8 @@ public class DefaultFlowRule implements FlowRule {
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatement, int priority, ApplicationId appId,
             int timeout) {
-        this(deviceId, selector, treatement, priority,
+
+        this(deviceId, selector, treatement, priority == 0 ? 1 : priority,
                 FlowRuleState.CREATED, appId, timeout);
     }
 
