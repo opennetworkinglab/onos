@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipEvent;
@@ -19,6 +20,7 @@ import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.store.common.AbstractHazelcastStore;
 
 import com.google.common.collect.ImmutableSet;
@@ -50,6 +52,10 @@ implements MastershipStore {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    //FIXME: need to guarantee that this will be met, sans circular dependencies
+    @Reference(policy = ReferencePolicy.DYNAMIC)
+    protected DeviceService deviceService;
 
     @Override
     @Activate
@@ -230,9 +236,11 @@ implements MastershipStore {
 
     //helper for "re-electing" a new master for a given device
     private NodeId reelect(NodeId current, DeviceId deviceId) {
+
         for (byte [] node : backups.keySet()) {
             NodeId nid = deserialize(node);
-            if (!current.equals(nid)) {
+            //if a device dies we shouldn't pick another master for it.
+            if (!current.equals(nid) && (deviceService.isAvailable(deviceId))) {
                 return nid;
             }
         }
