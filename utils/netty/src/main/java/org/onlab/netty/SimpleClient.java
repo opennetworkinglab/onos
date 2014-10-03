@@ -28,18 +28,17 @@ public final class SimpleClient {
         }
         metrics.registerMetric(component, feature, "AsyncTimer", sendAsyncTimer);
 
-        Timer sendAndRecieveTimer = metrics.createTimer(component, feature, "SendAndReceive");
+        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
         final int iterations = 1000000;
         for (int i = 0; i < iterations; i++) {
-            Timer.Context context = sendAndRecieveTimer.time();
+            Timer.Context context = sendAndReceiveTimer.time();
             Response<String> response = messaging
                     .sendAndReceive(new Endpoint("localhost", 8080), "echo",
                                     "Hello World");
             System.out.println("Got back:" + response.get(2, TimeUnit.SECONDS));
             context.stop();
         }
-        metrics.registerMetric(component, feature, "AsyncTimer", sendAndRecieveTimer);
-
+        metrics.registerMetric(component, feature, "AsyncTimer", sendAndReceiveTimer);
     }
 
     public static class TestNettyMessagingService extends NettyMessagingService {
