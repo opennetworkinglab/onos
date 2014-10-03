@@ -1,6 +1,5 @@
 package org.onlab.onos.store.trivial.impl;
 
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -116,18 +115,21 @@ public class SimpleFlowRuleStore
         DeviceId did = rule.deviceId();
 
         // check if this new rule is an update to an existing entry
-        if (flowEntries.containsEntry(did, rule)) {
-            //synchronized (flowEntries) {
+        FlowRule stored = getFlowRule(rule);
+        if (stored != null) {
             // Multimaps support duplicates so we have to remove our rule
             // and replace it with the current version.
             flowEntries.remove(did, rule);
             flowEntries.put(did, rule);
-            //}
+
+            if (stored.state() == FlowRuleState.PENDING_ADD) {
+                return new FlowRuleEvent(Type.RULE_ADDED, rule);
+            }
             return new FlowRuleEvent(Type.RULE_UPDATED, rule);
         }
 
         flowEntries.put(did, rule);
-        return new FlowRuleEvent(RULE_ADDED, rule);
+        return null;
     }
 
     @Override
@@ -140,11 +142,4 @@ public class SimpleFlowRuleStore
         }
         //}
     }
-
-
-
-
-
-
-
 }

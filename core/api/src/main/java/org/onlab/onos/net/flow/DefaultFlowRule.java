@@ -27,11 +27,12 @@ public class DefaultFlowRule implements FlowRule {
 
     private final ApplicationId appId;
 
-    private boolean expired;
+    private final int timeout;
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, FlowRuleState state,
-            long life, long packets, long bytes, long flowId, boolean expired) {
+            long life, long packets, long bytes, long flowId, boolean expired,
+            int timeout) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
@@ -39,26 +40,30 @@ public class DefaultFlowRule implements FlowRule {
         this.state = state;
         this.appId = ApplicationId.valueOf((int) (flowId >> 32));
         this.id = FlowId.valueOf(flowId);
-        this.expired = expired;
         this.life = life;
         this.packets = packets;
         this.bytes = bytes;
         this.created = System.currentTimeMillis();
+        this.timeout = timeout;
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-            TrafficTreatment treatement, int priority, ApplicationId appId) {
-        this(deviceId, selector, treatement, priority, FlowRuleState.CREATED, appId);
+            TrafficTreatment treatement, int priority, ApplicationId appId,
+            int timeout) {
+        this(deviceId, selector, treatement, priority,
+                FlowRuleState.CREATED, appId, timeout);
     }
 
     public DefaultFlowRule(FlowRule rule, FlowRuleState state) {
         this(rule.deviceId(), rule.selector(), rule.treatment(),
-                rule.priority(), state, rule.id(), rule.appId());
+                rule.priority(), state, rule.id(), rule.appId(),
+                rule.timeout());
     }
 
     private DefaultFlowRule(DeviceId deviceId,
             TrafficSelector selector, TrafficTreatment treatment,
-            int priority, FlowRuleState state, ApplicationId appId) {
+            int priority, FlowRuleState state, ApplicationId appId,
+            int timeout) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
@@ -69,13 +74,16 @@ public class DefaultFlowRule implements FlowRule {
         this.bytes = 0;
         this.appId = appId;
 
+        this.timeout = timeout;
+
         this.id = FlowId.valueOf((((long) appId().id()) << 32) | (this.hash() & 0xffffffffL));
         this.created = System.currentTimeMillis();
     }
 
     private DefaultFlowRule(DeviceId deviceId,
             TrafficSelector selector, TrafficTreatment treatment,
-            int priority, FlowRuleState state, FlowId flowId, ApplicationId appId) {
+            int priority, FlowRuleState state, FlowId flowId, ApplicationId appId,
+            int timeout) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
@@ -86,6 +94,7 @@ public class DefaultFlowRule implements FlowRule {
         this.bytes = 0;
         this.appId = appId;
         this.id = flowId;
+        this.timeout = timeout;
         this.created = System.currentTimeMillis();
     }
 
@@ -149,7 +158,7 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public int hashCode() {
-        return Objects.hash(deviceId, id);
+        return Objects.hash(deviceId, selector, priority);
     }
 
     public int hash() {
@@ -170,7 +179,10 @@ public class DefaultFlowRule implements FlowRule {
         if (obj instanceof DefaultFlowRule) {
             DefaultFlowRule that = (DefaultFlowRule) obj;
             return Objects.equals(deviceId, that.deviceId) &&
-                    Objects.equals(id, that.id);
+                    //Objects.equals(id, that.id) &&
+                    Objects.equals(priority, that.priority) &&
+                    Objects.equals(selector, that.selector);
+
         }
         return false;
     }
@@ -181,16 +193,16 @@ public class DefaultFlowRule implements FlowRule {
                 .add("id", id)
                 .add("deviceId", deviceId)
                 .add("priority", priority)
-                .add("selector", selector)
-                .add("treatment", treatment)
+                .add("selector", selector.criteria())
+                .add("treatment", treatment == null ? "N/A" : treatment.instructions())
                 .add("created", created)
                 .add("state", state)
                 .toString();
     }
 
     @Override
-    public boolean expired() {
-        return expired;
+    public int timeout() {
+        return timeout > MAX_TIMEOUT ? MAX_TIMEOUT : this.timeout;
     }
 
 }

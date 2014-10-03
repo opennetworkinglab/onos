@@ -1,10 +1,18 @@
 package org.onlab.metrics;
 
+import java.io.File;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -45,24 +53,44 @@ import com.codahale.metrics.Timer;
  *   </code>
  * </pre>
  */
+@Component(immediate = true)
 public final class MetricsManager implements MetricsService {
 
     /**
      * Registry to hold the Components defined in the system.
      */
-    private ConcurrentMap<String, MetricsComponent> componentsRegistry =
-            new ConcurrentHashMap<>();
+    private ConcurrentMap<String, MetricsComponent> componentsRegistry;
 
     /**
      * Registry for the Metrics objects created in the system.
      */
-    private final MetricRegistry metricsRegistry = new MetricRegistry();
+    private final MetricRegistry metricsRegistry;
 
     /**
-     * Hide constructor.  The only way to get the registry is through the
-     * singleton getter.
+     * Default Reporter for this metrics manager.
      */
-    private MetricsManager() {}
+    private final CsvReporter reporter;
+
+    public MetricsManager() {
+        this.componentsRegistry = new ConcurrentHashMap<>();
+        this.metricsRegistry = new MetricRegistry();
+
+        this.reporter = CsvReporter.forRegistry(metricsRegistry)
+                .formatFor(Locale.US)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .build(new File("/tmp/"));
+
+        reporter.start(10, TimeUnit.SECONDS);
+    }
+
+    @Activate
+    public void activate() {
+    }
+
+    @Deactivate
+    public void deactivate() {
+    }
 
     /**
      * Registers a component.

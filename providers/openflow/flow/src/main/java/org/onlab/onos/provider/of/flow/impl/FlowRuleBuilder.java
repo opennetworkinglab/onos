@@ -71,7 +71,7 @@ public class FlowRuleBuilder {
                     buildSelector(), buildTreatment(), stat.getPriority(),
                     FlowRuleState.ADDED, stat.getDurationNsec() / 1000000,
                     stat.getPacketCount().getValue(), stat.getByteCount().getValue(),
-                    stat.getCookie().getValue(), false);
+                    stat.getCookie().getValue(), false, stat.getIdleTimeout());
         } else {
             // TODO: revisit potentially.
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
@@ -79,7 +79,8 @@ public class FlowRuleBuilder {
                     FlowRuleState.REMOVED, removed.getDurationNsec() / 1000000,
                     removed.getPacketCount().getValue(), removed.getByteCount().getValue(),
                     removed.getCookie().getValue(),
-                    removed.getReason() == OFFlowRemovedReason.IDLE_TIMEOUT.ordinal());
+                    removed.getReason() == OFFlowRemovedReason.IDLE_TIMEOUT.ordinal(),
+                    stat.getIdleTimeout());
         }
     }
 
