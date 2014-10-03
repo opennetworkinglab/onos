@@ -1,12 +1,13 @@
 package org.onlab.onos.net.link;
 
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Description;
 import org.onlab.onos.net.Link;
 
 /**
  * Describes an infrastructure link.
  */
-public interface LinkDescription {
+public interface LinkDescription extends Description {
 
     /**
      * Returns the link source.

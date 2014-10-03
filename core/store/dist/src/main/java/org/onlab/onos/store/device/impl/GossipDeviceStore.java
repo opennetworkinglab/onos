@@ -11,7 +11,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
@@ -196,7 +196,7 @@ public class GossipDeviceStore
         // We allow only certain attributes to trigger update
         if (!Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
             !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
-            !isAnnotationsEqual(oldDevice.annotations(), newDevice.annotations())) {
+            !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations())) {
 
             boolean replaced = devices.replace(newDevice.id(), oldDevice, newDevice);
             if (!replaced) {
@@ -327,7 +327,7 @@ public class GossipDeviceStore
                                    Port newPort,
                                    Map<PortNumber, Port> ports) {
         if (oldPort.isEnabled() != newPort.isEnabled() ||
-            !isAnnotationsEqual(oldPort.annotations(), newPort.annotations())) {
+            !AnnotationsUtil.isEqual(oldPort.annotations(), newPort.annotations())) {
 
             ports.put(oldPort.number(), newPort);
             return new DeviceEvent(PORT_UPDATED, device, newPort);
@@ -438,31 +438,10 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
-        synchronized (this) {
-            Device device = devices.remove(deviceId);
-            return device == null ? null :
-                    new DeviceEvent(DEVICE_REMOVED, device, null);
-        }
-    }
-
-    private static boolean isAnnotationsEqual(Annotations lhs, Annotations rhs) {
-        if (lhs == rhs) {
-            return true;
-        }
-        if (lhs == null || rhs == null) {
-            return false;
-        }
-
-        if (!lhs.keys().equals(rhs.keys())) {
-            return false;
-        }
-
-        for (String key : lhs.keys()) {
-            if (!lhs.value(key).equals(rhs.value(key))) {
-                return false;
-            }
-        }
-        return true;
+        Device device = devices.remove(deviceId);
+        // FIXME: should we be removing deviceDescs also?
+        return device == null ? null :
+            new DeviceEvent(DEVICE_REMOVED, device, null);
     }
 
     /**

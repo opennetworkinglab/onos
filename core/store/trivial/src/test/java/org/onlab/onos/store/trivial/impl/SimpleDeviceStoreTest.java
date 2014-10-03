@@ -126,6 +126,7 @@ public class SimpleDeviceStoreTest {
         assertEquals(SN, device.serialNumber());
     }
 
+    // TODO slice this out somewhere
     /**
      * Verifies that Annotations created by merging {@code annotations} is
      * equal to actual Annotations.
@@ -133,7 +134,7 @@ public class SimpleDeviceStoreTest {
      * @param actual Annotations to check
      * @param annotations
      */
-    private static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+    public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
         DefaultAnnotations expected = DefaultAnnotations.builder().build();
         for (SparseAnnotations a : annotations) {
             expected = DefaultAnnotations.merge(expected, a);
@@ -347,6 +348,7 @@ public class SimpleDeviceStoreTest {
         assertFalse("Port is disabled", event.port().isEnabled());
 
     }
+
     @Test
     public final void testUpdatePortStatusAncillary() {
         putDeviceAncillary(DID1, SW1);
