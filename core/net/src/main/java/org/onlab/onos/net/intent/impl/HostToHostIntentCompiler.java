@@ -1,17 +1,15 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Host;
+import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.Path;
-import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.IdGenerator;
 import org.onlab.onos.net.intent.Intent;
@@ -20,6 +18,12 @@ import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.topology.PathService;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import static org.onlab.onos.net.flow.DefaultTrafficSelector.builder;
 
 /**
  * A intent compiler for {@link HostToHostIntent}.
@@ -33,6 +37,9 @@ public class HostToHostIntentCompiler
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PathService pathService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
 
     private IdGenerator<IntentId> intentIdGenerator;
 
@@ -50,18 +57,34 @@ public class HostToHostIntentCompiler
 
     @Override
     public List<Intent> compile(HostToHostIntent intent) {
-        Set<Path> paths = pathService.getPaths(intent.getSrc(), intent.getDst());
-        if (paths.isEmpty()) {
-            throw new PathNotFoundException();
-        }
-        Path path = paths.iterator().next();
+        Path pathOne = getPath(intent.one(), intent.two());
+        Path pathTwo = getPath(intent.two(), intent.one());
 
-        return Arrays.asList((Intent) new PathIntent(
-                intentIdGenerator.getNewId(),
-                intent.getTrafficSelector(),
-                intent.getTrafficTreatment(),
-                new ConnectPoint(intent.getSrc(), PortNumber.ALL),
-                new ConnectPoint(intent.getDst(), PortNumber.ALL),
-                path));
+        Host one = hostService.getHost(intent.one());
+        Host two = hostService.getHost(intent.two());
+
+        return Arrays.asList(createPathIntent(pathOne, one, two, intent),
+                             createPathIntent(pathTwo, two, one, intent));
+    }
+
+    // Creates a path intent from the specified path and original connectivity intent.
+    private Intent createPathIntent(Path path, Host src, Host dst,
+                                    HostToHostIntent intent) {
+
+        TrafficSelector selector = builder(intent.getTrafficSelector())
+                .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
+
+        return new PathIntent(intentIdGenerator.getNewId(),
+                              selector, intent.getTrafficTreatment(),
+                              path.src(), path.dst(), path);
+    }
+
+    private Path getPath(HostId one, HostId two) {
+        Set<Path> paths = pathService.getPaths(one, two);
+        if (paths.isEmpty()) {
+            throw new PathNotFoundException("No path from host " + one + " to " + two);
+        }
+        // TODO: let's be more intelligent about this eventually
+        return paths.iterator().next();
     }
 }

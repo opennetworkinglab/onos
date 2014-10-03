@@ -1,7 +1,5 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.Iterator;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -12,7 +10,6 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.TrafficSelector;
@@ -20,6 +17,10 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.PathIntent;
+
+import java.util.Iterator;
+
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Installer for {@link PathIntent path connectivity intents}.
@@ -51,18 +52,16 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
                 DefaultTrafficSelector.builder(intent.getTrafficSelector());
         Iterator<Link> links = intent.getPath().links().iterator();
         ConnectPoint prev = links.next().dst();
+
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
-
-            TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
-            treat.setOutput(link.src().port());
-
+            TrafficTreatment treatment = builder()
+                    .setOutput(link.src().port()).build();
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                                                builder.build(), treat.build(),
-                                                10, appId, 30);
+                                                builder.build(), treatment,
+                                                123, appId, 600);
             flowRuleService.applyFlowRules(rule);
-
             prev = link.dst();
         }
 

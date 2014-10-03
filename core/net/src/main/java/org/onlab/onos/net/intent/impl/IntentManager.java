@@ -355,8 +355,8 @@ public class IntentManager
     private class InternalStoreDelegate implements IntentStoreDelegate {
         @Override
         public void notify(IntentEvent event) {
-            processStoreEvent(event);
             eventDispatcher.post(event);
+            processStoreEvent(event);
         }
     }
 

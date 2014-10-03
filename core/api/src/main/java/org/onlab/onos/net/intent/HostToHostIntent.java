@@ -10,47 +10,49 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Abstraction of end-station to end-station connectivity.
+ * Abstraction of end-station to end-station bidirectional connectivity.
  */
 public class HostToHostIntent extends ConnectivityIntent {
 
-    private final HostId src;
-    private final HostId dst;
+    private final HostId one;
+    private final HostId two;
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
      * ports.
      *
      * @param intentId  intent identifier
+     * @param one       first host
+     * @param two       second host
      * @param selector  action
      * @param treatment ingress port
      * @throws NullPointerException if {@code ingressPort} or {@code egressPort}
      *                              is null.
      */
-    public HostToHostIntent(IntentId intentId, HostId src, HostId dst,
-                            TrafficSelector selector, TrafficTreatment treatment) {
+    public HostToHostIntent(IntentId intentId, HostId one, HostId two,
+                            TrafficSelector selector,
+                            TrafficTreatment treatment) {
         super(intentId, selector, treatment);
-        this.src = checkNotNull(src);
-        this.dst = checkNotNull(dst);
+        this.one = checkNotNull(one);
+        this.two = checkNotNull(two);
     }
 
     /**
-     * Returns the port on which the ingress traffic should be connected to the
-     * egress.
+     * Returns identifier of the first host.
      *
-     * @return ingress port
+     * @return first host identifier
      */
-    public HostId getSrc() {
-        return src;
+    public HostId one() {
+        return one;
     }
 
     /**
-     * Returns the port on which the traffic should egress.
+     * Returns identifier of the second host.
      *
-     * @return egress port
+     * @return second host identifier
      */
-    public HostId getDst() {
-        return dst;
+    public HostId two() {
+        return two;
     }
 
     @Override
@@ -66,13 +68,13 @@ public class HostToHostIntent extends ConnectivityIntent {
         }
 
         HostToHostIntent that = (HostToHostIntent) o;
-        return Objects.equals(this.src, that.src)
-                && Objects.equals(this.dst, that.dst);
+        return Objects.equals(this.one, that.one)
+                && Objects.equals(this.two, that.two);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), src, dst);
+        return Objects.hash(super.hashCode(), one, two);
     }
 
     @Override
@@ -80,9 +82,9 @@ public class HostToHostIntent extends ConnectivityIntent {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", getId())
                 .add("selector", getTrafficSelector())
-                .add("treatmetn", getTrafficTreatment())
-                .add("src", src)
-                .add("dst", dst)
+                .add("treatment", getTrafficTreatment())
+                .add("one", one)
+                .add("two", two)
                 .toString();
     }
 

@@ -47,7 +47,23 @@ public class ConnectPoint {
             return (DeviceId) elementId;
         }
         throw new IllegalStateException("Connection point not associated " +
-                "with an infrastructure device");
+                                                "with an infrastructure device");
+    }
+
+    /**
+     * Returns the identifier of the infrastructure device if the connection
+     * point belongs to a network element which is indeed an end-station host.
+     *
+     * @return network element identifier as a host identifier
+     * @throws java.lang.IllegalStateException if connection point is not
+     *                                         associated with a host
+     */
+    public HostId hostId() {
+        if (elementId instanceof HostId) {
+            return (HostId) elementId;
+        }
+        throw new IllegalStateException("Connection point not associated " +
+                                                "with an end-station host");
     }
 
     /**
