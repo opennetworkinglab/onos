@@ -91,16 +91,17 @@ public class SimpleLinkStoreTest {
     }
 
     private void putLink(DeviceId srcId, PortNumber srcNum,
-                         DeviceId dstId, PortNumber dstNum, Type type) {
+                         DeviceId dstId, PortNumber dstNum, Type type,
+                         SparseAnnotations... annotations) {
         ConnectPoint src = new ConnectPoint(srcId, srcNum);
         ConnectPoint dst = new ConnectPoint(dstId, dstNum);
-        linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type));
+        linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type, annotations));
     }
 
-    private void putLink(LinkKey key, Type type) {
+    private void putLink(LinkKey key, Type type, SparseAnnotations... annotations) {
         putLink(key.src().deviceId(), key.src().port(),
                 key.dst().deviceId(), key.dst().port(),
-                type);
+                type, annotations);
     }
 
     private static void assertLink(DeviceId srcId, PortNumber srcNum,
@@ -351,8 +352,8 @@ public class SimpleLinkStoreTest {
         LinkKey linkId1 = new LinkKey(d1P1, d2P2);
         LinkKey linkId2 = new LinkKey(d2P2, d1P1);
 
-        putLink(linkId1, DIRECT);
-        putLink(linkId2, DIRECT);
+        putLink(linkId1, DIRECT, A1);
+        putLink(linkId2, DIRECT, A2);
 
         // DID1,P1 => DID2,P2
         // DID2,P2 => DID1,P1
@@ -360,10 +361,17 @@ public class SimpleLinkStoreTest {
 
         LinkEvent event = linkStore.removeLink(d1P1, d2P2);
         assertEquals(LINK_REMOVED, event.type());
+        assertAnnotationsEquals(event.subject().annotations(), A1);
         LinkEvent event2 = linkStore.removeLink(d1P1, d2P2);
         assertNull(event2);
 
         assertLink(linkId2, DIRECT, linkStore.getLink(d2P2, d1P1));
+        assertAnnotationsEquals(linkStore.getLink(d2P2, d1P1).annotations(), A2);
+
+        // annotations, etc. should not survive remove
+        putLink(linkId1, DIRECT);
+        assertLink(linkId1, DIRECT, linkStore.getLink(d1P1, d2P2));
+        assertAnnotationsEquals(linkStore.getLink(d1P1, d2P2).annotations());
     }
 
     @Test

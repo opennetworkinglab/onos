@@ -33,6 +33,7 @@ import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -136,8 +137,7 @@ public class GossipDeviceStore
 
         // Collection of DeviceDescriptions for a Device
         ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs
-            = createIfAbsentUnchecked(deviceDescs, deviceId,
-                    new InitConcurrentHashMap<ProviderId, DeviceDescriptions>());
+            = getDeviceDescriptions(deviceId);
 
 
         DeviceDescriptions descs
@@ -223,8 +223,7 @@ public class GossipDeviceStore
     @Override
     public DeviceEvent markOffline(DeviceId deviceId) {
         ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs
-            = createIfAbsentUnchecked(deviceDescs, deviceId,
-                    new InitConcurrentHashMap<ProviderId, DeviceDescriptions>());
+            = getDeviceDescriptions(deviceId);
 
         // locking device
         synchronized (providerDescs) {
@@ -358,7 +357,13 @@ public class GossipDeviceStore
     // exist, it creates and registers a new one.
     private ConcurrentMap<PortNumber, Port> getPortMap(DeviceId deviceId) {
         return createIfAbsentUnchecked(devicePorts, deviceId,
-                new InitConcurrentHashMap<PortNumber, Port>());
+                NewConcurrentHashMap.<PortNumber, Port>ifNeeded());
+    }
+
+    private ConcurrentMap<ProviderId, DeviceDescriptions> getDeviceDescriptions(
+            DeviceId deviceId) {
+        return createIfAbsentUnchecked(deviceDescs, deviceId,
+                NewConcurrentHashMap.<ProviderId, DeviceDescriptions>ifNeeded());
     }
 
     @Override
@@ -438,10 +443,16 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
-        Device device = devices.remove(deviceId);
-        // FIXME: should we be removing deviceDescs also?
-        return device == null ? null :
-            new DeviceEvent(DEVICE_REMOVED, device, null);
+        ConcurrentMap<ProviderId, DeviceDescriptions> descs = getDeviceDescriptions(deviceId);
+        synchronized (descs) {
+            Device device = devices.remove(deviceId);
+            // should DEVICE_REMOVED carry removed ports?
+            devicePorts.get(deviceId).clear();
+            availableDevices.remove(deviceId);
+            descs.clear();
+            return device == null ? null :
+                new DeviceEvent(DEVICE_REMOVED, device, null);
+        }
     }
 
     /**
@@ -544,14 +555,6 @@ public class GossipDeviceStore
             }
         }
         return fallBackPrimary;
-    }
-
-    private static final class InitConcurrentHashMap<K, V> implements
-            ConcurrentInitializer<ConcurrentMap<K, V>> {
-        @Override
-        public ConcurrentMap<K, V> get() throws ConcurrentException {
-            return new ConcurrentHashMap<>();
-        }
     }
 
     public static final class InitDeviceDescs

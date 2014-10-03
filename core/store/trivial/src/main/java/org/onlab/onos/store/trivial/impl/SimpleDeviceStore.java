@@ -53,7 +53,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 
-// TODO: synchronization should be done in more fine-grained manner.
 /**
  * Manages inventory of infrastructure devices using trivial in-memory
  * structures implementation.
@@ -329,11 +328,18 @@ public class SimpleDeviceStore
 
     @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
-        synchronized (this) {
+        ConcurrentMap<ProviderId, DeviceDescriptions> descs = getDeviceDescriptions(deviceId);
+        synchronized (descs) {
             Device device = devices.remove(deviceId);
-            // FIXME: should we be removing deviceDescs also?
+            // should DEVICE_REMOVED carry removed ports?
+            ConcurrentMap<PortNumber, Port> ports = devicePorts.get(deviceId);
+            if (ports != null) {
+                ports.clear();
+            }
+            availableDevices.remove(deviceId);
+            descs.clear();
             return device == null ? null :
-                    new DeviceEvent(DEVICE_REMOVED, device, null);
+                new DeviceEvent(DEVICE_REMOVED, device, null);
         }
     }
 

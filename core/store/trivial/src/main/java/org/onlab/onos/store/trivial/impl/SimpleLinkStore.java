@@ -47,7 +47,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static com.google.common.base.Predicates.notNull;
 
-// TODO: Add support for multiple provider and annotations
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
  * implementation.
@@ -230,7 +229,7 @@ public class SimpleLinkStore
         ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
         synchronized (descs) {
             Link link = links.remove(key);
-            // FIXME: should we be removing deviceDescs also?
+            descs.clear();
             if (link != null) {
                 srcLinks.remove(link.src().deviceId(), key);
                 dstLinks.remove(link.dst().deviceId(), key);
