@@ -169,7 +169,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void setRole(Dpid dpid, RoleState role) {
-        getSwitch(dpid).setRole(role);
+        final OpenFlowSwitch sw = getSwitch(dpid);
+        if (sw == null) {
+            log.debug("Switch not connected. Ignoring setRole({}, {})", dpid, role);
+            return;
+        }
+        sw.setRole(role);
     }
 
     /**

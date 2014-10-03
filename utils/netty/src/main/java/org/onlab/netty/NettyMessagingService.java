@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -25,17 +25,6 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.pool.KeyedObjectPool;
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.store.cluster.messaging.SerializationService;
-import org.onlab.onos.store.messaging.Endpoint;
-import org.onlab.onos.store.messaging.MessageHandler;
-import org.onlab.onos.store.messaging.MessagingService;
-import org.onlab.onos.store.messaging.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +34,6 @@ import com.google.common.cache.CacheBuilder;
 /**
  * A Netty based implementation of MessagingService.
  */
-@Component(immediate = true)
-@Service
 public class NettyMessagingService implements MessagingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -60,8 +47,7 @@ public class NettyMessagingService implements MessagingService {
     private Cache<Long, AsyncResponse<?>> responseFutures;
     private final Endpoint localEp;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected SerializationService serializationService;
+    protected Serializer serializer;
 
     public NettyMessagingService() {
         // TODO: Default port should be configurable.
@@ -79,7 +65,6 @@ public class NettyMessagingService implements MessagingService {
         }
     }
 
-    @Activate
     public void activate() throws Exception {
         responseFutures = CacheBuilder.newBuilder()
                 .maximumSize(100000)
@@ -90,7 +75,6 @@ public class NettyMessagingService implements MessagingService {
         startAcceptingConnections();
     }
 
-    @Deactivate
     public void deactivate() throws Exception {
         channels.close();
         bossGroup.shutdownGracefully();
@@ -213,8 +197,8 @@ public class NettyMessagingService implements MessagingService {
         @Override
         protected void initChannel(SocketChannel channel) throws Exception {
             channel.pipeline()
-                .addLast(new MessageEncoder(serializationService))
-                .addLast(new MessageDecoder(NettyMessagingService.this, serializationService))
+                .addLast(new MessageEncoder(serializer))
+                .addLast(new MessageDecoder(NettyMessagingService.this, serializer))
                 .addLast(new NettyMessagingService.InboundMessageDispatcher());
         }
     }

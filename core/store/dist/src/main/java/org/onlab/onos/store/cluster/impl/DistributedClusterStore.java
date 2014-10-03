@@ -20,7 +20,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationAdminService;
-import org.onlab.onos.store.cluster.messaging.impl.OnosClusterCommunicationManager;
+import org.onlab.onos.store.cluster.messaging.impl.ClusterCommunicationManager;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class DistributedClusterStore
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
     private final Cache<NodeId, ControllerNode> livenessCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(OnosClusterCommunicationManager.HEART_BEAT_INTERVAL_MILLIS * 3, TimeUnit.MILLISECONDS)
+            .expireAfterWrite(ClusterCommunicationManager.HEART_BEAT_INTERVAL_MILLIS * 3, TimeUnit.MILLISECONDS)
             .removalListener(new LivenessCacheRemovalListener()).build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

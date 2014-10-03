@@ -1,9 +1,6 @@
-package org.onlab.onos.store.messaging.impl;
+package org.onlab.netty;
 
 import java.io.IOException;
-
-import org.onlab.onos.store.messaging.Endpoint;
-import org.onlab.onos.store.messaging.Message;
 
 /**
  * Internal message representation with additional attributes

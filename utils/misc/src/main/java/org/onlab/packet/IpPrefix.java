@@ -250,6 +250,17 @@ public final class IpPrefix {
         return new IpPrefix(version, host, netmask);
     }
 
+    /**
+     * Returns an IpAddress of the bytes contained in this prefix.
+     * FIXME this is a hack for now and only works because IpPrefix doesn't
+     * mask the input bytes on creation.
+     *
+     * @return the IpAddress
+     */
+    public IpAddress toIpAddress() {
+        return IpAddress.valueOf(octets);
+    }
+
     public boolean isMasked() {
         return mask() != 0;
     }
@@ -278,6 +289,17 @@ public final class IpPrefix {
         return false;
     }
 
+    public boolean contains(IpAddress address) {
+        // Need to get the network address because prefixes aren't automatically
+        // masked on creation
+        IpPrefix meMasked = network();
+
+        IpPrefix otherMasked =
+                IpPrefix.valueOf(address.octets, netmask).network();
+
+        return Arrays.equals(meMasked.octets, otherMasked.octets);
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -303,6 +325,7 @@ public final class IpPrefix {
         if (netmask != other.netmask) {
             return false;
         }
+        // TODO not quite right until we mask the input
         if (!Arrays.equals(octets, other.octets)) {
             return false;
         }

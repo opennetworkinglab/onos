@@ -2,6 +2,8 @@ package org.onlab.onos.store.cluster.messaging;
 
 /**
  * Representation of a message subject.
+ * Cluster messages have associated subjects that dictate how they get handled
+ * on the receiving side.
  */
 public class MessageSubject {
 

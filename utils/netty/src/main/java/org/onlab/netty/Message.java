@@ -1,4 +1,4 @@
-package org.onlab.onos.store.messaging;
+package org.onlab.netty;
 
 import java.io.IOException;
 

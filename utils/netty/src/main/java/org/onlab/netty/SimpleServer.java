@@ -1,6 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
-
-import org.onlab.onos.store.cluster.impl.MessageSerializer;
+package org.onlab.netty;
 
 public final class SimpleServer {
     private SimpleServer() {}
@@ -14,9 +12,8 @@ public final class SimpleServer {
 
     public static class TestNettyMessagingService extends NettyMessagingService {
         protected TestNettyMessagingService() {
-            MessageSerializer mgr = new MessageSerializer();
-            mgr.activate();
-            this.serializationService = mgr;
+            Serializer serializer = new KryoSerializer();
+            this.serializer = serializer;
         }
     }
 }

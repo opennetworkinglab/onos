@@ -1,7 +1,4 @@
-package org.onlab.onos.store.messaging.impl;
-
-import org.onlab.onos.store.messaging.Message;
-import org.onlab.onos.store.messaging.MessageHandler;
+package org.onlab.netty;
 
 /**
  * A MessageHandler that simply logs the information.
