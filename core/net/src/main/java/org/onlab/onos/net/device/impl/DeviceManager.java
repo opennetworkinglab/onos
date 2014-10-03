@@ -38,7 +38,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.store.ClockService;
+import org.onlab.onos.store.ClockProviderService;
 import org.slf4j.Logger;
 
 /**
@@ -80,7 +80,7 @@ public class DeviceManager
     protected MastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockService clockService;
+    protected ClockProviderService clockProviderService;
 
     @Activate
     public void activate() {
@@ -274,7 +274,7 @@ public class DeviceManager
             if (event.master().equals(clusterService.getLocalNode().id())) {
                 MastershipTerm term = mastershipService.requestTermService()
                         .getMastershipTerm(event.subject());
-                clockService.setMastershipTerm(event.subject(), term);
+                clockProviderService.setMastershipTerm(event.subject(), term);
                 applyRole(event.subject(), MastershipRole.MASTER);
             } else {
                 applyRole(event.subject(), MastershipRole.STANDBY);

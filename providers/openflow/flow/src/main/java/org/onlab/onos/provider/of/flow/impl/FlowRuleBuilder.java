@@ -113,7 +113,7 @@ public class FlowRuleBuilder {
     }
 
     private TrafficTreatment buildTreatment() {
-        TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         // If this is a drop rule
         if (actions.size() == 0) {
             builder.drop();
@@ -198,7 +198,7 @@ public class FlowRuleBuilder {
     }
 
     private TrafficSelector buildSelector() {
-        TrafficSelector.Builder builder = new DefaultTrafficSelector.Builder();
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
         for (MatchField<?> field : match.getMatchFields()) {
             switch (field.id) {
             case IN_PORT:

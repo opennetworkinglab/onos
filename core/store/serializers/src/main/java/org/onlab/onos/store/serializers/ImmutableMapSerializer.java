@@ -19,6 +19,9 @@ public class ImmutableMapSerializer extends FamilySerializer<ImmutableMap<?, ?>>
 
     private final MapSerializer mapSerializer = new MapSerializer();
 
+    /**
+     * Creates {@link ImmutableMap} serializer instance.
+     */
     public ImmutableMapSerializer() {
         // non-null, immutable
         super(false, true);

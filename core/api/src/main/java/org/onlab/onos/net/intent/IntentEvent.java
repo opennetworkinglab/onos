@@ -1,17 +1,19 @@
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.MoreObjects;
+import org.onlab.onos.event.AbstractEvent;
 
 import java.util.Objects;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A class to represent an intent related event.
  */
-public class IntentEvent {
+public class IntentEvent extends AbstractEvent<IntentState, Intent> {
 
-    // TODO: determine a suitable parent class; if one does not exist, consider introducing one
+    // TODO: determine a suitable parent class; if one does not exist, consider
+    // introducing one
 
     private final long time;
     private final Intent intent;
@@ -21,27 +23,18 @@ public class IntentEvent {
     /**
      * Creates an event describing a state change of an intent.
      *
-     * @param intent subject intent
-     * @param state new intent state
+     * @param intent   subject intent
+     * @param state    new intent state
      * @param previous previous intent state
-     * @param time time the event created in milliseconds since start of epoch
+     * @param time     time the event created in milliseconds since start of epoch
      * @throws NullPointerException if the intent or state is null
      */
     public IntentEvent(Intent intent, IntentState state, IntentState previous, long time) {
+        super(state, intent);
         this.intent = checkNotNull(intent);
         this.state = checkNotNull(state);
         this.previous = previous;
         this.time = time;
-    }
-
-    /**
-     * Constructor for serializer.
-     */
-    protected IntentEvent() {
-        this.intent = null;
-        this.state = null;
-        this.previous = null;
-        this.time = 0;
     }
 
     /**

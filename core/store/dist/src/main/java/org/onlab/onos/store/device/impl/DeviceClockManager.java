@@ -12,14 +12,18 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.store.ClockProviderService;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.impl.OnosTimestamp;
+import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
 import org.slf4j.Logger;
 
+/**
+ * Clock service to issue Timestamp based on Device Mastership.
+ */
 @Component(immediate = true)
 @Service
-public class OnosClockService implements ClockService {
+public class DeviceClockManager implements ClockService, ClockProviderService {
 
     private final Logger log = getLogger(getClass());
 
@@ -43,7 +47,7 @@ public class OnosClockService implements ClockService {
         if (term == null) {
             throw new IllegalStateException("Requesting timestamp for a deviceId without mastership");
         }
-        return new OnosTimestamp(term.termNumber(), ticker.incrementAndGet());
+        return new MastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
     }
 
     @Override

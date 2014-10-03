@@ -181,7 +181,7 @@ public class OpenFlowPacketProviderTest {
     }
 
     private static TrafficTreatment treatment(Instruction ... insts) {
-        TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         for (Instruction i : insts) {
             builder.add(i);
         }

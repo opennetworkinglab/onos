@@ -1,11 +1,10 @@
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import com.google.common.base.Objects;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of connectivity intent for traffic matching some criteria.
@@ -26,17 +25,18 @@ public abstract class ConnectivityIntent extends AbstractIntent {
 
     /**
      * Creates a connectivity intent that matches on the specified intent
-     * and applies the specified action.
+     * and applies the specified treatement.
      *
-     * @param id    intent identifier
-     * @param match traffic match
-     * @param action action
-     * @throws NullPointerException if the match or action is null
+     * @param intentId   intent identifier
+     * @param selector   traffic selector
+     * @param treatement treatement
+     * @throws NullPointerException if the selector or treatement is null
      */
-    protected ConnectivityIntent(IntentId id, TrafficSelector match, TrafficTreatment action) {
-        super(id);
-        this.selector = checkNotNull(match);
-        this.treatment = checkNotNull(action);
+    protected ConnectivityIntent(IntentId intentId, TrafficSelector selector,
+                                 TrafficTreatment treatement) {
+        super(intentId);
+        this.selector = checkNotNull(selector);
+        this.treatment = checkNotNull(treatement);
     }
 
     /**

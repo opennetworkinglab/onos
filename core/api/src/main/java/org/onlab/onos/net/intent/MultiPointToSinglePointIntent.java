@@ -30,18 +30,20 @@ public class MultiPointToSinglePointIntent extends ConnectivityIntent {
      * @param action       action
      * @param ingressPorts set of ports from which ingress traffic originates
      * @param egressPort   port to which traffic will egress
-     * @throws NullPointerException if {@code ingressPorts} or
-     * {@code egressPort} is null.
+     * @throws NullPointerException     if {@code ingressPorts} or
+     *                                  {@code egressPort} is null.
      * @throws IllegalArgumentException if the size of {@code ingressPorts} is
-     * not more than 1
+     *                                  not more than 1
      */
-    public MultiPointToSinglePointIntent(IntentId id, TrafficSelector match, TrafficTreatment action,
-            Set<ConnectPoint> ingressPorts, ConnectPoint egressPort) {
+    public MultiPointToSinglePointIntent(IntentId id, TrafficSelector match,
+                                         TrafficTreatment action,
+                                         Set<ConnectPoint> ingressPorts,
+                                         ConnectPoint egressPort) {
         super(id, match, action);
 
         checkNotNull(ingressPorts);
         checkArgument(!ingressPorts.isEmpty(),
-                "there should be at least one ingress port");
+                      "there should be at least one ingress port");
 
         this.ingressPorts = Sets.newHashSet(ingressPorts);
         this.egressPort = checkNotNull(egressPort);

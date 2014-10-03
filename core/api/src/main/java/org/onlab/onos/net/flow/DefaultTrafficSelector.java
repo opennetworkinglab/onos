@@ -1,36 +1,43 @@
 package org.onlab.onos.net.flow;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.criteria.Criteria;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.slf4j.Logger;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * Default traffic selector implementation.
+ */
 public final class DefaultTrafficSelector implements TrafficSelector {
 
-    private final Set<Criterion> selector;
+    private final Set<Criterion> criteria;
 
-    private DefaultTrafficSelector(Set<Criterion> selector) {
-        this.selector = Collections.unmodifiableSet(selector);
+    /**
+     * Creates a new traffic selector with the specified criteria.
+     *
+     * @param criteria criteria
+     */
+    private DefaultTrafficSelector(Set<Criterion> criteria) {
+        this.criteria = Collections.unmodifiableSet(criteria);
     }
 
     @Override
     public Set<Criterion> criteria() {
-        return selector;
+        return criteria;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selector);
+        return Objects.hash(criteria);
     }
 
     @Override
@@ -40,23 +47,50 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
         if (obj instanceof DefaultTrafficSelector) {
             DefaultTrafficSelector that = (DefaultTrafficSelector) obj;
-            return Objects.equals(selector, that.selector);
+            return Objects.equals(criteria, that.criteria);
 
         }
         return false;
     }
 
+    /**
+     * Returns a new traffic selector builder.
+     *
+     * @return traffic selector builder
+     */
+    public static TrafficSelector.Builder builder() {
+        return new Builder();
+    }
 
+    /**
+     * Returns a new traffic selector builder primed to produce entities
+     * patterned after the supplied selector.
+     *
+     * @return traffic selector builder
+     */
+    public static TrafficSelector.Builder builder(TrafficSelector selector) {
+        return new Builder(selector);
+    }
 
-    public static class Builder implements TrafficSelector.Builder {
+    /**
+     * Builder of traffic selector entities.
+     */
+    public static final class Builder implements TrafficSelector.Builder {
 
-        private final Logger log = getLogger(getClass());
+        private final Map<Criterion.Type, Criterion> selector = new HashMap<>();
 
-        private final Set<Criterion> selector = new HashSet<>();
+        private Builder() {
+        }
+
+        private Builder(TrafficSelector selector) {
+            for (Criterion c : selector.criteria()) {
+                add(c);
+            }
+        }
 
         @Override
         public Builder add(Criterion criterion) {
-            selector.add(criterion);
+            selector.put(criterion.type(), criterion);
             return this;
         }
 
@@ -107,7 +141,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
         @Override
         public TrafficSelector build() {
-            return new DefaultTrafficSelector(selector);
+            return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
         }
 
     }

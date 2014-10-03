@@ -2,7 +2,7 @@ package org.onlab.onos.net.intent;
 
 /**
  * Intent identifier suitable as an external key.
- *
+ * <p/>
  * This class is immutable.
  */
 public final class IntentId implements BatchOperationTarget {

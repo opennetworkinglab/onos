@@ -1,14 +1,13 @@
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of point-to-point connectivity.
@@ -23,15 +22,17 @@ public class PointToPointIntent extends ConnectivityIntent {
      * ports.
      *
      * @param id          intent identifier
-     * @param match       traffic match
-     * @param action      action
+     * @param selector    traffic selector
+     * @param treatment   treatment
      * @param ingressPort ingress port
      * @param egressPort  egress port
      * @throws NullPointerException if {@code ingressPort} or {@code egressPort} is null.
      */
-    public PointToPointIntent(IntentId id, TrafficSelector match, TrafficTreatment action,
-                              ConnectPoint ingressPort, ConnectPoint egressPort) {
-        super(id, match, action);
+    public PointToPointIntent(IntentId id, TrafficSelector selector,
+                              TrafficTreatment treatment,
+                              ConnectPoint ingressPort,
+                              ConnectPoint egressPort) {
+        super(id, selector, treatment);
         this.ingressPort = checkNotNull(ingressPort);
         this.egressPort = checkNotNull(egressPort);
     }

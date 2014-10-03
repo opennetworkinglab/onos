@@ -51,7 +51,7 @@ public class IntentServiceTest {
     @Test
     public void basics() {
         // Make sure there are no intents
-        assertEquals("incorrect intent count", 0, service.getIntents().size());
+        assertEquals("incorrect intent count", 0, service.getIntentCount());
 
         // Register a compiler and an installer both setup for success.
         service.registerCompiler(TestIntent.class, new TestCompiler(new TestInstallableIntent(INSTALLABLE_IID)));
@@ -73,8 +73,7 @@ public class IntentServiceTest {
         validateEvents(intent, SUBMITTED, COMPILED, INSTALLED);
 
         // Make sure there is just one intent (and is ours)
-        assertEquals("incorrect intent count", 1, service.getIntents().size());
-        assertEquals("incorrect intent", intent, service.getIntent(intent.getId()));
+        assertEquals("incorrect intent count", 1, service.getIntentCount());
 
         // Reset the listener events
         listener.events.clear();
@@ -250,7 +249,7 @@ public class IntentServiceTest {
 
 
     // Fixture to track emitted intent events
-    protected class TestListener implements IntentEventListener {
+    protected class TestListener implements IntentListener {
         final List<IntentEvent> events = new ArrayList<>();
 
         @Override

@@ -14,7 +14,7 @@ public final class PortNumberSerializer extends
         Serializer<PortNumber> {
 
     /**
-     * Default constructor.
+     * Creates {@link PortNumber} serializer instance.
      */
     public PortNumberSerializer() {
         // non-null, immutable

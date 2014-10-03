@@ -16,7 +16,7 @@ public final class DefaultPortSerializer extends
         Serializer<DefaultPort> {
 
     /**
-     * Default constructor.
+     * Creates {@link DefaultPort} serializer instance.
      */
     public DefaultPortSerializer() {
         // non-null, immutable

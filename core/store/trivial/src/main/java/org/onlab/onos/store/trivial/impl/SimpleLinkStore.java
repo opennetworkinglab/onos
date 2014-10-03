@@ -32,6 +32,7 @@ import static org.onlab.onos.net.Link.Type.INDIRECT;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+// TODO: Add support for multiple provider and annotations
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
  * implementation.

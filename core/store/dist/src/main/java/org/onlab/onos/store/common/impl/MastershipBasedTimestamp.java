@@ -1,4 +1,4 @@
-package org.onlab.onos.store.impl;
+package org.onlab.onos.store.common.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -9,12 +9,11 @@ import org.onlab.onos.store.Timestamp;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 
-// If it is store specific, implement serializable interfaces?
 /**
  * Default implementation of Timestamp.
  * TODO: Better documentation.
  */
-public final class OnosTimestamp implements Timestamp {
+public final class MastershipBasedTimestamp implements Timestamp {
 
     private final int termNumber;
     private final int sequenceNumber;
@@ -25,15 +24,16 @@ public final class OnosTimestamp implements Timestamp {
      * @param termNumber the mastership termNumber
      * @param sequenceNumber  the sequenceNumber number within the termNumber
      */
-    public OnosTimestamp(int termNumber, int sequenceNumber) {
+    public MastershipBasedTimestamp(int termNumber, int sequenceNumber) {
         this.termNumber = termNumber;
         this.sequenceNumber = sequenceNumber;
     }
 
     @Override
     public int compareTo(Timestamp o) {
-        checkArgument(o instanceof OnosTimestamp, "Must be OnosTimestamp", o);
-        OnosTimestamp that = (OnosTimestamp) o;
+        checkArgument(o instanceof MastershipBasedTimestamp,
+                "Must be MastershipBasedTimestamp", o);
+        MastershipBasedTimestamp that = (MastershipBasedTimestamp) o;
 
         return ComparisonChain.start()
                 .compare(this.termNumber, that.termNumber)
@@ -51,10 +51,10 @@ public final class OnosTimestamp implements Timestamp {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof OnosTimestamp)) {
+        if (!(obj instanceof MastershipBasedTimestamp)) {
             return false;
         }
-        OnosTimestamp that = (OnosTimestamp) obj;
+        MastershipBasedTimestamp that = (MastershipBasedTimestamp) obj;
         return Objects.equals(this.termNumber, that.termNumber) &&
                 Objects.equals(this.sequenceNumber, that.sequenceNumber);
     }
@@ -83,5 +83,12 @@ public final class OnosTimestamp implements Timestamp {
      */
     public int sequenceNumber() {
         return sequenceNumber;
+    }
+
+    // Default constructor for serialization
+    @Deprecated
+    protected MastershipBasedTimestamp() {
+        this.termNumber = -1;
+        this.sequenceNumber = -1;
     }
 }

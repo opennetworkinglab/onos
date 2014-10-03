@@ -14,6 +14,14 @@ import com.esotericsoftware.kryo.io.Output;
 */
 public final class DeviceIdSerializer extends Serializer<DeviceId> {
 
+    /**
+     * Creates {@link DeviceId} serializer instance.
+     */
+    public DeviceIdSerializer() {
+        // non-null, immutable
+        super(false, true);
+    }
+
     @Override
     public void write(Kryo kryo, Output output, DeviceId object) {
         kryo.writeObject(output, object.uri());
