@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -62,7 +61,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    private final Map<FlowRule, AtomicInteger> deadRounds = new ConcurrentHashMap<>();
+    private final Map<FlowRule, Long> idleTime = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -89,7 +88,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             FlowRule f = flowRules[i];
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
-            deadRounds.put(f, new AtomicInteger(0));
+            idleTime.put(f, System.currentTimeMillis());
             store.storeFlowRule(f);
             frp.applyFlowRule(f);
         }
@@ -104,7 +103,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             f = flowRules[i];
             device = deviceService.getDevice(f.deviceId());
             frp = getProvider(device.providerId());
-            deadRounds.remove(f);
+            idleTime.remove(f);
             store.deleteFlowRule(f);
             frp.removeFlowRule(f);
         }
@@ -225,7 +224,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
 
-            if (deadRounds.containsKey(flowRule) &&
+            if (idleTime.containsKey(flowRule) &&
                     checkRuleLiveness(flowRule, store.getFlowRule(flowRule))) {
 
                 FlowRuleEvent event = store.addOrUpdateFlowRule(flowRule);
@@ -242,16 +241,14 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         }
 
         private boolean checkRuleLiveness(FlowRule swRule, FlowRule storedRule) {
-            return true;
-//            int timeout = storedRule.timeout();
-//            if (storedRule.packets() != swRule.packets()) {
-//                deadRounds.get(swRule).set(0);
-//                return true;
-//            }
-//
-//            return (deadRounds.get(swRule).getAndIncrement() *
-//                    FlowRuleProvider.POLL_INTERVAL) <= timeout;
-//
+            long timeout = storedRule.timeout() * 1000;
+            Long currentTime = System.currentTimeMillis();
+            if (storedRule.packets() != swRule.packets()) {
+                idleTime.put(swRule, currentTime);
+                return true;
+            }
+            return (currentTime - idleTime.get(swRule)) <= timeout;
+
         }
 
         // Posts the specified event to the local event dispatcher.
