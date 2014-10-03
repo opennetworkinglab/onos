@@ -64,7 +64,7 @@ public class PathIntentInstaller
             treat.setOutput(link.src().port());
 
             FlowRule f = new DefaultFlowRule(link.src().deviceId(),
-                    builder.build(), treat.build(), 0, appId);
+                                             builder.build(), treat.build(), 0, appId, 0);
             flowRuleService.applyFlowRules(f);
 
             prev = link.dst();
