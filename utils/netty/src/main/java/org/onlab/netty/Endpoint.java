@@ -8,6 +8,14 @@ public class Endpoint {
     private final int port;
     private final String host;
 
+    /**
+     * Used for serialization.
+     */
+    private Endpoint() {
+        port = 0;
+        host = null;
+    }
+
     public Endpoint(String host, int port) {
         this.host = host;
         this.port = port;

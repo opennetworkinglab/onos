@@ -35,6 +35,10 @@ public final class InternalMessage implements Message {
         return payload;
     }
 
+    protected void setMessagingService(NettyMessagingService messagingService) {
+        this.messagingService = messagingService;
+    }
+
     @Override
     public void respond(Object data) throws IOException {
         Builder builder = new Builder(messagingService);

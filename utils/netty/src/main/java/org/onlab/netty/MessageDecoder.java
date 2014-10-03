@@ -1,18 +1,15 @@
 package org.onlab.netty;
 
+import static com.google.common.base.Preconditions.checkState;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ReplayingDecoder;
+
 import java.util.Arrays;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkState;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-
-/**
- * Decode bytes into a InternalMessage.
- */
-public class MessageDecoder extends ByteToMessageDecoder {
+// TODO: Implement performance enchancements such as those described in the javadoc for ReplayingDecoder.
+public class MessageDecoder extends ReplayingDecoder<InternalMessage> {
 
     private final NettyMessagingService messagingService;
     private final Serializer serializer;
@@ -23,36 +20,21 @@ public class MessageDecoder extends ByteToMessageDecoder {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext context, ByteBuf in,
-            List<Object> messages) throws Exception {
+    protected void decode(
+            ChannelHandlerContext context,
+            ByteBuf buffer,
+            List<Object> out) throws Exception {
 
-        byte[] preamble = in.readBytes(MessageEncoder.PREAMBLE.length).array();
+        byte[] preamble = new byte[MessageEncoder.PREAMBLE.length];
+        buffer.readBytes(preamble);
         checkState(Arrays.equals(MessageEncoder.PREAMBLE, preamble), "Message has wrong preamble");
 
-        // read message Id.
-        long id = in.readLong();
+        int bodySize = buffer.readInt();
+        byte[] body = new byte[bodySize];
+        buffer.readBytes(body);
 
-        // read message type; first read size and then bytes.
-        String type = new String(in.readBytes(in.readInt()).array());
-
-        // read sender host name; first read size and then bytes.
-        String host = new String(in.readBytes(in.readInt()).array());
-
-        // read sender port.
-        int port = in.readInt();
-
-        Endpoint sender = new Endpoint(host, port);
-
-        // read message payload; first read size and then bytes.
-        Object payload = serializer.decode(in.readBytes(in.readInt()).array());
-
-        InternalMessage message = new InternalMessage.Builder(messagingService)
-                .withId(id)
-                .withSender(sender)
-                .withType(type)
-                .withPayload(payload)
-                .build();
-
-        messages.add(message);
+        InternalMessage message = serializer.decode(body);
+        message.setMessagingService(messagingService);
+        out.add(message);
     }
 }
