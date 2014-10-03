@@ -17,9 +17,12 @@ import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.impl.OnosTimestamp;
 import org.slf4j.Logger;
 
+/**
+ * Clock service to issue Timestamp based on Device Mastership.
+ */
 @Component(immediate = true)
 @Service
-public class OnosClockService implements ClockService {
+public class DeviceClockManager implements ClockService {
 
     private final Logger log = getLogger(getClass());
 

@@ -84,4 +84,11 @@ public final class OnosTimestamp implements Timestamp {
     public int sequenceNumber() {
         return sequenceNumber;
     }
+
+    // Default constructor for serialization
+    @Deprecated
+    protected OnosTimestamp() {
+        this.termNumber = -1;
+        this.sequenceNumber = -1;
+    }
 }
