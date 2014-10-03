@@ -15,7 +15,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.ClockProviderService;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.impl.OnosTimestamp;
+import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
 import org.slf4j.Logger;
 
 /**
@@ -47,7 +47,7 @@ public class DeviceClockManager implements ClockService, ClockProviderService {
         if (term == null) {
             throw new IllegalStateException("Requesting timestamp for a deviceId without mastership");
         }
-        return new OnosTimestamp(term.termNumber(), ticker.incrementAndGet());
+        return new MastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
     }
 
     @Override

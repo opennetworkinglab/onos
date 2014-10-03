@@ -4,38 +4,20 @@ import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.impl.OnosTimestamp;
 import org.onlab.util.KryoPool;
 
 import com.google.common.testing.EqualsTester;
 
+/**
+ * Test of {@link Timestamped}.
+ */
 public class TimestampedTest {
 
-    private static final Timestamp TS_1_1 = new OnosTimestamp(1, 1);
-    private static final Timestamp TS_1_2 = new OnosTimestamp(1, 2);
-    private static final Timestamp TS_2_1 = new OnosTimestamp(2, 1);
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
+    private static final Timestamp TS_1_1 = new MastershipBasedTimestamp(1, 1);
+    private static final Timestamp TS_1_2 = new MastershipBasedTimestamp(1, 2);
+    private static final Timestamp TS_2_1 = new MastershipBasedTimestamp(2, 1);
 
     @Test
     public final void testHashCode() {
@@ -97,7 +79,7 @@ public class TimestampedTest {
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
         final KryoPool kryos = KryoPool.newBuilder()
                 .register(Timestamped.class,
-                        OnosTimestamp.class)
+                        MastershipBasedTimestamp.class)
                 .build();
 
         Timestamped<String> original = new Timestamped<>("foobar", TS_1_1);
