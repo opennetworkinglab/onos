@@ -18,7 +18,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
-import org.projectfloodlight.openflow.protocol.OFFlowRemovedReason;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -76,17 +75,16 @@ public class FlowRuleBuilder {
         if (addedRule) {
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), buildTreatment(), stat.getPriority(),
-                    FlowRuleState.ADDED, stat.getDurationNsec() / 1000000,
+                    FlowRuleState.ADDED, stat.getDurationSec(),
                     stat.getPacketCount().getValue(), stat.getByteCount().getValue(),
-                    stat.getCookie().getValue(), false, stat.getIdleTimeout());
+                    stat.getCookie().getValue(), stat.getIdleTimeout());
         } else {
             // TODO: revisit potentially.
             return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), null, removed.getPriority(),
-                    FlowRuleState.REMOVED, removed.getDurationNsec() / 1000000,
+                    FlowRuleState.REMOVED, stat.getDurationSec(),
                     removed.getPacketCount().getValue(), removed.getByteCount().getValue(),
                     removed.getCookie().getValue(),
-                    removed.getReason() == OFFlowRemovedReason.IDLE_TIMEOUT.ordinal(),
                     stat.getIdleTimeout());
         }
     }

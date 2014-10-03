@@ -100,7 +100,7 @@ public class FlowRuleManagerTest {
     private FlowRule flowRule(int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
-        return new DefaultFlowRule(DID, ts, tr, 0, appId, TIMEOUT);
+        return new DefaultFlowRule(DID, ts, tr, 10, appId, TIMEOUT);
     }
 
     private FlowRule flowRule(FlowRule rule, FlowRuleState state) {

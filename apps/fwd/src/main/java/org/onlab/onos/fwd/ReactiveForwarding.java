@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 public class ReactiveForwarding {
 
     private static final int TIMEOUT = 10;
+    private static final int PRIORITY = 10;
 
     private final Logger log = getLogger(getClass());
 
@@ -194,7 +195,7 @@ public class ReactiveForwarding {
             treat.setOutput(portNumber);
 
             FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                    builder.build(), treat.build(), 0, appId, TIMEOUT);
+                    builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
 
             flowRuleService.applyFlowRules(f);
         }

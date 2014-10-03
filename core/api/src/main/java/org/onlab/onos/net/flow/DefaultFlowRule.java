@@ -29,9 +29,23 @@ public class DefaultFlowRule implements FlowRule {
 
     private final int timeout;
 
+    /**
+     * Creates a flow rule given the following paremeters.
+     * @param deviceId the device where the rule should be installed
+     * @param selector the traffic selection
+     * @param treatment how the seleted traffic should be handled
+     * @param priority the rule priority cannot be less than FlowRule.MIN_PRIORITY
+     * @param state the state in which the rule is
+     * @param life how long it has existed for (ms)
+     * @param packets number of packets it has seen
+     * @param bytes number of bytes  it has seen
+     * @param flowId the identifier
+     * @param timeout the rule's timeout (idle) not to exceed
+     *  FlowRule.MAX_TIMEOUT of idle time
+     */
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, FlowRuleState state,
-            long life, long packets, long bytes, long flowId, boolean expired,
+            long life, long packets, long bytes, long flowId,
             int timeout) {
         this.deviceId = deviceId;
         this.priority = priority;
@@ -50,8 +64,7 @@ public class DefaultFlowRule implements FlowRule {
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatement, int priority, ApplicationId appId,
             int timeout) {
-
-        this(deviceId, selector, treatement, priority == 0 ? 1 : priority,
+        this(deviceId, selector, treatement, priority,
                 FlowRuleState.CREATED, appId, timeout);
     }
 
@@ -65,6 +78,9 @@ public class DefaultFlowRule implements FlowRule {
             TrafficSelector selector, TrafficTreatment treatment,
             int priority, FlowRuleState state, ApplicationId appId,
             int timeout) {
+        if (priority < MIN_PRIORITY) {
+            throw new IllegalArgumentException("Priority cannot be less than " + MIN_PRIORITY);
+        }
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
@@ -131,7 +147,7 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     @Override
-    public long lifeMillis() {
+    public long life() {
         return life;
     }
 

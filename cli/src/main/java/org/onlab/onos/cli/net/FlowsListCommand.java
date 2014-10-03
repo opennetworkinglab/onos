@@ -96,7 +96,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         }
         for (FlowRule f : flows) {
             print(FMT, Long.toHexString(f.id().value()), f.state(), f.bytes(),
-                    f.packets(), f.lifeMillis(), f.priority());
+                    f.packets(), f.life(), f.priority());
             print(SFMT, f.selector().criteria());
             print(TFMT, f.treatment().instructions());
         }

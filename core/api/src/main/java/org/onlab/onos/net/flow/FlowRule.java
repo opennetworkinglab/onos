@@ -10,6 +10,7 @@ import org.onlab.onos.net.DeviceId;
 public interface FlowRule {
 
     static final int MAX_TIMEOUT = 60;
+    static final int MIN_PRIORITY = 0;
 
     public enum FlowRuleState {
         /**
@@ -96,7 +97,7 @@ public interface FlowRule {
      *
      * @return number of millis
      */
-    long lifeMillis();
+    long life();
 
     /**
      * Returns the number of packets this flow rule has matched.

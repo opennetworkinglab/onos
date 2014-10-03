@@ -1,5 +1,7 @@
 package org.onlab.onos.net.intent.impl;
 
+import java.util.Iterator;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -18,8 +20,6 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.PathIntent;
-
-import java.util.Iterator;
 
 /**
  * Installer for {@link PathIntent path connectivity intents}.
@@ -60,7 +60,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                                                 builder.build(), treat.build(),
-                                                0, appId, 30);
+                                                10, appId, 30);
             flowRuleService.applyFlowRules(rule);
 
             prev = link.dst();
