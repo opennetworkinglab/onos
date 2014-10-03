@@ -11,19 +11,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Fake implementation of the intent service to assist in developing tests
- * of the interface contract.
+ * Fake implementation of the intent service to assist in developing tests of
+ * the interface contract.
  */
 public class FakeIntentManager implements TestableIntentService {
 
     private final Map<IntentId, Intent> intents = new HashMap<>();
     private final Map<IntentId, IntentState> intentStates = new HashMap<>();
     private final Map<IntentId, List<InstallableIntent>> installables = new HashMap<>();
-    private final Set<IntentEventListener> listeners = new HashSet<>();
+    private final Set<IntentListener> listeners = new HashSet<>();
 
     private final Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> compilers = new HashMap<>();
-    private final Map<Class<? extends InstallableIntent>,
-            IntentInstaller<? extends InstallableIntent>> installers = new HashMap<>();
+    private final Map<Class<? extends InstallableIntent>, IntentInstaller<? extends InstallableIntent>> installers
+        = new HashMap<>();
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<IntentException> exceptions = new ArrayList<>();
@@ -76,7 +76,8 @@ public class FakeIntentManager implements TestableIntentService {
 
     private <T extends InstallableIntent> IntentInstaller<T> getInstaller(T intent) {
         @SuppressWarnings("unchecked")
-        IntentInstaller<T> installer = (IntentInstaller<T>) installers.get(intent.getClass());
+        IntentInstaller<T> installer = (IntentInstaller<T>) installers.get(intent
+                .getClass());
         if (installer == null) {
             throw new IntentException("no installer for class " + intent.getClass());
         }
@@ -124,7 +125,6 @@ public class FakeIntentManager implements TestableIntentService {
             throw e;
         }
     }
-
 
     // Sets the internal state for the given intent and dispatches an event
     private void setState(Intent intent, IntentState state) {
@@ -175,6 +175,11 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public long getIntentCount() {
+        return intents.size();
+    }
+
+    @Override
     public Intent getIntent(IntentId id) {
         return intents.get(id);
     }
@@ -185,23 +190,24 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public void addListener(IntentEventListener listener) {
+    public void addListener(IntentListener listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void removeListener(IntentEventListener listener) {
+    public void removeListener(IntentListener listener) {
         listeners.remove(listener);
     }
 
     private void dispatch(IntentEvent event) {
-        for (IntentEventListener listener : listeners) {
+        for (IntentListener listener : listeners) {
             listener.event(event);
         }
     }
 
     @Override
-    public <T extends Intent> void registerCompiler(Class<T> cls, IntentCompiler<T> compiler) {
+    public <T extends Intent> void registerCompiler(Class<T> cls,
+            IntentCompiler<T> compiler) {
         compilers.put(cls, compiler);
     }
 
@@ -216,7 +222,8 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public <T extends InstallableIntent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer) {
+    public <T extends InstallableIntent> void registerInstaller(Class<T> cls,
+            IntentInstaller<T> installer) {
         installers.put(cls, installer);
     }
 
@@ -227,7 +234,7 @@ public class FakeIntentManager implements TestableIntentService {
 
     @Override
     public Map<Class<? extends InstallableIntent>,
-            IntentInstaller<? extends InstallableIntent>> getInstallers() {
+    IntentInstaller<? extends InstallableIntent>> getInstallers() {
         return Collections.unmodifiableMap(installers);
     }
 
@@ -252,7 +259,8 @@ public class FakeIntentManager implements TestableIntentService {
         if (!installers.containsKey(intent.getClass())) {
             Class<?> cls = intent.getClass();
             while (cls != Object.class) {
-                // As long as we're within the InstallableIntent class descendants
+                // As long as we're within the InstallableIntent class
+                // descendants
                 if (InstallableIntent.class.isAssignableFrom(cls)) {
                     IntentInstaller<?> installer = installers.get(cls);
                     if (installer != null) {

@@ -12,7 +12,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Abstraction of explicitly path specified connectivity intent.
  */
-public class PathIntent extends PointToPointIntent {
+public class PathIntent extends PointToPointIntent implements InstallableIntent {
 
     private final Path path;
 

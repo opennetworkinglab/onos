@@ -4,14 +4,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
+import org.onlab.onos.event.AbstractEvent;
+
 import com.google.common.base.MoreObjects;
 
 /**
  * A class to represent an intent related event.
  */
-public class IntentEvent {
+public class IntentEvent extends AbstractEvent<IntentState, Intent> {
 
-    // TODO: determine a suitable parent class; if one does not exist, consider introducing one
+    // TODO: determine a suitable parent class; if one does not exist, consider
+    // introducing one
 
     private final long time;
     private final Intent intent;
@@ -28,20 +31,11 @@ public class IntentEvent {
      * @throws NullPointerException if the intent or state is null
      */
     public IntentEvent(Intent intent, IntentState state, IntentState previous, long time) {
+        super(state, intent);
         this.intent = checkNotNull(intent);
         this.state = checkNotNull(state);
         this.previous = previous;
         this.time = time;
-    }
-
-    /**
-     * Constructor for serializer.
-     */
-    protected IntentEvent() {
-        this.intent = null;
-        this.state = null;
-        this.previous = null;
-        this.time = 0;
     }
 
     /**
