@@ -76,7 +76,7 @@ public class HostManager
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
 
         monitor = new HostMonitor(deviceService,  packetService, this);
-
+        monitor.start();
     }
 
     @Deactivate

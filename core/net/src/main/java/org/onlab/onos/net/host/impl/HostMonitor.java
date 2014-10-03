@@ -2,7 +2,7 @@ package org.onlab.onos.net.host.impl;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,8 +33,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Monitors hosts on the dataplane to detect changes in host data.
@@ -44,15 +42,6 @@ import org.slf4j.LoggerFactory;
  * probe for hosts that have not yet been detected (specified by IP address).
  */
 public class HostMonitor implements TimerTask {
-    private static final Logger log = LoggerFactory.getLogger(HostMonitor.class);
-
-    private static final byte[] ZERO_MAC_ADDRESS =
-            MacAddress.valueOf("00:00:00:00:00:00").getAddress();
-
-    // TODO put on Ethernet
-    private static final byte[] BROADCAST_MAC =
-            MacAddress.valueOf("ff:ff:ff:ff:ff:ff").getAddress();
-
     private DeviceService deviceService;
     private PacketService packetService;
     private HostManager hostManager;
@@ -64,8 +53,15 @@ public class HostMonitor implements TimerTask {
     private static final long DEFAULT_PROBE_RATE = 30000; // milliseconds
     private long probeRate = DEFAULT_PROBE_RATE;
 
-    private final Timeout timeout;
+    private Timeout timeout;
 
+    /**
+     * Creates a new host monitor.
+     *
+     * @param deviceService device service used to find edge ports
+     * @param packetService packet service used to send packets on the data plane
+     * @param hostService host service used to look up host information
+     */
     public HostMonitor(DeviceService deviceService, PacketService packetService,
             HostManager hostService) {
 
@@ -73,24 +69,59 @@ public class HostMonitor implements TimerTask {
         this.packetService = packetService;
         this.hostManager = hostService;
 
-        monitoredAddresses = new HashSet<>();
+        monitoredAddresses = Collections.newSetFromMap(
+                new ConcurrentHashMap<IpAddress, Boolean>());
         hostProviders = new ConcurrentHashMap<>();
 
         timeout = Timer.getTimer().newTimeout(this, 0, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Adds an IP address to be monitored by the host monitor. The monitor will
+     * periodically probe the host to detect changes.
+     *
+     * @param ip IP address of the host to monitor
+     */
     void addMonitoringFor(IpAddress ip) {
         monitoredAddresses.add(ip);
     }
 
+    /**
+     * Stops monitoring the given IP address.
+     *
+     * @param ip IP address to stop monitoring on
+     */
     void stopMonitoring(IpAddress ip) {
         monitoredAddresses.remove(ip);
     }
 
-    void shutdown() {
-        timeout.cancel();
+    /**
+     * Starts the host monitor. Does nothing if the monitor is already running.
+     */
+    void start() {
+        synchronized (this) {
+            if (timeout == null) {
+                timeout = Timer.getTimer().newTimeout(this, 0, TimeUnit.MILLISECONDS);
+            }
+        }
     }
 
+    /**
+     * Stops the host monitor.
+     */
+    void shutdown() {
+        synchronized (this) {
+            timeout.cancel();
+            timeout = null;
+        }
+    }
+
+    /**
+     * Registers a host provider with the host monitor. The monitor can use the
+     * provider to probe hosts.
+     *
+     * @param provider the host provider to register
+     */
     void registerHostProvider(HostProvider provider) {
         hostProviders.put(provider.id(), provider);
     }
@@ -117,7 +148,7 @@ public class HostMonitor implements TimerTask {
             }
         }
 
-        timeout = Timer.getTimer().newTimeout(this, probeRate, TimeUnit.MILLISECONDS);
+        this.timeout = Timer.getTimer().newTimeout(this, probeRate, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -173,12 +204,12 @@ public class HostMonitor implements TimerTask {
 
         arp.setSenderHardwareAddress(sourceMac.getAddress())
            .setSenderProtocolAddress(sourceIp.toOctets())
-           .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
+           .setTargetHardwareAddress(MacAddress.ZERO_MAC_ADDRESS)
            .setTargetProtocolAddress(targetIp.toOctets());
 
         Ethernet ethernet = new Ethernet();
         ethernet.setEtherType(Ethernet.TYPE_ARP)
-                .setDestinationMACAddress(BROADCAST_MAC)
+                .setDestinationMACAddress(MacAddress.BROADCAST_MAC)
                 .setSourceMACAddress(sourceMac.getAddress())
                 .setPayload(arp);
 
