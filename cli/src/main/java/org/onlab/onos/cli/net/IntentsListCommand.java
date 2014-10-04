@@ -4,6 +4,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
 
 /**
  * Lists the inventory of intents and their states.
@@ -16,7 +17,8 @@ public class IntentsListCommand extends AbstractShellCommand {
     protected void execute() {
         IntentService service = get(IntentService.class);
         for (Intent intent : service.getIntents()) {
-            print("%s", intent);
+            IntentState state = service.getIntentState(intent.getId());
+            print("%s %s %s", intent.getId(), state, intent);
         }
     }
 

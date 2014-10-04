@@ -64,6 +64,9 @@
             </completers>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.RemoveHostToHostIntentCommand"/>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.IntentsListCommand"/>
         </command>
 

@@ -1,5 +1,9 @@
 package org.onlab.onos.net.intent.impl;
 
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+
+import java.util.Iterator;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,10 +21,6 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.PathIntent;
-
-import java.util.Iterator;
-
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Installer for {@link PathIntent path connectivity intents}.
@@ -59,8 +59,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
             TrafficTreatment treatment = builder()
                     .setOutput(link.src().port()).build();
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                                                builder.build(), treatment,
-                                                123, appId, 600);
+                    builder.build(), treatment,
+                    123, appId, 600);
             flowRuleService.applyFlowRules(rule);
             prev = link.dst();
         }
@@ -69,6 +69,21 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
     @Override
     public void uninstall(PathIntent intent) {
-        //TODO
+        TrafficSelector.Builder builder =
+                DefaultTrafficSelector.builder(intent.getTrafficSelector());
+        Iterator<Link> links = intent.getPath().links().iterator();
+        ConnectPoint prev = links.next().dst();
+
+        while (links.hasNext()) {
+            builder.matchInport(prev.port());
+            Link link = links.next();
+            TrafficTreatment treatment = builder()
+                    .setOutput(link.src().port()).build();
+            FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
+                    builder.build(), treatment,
+                    123, appId, 600);
+            flowRuleService.removeFlowRules(rule);
+            prev = link.dst();
+        }
     }
 }
