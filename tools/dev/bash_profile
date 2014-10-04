@@ -32,6 +32,7 @@ alias ob='onos-build'
 alias obs='onos-build-selective'
 alias op='onos-package'
 alias ot='onos-test'
+alias ol='onos-log'
 
 # Short-hand for tailing the ONOS (karaf) log 
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'

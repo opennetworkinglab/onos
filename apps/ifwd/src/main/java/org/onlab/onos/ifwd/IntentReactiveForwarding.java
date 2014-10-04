@@ -1,13 +1,10 @@
 package org.onlab.onos.ifwd;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.PortNumber;
@@ -28,6 +25,8 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * WORK-IN-PROGRESS: Sample reactive forwarding application using intent framework.
@@ -51,14 +50,12 @@ public class IntentReactiveForwarding {
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
-    private ApplicationId appId;
     private static long intentId = 1;
 
     @Activate
     public void activate() {
-        appId = ApplicationId.getAppId();
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
-        log.info("Started with Application ID {}", appId.id());
+        log.info("Started");
     }
 
     @Deactivate
@@ -67,7 +64,6 @@ public class IntentReactiveForwarding {
         processor = null;
         log.info("Stopped");
     }
-
 
     /**
      * Packet processor responsible for forwarding packets along their paths.
@@ -120,7 +116,7 @@ public class IntentReactiveForwarding {
     private void forwardPacketToDst(PacketContext context, Host dst) {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(dst.location().port()).build();
         OutboundPacket packet = new DefaultOutboundPacket(dst.location().deviceId(),
-                treatment, context.inPacket().unparsed());
+                                                          treatment, context.inPacket().unparsed());
         packetService.emit(packet);
         log.info("sending packet: {}", packet);
     }
@@ -138,5 +134,3 @@ public class IntentReactiveForwarding {
     }
 
 }
-
-
