@@ -7,6 +7,9 @@ import org.onlab.onos.net.device.DeviceAdminService;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostAdminService;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
 
 /**
  * Wipes-out the entire network information base, i.e. devices, links, hosts.
@@ -28,7 +31,12 @@ public class WipeOutCommand extends ClustersListCommand {
         for (Host host : hostService.getHosts()) {
             hostAdminService.removeHost(host.id());
         }
+
+        IntentService intentService = get(IntentService.class);
+        for (Intent intent : intentService.getIntents()) {
+            if (intentService.getIntentState(intent.getId()) == IntentState.INSTALLED) {
+                intentService.withdraw(intent);
+            }
+        }
     }
-
-
 }

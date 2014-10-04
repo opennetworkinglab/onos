@@ -1,5 +1,7 @@
 package org.onlab.onos.ifwd;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,7 +19,9 @@ import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.packet.InboundPacket;
+import org.onlab.onos.net.packet.OutboundPacket;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
@@ -25,16 +29,11 @@ import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * WORK-IN-PROGRESS: Sample reactive forwarding application using intent framework.
  */
 @Component(immediate = true)
 public class IntentReactiveForwarding {
-
-    private static final int TIMEOUT = 10;
-    private static final int PRIORITY = 10;
 
     private final Logger log = getLogger(getClass());
 
@@ -98,6 +97,7 @@ public class IntentReactiveForwarding {
 
             // Otherwise forward and be done with it.
             setUpConnectivity(context, srcId, dstId);
+            forwardPacketToDst(context, dst);
         }
     }
 
@@ -115,6 +115,14 @@ public class IntentReactiveForwarding {
     private void packetOut(PacketContext context, PortNumber portNumber) {
         context.treatmentBuilder().setOutput(portNumber);
         context.send();
+    }
+
+    private void forwardPacketToDst(PacketContext context, Host dst) {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(dst.location().port()).build();
+        OutboundPacket packet = new DefaultOutboundPacket(dst.location().deviceId(),
+                treatment, context.inPacket().unparsed());
+        packetService.emit(packet);
+        log.info("sending packet: {}", packet);
     }
 
     // Install a rule forwarding the packet to the specified port.
