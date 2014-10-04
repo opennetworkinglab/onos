@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.Link.Type.*;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
+import static org.onlab.onos.store.trivial.impl.SimpleDeviceStoreTest.assertAnnotationsEquals;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +20,12 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
@@ -37,12 +41,30 @@ import com.google.common.collect.Iterables;
 public class SimpleLinkStoreTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
+    private static final ProviderId PIDA = new ProviderId("of", "bar", true);
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
+
+    private static final SparseAnnotations A1 = DefaultAnnotations.builder()
+            .set("A1", "a1")
+            .set("B1", "b1")
+            .build();
+    private static final SparseAnnotations A1_2 = DefaultAnnotations.builder()
+            .remove("A1")
+            .set("B3", "b3")
+            .build();
+    private static final SparseAnnotations A2 = DefaultAnnotations.builder()
+            .set("A2", "a2")
+            .set("B2", "b2")
+            .build();
+    private static final SparseAnnotations A2_2 = DefaultAnnotations.builder()
+            .remove("A2")
+            .set("B4", "b4")
+            .build();
 
 
     private SimpleLinkStore simpleLinkStore;
@@ -69,16 +91,17 @@ public class SimpleLinkStoreTest {
     }
 
     private void putLink(DeviceId srcId, PortNumber srcNum,
-                         DeviceId dstId, PortNumber dstNum, Type type) {
+                         DeviceId dstId, PortNumber dstNum, Type type,
+                         SparseAnnotations... annotations) {
         ConnectPoint src = new ConnectPoint(srcId, srcNum);
         ConnectPoint dst = new ConnectPoint(dstId, dstNum);
-        linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type));
+        linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type, annotations));
     }
 
-    private void putLink(LinkKey key, Type type) {
+    private void putLink(LinkKey key, Type type, SparseAnnotations... annotations) {
         putLink(key.src().deviceId(), key.src().port(),
                 key.dst().deviceId(), key.dst().port(),
-                type);
+                type, annotations);
     }
 
     private static void assertLink(DeviceId srcId, PortNumber srcNum,
@@ -270,14 +293,67 @@ public class SimpleLinkStoreTest {
     }
 
     @Test
+    public final void testCreateOrUpdateLinkAncillary() {
+        ConnectPoint src = new ConnectPoint(DID1, P1);
+        ConnectPoint dst = new ConnectPoint(DID2, P2);
+
+        // add Ancillary link
+        LinkEvent event = linkStore.createOrUpdateLink(PIDA,
+                    new DefaultLinkDescription(src, dst, INDIRECT, A1));
+
+        assertNull("Ancillary only link is ignored", event);
+
+        // add Primary link
+        LinkEvent event2 = linkStore.createOrUpdateLink(PID,
+                new DefaultLinkDescription(src, dst, INDIRECT, A2));
+
+        assertLink(DID1, P1, DID2, P2, INDIRECT, event2.subject());
+        assertAnnotationsEquals(event2.subject().annotations(), A2, A1);
+        assertEquals(LINK_ADDED, event2.type());
+
+        // update link type
+        LinkEvent event3 = linkStore.createOrUpdateLink(PID,
+                new DefaultLinkDescription(src, dst, DIRECT, A2));
+        assertLink(DID1, P1, DID2, P2, DIRECT, event3.subject());
+        assertAnnotationsEquals(event3.subject().annotations(), A2, A1);
+        assertEquals(LINK_UPDATED, event3.type());
+
+
+        // no change
+        LinkEvent event4 = linkStore.createOrUpdateLink(PID,
+                new DefaultLinkDescription(src, dst, DIRECT));
+        assertNull("No change event expected", event4);
+
+        // update link annotation (Primary)
+        LinkEvent event5 = linkStore.createOrUpdateLink(PID,
+                new DefaultLinkDescription(src, dst, DIRECT, A2_2));
+        assertLink(DID1, P1, DID2, P2, DIRECT, event5.subject());
+        assertAnnotationsEquals(event5.subject().annotations(), A2, A2_2, A1);
+        assertEquals(LINK_UPDATED, event5.type());
+
+        // update link annotation (Ancillary)
+        LinkEvent event6 = linkStore.createOrUpdateLink(PIDA,
+                new DefaultLinkDescription(src, dst, DIRECT, A1_2));
+        assertLink(DID1, P1, DID2, P2, DIRECT, event6.subject());
+        assertAnnotationsEquals(event6.subject().annotations(), A2, A2_2, A1, A1_2);
+        assertEquals(LINK_UPDATED, event6.type());
+
+        // update link type (Ancillary) : ignored
+        LinkEvent event7 = linkStore.createOrUpdateLink(PIDA,
+                new DefaultLinkDescription(src, dst, EDGE));
+        assertNull("Ancillary change other than annotation is ignored", event7);
+    }
+
+
+    @Test
     public final void testRemoveLink() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
         LinkKey linkId1 = new LinkKey(d1P1, d2P2);
         LinkKey linkId2 = new LinkKey(d2P2, d1P1);
 
-        putLink(linkId1, DIRECT);
-        putLink(linkId2, DIRECT);
+        putLink(linkId1, DIRECT, A1);
+        putLink(linkId2, DIRECT, A2);
 
         // DID1,P1 => DID2,P2
         // DID2,P2 => DID1,P1
@@ -285,10 +361,41 @@ public class SimpleLinkStoreTest {
 
         LinkEvent event = linkStore.removeLink(d1P1, d2P2);
         assertEquals(LINK_REMOVED, event.type());
+        assertAnnotationsEquals(event.subject().annotations(), A1);
         LinkEvent event2 = linkStore.removeLink(d1P1, d2P2);
         assertNull(event2);
 
         assertLink(linkId2, DIRECT, linkStore.getLink(d2P2, d1P1));
+        assertAnnotationsEquals(linkStore.getLink(d2P2, d1P1).annotations(), A2);
+
+        // annotations, etc. should not survive remove
+        putLink(linkId1, DIRECT);
+        assertLink(linkId1, DIRECT, linkStore.getLink(d1P1, d2P2));
+        assertAnnotationsEquals(linkStore.getLink(d1P1, d2P2).annotations());
+    }
+
+    @Test
+    public final void testAncillaryOnlyNotVisible() {
+        ConnectPoint src = new ConnectPoint(DID1, P1);
+        ConnectPoint dst = new ConnectPoint(DID2, P2);
+
+        // add Ancillary link
+        linkStore.createOrUpdateLink(PIDA,
+                    new DefaultLinkDescription(src, dst, INDIRECT, A1));
+
+        // Ancillary only link should not be visible
+        assertEquals(0, linkStore.getLinkCount());
+
+        assertTrue(Iterables.isEmpty(linkStore.getLinks()));
+
+        assertNull(linkStore.getLink(src, dst));
+
+        assertEquals(Collections.emptySet(), linkStore.getIngressLinks(dst));
+
+        assertEquals(Collections.emptySet(), linkStore.getEgressLinks(src));
+
+        assertEquals(Collections.emptySet(), linkStore.getDeviceEgressLinks(DID1));
+        assertEquals(Collections.emptySet(), linkStore.getDeviceIngressLinks(DID2));
     }
 
     // If Delegates should be called only on remote events,

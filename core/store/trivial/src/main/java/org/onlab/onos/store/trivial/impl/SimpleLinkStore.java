@@ -1,38 +1,52 @@
 package org.onlab.onos.store.trivial.impl;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 
+import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.SparseAnnotations;
+import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.Provided;
+import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
+import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import static org.onlab.onos.net.DefaultAnnotations.merge;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
+import static com.google.common.base.Predicates.notNull;
 
-// TODO: Add support for multiple provider and annotations
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
  * implementation.
@@ -46,11 +60,17 @@ public class SimpleLinkStore
     private final Logger log = getLogger(getClass());
 
     // Link inventory
-    private final Map<LinkKey, DefaultLink> links = new ConcurrentHashMap<>();
+    private final ConcurrentMap<LinkKey,
+            ConcurrentMap<ProviderId, LinkDescription>>
+                    linkDescs = new ConcurrentHashMap<>();
+
+    // Link instance cache
+    private final ConcurrentMap<LinkKey, Link> links = new ConcurrentHashMap<>();
 
     // Egress and ingress link sets
-    private final Multimap<DeviceId, Link> srcLinks = HashMultimap.create();
-    private final Multimap<DeviceId, Link> dstLinks = HashMultimap.create();
+    private final SetMultimap<DeviceId, LinkKey> srcLinks = createSynchronizedHashMultiMap();
+    private final SetMultimap<DeviceId, LinkKey> dstLinks = createSynchronizedHashMultiMap();
+
 
     @Activate
     public void activate() {
@@ -59,6 +79,10 @@ public class SimpleLinkStore
 
     @Deactivate
     public void deactivate() {
+        linkDescs.clear();
+        links.clear();
+        srcLinks.clear();
+        dstLinks.clear();
         log.info("Stopped");
     }
 
@@ -69,17 +93,29 @@ public class SimpleLinkStore
 
     @Override
     public Iterable<Link> getLinks() {
-        return Collections.unmodifiableSet(new HashSet<Link>(links.values()));
+        return Collections.unmodifiableCollection(links.values());
     }
 
     @Override
     public Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
-        return ImmutableSet.copyOf(srcLinks.get(deviceId));
+        // lock for iteration
+        synchronized (srcLinks) {
+            return FluentIterable.from(srcLinks.get(deviceId))
+            .transform(lookupLink())
+            .filter(notNull())
+            .toSet();
+        }
     }
 
     @Override
     public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
-        return ImmutableSet.copyOf(dstLinks.get(deviceId));
+        // lock for iteration
+        synchronized (dstLinks) {
+            return FluentIterable.from(dstLinks.get(deviceId))
+            .transform(lookupLink())
+            .filter(notNull())
+            .toSet();
+        }
     }
 
     @Override
@@ -90,9 +126,9 @@ public class SimpleLinkStore
     @Override
     public Set<Link> getEgressLinks(ConnectPoint src) {
         Set<Link> egress = new HashSet<>();
-        for (Link link : srcLinks.get(src.deviceId())) {
-            if (link.src().equals(src)) {
-                egress.add(link);
+        for (LinkKey linkKey : srcLinks.get(src.deviceId())) {
+            if (linkKey.src().equals(src)) {
+                egress.add(links.get(linkKey));
             }
         }
         return egress;
@@ -101,9 +137,9 @@ public class SimpleLinkStore
     @Override
     public Set<Link> getIngressLinks(ConnectPoint dst) {
         Set<Link> ingress = new HashSet<>();
-        for (Link link : dstLinks.get(dst.deviceId())) {
-            if (link.dst().equals(dst)) {
-                ingress.add(link);
+        for (LinkKey linkKey : dstLinks.get(dst.deviceId())) {
+            if (linkKey.dst().equals(dst)) {
+                ingress.add(links.get(linkKey));
             }
         }
         return ingress;
@@ -113,56 +149,172 @@ public class SimpleLinkStore
     public LinkEvent createOrUpdateLink(ProviderId providerId,
                                         LinkDescription linkDescription) {
         LinkKey key = new LinkKey(linkDescription.src(), linkDescription.dst());
-        DefaultLink link = links.get(key);
-        if (link == null) {
-            return createLink(providerId, key, linkDescription);
+
+        ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
+        synchronized (descs) {
+            final Link oldLink = links.get(key);
+            // update description
+            createOrUpdateLinkDescription(descs, providerId, linkDescription);
+            final Link newLink = composeLink(descs);
+            if (oldLink == null) {
+                return createLink(key, newLink);
+            }
+            return updateLink(key, oldLink, newLink);
         }
-        return updateLink(providerId, link, key, linkDescription);
+    }
+
+    // Guarded by linkDescs value (=locking each Link)
+    private LinkDescription createOrUpdateLinkDescription(
+                             ConcurrentMap<ProviderId, LinkDescription> descs,
+                             ProviderId providerId,
+                             LinkDescription linkDescription) {
+
+        // merge existing attributes and merge
+        LinkDescription oldDesc = descs.get(providerId);
+        LinkDescription newDesc = linkDescription;
+        if (oldDesc != null) {
+            SparseAnnotations merged = merge(oldDesc.annotations(),
+                    linkDescription.annotations());
+            newDesc = new DefaultLinkDescription(
+                        linkDescription.src(),
+                        linkDescription.dst(),
+                        linkDescription.type(), merged);
+        }
+        return descs.put(providerId, newDesc);
     }
 
     // Creates and stores the link and returns the appropriate event.
-    private LinkEvent createLink(ProviderId providerId, LinkKey key,
-                                 LinkDescription linkDescription) {
-        DefaultLink link = new DefaultLink(providerId, key.src(), key.dst(),
-                                           linkDescription.type());
-        synchronized (this) {
-            links.put(key, link);
-            srcLinks.put(link.src().deviceId(), link);
-            dstLinks.put(link.dst().deviceId(), link);
+    // Guarded by linkDescs value (=locking each Link)
+    private LinkEvent createLink(LinkKey key, Link newLink) {
+
+        if (newLink.providerId().isAncillary()) {
+            // TODO: revisit ancillary only Link handling
+
+            // currently treating ancillary only as down (not visible outside)
+            return null;
         }
-        return new LinkEvent(LINK_ADDED, link);
+
+        links.put(key, newLink);
+        srcLinks.put(newLink.src().deviceId(), key);
+        dstLinks.put(newLink.dst().deviceId(), key);
+        return new LinkEvent(LINK_ADDED, newLink);
     }
 
     // Updates, if necessary the specified link and returns the appropriate event.
-    private LinkEvent updateLink(ProviderId providerId, DefaultLink link,
-                                 LinkKey key, LinkDescription linkDescription) {
-        if (link.type() == INDIRECT && linkDescription.type() == DIRECT) {
-            synchronized (this) {
-                srcLinks.remove(link.src().deviceId(), link);
-                dstLinks.remove(link.dst().deviceId(), link);
+    // Guarded by linkDescs value (=locking each Link)
+    private LinkEvent updateLink(LinkKey key, Link oldLink, Link newLink) {
 
-                DefaultLink updated =
-                        new DefaultLink(providerId, link.src(), link.dst(),
-                                        linkDescription.type());
-                links.put(key, updated);
-                srcLinks.put(link.src().deviceId(), updated);
-                dstLinks.put(link.dst().deviceId(), updated);
-                return new LinkEvent(LINK_UPDATED, updated);
-            }
+        if (newLink.providerId().isAncillary()) {
+            // TODO: revisit ancillary only Link handling
+
+            // currently treating ancillary only as down (not visible outside)
+            return null;
+        }
+
+        if ((oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
+            !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
+
+            links.put(key, newLink);
+            // strictly speaking following can be ommitted
+            srcLinks.put(oldLink.src().deviceId(), key);
+            dstLinks.put(oldLink.dst().deviceId(), key);
+            return new LinkEvent(LINK_UPDATED, newLink);
         }
         return null;
     }
 
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
-        synchronized (this) {
-            Link link = links.remove(new LinkKey(src, dst));
+        final LinkKey key = new LinkKey(src, dst);
+        ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
+        synchronized (descs) {
+            Link link = links.remove(key);
+            descs.clear();
             if (link != null) {
-                srcLinks.remove(link.src().deviceId(), link);
-                dstLinks.remove(link.dst().deviceId(), link);
+                srcLinks.remove(link.src().deviceId(), key);
+                dstLinks.remove(link.dst().deviceId(), key);
                 return new LinkEvent(LINK_REMOVED, link);
             }
             return null;
+        }
+    }
+
+    private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
+        return synchronizedSetMultimap(HashMultimap.<K, V>create());
+    }
+
+    /**
+     * @return primary ProviderID, or randomly chosen one if none exists
+     */
+    private ProviderId pickPrimaryPID(
+            ConcurrentMap<ProviderId, LinkDescription> providerDescs) {
+
+        ProviderId fallBackPrimary = null;
+        for (Entry<ProviderId, LinkDescription> e : providerDescs.entrySet()) {
+            if (!e.getKey().isAncillary()) {
+                return e.getKey();
+            } else if (fallBackPrimary == null) {
+                // pick randomly as a fallback in case there is no primary
+                fallBackPrimary = e.getKey();
+            }
+        }
+        return fallBackPrimary;
+    }
+
+    private Link composeLink(ConcurrentMap<ProviderId, LinkDescription> descs) {
+        ProviderId primary = pickPrimaryPID(descs);
+        LinkDescription base = descs.get(primary);
+
+        ConnectPoint src = base.src();
+        ConnectPoint dst = base.dst();
+        Type type = base.type();
+        Annotations annotations = DefaultAnnotations.builder().build();
+        annotations = merge(annotations, base.annotations());
+
+        for (Entry<ProviderId, LinkDescription> e : descs.entrySet()) {
+            if (primary.equals(e.getKey())) {
+                continue;
+            }
+
+            // TODO: should keep track of Description timestamp
+            // and only merge conflicting keys when timestamp is newer
+            // Currently assuming there will never be a key conflict between
+            // providers
+
+            // annotation merging. not so efficient, should revisit later
+            annotations = merge(annotations, e.getValue().annotations());
+        }
+
+        return new DefaultLink(primary , src, dst, type, annotations);
+    }
+
+    private ConcurrentMap<ProviderId, LinkDescription> getLinkDescriptions(LinkKey key) {
+        return ConcurrentUtils.createIfAbsentUnchecked(linkDescs, key,
+                NewConcurrentHashMap.<ProviderId, LinkDescription>ifNeeded());
+    }
+
+    private final Function<LinkKey, Link> lookupLink = new LookupLink();
+    private Function<LinkKey, Link> lookupLink() {
+        return lookupLink;
+    }
+
+    private final class LookupLink implements Function<LinkKey, Link> {
+        @Override
+        public Link apply(LinkKey input) {
+            return links.get(input);
+        }
+    }
+
+    private static final Predicate<Provided> IS_PRIMARY = new IsPrimary();
+    private static final Predicate<Provided> isPrimary() {
+        return IS_PRIMARY;
+    }
+
+    private static final class IsPrimary implements Predicate<Provided> {
+
+        @Override
+        public boolean apply(Provided input) {
+            return !input.providerId().isAncillary();
         }
     }
 }

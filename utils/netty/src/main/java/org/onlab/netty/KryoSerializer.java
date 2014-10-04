@@ -1,9 +1,8 @@
 package org.onlab.netty;
 
 import org.onlab.util.KryoPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -11,8 +10,6 @@ import java.util.HashMap;
  * Kryo Serializer.
  */
 public class KryoSerializer implements Serializer {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private KryoPool serializerPool;
 
@@ -28,7 +25,9 @@ public class KryoSerializer implements Serializer {
         serializerPool = KryoPool.newBuilder()
                 .register(ArrayList.class,
                           HashMap.class,
-                          ArrayList.class
+                          ArrayList.class,
+                          InternalMessage.class,
+                          Endpoint.class
                 )
                 .build()
                 .populate(1);
@@ -36,12 +35,22 @@ public class KryoSerializer implements Serializer {
 
 
     @Override
-    public Object decode(byte[] data) {
+    public <T> T decode(byte[] data) {
         return serializerPool.deserialize(data);
     }
 
     @Override
     public byte[] encode(Object payload) {
         return serializerPool.serialize(payload);
+    }
+
+    @Override
+    public <T> T deserialize(ByteBuffer buffer) {
+        return serializerPool.deserialize(buffer);
+    }
+
+    @Override
+    public void serialize(Object obj, ByteBuffer buffer) {
+        serializerPool.serialize(obj, buffer);
     }
 }

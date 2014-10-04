@@ -11,7 +11,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
@@ -33,6 +33,7 @@ import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -136,8 +137,7 @@ public class GossipDeviceStore
 
         // Collection of DeviceDescriptions for a Device
         ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs
-            = createIfAbsentUnchecked(deviceDescs, deviceId,
-                    new InitConcurrentHashMap<ProviderId, DeviceDescriptions>());
+            = getDeviceDescriptions(deviceId);
 
 
         DeviceDescriptions descs
@@ -196,7 +196,7 @@ public class GossipDeviceStore
         // We allow only certain attributes to trigger update
         if (!Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
             !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
-            !isAnnotationsEqual(oldDevice.annotations(), newDevice.annotations())) {
+            !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations())) {
 
             boolean replaced = devices.replace(newDevice.id(), oldDevice, newDevice);
             if (!replaced) {
@@ -223,8 +223,7 @@ public class GossipDeviceStore
     @Override
     public DeviceEvent markOffline(DeviceId deviceId) {
         ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs
-            = createIfAbsentUnchecked(deviceDescs, deviceId,
-                    new InitConcurrentHashMap<ProviderId, DeviceDescriptions>());
+            = getDeviceDescriptions(deviceId);
 
         // locking device
         synchronized (providerDescs) {
@@ -327,7 +326,7 @@ public class GossipDeviceStore
                                    Port newPort,
                                    Map<PortNumber, Port> ports) {
         if (oldPort.isEnabled() != newPort.isEnabled() ||
-            !isAnnotationsEqual(oldPort.annotations(), newPort.annotations())) {
+            !AnnotationsUtil.isEqual(oldPort.annotations(), newPort.annotations())) {
 
             ports.put(oldPort.number(), newPort);
             return new DeviceEvent(PORT_UPDATED, device, newPort);
@@ -358,7 +357,13 @@ public class GossipDeviceStore
     // exist, it creates and registers a new one.
     private ConcurrentMap<PortNumber, Port> getPortMap(DeviceId deviceId) {
         return createIfAbsentUnchecked(devicePorts, deviceId,
-                new InitConcurrentHashMap<PortNumber, Port>());
+                NewConcurrentHashMap.<PortNumber, Port>ifNeeded());
+    }
+
+    private ConcurrentMap<ProviderId, DeviceDescriptions> getDeviceDescriptions(
+            DeviceId deviceId) {
+        return createIfAbsentUnchecked(deviceDescs, deviceId,
+                NewConcurrentHashMap.<ProviderId, DeviceDescriptions>ifNeeded());
     }
 
     @Override
@@ -438,31 +443,16 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
-        synchronized (this) {
+        ConcurrentMap<ProviderId, DeviceDescriptions> descs = getDeviceDescriptions(deviceId);
+        synchronized (descs) {
             Device device = devices.remove(deviceId);
+            // should DEVICE_REMOVED carry removed ports?
+            devicePorts.get(deviceId).clear();
+            availableDevices.remove(deviceId);
+            descs.clear();
             return device == null ? null :
-                    new DeviceEvent(DEVICE_REMOVED, device, null);
+                new DeviceEvent(DEVICE_REMOVED, device, null);
         }
-    }
-
-    private static boolean isAnnotationsEqual(Annotations lhs, Annotations rhs) {
-        if (lhs == rhs) {
-            return true;
-        }
-        if (lhs == null || rhs == null) {
-            return false;
-        }
-
-        if (!lhs.keys().equals(rhs.keys())) {
-            return false;
-        }
-
-        for (String key : lhs.keys()) {
-            if (!lhs.value(key).equals(rhs.value(key))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -565,14 +555,6 @@ public class GossipDeviceStore
             }
         }
         return fallBackPrimary;
-    }
-
-    private static final class InitConcurrentHashMap<K, V> implements
-            ConcurrentInitializer<ConcurrentMap<K, V>> {
-        @Override
-        public ConcurrentMap<K, V> get() throws ConcurrentException {
-            return new ConcurrentHashMap<>();
-        }
     }
 
     public static final class InitDeviceDescs

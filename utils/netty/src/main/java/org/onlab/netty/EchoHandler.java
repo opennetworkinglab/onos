@@ -9,7 +9,7 @@ public class EchoHandler implements MessageHandler {
 
     @Override
     public void handle(Message message) throws IOException {
-        System.out.println("Received: " + message.payload() + ". Echoing it back to the sender.");
+        System.out.println("Received message. Echoing it back to the sender.");
         message.respond(message.payload());
     }
 }

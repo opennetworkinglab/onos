@@ -9,7 +9,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
@@ -28,6 +28,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
+import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -52,7 +53,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 
-// TODO: synchronization should be done in more fine-grained manner.
 /**
  * Manages inventory of infrastructure devices using trivial in-memory
  * structures implementation.
@@ -109,8 +109,7 @@ public class SimpleDeviceStore
     public synchronized DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
                                      DeviceDescription deviceDescription) {
         ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs
-            = createIfAbsentUnchecked(deviceDescs, deviceId,
-                    new InitConcurrentHashMap<ProviderId, DeviceDescriptions>());
+            = getDeviceDescriptions(deviceId);
 
         Device oldDevice = devices.get(deviceId);
 
@@ -151,7 +150,7 @@ public class SimpleDeviceStore
         // We allow only certain attributes to trigger update
         if (!Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
             !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
-            !isAnnotationsEqual(oldDevice.annotations(), newDevice.annotations())) {
+            !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations())) {
 
             synchronized (this) {
                 devices.replace(newDevice.id(), oldDevice, newDevice);
@@ -238,7 +237,7 @@ public class SimpleDeviceStore
                                    Port newPort,
                                    ConcurrentMap<PortNumber, Port> ports) {
         if (oldPort.isEnabled() != newPort.isEnabled() ||
-            !isAnnotationsEqual(oldPort.annotations(), newPort.annotations())) {
+            !AnnotationsUtil.isEqual(oldPort.annotations(), newPort.annotations())) {
 
             ports.put(oldPort.number(), newPort);
             return new DeviceEvent(PORT_UPDATED, device, newPort);
@@ -264,11 +263,17 @@ public class SimpleDeviceStore
         return events;
     }
 
+    private ConcurrentMap<ProviderId, DeviceDescriptions> getDeviceDescriptions(
+            DeviceId deviceId) {
+        return createIfAbsentUnchecked(deviceDescs, deviceId,
+                NewConcurrentHashMap.<ProviderId, DeviceDescriptions>ifNeeded());
+    }
+
     // Gets the map of ports for the specified device; if one does not already
     // exist, it creates and registers a new one.
     private ConcurrentMap<PortNumber, Port> getPortMap(DeviceId deviceId) {
         return createIfAbsentUnchecked(devicePorts, deviceId,
-                new InitConcurrentHashMap<PortNumber, Port>());
+                NewConcurrentHashMap.<PortNumber, Port>ifNeeded());
     }
 
     @Override
@@ -323,31 +328,19 @@ public class SimpleDeviceStore
 
     @Override
     public DeviceEvent removeDevice(DeviceId deviceId) {
-        synchronized (this) {
+        ConcurrentMap<ProviderId, DeviceDescriptions> descs = getDeviceDescriptions(deviceId);
+        synchronized (descs) {
             Device device = devices.remove(deviceId);
-            return device == null ? null :
-                    new DeviceEvent(DEVICE_REMOVED, device, null);
-        }
-    }
-
-    private static boolean isAnnotationsEqual(Annotations lhs, Annotations rhs) {
-        if (lhs == rhs) {
-            return true;
-        }
-        if (lhs == null || rhs == null) {
-            return false;
-        }
-
-        if (!lhs.keys().equals(rhs.keys())) {
-            return false;
-        }
-
-        for (String key : lhs.keys()) {
-            if (!lhs.value(key).equals(rhs.value(key))) {
-                return false;
+            // should DEVICE_REMOVED carry removed ports?
+            ConcurrentMap<PortNumber, Port> ports = devicePorts.get(deviceId);
+            if (ports != null) {
+                ports.clear();
             }
+            availableDevices.remove(deviceId);
+            descs.clear();
+            return device == null ? null :
+                new DeviceEvent(DEVICE_REMOVED, device, null);
         }
-        return true;
     }
 
     /**
@@ -443,15 +436,6 @@ public class SimpleDeviceStore
             }
         }
         return fallBackPrimary;
-    }
-
-    // TODO: can be made generic
-    private static final class InitConcurrentHashMap<K, V> implements
-            ConcurrentInitializer<ConcurrentMap<K, V>> {
-        @Override
-        public ConcurrentMap<K, V> get() throws ConcurrentException {
-            return new ConcurrentHashMap<>();
-        }
     }
 
     public static final class InitDeviceDescs

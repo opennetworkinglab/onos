@@ -167,11 +167,11 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 // TODO We could check for the optional bitmap, but for now
                 // we are just checking the version number.
                 if (m.getVersion() == OFVersion.OF_13) {
-                    log.info("Received {} Hello from {}", m.getVersion(),
+                    log.debug("Received {} Hello from {}", m.getVersion(),
                             h.channel.getRemoteAddress());
                     h.ofVersion = OFVersion.OF_13;
                 } else if (m.getVersion() == OFVersion.OF_10) {
-                    log.info("Received {} Hello from {} - switching to OF "
+                    log.debug("Received {} Hello from {} - switching to OF "
                             + "version 1.0", m.getVersion(),
                             h.channel.getRemoteAddress());
                     h.ofVersion = OFVersion.OF_10;
@@ -222,7 +222,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             void processOFFeaturesReply(OFChannelHandler h, OFFeaturesReply  m)
                     throws IOException {
                 h.thisdpid = m.getDatapathId().getLong();
-                log.info("Received features reply for switch at {} with dpid {}",
+                log.debug("Received features reply for switch at {} with dpid {}",
                         h.getSwitchInfoString(), h.thisdpid);
 
                 h.featuresReply = m; //temp store
@@ -409,7 +409,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
 
 
-                log.info("Switch {} bound to class {}, description {}",
+                log.debug("Switch {} bound to class {}, description {}",
                         new Object[] {h.sw, h.sw.getClass(), drep });
                 //Put switch in EQUAL mode until we hear back from the global registry
                 //log.debug("Setting new switch {} to EQUAL and sending Role request",
@@ -651,7 +651,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * @param error The error message
          */
         protected void logError(OFChannelHandler h, OFErrorMsg error) {
-            log.info("{} from switch {} in state {}",
+            log.error("{} from switch {} in state {}",
                     new Object[] {
                     error,
                     h.getSwitchInfoString(),
@@ -1050,7 +1050,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             throws Exception {
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
         OFMessage m = factory.buildEchoRequest().build();
-        log.info("Sending Echo Request on idle channel: {}",
+        log.debug("Sending Echo Request on idle channel: {}",
                 e.getChannel().getPipeline().getLast().toString());
         e.getChannel().write(Collections.singletonList(m));
         // XXX S some problems here -- echo request has no transaction id, and
