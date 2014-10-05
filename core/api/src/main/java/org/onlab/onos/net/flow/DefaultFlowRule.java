@@ -18,10 +18,6 @@ public class DefaultFlowRule implements FlowRule {
     private final TrafficSelector selector;
     private final TrafficTreatment treatment;
     private final long created;
-    private final long life;
-    private final long packets;
-    private final long bytes;
-    private final FlowRuleState state;
 
     private final FlowId id;
 
@@ -29,90 +25,50 @@ public class DefaultFlowRule implements FlowRule {
 
     private final int timeout;
 
-    /**
-     * Creates a flow rule given the following paremeters.
-     * @param deviceId the device where the rule should be installed
-     * @param selector the traffic selection
-     * @param treatment how the seleted traffic should be handled
-     * @param priority the rule priority cannot be less than FlowRule.MIN_PRIORITY
-     * @param state the state in which the rule is
-     * @param life how long it has existed for (ms)
-     * @param packets number of packets it has seen
-     * @param bytes number of bytes  it has seen
-     * @param flowId the identifier
-     * @param timeout the rule's timeout (idle) not to exceed
-     *  FlowRule.MAX_TIMEOUT of idle time
-     */
+
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-            TrafficTreatment treatment, int priority, FlowRuleState state,
-            long life, long packets, long bytes, long flowId,
+            TrafficTreatment treatment, int priority, long flowId,
             int timeout) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
         this.treatment = treatment;
-        this.state = state;
+        this.timeout = timeout;
+        this.created = System.currentTimeMillis();
+
         this.appId = ApplicationId.valueOf((int) (flowId >> 32));
         this.id = FlowId.valueOf(flowId);
-        this.life = life;
-        this.packets = packets;
-        this.bytes = bytes;
-        this.created = System.currentTimeMillis();
-        this.timeout = timeout;
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatement, int priority, ApplicationId appId,
             int timeout) {
-        this(deviceId, selector, treatement, priority,
-                FlowRuleState.CREATED, appId, timeout);
-    }
 
-    public DefaultFlowRule(FlowRule rule, FlowRuleState state) {
-        this(rule.deviceId(), rule.selector(), rule.treatment(),
-                rule.priority(), state, rule.id(), rule.appId(),
-                rule.timeout());
-    }
-
-    private DefaultFlowRule(DeviceId deviceId,
-            TrafficSelector selector, TrafficTreatment treatment,
-            int priority, FlowRuleState state, ApplicationId appId,
-            int timeout) {
-        if (priority < MIN_PRIORITY) {
+        if (priority < FlowRule.MIN_PRIORITY) {
             throw new IllegalArgumentException("Priority cannot be less than " + MIN_PRIORITY);
         }
+
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
-        this.treatment = treatment;
-        this.state = state;
-        this.life = 0;
-        this.packets = 0;
-        this.bytes = 0;
+        this.treatment = treatement;
         this.appId = appId;
-
         this.timeout = timeout;
+        this.created = System.currentTimeMillis();
 
         this.id = FlowId.valueOf((((long) appId().id()) << 32) | (this.hash() & 0xffffffffL));
-        this.created = System.currentTimeMillis();
     }
 
-    private DefaultFlowRule(DeviceId deviceId,
-            TrafficSelector selector, TrafficTreatment treatment,
-            int priority, FlowRuleState state, FlowId flowId, ApplicationId appId,
-            int timeout) {
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.state = state;
-        this.life = 0;
-        this.packets = 0;
-        this.bytes = 0;
-        this.appId = appId;
-        this.id = flowId;
-        this.timeout = timeout;
+    public DefaultFlowRule(FlowRule rule) {
+        this.deviceId = rule.deviceId();
+        this.priority = rule.priority();
+        this.selector = rule.selector();
+        this.treatment = rule.treatment();
+        this.appId = rule.appId();
+        this.id = rule.id();
+        this.timeout = rule.timeout();
         this.created = System.currentTimeMillis();
+
     }
 
 
@@ -144,26 +100,6 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public TrafficTreatment treatment() {
         return treatment;
-    }
-
-    @Override
-    public long life() {
-        return life;
-    }
-
-    @Override
-    public long packets() {
-        return packets;
-    }
-
-    @Override
-    public long bytes() {
-        return bytes;
-    }
-
-    @Override
-    public FlowRuleState state() {
-        return this.state;
     }
 
 
@@ -213,7 +149,6 @@ public class DefaultFlowRule implements FlowRule {
                 .add("selector", selector.criteria())
                 .add("treatment", treatment == null ? "N/A" : treatment.instructions())
                 .add("created", created)
-                .add("state", state)
                 .toString();
     }
 

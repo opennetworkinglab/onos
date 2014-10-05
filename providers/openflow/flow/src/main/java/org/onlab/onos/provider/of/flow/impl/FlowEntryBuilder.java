@@ -6,11 +6,13 @@ import java.util.List;
 
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
+import org.onlab.onos.net.flow.FlowEntry;
+import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.openflow.controller.Dpid;
@@ -37,7 +39,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 
-public class FlowRuleBuilder {
+public class FlowEntryBuilder {
     private final Logger log = getLogger(getClass());
 
     private final OFFlowStatsEntry stat;
@@ -51,7 +53,7 @@ public class FlowRuleBuilder {
     private final boolean addedRule;
 
 
-    public FlowRuleBuilder(Dpid dpid, OFFlowStatsEntry entry) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
         this.stat = entry;
         this.match = entry.getMatch();
         this.actions = getActions(entry);
@@ -60,7 +62,7 @@ public class FlowRuleBuilder {
         this.addedRule = true;
     }
 
-    public FlowRuleBuilder(Dpid dpid, OFFlowRemoved removed) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed) {
         this.match = removed.getMatch();
         this.removed = removed;
 
@@ -71,20 +73,21 @@ public class FlowRuleBuilder {
 
     }
 
-    public FlowRule build() {
+    public FlowEntry build() {
         if (addedRule) {
-            return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
+            FlowRule rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), buildTreatment(), stat.getPriority(),
-                    FlowRuleState.ADDED, stat.getDurationSec(),
-                    stat.getPacketCount().getValue(), stat.getByteCount().getValue(),
                     stat.getCookie().getValue(), stat.getIdleTimeout());
+            return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
+                    stat.getDurationSec(), stat.getPacketCount().getValue(),
+                    stat.getByteCount().getValue());
+
         } else {
-            // TODO: revisit potentially.
-            return new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
+            FlowRule rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), null, removed.getPriority(),
-                    FlowRuleState.REMOVED, removed.getDurationSec(),
-                    removed.getPacketCount().getValue(), removed.getByteCount().getValue(),
-                    removed.getCookie().getValue(), removed.getIdleTimeout());
+                   removed.getCookie().getValue(), removed.getIdleTimeout());
+            return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
+                    removed.getPacketCount().getValue(), removed.getByteCount().getValue());
         }
     }
 

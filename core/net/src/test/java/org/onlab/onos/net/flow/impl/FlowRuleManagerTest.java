@@ -27,9 +27,11 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
+import org.onlab.onos.net.flow.FlowEntry;
+import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleProvider;
@@ -103,9 +105,6 @@ public class FlowRuleManagerTest {
         return new DefaultFlowRule(DID, ts, tr, 10, appId, TIMEOUT);
     }
 
-    private FlowRule flowRule(FlowRule rule, FlowRuleState state) {
-        return new DefaultFlowRule(rule, state);
-    }
 
     private FlowRule addFlowRule(int hval) {
         FlowRule rule = flowRule(hval, hval);
@@ -143,24 +142,26 @@ public class FlowRuleManagerTest {
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
 
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
         assertEquals("2 rules should exist", 2, flowCount());
 
-        providerService.pushFlowMetrics(DID, ImmutableList.of(f1, f2));
+        providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2));
         validateEvents(RULE_ADDED, RULE_ADDED);
 
         addFlowRule(1);
         assertEquals("should still be 2 rules", 2, flowCount());
 
-        providerService.pushFlowMetrics(DID, ImmutableList.of(f1));
+        providerService.pushFlowMetrics(DID, ImmutableList.of(fe1));
         validateEvents(RULE_UPDATED);
     }
 
 
     //backing store is sensitive to the order of additions/removals
-    private boolean validateState(FlowRuleState... state) {
-        Iterable<FlowRule> rules = service.getFlowEntries(DID);
+    private boolean validateState(FlowEntryState... state) {
+        Iterable<FlowEntry> rules = service.getFlowEntries(DID);
         int i = 0;
-        for (FlowRule f : rules) {
+        for (FlowEntry f : rules) {
             if (f.state() != state[i]) {
                 return false;
             }
@@ -181,8 +182,8 @@ public class FlowRuleManagerTest {
         mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
         assertTrue("Entries should be pending add.",
-                validateState(FlowRuleState.PENDING_ADD, FlowRuleState.PENDING_ADD,
-                        FlowRuleState.PENDING_ADD));
+                validateState(FlowEntryState.PENDING_ADD, FlowEntryState.PENDING_ADD,
+                        FlowEntryState.PENDING_ADD));
     }
 
     @Test
@@ -192,20 +193,21 @@ public class FlowRuleManagerTest {
         FlowRule f3 = addFlowRule(3);
         assertEquals("3 rules should exist", 3, flowCount());
 
-        providerService.pushFlowMetrics(DID, ImmutableList.of(f1, f2, f3));
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
+        FlowEntry fe3 = new DefaultFlowEntry(f3);
+        providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2, fe3));
         validateEvents(RULE_ADDED, RULE_ADDED, RULE_ADDED);
 
-        FlowRule rem1 = flowRule(f1, FlowRuleState.REMOVED);
-        FlowRule rem2 = flowRule(f2, FlowRuleState.REMOVED);
-        mgr.removeFlowRules(rem1, rem2);
+        mgr.removeFlowRules(f1, f2);
         //removing from north, so no events generated
         validateEvents();
         assertEquals("3 rule should exist", 3, flowCount());
         assertTrue("Entries should be pending remove.",
-                validateState(FlowRuleState.CREATED, FlowRuleState.PENDING_REMOVE,
-                        FlowRuleState.PENDING_REMOVE));
+                validateState(FlowEntryState.PENDING_REMOVE, FlowEntryState.PENDING_REMOVE,
+                        FlowEntryState.ADDED));
 
-        mgr.removeFlowRules(rem1);
+        mgr.removeFlowRules(f1);
         assertEquals("3 rule should still exist", 3, flowCount());
     }
 
@@ -213,21 +215,24 @@ public class FlowRuleManagerTest {
     public void flowRemoved() {
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
-        providerService.pushFlowMetrics(f1.deviceId(), ImmutableList.of(f1, f2));
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
+        providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2));
         service.removeFlowRules(f1);
-        FlowRule rem1 = flowRule(f1, FlowRuleState.REMOVED);
-        providerService.flowRemoved(rem1);
+        fe1.setState(FlowEntryState.REMOVED);
+        providerService.flowRemoved(fe1);
         validateEvents(RULE_ADDED, RULE_ADDED, RULE_REMOVED);
 
-        providerService.flowRemoved(rem1);
+        providerService.flowRemoved(fe1);
         validateEvents();
 
         FlowRule f3 = flowRule(3, 3);
+        FlowEntry fe3 = new DefaultFlowEntry(f3);
         service.applyFlowRules(f3);
-        providerService.pushFlowMetrics(f3.deviceId(), Collections.singletonList(f3));
+        providerService.pushFlowMetrics(DID, Collections.singletonList(fe3));
         validateEvents(RULE_ADDED);
 
-        providerService.flowRemoved(f3);
+        providerService.flowRemoved(fe3);
         validateEvents();
     }
 
@@ -237,17 +242,20 @@ public class FlowRuleManagerTest {
         FlowRule f2 = flowRule(2, 2);
         FlowRule f3 = flowRule(3, 3);
 
-
-
         mgr.applyFlowRules(f1, f2, f3);
-        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
-        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
 
-        providerService.pushFlowMetrics(DID, Lists.newArrayList(updatedF1, updatedF2));
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
+
+
+        //FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
+        //FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
+
+        providerService.pushFlowMetrics(DID, Lists.newArrayList(fe1, fe2));
 
         assertTrue("Entries should be added.",
-                validateState(FlowRuleState.PENDING_ADD, FlowRuleState.ADDED,
-                        FlowRuleState.ADDED));
+                validateState(FlowEntryState.ADDED, FlowEntryState.ADDED,
+                        FlowEntryState.PENDING_ADD));
 
         validateEvents(RULE_ADDED, RULE_ADDED);
     }
@@ -259,11 +267,15 @@ public class FlowRuleManagerTest {
         FlowRule f3 = flowRule(3, 3);
         mgr.applyFlowRules(f1, f2);
 
-        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
-        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
-        FlowRule updatedF3 = flowRule(f3, FlowRuleState.ADDED);
+//        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
+//        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
+//        FlowRule updatedF3 = flowRule(f3, FlowRuleState.ADDED);
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
+        FlowEntry fe3 = new DefaultFlowEntry(f3);
 
-        providerService.pushFlowMetrics(DID, Lists.newArrayList(updatedF1, updatedF2, updatedF3));
+
+        providerService.pushFlowMetrics(DID, Lists.newArrayList(fe1, fe2, fe3));
 
         validateEvents(RULE_ADDED, RULE_ADDED);
 
@@ -279,13 +291,16 @@ public class FlowRuleManagerTest {
         FlowRule f2 = flowRule(2, 2);
         FlowRule f3 = flowRule(3, 3);
 
-        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
-        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
+//        FlowRule updatedF1 = flowRule(f1, FlowRuleState.ADDED);
+//        FlowRule updatedF2 = flowRule(f2, FlowRuleState.ADDED);
+
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
         mgr.applyFlowRules(f1, f2, f3);
 
         mgr.removeFlowRules(f3);
 
-        providerService.pushFlowMetrics(DID, Lists.newArrayList(updatedF1, updatedF2));
+        providerService.pushFlowMetrics(DID, Lists.newArrayList(fe1, fe2));
 
         validateEvents(RULE_ADDED, RULE_ADDED, RULE_REMOVED);
 
@@ -312,7 +327,7 @@ public class FlowRuleManagerTest {
 
         //only check that we are in pending remove. Events and actual remove state will
         // be set by flowRemoved call.
-        validateState(FlowRuleState.PENDING_REMOVE, FlowRuleState.PENDING_REMOVE);
+        validateState(FlowEntryState.PENDING_REMOVE, FlowEntryState.PENDING_REMOVE);
     }
 
     private static class TestListener implements FlowRuleListener {

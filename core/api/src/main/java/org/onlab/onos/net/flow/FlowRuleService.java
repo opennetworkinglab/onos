@@ -20,7 +20,7 @@ public interface FlowRuleService {
      * @param deviceId device identifier
      * @return collection of flow rules
      */
-    Iterable<FlowRule> getFlowEntries(DeviceId deviceId);
+    Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
     // TODO: add createFlowRule factory method and execute operations method
 

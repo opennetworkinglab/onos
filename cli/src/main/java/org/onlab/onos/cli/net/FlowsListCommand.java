@@ -13,8 +13,8 @@ import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
+import org.onlab.onos.net.flow.FlowEntry;
+import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowRuleService;
 
 import com.google.common.collect.Maps;
@@ -45,7 +45,7 @@ public class FlowsListCommand extends AbstractShellCommand {
     protected void execute() {
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
-        Map<Device, List<FlowRule>> flows = getSortedFlows(deviceService, service);
+        Map<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
         for (Device d : flows.keySet()) {
             printFlows(d, flows.get(d));
         }
@@ -57,12 +57,12 @@ public class FlowsListCommand extends AbstractShellCommand {
      * @param service device service
      * @return sorted device list
      */
-    protected Map<Device, List<FlowRule>> getSortedFlows(DeviceService deviceService, FlowRuleService service) {
-        Map<Device, List<FlowRule>> flows = Maps.newHashMap();
-        List<FlowRule> rules;
-        FlowRuleState s = null;
+    protected Map<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService, FlowRuleService service) {
+        Map<Device, List<FlowEntry>> flows = Maps.newHashMap();
+        List<FlowEntry> rules;
+        FlowEntryState s = null;
         if (state != null && !state.equals("any")) {
-            s = FlowRuleState.valueOf(state.toUpperCase());
+            s = FlowEntryState.valueOf(state.toUpperCase());
         }
         Iterable<Device> devices = uri == null ?  deviceService.getDevices() :
             Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
@@ -71,7 +71,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                 rules = newArrayList(service.getFlowEntries(d.id()));
             } else {
                 rules = newArrayList();
-                for (FlowRule f : service.getFlowEntries(d.id())) {
+                for (FlowEntry f : service.getFlowEntries(d.id())) {
                     if (f.state().equals(s)) {
                         rules.add(f);
                     }
@@ -88,13 +88,13 @@ public class FlowsListCommand extends AbstractShellCommand {
      * @param d the device
      * @param flows the set of flows for that device.
      */
-    protected void printFlows(Device d, List<FlowRule> flows) {
+    protected void printFlows(Device d, List<FlowEntry> flows) {
         print("Device: " + d.id());
         if (flows == null | flows.isEmpty()) {
             print(" %s", "No flows.");
             return;
         }
-        for (FlowRule f : flows) {
+        for (FlowEntry f : flows) {
             print(FMT, Long.toHexString(f.id().value()), f.state(), f.bytes(),
                     f.packets(), f.life(), f.priority());
             print(SFMT, f.selector().criteria());
