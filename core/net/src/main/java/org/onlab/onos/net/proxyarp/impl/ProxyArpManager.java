@@ -206,12 +206,12 @@ public class ProxyArpManager implements ProxyArpService {
             for (Link l : links) {
                 // for each link, mark the concerned ports as internal
                 // and the remaining ports are therefore external.
-                if (l.src().deviceId().equals(d)
+                if (l.src().deviceId().equals(d.id())
                         && ports.contains(l.src().port())) {
                     ports.remove(l.src().port());
                     internalPorts.put(d, l.src().port());
                 }
-                if (l.dst().deviceId().equals(d)
+                if (l.dst().deviceId().equals(d.id())
                         && ports.contains(l.dst().port())) {
                     ports.remove(l.dst().port());
                     internalPorts.put(d, l.dst().port());
