@@ -12,6 +12,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
@@ -131,7 +132,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     implements OpenFlowSwitchListener, OpenFlowEventListener {
 
         private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
-        private final Multimap<DeviceId, FlowRule> completeEntries =
+        private final Multimap<DeviceId, FlowEntry> completeEntries =
                 ArrayListMultimap.create();
 
         @Override
@@ -158,7 +159,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 //TODO: make this better
                 OFFlowRemoved removed = (OFFlowRemoved) msg;
 
-                FlowRule fr = new FlowRuleBuilder(dpid, removed).build();
+                FlowEntry fr = new FlowEntryBuilder(dpid, removed).build();
                 providerService.flowRemoved(fr);
                 break;
             case STATS_REPLY:
@@ -188,7 +189,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
             for (OFFlowStatsEntry reply : replies.getEntries()) {
                 if (!tableMissRule(dpid, reply)) {
-                    completeEntries.put(did, new FlowRuleBuilder(dpid, reply).build());
+                    completeEntries.put(did, new FlowEntryBuilder(dpid, reply).build());
                 }
             }
 

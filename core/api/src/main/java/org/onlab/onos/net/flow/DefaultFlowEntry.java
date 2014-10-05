@@ -1,0 +1,111 @@
+package org.onlab.onos.net.flow;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import org.onlab.onos.net.DeviceId;
+import org.slf4j.Logger;
+
+public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
+
+    private final Logger log = getLogger(getClass());
+
+    private long life;
+    private long packets;
+    private long bytes;
+    private FlowEntryState state;
+
+    private long lastSeen = -1;
+
+
+    public DefaultFlowEntry(DeviceId deviceId, TrafficSelector selector,
+            TrafficTreatment treatment, int priority, FlowEntryState state,
+            long life, long packets, long bytes, long flowId,
+            int timeout) {
+        super(deviceId, selector, treatment, priority, flowId, timeout);
+        this.state = state;
+        this.life = life;
+        this.packets = packets;
+        this.bytes = bytes;
+        this.lastSeen = System.currentTimeMillis();
+    }
+
+    public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
+            long life, long packets, long bytes) {
+        super(rule);
+        this.state = state;
+        this.life = life;
+        this.packets = packets;
+        this.bytes = bytes;
+        this.lastSeen = System.currentTimeMillis();
+    }
+
+    public DefaultFlowEntry(FlowRule rule) {
+        super(rule);
+        this.state = FlowEntryState.PENDING_ADD;
+        this.life = 0;
+        this.packets = 0;
+        this.bytes = 0;
+        this.lastSeen = System.currentTimeMillis();
+    }
+
+    @Override
+    public long life() {
+        return life;
+    }
+
+    @Override
+    public long packets() {
+        return packets;
+    }
+
+    @Override
+    public long bytes() {
+        return bytes;
+    }
+
+    @Override
+    public FlowEntryState state() {
+        return this.state;
+    }
+
+    @Override
+    public long lastSeen() {
+        return lastSeen;
+    }
+
+    @Override
+    public void setLastSeen() {
+        this.lastSeen = System.currentTimeMillis();
+    }
+
+    @Override
+    public void setState(FlowEntryState newState) {
+        this.state = newState;
+    }
+
+    @Override
+    public void setLife(long life) {
+        this.life = life;
+    }
+
+    @Override
+    public void setPackets(long packets) {
+        this.packets = packets;
+    }
+
+    @Override
+    public void setBytes(long bytes) {
+        this.bytes = bytes;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("rule", super.toString())
+                .add("state", state)
+                .toString();
+    }
+
+
+}
