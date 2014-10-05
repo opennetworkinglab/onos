@@ -94,14 +94,14 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public boolean known(IpPrefix addr) {
-        checkNotNull(MAC_ADDR_NULL, addr);
+        checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
     }
 
     @Override
     public void reply(Ethernet eth) {
-        checkNotNull(REQUEST_NULL, eth);
+        checkNotNull(eth, REQUEST_NULL);
         checkArgument(eth.getEtherType() == Ethernet.TYPE_ARP,
                 REQUEST_NOT_ARP);
         ARP arp = (ARP) eth.getPayload();
@@ -137,7 +137,7 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public void forward(Ethernet eth) {
-        checkNotNull(REQUEST_NULL, eth);
+        checkNotNull(eth, REQUEST_NULL);
         checkArgument(eth.getEtherType() == Ethernet.TYPE_ARP,
                 REQUEST_NOT_ARP);
         ARP arp = (ARP) eth.getPayload();
