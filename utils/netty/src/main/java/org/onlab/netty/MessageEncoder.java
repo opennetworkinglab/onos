@@ -1,12 +1,14 @@
 package org.onlab.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
  * Encode InternalMessage out into a byte buffer.
  */
+@Sharable
 public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
     // onosiscool in ascii
