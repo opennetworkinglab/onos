@@ -1,15 +1,20 @@
 package org.onlab.onos.store.serializers;
 
+import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
 
 import java.nio.ByteBuffer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DefaultPort;
@@ -17,8 +22,11 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
 
@@ -28,6 +36,7 @@ import com.google.common.testing.EqualsTester;
 
 public class KryoSerializerTests {
     private static final ProviderId PID = new ProviderId("of", "foo");
+    private static final ProviderId PIDA = new ProviderId("of", "foo", true);
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final PortNumber P1 = portNumber(1);
@@ -40,6 +49,14 @@ public class KryoSerializerTests {
     private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
     private static final Device DEV1 = new DefaultDevice(PID, DID1, Device.Type.SWITCH, MFR, HW, SW1, SN);
+    private static final SparseAnnotations A1 = DefaultAnnotations.builder()
+            .set("A1", "a1")
+            .set("B1", "b1")
+            .build();
+    private static final SparseAnnotations A1_2 = DefaultAnnotations.builder()
+            .remove("A1")
+            .set("B3", "b3")
+            .build();
 
     private static KryoPool kryos;
 
@@ -49,9 +66,6 @@ public class KryoSerializerTests {
                 .register(KryoPoolUtil.API)
                 .register(ImmutableMap.class, new ImmutableMapSerializer())
                 .register(ImmutableSet.class, new ImmutableSetSerializer())
-
-
-
                 .build();
     }
 
@@ -82,6 +96,8 @@ public class KryoSerializerTests {
         testSerialized(new ConnectPoint(DID1, P1));
         testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT));
         testSerialized(new DefaultPort(DEV1, P1, true));
+        testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT, A1));
+        testSerialized(new DefaultPort(DEV1, P1, true, A1_2));
         testSerialized(DID1);
         testSerialized(ImmutableMap.of(DID1, DEV1, DID2, DEV1));
         testSerialized(ImmutableMap.of(DID1, DEV1));
@@ -90,10 +106,40 @@ public class KryoSerializerTests {
         testSerialized(ImmutableSet.of(DID1));
         testSerialized(ImmutableSet.of());
         testSerialized(IpPrefix.valueOf("192.168.0.1/24"));
+        testSerialized(IpAddress.valueOf("192.168.0.1"));
         testSerialized(new LinkKey(CP1, CP2));
         testSerialized(new NodeId("SomeNodeIdentifier"));
         testSerialized(P1);
         testSerialized(PID);
+        testSerialized(PIDA);
+        testSerialized(new NodeId("bar"));
+        testSerialized(MastershipTerm.of(new NodeId("foo"), 2));
+        for (MastershipRole role : MastershipRole.values()) {
+            testSerialized(role);
+        }
+    }
+
+    public final void testAnnotations() {
+        // Annotations does not have equals defined, manually test equality
+        final byte[] a1Bytes = kryos.serialize(A1);
+        SparseAnnotations copiedA1 = kryos.deserialize(a1Bytes);
+        assertAnnotationsEquals(copiedA1, A1);
+
+        final byte[] a12Bytes = kryos.serialize(A1_2);
+        SparseAnnotations copiedA12 = kryos.deserialize(a12Bytes);
+        assertAnnotationsEquals(copiedA12, A1_2);
+    }
+
+    // code clone
+    public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+        DefaultAnnotations expected = DefaultAnnotations.builder().build();
+        for (SparseAnnotations a : annotations) {
+            expected = DefaultAnnotations.merge(expected, a);
+        }
+        assertEquals(expected.keys(), actual.keys());
+        for (String key : expected.keys()) {
+            assertEquals(expected.value(key), actual.value(key));
+        }
     }
 
 }

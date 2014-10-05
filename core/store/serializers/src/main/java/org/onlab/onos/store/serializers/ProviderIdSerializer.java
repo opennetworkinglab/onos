@@ -24,13 +24,15 @@ public class ProviderIdSerializer extends Serializer<ProviderId> {
     public void write(Kryo kryo, Output output, ProviderId object) {
         output.writeString(object.scheme());
         output.writeString(object.id());
+        output.writeBoolean(object.isAncillary());
     }
 
     @Override
     public ProviderId read(Kryo kryo, Input input, Class<ProviderId> type) {
         String scheme = input.readString();
         String id = input.readString();
-        return new ProviderId(scheme, id);
+        boolean isAncillary = input.readBoolean();
+        return new ProviderId(scheme, id, isAncillary);
     }
 
 }

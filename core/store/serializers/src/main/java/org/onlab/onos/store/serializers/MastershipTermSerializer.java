@@ -22,7 +22,7 @@ public class MastershipTermSerializer extends Serializer<MastershipTerm> {
 
     @Override
     public MastershipTerm read(Kryo kryo, Input input, Class<MastershipTerm> type) {
-        final NodeId node = new NodeId(kryo.readObject(input, String.class));
+        final NodeId node = new NodeId(input.readString());
         final int term = input.readInt();
         return MastershipTerm.of(node, term);
     }
