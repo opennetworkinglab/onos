@@ -8,7 +8,7 @@ import org.jboss.netty.util.HashedWheelTimer;
  */
 public final class Timer {
 
-    private static HashedWheelTimer timer;
+    private static volatile HashedWheelTimer timer;
 
     // Ban public construction
     private Timer() {
@@ -21,10 +21,16 @@ public final class Timer {
      */
     public static HashedWheelTimer getTimer() {
         if (Timer.timer == null) {
+            initTimer();
+        }
+        return Timer.timer;
+    }
+
+    private static synchronized  void initTimer() {
+        if (Timer.timer == null) {
             Timer.timer = new HashedWheelTimer();
             Timer.timer.start();
         }
-        return Timer.timer;
     }
 
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class ApplicationId {
 
-    private static AtomicInteger idDispenser;
+    private static final AtomicInteger ID_DISPENCER = new AtomicInteger(1);
     private final Integer id;
 
     // Ban public construction
@@ -50,10 +50,7 @@ public final class ApplicationId {
      * @return app id
      */
     public static ApplicationId getAppId() {
-        if (ApplicationId.idDispenser == null) {
-            ApplicationId.idDispenser = new AtomicInteger(1);
-        }
-        return new ApplicationId(ApplicationId.idDispenser.getAndIncrement());
+        return new ApplicationId(ApplicationId.ID_DISPENCER.getAndIncrement());
     }
 
 }
