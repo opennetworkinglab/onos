@@ -26,6 +26,9 @@ public final class FlowId {
         if (this == obj) {
             return true;
         }
+        if (obj == null) {
+            return false;
+        }
         if (obj.getClass()  == this.getClass()) {
             FlowId that = (FlowId) obj;
             return Objects.equal(this.flowid, that.flowid);
