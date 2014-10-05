@@ -4,16 +4,10 @@ public final class SimpleServer {
     private SimpleServer() {}
 
     public static void main(String... args) throws Exception {
-        NettyMessagingService server = new TestNettyMessagingService();
+        NettyMessagingService server = new NettyMessagingService(8080);
         server.activate();
+        server.setSerializer(new KryoSerializer());
         server.registerHandler("simple", new LoggingHandler());
         server.registerHandler("echo", new EchoHandler());
-    }
-
-    public static class TestNettyMessagingService extends NettyMessagingService {
-        protected TestNettyMessagingService() {
-            Serializer serializer = new KryoSerializer();
-            this.serializer = serializer;
-        }
     }
 }

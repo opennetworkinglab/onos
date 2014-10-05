@@ -134,6 +134,10 @@ public class NettyMessagingService implements MessagingService {
         handlers.remove(type);
     }
 
+    public void setSerializer(Serializer serializer) {
+        this.serializer = serializer;
+    }
+
     private MessageHandler getMessageHandler(String type) {
         return handlers.get(type);
     }

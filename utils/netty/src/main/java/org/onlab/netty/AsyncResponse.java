@@ -17,8 +17,8 @@ public class AsyncResponse<T> implements Response<T> {
     private final long start = System.nanoTime();
 
     @Override
-    public T get(long timeout, TimeUnit tu) throws TimeoutException {
-        timeout = tu.toNanos(timeout);
+    public T get(long timeout, TimeUnit timeUnit) throws TimeoutException {
+        timeout = timeUnit.toNanos(timeout);
         boolean interrupted = false;
         try {
             synchronized (this) {

@@ -11,6 +11,7 @@ public class Endpoint {
     /**
      * Used for serialization.
      */
+    @SuppressWarnings("unused")
     private Endpoint() {
         port = 0;
         host = null;

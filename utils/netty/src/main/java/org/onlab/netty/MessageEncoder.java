@@ -11,6 +11,9 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
     // onosiscool in ascii
     public static final byte[] PREAMBLE = "onosiscool".getBytes();
+    public static final int HEADER_VERSION = 1;
+    public static final int SERIALIZER_VERSION = 1;
+
 
     private final Serializer serializer;
 
@@ -24,6 +27,9 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
             InternalMessage message,
             ByteBuf out) throws Exception {
 
+        // write version
+        out.writeInt(HEADER_VERSION);
+
         // write preamble
         out.writeBytes(PREAMBLE);
 
@@ -31,6 +37,9 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
         // write payload length
         out.writeInt(payload.length);
+
+        // write serializer version
+        out.writeInt(SERIALIZER_VERSION);
 
         // write payload.
         out.writeBytes(payload);
