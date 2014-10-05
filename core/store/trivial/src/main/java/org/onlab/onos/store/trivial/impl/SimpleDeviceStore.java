@@ -51,6 +51,7 @@ import static com.google.common.base.Predicates.notNull;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
+import static org.onlab.onos.net.DefaultAnnotations.union;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 
 /**
@@ -488,7 +489,7 @@ public class SimpleDeviceStore
             DeviceDescription oldOne = deviceDesc.get();
             DeviceDescription newOne = newDesc;
             if (oldOne != null) {
-                SparseAnnotations merged = merge(oldOne.annotations(),
+                SparseAnnotations merged = union(oldOne.annotations(),
                                                  newDesc.annotations());
                 newOne = new DefaultDeviceDescription(newOne, merged);
             }
@@ -505,7 +506,7 @@ public class SimpleDeviceStore
             PortDescription oldOne = portDescs.get(newDesc.portNumber());
             PortDescription newOne = newDesc;
             if (oldOne != null) {
-                SparseAnnotations merged = merge(oldOne.annotations(),
+                SparseAnnotations merged = union(oldOne.annotations(),
                                                  newDesc.annotations());
                 newOne = new DefaultPortDescription(newOne, merged);
             }

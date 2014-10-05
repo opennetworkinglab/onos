@@ -37,5 +37,4 @@ public class DefaultGraphDescriptionTest {
         new DefaultGraphDescription(4321L, ImmutableSet.of(DEV1, DEV3),
                                     ImmutableSet.of(L1, L2));
     }
-
 }

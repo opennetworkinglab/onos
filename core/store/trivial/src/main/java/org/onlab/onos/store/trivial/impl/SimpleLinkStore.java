@@ -11,7 +11,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -39,6 +38,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.onlab.onos.net.DefaultAnnotations.union;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
@@ -173,7 +173,7 @@ public class SimpleLinkStore
         LinkDescription oldDesc = descs.get(providerId);
         LinkDescription newDesc = linkDescription;
         if (oldDesc != null) {
-            SparseAnnotations merged = merge(oldDesc.annotations(),
+            SparseAnnotations merged = union(oldDesc.annotations(),
                     linkDescription.annotations());
             newDesc = new DefaultLinkDescription(
                         linkDescription.src(),
@@ -268,7 +268,7 @@ public class SimpleLinkStore
         ConnectPoint src = base.src();
         ConnectPoint dst = base.dst();
         Type type = base.type();
-        Annotations annotations = DefaultAnnotations.builder().build();
+        DefaultAnnotations annotations = DefaultAnnotations.builder().build();
         annotations = merge(annotations, base.annotations());
 
         for (Entry<ProviderId, LinkDescription> e : descs.entrySet()) {

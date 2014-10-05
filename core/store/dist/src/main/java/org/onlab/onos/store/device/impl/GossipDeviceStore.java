@@ -56,6 +56,7 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
+import static org.onlab.onos.net.DefaultAnnotations.union;
 import static com.google.common.base.Verify.verify;
 
 // TODO: implement remove event handling and call *Internal
@@ -603,7 +604,7 @@ public class GossipDeviceStore
             Timestamped<DeviceDescription> oldOne = deviceDesc.get();
             Timestamped<DeviceDescription> newOne = newDesc;
             if (oldOne != null) {
-                SparseAnnotations merged = merge(oldOne.value().annotations(),
+                SparseAnnotations merged = union(oldOne.value().annotations(),
                                                  newDesc.value().annotations());
                 newOne = new Timestamped<DeviceDescription>(
                         new DefaultDeviceDescription(newDesc.value(), merged),
@@ -622,7 +623,7 @@ public class GossipDeviceStore
             Timestamped<PortDescription> oldOne = portDescs.get(newDesc.value().portNumber());
             Timestamped<PortDescription> newOne = newDesc;
             if (oldOne != null) {
-                SparseAnnotations merged = merge(oldOne.value().annotations(),
+                SparseAnnotations merged = union(oldOne.value().annotations(),
                                                  newDesc.value().annotations());
                 newOne = new Timestamped<PortDescription>(
                         new DefaultPortDescription(newDesc.value(), merged),

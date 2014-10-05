@@ -50,5 +50,4 @@ public class DefaultTopologyEdgeTest {
                                   new DefaultTopologyEdge(V2, V1, L2))
                 .testEquals();
     }
-
 }
