@@ -39,7 +39,7 @@ public class DeviceEventTest extends AbstractEventTest {
         Device device = createDevice();
         Port port = new DefaultPort(device, PortNumber.portNumber(123), true);
         long before = System.currentTimeMillis();
-        DeviceEvent event = new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device);
+        DeviceEvent event = new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device, port);
         long after = System.currentTimeMillis();
         validateEvent(event, DeviceEvent.Type.DEVICE_ADDED, device, before, after);
     }
