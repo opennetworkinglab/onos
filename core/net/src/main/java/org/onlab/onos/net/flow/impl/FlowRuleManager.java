@@ -103,9 +103,11 @@ public class FlowRuleManager
         for (int i = 0; i < flowRules.length; i++) {
             f = flowRules[i];
             device = deviceService.getDevice(f.deviceId());
-            frp = getProvider(device.providerId());
             store.deleteFlowRule(f);
-            frp.removeFlowRule(f);
+            if (device != null) {
+                frp = getProvider(device.providerId());
+                frp.removeFlowRule(f);
+            }
         }
     }
 
