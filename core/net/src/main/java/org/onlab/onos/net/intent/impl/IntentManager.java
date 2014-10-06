@@ -1,19 +1,6 @@
 package org.onlab.onos.net.intent.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.intent.IntentState.FAILED;
-import static org.onlab.onos.net.intent.IntentState.INSTALLED;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWING;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,7 +25,15 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.net.intent.IntentState.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * An implementation of Intent Manager.
@@ -57,15 +52,18 @@ public class IntentManager
             IntentCompiler<? extends Intent>> compilers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Class<? extends InstallableIntent>,
             IntentInstaller<? extends InstallableIntent>> installers = new ConcurrentHashMap<>();
-    private final CopyOnWriteArrayList<IntentListener> listeners = new CopyOnWriteArrayList<>();
 
     private final AbstractListenerRegistry<IntentEvent, IntentListener>
-        listenerRegistry = new AbstractListenerRegistry<>();
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
+    private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowTrackerService trackerService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -73,21 +71,15 @@ public class IntentManager
     @Activate
     public void activate() {
         store.setDelegate(delegate);
+        trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
-
-//        this.intentEvents = new IntentMap<>("intentState", IntentEvent.class, collectionsService);
-//        this.installableIntents =
-//                new IntentMap<>("installableIntents", IntentCompilationResult.class, collectionsService);
-//
-//
-//        this.intentEvents.addListener(new InternalEntryListener(new InternalIntentEventListener()));
-
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         store.unsetDelegate(delegate);
+        trackerService.unsetDelegate(topoDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
         log.info("Stopped");
     }
@@ -97,7 +89,6 @@ public class IntentManager
         checkNotNull(intent, INTENT_NULL);
         registerSubclassCompilerIfNeeded(intent);
         IntentEvent event = store.createIntent(intent);
-        eventDispatcher.post(event);
         processStoreEvent(event);
     }
 
@@ -105,7 +96,13 @@ public class IntentManager
     public void withdraw(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
         IntentEvent event = store.setState(intent, WITHDRAWING);
-        eventDispatcher.post(event);
+        List<InstallableIntent> installables = store.getInstallableIntents(intent.getId());
+        if (installables != null) {
+            for (InstallableIntent installable : installables) {
+                trackerService.removeTrackedResources(intent.getId(),
+                                                      installable.requiredLinks());
+            }
+        }
         processStoreEvent(event);
     }
 
@@ -178,21 +175,10 @@ public class IntentManager
     }
 
     /**
-     * Invokes all of registered intent event listener.
-     *
-     * @param event event supplied to a listener as an argument
-     */
-    private void invokeListeners(IntentEvent event) {
-        for (IntentListener listener : listeners) {
-            listener.event(event);
-        }
-    }
-
-    /**
      * Returns the corresponding intent compiler to the specified intent.
      *
      * @param intent intent
-     * @param <T> the type of intent
+     * @param <T>    the type of intent
      * @return intent compiler corresponding to the specified intent
      */
     private <T extends Intent> IntentCompiler<T> getCompiler(T intent) {
@@ -206,8 +192,9 @@ public class IntentManager
 
     /**
      * Returns the corresponding intent installer to the specified installable intent.
+     *
      * @param intent intent
-     * @param <T> the type of installable intent
+     * @param <T>    the type of installable intent
      * @return intent installer corresponding to the specified installable intent
      */
     private <T extends InstallableIntent> IntentInstaller<T> getInstaller(T intent) {
@@ -229,10 +216,12 @@ public class IntentManager
         // TODO: implement compilation traversing tree structure
         List<InstallableIntent> installable = new ArrayList<>();
         for (Intent compiled : getCompiler(intent).compile(intent)) {
-            installable.add((InstallableIntent) compiled);
+            InstallableIntent installableIntent = (InstallableIntent) compiled;
+            installable.add(installableIntent);
+            trackerService.addTrackedResources(intent.getId(),
+                                               installableIntent.requiredLinks());
         }
         IntentEvent event = store.addInstallableIntents(intent.getId(), installable);
-        eventDispatcher.post(event);
         processStoreEvent(event);
     }
 
@@ -242,13 +231,14 @@ public class IntentManager
      * @param intent intent
      */
     private void installIntent(Intent intent) {
-        for (InstallableIntent installable : store.getInstallableIntents(intent.getId())) {
-            registerSubclassInstallerIfNeeded(installable);
-            getInstaller(installable).install(installable);
+        List<InstallableIntent> installables = store.getInstallableIntents(intent.getId());
+        if (installables != null) {
+            for (InstallableIntent installable : installables) {
+                registerSubclassInstallerIfNeeded(installable);
+                getInstaller(installable).install(installable);
+            }
         }
-
         IntentEvent event = store.setState(intent, INSTALLED);
-        eventDispatcher.post(event);
         processStoreEvent(event);
 
     }
@@ -259,10 +249,12 @@ public class IntentManager
      * @param intent intent
      */
     private void uninstallIntent(Intent intent) {
-        for (InstallableIntent installable : store.getInstallableIntents(intent.getId())) {
-            getInstaller(installable).uninstall(installable);
+        List<InstallableIntent> installables = store.getInstallableIntents(intent.getId());
+        if (installables != null) {
+            for (InstallableIntent installable : installables) {
+                getInstaller(installable).uninstall(installable);
+            }
         }
-
         store.removeInstalledIntents(intent.getId());
         store.setState(intent, WITHDRAWN);
     }
@@ -321,33 +313,32 @@ public class IntentManager
      * Handles state transition of submitted intents.
      */
     private void processStoreEvent(IntentEvent event) {
-            invokeListeners(event);
-            Intent intent = event.getIntent();
-
-            try {
-                switch (event.getState()) {
-                    case SUBMITTED:
-                        compileIntent(intent);
-                        break;
-                    case COMPILED:
-                        installIntent(intent);
-                        break;
-                    case INSTALLED:
-                        break;
-                    case WITHDRAWING:
-                        uninstallIntent(intent);
-                        break;
-                    case WITHDRAWN:
-                        break;
-                    case FAILED:
-                        break;
-                    default:
-                        throw new IllegalStateException(
-                                "the state of IntentEvent is illegal: " + event.getState());
-                }
-            } catch (IntentException e) {
-                store.setState(intent, FAILED);
+        eventDispatcher.post(event);
+        Intent intent = event.getIntent();
+        try {
+            switch (event.getState()) {
+                case SUBMITTED:
+                    compileIntent(intent);
+                    break;
+                case COMPILED:
+                    installIntent(intent);
+                    break;
+                case INSTALLED:
+                    break;
+                case WITHDRAWING:
+                    uninstallIntent(intent);
+                    break;
+                case WITHDRAWN:
+                    break;
+                case FAILED:
+                    break;
+                default:
+                    throw new IllegalStateException("the state of IntentEvent is illegal: " +
+                                                            event.getState());
             }
+        } catch (IntentException e) {
+            store.setState(intent, FAILED);
+        }
 
     }
 
@@ -355,9 +346,26 @@ public class IntentManager
     private class InternalStoreDelegate implements IntentStoreDelegate {
         @Override
         public void notify(IntentEvent event) {
-            eventDispatcher.post(event);
             processStoreEvent(event);
         }
     }
 
+    // Topology change delegate
+    private class InternalTopoChangeDelegate implements TopologyChangeDelegate {
+        @Override
+        public void bumpIntents(Iterable<IntentId> intentIds) {
+            for (IntentId intentId : intentIds) {
+                compileIntent(getIntent(intentId));
+            }
+        }
+
+        @Override
+        public void failIntents(Iterable<IntentId> intentIds) {
+            for (IntentId intentId : intentIds) {
+                Intent intent = getIntent(intentId);
+                uninstallIntent(intent);
+                compileIntent(intent);
+            }
+        }
+    }
 }

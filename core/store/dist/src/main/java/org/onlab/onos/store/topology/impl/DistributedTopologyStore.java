@@ -125,7 +125,8 @@ implements TopologyStore {
         // Promote the new topology to current and return a ready-to-send event.
         synchronized (this) {
             current = newTopology;
-            return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, current);
+            return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED,
+                                     current, reasons);
         }
     }
 

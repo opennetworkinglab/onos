@@ -6,6 +6,7 @@ import com.google.common.base.MoreObjects;
 
 // TODO Consider renaming.
 // it's an identifier for a Link, but it's not ElementId, so not using LinkId.
+
 /**
  * Immutable representation of a link identity.
  */
@@ -41,6 +42,15 @@ public class LinkKey {
     public LinkKey(ConnectPoint src, ConnectPoint dst) {
         this.src = src;
         this.dst = dst;
+    }
+
+    /**
+     * Creates a link identifier for the specified link.
+     *
+     * @param link link descriptor
+     */
+    public LinkKey(Link link) {
+        this(link.src(), link.dst());
     }
 
     @Override

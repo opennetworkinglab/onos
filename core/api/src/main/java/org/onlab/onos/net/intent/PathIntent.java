@@ -1,13 +1,14 @@
 package org.onlab.onos.net.intent;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Abstraction of explicitly path specified connectivity intent.
@@ -86,4 +87,10 @@ public class PathIntent extends PointToPointIntent implements InstallableIntent 
                 .add("path", path)
                 .toString();
     }
+
+    @Override
+    public Collection<Link> requiredLinks() {
+        return path.links();
+    }
+
 }
