@@ -10,7 +10,15 @@ import org.onlab.onos.store.Store;
 public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegate> {
 
     /**
+     * Returns the number of flow rule in the store.
+     *
+     * @return number of flow rules
+     */
+    int getFlowRuleCount();
+
+    /**
      * Returns the stored flow.
+     *
      * @param rule the rule to look for
      * @return a flow rule
      */
@@ -60,5 +68,4 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
      * @return flow_removed event, or null if nothing removed
      */
     FlowRuleEvent removeFlowRule(FlowEntry rule);
-
 }

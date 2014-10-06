@@ -57,6 +57,11 @@ public class SimpleFlowRuleStore
 
 
     @Override
+    public int getFlowRuleCount() {
+        return flowEntries.size();
+    }
+
+    @Override
     public synchronized FlowEntry getFlowEntry(FlowRule rule) {
         for (FlowEntry f : flowEntries.get(rule.deviceId())) {
             if (f.equals(rule)) {

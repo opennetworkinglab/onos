@@ -40,14 +40,14 @@ import com.google.common.collect.Lists;
 @Component(immediate = true)
 @Service
 public class FlowRuleManager
-extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
-implements FlowRuleService, FlowRuleProviderRegistry {
+        extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
+        implements FlowRuleService, FlowRuleProviderRegistry {
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
-    listenerRegistry = new AbstractListenerRegistry<>();
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -72,6 +72,11 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(FlowRuleEvent.class);
         log.info("Stopped");
+    }
+
+    @Override
+    public int getFlowRuleCount() {
+        return store.getFlowRuleCount();
     }
 
     @Override
@@ -106,7 +111,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
     @Override
     public void removeFlowRulesById(ApplicationId id) {
-        Iterable<FlowRule> rules =  getFlowRulesById(id);
+        Iterable<FlowRule> rules = getFlowRulesById(id);
         FlowRuleProvider frp;
         Device device;
 
@@ -140,8 +145,8 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     private class InternalFlowRuleProviderService
-    extends AbstractProviderService<FlowRuleProvider>
-    implements FlowRuleProviderService {
+            extends AbstractProviderService<FlowRuleProvider>
+            implements FlowRuleProviderService {
 
         protected InternalFlowRuleProviderService(FlowRuleProvider provider) {
             super(provider);
@@ -160,16 +165,16 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             FlowRuleProvider frp = getProvider(device.providerId());
             FlowRuleEvent event = null;
             switch (stored.state()) {
-            case ADDED:
-            case PENDING_ADD:
+                case ADDED:
+                case PENDING_ADD:
                     frp.applyFlowRule(stored);
-                break;
-            case PENDING_REMOVE:
-            case REMOVED:
-                event = store.removeFlowRule(stored);
-                break;
-            default:
-                break;
+                    break;
+                case PENDING_REMOVE:
+                case REMOVED:
+                    event = store.removeFlowRule(stored);
+                    break;
+                default:
+                    break;
 
             }
             if (event != null) {
@@ -186,17 +191,17 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             FlowRuleProvider frp = getProvider(device.providerId());
             FlowRuleEvent event = null;
             switch (flowRule.state()) {
-            case PENDING_REMOVE:
-            case REMOVED:
-                event = store.removeFlowRule(flowRule);
-                frp.removeFlowRule(flowRule);
-                break;
-            case ADDED:
-            case PENDING_ADD:
-                frp.applyFlowRule(flowRule);
-                break;
-            default:
-                log.debug("Flow {} has not been installed.", flowRule);
+                case PENDING_REMOVE:
+                case REMOVED:
+                    event = store.removeFlowRule(flowRule);
+                    frp.removeFlowRule(flowRule);
+                    break;
+                case ADDED:
+                case PENDING_ADD:
+                    frp.applyFlowRule(flowRule);
+                    break;
+                default:
+                    log.debug("Flow {} has not been installed.", flowRule);
             }
 
             if (event != null) {

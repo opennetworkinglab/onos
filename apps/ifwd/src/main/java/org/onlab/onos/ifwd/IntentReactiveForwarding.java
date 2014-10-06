@@ -14,6 +14,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
+import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
@@ -25,6 +26,9 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -51,6 +55,8 @@ public class IntentReactiveForwarding {
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
     private static long intentId = 1;
+
+    private Map<HostIdPair, IntentId> intents = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -91,8 +97,12 @@ public class IntentReactiveForwarding {
                 return;
             }
 
-            // Otherwise forward and be done with it.
-            setUpConnectivity(context, srcId, dstId);
+            // Install a new intent only if we have not installed one already
+            HostIdPair key = new HostIdPair(srcId, dstId);
+            if (!intents.containsKey(key)) {
+                // Otherwise forward and be done with it.
+                intents.put(key, setUpConnectivity(context, srcId, dstId).getId());
+            }
             forwardPacketToDst(context, dst);
         }
     }
@@ -122,15 +132,26 @@ public class IntentReactiveForwarding {
     }
 
     // Install a rule forwarding the packet to the specified port.
-    private void setUpConnectivity(PacketContext context, HostId srcId, HostId dstId) {
+    private Intent setUpConnectivity(PacketContext context, HostId srcId, HostId dstId) {
         TrafficSelector selector = DefaultTrafficSelector.builder().build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         HostToHostIntent intent =
                 new HostToHostIntent(new IntentId(intentId++), srcId, dstId,
                                      selector, treatment);
-
         intentService.submit(intent);
+        return intent;
     }
 
+
+    private class HostIdPair {
+        HostId one;
+        HostId two;
+
+        HostIdPair(HostId one, HostId two) {
+            boolean oneFirst = one.hashCode() < two.hashCode();
+            this.one = oneFirst ? one : two;
+            this.two = oneFirst ? two : one;
+        }
+    }
 }
