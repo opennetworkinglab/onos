@@ -34,7 +34,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 
-public class KryoSerializerTests {
+public class KryoSerializerTest {
+
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final ProviderId PIDA = new ProviderId("of", "foo", true);
     private static final DeviceId DID1 = deviceId("of:foo");
@@ -92,7 +93,7 @@ public class KryoSerializerTests {
 
 
     @Test
-    public final void test() {
+    public final void testSerialization() {
         testSerialized(new ConnectPoint(DID1, P1));
         testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT));
         testSerialized(new DefaultPort(DEV1, P1, true));
@@ -119,6 +120,7 @@ public class KryoSerializerTests {
         }
     }
 
+    @Test
     public final void testAnnotations() {
         // Annotations does not have equals defined, manually test equality
         final byte[] a1Bytes = kryos.serialize(A1);
@@ -132,9 +134,9 @@ public class KryoSerializerTests {
 
     // code clone
     public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
-        DefaultAnnotations expected = DefaultAnnotations.builder().build();
+        SparseAnnotations expected = DefaultAnnotations.builder().build();
         for (SparseAnnotations a : annotations) {
-            expected = DefaultAnnotations.merge(expected, a);
+            expected = DefaultAnnotations.union(expected, a);
         }
         assertEquals(expected.keys(), actual.keys());
         for (String key : expected.keys()) {
