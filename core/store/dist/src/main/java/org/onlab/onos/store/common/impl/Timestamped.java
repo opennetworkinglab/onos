@@ -6,6 +6,8 @@ import java.util.Objects;
 
 import org.onlab.onos.store.Timestamp;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Wrapper class to store Timestamped value.
  * @param <T>
@@ -68,6 +70,14 @@ public final class Timestamped<T> {
         @SuppressWarnings("unchecked")
         Timestamped<T> that = (Timestamped<T>) obj;
         return Objects.equals(this.timestamp, that.timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                    .add("timestamp", timestamp)
+                    .add("value", value)
+                    .toString();
     }
 
     // Default constructor for serialization

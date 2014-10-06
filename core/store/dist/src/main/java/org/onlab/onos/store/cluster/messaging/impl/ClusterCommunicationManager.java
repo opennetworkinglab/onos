@@ -39,6 +39,7 @@ public class ClusterCommunicationManager
 
     private ControllerNode localNode;
     private ClusterNodesDelegate nodesDelegate;
+    // FIXME: `members` should go away and should be using ClusterService
     private Map<NodeId, ControllerNode> members = new HashMap<>();
     private final Timer timer = new Timer("onos-controller-heatbeats");
     public static final long HEART_BEAT_INTERVAL_MILLIS = 1000L;

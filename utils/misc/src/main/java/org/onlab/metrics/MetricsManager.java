@@ -72,24 +72,23 @@ public final class MetricsManager implements MetricsService {
     private final CsvReporter reporter;
 
     public MetricsManager() {
-        this.componentsRegistry = new ConcurrentHashMap<>();
         this.metricsRegistry = new MetricRegistry();
-
         this.reporter = CsvReporter.forRegistry(metricsRegistry)
                 .formatFor(Locale.US)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .build(new File("/tmp/"));
-
-        reporter.start(10, TimeUnit.SECONDS);
+                .build(new File("/var/onos/log/metrics/"));
     }
 
     @Activate
     public void activate() {
+        this.componentsRegistry = new ConcurrentHashMap<>();
+        reporter.start(10, TimeUnit.SECONDS);
     }
 
     @Deactivate
     public void deactivate() {
+        reporter.stop();
     }
 
     /**

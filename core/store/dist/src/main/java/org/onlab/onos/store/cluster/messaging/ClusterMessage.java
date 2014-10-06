@@ -2,6 +2,8 @@ package org.onlab.onos.store.cluster.messaging;
 
 import org.onlab.onos.cluster.NodeId;
 
+// TODO: ClusterMessage should be aware about how to serialize the payload
+// TODO: Should payload type be made generic?
 /**
  * Base message for cluster-wide communications.
  */
