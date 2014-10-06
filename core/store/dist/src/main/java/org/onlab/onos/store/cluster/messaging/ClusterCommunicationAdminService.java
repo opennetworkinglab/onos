@@ -3,6 +3,8 @@ package org.onlab.onos.store.cluster.messaging;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.cluster.impl.ClusterNodesDelegate;
 
+// TODO: This service interface can be removed, once we properly start
+// using ClusterService
 /**
  * Service for administering communications manager.
  */
