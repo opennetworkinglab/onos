@@ -8,12 +8,16 @@ import java.io.IOException;
  */
 public final class InternalMessage implements Message {
 
+    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGIG_REQUEST_REPLY";
+
     private long id;
     private Endpoint sender;
     private String type;
     private Object payload;
+
     private transient NettyMessagingService messagingService;
-    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGIG_REQUEST_REPLY";
+    // TODO: add transient payload serializer or change payload type to
+    //       byte[], ByteBuffer, etc.
 
     // Must be created using the Builder.
     private InternalMessage() {}

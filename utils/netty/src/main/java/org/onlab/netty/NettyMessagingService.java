@@ -241,8 +241,9 @@ public class NettyMessagingService implements MessagingService {
                         NettyMessagingService.this.responseFutures.getIfPresent(message.id());
                     if (futureResponse != null) {
                         futureResponse.setResponse(message.payload());
+                    } else {
+                        log.warn("Received a reply. But was unable to locate the request handle");
                     }
-                    log.warn("Received a reply. But was unable to locate the request handle");
                 } finally {
                     NettyMessagingService.this.responseFutures.invalidate(message.id());
                 }
