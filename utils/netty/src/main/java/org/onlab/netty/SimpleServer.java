@@ -1,5 +1,6 @@
 package org.onlab.netty;
 
+//FIXME: Should be move out to test or app
 public final class SimpleServer {
     private SimpleServer() {}
 

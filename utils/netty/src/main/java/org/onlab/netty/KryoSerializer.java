@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+//FIXME: Should be move out to test or app
 /**
  * Kryo Serializer.
  */
