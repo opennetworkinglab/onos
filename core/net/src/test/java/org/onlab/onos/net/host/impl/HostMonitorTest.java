@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
@@ -81,6 +82,7 @@ public class HostMonitorTest {
     }
 
     @Test
+    @Ignore
     public void testMonitorHostDoesNotExist() throws Exception {
         HostManager hostManager = createMock(HostManager.class);
 
