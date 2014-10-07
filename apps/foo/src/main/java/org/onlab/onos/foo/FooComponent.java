@@ -11,6 +11,9 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.intent.IntentEvent;
+import org.onlab.onos.net.intent.IntentListener;
+import org.onlab.onos.net.intent.IntentService;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -29,13 +32,18 @@ public class FooComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
+
     private final ClusterEventListener clusterListener = new InnerClusterListener();
     private final DeviceListener deviceListener = new InnerDeviceListener();
+    private final IntentListener intentListener = new InnerIntentListener();
 
     @Activate
     public void activate() {
         clusterService.addListener(clusterListener);
         deviceService.addListener(deviceListener);
+        intentService.addListener(intentListener);
         log.info("Started");
     }
 
@@ -43,6 +51,7 @@ public class FooComponent {
     public void deactivate() {
         clusterService.removeListener(clusterListener);
         deviceService.removeListener(deviceListener);
+        intentService.removeListener(intentListener);
         log.info("Stopped");
     }
 
@@ -57,6 +66,23 @@ public class FooComponent {
         @Override
         public void event(DeviceEvent event) {
             log.info("YEEEEHAAAAW! {}", event);
+        }
+    }
+
+    private class InnerIntentListener implements IntentListener {
+        @Override
+        public void event(IntentEvent event) {
+            String message;
+            if (event.type() == IntentEvent.Type.SUBMITTED) {
+                message = "WOW! It looks like someone has some intentions: {}";
+            } else if (event.type() == IntentEvent.Type.INSTALLED) {
+                message = "AWESOME! So far things are going great: {}";
+            } else if (event.type() == IntentEvent.Type.WITHDRAWN) {
+                message = "HMMM! Ambitions are fading apparently: {}";
+            } else {
+                message = "CRAP!!! Things are not turning out as intended: {}";
+            }
+            log.info(message, event.subject());
         }
     }
 }
