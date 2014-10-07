@@ -13,6 +13,7 @@ import org.onlab.onos.cli.AbstractShellCommand;
         description = "Starts the simple Netty client")
 public class SimpleNettyClientCommand extends AbstractShellCommand {
 
+    //FIXME: replace these arguments with proper ones needed for the test.
     @Argument(index = 0, name = "serverIp", description = "Server IP address",
             required = false, multiValued = false)
     String serverIp = "127.0.0.1";
