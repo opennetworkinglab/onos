@@ -1,7 +1,7 @@
 package org.onlab.onos.store.cluster.messaging;
 
 /**
- * Service for encoding &amp; decoding intra-cluster messages.
+ * Service for encoding &amp; decoding intra-cluster message payload.
  */
 public interface SerializationService {
 
@@ -11,7 +11,7 @@ public interface SerializationService {
      * @param buffer byte buffer with message(s)
      * @return parsed message
      */
-    Object decode(byte[] data);
+    <T> T decode(byte[] data);
 
     /**
      * Encodes the specified message into the given byte buffer.

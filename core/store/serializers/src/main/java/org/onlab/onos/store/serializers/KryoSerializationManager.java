@@ -43,12 +43,12 @@ public class KryoSerializationManager implements KryoSerializationService {
     }
 
     @Override
-    public byte[] serialize(final Object obj) {
+    public byte[] encode(final Object obj) {
         return serializerPool.serialize(obj);
     }
 
     @Override
-    public <T> T deserialize(final byte[] bytes) {
+    public <T> T decode(final byte[] bytes) {
         if (bytes == null) {
             return null;
         }
@@ -56,12 +56,12 @@ public class KryoSerializationManager implements KryoSerializationService {
     }
 
     @Override
-    public void serialize(Object obj, ByteBuffer buffer) {
+    public void encode(Object obj, ByteBuffer buffer) {
         serializerPool.serialize(obj, buffer);
     }
 
     @Override
-    public <T> T deserialize(ByteBuffer buffer) {
+    public <T> T decode(ByteBuffer buffer) {
         return serializerPool.deserialize(buffer);
     }
 

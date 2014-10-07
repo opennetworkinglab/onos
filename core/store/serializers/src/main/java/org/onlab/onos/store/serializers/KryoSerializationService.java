@@ -15,7 +15,7 @@ public interface KryoSerializationService {
      * @param obj object to be serialized
      * @return serialized bytes
      */
-    public byte[] serialize(final Object obj);
+    public byte[] encode(final Object obj);
 
     /**
      * Serializes the specified object into bytes using one of the
@@ -24,7 +24,7 @@ public interface KryoSerializationService {
      * @param obj object to be serialized
      * @param buffer to write serialized bytes
      */
-    public void serialize(final Object obj, ByteBuffer buffer);
+    public void encode(final Object obj, ByteBuffer buffer);
 
     /**
      * Deserializes the specified bytes into an object using one of the
@@ -33,7 +33,7 @@ public interface KryoSerializationService {
      * @param bytes bytes to be deserialized
      * @return deserialized object
      */
-    public <T> T deserialize(final byte[] bytes);
+    public <T> T decode(final byte[] bytes);
 
     /**
      * Deserializes the specified bytes into an object using one of the
@@ -42,5 +42,5 @@ public interface KryoSerializationService {
      * @param buffer bytes to be deserialized
      * @return deserialized object
      */
-    public <T> T deserialize(final ByteBuffer buffer);
+    public <T> T decode(final ByteBuffer buffer);
 }

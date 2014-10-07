@@ -34,12 +34,12 @@ public final class OptionalCacheLoader<K, V> extends
 
     @Override
     public Optional<V> load(K key) throws Exception {
-        byte[] keyBytes = kryoSerializationService.serialize(key);
+        byte[] keyBytes = kryoSerializationService.encode(key);
         byte[] valBytes = rawMap.get(keyBytes);
         if (valBytes == null) {
             return Optional.absent();
         }
-        V dev = kryoSerializationService.deserialize(valBytes);
+        V dev = kryoSerializationService.decode(valBytes);
         return Optional.of(dev);
     }
 }

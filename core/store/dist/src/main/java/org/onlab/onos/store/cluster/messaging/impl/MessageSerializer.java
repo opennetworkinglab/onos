@@ -52,7 +52,7 @@ public class MessageSerializer implements SerializationService {
 
 
     @Override
-    public Object decode(byte[] data) {
+    public <T> T decode(byte[] data) {
         return serializerPool.deserialize(data);
     }
 

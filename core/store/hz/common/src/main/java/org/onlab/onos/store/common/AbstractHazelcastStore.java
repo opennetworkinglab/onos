@@ -50,7 +50,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
      * @return serialized object
      */
     protected byte[] serialize(Object obj) {
-        return kryoSerializationService.serialize(obj);
+        return kryoSerializationService.encode(obj);
     }
 
     /**
@@ -61,7 +61,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
      * @return deserialized object
      */
     protected <T> T deserialize(byte[] bytes) {
-        return kryoSerializationService.deserialize(bytes);
+        return kryoSerializationService.decode(bytes);
     }
 
 
