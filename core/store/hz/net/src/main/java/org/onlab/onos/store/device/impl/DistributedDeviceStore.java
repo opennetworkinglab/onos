@@ -88,7 +88,7 @@ public class DistributedDeviceStore
         // TODO decide on Map name scheme to avoid collision
         rawDevices = theInstance.getMap("devices");
         final OptionalCacheLoader<DeviceId, DefaultDevice> deviceLoader
-                = new OptionalCacheLoader<>(kryoSerializationService, rawDevices);
+                = new OptionalCacheLoader<>(serializer, rawDevices);
         devices = new AbsentInvalidatingLoadingCache<>(newBuilder().build(deviceLoader));
         // refresh/populate cache based on notification from other instance
         devicesListener = rawDevices.addEntryListener(new RemoteDeviceEventHandler(devices), includeValue);
@@ -98,7 +98,7 @@ public class DistributedDeviceStore
 
         rawDevicePorts = theInstance.getMap("devicePorts");
         final OptionalCacheLoader<DeviceId, Map<PortNumber, Port>> devicePortLoader
-                = new OptionalCacheLoader<>(kryoSerializationService, rawDevicePorts);
+                = new OptionalCacheLoader<>(serializer, rawDevicePorts);
         devicePorts = new AbsentInvalidatingLoadingCache<>(newBuilder().build(devicePortLoader));
         // refresh/populate cache based on notification from other instance
         portsListener = rawDevicePorts.addEntryListener(new RemotePortEventHandler(devicePorts), includeValue);

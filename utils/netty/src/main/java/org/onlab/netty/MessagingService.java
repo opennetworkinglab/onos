@@ -39,6 +39,7 @@ public interface MessagingService {
      */
     public void unregisterHandler(String type);
 
+    // FIXME: remove me and add PayloadSerializer to all other methods
     /**
      * Specify the serializer to use for encoding/decoding payload.
      *

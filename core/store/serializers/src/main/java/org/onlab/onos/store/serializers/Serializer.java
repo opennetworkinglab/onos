@@ -6,11 +6,10 @@ import java.nio.ByteBuffer;
 /**
  * Service to serialize Objects into byte array.
  */
-public interface KryoSerializationService {
+public interface Serializer {
 
     /**
-     * Serializes the specified object into bytes using one of the
-     * pre-registered serializers.
+     * Serializes the specified object into bytes.
      *
      * @param obj object to be serialized
      * @return serialized bytes
@@ -18,8 +17,7 @@ public interface KryoSerializationService {
     public byte[] encode(final Object obj);
 
     /**
-     * Serializes the specified object into bytes using one of the
-     * pre-registered serializers.
+     * Serializes the specified object into bytes.
      *
      * @param obj object to be serialized
      * @param buffer to write serialized bytes
@@ -27,8 +25,7 @@ public interface KryoSerializationService {
     public void encode(final Object obj, ByteBuffer buffer);
 
     /**
-     * Deserializes the specified bytes into an object using one of the
-     * pre-registered serializers.
+     * Deserializes the specified bytes into an object.
      *
      * @param bytes bytes to be deserialized
      * @return deserialized object
@@ -36,8 +33,7 @@ public interface KryoSerializationService {
     public <T> T decode(final byte[] bytes);
 
     /**
-     * Deserializes the specified bytes into an object using one of the
-     * pre-registered serializers.
+     * Deserializes the specified bytes into an object.
      *
      * @param buffer bytes to be deserialized
      * @return deserialized object

@@ -1,9 +1,5 @@
 package org.onlab.onos.store.serializers;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,25 +7,16 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 
 /**
- * Serialization service using Kryo.
+ * Serializer implementation using Kryo.
  */
-@Component(immediate = true)
-@Service
-public class KryoSerializationManager implements KryoSerializationService {
+public class KryoSerializer implements Serializer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private KryoPool serializerPool;
 
 
-    @Activate
-    public void activate() {
+    public KryoSerializer() {
         setupKryoPool();
-        log.info("Started");
-    }
-
-    @Deactivate
-    public void deactivate() {
-        log.info("Stopped");
     }
 
     /**
