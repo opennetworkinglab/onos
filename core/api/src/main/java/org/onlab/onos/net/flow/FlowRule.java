@@ -2,12 +2,13 @@ package org.onlab.onos.net.flow;
 
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.intent.BatchOperationTarget;
 
 /**
  * Represents a generalized match &amp; action pair to be applied to
  * an infrastucture device.
  */
-public interface FlowRule {
+public interface FlowRule extends BatchOperationTarget {
 
     static final int MAX_TIMEOUT = 60;
     static final int MIN_PRIORITY = 0;
