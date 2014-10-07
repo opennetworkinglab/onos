@@ -12,7 +12,10 @@ import java.util.TimerTask;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.impl.ClusterMembershipEvent;
@@ -30,6 +33,7 @@ import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
+import org.onlab.netty.NettyMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +45,10 @@ public class ClusterCommunicationManager
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private ControllerNode localNode;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ClusterService clusterService;
+
     private ClusterNodesDelegate nodesDelegate;
     // FIXME: `members` should go away and should be using ClusterService
     private Map<NodeId, ControllerNode> members = new HashMap<>();
@@ -48,7 +56,6 @@ public class ClusterCommunicationManager
     public static final long HEART_BEAT_INTERVAL_MILLIS = 1000L;
 
     // TODO: This probably should not be a OSGi service.
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private MessagingService messagingService;
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
@@ -65,11 +72,8 @@ public class ClusterCommunicationManager
 
     @Activate
     public void activate() {
-        // TODO: initialize messagingService
-        // TODO: setPayloadSerializer, which is capable of
-        //  (1) serialize ClusterMessage - ClusterMessage.payload
-        //  (2) serialize ClusterMessage.payload using user specified serializer
-//        messagingService.setPayloadSerializer(...);
+        localNode = clusterService.getLocalNode();
+        messagingService = new NettyMessagingService(localNode.tcpPort());
         log.info("Started");
     }
 
