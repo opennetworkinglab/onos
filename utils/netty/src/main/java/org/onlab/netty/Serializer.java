@@ -24,20 +24,18 @@ public interface Serializer {
     public byte[] encode(Object data);
 
     /**
-     * Serializes the specified object into bytes using one of the
-     * pre-registered serializers.
+     * Encodes the specified POJO into a byte buffer.
      *
-     * @param obj object to be serialized
+     * @param data POJO to be encoded
      * @param buffer to write serialized bytes
      */
-    public void serialize(final Object obj, ByteBuffer buffer);
+    public void encode(final Object data, ByteBuffer buffer);
 
     /**
-     * Deserializes the specified bytes into an object using one of the
-     * pre-registered serializers.
+     * Decodes the specified byte buffer to a POJO.
      *
-     * @param buffer bytes to be deserialized
-     * @return deserialized object
+     * @param buffer bytes to be decoded
+     * @return POJO
      */
-    public <T> T deserialize(final ByteBuffer buffer);
+    public <T> T decode(final ByteBuffer buffer);
 }

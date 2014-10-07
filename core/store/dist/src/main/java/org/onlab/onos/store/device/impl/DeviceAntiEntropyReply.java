@@ -10,7 +10,7 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.cluster.messaging.AntiEntropyReply;
+import org.onlab.onos.store.common.impl.AntiEntropyReply;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

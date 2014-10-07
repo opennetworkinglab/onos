@@ -1,4 +1,4 @@
-package org.onlab.onos.store.cluster.messaging.impl;
+package org.onlab.onos.store.cluster.impl;
 
 public enum ClusterMembershipEventType {
     NEW_MEMBER,

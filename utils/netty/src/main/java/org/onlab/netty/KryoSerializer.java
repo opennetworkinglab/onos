@@ -45,12 +45,12 @@ public class KryoSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(ByteBuffer buffer) {
+    public <T> T decode(ByteBuffer buffer) {
         return serializerPool.deserialize(buffer);
     }
 
     @Override
-    public void serialize(Object obj, ByteBuffer buffer) {
+    public void encode(Object obj, ByteBuffer buffer) {
         serializerPool.serialize(obj, buffer);
     }
 }
