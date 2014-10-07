@@ -1,4 +1,4 @@
-package org.onlab.onos.store.cluster.messaging;
+package org.onlab.onos.store.common.impl;
 
 import java.util.Map;
 import java.util.Set;

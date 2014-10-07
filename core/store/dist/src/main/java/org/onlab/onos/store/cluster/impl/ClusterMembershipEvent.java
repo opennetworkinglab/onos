@@ -1,4 +1,4 @@
-package org.onlab.onos.store.cluster.messaging.impl;
+package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.onos.cluster.ControllerNode;
 

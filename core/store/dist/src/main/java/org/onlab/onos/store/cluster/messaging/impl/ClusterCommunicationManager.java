@@ -17,6 +17,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.store.cluster.impl.ClusterMembershipEvent;
+import org.onlab.onos.store.cluster.impl.ClusterMembershipEventType;
 import org.onlab.onos.store.cluster.impl.ClusterNodesDelegate;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationAdminService;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
