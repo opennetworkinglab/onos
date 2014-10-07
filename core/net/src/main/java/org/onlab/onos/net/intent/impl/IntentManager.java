@@ -359,13 +359,5 @@ public class IntentManager
             }
         }
 
-        @Override
-        public void failIntents(Iterable<IntentId> intentIds) {
-            for (IntentId intentId : intentIds) {
-                Intent intent = getIntent(intentId);
-                uninstallIntent(intent);
-                compileIntent(intent);
-            }
-        }
     }
 }

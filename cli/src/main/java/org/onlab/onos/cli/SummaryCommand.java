@@ -7,6 +7,7 @@ import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.link.LinkService;
+import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyService;
 
 /**
@@ -19,12 +20,14 @@ public class SummaryCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         TopologyService topologyService = get(TopologyService.class);
-        print("nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, flows=%d, intents=%d",
+        Topology topology = topologyService.currentTopology();
+        print("nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, paths=%d, flows=%d, intents=%d",
               get(ClusterService.class).getNodes().size(),
               get(DeviceService.class).getDeviceCount(),
               get(LinkService.class).getLinkCount(),
               get(HostService.class).getHostCount(),
-              topologyService.getClusters(topologyService.currentTopology()).size(),
+              topologyService.getClusters(topology).size(),
+              topology.pathCount(),
               get(FlowRuleService.class).getFlowRuleCount(),
               get(IntentService.class).getIntentCount());
     }
