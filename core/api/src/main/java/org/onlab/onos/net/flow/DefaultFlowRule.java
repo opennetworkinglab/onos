@@ -143,7 +143,7 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("id", id)
+                .add("id", Long.toHexString(id.value()))
                 .add("deviceId", deviceId)
                 .add("priority", priority)
                 .add("selector", selector.criteria())
