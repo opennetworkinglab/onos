@@ -8,6 +8,7 @@ import org.onlab.metrics.MetricsManager;
 
 import com.codahale.metrics.Timer;
 
+// FIXME: Should be move out to test or app
 public final class SimpleClient {
     private SimpleClient() {
     }
