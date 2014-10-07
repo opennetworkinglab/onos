@@ -12,7 +12,10 @@ import java.util.TimerTask;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.impl.ClusterMembershipEvent;
@@ -42,6 +45,10 @@ public class ClusterCommunicationManager
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private ControllerNode localNode;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ClusterService clusterService;
+
     private ClusterNodesDelegate nodesDelegate;
     // FIXME: `members` should go away and should be using ClusterService
     private Map<NodeId, ControllerNode> members = new HashMap<>();
@@ -65,6 +72,7 @@ public class ClusterCommunicationManager
 
     @Activate
     public void activate() {
+        localNode = clusterService.getLocalNode();
         messagingService = new NettyMessagingService(localNode.tcpPort());
         log.info("Started");
     }
