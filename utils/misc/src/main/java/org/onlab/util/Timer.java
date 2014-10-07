@@ -28,8 +28,9 @@ public final class Timer {
 
     private static synchronized  void initTimer() {
         if (Timer.timer == null) {
-            Timer.timer = new HashedWheelTimer();
-            Timer.timer.start();
+            HashedWheelTimer hwTimer = new HashedWheelTimer();
+            hwTimer.start();
+            Timer.timer = hwTimer;
         }
     }
 
