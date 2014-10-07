@@ -19,12 +19,15 @@ import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -34,7 +37,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component
 @Service
-public class FlowTracker implements FlowTrackerService {
+public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private final Logger log = getLogger(getClass());
 
@@ -110,14 +113,26 @@ public class FlowTracker implements FlowTrackerService {
         @Override
         public void run() {
             if (event.reasons() == null) {
-                delegate.bumpIntents(intentsByLink.values());
+                delegate.triggerCompile(null, false);
+
             } else {
+                Set<IntentId> toBeRecompiled = new HashSet<>();
+                boolean recompileOnly = true;
+
+                // Scan through the list of reasons and keep accruing all
+                // intents that need to be recompiled.
                 for (Event reason : event.reasons()) {
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
-                        delegate.bumpIntents(intentsByLink.get(new LinkKey(linkEvent.subject())));
+                        if (linkEvent.type() == LINK_REMOVED) {
+                            Set<IntentId> intentIds = intentsByLink.get(new LinkKey(linkEvent.subject()));
+                            toBeRecompiled.addAll(intentIds);
+                        }
+                        recompileOnly = recompileOnly && linkEvent.type() == LINK_REMOVED;
                     }
                 }
+
+                delegate.triggerCompile(toBeRecompiled, !recompileOnly);
             }
         }
     }

@@ -11,5 +11,5 @@ public interface Intent extends BatchOperationTarget {
      *
      * @return intent identifier
      */
-    IntentId getId();
+    IntentId id();
 }

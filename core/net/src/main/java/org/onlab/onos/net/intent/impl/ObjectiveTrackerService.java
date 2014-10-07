@@ -9,7 +9,7 @@ import java.util.Collection;
  * Auxiliary service for tracking intent path flows and for notifying the
  * intent service of environment changes via topology change delegate.
  */
-public interface FlowTrackerService {
+public interface ObjectiveTrackerService {
 
     /**
      * Sets a topology change delegate.

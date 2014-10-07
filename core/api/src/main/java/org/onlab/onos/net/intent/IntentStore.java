@@ -10,10 +10,16 @@ import java.util.List;
 public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
 
     /**
-     * Creates a new intent.
+     * Submits a new intent into the store. If the returned event is not
+     * null, the manager is expected to dispatch the event and then to kick
+     * off intent compilation process. Otherwise, another node has been elected
+     * to perform the compilation process and the node will learn about
+     * the submittal and results of the intent compilation via the delegate
+     * mechanism.
      *
-     * @param intent intent
-     * @return appropriate event or null if no change resulted
+     * @param intent intent to be submitted
+     * @return event indicating the intent was submitted or null if no
+     * change resulted, e.g. duplicate intent
      */
     IntentEvent createIntent(Intent intent);
 
@@ -68,10 +74,9 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      *
      * @param intentId           original intent identifier
      * @param installableIntents compiled installable intents
-     * @return compiled state transition event
      */
-    IntentEvent addInstallableIntents(IntentId intentId,
-                                      List<InstallableIntent> installableIntents);
+    void addInstallableIntents(IntentId intentId,
+                               List<InstallableIntent> installableIntents);
 
     /**
      * Returns the list of the installable events associated with the specified

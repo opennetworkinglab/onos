@@ -1,55 +1,70 @@
 package org.onlab.onos.net.intent;
 
 /**
- * This class represents the states of an intent.
- *
- * <p>
- * Note: The state is expressed as enum, but there is possibility
- * in the future that we define specific class instead of enum to improve
- * the extensibility of state definition.
- * </p>
+ * Representation of the phases an intent may attain during its lifecycle.
  */
 public enum IntentState {
-    // FIXME: requires discussion on State vs. EventType and a solid state-transition diagram
-    // TODO: consider the impact of conflict detection
-    // TODO: consider the impact that external events affect an installed intent
+
     /**
-     * The beginning state.
-     *
+     * Signifies that the intent has been submitted and will start compiling
+     * shortly. However, this compilation may not necessarily occur on the
+     * local controller instance.
+     * <p/>
      * All intent in the runtime take this state first.
      */
     SUBMITTED,
 
     /**
-     * The intent compilation has been completed.
-     *
-     * An intent translation graph (tree) is completely created.
-     * Leaves of the graph are installable intent type.
+     * Signifies that the intent is being compiled into installable intents.
+     * This is a transitional state after which the intent will enter either
+     * {@link #FAILED} state or {@link #INSTALLING} state.
      */
-    COMPILED,
+    COMPILING,
 
     /**
-     * The intent has been successfully installed.
+     * Signifies that the resulting installable intents are being installed
+     * into the network environment. This is a transitional state after which
+     * the intent will enter either {@link #INSTALLED} state or
+     * {@link #RECOMPILING} state.
+     */
+    INSTALLING,
+
+    /**
+     * The intent has been successfully installed. This is a state where the
+     * intent may remain parked until it is withdrawn by the application or
+     * until the network environment changes in some way to make the original
+     * set of installable intents untenable.
      */
     INSTALLED,
 
     /**
-     * The intent is being withdrawn.
-     *
-     * When {@link IntentService#withdraw(Intent)} is called,
-     * the intent takes this state first.
+     * Signifies that the intent is being recompiled into installable intents
+     * as an attempt to adapt to an anomaly in the network environment.
+     * This is a transitional state after which the intent will enter either
+     * {@link #FAILED} state or {@link #INSTALLING} state.
+     * <p/>
+     * Exit to the {@link #FAILED} state may be caused by failure to compile
+     * or by compiling into the same set of installable intents which have
+     * previously failed to be installed.
+     */
+    RECOMPILING,
+
+    /**
+     * Indicates that the intent is being withdrawn. This is a transitional
+     * state, triggered by invocation of the
+     * {@link IntentService#withdraw(Intent)} but one with only one outcome,
+     * which is the the intent being placed in the {@link #WITHDRAWN} state.
      */
     WITHDRAWING,
 
     /**
-     * The intent has been successfully withdrawn.
+     * Indicates that the intent has been successfully withdrawn.
      */
     WITHDRAWN,
 
     /**
-     * The intent has failed to be compiled, installed, or withdrawn.
-     *
-     * When the intent failed to be withdrawn, it is still, at least partially installed.
+     * Signifies that the intent has failed compiling, installing or
+     * recompiling states.
      */
-    FAILED,
+    FAILED
 }

@@ -49,8 +49,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     @Override
     public void install(PathIntent intent) {
         TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.getTrafficSelector());
-        Iterator<Link> links = intent.getPath().links().iterator();
+                DefaultTrafficSelector.builder(intent.selector());
+        Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
 
         while (links.hasNext()) {
@@ -70,8 +70,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     @Override
     public void uninstall(PathIntent intent) {
         TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.getTrafficSelector());
-        Iterator<Link> links = intent.getPath().links().iterator();
+                DefaultTrafficSelector.builder(intent.selector());
+        Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
 
         while (links.hasNext()) {

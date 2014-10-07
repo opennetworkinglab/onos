@@ -89,5 +89,5 @@ function spy {
 }
 
 function nuke {
-    spy | cut -c7-11 | xargs kill
+    spy "$@" | cut -c7-11 | xargs kill
 }

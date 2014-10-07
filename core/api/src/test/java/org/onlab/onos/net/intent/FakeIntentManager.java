@@ -40,8 +40,7 @@ public class FakeIntentManager implements TestableIntentService {
             @Override
             public void run() {
                 try {
-                    List<InstallableIntent> installable = compileIntent(intent);
-                    installIntents(intent, installable);
+                    executeCompilingPhase(intent);
                 } catch (IntentException e) {
                     exceptions.add(e);
                 }
@@ -55,8 +54,8 @@ public class FakeIntentManager implements TestableIntentService {
             @Override
             public void run() {
                 try {
-                    List<InstallableIntent> installable = getInstallable(intent.getId());
-                    uninstallIntents(intent, installable);
+                    List<InstallableIntent> installable = getInstallable(intent.id());
+                    executeWithdrawingPhase(intent, installable);
                 } catch (IntentException e) {
                     exceptions.add(e);
                 }
@@ -84,53 +83,60 @@ public class FakeIntentManager implements TestableIntentService {
         return installer;
     }
 
-    private <T extends Intent> List<InstallableIntent> compileIntent(T intent) {
+    private <T extends Intent> void executeCompilingPhase(T intent) {
+        setState(intent, IntentState.COMPILING);
         try {
             // For the fake, we compile using a single level pass
             List<InstallableIntent> installable = new ArrayList<>();
             for (Intent compiled : getCompiler(intent).compile(intent)) {
                 installable.add((InstallableIntent) compiled);
             }
-            setState(intent, IntentState.COMPILED);
-            return installable;
+            executeInstallingPhase(intent, installable);
+
         } catch (IntentException e) {
             setState(intent, IntentState.FAILED);
-            throw e;
+            dispatch(new IntentEvent(IntentEvent.Type.FAILED, intent));
         }
     }
 
-    private void installIntents(Intent intent, List<InstallableIntent> installable) {
+    private void executeInstallingPhase(Intent intent,
+                                        List<InstallableIntent> installable) {
+        setState(intent, IntentState.INSTALLING);
         try {
             for (InstallableIntent ii : installable) {
                 registerSubclassInstallerIfNeeded(ii);
                 getInstaller(ii).install(ii);
             }
             setState(intent, IntentState.INSTALLED);
-            putInstallable(intent.getId(), installable);
+            putInstallable(intent.id(), installable);
+            dispatch(new IntentEvent(IntentEvent.Type.INSTALLED, intent));
+
         } catch (IntentException e) {
             setState(intent, IntentState.FAILED);
-            throw e;
+            dispatch(new IntentEvent(IntentEvent.Type.FAILED, intent));
         }
     }
 
-    private void uninstallIntents(Intent intent, List<InstallableIntent> installable) {
+    private void executeWithdrawingPhase(Intent intent,
+                                         List<InstallableIntent> installable) {
+        setState(intent, IntentState.WITHDRAWING);
         try {
             for (InstallableIntent ii : installable) {
                 getInstaller(ii).uninstall(ii);
             }
+            removeInstallable(intent.id());
             setState(intent, IntentState.WITHDRAWN);
-            removeInstallable(intent.getId());
+            dispatch(new IntentEvent(IntentEvent.Type.WITHDRAWN, intent));
         } catch (IntentException e) {
+            // FIXME: Do we really want to do this?
             setState(intent, IntentState.FAILED);
-            throw e;
+            dispatch(new IntentEvent(IntentEvent.Type.FAILED, intent));
         }
     }
 
     // Sets the internal state for the given intent and dispatches an event
     private void setState(Intent intent, IntentState state) {
-        IntentState previous = intentStates.get(intent.getId());
-        intentStates.put(intent.getId(), state);
-        dispatch(new IntentEvent(intent, state, previous, System.currentTimeMillis()));
+        intentStates.put(intent.id(), state);
     }
 
     private void putInstallable(IntentId id, List<InstallableIntent> installable) {
@@ -152,15 +158,15 @@ public class FakeIntentManager implements TestableIntentService {
 
     @Override
     public void submit(Intent intent) {
-        intents.put(intent.getId(), intent);
+        intents.put(intent.id(), intent);
         setState(intent, IntentState.SUBMITTED);
+        dispatch(new IntentEvent(IntentEvent.Type.SUBMITTED, intent));
         executeSubmit(intent);
     }
 
     @Override
     public void withdraw(Intent intent) {
-        intents.remove(intent.getId());
-        setState(intent, IntentState.WITHDRAWING);
+        intents.remove(intent.id());
         executeWithdraw(intent);
     }
 

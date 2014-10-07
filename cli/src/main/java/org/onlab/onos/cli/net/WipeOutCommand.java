@@ -34,7 +34,7 @@ public class WipeOutCommand extends ClustersListCommand {
 
         IntentService intentService = get(IntentService.class);
         for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.getId()) == IntentState.INSTALLED) {
+            if (intentService.getIntentState(intent.id()) == IntentState.INSTALLED) {
                 intentService.withdraw(intent);
             }
         }

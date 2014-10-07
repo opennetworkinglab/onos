@@ -9,10 +9,14 @@ public interface TopologyChangeDelegate {
 
     /**
      * Notifies that topology has changed in such a way that the specified
-     * intents should be recompiled.
+     * intents should be recompiled. If the {@code compileAllFailed} parameter
+     * is true, the all intents in {@link org.onlab.onos.net.intent.IntentState#FAILED}
+     * state should be compiled as well.
      *
      * @param intentIds intents that should be recompiled
+     * @param compileAllFailed true implies full compile is required; false for
+     *                         selective recompile only
      */
-    void bumpIntents(Iterable<IntentId> intentIds);
+    void triggerCompile(Iterable<IntentId> intentIds, boolean compileAllFailed);
 
 }
