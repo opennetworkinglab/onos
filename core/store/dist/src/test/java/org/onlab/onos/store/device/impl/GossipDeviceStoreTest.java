@@ -5,6 +5,7 @@ import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,10 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.ClockService;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -105,7 +110,9 @@ public class GossipDeviceStoreTest {
         deviceClockManager.setMastershipTerm(DID1, MastershipTerm.of(MYSELF, 1));
         deviceClockManager.setMastershipTerm(DID2, MastershipTerm.of(MYSELF, 2));
 
-        gossipDeviceStore = new TestGossipDeviceStore(clockService);
+        ClusterCommunicationService clusterCommunicator = new TestClusterCommunicationService();
+
+        gossipDeviceStore = new TestGossipDeviceStore(clockService, clusterCommunicator);
         gossipDeviceStore.activate();
         deviceStore = gossipDeviceStore;
     }
@@ -541,8 +548,20 @@ public class GossipDeviceStoreTest {
 
     private static final class TestGossipDeviceStore extends GossipDeviceStore {
 
-        public TestGossipDeviceStore(ClockService clockService) {
+        public TestGossipDeviceStore(ClockService clockService, ClusterCommunicationService clusterCommunicator) {
             this.clockService = clockService;
+            this.clusterCommunicator = clusterCommunicator;
         }
+    }
+
+    private static final class TestClusterCommunicationService implements ClusterCommunicationService {
+        @Override
+        public boolean broadcast(ClusterMessage message) throws IOException { return true; }
+        @Override
+        public boolean unicast(ClusterMessage message, NodeId nodeId) throws IOException { return true; }
+        @Override
+        public boolean multicast(ClusterMessage message, Set<NodeId> nodeIds) throws IOException { return true; }
+        @Override
+        public void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber) {}
     }
 }
