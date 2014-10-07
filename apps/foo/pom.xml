@@ -24,6 +24,11 @@
         </dependency>
         <dependency>
             <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
             <artifactId>onlab-nio</artifactId>
             <version>${project.version}</version>
         </dependency>
