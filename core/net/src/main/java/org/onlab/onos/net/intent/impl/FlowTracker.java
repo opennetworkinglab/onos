@@ -115,12 +115,7 @@ public class FlowTracker implements FlowTrackerService {
                 for (Event reason : event.reasons()) {
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
-                        if (linkEvent.type() == LinkEvent.Type.LINK_ADDED ||
-                                linkEvent.type() == LinkEvent.Type.LINK_UPDATED) {
-                            delegate.bumpIntents(intentsByLink.get(new LinkKey(linkEvent.subject())));
-                        } else if (linkEvent.type() == LinkEvent.Type.LINK_REMOVED) {
-                            delegate.failIntents(intentsByLink.get(new LinkKey(linkEvent.subject())));
-                        }
+                        delegate.bumpIntents(intentsByLink.get(new LinkKey(linkEvent.subject())));
                     }
                 }
             }
