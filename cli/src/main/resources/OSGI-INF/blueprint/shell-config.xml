@@ -64,15 +64,15 @@
             <action class="org.onlab.onos.cli.net.IntentsListCommand"/>
         </command>
         <command>
-            <action class="org.onlab.onos.cli.net.AddHostToHostIntentCommand"/>
+            <action class="org.onlab.onos.cli.net.IntentRemoveCommand"/>
             <completers>
-                <ref component-id="hostIdCompleter"/>
+                <ref component-id="intentIdCompleter"/>
             </completers>
         </command>
         <command>
-            <action class="org.onlab.onos.cli.net.RemoveHostToHostIntentCommand"/>
+            <action class="org.onlab.onos.cli.net.AddHostToHostIntentCommand"/>
             <completers>
-                <ref component-id="intentIdCompleter"/>
+                <ref component-id="hostIdCompleter"/>
             </completers>
         </command>
 
