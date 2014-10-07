@@ -144,6 +144,10 @@ public class DeviceManager
     private void applyRole(DeviceId deviceId, MastershipRole newRole) {
         if (newRole != MastershipRole.NONE) {
             Device device = store.getDevice(deviceId);
+            // FIXME: Device might not be there yet. (eventual consistent)
+            if (device == null) {
+                return;
+            }
             DeviceProvider provider = getProvider(device.providerId());
             if (provider != null) {
                 provider.roleChanged(device, newRole);
@@ -193,16 +197,38 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
+
+            log.info("Device {} connected", deviceId);
+            // check my Role
+            MastershipRole role = mastershipService.requestRoleFor(deviceId);
+
+            if (role != MastershipRole.MASTER) {
+                // TODO: Do we need to tell the Provider that
+                // I am no longer the MASTER?
+                return;
+            }
+
+            // Master:
+            MastershipTerm term = mastershipService.requestTermService()
+                    .getMastershipTerm(deviceId);
+            if (!term.master().equals(clusterService.getLocalNode().id())) {
+                // I've lost mastership after I thought I was MASTER.
+                return;
+            }
+            clockProviderService.setMastershipTerm(deviceId, term);
+
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                     deviceId, deviceDescription);
 
-            // If there was a change of any kind, trigger role selection
-            // process.
+            // If there was a change of any kind, tell the provider
+            // I am the master.
+            // Note: can be null, if mastership was lost.
             if (event != null) {
-                log.info("Device {} connected", deviceId);
-                mastershipService.requestRoleFor(deviceId);
-                provider().roleChanged(event.subject(),
-                        mastershipService.requestRoleFor(deviceId));
+                // TODO: Check switch reconnected case, is it assured that
+                //       event will not be null?
+
+                // FIXME: 1st argument should be deviceId
+                provider().roleChanged(event.subject(), role);
                 post(event);
             }
         }
@@ -211,6 +237,10 @@ public class DeviceManager
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
+            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
+                log.debug("Device {} disconnected, but I am not the master", deviceId);
+                return;
+            }
             DeviceEvent event = store.markOffline(deviceId);
 
             //we're no longer capable of mastership.
@@ -272,9 +302,15 @@ public class DeviceManager
         @Override
         public void event(MastershipEvent event) {
             if (event.master().equals(clusterService.getLocalNode().id())) {
+
                 MastershipTerm term = mastershipService.requestTermService()
                         .getMastershipTerm(event.subject());
-                clockProviderService.setMastershipTerm(event.subject(), term);
+
+                if (term.master().equals(clusterService.getLocalNode().id())) {
+                    // only set if I am the master
+                    clockProviderService.setMastershipTerm(event.subject(), term);
+                }
+
                 applyRole(event.subject(), MastershipRole.MASTER);
             } else {
                 applyRole(event.subject(), MastershipRole.STANDBY);
