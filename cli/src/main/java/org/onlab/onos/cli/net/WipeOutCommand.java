@@ -1,5 +1,6 @@
 package org.onlab.onos.cli.net;
 
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
@@ -18,8 +19,22 @@ import org.onlab.onos.net.intent.IntentState;
          description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
 public class WipeOutCommand extends ClustersListCommand {
 
+
+    private static final String DISCLAIMER = "Yes, I know it will delete everything!";
+
+    @Argument(index = 0, name = "disclaimer", description = "Device ID",
+              required = true, multiValued = false)
+    String disclaimer = null;
+
     @Override
     protected void execute() {
+        if (!disclaimer.equals(DISCLAIMER)) {
+            print("I'm afraid I can't do that...");
+            print("You have to acknowledge by: " + DISCLAIMER);
+            return;
+        }
+
+        print("Good bye...");
         DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
         DeviceService deviceService = get(DeviceService.class);
         for (Device device : deviceService.getDevices()) {
