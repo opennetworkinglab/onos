@@ -307,9 +307,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             connectedSwitches.remove(dpid);
             OpenFlowSwitch sw = activeMasterSwitches.remove(dpid);
             if (sw == null) {
+                log.warn("sw was null for {}", dpid);
                 sw = activeEqualSwitches.remove(dpid);
             }
             for (OpenFlowSwitchListener l : ofSwitchListener) {
+                log.warn("removal for {}", dpid);
                 l.switchRemoved(dpid);
             }
         }

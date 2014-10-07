@@ -174,7 +174,7 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
+    public MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
         MastershipRole role = getRole(nodeId, deviceId);
         synchronized (this) {
             switch (role) {
@@ -212,6 +212,11 @@ public class SimpleMastershipStore
             }
         }
         return backup;
+    }
+
+    @Override
+    public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
+        return setStandby(nodeId, deviceId);
     }
 
 }

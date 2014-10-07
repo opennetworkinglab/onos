@@ -1,6 +1,7 @@
 package org.onlab.onos.net.device.impl;
 
 import com.google.common.collect.Sets;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -258,7 +259,8 @@ public class DeviceManagerTest {
         }
     }
 
-    private static class TestMastershipService extends MastershipServiceAdapter {
+    private static class TestMastershipService
+            extends MastershipServiceAdapter {
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;

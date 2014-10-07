@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.onos.net.MastershipRole.*;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,13 +26,7 @@ import org.onlab.onos.cluster.MastershipEvent.Type;
 import org.onlab.onos.cluster.MastershipStoreDelegate;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
@@ -87,7 +81,6 @@ public class DistributedMastershipStoreTest {
 
         dms = new TestDistributedMastershipStore(storeMgr, serializationMgr);
         dms.clusterService = new TestClusterService();
-        dms.deviceService = new TestDeviceService();
         dms.activate();
 
         testStore = (TestDistributedMastershipStore) dms;
@@ -105,14 +98,14 @@ public class DistributedMastershipStoreTest {
     @Test
     public void getRole() {
         assertEquals("wrong role:", NONE, dms.getRole(N1, DID1));
-        testStore.put(DID1, N1, true, true, true);
+        testStore.put(DID1, N1, true, false, true);
         assertEquals("wrong role:", MASTER, dms.getRole(N1, DID1));
         assertEquals("wrong role:", STANDBY, dms.getRole(N2, DID1));
     }
 
     @Test
     public void getMaster() {
-        assertTrue("wrong store state:", dms.rawMasters.isEmpty());
+        assertTrue("wrong store state:", dms.masters.isEmpty());
 
         testStore.put(DID1, N1, true, false, false);
         assertEquals("wrong master:", N1, dms.getMaster(DID1));
@@ -121,7 +114,7 @@ public class DistributedMastershipStoreTest {
 
     @Test
     public void getDevices() {
-        assertTrue("wrong store state:", dms.rawMasters.isEmpty());
+        assertTrue("wrong store state:", dms.masters.isEmpty());
 
         testStore.put(DID1, N1, true, false, false);
         testStore.put(DID2, N1, true, false, false);
@@ -139,20 +132,17 @@ public class DistributedMastershipStoreTest {
         //if already MASTER, nothing should happen
         testStore.put(DID2, N1, true, false, false);
         assertEquals("wrong role for MASTER:", MASTER, dms.requestRole(DID2));
-        assertTrue("wrong state for store:",
-                dms.backups.isEmpty() & dms.rawTerms.isEmpty());
 
         //populate maps with DID1, N1 thru NONE case
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
-        assertTrue("wrong state for store:",
-                !dms.backups.isEmpty() & !dms.rawTerms.isEmpty());
+        assertTrue("wrong state for store:", !dms.terms.isEmpty());
         assertEquals("wrong term",
                 MastershipTerm.of(N1, 0), dms.getTermFor(DID1));
 
         //CN2 now local. DID2 has N1 as MASTER so N2 is STANDBY
         testStore.setCurrent(CN2);
         assertEquals("wrong role for STANDBY:", STANDBY, dms.requestRole(DID2));
-        assertEquals("wrong number of entries:", 2, dms.rawTerms.size());
+        assertEquals("wrong number of entries:", 2, dms.terms.size());
 
         //change term and requestRole() again; should persist
         testStore.increment(DID2);
@@ -181,34 +171,41 @@ public class DistributedMastershipStoreTest {
     }
 
     @Test
-    public void unsetMaster() {
+    public void relinquishRole() {
         //populate maps with DID1, N1 as MASTER thru NONE case
         testStore.setCurrent(CN1);
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
         //no backup, no new MASTER/event
-        assertNull("wrong event:", dms.unsetMaster(N1, DID1));
+        assertNull("wrong event:", dms.relinquishRole(N1, DID1));
 
         dms.requestRole(DID1);
-        ((TestDeviceService) dms.deviceService).active.add(DID1);
 
         //add backup CN2, get it elected MASTER by relinquishing
         testStore.setCurrent(CN2);
-        dms.requestRole(DID1);
-        assertEquals("wrong event:", Type.MASTER_CHANGED, dms.unsetMaster(N1, DID1).type());
+        assertEquals("wrong role for NONE:", STANDBY, dms.requestRole(DID1));
+        assertEquals("wrong event:", Type.MASTER_CHANGED, dms.relinquishRole(N1, DID1).type());
         assertEquals("wrong master", N2, dms.getMaster(DID1));
 
         //STANDBY - nothing here, either
-        assertNull("wrong event:", dms.unsetMaster(N1, DID1));
+        assertNull("wrong event:", dms.relinquishRole(N1, DID1));
         assertEquals("wrong role for node:", STANDBY, dms.getRole(N1, DID1));
 
-        //NONE - nothing happens
-        assertNull("wrong event:", dms.unsetMaster(N1, DID2));
-        assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID2));
+        //all nodes "give up" on device, which goes back to NONE.
+        assertNull("wrong event:", dms.relinquishRole(N2, DID1));
+        assertEquals("wrong role for node:", NONE, dms.getRole(N2, DID1));
+        assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID1));
 
-        //for a device that turned off (not active) - status to NONE
-        ((TestDeviceService) dms.deviceService).active.clear();
-        assertNull("extraneous event:", dms.unsetMaster(N2, DID1));
-        assertEquals("wrong role", NONE, dms.getRole(N2, DID1));
+        assertEquals("wrong number of retired nodes", 2, dms.unusable.size());
+
+        //bring nodes back
+        assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
+        testStore.setCurrent(CN1);
+        assertEquals("wrong role for NONE:", STANDBY, dms.requestRole(DID1));
+        assertEquals("wrong number of backup nodes", 1, dms.standbys.size());
+
+        //NONE - nothing happens
+        assertNull("wrong event:", dms.relinquishRole(N1, DID2));
+        assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID2));
 
     }
 
@@ -244,36 +241,55 @@ public class DistributedMastershipStoreTest {
 
         //helper to populate master/backup structures
         public void put(DeviceId dev, NodeId node,
-                boolean store, boolean backup, boolean term) {
-            if (store) {
-                dms.rawMasters.put(serialize(dev), serialize(node));
+                boolean master, boolean backup, boolean term) {
+            byte [] n = serialize(node);
+            byte [] d = serialize(dev);
+
+            if (master) {
+                dms.masters.put(d, n);
+                dms.unusable.put(d, n);
+                dms.standbys.remove(d, n);
             }
             if (backup) {
-                dms.backups.put(serialize(node), (byte) 0);
+                dms.standbys.put(d, n);
+                dms.masters.remove(d, n);
+                dms.unusable.remove(d, n);
             }
             if (term) {
-                dms.rawTerms.put(serialize(dev), 0);
+                dms.terms.put(d, 0);
+            }
+        }
+
+        public void dump() {
+            System.out.println("standbys");
+            for (Map.Entry<byte [], byte []> e : standbys.entrySet()) {
+                System.out.println(deserialize(e.getKey()) + ":" + deserialize(e.getValue()));
+            }
+            System.out.println("unusable");
+            for (Map.Entry<byte [], byte []> e : unusable.entrySet()) {
+                System.out.println(deserialize(e.getKey()) + ":" + deserialize(e.getValue()));
             }
         }
 
         //clears structures
         public void reset(boolean store, boolean backup, boolean term) {
             if (store) {
-                dms.rawMasters.clear();
+                dms.masters.clear();
+                dms.unusable.clear();
             }
             if (backup) {
-                dms.backups.clear();
+                dms.standbys.clear();
             }
             if (term) {
-                dms.rawTerms.clear();
+                dms.terms.clear();
             }
         }
 
         //increment term for a device
         public void increment(DeviceId dev) {
-            Integer t = dms.rawTerms.get(serialize(dev));
+            Integer t = dms.terms.get(serialize(dev));
             if (t != null) {
-                dms.rawTerms.put(serialize(dev), ++t);
+                dms.terms.put(serialize(dev), ++t);
             }
         }
 
@@ -317,52 +333,4 @@ public class DistributedMastershipStoreTest {
 
     }
 
-    private class TestDeviceService implements DeviceService {
-
-        Set<DeviceId> active = Sets.newHashSet();
-
-        @Override
-        public int getDeviceCount() {
-            return 0;
-        }
-
-        @Override
-        public Iterable<Device> getDevices() {
-            return null;
-        }
-
-        @Override
-        public Device getDevice(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public MastershipRole getRole(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public List<Port> getPorts(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public Port getPort(DeviceId deviceId, PortNumber portNumber) {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable(DeviceId deviceId) {
-            return active.contains(deviceId);
-        }
-
-        @Override
-        public void addListener(DeviceListener listener) {
-        }
-
-        @Override
-        public void removeListener(DeviceListener listener) {
-        }
-
-    }
 }

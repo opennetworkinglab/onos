@@ -129,22 +129,22 @@ public class SimpleMastershipStoreTest {
     public void unsetMaster() {
         //NONE - record backup but take no other action
         put(DID1, N1, false, false);
-        sms.unsetMaster(N1, DID1);
+        sms.setStandby(N1, DID1);
         assertTrue("not backed up", sms.backups.contains(N1));
         sms.termMap.clear();
-        sms.unsetMaster(N1, DID1);
+        sms.setStandby(N1, DID1);
         assertTrue("term not set", sms.termMap.containsKey(DID1));
 
         //no backup, MASTER
         put(DID1, N1, true, true);
-        assertNull("wrong event", sms.unsetMaster(N1, DID1));
+        assertNull("wrong event", sms.setStandby(N1, DID1));
         assertNull("wrong node", sms.masterMap.get(DID1));
 
         //backup, switch
         sms.masterMap.clear();
         put(DID1, N1, true, true);
         put(DID2, N2, true, true);
-        assertEquals("wrong event", MASTER_CHANGED, sms.unsetMaster(N1, DID1).type());
+        assertEquals("wrong event", MASTER_CHANGED, sms.setStandby(N1, DID1).type());
     }
 
     //helper to populate master/backup structures

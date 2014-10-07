@@ -10,7 +10,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.MastershipEvent;
@@ -20,15 +19,16 @@ import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.store.common.AbstractHazelcastStore;
 
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.MultiMap;
 
 /**
- * Distributed implementation of the cluster nodes store.
+ * Distributed implementation of the mastership store. The store is
+ * responsible for the master selection process.
  */
 @Component(immediate = true)
 @Service
@@ -38,35 +38,34 @@ implements MastershipStore {
 
     //arbitrary lock name
     private static final String LOCK = "lock";
-    //initial term value
+    //initial term/TTL value
     private static final Integer INIT = 0;
-    //placeholder non-null value
-    private static final Byte NIL = 0x0;
 
     //devices to masters
-    protected IMap<byte[], byte[]> rawMasters;
+    protected IMap<byte[], byte[]> masters;
     //devices to terms
-    protected IMap<byte[], Integer> rawTerms;
-    //collection of nodes. values are ignored, as it's used as a makeshift 'set'
-    protected IMap<byte[], Byte> backups;
+    protected IMap<byte[], Integer> terms;
+
+    //re-election related, disjoint-set structures:
+    //device-nodes multiset of available nodes
+    protected MultiMap<byte[], byte[]> standbys;
+    //device-nodes multiset for nodes that have given up on device
+    protected MultiMap<byte[], byte[]> unusable;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
-
-    //FIXME: need to guarantee that this will be met, sans circular dependencies
-    @Reference(policy = ReferencePolicy.DYNAMIC)
-    protected DeviceService deviceService;
 
     @Override
     @Activate
     public void activate() {
         super.activate();
 
-        rawMasters = theInstance.getMap("masters");
-        rawTerms = theInstance.getMap("terms");
-        backups = theInstance.getMap("backups");
+        masters = theInstance.getMap("masters");
+        terms = theInstance.getMap("terms");
+        standbys = theInstance.getMultiMap("backups");
+        unusable = theInstance.getMultiMap("unusable");
 
-        rawMasters.addEntryListener(new RemoteMasterShipEventHandler(), true);
+        masters.addEntryListener(new RemoteMasterShipEventHandler(), true);
 
         log.info("Started");
     }
@@ -74,6 +73,30 @@ implements MastershipStore {
     @Deactivate
     public void deactivate() {
         log.info("Stopped");
+    }
+
+    @Override
+    public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
+        byte[] did = serialize(deviceId);
+        byte[] nid = serialize(nodeId);
+
+        NodeId current = deserialize(masters.get(did));
+        if (current == null) {
+            if (standbys.containsEntry(did, nid)) {
+                //was previously standby, or set to standby from master
+                return MastershipRole.STANDBY;
+            } else {
+                return MastershipRole.NONE;
+            }
+        } else {
+            if (current.equals(nodeId)) {
+                //*should* be in unusable, not always
+                return MastershipRole.MASTER;
+            } else {
+                //may be in backups or unusable from earlier retirement
+                return MastershipRole.STANDBY;
+            }
+        }
     }
 
     @Override
@@ -85,30 +108,31 @@ implements MastershipStore {
         lock.lock();
         try {
             MastershipRole role = getRole(nodeId, deviceId);
-            Integer term = rawTerms.get(did);
             switch (role) {
                 case MASTER:
+                    //reinforce mastership
+                    evict(nid, did);
                     return null;
                 case STANDBY:
-                    rawMasters.put(did, nid);
-                    rawTerms.put(did, ++term);
-                    backups.putIfAbsent(nid, NIL);
-                    break;
-                case NONE:
-                    rawMasters.put(did, nid);
-                    //new switch OR state transition after being orphaned
-                    if (term == null) {
-                        rawTerms.put(did, INIT);
-                    } else {
-                        rawTerms.put(did, ++term);
+                    //make current master standby
+                    byte [] current = masters.get(did);
+                    if (current != null) {
+                        backup(current, did);
                     }
-                    backups.put(nid, NIL);
-                    break;
+                    //assign specified node as new master
+                    masters.put(did, nid);
+                    evict(nid, did);
+                    updateTerm(did);
+                    return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+                case NONE:
+                    masters.put(did, nid);
+                    evict(nid, did);
+                    updateTerm(did);
+                    return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
                 default:
                     log.warn("unknown Mastership Role {}", role);
                     return null;
             }
-            return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
         } finally {
             lock.unlock();
         }
@@ -116,14 +140,14 @@ implements MastershipStore {
 
     @Override
     public NodeId getMaster(DeviceId deviceId) {
-        return deserialize(rawMasters.get(serialize(deviceId)));
+        return deserialize(masters.get(serialize(deviceId)));
     }
 
     @Override
     public Set<DeviceId> getDevices(NodeId nodeId) {
         ImmutableSet.Builder<DeviceId> builder = ImmutableSet.builder();
 
-        for (Map.Entry<byte[], byte[]> entry : rawMasters.entrySet()) {
+        for (Map.Entry<byte[], byte[]> entry : masters.entrySet()) {
             if (nodeId.equals(deserialize(entry.getValue()))) {
                 builder.add((DeviceId) deserialize(entry.getKey()));
             }
@@ -134,11 +158,8 @@ implements MastershipStore {
 
     @Override
     public MastershipRole requestRole(DeviceId deviceId) {
-        // first to empty slot for device in master map is MASTER
-        // depending on how backups are organized, might need to trigger election
-        // so only controller doesn't set itself to backup for another device
-        byte [] did = serialize(deviceId);
         NodeId local = clusterService.getLocalNode().id();
+        byte [] did = serialize(deviceId);
         byte [] lnid = serialize(local);
 
         ILock lock = theInstance.getLock(LOCK);
@@ -147,15 +168,17 @@ implements MastershipStore {
             MastershipRole role = getRole(local, deviceId);
             switch (role) {
                 case MASTER:
+                    evict(lnid, did);
                     break;
                 case STANDBY:
-                    backups.put(lnid, NIL);
-                    rawTerms.putIfAbsent(did, INIT);
+                    backup(lnid, did);
+                    terms.putIfAbsent(did, INIT);
                     break;
                 case NONE:
-                    rawMasters.put(did, lnid);
-                    rawTerms.putIfAbsent(did, INIT);
-                    backups.put(lnid, NIL);
+                    //claim mastership
+                    masters.put(did, lnid);
+                    evict(lnid, did);
+                    updateTerm(did);
                     role = MastershipRole.MASTER;
                     break;
                 default:
@@ -168,41 +191,21 @@ implements MastershipStore {
     }
 
     @Override
-    public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
-        byte[] did = serialize(deviceId);
-
-        NodeId current = deserialize(rawMasters.get(did));
-        MastershipRole role = null;
-
-        if (current == null) {
-            //IFF no controllers have claimed mastership over it
-            role = MastershipRole.NONE;
-        } else {
-            if (current.equals(nodeId)) {
-                role = MastershipRole.MASTER;
-            } else {
-                role = MastershipRole.STANDBY;
-            }
-        }
-
-        return role;
-    }
-
-    @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
         byte[] did = serialize(deviceId);
-
-        if ((rawMasters.get(did) == null) ||
-                (rawTerms.get(did) == null)) {
+        if ((masters.get(did) == null) ||
+                (terms.get(did) == null)) {
             return null;
         }
         return MastershipTerm.of(
-                (NodeId) deserialize(rawMasters.get(did)), rawTerms.get(did));
+                (NodeId) deserialize(masters.get(did)), terms.get(did));
     }
 
     @Override
-    public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
+    public MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
         byte [] did = serialize(deviceId);
+        byte [] nid = serialize(nodeId);
+        MastershipEvent event = null;
 
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
@@ -210,54 +213,113 @@ implements MastershipStore {
             MastershipRole role = getRole(nodeId, deviceId);
             switch (role) {
                 case MASTER:
-                    //hand off device to another
-                    NodeId backup = reelect(nodeId, deviceId);
-                    if (backup == null) {
-                        //goes back to NONE
-                        rawMasters.remove(did);
-                    } else {
-                        //goes to STANDBY for local, MASTER for someone else
-                        Integer term = rawTerms.get(did);
-                        rawMasters.put(did, serialize(backup));
-                        rawTerms.put(did, ++term);
-                        return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
-                    }
+                    event = reelect(nodeId, deviceId);
+                    backup(nid, did);
+                    break;
                 case STANDBY:
+                    //fall through to reinforce role
                 case NONE:
+                    backup(nid, did);
                     break;
                 default:
                     log.warn("unknown Mastership Role {}", role);
             }
-            return null;
+            return event;
         } finally {
             lock.unlock();
         }
     }
 
-    //helper for "re-electing" a new master for a given device
-    private NodeId reelect(NodeId current, DeviceId deviceId) {
+    @Override
+    public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
+        byte [] did = serialize(deviceId);
+        byte [] nid = serialize(nodeId);
+        MastershipEvent event = null;
 
-        for (byte [] node : backups.keySet()) {
-            NodeId nid = deserialize(node);
-            //if a device dies we shouldn't pick another master for it.
-            if (!current.equals(nid) && (deviceService.isAvailable(deviceId))) {
-                return nid;
+        ILock lock = theInstance.getLock(LOCK);
+        lock.lock();
+        try {
+            MastershipRole role = getRole(nodeId, deviceId);
+            switch (role) {
+                case MASTER:
+                    event = reelect(nodeId, deviceId);
+                    evict(nid, did);
+                    break;
+                case STANDBY:
+                    //fall through to reinforce relinquishment
+                case NONE:
+                    evict(nid, did);
+                    break;
+                default:
+                log.warn("unknown Mastership Role {}", role);
             }
+            return event;
+        } finally {
+            lock.unlock();
         }
-        return null;
     }
 
-    //adds node to pool(s) of backup
-    private void backup(NodeId nodeId, DeviceId deviceId) {
-        //TODO might be useful to isolate out this function and reelect() if we
-        //get more backup/election schemes
+    //helper to fetch a new master candidate for a given device.
+    private MastershipEvent reelect(NodeId current, DeviceId deviceId) {
+        byte [] did = serialize(deviceId);
+        byte [] nid = serialize(current);
+
+        //if this is an queue it'd be neater.
+        byte [] backup = null;
+        for (byte [] n : standbys.get(serialize(deviceId))) {
+            if (!current.equals(deserialize(n))) {
+                backup = n;
+                break;
+            }
+        }
+
+        if (backup == null) {
+            masters.remove(did, nid);
+            return null;
+        } else {
+            masters.put(did, backup);
+            evict(backup, did);
+            Integer term = terms.get(did);
+            terms.put(did, ++term);
+            return new MastershipEvent(
+                    MASTER_CHANGED, deviceId, (NodeId) deserialize(backup));
+        }
+    }
+
+    //adds node to pool(s) of backups and moves them from unusable.
+    private void backup(byte [] nodeId, byte [] deviceId) {
+        if (!standbys.containsEntry(deviceId, nodeId)) {
+            standbys.put(deviceId, nodeId);
+        }
+        if (unusable.containsEntry(deviceId, nodeId)) {
+            unusable.remove(deviceId, nodeId);
+        }
+    }
+
+    //adds node to unusable and evicts it from backup pool.
+    private void evict(byte [] nodeId, byte [] deviceId) {
+        if (!unusable.containsEntry(deviceId, nodeId)) {
+            unusable.put(deviceId, nodeId);
+        }
+        if (standbys.containsEntry(deviceId, nodeId)) {
+            standbys.remove(deviceId, nodeId);
+        }
+    }
+
+    //adds or updates term information.
+    private void updateTerm(byte [] deviceId) {
+        Integer term = terms.get(deviceId);
+        if (term == null) {
+            terms.put(deviceId, INIT);
+        } else {
+            terms.put(deviceId, ++term);
+        }
     }
 
     private class RemoteMasterShipEventHandler extends RemoteEventHandler<DeviceId, NodeId> {
 
         @Override
         protected void onAdd(DeviceId deviceId, NodeId nodeId) {
-            //only addition indicates a change in mastership
             notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
         }
 
@@ -268,6 +330,7 @@ implements MastershipStore {
 
         @Override
         protected void onUpdate(DeviceId deviceId, NodeId oldNodeId, NodeId nodeId) {
+            //only addition indicates a change in mastership
             //notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
         }
     }
