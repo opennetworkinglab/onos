@@ -52,7 +52,7 @@ public class NettyMessagingService implements MessagingService {
     private final GenericKeyedObjectPool<Endpoint, Channel> channels
             = new GenericKeyedObjectPool<Endpoint, Channel>(new OnosCommunicationChannelFactory());
 
-    protected Serializer serializer;
+    protected PayloadSerializer payloadSerializer;
 
     public NettyMessagingService() {
         // TODO: Default port should be configurable.
@@ -133,8 +133,9 @@ public class NettyMessagingService implements MessagingService {
         handlers.remove(type);
     }
 
-    public void setSerializer(Serializer serializer) {
-        this.serializer = serializer;
+    @Override
+    public void setPayloadSerializer(PayloadSerializer payloadSerializer) {
+        this.payloadSerializer = payloadSerializer;
     }
 
     private MessageHandler getMessageHandler(String type) {
@@ -201,13 +202,13 @@ public class NettyMessagingService implements MessagingService {
     private class OnosCommunicationChannelInitializer extends ChannelInitializer<SocketChannel> {
 
         private final ChannelHandler dispatcher = new InboundMessageDispatcher();
-        private final ChannelHandler encoder = new MessageEncoder(serializer);
+        private final ChannelHandler encoder = new MessageEncoder(payloadSerializer);
 
         @Override
         protected void initChannel(SocketChannel channel) throws Exception {
             channel.pipeline()
                 .addLast("encoder", encoder)
-                .addLast("decoder", new MessageDecoder(NettyMessagingService.this, serializer))
+                .addLast("decoder", new MessageDecoder(NettyMessagingService.this, payloadSerializer))
                 .addLast("handler", dispatcher);
         }
     }

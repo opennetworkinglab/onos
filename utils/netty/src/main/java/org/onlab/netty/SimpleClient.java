@@ -44,8 +44,8 @@ public final class SimpleClient {
     public static class TestNettyMessagingService extends NettyMessagingService {
         public TestNettyMessagingService(int port) throws Exception {
             super(port);
-            Serializer serializer = new KryoSerializer();
-            this.serializer = serializer;
+            PayloadSerializer payloadSerializer = new KryoSerializer();
+            this.payloadSerializer = payloadSerializer;
         }
     }
 }

@@ -12,8 +12,6 @@ import java.util.TimerTask;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
@@ -46,16 +44,23 @@ public class ClusterCommunicationManager
     private final Timer timer = new Timer("onos-controller-heatbeats");
     public static final long HEART_BEAT_INTERVAL_MILLIS = 1000L;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    // TODO: This probably should not be a OSGi service.
+    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private MessagingService messagingService;
 
     @Activate
     public void activate() {
+        // TODO: initialize messagingService
+        // TODO: setPayloadSerializer, which is capable of
+        //  (1) serialize ClusterMessage - ClusterMessage.payload
+        //  (2) serialize ClusterMessage.payload using user specified serializer
+//        messagingService.setPayloadSerializer(...);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        // TODO: cleanup messageingService if needed.
         log.info("Stopped");
     }
 

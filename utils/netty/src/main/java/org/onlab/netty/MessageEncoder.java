@@ -17,10 +17,10 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
     public static final int SERIALIZER_VERSION = 1;
 
 
-    private final Serializer serializer;
+    private final PayloadSerializer payloadSerializer;
 
-    public MessageEncoder(Serializer serializer) {
-        this.serializer = serializer;
+    public MessageEncoder(PayloadSerializer payloadSerializer) {
+        this.payloadSerializer = payloadSerializer;
     }
 
     @Override
@@ -35,12 +35,12 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         // write preamble
         out.writeBytes(PREAMBLE);
 
-        byte[] payload = serializer.encode(message);
+        byte[] payload = payloadSerializer.encode(message);
 
         // write payload length
         out.writeInt(payload.length);
 
-        // write serializer version
+        // write payloadSerializer version
         out.writeInt(SERIALIZER_VERSION);
 
         // write payload.

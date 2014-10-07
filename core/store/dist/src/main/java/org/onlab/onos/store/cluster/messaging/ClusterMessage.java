@@ -12,6 +12,7 @@ public class ClusterMessage {
     private final NodeId sender;
     private final MessageSubject subject;
     private final Object payload;
+    // TODO: add field specifying Serializer for payload
 
     /**
      * Creates a cluster message.

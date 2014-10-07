@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Interface for encoding/decoding message payloads.
  */
-public interface Serializer {
+public interface PayloadSerializer {
 
     /**
      * Decodes the specified byte array to a POJO.

@@ -38,4 +38,11 @@ public interface MessagingService {
      * @param type message type
      */
     public void unregisterHandler(String type);
+
+    /**
+     * Specify the serializer to use for encoding/decoding payload.
+     *
+     * @param payloadSerializer payloadSerializer to use
+     */
+    public void setPayloadSerializer(PayloadSerializer payloadSerializer);
 }

@@ -9,7 +9,7 @@ import java.util.HashMap;
 /**
  * Kryo Serializer.
  */
-public class KryoSerializer implements Serializer {
+public class KryoSerializer implements PayloadSerializer {
 
     private KryoPool serializerPool;
 
