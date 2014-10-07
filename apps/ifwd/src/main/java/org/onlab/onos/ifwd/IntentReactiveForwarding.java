@@ -1,5 +1,7 @@
 package org.onlab.onos.ifwd;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,8 +28,6 @@ import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * WORK-IN-PROGRESS: Sample reactive forwarding application using intent framework.
  */
@@ -50,7 +50,7 @@ public class IntentReactiveForwarding {
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
-    private static long intentId = 1;
+    private static long intentId = 0x123000;
 
     @Activate
     public void activate() {

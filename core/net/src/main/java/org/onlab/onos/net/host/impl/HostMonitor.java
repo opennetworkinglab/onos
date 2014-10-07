@@ -60,14 +60,15 @@ public class HostMonitor implements TimerTask {
      *
      * @param deviceService device service used to find edge ports
      * @param packetService packet service used to send packets on the data plane
-     * @param hostService host service used to look up host information
+     * @param hostManager host manager used to look up host information and
+     * probe existing hosts
      */
     public HostMonitor(DeviceService deviceService, PacketService packetService,
-            HostManager hostService) {
+            HostManager hostManager) {
 
         this.deviceService = deviceService;
         this.packetService = packetService;
-        this.hostManager = hostService;
+        this.hostManager = hostManager;
 
         monitoredAddresses = Collections.newSetFromMap(
                 new ConcurrentHashMap<IpAddress, Boolean>());
