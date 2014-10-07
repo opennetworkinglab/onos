@@ -48,7 +48,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             checkState(serializerVersion == MessageEncoder.SERIALIZER_VERSION, "Unexpected serializer version");
             checkpoint(DecoderState.READ_CONTENT);
         case READ_CONTENT:
-            InternalMessage message = serializer.deserialize(buffer.readBytes(contentLength).nioBuffer());
+            InternalMessage message = serializer.decode(buffer.readBytes(contentLength).nioBuffer());
             message.setMessagingService(messagingService);
             out.add(message);
             checkpoint(DecoderState.READ_HEADER_VERSION);
