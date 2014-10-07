@@ -1,3 +1,4 @@
+#!/bin/bash
 #------------------------------------------------------------------------------
 # Echoes project-level directory if a Java file within is newer than the
 # target directory.
