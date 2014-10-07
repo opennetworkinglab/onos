@@ -10,7 +10,7 @@ import java.util.HashMap;
 /**
  * Kryo Serializer.
  */
-public class KryoSerializer implements PayloadSerializer {
+public class KryoSerializer {
 
     private KryoPool serializerPool;
 
@@ -28,29 +28,26 @@ public class KryoSerializer implements PayloadSerializer {
                           HashMap.class,
                           ArrayList.class,
                           InternalMessage.class,
-                          Endpoint.class
+                          Endpoint.class,
+                          byte[].class
                 )
                 .build()
                 .populate(1);
     }
 
 
-    @Override
     public <T> T decode(byte[] data) {
         return serializerPool.deserialize(data);
     }
 
-    @Override
     public byte[] encode(Object payload) {
         return serializerPool.serialize(payload);
     }
 
-    @Override
     public <T> T decode(ByteBuffer buffer) {
         return serializerPool.deserialize(buffer);
     }
 
-    @Override
     public void encode(Object obj, ByteBuffer buffer) {
         serializerPool.serialize(obj, buffer);
     }

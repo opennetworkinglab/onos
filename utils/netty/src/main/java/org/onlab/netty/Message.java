@@ -12,12 +12,12 @@ public interface Message {
      * Returns the payload of this message.
      * @return message payload.
      */
-    public Object payload();
+    public byte[] payload();
 
     /**
-     * Sends a reply back to the sender of this messge.
+     * Sends a reply back to the sender of this message.
      * @param data payload of the response.
      * @throws IOException if there is a communication error.
      */
-    public void respond(Object data) throws IOException;
+    public void respond(byte[] data) throws IOException;
 }

@@ -17,27 +17,20 @@ public final class ClusterMessageSerializer extends Serializer<ClusterMessage> {
     }
 
     @Override
-    public void write(Kryo kryo, Output output, ClusterMessage object) {
-        kryo.writeClassAndObject(output, object.sender());
-        kryo.writeClassAndObject(output, object.subject());
-        // TODO: write bytes serialized using ClusterMessage specified serializer
-        // write serialized payload size
-        //output.writeInt(...);
-        // write serialized payload
-        //output.writeBytes(...);
+    public void write(Kryo kryo, Output output, ClusterMessage message) {
+        kryo.writeClassAndObject(output, message.sender());
+        kryo.writeClassAndObject(output, message.subject());
+        output.writeInt(message.payload().length);
+        output.writeBytes(message.payload());
     }
 
     @Override
     public ClusterMessage read(Kryo kryo, Input input,
                                Class<ClusterMessage> type) {
-        // TODO Auto-generated method stub
         NodeId sender = (NodeId) kryo.readClassAndObject(input);
         MessageSubject subject = (MessageSubject) kryo.readClassAndObject(input);
-        int size = input.readInt();
-        byte[] payloadBytes = input.readBytes(size);
-        // TODO: deserialize payload using ClusterMessage specified serializer
-        Object payload = null;
+        int payloadSize = input.readInt();
+        byte[] payload = input.readBytes(payloadSize);
         return new ClusterMessage(sender, subject, payload);
     }
-
 }

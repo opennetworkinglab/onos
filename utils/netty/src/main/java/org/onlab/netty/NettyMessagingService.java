@@ -43,7 +43,7 @@ public class NettyMessagingService implements MessagingService {
     private final EventLoopGroup bossGroup = new NioEventLoopGroup();
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
     private final ConcurrentMap<String, MessageHandler> handlers = new ConcurrentHashMap<>();
-    private final Cache<Long, AsyncResponse<?>> responseFutures = CacheBuilder.newBuilder()
+    private final Cache<Long, AsyncResponse> responseFutures = CacheBuilder.newBuilder()
             .maximumSize(100000)
             .weakValues()
             // TODO: Once the entry expires, notify blocking threads (if any).
@@ -51,8 +51,6 @@ public class NettyMessagingService implements MessagingService {
             .build();
     private final GenericKeyedObjectPool<Endpoint, Channel> channels
             = new GenericKeyedObjectPool<Endpoint, Channel>(new OnosCommunicationChannelFactory());
-
-    protected PayloadSerializer payloadSerializer;
 
     public NettyMessagingService() {
         // TODO: Default port should be configurable.
@@ -83,7 +81,7 @@ public class NettyMessagingService implements MessagingService {
     }
 
     @Override
-    public void sendAsync(Endpoint ep, String type, Object payload) throws IOException {
+    public void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException {
         InternalMessage message = new InternalMessage.Builder(this)
             .withId(RandomUtils.nextLong())
             .withSender(localEp)
@@ -108,9 +106,9 @@ public class NettyMessagingService implements MessagingService {
     }
 
     @Override
-    public <T> Response<T> sendAndReceive(Endpoint ep, String type, Object payload)
+    public Response sendAndReceive(Endpoint ep, String type, byte[] payload)
             throws IOException {
-        AsyncResponse<T> futureResponse = new AsyncResponse<T>();
+        AsyncResponse futureResponse = new AsyncResponse();
         Long messageId = RandomUtils.nextLong();
         responseFutures.put(messageId, futureResponse);
         InternalMessage message = new InternalMessage.Builder(this)
@@ -131,11 +129,6 @@ public class NettyMessagingService implements MessagingService {
 
     public void unregisterHandler(String type) {
         handlers.remove(type);
-    }
-
-    @Override
-    public void setPayloadSerializer(PayloadSerializer payloadSerializer) {
-        this.payloadSerializer = payloadSerializer;
     }
 
     private MessageHandler getMessageHandler(String type) {
@@ -202,13 +195,13 @@ public class NettyMessagingService implements MessagingService {
     private class OnosCommunicationChannelInitializer extends ChannelInitializer<SocketChannel> {
 
         private final ChannelHandler dispatcher = new InboundMessageDispatcher();
-        private final ChannelHandler encoder = new MessageEncoder(payloadSerializer);
+        private final ChannelHandler encoder = new MessageEncoder();
 
         @Override
         protected void initChannel(SocketChannel channel) throws Exception {
             channel.pipeline()
                 .addLast("encoder", encoder)
-                .addLast("decoder", new MessageDecoder(NettyMessagingService.this, payloadSerializer))
+                .addLast("decoder", new MessageDecoder(NettyMessagingService.this))
                 .addLast("handler", dispatcher);
         }
     }
@@ -237,7 +230,7 @@ public class NettyMessagingService implements MessagingService {
             String type = message.type();
             if (type.equals(InternalMessage.REPLY_MESSAGE_TYPE)) {
                 try {
-                    AsyncResponse<?> futureResponse =
+                    AsyncResponse futureResponse =
                         NettyMessagingService.this.responseFutures.getIfPresent(message.id());
                     if (futureResponse != null) {
                         futureResponse.setResponse(message.payload());

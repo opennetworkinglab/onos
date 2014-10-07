@@ -11,10 +11,10 @@ public interface MessagingService {
      * The message is specified using the type and payload.
      * @param ep end point to send the message to.
      * @param type type of message.
-     * @param payload message payload.
+     * @param payload message payload bytes.
      * @throws IOException
      */
-    public void sendAsync(Endpoint ep, String type, Object payload) throws IOException;
+    public void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException;
 
     /**
      * Sends a message synchronously and waits for a response.
@@ -24,7 +24,7 @@ public interface MessagingService {
      * @return a response future
      * @throws IOException
      */
-    public <T> Response<T> sendAndReceive(Endpoint ep, String type, Object payload) throws IOException;
+    public Response sendAndReceive(Endpoint ep, String type, byte[] payload) throws IOException;
 
     /**
      * Registers a new message handler for message type.
@@ -38,12 +38,4 @@ public interface MessagingService {
      * @param type message type
      */
     public void unregisterHandler(String type);
-
-    // FIXME: remove me and add PayloadSerializer to all other methods
-    /**
-     * Specify the serializer to use for encoding/decoding payload.
-     *
-     * @param payloadSerializer payloadSerializer to use
-     */
-    public void setPayloadSerializer(PayloadSerializer payloadSerializer);
 }
