@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +32,7 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.packet.OutboundPacket;
@@ -50,12 +52,13 @@ import com.google.common.collect.Sets;
  */
 public class ProxyArpManagerTest {
 
-    private static final int NUM_DEVICES = 4;
+    private static final int NUM_DEVICES = 6;
     private static final int NUM_PORTS_PER_DEVICE = 3;
-    private static final int NUM_FLOOD_PORTS = 4;
+    private static final int NUM_ADDRESS_PORTS = NUM_DEVICES / 2;
+    private static final int NUM_FLOOD_PORTS = 3;
 
-    private static final IpPrefix IP1 = IpPrefix.valueOf("10.0.0.1/24");
-    private static final IpPrefix IP2 = IpPrefix.valueOf("10.0.0.2/24");
+    private static final IpPrefix IP1 = IpPrefix.valueOf("192.168.1.1/24");
+    private static final IpPrefix IP2 = IpPrefix.valueOf("192.168.1.2/24");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
@@ -104,6 +107,9 @@ public class ProxyArpManagerTest {
      * The default topology is a unidirectional ring topology. Each switch has
      * 3 ports. Ports 2 and 3 have the links to neighbor switches, and port 1
      * is free (edge port).
+     * The first half of the switches have IP addresses configured on their
+     * free ports (port 1). The second half of the switches have no IP
+     * addresses configured.
      */
     private void createTopology() {
         deviceService = createMock(DeviceService.class);
@@ -114,6 +120,7 @@ public class ProxyArpManagerTest {
 
         createDevices(NUM_DEVICES, NUM_PORTS_PER_DEVICE);
         createLinks(NUM_DEVICES);
+        addAddressBindings();
     }
 
     /**
@@ -138,10 +145,11 @@ public class ProxyArpManagerTest {
                 ports.add(port);
             }
 
-            expect(deviceService.getPorts(devId)).andReturn(ports);
+            expect(deviceService.getPorts(devId)).andReturn(ports).anyTimes();
+            expect(deviceService.getDevice(devId)).andReturn(device).anyTimes();
         }
 
-        expect(deviceService.getDevices()).andReturn(devices);
+        expect(deviceService.getDevices()).andReturn(devices).anyTimes();
         replay(deviceService);
     }
 
@@ -171,6 +179,31 @@ public class ProxyArpManagerTest {
 
         expect(linkService.getLinks()).andReturn(links).anyTimes();
         replay(linkService);
+    }
+
+    private void addAddressBindings() {
+        Set<PortAddresses> addresses = Sets.newHashSet();
+
+        for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
+            ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
+            IpPrefix prefix1 = IpPrefix.valueOf("10.0." + (2 * i - 1) + ".1/24");
+            IpPrefix prefix2 = IpPrefix.valueOf("10.0." + (2 * i) + ".1/24");
+            PortAddresses pa = new PortAddresses(cp,
+                    Sets.newHashSet(prefix1, prefix2), MacAddress.valueOf(i));
+            addresses.add(pa);
+
+            expect(hostService.getAddressBindingsForPort(cp))
+                    .andReturn(pa).anyTimes();
+        }
+
+        expect(hostService.getAddressBindings()).andReturn(addresses).anyTimes();
+
+        for (int i = 1; i <= NUM_FLOOD_PORTS; i++) {
+            ConnectPoint cp = new ConnectPoint(getDeviceId(i + NUM_ADDRESS_PORTS),
+                    P1);
+            expect(hostService.getAddressBindingsForPort(cp))
+                    .andReturn(new PortAddresses(cp, null, null)).anyTimes();
+        }
     }
 
     /**
@@ -210,10 +243,10 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyKnown() {
-        Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN1, LOC2,
+        Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(4),
                 Collections.singleton(IP1));
 
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
+        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
                 Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IpPrefix.valueOf(IP1.toOctets())))
@@ -224,11 +257,11 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
-        proxyArp.reply(arpRequest);
+        proxyArp.reply(arpRequest, getLocation(5));
 
         assertEquals(1, packetService.packets.size());
         Ethernet arpReply = buildArp(ARP.OP_REPLY, MAC1, MAC2, IP1, IP2);
-        verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
+        verifyPacketOut(arpReply, getLocation(5), packetService.packets.get(0));
     }
 
     /**
@@ -238,7 +271,7 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyUnknown() {
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
+        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
                 Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IpPrefix.valueOf(IP1.toOctets())))
@@ -249,7 +282,7 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
-        proxyArp.reply(arpRequest);
+        proxyArp.reply(arpRequest, getLocation(5));
 
         verifyFlood(arpRequest);
     }
@@ -262,10 +295,10 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyDifferentVlan() {
-        Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN2, LOC2,
+        Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN2, getLocation(4),
                 Collections.singleton(IP1));
 
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
+        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
                 Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IpPrefix.valueOf(IP1.toOctets())))
@@ -276,9 +309,82 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
-        proxyArp.reply(arpRequest);
+        proxyArp.reply(arpRequest, getLocation(5));
 
         verifyFlood(arpRequest);
+    }
+
+    @Test
+    public void testReplyToRequestForUs() {
+        IpPrefix theirIp = IpPrefix.valueOf("10.0.1.254/24");
+        IpPrefix ourFirstIp = IpPrefix.valueOf("10.0.1.1/24");
+        IpPrefix ourSecondIp = IpPrefix.valueOf("10.0.2.1/24");
+        MacAddress ourMac = MacAddress.valueOf(1L);
+
+        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
+                Collections.singleton(theirIp));
+
+        expect(hostService.getHost(HID2)).andReturn(requestor);
+        replay(hostService);
+
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, theirIp, ourFirstIp);
+
+        proxyArp.reply(arpRequest, LOC1);
+
+        assertEquals(1, packetService.packets.size());
+        Ethernet arpReply = buildArp(ARP.OP_REPLY, ourMac, MAC2, ourFirstIp, theirIp);
+        verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
+
+        // Test a request for the second address on that port
+        packetService.packets.clear();
+        arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, theirIp, ourSecondIp);
+
+        proxyArp.reply(arpRequest, LOC1);
+
+        assertEquals(1, packetService.packets.size());
+        arpReply = buildArp(ARP.OP_REPLY, ourMac, MAC2, ourSecondIp, theirIp);
+        verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
+    }
+
+    @Test
+    public void testReplyExternalPortBadRequest() {
+        replay(hostService); // no further host service expectations
+
+        IpPrefix theirIp = IpPrefix.valueOf("10.0.1.254/24");
+
+        // Request for a valid external IP address but coming in the wrong port
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp,
+                IpPrefix.valueOf("10.0.3.1"));
+        proxyArp.reply(arpRequest, LOC1);
+        assertEquals(0, packetService.packets.size());
+
+        // Request for a valid internal IP address but coming in an external port
+        packetService.packets.clear();
+        arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp, IP1);
+        proxyArp.reply(arpRequest, LOC1);
+        assertEquals(0, packetService.packets.size());
+    }
+
+    @Test
+    public void testReplyToRequestFromUs() {
+        replay(hostService); // no further host service expectations
+
+        IpPrefix ourIp = IpPrefix.valueOf("10.0.1.1/24");
+        MacAddress ourMac = MacAddress.valueOf(1L);
+        IpPrefix theirIp = IpPrefix.valueOf("10.0.1.100/24");
+
+        // This is a request from something inside our network (like a BGP
+        // daemon) to an external host.
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, ourMac, null, ourIp, theirIp);
+        proxyArp.reply(arpRequest, getLocation(5));
+
+        assertEquals(1, packetService.packets.size());
+        verifyPacketOut(arpRequest, getLocation(1), packetService.packets.get(0));
+
+        // The same request from a random external port should fail
+        packetService.packets.clear();
+        proxyArp.reply(arpRequest, getLocation(2));
+        assertEquals(0, packetService.packets.size());
     }
 
     /**
@@ -338,7 +444,8 @@ public class ProxyArpManagerTest {
             });
 
         for (int i = 0; i < NUM_FLOOD_PORTS; i++) {
-            ConnectPoint cp = new ConnectPoint(getDeviceId(i + 1), PortNumber.portNumber(1));
+            ConnectPoint cp = new ConnectPoint(getDeviceId(NUM_ADDRESS_PORTS + i + 1),
+                    PortNumber.portNumber(1));
 
             OutboundPacket outboundPacket = packetService.packets.get(i);
             verifyPacketOut(packet, cp, outboundPacket);
@@ -370,6 +477,10 @@ public class ProxyArpManagerTest {
      */
     private static DeviceId getDeviceId(int i) {
         return DeviceId.deviceId("" + i);
+    }
+
+    private static HostLocation getLocation(int i) {
+        return new HostLocation(new ConnectPoint(getDeviceId(i), P1), 123L);
     }
 
     /**

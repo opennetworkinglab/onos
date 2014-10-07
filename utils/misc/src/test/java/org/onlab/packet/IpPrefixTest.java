@@ -108,5 +108,10 @@ public class IpPrefixTest {
         IpAddress addr = IpAddress.valueOf("192.168.10.1");
 
         assertTrue(intf.contains(addr));
+
+        IpPrefix intf1 = IpPrefix.valueOf("10.0.0.101/24");
+        IpAddress addr1 = IpAddress.valueOf("10.0.0.4");
+
+        assertTrue(intf1.contains(addr1));
     }
 }

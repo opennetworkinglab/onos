@@ -1,5 +1,6 @@
 package org.onlab.onos.net.proxyarp;
 
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
@@ -23,8 +24,9 @@ public interface ProxyArpService {
      * will be flooded at all edge ports.
      *
      * @param eth an arp request
+     * @param inPort the port the request was received on
      */
-    void reply(Ethernet eth);
+    void reply(Ethernet eth, ConnectPoint inPort);
 
     /**
      * Forwards an ARP request to its destination. Floods at the edge the ARP request if the

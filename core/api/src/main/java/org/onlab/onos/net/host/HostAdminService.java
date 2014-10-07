@@ -1,7 +1,5 @@
 package org.onlab.onos.net.host;
 
-import java.util.Set;
-
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.HostId;
 
@@ -47,20 +45,4 @@ public interface HostAdminService {
      */
     void clearAddresses(ConnectPoint connectPoint);
 
-    /**
-     * Returns the addresses information for all connection points.
-     *
-     * @return the set of address bindings for all connection points
-     */
-    Set<PortAddresses> getAddressBindings();
-
-    /**
-     * Retrieves the addresses that have been bound to the given connection
-     * point.
-     *
-     * @param connectPoint the connection point to retrieve address bindings
-     * for
-     * @return addresses bound to the port
-     */
-    PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint);
 }
