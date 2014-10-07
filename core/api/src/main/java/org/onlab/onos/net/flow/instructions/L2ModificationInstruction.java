@@ -2,6 +2,8 @@ package org.onlab.onos.net.flow.instructions;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Objects;
+
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -74,6 +76,25 @@ public abstract class L2ModificationInstruction implements Instruction {
                     .add("mac", mac).toString();
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(mac, subtype);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModEtherInstruction) {
+                ModEtherInstruction that = (ModEtherInstruction) obj;
+                return  Objects.equals(mac, that.mac) &&
+                        Objects.equals(subtype, that.subtype);
+
+            }
+            return false;
+        }
+
 
     }
 
@@ -103,6 +124,25 @@ public abstract class L2ModificationInstruction implements Instruction {
                     .add("id", vlanId).toString();
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(vlanId, subtype());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModVlanIdInstruction) {
+                ModVlanIdInstruction that = (ModVlanIdInstruction) obj;
+                return  Objects.equals(vlanId, that.vlanId);
+
+            }
+            return false;
+        }
+
+
     }
 
     /**
@@ -129,6 +169,24 @@ public abstract class L2ModificationInstruction implements Instruction {
         public String toString() {
             return toStringHelper(subtype().toString())
                     .add("pcp", Long.toHexString(vlanPcp)).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(vlanPcp, subtype());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModVlanPcpInstruction) {
+                ModVlanPcpInstruction that = (ModVlanPcpInstruction) obj;
+                return  Objects.equals(vlanPcp, that.vlanPcp);
+
+            }
+            return false;
         }
 
     }

@@ -1,6 +1,25 @@
 package org.onlab.onos.net.intent.impl;
 
-import com.google.common.collect.ImmutableMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.onos.net.intent.IntentState.COMPILING;
+import static org.onlab.onos.net.intent.IntentState.FAILED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLING;
+import static org.onlab.onos.net.intent.IntentState.RECOMPILING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,20 +44,7 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.onos.net.intent.IntentState.*;
-import static org.onlab.util.Tools.delay;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * An implementation of Intent Manager.
@@ -61,7 +67,7 @@ public class IntentManager
     private final AbstractListenerRegistry<IntentEvent, IntentListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private ExecutorService executor = newSingleThreadExecutor(namedThreads("onos-intents"));
+    private final ExecutorService executor = newSingleThreadExecutor(namedThreads("onos-intents"));
 
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
     private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
@@ -417,7 +423,7 @@ public class IntentManager
             for (IntentId intentId : intentIds) {
                 Intent intent = getIntent(intentId);
                 uninstallIntent(intent);
-                delay(1000);
+
                 executeRecompilingPhase(intent);
             }
 
