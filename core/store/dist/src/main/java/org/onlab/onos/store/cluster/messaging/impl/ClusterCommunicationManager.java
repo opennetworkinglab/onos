@@ -30,6 +30,7 @@ import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
+import org.onlab.netty.NettyMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,6 @@ public class ClusterCommunicationManager
     public static final long HEART_BEAT_INTERVAL_MILLIS = 1000L;
 
     // TODO: This probably should not be a OSGi service.
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private MessagingService messagingService;
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
@@ -65,11 +65,7 @@ public class ClusterCommunicationManager
 
     @Activate
     public void activate() {
-        // TODO: initialize messagingService
-        // TODO: setPayloadSerializer, which is capable of
-        //  (1) serialize ClusterMessage - ClusterMessage.payload
-        //  (2) serialize ClusterMessage.payload using user specified serializer
-//        messagingService.setPayloadSerializer(...);
+        messagingService = new NettyMessagingService(localNode.tcpPort());
         log.info("Started");
     }
 
