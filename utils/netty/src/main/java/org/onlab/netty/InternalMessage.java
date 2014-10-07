@@ -55,7 +55,7 @@ public final class InternalMessage implements Message {
     /**
      * Builder for InternalMessages.
      */
-    public static class Builder {
+    public static final class Builder {
         private InternalMessage message;
 
         public Builder(NettyMessagingService messagingService) {
