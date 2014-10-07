@@ -113,7 +113,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         @Override
         public void run() {
             if (event.reasons() == null) {
-                delegate.triggerCompile(null, false);
+                delegate.triggerCompile(null, true);
 
             } else {
                 Set<IntentId> toBeRecompiled = new HashSet<>();

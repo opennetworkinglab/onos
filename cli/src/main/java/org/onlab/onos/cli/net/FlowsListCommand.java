@@ -1,6 +1,7 @@
 package org.onlab.onos.cli.net;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.onlab.onos.cli.net.DevicesListCommand.getSortedDevices;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +65,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         if (state != null && !state.equals("any")) {
             s = FlowEntryState.valueOf(state.toUpperCase());
         }
-        Iterable<Device> devices = uri == null ?  deviceService.getDevices() :
+        Iterable<Device> devices = uri == null ?  getSortedDevices(deviceService) :
             Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
         for (Device d : devices) {
             if (s == null) {

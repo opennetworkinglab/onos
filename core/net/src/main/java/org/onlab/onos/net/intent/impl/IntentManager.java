@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.onos.net.intent.IntentState.*;
+import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -226,6 +227,8 @@ public class IntentManager
             executeInstallingPhase(intent);
 
         } catch (Exception e) {
+            log.warn("Unable to compile intent {} due to: {}", intent.id(), e);
+
             // If compilation failed, mark the intent as failed.
             store.setState(intent, FAILED);
         }
@@ -238,8 +241,6 @@ public class IntentManager
         for (Intent compiled : getCompiler(intent).compile(intent)) {
             InstallableIntent installableIntent = (InstallableIntent) compiled;
             installable.add(installableIntent);
-            trackerService.addTrackedResources(intent.id(),
-                                               installableIntent.requiredLinks());
         }
         return installable;
     }
@@ -259,12 +260,17 @@ public class IntentManager
             if (installables != null) {
                 for (InstallableIntent installable : installables) {
                     registerSubclassInstallerIfNeeded(installable);
+                    trackerService.addTrackedResources(intent.id(),
+                                                       installable.requiredLinks());
                     getInstaller(installable).install(installable);
                 }
             }
             eventDispatcher.post(store.setState(intent, INSTALLED));
 
         } catch (Exception e) {
+            log.warn("Unable to install intent {} due to: {}", intent.id(), e);
+            uninstallIntent(intent);
+
             // If compilation failed, kick off the recompiling phase.
             executeRecompilingPhase(intent);
         }
@@ -299,6 +305,8 @@ public class IntentManager
                 executeInstallingPhase(intent);
             }
         } catch (Exception e) {
+            log.warn("Unable to recompile intent {} due to: {}", intent.id(), e);
+
             // If compilation failed, mark the intent as failed.
             eventDispatcher.post(store.setState(intent, FAILED));
         }
@@ -313,17 +321,30 @@ public class IntentManager
     private void executeWithdrawingPhase(Intent intent) {
         // Indicate that the intent is being withdrawn.
         store.setState(intent, WITHDRAWING);
-        List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
-        if (installables != null) {
-            for (InstallableIntent installable : installables) {
-                getInstaller(installable).uninstall(installable);
-            }
-        }
+        uninstallIntent(intent);
 
         // If all went well, disassociate the top-level intent with its
         // installable derivatives and mark it as withdrawn.
         store.removeInstalledIntents(intent.id());
         eventDispatcher.post(store.setState(intent, WITHDRAWN));
+    }
+
+    /**
+     * Uninstalls all installable intents associated with the given intent.
+     *
+     * @param intent intent to be uninstalled
+     */
+    private void uninstallIntent(Intent intent) {
+        try {
+            List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
+            if (installables != null) {
+                for (InstallableIntent installable : installables) {
+                    getInstaller(installable).uninstall(installable);
+                }
+            }
+        } catch (IntentException e) {
+            log.warn("Unable to uninstall intent {} due to: {}", intent.id(), e);
+        }
     }
 
     /**
@@ -394,7 +415,10 @@ public class IntentManager
                                    boolean compileAllFailed) {
             // Attempt recompilation of the specified intents first.
             for (IntentId intentId : intentIds) {
-                executeRecompilingPhase(getIntent(intentId));
+                Intent intent = getIntent(intentId);
+                uninstallIntent(intent);
+                delay(1000);
+                executeRecompilingPhase(intent);
             }
 
             if (compileAllFailed) {

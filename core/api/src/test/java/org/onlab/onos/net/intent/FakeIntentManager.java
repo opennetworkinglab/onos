@@ -128,7 +128,7 @@ public class FakeIntentManager implements TestableIntentService {
             setState(intent, IntentState.WITHDRAWN);
             dispatch(new IntentEvent(IntentEvent.Type.WITHDRAWN, intent));
         } catch (IntentException e) {
-            // FIXME: Do we really want to do this?
+            // FIXME: Rework this to always go from WITHDRAWING to WITHDRAWN!
             setState(intent, IntentState.FAILED);
             dispatch(new IntentEvent(IntentEvent.Type.FAILED, intent));
         }
