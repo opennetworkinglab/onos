@@ -5,6 +5,10 @@ import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.impl.Timestamped;
 
+/**
+ * Information published by GossipDeviceStore to notify peers of a device
+ * change event.
+ */
 public class InternalDeviceEvent {
 
     private final ProviderId providerId;

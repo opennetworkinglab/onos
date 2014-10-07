@@ -5,6 +5,10 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.impl.Timestamped;
 
+/**
+ * Information published by GossipDeviceStore to notify peers of a port
+ * status change event.
+ */
 public class InternalPortStatusEvent {
 
     private final ProviderId providerId;
