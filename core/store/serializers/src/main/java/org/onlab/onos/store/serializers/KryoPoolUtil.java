@@ -2,6 +2,7 @@ package org.onlab.onos.store.serializers;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.onlab.onos.cluster.ControllerNode;
@@ -21,6 +22,8 @@ import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.device.DefaultDeviceDescription;
+import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -47,6 +50,7 @@ public final class KryoPoolUtil {
             .register(
                     //
                     ArrayList.class,
+                    Arrays.asList().getClass(),
                     HashMap.class,
                     //
                     ControllerNode.State.class,
@@ -54,8 +58,10 @@ public final class KryoPoolUtil {
                     DefaultAnnotations.class,
                     DefaultControllerNode.class,
                     DefaultDevice.class,
+                    DefaultDeviceDescription.class,
                     MastershipRole.class,
                     Port.class,
+                    DefaultPortDescription.class,
                     Element.class,
                     Link.Type.class
                     )

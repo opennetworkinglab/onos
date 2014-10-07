@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
 public class KryoSerializer implements Serializer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private KryoPool serializerPool;
+    protected KryoPool serializerPool;
 
 
     public KryoSerializer() {

@@ -12,6 +12,6 @@ public class LoggingHandler implements MessageHandler {
 
     @Override
     public void handle(Message message) {
-        log.info("Received message. Payload: " + message.payload());
+        log.info("Received message. Payload has {} bytes", message.payload().length);
     }
 }

@@ -24,7 +24,7 @@ public final class SimpleClient {
         final int warmup = 100;
         for (int i = 0; i < warmup; i++) {
             Timer.Context context = sendAsyncTimer.time();
-            messaging.sendAsync(new Endpoint("localhost", 8080), "simple", "Hello World");
+            messaging.sendAsync(new Endpoint("localhost", 8080), "simple", "Hello World".getBytes());
             context.stop();
         }
         metrics.registerMetric(component, feature, "AsyncTimer", sendAsyncTimer);
@@ -33,10 +33,10 @@ public final class SimpleClient {
         final int iterations = 1000000;
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAndReceiveTimer.time();
-            Response<String> response = messaging
+            Response response = messaging
                     .sendAndReceive(new Endpoint("localhost", 8080), "echo",
-                                    "Hello World");
-            System.out.println("Got back:" + response.get(2, TimeUnit.SECONDS));
+                                    "Hello World".getBytes());
+            System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
             context.stop();
         }
         metrics.registerMetric(component, feature, "AsyncTimer", sendAndReceiveTimer);
@@ -45,8 +45,6 @@ public final class SimpleClient {
     public static class TestNettyMessagingService extends NettyMessagingService {
         public TestNettyMessagingService(int port) throws Exception {
             super(port);
-            PayloadSerializer payloadSerializer = new KryoSerializer();
-            this.payloadSerializer = payloadSerializer;
         }
     }
 }

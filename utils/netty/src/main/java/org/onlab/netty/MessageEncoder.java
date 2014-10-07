@@ -17,11 +17,7 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
     public static final int SERIALIZER_VERSION = 1;
 
 
-    private final PayloadSerializer payloadSerializer;
-
-    public MessageEncoder(PayloadSerializer payloadSerializer) {
-        this.payloadSerializer = payloadSerializer;
-    }
+    private static final KryoSerializer SERIALIZER = new KryoSerializer();
 
     @Override
     protected void encode(
@@ -35,7 +31,12 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         // write preamble
         out.writeBytes(PREAMBLE);
 
-        byte[] payload = payloadSerializer.encode(message);
+        try {
+            SERIALIZER.encode(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        byte[] payload = SERIALIZER.encode(message);
 
         // write payload length
         out.writeInt(payload.length);

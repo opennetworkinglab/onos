@@ -13,11 +13,9 @@ public final class InternalMessage implements Message {
     private long id;
     private Endpoint sender;
     private String type;
-    private Object payload;
-
+    private byte[] payload;
     private transient NettyMessagingService messagingService;
-    // TODO: add transient payload serializer or change payload type to
-    //       byte[], ByteBuffer, etc.
+    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGIG_REQUEST_REPLY";
 
     // Must be created using the Builder.
     private InternalMessage() {}
@@ -35,7 +33,7 @@ public final class InternalMessage implements Message {
     }
 
     @Override
-    public Object payload() {
+    public byte[] payload() {
         return payload;
     }
 
@@ -44,7 +42,7 @@ public final class InternalMessage implements Message {
     }
 
     @Override
-    public void respond(Object data) throws IOException {
+    public void respond(byte[] data) throws IOException {
         Builder builder = new Builder(messagingService);
         InternalMessage message = builder.withId(this.id)
              // FIXME: Sender should be messagingService.localEp.
@@ -81,7 +79,7 @@ public final class InternalMessage implements Message {
             message.sender = sender;
             return this;
         }
-        public Builder withPayload(Object payload) {
+        public Builder withPayload(byte[] payload) {
             message.payload = payload;
             return this;
         }
