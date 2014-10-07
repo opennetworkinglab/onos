@@ -7,11 +7,9 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableSet;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterStore;
 import org.onlab.onos.cluster.ClusterStoreDelegate;
@@ -37,8 +35,8 @@ import static org.onlab.packet.IpPrefix.valueOf;
 /**
  * Distributed implementation of the cluster nodes store.
  */
-@Component(immediate = true)
-@Service
+//@Component(immediate = true)
+//@Service
 public class DistributedClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
         implements ClusterStore {
