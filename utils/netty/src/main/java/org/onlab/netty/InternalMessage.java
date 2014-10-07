@@ -15,7 +15,6 @@ public final class InternalMessage implements Message {
     private String type;
     private byte[] payload;
     private transient NettyMessagingService messagingService;
-    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGIG_REQUEST_REPLY";
 
     // Must be created using the Builder.
     private InternalMessage() {}
