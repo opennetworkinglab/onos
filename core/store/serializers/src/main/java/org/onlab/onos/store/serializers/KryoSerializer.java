@@ -1,9 +1,5 @@
 package org.onlab.onos.store.serializers;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,25 +7,16 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 
 /**
- * Serialization service using Kryo.
+ * Serializer implementation using Kryo.
  */
-@Component(immediate = true)
-@Service
-public class KryoSerializationManager implements KryoSerializationService {
+public class KryoSerializer implements Serializer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private KryoPool serializerPool;
+    protected KryoPool serializerPool;
 
 
-    @Activate
-    public void activate() {
+    public KryoSerializer() {
         setupKryoPool();
-        log.info("Started");
-    }
-
-    @Deactivate
-    public void deactivate() {
-        log.info("Stopped");
     }
 
     /**
@@ -43,12 +30,12 @@ public class KryoSerializationManager implements KryoSerializationService {
     }
 
     @Override
-    public byte[] serialize(final Object obj) {
+    public byte[] encode(final Object obj) {
         return serializerPool.serialize(obj);
     }
 
     @Override
-    public <T> T deserialize(final byte[] bytes) {
+    public <T> T decode(final byte[] bytes) {
         if (bytes == null) {
             return null;
         }
@@ -56,12 +43,12 @@ public class KryoSerializationManager implements KryoSerializationService {
     }
 
     @Override
-    public void serialize(Object obj, ByteBuffer buffer) {
+    public void encode(Object obj, ByteBuffer buffer) {
         serializerPool.serialize(obj, buffer);
     }
 
     @Override
-    public <T> T deserialize(ByteBuffer buffer) {
+    public <T> T decode(ByteBuffer buffer) {
         return serializerPool.deserialize(buffer);
     }
 

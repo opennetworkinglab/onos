@@ -1,6 +1,25 @@
 package org.onlab.onos.net.intent.impl;
 
-import com.google.common.collect.ImmutableMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.onos.net.intent.IntentState.COMPILING;
+import static org.onlab.onos.net.intent.IntentState.FAILED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLING;
+import static org.onlab.onos.net.intent.IntentState.RECOMPILING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,15 +44,7 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.intent.IntentState.*;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * An implementation of Intent Manager.
@@ -56,6 +67,8 @@ public class IntentManager
     private final AbstractListenerRegistry<IntentEvent, IntentListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
+    private final ExecutorService executor = newSingleThreadExecutor(namedThreads("onos-intents"));
+
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
     private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
 
@@ -63,7 +76,7 @@ public class IntentManager
     protected IntentStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowTrackerService trackerService;
+    protected ObjectiveTrackerService trackerService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -89,21 +102,16 @@ public class IntentManager
         checkNotNull(intent, INTENT_NULL);
         registerSubclassCompilerIfNeeded(intent);
         IntentEvent event = store.createIntent(intent);
-        processStoreEvent(event);
+        if (event != null) {
+            eventDispatcher.post(event);
+            executor.execute(new IntentTask(COMPILING, intent));
+        }
     }
 
     @Override
     public void withdraw(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
-        IntentEvent event = store.setState(intent, WITHDRAWING);
-        List<InstallableIntent> installables = store.getInstallableIntents(intent.getId());
-        if (installables != null) {
-            for (InstallableIntent installable : installables) {
-                trackerService.removeTrackedResources(intent.getId(),
-                                                      installable.requiredLinks());
-            }
-        }
-        processStoreEvent(event);
+        executor.execute(new IntentTask(WITHDRAWING, intent));
     }
 
     // FIXME: implement this method
@@ -207,56 +215,142 @@ public class IntentManager
     }
 
     /**
-     * Compiles an intent.
+     * Compiles the specified intent.
      *
-     * @param intent intent
+     * @param intent intent to be compiled
      */
-    private void compileIntent(Intent intent) {
-        // FIXME: To make SDN-IP workable ASAP, only single level compilation is implemented
-        // TODO: implement compilation traversing tree structure
+    private void executeCompilingPhase(Intent intent) {
+        // Indicate that the intent is entering the compiling phase.
+        store.setState(intent, COMPILING);
+
+        try {
+            // Compile the intent into installable derivatives.
+            List<InstallableIntent> installable = compileIntent(intent);
+
+            // If all went well, associate the resulting list of installable
+            // intents with the top-level intent and proceed to install.
+            store.addInstallableIntents(intent.id(), installable);
+            executeInstallingPhase(intent);
+
+        } catch (Exception e) {
+            log.warn("Unable to compile intent {} due to: {}", intent.id(), e);
+
+            // If compilation failed, mark the intent as failed.
+            store.setState(intent, FAILED);
+        }
+    }
+
+    // FIXME: To make SDN-IP workable ASAP, only single level compilation is implemented
+    // TODO: implement compilation traversing tree structure
+    private List<InstallableIntent> compileIntent(Intent intent) {
         List<InstallableIntent> installable = new ArrayList<>();
         for (Intent compiled : getCompiler(intent).compile(intent)) {
             InstallableIntent installableIntent = (InstallableIntent) compiled;
             installable.add(installableIntent);
-            trackerService.addTrackedResources(intent.getId(),
-                                               installableIntent.requiredLinks());
         }
-        IntentEvent event = store.addInstallableIntents(intent.getId(), installable);
-        processStoreEvent(event);
+        return installable;
     }
 
     /**
-     * Installs an intent.
+     * Installs all installable intents associated with the specified top-level
+     * intent.
      *
-     * @param intent intent
+     * @param intent intent to be installed
      */
-    private void installIntent(Intent intent) {
-        List<InstallableIntent> installables = store.getInstallableIntents(intent.getId());
-        if (installables != null) {
-            for (InstallableIntent installable : installables) {
-                registerSubclassInstallerIfNeeded(installable);
-                getInstaller(installable).install(installable);
-            }
-        }
-        IntentEvent event = store.setState(intent, INSTALLED);
-        processStoreEvent(event);
+    private void executeInstallingPhase(Intent intent) {
+        // Indicate that the intent is entering the installing phase.
+        store.setState(intent, INSTALLING);
 
+        try {
+            List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
+            if (installables != null) {
+                for (InstallableIntent installable : installables) {
+                    registerSubclassInstallerIfNeeded(installable);
+                    trackerService.addTrackedResources(intent.id(),
+                                                       installable.requiredLinks());
+                    getInstaller(installable).install(installable);
+                }
+            }
+            eventDispatcher.post(store.setState(intent, INSTALLED));
+
+        } catch (Exception e) {
+            log.warn("Unable to install intent {} due to: {}", intent.id(), e);
+            uninstallIntent(intent);
+
+            // If compilation failed, kick off the recompiling phase.
+            executeRecompilingPhase(intent);
+        }
     }
 
     /**
-     * Uninstalls an intent.
+     * Recompiles the specified intent.
      *
-     * @param intent intent
+     * @param intent intent to be recompiled
+     */
+    private void executeRecompilingPhase(Intent intent) {
+        // Indicate that the intent is entering the recompiling phase.
+        store.setState(intent, RECOMPILING);
+
+        try {
+            // Compile the intent into installable derivatives.
+            List<InstallableIntent> installable = compileIntent(intent);
+
+            // If all went well, compare the existing list of installable
+            // intents with the newly compiled list. If they are the same,
+            // bail, out since the previous approach was determined not to
+            // be viable.
+            List<InstallableIntent> originalInstallable =
+                    store.getInstallableIntents(intent.id());
+
+            if (Objects.equals(originalInstallable, installable)) {
+                eventDispatcher.post(store.setState(intent, FAILED));
+            } else {
+                // Otherwise, re-associate the newly compiled installable intents
+                // with the top-level intent and kick off installing phase.
+                store.addInstallableIntents(intent.id(), installable);
+                executeInstallingPhase(intent);
+            }
+        } catch (Exception e) {
+            log.warn("Unable to recompile intent {} due to: {}", intent.id(), e);
+
+            // If compilation failed, mark the intent as failed.
+            eventDispatcher.post(store.setState(intent, FAILED));
+        }
+    }
+
+    /**
+     * Uninstalls the specified intent by uninstalling all of its associated
+     * installable derivatives.
+     *
+     * @param intent intent to be installed
+     */
+    private void executeWithdrawingPhase(Intent intent) {
+        // Indicate that the intent is being withdrawn.
+        store.setState(intent, WITHDRAWING);
+        uninstallIntent(intent);
+
+        // If all went well, disassociate the top-level intent with its
+        // installable derivatives and mark it as withdrawn.
+        store.removeInstalledIntents(intent.id());
+        eventDispatcher.post(store.setState(intent, WITHDRAWN));
+    }
+
+    /**
+     * Uninstalls all installable intents associated with the given intent.
+     *
+     * @param intent intent to be uninstalled
      */
     private void uninstallIntent(Intent intent) {
-        List<InstallableIntent> installables = store.getInstallableIntents(intent.getId());
-        if (installables != null) {
-            for (InstallableIntent installable : installables) {
-                getInstaller(installable).uninstall(installable);
+        try {
+            List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
+            if (installables != null) {
+                for (InstallableIntent installable : installables) {
+                    getInstaller(installable).uninstall(installable);
+                }
             }
+        } catch (IntentException e) {
+            log.warn("Unable to uninstall intent {} due to: {}", intent.id(), e);
         }
-        store.removeInstalledIntents(intent.getId());
-        store.setState(intent, WITHDRAWN);
     }
 
     /**
@@ -309,63 +403,61 @@ public class IntentManager
         }
     }
 
-    /**
-     * Handles state transition of submitted intents.
-     */
-    private void processStoreEvent(IntentEvent event) {
-        eventDispatcher.post(event);
-        Intent intent = event.getIntent();
-        try {
-            switch (event.getState()) {
-                case SUBMITTED:
-                    compileIntent(intent);
-                    break;
-                case COMPILED:
-                    installIntent(intent);
-                    break;
-                case INSTALLED:
-                    break;
-                case WITHDRAWING:
-                    uninstallIntent(intent);
-                    break;
-                case WITHDRAWN:
-                    break;
-                case FAILED:
-                    break;
-                default:
-                    throw new IllegalStateException("the state of IntentEvent is illegal: " +
-                                                            event.getState());
-            }
-        } catch (IntentException e) {
-            store.setState(intent, FAILED);
-        }
-
-    }
-
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements IntentStoreDelegate {
         @Override
         public void notify(IntentEvent event) {
-            processStoreEvent(event);
+            eventDispatcher.post(event);
+            if (event.type() == IntentEvent.Type.SUBMITTED) {
+                executor.execute(new IntentTask(COMPILING, event.subject()));
+            }
         }
     }
 
     // Topology change delegate
     private class InternalTopoChangeDelegate implements TopologyChangeDelegate {
         @Override
-        public void bumpIntents(Iterable<IntentId> intentIds) {
-            for (IntentId intentId : intentIds) {
-                compileIntent(getIntent(intentId));
-            }
-        }
-
-        @Override
-        public void failIntents(Iterable<IntentId> intentIds) {
+        public void triggerCompile(Iterable<IntentId> intentIds,
+                                   boolean compileAllFailed) {
+            // Attempt recompilation of the specified intents first.
             for (IntentId intentId : intentIds) {
                 Intent intent = getIntent(intentId);
                 uninstallIntent(intent);
-                compileIntent(intent);
+
+                executeRecompilingPhase(intent);
+            }
+
+            if (compileAllFailed) {
+                // If required, compile all currently failed intents.
+                for (Intent intent : getIntents()) {
+                    if (getIntentState(intent.id()) == FAILED) {
+                        executeCompilingPhase(intent);
+                    }
+                }
             }
         }
     }
+
+    // Auxiliary runnable to perform asynchronous tasks.
+    private class IntentTask implements Runnable {
+        private final IntentState state;
+        private final Intent intent;
+
+        public IntentTask(IntentState state, Intent intent) {
+            this.state = state;
+            this.intent = intent;
+        }
+
+        @Override
+        public void run() {
+            if (state == COMPILING) {
+                executeCompilingPhase(intent);
+            } else if (state == RECOMPILING) {
+                executeRecompilingPhase(intent);
+            } else if (state == WITHDRAWING) {
+                executeWithdrawingPhase(intent);
+            }
+        }
+    }
+
 }

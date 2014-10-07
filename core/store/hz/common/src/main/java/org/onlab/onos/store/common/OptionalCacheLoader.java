@@ -2,7 +2,7 @@ package org.onlab.onos.store.common;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.onlab.onos.store.serializers.KryoSerializationService;
+import org.onlab.onos.store.serializers.Serializer;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader;
@@ -18,28 +18,28 @@ import com.hazelcast.core.IMap;
 public final class OptionalCacheLoader<K, V> extends
         CacheLoader<K, Optional<V>> {
 
-    private final KryoSerializationService kryoSerializationService;
+    private final Serializer serializer;
     private IMap<byte[], byte[]> rawMap;
 
     /**
      * Constructor.
      *
-     * @param kryoSerializationService to use for serialization
+     * @param serializer to use for serialization
      * @param rawMap underlying IMap
      */
-    public OptionalCacheLoader(KryoSerializationService kryoSerializationService, IMap<byte[], byte[]> rawMap) {
-        this.kryoSerializationService = checkNotNull(kryoSerializationService);
+    public OptionalCacheLoader(Serializer serializer, IMap<byte[], byte[]> rawMap) {
+        this.serializer = checkNotNull(serializer);
         this.rawMap = checkNotNull(rawMap);
     }
 
     @Override
     public Optional<V> load(K key) throws Exception {
-        byte[] keyBytes = kryoSerializationService.serialize(key);
+        byte[] keyBytes = serializer.encode(key);
         byte[] valBytes = rawMap.get(keyBytes);
         if (valBytes == null) {
             return Optional.absent();
         }
-        V dev = kryoSerializationService.deserialize(valBytes);
+        V dev = serializer.decode(valBytes);
         return Optional.of(dev);
     }
 }

@@ -53,7 +53,7 @@ public abstract class ConnectivityIntent extends AbstractIntent {
      *
      * @return traffic match
      */
-    public TrafficSelector getTrafficSelector() {
+    public TrafficSelector selector() {
         return selector;
     }
 
@@ -62,7 +62,7 @@ public abstract class ConnectivityIntent extends AbstractIntent {
      *
      * @return applied action
      */
-    public TrafficTreatment getTrafficTreatment() {
+    public TrafficTreatment treatment() {
         return treatment;
     }
 

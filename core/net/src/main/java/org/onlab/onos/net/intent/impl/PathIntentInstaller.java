@@ -1,6 +1,7 @@
 package org.onlab.onos.net.intent.impl;
 
 import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Iterator;
 
@@ -21,12 +22,15 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.PathIntent;
+import org.slf4j.Logger;
 
 /**
  * Installer for {@link PathIntent path connectivity intents}.
  */
 @Component(immediate = true)
 public class PathIntentInstaller implements IntentInstaller<PathIntent> {
+
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -49,8 +53,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     @Override
     public void install(PathIntent intent) {
         TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.getTrafficSelector());
-        Iterator<Link> links = intent.getPath().links().iterator();
+                DefaultTrafficSelector.builder(intent.selector());
+        Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
 
         while (links.hasNext()) {
@@ -70,8 +74,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     @Override
     public void uninstall(PathIntent intent) {
         TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.getTrafficSelector());
-        Iterator<Link> links = intent.getPath().links().iterator();
+                DefaultTrafficSelector.builder(intent.selector());
+        Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
 
         while (links.hasNext()) {
@@ -82,6 +86,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment,
                     123, appId, 600);
+
             flowRuleService.removeFlowRules(rule);
             prev = link.dst();
         }

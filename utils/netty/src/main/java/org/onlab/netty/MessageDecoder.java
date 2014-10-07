@@ -14,14 +14,14 @@ import java.util.List;
 public class MessageDecoder extends ReplayingDecoder<DecoderState> {
 
     private final NettyMessagingService messagingService;
-    private final Serializer serializer;
+
+    private static final KryoSerializer SERIALIZER = new KryoSerializer();
 
     private int contentLength;
 
-    public MessageDecoder(NettyMessagingService messagingService, Serializer serializer) {
+    public MessageDecoder(NettyMessagingService messagingService) {
         super(DecoderState.READ_HEADER_VERSION);
         this.messagingService = messagingService;
-        this.serializer = serializer;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             checkState(serializerVersion == MessageEncoder.SERIALIZER_VERSION, "Unexpected serializer version");
             checkpoint(DecoderState.READ_CONTENT);
         case READ_CONTENT:
-            InternalMessage message = serializer.decode(buffer.readBytes(contentLength).nioBuffer());
+            InternalMessage message = SERIALIZER.decode(buffer.readBytes(contentLength).nioBuffer());
             message.setMessagingService(messagingService);
             out.add(message);
             checkpoint(DecoderState.READ_HEADER_VERSION);

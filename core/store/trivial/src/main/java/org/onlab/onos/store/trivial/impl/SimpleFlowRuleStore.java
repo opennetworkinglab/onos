@@ -57,6 +57,11 @@ public class SimpleFlowRuleStore
 
 
     @Override
+    public int getFlowRuleCount() {
+        return flowEntries.size();
+    }
+
+    @Override
     public synchronized FlowEntry getFlowEntry(FlowRule rule) {
         for (FlowEntry f : flowEntries.get(rule.deviceId())) {
             if (f.equals(rule)) {
@@ -98,6 +103,7 @@ public class SimpleFlowRuleStore
     public synchronized void deleteFlowRule(FlowRule rule) {
         FlowEntry entry = getFlowEntry(rule);
         if (entry == null) {
+            //log.warn("Cannot find rule {}", rule);
             return;
         }
         entry.setState(FlowEntryState.PENDING_REMOVE);
@@ -120,7 +126,7 @@ public class SimpleFlowRuleStore
             return new FlowRuleEvent(Type.RULE_UPDATED, rule);
         }
 
-        flowEntries.put(did, rule);
+        //flowEntries.put(did, rule);
         return null;
     }
 

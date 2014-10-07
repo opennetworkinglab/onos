@@ -1,4 +1,4 @@
-package org.onlab.onos.store.cluster.impl;
+package org.onlab.onos.store.cluster.messaging.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -52,7 +52,7 @@ public class MessageSerializer implements SerializationService {
 
 
     @Override
-    public Object decode(byte[] data) {
+    public <T> T decode(byte[] data) {
         return serializerPool.deserialize(data);
     }
 

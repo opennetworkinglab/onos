@@ -46,7 +46,7 @@ public class PathIntent extends PointToPointIntent implements InstallableIntent 
      *
      * @return traversed links
      */
-    public Path getPath() {
+    public Path path() {
         return path;
     }
 
@@ -79,11 +79,11 @@ public class PathIntent extends PointToPointIntent implements InstallableIntent 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("id", getId())
-                .add("match", getTrafficSelector())
-                .add("action", getTrafficTreatment())
-                .add("ingressPort", getIngressPort())
-                .add("egressPort", getEgressPort())
+                .add("id", id())
+                .add("match", selector())
+                .add("action", treatment())
+                .add("ingressPort", ingressPoint())
+                .add("egressPort", egressPoint())
                 .add("path", path)
                 .toString();
     }

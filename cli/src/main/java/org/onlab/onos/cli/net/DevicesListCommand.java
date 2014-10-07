@@ -35,7 +35,7 @@ public class DevicesListCommand extends AbstractShellCommand {
      * @param service device service
      * @return sorted device list
      */
-    protected List<Device> getSortedDevices(DeviceService service) {
+    protected static List<Device> getSortedDevices(DeviceService service) {
         List<Device> devices = newArrayList(service.getDevices());
         Collections.sort(devices, Comparators.ELEMENT_COMPARATOR);
         return devices;

@@ -80,9 +80,9 @@ public class HostToHostIntent extends ConnectivityIntent {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("id", getId())
-                .add("selector", getTrafficSelector())
-                .add("treatment", getTrafficTreatment())
+                .add("id", id())
+                .add("selector", selector())
+                .add("treatment", treatment())
                 .add("one", one)
                 .add("two", two)
                 .toString();

@@ -30,9 +30,6 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
-import org.onlab.onos.store.serializers.KryoSerializationManager;
-import org.onlab.onos.store.serializers.KryoSerializationService;
-
 import com.google.common.collect.Iterables;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -51,7 +48,6 @@ public class DistributedLinkStoreTest {
     private static final PortNumber P3 = PortNumber.portNumber(3);
 
     private StoreManager storeManager;
-    private KryoSerializationManager serializationMgr;
 
     private DistributedLinkStore linkStore;
 
@@ -71,17 +67,13 @@ public class DistributedLinkStoreTest {
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
 
-        serializationMgr = new KryoSerializationManager();
-        serializationMgr.activate();
-
-        linkStore = new TestDistributedLinkStore(storeManager, serializationMgr);
+        linkStore = new TestDistributedLinkStore(storeManager);
         linkStore.activate();
     }
 
     @After
     public void tearDown() throws Exception {
         linkStore.deactivate();
-        serializationMgr.deactivate();
         storeManager.deactivate();
     }
 
@@ -361,10 +353,8 @@ public class DistributedLinkStoreTest {
 
 
     class TestDistributedLinkStore extends DistributedLinkStore {
-        TestDistributedLinkStore(StoreService storeService,
-                            KryoSerializationService kryoSerializationService) {
+        TestDistributedLinkStore(StoreService storeService) {
             this.storeService = storeService;
-            this.kryoSerializationService = kryoSerializationService;
         }
     }
 }

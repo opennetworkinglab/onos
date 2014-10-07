@@ -3,6 +3,8 @@ package org.onlab.onos.net.flow.instructions;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
+
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
@@ -117,6 +119,24 @@ public final class Instructions {
             return toStringHelper(type()).toString();
 
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof DropInstruction) {
+                DropInstruction that = (DropInstruction) obj;
+                return Objects.equals(type(), that.type());
+
+            }
+            return false;
+        }
     }
 
 
@@ -140,6 +160,26 @@ public final class Instructions {
             return toStringHelper(type().toString())
                     .add("port", port).toString();
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(port, type());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof OutputInstruction) {
+                OutputInstruction that = (OutputInstruction) obj;
+                        Objects.equals(port, that.port);
+
+            }
+            return false;
+        }
     }
 
 }
+
+

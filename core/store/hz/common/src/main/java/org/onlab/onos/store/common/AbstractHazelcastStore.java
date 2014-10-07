@@ -15,7 +15,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.StoreDelegate;
-import org.onlab.onos.store.serializers.KryoSerializationService;
+import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.Serializer;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -24,7 +25,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Abstraction of a distributed store based on Hazelcast.
  */
-@Component(componentAbstract = true)
+@Component
 public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDelegate<E>>
         extends AbstractStore<E, D> {
 
@@ -33,13 +34,13 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StoreService storeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected KryoSerializationService kryoSerializationService;
+    protected Serializer serializer;
 
     protected HazelcastInstance theInstance;
 
     @Activate
     public void activate() {
+        serializer = new KryoSerializer();
         theInstance = storeService.getHazelcastInstance();
     }
 
@@ -50,7 +51,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
      * @return serialized object
      */
     protected byte[] serialize(Object obj) {
-        return kryoSerializationService.serialize(obj);
+        return serializer.encode(obj);
     }
 
     /**
@@ -61,7 +62,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
      * @return deserialized object
      */
     protected <T> T deserialize(byte[] bytes) {
-        return kryoSerializationService.deserialize(bytes);
+        return serializer.decode(bytes);
     }
 
 

@@ -36,8 +36,6 @@ import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
 import org.onlab.onos.store.device.impl.DistributedDeviceStore;
-import org.onlab.onos.store.serializers.KryoSerializationManager;
-import org.onlab.onos.store.serializers.KryoSerializationService;
 import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
@@ -95,7 +93,6 @@ public class DistributedDeviceManagerTest {
     private DistributedDeviceStore dstore;
     private TestMastershipManager masterManager;
     private EventDeliveryService eventService;
-    private KryoSerializationManager serializationMgr;
 
     @Before
     public void setUp() {
@@ -111,10 +108,7 @@ public class DistributedDeviceManagerTest {
         storeManager = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeManager.activate();
 
-        serializationMgr = new KryoSerializationManager();
-        serializationMgr.activate();
-
-        dstore = new TestDistributedDeviceStore(storeManager, serializationMgr);
+        dstore = new TestDistributedDeviceStore(storeManager);
         dstore.activate();
 
         mgr.store = dstore;
@@ -140,7 +134,6 @@ public class DistributedDeviceManagerTest {
         mgr.deactivate();
 
         dstore.deactivate();
-        serializationMgr.deactivate();
         storeManager.deactivate();
     }
 
@@ -306,10 +299,8 @@ public class DistributedDeviceManagerTest {
 
     private class TestDistributedDeviceStore extends DistributedDeviceStore {
 
-        public TestDistributedDeviceStore(StoreService storeService,
-                                    KryoSerializationService kryoSerializationService) {
+        public TestDistributedDeviceStore(StoreService storeService) {
             this.storeService = storeService;
-            this.kryoSerializationService = kryoSerializationService;
         }
     }
 

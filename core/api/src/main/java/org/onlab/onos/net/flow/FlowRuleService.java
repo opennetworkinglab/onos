@@ -13,6 +13,13 @@ import org.onlab.onos.net.DeviceId;
 public interface FlowRuleService {
 
     /**
+     * Returns the number of flow rules in the system.
+     *
+     * @return flow rule count
+     */
+    int getFlowRuleCount();
+
+    /**
      * Returns the collection of flow entries applied on the specified device.
      * This will include flow rules which may not yet have been applied to
      * the device.
@@ -59,6 +66,8 @@ public interface FlowRuleService {
      */
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
+    //Future<CompletedBatchOperation> applyBatch(BatchOperation<FlowRuleBatchEntry>)
+
     /**
      * Adds the specified flow rule listener.
      *
@@ -72,7 +81,4 @@ public interface FlowRuleService {
      * @param listener flow rule listener
      */
     void removeListener(FlowRuleListener listener);
-
-
-
 }

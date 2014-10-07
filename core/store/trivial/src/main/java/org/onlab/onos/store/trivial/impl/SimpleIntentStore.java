@@ -1,12 +1,6 @@
 package org.onlab.onos.store.trivial.impl;
 
-import static org.onlab.onos.net.intent.IntentState.COMPILED;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -21,13 +15,18 @@ import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.onlab.onos.net.intent.IntentState.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
 @Service
 public class SimpleIntentStore
-    extends AbstractStore<IntentEvent, IntentStoreDelegate>
-    implements IntentStore {
+        extends AbstractStore<IntentEvent, IntentStoreDelegate>
+        implements IntentStore {
 
     private final Logger log = getLogger(getClass());
     private final Map<IntentId, Intent> intents = new HashMap<>();
@@ -46,7 +45,7 @@ public class SimpleIntentStore
 
     @Override
     public IntentEvent createIntent(Intent intent) {
-        intents.put(intent.getId(), intent);
+        intents.put(intent.id(), intent);
         return this.setState(intent, IntentState.SUBMITTED);
     }
 
@@ -54,7 +53,7 @@ public class SimpleIntentStore
     public IntentEvent removeIntent(IntentId intentId) {
         Intent intent = intents.remove(intentId);
         installable.remove(intentId);
-        IntentEvent event = this.setState(intent, IntentState.WITHDRAWN);
+        IntentEvent event = this.setState(intent, WITHDRAWN);
         states.remove(intentId);
         return event;
     }
@@ -79,19 +78,21 @@ public class SimpleIntentStore
         return states.get(id);
     }
 
-    // TODO return dispatch event here... replace with state transition methods
     @Override
-    public IntentEvent setState(Intent intent, IntentState newState) {
-        IntentId id = intent.getId();
-        IntentState oldState = states.get(id);
-        states.put(id, newState);
-        return new IntentEvent(intent, newState, oldState, System.currentTimeMillis());
+    public IntentEvent setState(Intent intent, IntentState state) {
+        IntentId id = intent.id();
+        states.put(id, state);
+        IntentEvent.Type type = (state == SUBMITTED ? IntentEvent.Type.SUBMITTED :
+                (state == INSTALLED ? IntentEvent.Type.INSTALLED :
+                        (state == FAILED ? IntentEvent.Type.FAILED :
+                                state == WITHDRAWN ? IntentEvent.Type.WITHDRAWN :
+                                        null)));
+        return type == null ? null : new IntentEvent(type, intent);
     }
 
     @Override
-    public IntentEvent addInstallableIntents(IntentId intentId, List<InstallableIntent> result) {
+    public void addInstallableIntents(IntentId intentId, List<InstallableIntent> result) {
         installable.put(intentId, result);
-        return this.setState(intents.get(intentId), COMPILED);
     }
 
     @Override

@@ -2,6 +2,8 @@ package org.onlab.onos.net.flow.instructions;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Objects;
+
 import org.onlab.packet.IpPrefix;
 
 /**
@@ -64,6 +66,24 @@ public abstract class L3ModificationInstruction implements Instruction {
         public String toString() {
             return toStringHelper(subtype().toString())
                     .add("ip", ip).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(ip, subtype());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModIPInstruction) {
+                ModIPInstruction that = (ModIPInstruction) obj;
+                return  Objects.equals(ip, that.ip);
+
+            }
+            return false;
         }
 
     }

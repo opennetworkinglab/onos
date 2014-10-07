@@ -33,6 +33,7 @@ alias obs='onos-build-selective'
 alias op='onos-package'
 alias ot='onos-test'
 alias ol='onos-log'
+alias pub='onos-push-update-bundle'
 
 # Short-hand for tailing the ONOS (karaf) log 
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
@@ -89,5 +90,5 @@ function spy {
 }
 
 function nuke {
-    spy | cut -c7-11 | xargs kill
+    spy "$@" | cut -c7-11 | xargs kill
 }

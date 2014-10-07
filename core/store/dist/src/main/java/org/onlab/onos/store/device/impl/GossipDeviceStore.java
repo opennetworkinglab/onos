@@ -4,6 +4,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.apache.commons.lang3.concurrent.ConcurrentInitializer;
 import org.apache.felix.scr.annotations.Activate;
@@ -12,6 +13,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
@@ -33,10 +35,18 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
 import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.serializers.KryoPoolUtil;
+import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.util.KryoPool;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -96,8 +106,35 @@ public class GossipDeviceStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClockService clockService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterCommunicationService clusterCommunicator;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        protected void setupKryoPool() {
+            serializerPool = KryoPool.newBuilder()
+                    .register(KryoPoolUtil.API)
+                    .register(InternalDeviceEvent.class)
+                    .register(InternalPortEvent.class)
+                    .register(InternalPortStatusEvent.class)
+                    .register(Timestamped.class)
+                    .register(MastershipBasedTimestamp.class)
+                    .build()
+                    .populate(1);
+        }
+
+    };
+
     @Activate
     public void activate() {
+        clusterCommunicator.addSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_UPDATE, new InternalDeviceEventListener());
+        clusterCommunicator.addSubscriber(
+                GossipDeviceStoreMessageSubjects.PORT_UPDATE, new InternalPortEventListener());
+        clusterCommunicator.addSubscriber(
+                GossipDeviceStoreMessageSubjects.PORT_STATUS_UPDATE, new InternalPortStatusEventListener());
         log.info("Started");
     }
 
@@ -133,8 +170,14 @@ public class GossipDeviceStore
         final Timestamped<DeviceDescription> deltaDesc = new Timestamped<>(deviceDescription, newTimestamp);
         DeviceEvent event = createOrUpdateDeviceInternal(providerId, deviceId, deltaDesc);
         if (event != null) {
-            // FIXME: broadcast deltaDesc, UP
-            log.debug("broadcast deltaDesc");
+            log.info("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
+                providerId, deviceId);
+            try {
+                notifyPeers(new InternalDeviceEvent(providerId, deviceId, deltaDesc));
+            } catch (IOException e) {
+                log.error("Failed to notify peers of a device update topology event or providerId: "
+                        + providerId + " and deviceId: " + deviceId, e);
+            }
         }
         return event;
     }
@@ -298,19 +341,21 @@ public class GossipDeviceStore
                                        List<PortDescription> portDescriptions) {
         Timestamp newTimestamp = clockService.getTimestamp(deviceId);
 
-        List<Timestamped<PortDescription>> deltaDescs = new ArrayList<>(portDescriptions.size());
-        for (PortDescription e : portDescriptions) {
-            deltaDescs.add(new Timestamped<PortDescription>(e, newTimestamp));
-        }
+        Timestamped<List<PortDescription>> timestampedPortDescriptions =
+            new Timestamped<>(portDescriptions, newTimestamp);
 
-        List<DeviceEvent> events = updatePortsInternal(providerId, deviceId,
-                          new Timestamped<>(portDescriptions, newTimestamp));
+        List<DeviceEvent> events = updatePortsInternal(providerId, deviceId, timestampedPortDescriptions);
         if (!events.isEmpty()) {
-            // FIXME: broadcast deltaDesc, UP
-            log.debug("broadcast deltaDesc");
+            log.info("Notifying peers of a port update topology event for providerId: {} and deviceId: {}",
+                    providerId, deviceId);
+            try {
+                notifyPeers(new InternalPortEvent(providerId, deviceId, timestampedPortDescriptions));
+            } catch (IOException e) {
+                log.error("Failed to notify peers of a port update topology event or providerId: "
+                    + providerId + " and deviceId: " + deviceId, e);
+            }
         }
         return events;
-
     }
 
     private List<DeviceEvent> updatePortsInternal(ProviderId providerId,
@@ -437,8 +482,14 @@ public class GossipDeviceStore
         final Timestamped<PortDescription> deltaDesc = new Timestamped<>(portDescription, newTimestamp);
         DeviceEvent event = updatePortStatusInternal(providerId, deviceId, deltaDesc);
         if (event != null) {
-            // FIXME: broadcast deltaDesc
-            log.debug("broadcast deltaDesc");
+            log.info("Notifying peers of a port status update topology event for providerId: {} and deviceId: {}",
+                        providerId, deviceId);
+            try {
+                notifyPeers(new InternalPortStatusEvent(providerId, deviceId, deltaDesc));
+            } catch (IOException e) {
+                log.error("Failed to notify peers of a port status update topology event or providerId: "
+                        + providerId + " and deviceId: " + deviceId, e);
+            }
         }
         return event;
     }
@@ -747,6 +798,72 @@ public class GossipDeviceStore
                         newDesc.timestamp());
             }
             return portDescs.put(newOne.value().portNumber(), newOne);
+        }
+    }
+
+    private void notifyPeers(InternalDeviceEvent event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                GossipDeviceStoreMessageSubjects.DEVICE_UPDATE,
+                SERIALIZER.encode(event));
+        clusterCommunicator.broadcast(message);
+    }
+
+    private void notifyPeers(InternalPortEvent event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                GossipDeviceStoreMessageSubjects.PORT_UPDATE,
+                SERIALIZER.encode(event));
+        clusterCommunicator.broadcast(message);
+    }
+
+    private void notifyPeers(InternalPortStatusEvent event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                GossipDeviceStoreMessageSubjects.PORT_STATUS_UPDATE,
+                SERIALIZER.encode(event));
+        clusterCommunicator.broadcast(message);
+    }
+
+    private class InternalDeviceEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+            log.info("Received device update event from peer: {}", message.sender());
+            InternalDeviceEvent event = (InternalDeviceEvent) SERIALIZER.decode(message.payload());
+            ProviderId providerId = event.providerId();
+            DeviceId deviceId = event.deviceId();
+            Timestamped<DeviceDescription> deviceDescription = event.deviceDescription();
+            createOrUpdateDeviceInternal(providerId, deviceId, deviceDescription);
+        }
+    }
+
+    private class InternalPortEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+
+            log.info("Received port update event from peer: {}", message.sender());
+            InternalPortEvent event = (InternalPortEvent) SERIALIZER.decode(message.payload());
+
+            ProviderId providerId = event.providerId();
+            DeviceId deviceId = event.deviceId();
+            Timestamped<List<PortDescription>> portDescriptions = event.portDescriptions();
+
+            updatePortsInternal(providerId, deviceId, portDescriptions);
+        }
+    }
+
+    private class InternalPortStatusEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+
+            log.info("Received port status update event from peer: {}", message.sender());
+            InternalPortStatusEvent event = (InternalPortStatusEvent) SERIALIZER.decode(message.payload());
+
+            ProviderId providerId = event.providerId();
+            DeviceId deviceId = event.deviceId();
+            Timestamped<PortDescription> portDescription = event.portDescription();
+
+            updatePortStatusInternal(providerId, deviceId, portDescription);
         }
     }
 }

@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.impl.ClusterCommunicationManager;
+import org.onlab.onos.store.cluster.messaging.impl.MessageSerializer;
 import org.onlab.netty.NettyMessagingService;
 import org.onlab.packet.IpPrefix;
 

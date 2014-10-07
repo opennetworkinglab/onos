@@ -17,34 +17,34 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SinglePointToMultiPointIntent extends ConnectivityIntent {
 
-    private final ConnectPoint ingressPort;
-    private final Set<ConnectPoint> egressPorts;
+    private final ConnectPoint ingressPoint;
+    private final Set<ConnectPoint> egressPoints;
 
     /**
      * Creates a new single-to-multi point connectivity intent.
      *
-     * @param id          intent identifier
-     * @param selector    traffic selector
-     * @param treatment   treatment
-     * @param ingressPort port on which traffic will ingress
-     * @param egressPorts set of ports on which traffic will egress
-     * @throws NullPointerException     if {@code ingressPort} or
-     *                                  {@code egressPorts} is null
-     * @throws IllegalArgumentException if the size of {@code egressPorts} is
+     * @param id           intent identifier
+     * @param selector     traffic selector
+     * @param treatment    treatment
+     * @param ingressPoint port on which traffic will ingress
+     * @param egressPoints set of ports on which traffic will egress
+     * @throws NullPointerException     if {@code ingressPoint} or
+     *                                  {@code egressPoints} is null
+     * @throws IllegalArgumentException if the size of {@code egressPoints} is
      *                                  not more than 1
      */
     public SinglePointToMultiPointIntent(IntentId id, TrafficSelector selector,
                                          TrafficTreatment treatment,
-                                         ConnectPoint ingressPort,
-                                         Set<ConnectPoint> egressPorts) {
+                                         ConnectPoint ingressPoint,
+                                         Set<ConnectPoint> egressPoints) {
         super(id, selector, treatment);
 
-        checkNotNull(egressPorts);
-        checkArgument(!egressPorts.isEmpty(),
+        checkNotNull(egressPoints);
+        checkArgument(!egressPoints.isEmpty(),
                       "there should be at least one egress port");
 
-        this.ingressPort = checkNotNull(ingressPort);
-        this.egressPorts = Sets.newHashSet(egressPorts);
+        this.ingressPoint = checkNotNull(ingressPoint);
+        this.egressPoints = Sets.newHashSet(egressPoints);
     }
 
     /**
@@ -52,8 +52,8 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      */
     protected SinglePointToMultiPointIntent() {
         super();
-        this.ingressPort = null;
-        this.egressPorts = null;
+        this.ingressPoint = null;
+        this.egressPoints = null;
     }
 
     /**
@@ -61,8 +61,8 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      *
      * @return ingress port
      */
-    public ConnectPoint getIngressPort() {
-        return ingressPort;
+    public ConnectPoint ingressPoint() {
+        return ingressPoint;
     }
 
     /**
@@ -70,8 +70,8 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      *
      * @return set of egress ports
      */
-    public Set<ConnectPoint> getEgressPorts() {
-        return egressPorts;
+    public Set<ConnectPoint> egressPoints() {
+        return egressPoints;
     }
 
     @Override
@@ -87,23 +87,23 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
         }
 
         SinglePointToMultiPointIntent that = (SinglePointToMultiPointIntent) o;
-        return Objects.equals(this.ingressPort, that.ingressPort)
-                && Objects.equals(this.egressPorts, that.egressPorts);
+        return Objects.equals(this.ingressPoint, that.ingressPoint)
+                && Objects.equals(this.egressPoints, that.egressPoints);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), ingressPort, egressPorts);
+        return Objects.hash(super.hashCode(), ingressPoint, egressPoints);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("id", getId())
-                .add("match", getTrafficSelector())
-                .add("action", getTrafficTreatment())
-                .add("ingressPort", ingressPort)
-                .add("egressPort", egressPorts)
+                .add("id", id())
+                .add("match", selector())
+                .add("action", treatment())
+                .add("ingressPoint", ingressPoint)
+                .add("egressPort", egressPoints)
                 .toString();
     }
 

@@ -10,9 +10,9 @@ import org.onlab.onos.net.intent.IntentService;
 /**
  * Removes host-to-host connectivity intent.
  */
-@Command(scope = "onos", name = "remove-host-intent",
-         description = "Removes host-to-host connectivity intent")
-public class RemoveHostToHostIntentCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "remove-intent",
+         description = "Removes the specified intent")
+public class IntentRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "id", description = "Intent ID",
               required = true, multiValued = false)

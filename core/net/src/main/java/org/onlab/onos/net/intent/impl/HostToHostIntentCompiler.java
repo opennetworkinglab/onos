@@ -71,11 +71,11 @@ public class HostToHostIntentCompiler
     private Intent createPathIntent(Path path, Host src, Host dst,
                                     HostToHostIntent intent) {
 
-        TrafficSelector selector = builder(intent.getTrafficSelector())
+        TrafficSelector selector = builder(intent.selector())
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
 
         return new PathIntent(intentIdGenerator.getNewId(),
-                              selector, intent.getTrafficTreatment(),
+                              selector, intent.treatment(),
                               path.src(), path.dst(), path);
     }
 

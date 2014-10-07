@@ -5,6 +5,7 @@ import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.onos.cluster.ClusterEventListener;
+import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.ControllerNode;
+import org.onlab.onos.cluster.ControllerNode.State;
+import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Annotations;
@@ -37,6 +43,11 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.ClockService;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onlab.packet.IpPrefix;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -105,7 +116,10 @@ public class GossipDeviceStoreTest {
         deviceClockManager.setMastershipTerm(DID1, MastershipTerm.of(MYSELF, 1));
         deviceClockManager.setMastershipTerm(DID2, MastershipTerm.of(MYSELF, 2));
 
-        gossipDeviceStore = new TestGossipDeviceStore(clockService);
+        ClusterCommunicationService clusterCommunicator = new TestClusterCommunicationService();
+        ClusterService clusterService = new TestClusterService();
+
+        gossipDeviceStore = new TestGossipDeviceStore(clockService, clusterService, clusterCommunicator);
         gossipDeviceStore.activate();
         deviceStore = gossipDeviceStore;
     }
@@ -541,8 +555,65 @@ public class GossipDeviceStoreTest {
 
     private static final class TestGossipDeviceStore extends GossipDeviceStore {
 
-        public TestGossipDeviceStore(ClockService clockService) {
+        public TestGossipDeviceStore(
+                ClockService clockService,
+                ClusterService clusterService,
+                ClusterCommunicationService clusterCommunicator) {
             this.clockService = clockService;
+            this.clusterService = clusterService;
+            this.clusterCommunicator = clusterCommunicator;
+        }
+    }
+
+    private static final class TestClusterCommunicationService implements ClusterCommunicationService {
+        @Override
+        public boolean broadcast(ClusterMessage message) throws IOException { return true; }
+        @Override
+        public boolean unicast(ClusterMessage message, NodeId nodeId) throws IOException { return true; }
+        @Override
+        public boolean multicast(ClusterMessage message, Set<NodeId> nodeIds) throws IOException { return true; }
+        @Override
+        public void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber) {}
+    }
+
+    private static final class TestClusterService implements ClusterService {
+
+        private static final ControllerNode ONOS1 =
+            new DefaultControllerNode(new NodeId("N1"), IpPrefix.valueOf("127.0.0.1"));
+        private final Map<NodeId, ControllerNode> nodes = new HashMap<>();
+        private final Map<NodeId, ControllerNode.State> nodeStates = new HashMap<>();
+
+        public TestClusterService() {
+            nodes.put(new NodeId("N1"), ONOS1);
+            nodeStates.put(new NodeId("N1"), ControllerNode.State.ACTIVE);
+        }
+
+        @Override
+        public ControllerNode getLocalNode() {
+            return ONOS1;
+        }
+
+        @Override
+        public Set<ControllerNode> getNodes() {
+            return Sets.newHashSet(nodes.values());
+        }
+
+        @Override
+        public ControllerNode getNode(NodeId nodeId) {
+            return nodes.get(nodeId);
+        }
+
+        @Override
+        public State getState(NodeId nodeId) {
+            return nodeStates.get(nodeId);
+        }
+
+        @Override
+        public void addListener(ClusterEventListener listener) {
+        }
+
+        @Override
+        public void removeListener(ClusterEventListener listener) {
         }
     }
 }

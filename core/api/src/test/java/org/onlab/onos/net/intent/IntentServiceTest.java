@@ -10,11 +10,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.onlab.onos.net.intent.IntentState.*;
 import static org.junit.Assert.*;
+import static org.onlab.onos.net.intent.IntentEvent.Type.*;
 
-// TODO: consider make it categorized as integration test when it become
-//   slow test or fragile test
 /**
  * Suite of tests for the intent service contract.
  */
@@ -64,13 +62,13 @@ public class IntentServiceTest {
         TestTools.assertAfter(GRACE_MS, new Runnable() {
             @Override
             public void run() {
-                assertEquals("incorrect intent state", INSTALLED,
-                             service.getIntentState(intent.getId()));
+                assertEquals("incorrect intent state", IntentState.INSTALLED,
+                             service.getIntentState(intent.id()));
             }
         });
 
         // Make sure that all expected events have been emitted
-        validateEvents(intent, SUBMITTED, COMPILED, INSTALLED);
+        validateEvents(intent, SUBMITTED, INSTALLED);
 
         // Make sure there is just one intent (and is ours)
         assertEquals("incorrect intent count", 1, service.getIntentCount());
@@ -85,19 +83,19 @@ public class IntentServiceTest {
         TestTools.assertAfter(GRACE_MS, new Runnable() {
             @Override
             public void run() {
-                assertEquals("incorrect intent state", WITHDRAWN,
-                             service.getIntentState(intent.getId()));
+                assertEquals("incorrect intent state", IntentState.WITHDRAWN,
+                             service.getIntentState(intent.id()));
             }
         });
 
         // Make sure that all expected events have been emitted
-        validateEvents(intent, WITHDRAWING, WITHDRAWN);
+        validateEvents(intent, WITHDRAWN);
 
         // TODO: discuss what is the fate of intents after they have been withdrawn
         // Make sure that the intent is no longer in the system
 //        assertEquals("incorrect intent count", 0, service.getIntents().size());
-//        assertNull("intent should not be found", service.getIntent(intent.getId()));
-//        assertNull("intent state should not be found", service.getIntentState(intent.getId()));
+//        assertNull("intent should not be found", service.getIntent(intent.id()));
+//        assertNull("intent state should not be found", service.getIntentState(intent.id()));
     }
 
     @Test
@@ -113,8 +111,8 @@ public class IntentServiceTest {
         TestTools.assertAfter(GRACE_MS, new Runnable() {
             @Override
             public void run() {
-                assertEquals("incorrect intent state", FAILED,
-                             service.getIntentState(intent.getId()));
+                assertEquals("incorrect intent state", IntentState.FAILED,
+                             service.getIntentState(intent.id()));
             }
         });
 
@@ -136,13 +134,13 @@ public class IntentServiceTest {
         TestTools.assertAfter(GRACE_MS, new Runnable() {
             @Override
             public void run() {
-                assertEquals("incorrect intent state", FAILED,
-                             service.getIntentState(intent.getId()));
+                assertEquals("incorrect intent state", IntentState.FAILED,
+                             service.getIntentState(intent.id()));
             }
         });
 
         // Make sure that all expected events have been emitted
-        validateEvents(intent, SUBMITTED, COMPILED, FAILED);
+        validateEvents(intent, SUBMITTED, FAILED);
     }
 
     /**
@@ -151,23 +149,23 @@ public class IntentServiceTest {
      * considered.
      *
      * @param intent intent subject
-     * @param states list of states for which events are expected
+     * @param types  list of event types for which events are expected
      */
-    protected void validateEvents(Intent intent, IntentState... states) {
+    protected void validateEvents(Intent intent, IntentEvent.Type... types) {
         Iterator<IntentEvent> events = listener.events.iterator();
-        for (IntentState state : states) {
+        for (IntentEvent.Type type : types) {
             IntentEvent event = events.hasNext() ? events.next() : null;
             if (event == null) {
-                fail("expected event not found: " + state);
-            } else if (intent.equals(event.getIntent())) {
-                assertEquals("incorrect state", state, event.getState());
+                fail("expected event not found: " + type);
+            } else if (intent.equals(event.subject())) {
+                assertEquals("incorrect state", type, event.type());
             }
         }
 
         // Remainder of events should not apply to this intent; make sure.
         while (events.hasNext()) {
             assertFalse("unexpected event for intent",
-                        intent.equals(events.next().getIntent()));
+                        intent.equals(events.next().subject()));
         }
     }
 
@@ -228,8 +226,8 @@ public class IntentServiceTest {
         TestTools.assertAfter(GRACE_MS, new Runnable() {
             @Override
             public void run() {
-                assertEquals("incorrect intent state", INSTALLED,
-                             service.getIntentState(intent.getId()));
+                assertEquals("incorrect intent state", IntentState.INSTALLED,
+                             service.getIntentState(intent.id()));
             }
         });
 

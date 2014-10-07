@@ -71,7 +71,7 @@ public class DistributedLinkStore
         // TODO decide on Map name scheme to avoid collision
         rawLinks = theInstance.getMap("links");
         final OptionalCacheLoader<LinkKey, DefaultLink> linkLoader
-                = new OptionalCacheLoader<>(kryoSerializationService, rawLinks);
+                = new OptionalCacheLoader<>(serializer, rawLinks);
         links = new AbsentInvalidatingLoadingCache<>(newBuilder().build(linkLoader));
         // refresh/populate cache based on notification from other instance
         linksListener = rawLinks.addEntryListener(new RemoteLinkEventHandler(links), includeValue);
