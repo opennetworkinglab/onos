@@ -47,7 +47,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
         Map<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
-        for (Device d : flows.keySet()) {
+        for (Device d : getSortedDevices(deviceService)) {
             printFlows(d, flows.get(d));
         }
     }
@@ -58,14 +58,15 @@ public class FlowsListCommand extends AbstractShellCommand {
      * @param service device service
      * @return sorted device list
      */
-    protected Map<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService, FlowRuleService service) {
+    protected Map<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService,
+                                                          FlowRuleService service) {
         Map<Device, List<FlowEntry>> flows = Maps.newHashMap();
         List<FlowEntry> rules;
         FlowEntryState s = null;
         if (state != null && !state.equals("any")) {
             s = FlowEntryState.valueOf(state.toUpperCase());
         }
-        Iterable<Device> devices = uri == null ?  getSortedDevices(deviceService) :
+        Iterable<Device> devices = uri == null ? deviceService.getDevices() :
             Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
         for (Device d : devices) {
             if (s == null) {
@@ -90,18 +91,16 @@ public class FlowsListCommand extends AbstractShellCommand {
      * @param flows the set of flows for that device.
      */
     protected void printFlows(Device d, List<FlowEntry> flows) {
-        print("Device: " + d.id());
-        if (flows == null | flows.isEmpty()) {
-            print(" %s", "No flows.");
-            return;
+        boolean empty = flows == null || flows.isEmpty();
+        print("deviceId=%s, flowRuleCount=%d", d.id(), empty ? 0 : flows.size());
+        if (!empty) {
+            for (FlowEntry f : flows) {
+                print(FMT, Long.toHexString(f.id().value()), f.state(), f.bytes(),
+                      f.packets(), f.life(), f.priority());
+                print(SFMT, f.selector().criteria());
+                print(TFMT, f.treatment().instructions());
+            }
         }
-        for (FlowEntry f : flows) {
-            print(FMT, Long.toHexString(f.id().value()), f.state(), f.bytes(),
-                    f.packets(), f.life(), f.priority());
-            print(SFMT, f.selector().criteria());
-            print(TFMT, f.treatment().instructions());
-        }
-
     }
 
 }
