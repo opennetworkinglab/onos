@@ -66,6 +66,8 @@ public interface FlowRuleService {
      */
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
+    //Future<CompletedBatchOperation> applyBatch(BatchOperation<FlowRuleBatchEntry>)
+
     /**
      * Adds the specified flow rule listener.
      *

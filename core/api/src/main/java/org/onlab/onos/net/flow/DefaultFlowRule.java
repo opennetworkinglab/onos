@@ -115,7 +115,7 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     public int hash() {
-        return Objects.hash(deviceId, selector, id);
+        return Objects.hash(deviceId, selector, treatment);
     }
 
     @Override
@@ -132,7 +132,7 @@ public class DefaultFlowRule implements FlowRule {
         if (obj instanceof DefaultFlowRule) {
             DefaultFlowRule that = (DefaultFlowRule) obj;
             return Objects.equals(deviceId, that.deviceId) &&
-                    //Objects.equals(id, that.id) &&
+                    Objects.equals(id, that.id) &&
                     Objects.equals(priority, that.priority) &&
                     Objects.equals(selector, that.selector);
 
@@ -154,7 +154,7 @@ public class DefaultFlowRule implements FlowRule {
 
     @Override
     public int timeout() {
-        return timeout > MAX_TIMEOUT ? MAX_TIMEOUT : this.timeout;
+        return timeout;
     }
 
 }
