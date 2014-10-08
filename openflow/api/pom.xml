@@ -17,14 +17,11 @@
     <description>ONOS OpenFlow controller subsystem API</description>
 
     <repositories>
-        <!-- FIXME: for Loxigen. Decide how to use Loxigen before release. -->
+        <!-- FIXME: for Loxigen + optical experimenter. Decide how to use Loxigen before release. -->
         <repository>
-            <id>sonatype-oss-snapshot</id>
-            <name>Sonatype OSS snapshot repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
+            <id>onlab-temp</id>
+            <name>ON.lab temporary repository</name>
+            <url>http://mavenrepo.onlab.us:8081/nexus/content/repositories/releases</url>
         </repository>
     </repositories>
 
@@ -32,7 +29,8 @@
         <dependency>
             <groupId>org.projectfloodlight</groupId>
             <artifactId>openflowj</artifactId>
-            <version>0.3.8-SNAPSHOT</version>
+            <!-- FIXME once experimenter gets merged to upstream -->
+            <version>0.3.8-optical_experimenter</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
