@@ -75,6 +75,13 @@
                 <ref component-id="hostIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.AddPointToPointIntentCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+        </command>
 
         <command>
             <action class="org.onlab.onos.cli.net.ClustersListCommand"/>
@@ -116,5 +123,6 @@
     <bean id="hostIdCompleter" class="org.onlab.onos.cli.net.HostIdCompleter"/>
     <bean id="intentIdCompleter" class="org.onlab.onos.cli.net.IntentIdCompleter"/>
     <bean id="flowRuleStatusCompleter" class="org.onlab.onos.cli.net.FlowRuleStatusCompleter"/>
+    <bean id="connectPointCompleter" class="org.onlab.onos.cli.net.ConnectPointCompleter"/>
 
 </blueprint>
