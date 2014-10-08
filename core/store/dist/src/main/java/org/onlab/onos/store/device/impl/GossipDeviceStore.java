@@ -42,6 +42,7 @@ import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
 import org.onlab.onos.store.common.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.MastershipBasedTimestampSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
@@ -117,11 +118,11 @@ public class GossipDeviceStore
         protected void setupKryoPool() {
             serializerPool = KryoPool.newBuilder()
                     .register(KryoPoolUtil.API)
-                    .register(InternalDeviceEvent.class)
-                    .register(InternalPortEvent.class)
-                    .register(InternalPortStatusEvent.class)
+                    .register(InternalDeviceEvent.class, new InternalDeviceEventSerializer())
+                    .register(InternalPortEvent.class, new InternalPortEventSerializer())
+                    .register(InternalPortStatusEvent.class, new InternalPortStatusEventSerializer())
                     .register(Timestamped.class)
-                    .register(MastershipBasedTimestamp.class)
+                    .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
                     .build()
                     .populate(1);
         }
