@@ -35,7 +35,8 @@ public class InternalDeviceEventSerializer extends Serializer<InternalDeviceEven
                                Class<InternalDeviceEvent> type) {
         ProviderId providerId = (ProviderId) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
-        Timestamped<DeviceDescription> deviceDescription = (Timestamped<DeviceDescription>) kryo.readClassAndObject(input);
+        Timestamped<DeviceDescription> deviceDescription
+            = (Timestamped<DeviceDescription>) kryo.readClassAndObject(input);
 
         return new InternalDeviceEvent(providerId, deviceId, deviceDescription);
     }

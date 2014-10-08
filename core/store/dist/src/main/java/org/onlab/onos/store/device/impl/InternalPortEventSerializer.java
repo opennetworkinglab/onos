@@ -3,7 +3,6 @@ package org.onlab.onos.store.device.impl;
 import java.util.List;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.impl.Timestamped;
@@ -38,7 +37,8 @@ public class InternalPortEventSerializer extends Serializer<InternalPortEvent> {
                                Class<InternalPortEvent> type) {
         ProviderId providerId = (ProviderId) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
-        Timestamped<List<PortDescription>> portDescriptions = (Timestamped<List<PortDescription>>) kryo.readClassAndObject(input);
+        Timestamped<List<PortDescription>> portDescriptions
+            = (Timestamped<List<PortDescription>>) kryo.readClassAndObject(input);
 
         return new InternalPortEvent(providerId, deviceId, portDescriptions);
     }
