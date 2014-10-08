@@ -35,4 +35,11 @@ public class InternalDeviceEvent {
     public Timestamped<DeviceDescription> deviceDescription() {
         return deviceDescription;
     }
+
+    // for serializer
+    protected InternalDeviceEvent() {
+        this.providerId = null;
+        this.deviceId = null;
+        this.deviceDescription = null;
+    }
 }

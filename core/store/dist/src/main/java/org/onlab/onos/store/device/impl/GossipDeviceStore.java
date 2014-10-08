@@ -113,6 +113,7 @@ public class GossipDeviceStore
     protected ClusterService clusterService;
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        @Override
         protected void setupKryoPool() {
             serializerPool = KryoPool.newBuilder()
                     .register(KryoPoolUtil.API)

@@ -119,8 +119,8 @@ implements MastershipStore {
 
     @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
+        // FIXME: implement this
+        return MastershipTerm.of(getMaster(deviceId), 1);
     }
 
     @Override

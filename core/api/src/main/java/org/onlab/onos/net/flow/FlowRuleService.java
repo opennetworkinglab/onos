@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow;
 
+import java.util.concurrent.Future;
+
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 
@@ -66,7 +68,12 @@ public interface FlowRuleService {
      */
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
-    //Future<CompletedBatchOperation> applyBatch(BatchOperation<FlowRuleBatchEntry>)
+    /**
+     * Applies a batch operation of FlowRules.
+     *
+     * @return future indicating the state of the batch operation
+     */
+    Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch);
 
     /**
      * Adds the specified flow rule listener.
