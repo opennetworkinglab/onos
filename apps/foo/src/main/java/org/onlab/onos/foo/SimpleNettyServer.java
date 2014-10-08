@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
  * Test to measure Messaging performance.
  */
     public final class SimpleNettyServer {
-        private static Logger log = LoggerFactory.getLogger(IOLoopTestServer.class);
+        private static Logger log = LoggerFactory.getLogger(SimpleNettyServer.class);
 
             private SimpleNettyServer() {}
 

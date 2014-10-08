@@ -24,7 +24,7 @@ public class SimpleNettyClientCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "warmupCount", description = "Warm-up count",
             required = false, multiValued = false)
-    String warmup = "10000";
+    String warmup = "1000";
 
     @Argument(index = 2, name = "messageCount", description = "Message count",
             required = false, multiValued = false)

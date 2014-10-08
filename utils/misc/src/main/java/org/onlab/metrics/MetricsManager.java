@@ -8,8 +8,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
@@ -17,6 +18,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
 
 /**
@@ -54,6 +56,7 @@ import com.codahale.metrics.Timer;
 @Component(immediate = true)
 public final class MetricsManager implements MetricsService {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     /**
      * Registry to hold the Components defined in the system.
      */
@@ -67,14 +70,16 @@ public final class MetricsManager implements MetricsService {
     /**
      * Default Reporter for this metrics manager.
      */
-    private final ConsoleReporter reporter;
+    private final Slf4jReporter reporter;
 
     public MetricsManager() {
         this.metricsRegistry = new MetricRegistry();
-        this.reporter = ConsoleReporter.forRegistry(metricsRegistry)
+        this.reporter = Slf4jReporter.forRegistry(this.metricsRegistry)
+                .outputTo(log)
                 .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .build();
+        reporter.start(1, TimeUnit.MINUTES);
     }
 
     @Activate
