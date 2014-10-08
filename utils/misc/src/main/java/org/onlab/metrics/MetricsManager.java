@@ -1,7 +1,5 @@
 package org.onlab.metrics;
 
-import java.io.File;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,8 +9,8 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -69,15 +67,14 @@ public final class MetricsManager implements MetricsService {
     /**
      * Default Reporter for this metrics manager.
      */
-    private final CsvReporter reporter;
+    private final ConsoleReporter reporter;
 
     public MetricsManager() {
         this.metricsRegistry = new MetricRegistry();
-        this.reporter = CsvReporter.forRegistry(metricsRegistry)
-                .formatFor(Locale.US)
+        this.reporter = ConsoleReporter.forRegistry(metricsRegistry)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .build(new File("/var/onos/log/metrics/"));
+                .build();
     }
 
     @Activate
