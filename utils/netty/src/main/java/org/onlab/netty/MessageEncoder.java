@@ -36,11 +36,6 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         // write preamble
         out.writeBytes(PREAMBLE);
 
-        try {
-            SERIALIZER.encode(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         byte[] payload = SERIALIZER.encode(message);
 
         // write payload length
