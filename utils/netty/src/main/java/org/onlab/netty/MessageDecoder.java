@@ -8,10 +8,15 @@ import io.netty.handler.codec.ReplayingDecoder;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Decoder for inbound messages.
  */
 public class MessageDecoder extends ReplayingDecoder<DecoderState> {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final NettyMessagingService messagingService;
 
@@ -56,5 +61,11 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
          default:
             checkState(false, "Must not be here");
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+        log.error("Exception inside channel handling pipeline.", cause);
+        context.close();
     }
 }
