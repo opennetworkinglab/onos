@@ -14,6 +14,7 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onlab.packet.Ethernet;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -32,7 +33,7 @@ public class AddPointToPointIntentCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-    private static long id = 1;
+    private static long id = 0x7470001;
 
     @Override
     protected void execute() {
@@ -48,7 +49,9 @@ public class AddPointToPointIntentCommand extends AbstractShellCommand {
                 PortNumber.portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
-        TrafficSelector selector = DefaultTrafficSelector.builder().build();
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         Intent intent =
