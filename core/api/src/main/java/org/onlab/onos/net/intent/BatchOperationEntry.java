@@ -15,14 +15,7 @@ public class BatchOperationEntry<T extends Enum<?>, U extends BatchOperationTarg
     private final T operator;
     private final U target;
 
-    /**
-     * Default constructor for serializer.
-     */
-    @Deprecated
-    protected BatchOperationEntry() {
-        this.operator = null;
-        this.target = null;
-    }
+
 
     /**
      * Constructs new instance for the entry of the BatchOperation.

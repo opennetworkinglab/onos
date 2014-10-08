@@ -35,4 +35,11 @@ public class InternalPortStatusEvent {
     public Timestamped<PortDescription> portDescription() {
         return portDescription;
     }
+
+    // for serializer
+    protected InternalPortStatusEvent() {
+        this.providerId = null;
+        this.deviceId = null;
+        this.portDescription = null;
+    }
 }

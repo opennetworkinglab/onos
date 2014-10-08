@@ -1,11 +1,12 @@
 package org.onlab.onos.net.intent;
 //TODO is this the right package?
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A list of BatchOperationEntry.
@@ -15,7 +16,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class BatchOperation<T extends BatchOperationEntry<?, ?>> {
 
-    private List<T> ops;
+    private final List<T> ops;
 
     /**
      * Creates new {@link BatchOperation} object.
@@ -30,7 +31,7 @@ public abstract class BatchOperation<T extends BatchOperationEntry<?, ?>> {
      *
      * @param batchOperations the list of batch operation entries.
      */
-    public BatchOperation(List<T> batchOperations) {
+    public BatchOperation(Collection<T> batchOperations) {
         ops = new LinkedList<>(checkNotNull(batchOperations));
     }
 
@@ -61,6 +62,10 @@ public abstract class BatchOperation<T extends BatchOperationEntry<?, ?>> {
 
     /**
      * Adds an operation.
+     * FIXME: Brian promises that the Intent Framework
+     * will not modify the batch operation after it has submitted it.
+     * Ali would prefer immutablity, but trusts brian for better or
+     * for worse.
      *
      * @param entry the operation to be added
      * @return this object if succeeded, null otherwise

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,6 +33,7 @@ import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.flow.FlowRuleBatchEntry;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleProvider;
@@ -42,6 +44,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
+import org.onlab.onos.net.intent.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
@@ -402,6 +405,13 @@ public class FlowRuleManagerTest {
 
         @Override
         public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
+        }
+
+        @Override
+        public Future<Void> executeBatch(
+                BatchOperation<FlowRuleBatchEntry> batch) {
+            // TODO Auto-generated method stub
+            return null;
         }
 
 

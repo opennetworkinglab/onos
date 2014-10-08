@@ -248,6 +248,7 @@ public class NettyMessagingService implements MessagingService {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+            log.error("Exception inside channel handling pipeline.", cause);
             context.close();
         }
     }

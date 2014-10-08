@@ -1,6 +1,9 @@
 package org.onlab.onos.net.flow;
 
+import java.util.concurrent.Future;
+
 import org.onlab.onos.ApplicationId;
+import org.onlab.onos.net.intent.BatchOperation;
 import org.onlab.onos.net.provider.Provider;
 
 /**
@@ -33,5 +36,7 @@ public interface FlowRuleProvider extends Provider {
      * @param id the id to remove
      */
     void removeRulesById(ApplicationId id, FlowRule... flowRules);
+
+    Future<Void> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
 
 }
