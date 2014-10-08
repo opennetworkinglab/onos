@@ -29,6 +29,7 @@ import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ClusterMessageSerializer;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.MessageSubjectSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
@@ -66,7 +67,7 @@ public class ClusterCommunicationManager
                     .register(ClusterMessage.class, new ClusterMessageSerializer())
                     .register(ClusterMembershipEvent.class)
                     .register(byte[].class)
-                    .register(MessageSubject.class)
+                    .register(MessageSubject.class, new MessageSubjectSerializer())
                     .build()
                     .populate(1);
         }
