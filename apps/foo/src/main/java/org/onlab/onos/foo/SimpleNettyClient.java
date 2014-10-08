@@ -49,7 +49,6 @@ public final class SimpleNettyClient {
         }
 
         Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
-        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
 
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAsyncTimer.time();
@@ -57,6 +56,7 @@ public final class SimpleNettyClient {
             context.stop();
         }
 
+        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAndReceiveTimer.time();
             Response response = messaging

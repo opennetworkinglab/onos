@@ -14,9 +14,9 @@ import org.onlab.onos.cli.AbstractShellCommand;
 public class SimpleNettyClientCommand extends AbstractShellCommand {
 
     //FIXME: replace these arguments with proper ones needed for the test.
-    @Argument(index = 0, name = "serverIp", description = "Server IP address",
+    @Argument(index = 0, name = "hostname", description = "Server Hostname",
             required = false, multiValued = false)
-    String serverIp = "127.0.0.1";
+    String host = "localhost";
 
     @Argument(index = 3, name = "port", description = "Port",
             required = false, multiValued = false)
@@ -28,12 +28,12 @@ public class SimpleNettyClientCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "messageCount", description = "Message count",
             required = false, multiValued = false)
-    String messageCount = "100000";
+    String messageCount = "5000000";
 
     @Override
     protected void execute() {
         try {
-            startStandalone(new String[]{serverIp, port, warmup, messageCount});
+            startStandalone(new String[]{host, port, warmup, messageCount});
         } catch (Exception e) {
             error("Unable to start client %s", e);
         }
