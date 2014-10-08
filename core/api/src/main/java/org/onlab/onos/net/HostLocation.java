@@ -22,6 +22,17 @@ public class HostLocation extends ConnectPoint {
     }
 
     /**
+     * Creates a new host location derived from the supplied connection point.
+     *
+     * @param connectPoint connection point
+     * @param time         time when detected, in millis since start of epoch
+     */
+    public HostLocation(ConnectPoint connectPoint, long time) {
+        super(connectPoint.deviceId(), connectPoint.port());
+        this.time = time;
+    }
+
+    /**
      * Returns the time when the location was established, given in
      * milliseconds since start of epoch.
      *

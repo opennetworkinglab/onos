@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.onlab.onos.net.provider.ProviderId;
 
 import static org.junit.Assert.assertEquals;
+import static org.onlab.onos.net.DefaultEdgeLink.createEdgeLink;
 import static org.onlab.onos.net.DefaultLinkTest.cp;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
@@ -53,6 +54,26 @@ public class DefaultEdgeLinkTest {
         assertEquals("incorrect hostId", HID1, link.hostId());
         assertEquals("incorrect connect point", hostLocation, link.hostLocation());
         assertEquals("incorrect time", 123L, link.hostLocation().time());
+    }
+
+    @Test
+    public void phantomIngress() {
+        HostLocation hostLocation = new HostLocation(DID1, P1, 123L);
+        EdgeLink link = createEdgeLink(hostLocation, true);
+        assertEquals("incorrect dst", hostLocation, link.dst());
+        assertEquals("incorrect type", Link.Type.EDGE, link.type());
+        assertEquals("incorrect connect point", hostLocation, link.hostLocation());
+        assertEquals("incorrect time", 123L, link.hostLocation().time());
+    }
+
+    @Test
+    public void phantomEgress() {
+        ConnectPoint hostLocation = new ConnectPoint(DID1, P1);
+        EdgeLink link = createEdgeLink(hostLocation, false);
+        assertEquals("incorrect src", hostLocation, link.src());
+        assertEquals("incorrect type", Link.Type.EDGE, link.type());
+        assertEquals("incorrect connect point", hostLocation, link.hostLocation());
+        assertEquals("incorrect time", 0L, link.hostLocation().time());
     }
 
 }
