@@ -18,6 +18,7 @@ import org.onlab.onos.cluster.MastershipListener;
 import org.onlab.onos.cluster.MastershipService;
 import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
@@ -322,12 +323,13 @@ public class DeviceManager
     implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-            if (event.master().equals(clusterService.getLocalNode().id())) {
+            final NodeId myNodeId = clusterService.getLocalNode().id();
+            if (myNodeId.equals(event.master())) {
 
                 MastershipTerm term = mastershipService.requestTermService()
                         .getMastershipTerm(event.subject());
 
-                if (term.master().equals(clusterService.getLocalNode().id())) {
+                if (term.master().equals(myNodeId)) {
                     // only set the new term if I am the master
                     clockProviderService.setMastershipTerm(event.subject(), term);
                 }
