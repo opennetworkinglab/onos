@@ -344,7 +344,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         public void satisfyRequirement(Dpid dpid) {
             log.warn("Satisfaction from switch {}", dpid);
-            sws.remove(controller.getSwitch(dpid));
+            sws.remove(dpid);
             countDownLatch.countDown();
         }
 
