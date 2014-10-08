@@ -10,12 +10,17 @@ import org.onlab.metrics.MetricsManager;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.NettyMessagingService;
 import org.onlab.netty.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Timer;
 
 // FIXME: Should be move out to test or app
 public final class SimpleNettyClient {
-    private SimpleNettyClient() {
+
+private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
+
+        private SimpleNettyClient() {
     }
 
     public static void main(String[] args)
@@ -40,6 +45,7 @@ public final class SimpleNettyClient {
         metrics.activate();
         MetricsFeature feature = new MetricsFeature("latency");
         MetricsComponent component = metrics.registerComponent("NettyMessaging");
+        log.info("warmup....");
 
         for (int i = 0; i < warmup; i++) {
             messaging.sendAsync(new Endpoint(host, port), "simple", "Hello World".getBytes());
@@ -48,6 +54,7 @@ public final class SimpleNettyClient {
                             "Hello World".getBytes());
         }
 
+        log.info("measuring async sender");
         Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
 
         for (int i = 0; i < iterations; i++) {

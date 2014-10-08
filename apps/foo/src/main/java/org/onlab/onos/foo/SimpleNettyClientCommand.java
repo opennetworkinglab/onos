@@ -28,7 +28,7 @@ public class SimpleNettyClientCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "messageCount", description = "Message count",
             required = false, multiValued = false)
-    String messageCount = "5000000";
+    String messageCount = "100000";
 
     @Override
     protected void execute() {

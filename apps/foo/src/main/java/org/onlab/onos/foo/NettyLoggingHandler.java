@@ -14,6 +14,6 @@ public class NettyLoggingHandler implements MessageHandler {
 
     @Override
     public void handle(Message message) {
-        log.info("Received message. Payload has {} bytes", message.payload().length);
+        //log.info("Received message. Payload has {} bytes", message.payload().length);
     }
 }
