@@ -36,9 +36,8 @@ public final class SimpleNettyClient {
         metrics.activate();
         MetricsFeature feature = new MetricsFeature("latency");
         MetricsComponent component = metrics.registerComponent("NettyMessaging");
-        Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
 
-        final int warmup = 1000000;
+        final int warmup = 10000;
         for (int i = 0; i < warmup; i++) {
             messaging.sendAsync(new Endpoint("localhost", 8081), "simple", "Hello World".getBytes());
             Response response = messaging
@@ -46,14 +45,15 @@ public final class SimpleNettyClient {
                             "Hello World".getBytes());
         }
 
-        final int iterations = 1000000000;
+        Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
+        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
+
+        final int iterations = 10000000;
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAsyncTimer.time();
             messaging.sendAsync(new Endpoint("localhost", 8081), "simple", "Hello World".getBytes());
             context.stop();
         }
-
-        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
 
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAndReceiveTimer.time();
