@@ -38,7 +38,7 @@ public final class SimpleNettyClient {
         MetricsComponent component = metrics.registerComponent("NettyMessaging");
         Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
 
-        final int warmup = 100;
+        final int warmup = 1000000;
         for (int i = 0; i < warmup; i++) {
             messaging.sendAsync(new Endpoint("localhost", 8081), "simple", "Hello World".getBytes());
             Response response = messaging
@@ -46,13 +46,12 @@ public final class SimpleNettyClient {
                             "Hello World".getBytes());
         }
 
-        final int iterations = 10000;
+        final int iterations = 1000000000;
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAsyncTimer.time();
             messaging.sendAsync(new Endpoint("localhost", 8081), "simple", "Hello World".getBytes());
             context.stop();
         }
-        metrics.registerMetric(component, feature, "AsyncTimer", sendAsyncTimer);
 
         Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
 
@@ -64,7 +63,6 @@ public final class SimpleNettyClient {
             // System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
             context.stop();
         }
-        metrics.registerMetric(component, feature, "PingPong", sendAndReceiveTimer);
     }
 
     public static class TestNettyMessagingService extends NettyMessagingService {
