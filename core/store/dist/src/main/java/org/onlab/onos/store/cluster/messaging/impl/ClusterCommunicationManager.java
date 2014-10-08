@@ -3,11 +3,11 @@ package org.onlab.onos.store.cluster.messaging.impl;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -35,6 +35,7 @@ import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
 import org.onlab.netty.NettyMessagingService;
+import org.onlab.netty.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,9 +122,12 @@ public class ClusterCommunicationManager
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
         try {
-            messagingService.sendAsync(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            log.info("sending...");
+            Response resp = messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            resp.get(1, TimeUnit.SECONDS);
+            log.info("sent...");
             return true;
-        } catch (IOException e) {
+        } catch (IOException | TimeoutException e) {
             log.error("Failed to send cluster message to nodeId: " + toNodeId, e);
         }
 
@@ -191,7 +195,8 @@ public class ClusterCommunicationManager
         }
     }
 
-    private static class InternalClusterMessageHandler implements MessageHandler {
+    // FIXME: revert static
+    private class InternalClusterMessageHandler implements MessageHandler {
 
         private final ClusterMessageHandler handler;
 
@@ -201,8 +206,18 @@ public class ClusterCommunicationManager
 
         @Override
         public void handle(Message message) {
-            ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
-            handler.handle(clusterMessage);
+            // FIXME: remove me
+            log.info("InternalClusterMessageHandler.handle({})", message);
+            try {
+                log.info("before decode");
+                ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
+                log.info("Subject:({}), Sender:({})", clusterMessage.subject(), clusterMessage.sender());
+                handler.handle(clusterMessage);
+                message.respond("ACK".getBytes());
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                log.error("failed", e);
+            }
         }
     }
 }
