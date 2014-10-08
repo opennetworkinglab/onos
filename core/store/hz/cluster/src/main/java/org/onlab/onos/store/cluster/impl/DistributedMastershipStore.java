@@ -119,14 +119,24 @@ implements MastershipStore {
 
     @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
-        // FIXME: implement this
+        // FIXME: implement this properly
         return MastershipTerm.of(getMaster(deviceId), 1);
     }
 
     @Override
     public MastershipEvent unsetMaster(NodeId nodeId, DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
+        boolean removed = rawMasters.remove(serialize(deviceId), serialize(nodeId));
+        masters.invalidate(deviceId);
+        if (!removed) {
+            return null;
+        }
+        Optional<NodeId> newMaster = masters.getUnchecked(deviceId);
+        if (newMaster.isPresent()) {
+            return new MastershipEvent(MASTER_CHANGED, deviceId, newMaster.get());
+        } else {
+            // FIXME: probably need to express NO_MASTER somehow.
+            return null;
+        }
     }
 
     private class RemoteMasterShipEventHandler extends RemoteCacheEventHandler<DeviceId, NodeId> {
