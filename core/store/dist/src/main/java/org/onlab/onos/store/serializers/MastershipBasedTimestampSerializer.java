@@ -14,7 +14,7 @@ import com.esotericsoftware.kryo.io.Output;
 public class MastershipBasedTimestampSerializer extends Serializer<MastershipBasedTimestamp> {
 
     /**
-     * Default constructor.
+     * Creates a serializer for {@link MastershipBasedTimestamp}.
      */
     public MastershipBasedTimestampSerializer() {
         // non-null, immutable

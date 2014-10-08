@@ -29,6 +29,7 @@ import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ClusterMessageSerializer;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.MessageSubjectSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
@@ -66,7 +67,7 @@ public class ClusterCommunicationManager
                     .register(ClusterMessage.class, new ClusterMessageSerializer())
                     .register(ClusterMembershipEvent.class)
                     .register(byte[].class)
-                    .register(MessageSubject.class)
+                    .register(MessageSubject.class, new MessageSubjectSerializer())
                     .build()
                     .populate(1);
         }
@@ -123,7 +124,8 @@ public class ClusterCommunicationManager
         Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
         try {
             log.info("sending...");
-            Response resp = messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            Response resp = messagingService.sendAndReceive(nodeEp,
+                    message.subject().value(), SERIALIZER.encode(message));
             resp.get(1, TimeUnit.SECONDS);
             log.info("sent...");
             return true;

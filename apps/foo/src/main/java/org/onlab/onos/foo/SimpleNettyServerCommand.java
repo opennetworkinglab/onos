@@ -9,10 +9,11 @@ import org.onlab.onos.cli.AbstractShellCommand;
 /**
  * Starts the Simple Netty server.
  */
-@Command(scope = "onos", name = "test-netty-server",
+@Command(scope = "onos", name = "simple-netty-server",
          description = "Starts the simple netty server")
 public class SimpleNettyServerCommand extends AbstractShellCommand {
 
+    //FIXME: Replace these with parameters for
     @Argument(index = 0, name = "serverIp", description = "Server IP address",
               required = false, multiValued = false)
     String serverIp = "127.0.0.1";

@@ -7,6 +7,12 @@
         <command>
             <action class="org.onlab.onos.foo.TestIOServerCommand"/>
         </command>
+        <command>
+            <action class="org.onlab.onos.foo.SimpleNettyServerCommand"/>
+        </command>
+        <command>
+            <action class="org.onlab.onos.foo.SimpleNettyClientCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

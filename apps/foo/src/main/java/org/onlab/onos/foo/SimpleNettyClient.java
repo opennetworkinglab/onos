@@ -2,7 +2,6 @@ package org.onlab.onos.foo;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.onlab.metrics.MetricsComponent;
@@ -35,28 +34,35 @@ public final class SimpleNettyClient {
         MetricsManager metrics = new MetricsManager();
         messaging.activate();
         metrics.activate();
-        MetricsFeature feature = new MetricsFeature("timers");
+        MetricsFeature feature = new MetricsFeature("latency");
         MetricsComponent component = metrics.registerComponent("NettyMessaging");
-        Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
-        final int warmup = 100;
+
+        final int warmup = 10000;
         for (int i = 0; i < warmup; i++) {
+            messaging.sendAsync(new Endpoint("localhost", 8081), "simple", "Hello World".getBytes());
+            Response response = messaging
+                    .sendAndReceive(new Endpoint("localhost", 8081), "echo",
+                            "Hello World".getBytes());
+        }
+
+        Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
+        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
+
+        final int iterations = 10000000;
+        for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAsyncTimer.time();
-            messaging.sendAsync(new Endpoint("localhost", 8080), "simple", "Hello World".getBytes());
+            messaging.sendAsync(new Endpoint("localhost", 8081), "simple", "Hello World".getBytes());
             context.stop();
         }
-        metrics.registerMetric(component, feature, "AsyncTimer", sendAsyncTimer);
 
-        Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
-        final int iterations = 1000000;
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAndReceiveTimer.time();
             Response response = messaging
-                    .sendAndReceive(new Endpoint("localhost", 8080), "echo",
+                    .sendAndReceive(new Endpoint("localhost", 8081), "echo",
                                     "Hello World".getBytes());
-            System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
+            // System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
             context.stop();
         }
-        metrics.registerMetric(component, feature, "AsyncTimer", sendAndReceiveTimer);
     }
 
     public static class TestNettyMessagingService extends NettyMessagingService {
