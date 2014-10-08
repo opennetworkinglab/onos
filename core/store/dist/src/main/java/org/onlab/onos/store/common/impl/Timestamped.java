@@ -82,7 +82,7 @@ public final class Timestamped<T> {
 
     // Default constructor for serialization
     @Deprecated
-    protected Timestamped() {
+    private Timestamped() {
         this.value = null;
         this.timestamp = null;
     }

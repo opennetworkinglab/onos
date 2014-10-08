@@ -48,4 +48,9 @@ public class DefaultPortDescription extends AbstractDescription
         return isEnabled;
     }
 
+    // default constructor for serialization
+    private DefaultPortDescription() {
+        this.number = null;
+        this.isEnabled = false;
+    }
 }

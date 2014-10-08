@@ -96,4 +96,13 @@ public class DefaultDeviceDescription extends AbstractDescription
                 .toString();
     }
 
+    // default constructor for serialization
+    private DefaultDeviceDescription() {
+        this.uri = null;
+        this.type = null;
+        this.manufacturer = null;
+        this.hwVersion = null;
+        this.swVersion = null;
+        this.serialNumber = null;
+    }
 }
