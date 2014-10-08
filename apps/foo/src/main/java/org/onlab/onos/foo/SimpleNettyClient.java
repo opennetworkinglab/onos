@@ -41,6 +41,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         int iterations = args.length > 3 ? Integer.parseInt(args[3]) : 50 * 100000;
         NettyMessagingService messaging = new TestNettyMessagingService(9081);
         MetricsManager metrics = new MetricsManager();
+        Endpoint endpoint = new Endpoint(host, port);
         messaging.activate();
         metrics.activate();
         MetricsFeature feature = new MetricsFeature("latency");
@@ -48,9 +49,9 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         log.info("warmup....");
 
         for (int i = 0; i < warmup; i++) {
-            messaging.sendAsync(new Endpoint(host, port), "simple", "Hello World".getBytes());
+            messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
             Response response = messaging
-                    .sendAndReceive(new Endpoint(host, port), "echo",
+                    .sendAndReceive(endpoint, "echo",
                             "Hello World".getBytes());
         }
 
@@ -59,7 +60,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
 
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAsyncTimer.time();
-            messaging.sendAsync(new Endpoint(host, port), "simple", "Hello World".getBytes());
+            messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
             context.stop();
         }
 
@@ -67,7 +68,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         for (int i = 0; i < iterations; i++) {
             Timer.Context context = sendAndReceiveTimer.time();
             Response response = messaging
-                    .sendAndReceive(new Endpoint(host, port), "echo",
+                    .sendAndReceive(endpoint, "echo",
                                     "Hello World".getBytes());
             // System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
             context.stop();
