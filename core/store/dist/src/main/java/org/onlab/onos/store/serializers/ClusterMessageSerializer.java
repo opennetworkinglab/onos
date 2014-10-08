@@ -3,7 +3,6 @@ package org.onlab.onos.store.serializers;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -11,6 +10,9 @@ import com.esotericsoftware.kryo.io.Output;
 
 public final class ClusterMessageSerializer extends Serializer<ClusterMessage> {
 
+    /**
+     * Creates a serializer for {@link ClusterMessage}.
+     */
     public ClusterMessageSerializer() {
         // does not accept null
         super(false);
