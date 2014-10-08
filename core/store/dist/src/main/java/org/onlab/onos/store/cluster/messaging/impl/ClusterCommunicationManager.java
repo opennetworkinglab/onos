@@ -124,7 +124,8 @@ public class ClusterCommunicationManager
         Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
         try {
             log.info("sending...");
-            Response resp = messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            Response resp = messagingService.sendAndReceive(nodeEp,
+                    message.subject().value(), SERIALIZER.encode(message));
             resp.get(1, TimeUnit.SECONDS);
             log.info("sent...");
             return true;
