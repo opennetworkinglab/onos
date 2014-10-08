@@ -62,9 +62,9 @@ cp $M2_REPO/org/onlab/onos/onos-branding/$ONOS_VERSION/onos-branding-*.jar \
 
 # Patch in the ONOS version file use the build number or the user name for
 # build postfix in place of the SNAPSHOT post-fix.
-build=${BUILD_NUMBER:-$(id -un)}
+build=${BUILD_NUMBER:-$(id -un)~$(date +'%Y/%m/%d@%H:%M')}
 grep '<version>' $ONOS_ROOT/pom.xml | head -n1 | \
-    sed 's:.*<version>::g;s:</version>.*::g' | sed "s/SNAPSHOT/$build/g" \
+    sed 's:.*<version>::g;s:</version>.*::g' | sed "s#SNAPSHOT#$build#g" \
     >> $ONOS_STAGE/VERSION
 
 # Now package up the ONOS tar file
