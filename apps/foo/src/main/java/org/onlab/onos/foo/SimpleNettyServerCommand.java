@@ -10,14 +10,13 @@ import org.onlab.onos.cli.AbstractShellCommand;
  * Starts the Simple Netty server.
  */
 @Command(scope = "onos", name = "simple-netty-server",
-         description = "Starts the simple netty server")
+         description = "Starts simple Netty server")
 public class SimpleNettyServerCommand extends AbstractShellCommand {
 
     //FIXME: Replace these with parameters for
-    @Argument(index = 0, name = "port", description = "Port to listen",
+    @Argument(index = 0, name = "port", description = "listen port",
               required = false, multiValued = false)
     String port = "8081";
-
 
     @Override
     protected void execute() {

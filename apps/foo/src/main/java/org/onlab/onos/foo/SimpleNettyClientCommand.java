@@ -10,7 +10,7 @@ import org.onlab.onos.cli.AbstractShellCommand;
  * Test Netty client performance.
  */
 @Command(scope = "onos", name = "simple-netty-client",
-        description = "Starts the simple Netty client")
+        description = "Starts simple Netty client")
 public class SimpleNettyClientCommand extends AbstractShellCommand {
 
     //FIXME: replace these arguments with proper ones needed for the test.
