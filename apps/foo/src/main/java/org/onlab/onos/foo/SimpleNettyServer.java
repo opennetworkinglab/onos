@@ -18,7 +18,8 @@ import org.slf4j.LoggerFactory;
             }
 
         public static void startStandalone(String[] args) throws Exception {
-            NettyMessagingService server = new NettyMessagingService(8081);
+            int port = args.length > 0 ? Integer.parseInt(args[0]) : 8081;
+            NettyMessagingService server = new NettyMessagingService(port);
             server.activate();
             server.registerHandler("simple", new NettyLoggingHandler());
             server.registerHandler("echo", new NettyEchoHandler());
