@@ -13,6 +13,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
@@ -46,10 +47,14 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
-    private final ApplicationId appId = ApplicationId.getAppId();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    private ApplicationId appId;
 
     @Activate
     public void activate() {
+        appId = coreService.registerApplication("org.onlab.onos.net.intent");
         intentManager.registerInstaller(PathIntent.class, this);
     }
 

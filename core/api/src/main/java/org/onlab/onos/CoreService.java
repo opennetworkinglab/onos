@@ -12,4 +12,21 @@ public interface CoreService {
      */
     Version version();
 
+    /**
+     * Registers a new application by its name, which is expected
+     * to follow the reverse DNS convention, e.g.
+     * {@code org.flying.circus.app}
+     *
+     * @param identifier string identifier
+     * @return the application id
+     */
+    ApplicationId registerApplication(String identifier);
+
+    /**
+     * Returns an existing application id from a given id.
+     * @param id the short value of the id
+     * @return an application id
+     */
+    ApplicationId getAppId(Short id);
+
 }

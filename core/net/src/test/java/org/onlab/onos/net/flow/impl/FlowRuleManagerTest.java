@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.impl.DefaultApplicationId;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Device.Type;
@@ -59,6 +60,8 @@ import com.google.common.collect.Sets;
  */
 public class FlowRuleManagerTest {
 
+
+
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID = DeviceId.deviceId("of:001");
     private static final int TIMEOUT = 10;
@@ -87,7 +90,7 @@ public class FlowRuleManagerTest {
         mgr.addListener(listener);
         provider = new TestProvider(PID);
         providerService = registry.register(provider);
-        appId = ApplicationId.getAppId();
+        appId = new TestApplicationId((short) 0, "FlowRuleManagerTest");
         assertTrue("provider should be registered",
                 registry.getProviders().contains(provider.id()));
     }
@@ -473,6 +476,13 @@ public class FlowRuleManagerTest {
             return false;
         }
 
+    }
+
+    public class TestApplicationId extends DefaultApplicationId {
+
+        public TestApplicationId(short id, String name) {
+            super(id, name);
+        }
     }
 
 }

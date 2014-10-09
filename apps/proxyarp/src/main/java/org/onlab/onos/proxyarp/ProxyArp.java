@@ -8,6 +8,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
@@ -31,11 +32,14 @@ public class ProxyArp {
 
     private ProxyArpProcessor processor = new ProxyArpProcessor();
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     private ApplicationId appId;
 
     @Activate
     public void activate() {
-        appId = ApplicationId.getAppId();
+        appId = coreService.registerApplication("org.onlab.onos.proxyarp");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
         log.info("Started with Application ID {}", appId.id());
     }
