@@ -25,6 +25,7 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
@@ -63,7 +64,9 @@ public final class KryoPoolUtil {
                     Port.class,
                     DefaultPortDescription.class,
                     Element.class,
-                    Link.Type.class
+                    Link.Type.class,
+                    Timestamp.class
+
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())

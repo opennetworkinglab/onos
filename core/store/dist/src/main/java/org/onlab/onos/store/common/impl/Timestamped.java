@@ -30,6 +30,7 @@ public final class Timestamped<T> {
 
     /**
      * Returns the value.
+     *
      * @return value
      */
     public T value() {
@@ -38,6 +39,7 @@ public final class Timestamped<T> {
 
     /**
      * Returns the time stamp.
+     *
      * @return time stamp
      */
     public Timestamp timestamp() {
@@ -51,7 +53,16 @@ public final class Timestamped<T> {
      * @return true if this instance is newer.
      */
     public boolean isNewer(Timestamped<T> other) {
-        return this.timestamp.compareTo(checkNotNull(other).timestamp()) > 0;
+        return isNewer(checkNotNull(other).timestamp());
+    }
+
+    /**
+     * Tests if this timestamp is newer thatn the specified timestamp.
+     * @param timestamp to compare agains
+     * @return true if this instance is newer
+     */
+    public boolean isNewer(Timestamp timestamp) {
+        return this.timestamp.compareTo(checkNotNull(timestamp)) > 0;
     }
 
     @Override

@@ -1,9 +1,10 @@
-package org.onlab.onos.store.device.impl;
+package org.onlab.onos.store.link.impl;
 
 import java.util.Objects;
 
 import org.onlab.onos.store.Timestamp;
 
+// TODO: remove once we stop using this
 /**
  * Wrapper class for a entity that is versioned
  * and can either be up or down.

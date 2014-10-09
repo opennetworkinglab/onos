@@ -4,6 +4,8 @@ import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Default implementation of immutable port description.
  */
@@ -46,6 +48,15 @@ public class DefaultPortDescription extends AbstractDescription
     @Override
     public boolean isEnabled() {
         return isEnabled;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("number", number)
+                .add("isEnabled", isEnabled)
+                .add("annotations", annotations())
+                .toString();
     }
 
     // default constructor for serialization
