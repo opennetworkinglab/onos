@@ -6,5 +6,5 @@ public final class ClusterManagementMessageSubjects {
     // avoid instantiation
     private ClusterManagementMessageSubjects() {}
 
-    public static final MessageSubject CLUSTER_MEMBERSHIP_EVENT = new MessageSubject("cluster-membership-event");
+    public static final MessageSubject CLUSTER_MEMBERSHIP_EVENT = new MessageSubject("CLUSTER_MEMBERSHIP_EVENT");
 }

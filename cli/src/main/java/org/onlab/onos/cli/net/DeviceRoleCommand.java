@@ -4,8 +4,8 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipAdminService;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
 
@@ -31,7 +31,7 @@ public class DeviceRoleCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         DeviceMastershipAdminService service = get(DeviceMastershipAdminService.class);
-        DeviceMastershipRole mastershipRole = DeviceMastershipRole.valueOf(role.toUpperCase());
+        MastershipRole mastershipRole = MastershipRole.valueOf(role.toUpperCase());
         service.setRole(new NodeId(node), deviceId(uri), mastershipRole);
     }
 

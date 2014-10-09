@@ -1,6 +1,6 @@
 package org.onlab.onos.store.serializers;
 
-import org.onlab.onos.net.device.DeviceMastershipRole;
+import org.onlab.onos.net.MastershipRole;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -8,12 +8,12 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Kryo Serializer for {@link org.onlab.onos.net.device.DeviceMastershipRole}.
+ * Kryo Serializer for {@link org.onlab.onos.net.MastershipRole}.
  */
-public class MastershipRoleSerializer extends Serializer<DeviceMastershipRole> {
+public class MastershipRoleSerializer extends Serializer<MastershipRole> {
 
     /**
-     * Creates {@link DeviceMastershipRole} serializer instance.
+     * Creates {@link MastershipRole} serializer instance.
      */
     public MastershipRoleSerializer() {
         // non-null, immutable
@@ -21,13 +21,13 @@ public class MastershipRoleSerializer extends Serializer<DeviceMastershipRole> {
     }
 
     @Override
-    public DeviceMastershipRole read(Kryo kryo, Input input, Class<DeviceMastershipRole> type) {
+    public MastershipRole read(Kryo kryo, Input input, Class<MastershipRole> type) {
         final String role = kryo.readObject(input, String.class);
-        return DeviceMastershipRole.valueOf(role);
+        return MastershipRole.valueOf(role);
     }
 
     @Override
-    public void write(Kryo kryo, Output output, DeviceMastershipRole object) {
+    public void write(Kryo kryo, Output output, MastershipRole object) {
         kryo.writeObject(output, object.toString());
     }
 

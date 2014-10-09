@@ -19,10 +19,10 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
@@ -189,7 +189,7 @@ public class HostMonitorTest {
         }
 
         @Override
-        public DeviceMastershipRole getRole(DeviceId deviceId) {
+        public MastershipRole getRole(DeviceId deviceId) {
             return null;
         }
 

@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.onos.net.Device.Type.*;
-import static org.onlab.onos.net.device.DeviceMastershipRole.*;
+import static org.onlab.onos.net.MastershipRole.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +20,8 @@ import org.junit.Test;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
@@ -143,7 +143,7 @@ public class OpenFlowDeviceProviderTest {
         Set<DeviceId> connected = new HashSet<>();
         Multimap<DeviceId, PortDescription> ports = HashMultimap.create();
         PortDescription descr = null;
-        Map<DeviceMastershipRole, Dpid> roles = new HashMap<>();
+        Map<MastershipRole, Dpid> roles = new HashMap<>();
 
         @Override
         public DeviceProviderService register(DeviceProvider provider) {
@@ -195,7 +195,7 @@ public class OpenFlowDeviceProviderTest {
             }
 
             @Override
-            public void unableToAssertRole(DeviceId deviceId, DeviceMastershipRole role) {
+            public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
                 roles.put(role, Dpid.dpid(deviceId.uri()));
             }
 

@@ -1,5 +1,9 @@
 package org.onlab.onos.store.cluster.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableSet;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -14,16 +18,8 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationAdminService;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.cluster.messaging.impl.ClusterMessageSerializer;
-import org.onlab.onos.store.cluster.messaging.impl.MessageSubjectSerializer;
-import org.onlab.onos.store.serializers.KryoPoolUtil;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.cluster.messaging.impl.ClusterCommunicationManager;
 import org.onlab.packet.IpPrefix;
-import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +27,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.onlab.onos.cluster.ControllerNode.State;
 import static org.onlab.packet.IpPrefix.valueOf;
@@ -46,32 +43,16 @@ public class DistributedClusterStore
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private ControllerNode localNode;
-    private final Map<NodeId, ControllerNode> nodes = new ConcurrentHashMap<>();
+    private DefaultControllerNode localNode;
+    private final Map<NodeId, DefaultControllerNode> nodes = new ConcurrentHashMap<>();
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
-
-    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoPool.newBuilder()
-                    .register(KryoPoolUtil.API)
-                    .register(ClusterMessage.class, new ClusterMessageSerializer())
-                    .register(ClusterMembershipEvent.class)
-                    .register(byte[].class)
-                    .register(MessageSubject.class, new MessageSubjectSerializer())
-                    .build()
-                    .populate(1);
-        }
-    };
+    private final Cache<NodeId, ControllerNode> livenessCache = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(ClusterCommunicationManager.HEART_BEAT_INTERVAL_MILLIS * 3, TimeUnit.MILLISECONDS)
+            .removalListener(new LivenessCacheRemovalListener()).build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterCommunicationAdminService clusterCommunicationAdminService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterCommunicationService clusterCommunicator;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterMonitorService clusterMonitor;
 
     private final ClusterNodesDelegate nodesDelegate = new InnerNodesDelegate();
 
@@ -80,15 +61,10 @@ public class DistributedClusterStore
         loadClusterDefinition();
         establishSelfIdentity();
 
-        clusterCommunicator.addSubscriber(
-                ClusterManagementMessageSubjects.CLUSTER_MEMBERSHIP_EVENT,
-                new ClusterMembershipEventListener());
-
-        // Start-up the monitor service and prime it with the loaded nodes.
-        clusterMonitor.initialize(localNode, nodesDelegate);
-
-        for (ControllerNode node : nodes.values()) {
-            clusterMonitor.addNode(node);
+        // Start-up the comm service and prime it with the loaded nodes.
+        clusterCommunicationAdminService.initialize(localNode, nodesDelegate);
+        for (DefaultControllerNode node : nodes.values()) {
+            clusterCommunicationAdminService.addNode(node);
         }
         log.info("Started");
     }
@@ -154,78 +130,22 @@ public class DistributedClusterStore
     @Override
     public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
         DefaultControllerNode node = new DefaultControllerNode(nodeId, ip, tcpPort);
-        addNodeInternal(node);
-
-        try {
-            clusterCommunicator.broadcast(
-                    new ClusterMessage(
-                            localNode.id(),
-                            ClusterManagementMessageSubjects.CLUSTER_MEMBERSHIP_EVENT,
-                            SERIALIZER.encode(
-                                    new ClusterMembershipEvent(
-                                            ClusterMembershipEventType.NEW_MEMBER,
-                                            node))));
-        } catch (IOException e) {
-            // TODO: In a setup where cluster membership is not static (i.e. not everything has the same picture)
-            // we'll need a more consistent/dependable way to replicate membership events.
-            log.error("Failed to notify peers of a new cluster member", e);
-        }
-
+        nodes.put(nodeId, node);
+        clusterCommunicationAdminService.addNode(node);
         return node;
-    }
-
-    private void addNodeInternal(ControllerNode node) {
-        nodes.put(node.id(), node);
     }
 
     @Override
     public void removeNode(NodeId nodeId) {
-        ControllerNode node = removeNodeInternal(nodeId);
-
-        if (node != null) {
-            try {
-                clusterCommunicator.broadcast(
-                        new ClusterMessage(
-                                localNode.id(),
-                                ClusterManagementMessageSubjects.CLUSTER_MEMBERSHIP_EVENT,
-                                SERIALIZER.encode(
-                                        new ClusterMembershipEvent(
-                                                ClusterMembershipEventType.LEAVING_MEMBER,
-                                                node))));
-            } catch (IOException e) {
-                // TODO: In a setup where cluster membership is not static (i.e. not everything has the same picture)
-                // we'll need a more consistent/dependable way to replicate membership events.
-                log.error("Failed to notify peers of a existing cluster member leaving.", e);
-            }
-        }
-
-    }
-
-    private ControllerNode removeNodeInternal(NodeId nodeId) {
         if (nodeId.equals(localNode.id())) {
             nodes.clear();
             nodes.put(localNode.id(), localNode);
-            return localNode;
 
-        }
-        // Remove the other node.
-        ControllerNode node = nodes.remove(nodeId);
-        return node;
-    }
-
-    private class ClusterMembershipEventListener implements ClusterMessageHandler {
-        @Override
-        public void handle(ClusterMessage message) {
-
-            log.info("Received cluster membership event from peer: {}", message.sender());
-            ClusterMembershipEvent event = (ClusterMembershipEvent) SERIALIZER.decode(message.payload());
-            if (event.type() == ClusterMembershipEventType.NEW_MEMBER) {
-                log.info("Node {} is added", event.node().id());
-                addNodeInternal(event.node());
-            }
-            if (event.type() == ClusterMembershipEventType.LEAVING_MEMBER) {
-                log.info("Node {} is removed ", event.node().id());
-                removeNodeInternal(event.node().id());
+        } else {
+            // Remove the other node.
+            DefaultControllerNode node = nodes.remove(nodeId);
+            if (node != null) {
+                clusterCommunicationAdminService.removeNode(node);
             }
         }
     }
@@ -233,12 +153,13 @@ public class DistributedClusterStore
     // Entity to handle back calls from the connection manager.
     private class InnerNodesDelegate implements ClusterNodesDelegate {
         @Override
-        public ControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort) {
-            ControllerNode node = nodes.get(nodeId);
+        public DefaultControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort) {
+            DefaultControllerNode node = nodes.get(nodeId);
             if (node == null) {
                 node = (DefaultControllerNode) addNode(nodeId, ip, tcpPort);
             }
             states.put(nodeId, State.ACTIVE);
+            livenessCache.put(nodeId, node);
             return node;
         }
 
@@ -250,6 +171,16 @@ public class DistributedClusterStore
         @Override
         public void nodeRemoved(NodeId nodeId) {
             removeNode(nodeId);
+        }
+    }
+
+    private class LivenessCacheRemovalListener implements RemovalListener<NodeId, ControllerNode> {
+
+        @Override
+        public void onRemoval(RemovalNotification<NodeId, ControllerNode> entry) {
+            NodeId nodeId = entry.getKey();
+            log.warn("Failed to receive heartbeats from controller: " + nodeId);
+            nodesDelegate.nodeVanished(nodeId);
         }
     }
 }

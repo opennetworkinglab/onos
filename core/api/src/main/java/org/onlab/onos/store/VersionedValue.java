@@ -1,4 +1,4 @@
-package org.onlab.onos.net.device;
+package org.onlab.onos.store;
 
 import java.util.Objects;
 

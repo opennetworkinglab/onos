@@ -26,16 +26,16 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.device.Timestamp;
-import org.onlab.onos.net.device.Timestamped;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
+import org.onlab.onos.store.ClockService;
+import org.onlab.onos.store.Timestamp;
+import org.onlab.onos.store.Timestamped;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
@@ -105,7 +105,7 @@ public class GossipDeviceStore
     private final Set<DeviceId> availableDevices = Sets.newConcurrentHashSet();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceClockService clockService;
+    protected ClockService clockService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;

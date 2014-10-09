@@ -2,8 +2,8 @@ package org.onlab.onos.store.device.impl;
 
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.device.Timestamped;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Timestamped;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;

@@ -3,7 +3,7 @@ package org.onlab.onos.store.cluster.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.net.device.DeviceMastershipRole.*;
+import static org.onlab.onos.net.MastershipRole.*;
 
 import java.util.Map;
 import java.util.Set;

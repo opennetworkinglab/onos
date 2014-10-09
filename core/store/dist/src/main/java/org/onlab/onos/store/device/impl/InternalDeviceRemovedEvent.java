@@ -1,7 +1,7 @@
 package org.onlab.onos.store.device.impl;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.Timestamp;
+import org.onlab.onos.store.Timestamp;
 
 /**
  * Information published by GossipDeviceStore to notify peers of a device

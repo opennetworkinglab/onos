@@ -17,16 +17,15 @@ import org.onlab.onos.event.Event;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceAdminService;
-import org.onlab.onos.net.device.DeviceClockProviderService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
@@ -36,6 +35,7 @@ import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.ClockProviderService;
 import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
 import org.onlab.packet.IpPrefix;
 
@@ -161,7 +161,7 @@ public class DeviceManagerTest {
     @Test
     public void getRole() {
         connectDevice(DID1, SW1);
-        assertEquals("incorrect role", DeviceMastershipRole.MASTER, service.getRole(DID1));
+        assertEquals("incorrect role", MastershipRole.MASTER, service.getRole(DID1));
     }
 
     @Ignore("disabled until we settle the device-mastership wiring")
@@ -169,9 +169,9 @@ public class DeviceManagerTest {
     public void setRole() throws InterruptedException {
         connectDevice(DID1, SW1);
         validateEvents(DEVICE_ADDED, DEVICE_MASTERSHIP_CHANGED);
-        assertEquals("incorrect role", DeviceMastershipRole.STANDBY, service.getRole(DID1));
+        assertEquals("incorrect role", MastershipRole.STANDBY, service.getRole(DID1));
         assertEquals("incorrect device", DID1, provider.deviceReceived.id());
-        assertEquals("incorrect role", DeviceMastershipRole.STANDBY, provider.roleReceived);
+        assertEquals("incorrect role", MastershipRole.STANDBY, provider.roleReceived);
     }
 
     @Test
@@ -246,7 +246,7 @@ public class DeviceManagerTest {
 
     private class TestProvider extends AbstractProvider implements DeviceProvider {
         private Device deviceReceived;
-        private DeviceMastershipRole roleReceived;
+        private MastershipRole roleReceived;
 
         public TestProvider() {
             super(PID);
@@ -257,7 +257,7 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public void roleChanged(Device device, DeviceMastershipRole newRole) {
+        public void roleChanged(Device device, MastershipRole newRole) {
             deviceReceived = device;
             roleReceived = newRole;
         }
@@ -275,8 +275,8 @@ public class DeviceManagerTest {
     private static class TestMastershipService
             extends MastershipServiceAdapter {
         @Override
-        public DeviceMastershipRole getLocalRole(DeviceId deviceId) {
-            return DeviceMastershipRole.MASTER;
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return MastershipRole.MASTER;
         }
 
         @Override
@@ -285,8 +285,8 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public DeviceMastershipRole requestRoleFor(DeviceId deviceId) {
-            return DeviceMastershipRole.MASTER;
+        public MastershipRole requestRoleFor(DeviceId deviceId) {
+            return MastershipRole.MASTER;
         }
 
         @Override
@@ -336,10 +336,10 @@ public class DeviceManagerTest {
     }
 
     private final class TestClockProviderService implements
-            DeviceClockProviderService {
+            ClockProviderService {
 
         @Override
-        public void setDeviceMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term) {
+        public void setMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term) {
             // TODO Auto-generated method stub
         }
     }

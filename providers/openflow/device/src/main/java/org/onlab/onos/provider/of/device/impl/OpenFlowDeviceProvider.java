@@ -7,11 +7,11 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
@@ -91,7 +91,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     @Override
-    public void roleChanged(Device device, DeviceMastershipRole newRole) {
+    public void roleChanged(Device device, MastershipRole newRole) {
         switch (newRole) {
             case MASTER:
                 controller.setRole(dpid(device.id().uri()), RoleState.MASTER);
@@ -144,16 +144,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         @Override
         public void roleAssertFailed(Dpid dpid, RoleState role) {
-            DeviceMastershipRole failed;
+            MastershipRole failed;
             switch (role) {
                 case MASTER:
-                    failed = DeviceMastershipRole.MASTER;
+                    failed = MastershipRole.MASTER;
                     break;
                 case EQUAL:
-                    failed = DeviceMastershipRole.STANDBY;
+                    failed = MastershipRole.STANDBY;
                     break;
                 case SLAVE:
-                    failed = DeviceMastershipRole.NONE;
+                    failed = MastershipRole.NONE;
                     break;
                 default:
                     LOG.warn("unknown role {}", role);

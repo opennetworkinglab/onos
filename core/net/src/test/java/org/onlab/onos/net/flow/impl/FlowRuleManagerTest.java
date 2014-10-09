@@ -24,10 +24,10 @@ import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Device.Type;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
@@ -364,7 +364,7 @@ public class FlowRuleManagerTest {
         }
 
         @Override
-        public DeviceMastershipRole getRole(DeviceId deviceId) {
+        public MastershipRole getRole(DeviceId deviceId) {
             return null;
         }
 

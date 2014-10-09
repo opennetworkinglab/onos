@@ -35,7 +35,6 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
@@ -43,6 +42,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
@@ -96,7 +96,7 @@ public class GossipDeviceStoreTest {
     private DeviceStore deviceStore;
 
     private DeviceClockManager deviceClockManager;
-    private DeviceClockService clockService;
+    private ClockService clockService;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -113,8 +113,8 @@ public class GossipDeviceStoreTest {
         deviceClockManager.activate();
         clockService = deviceClockManager;
 
-        deviceClockManager.setDeviceMastershipTerm(DID1, DeviceMastershipTerm.of(MYSELF, 1));
-        deviceClockManager.setDeviceMastershipTerm(DID2, DeviceMastershipTerm.of(MYSELF, 2));
+        deviceClockManager.setMastershipTerm(DID1, DeviceMastershipTerm.of(MYSELF, 1));
+        deviceClockManager.setMastershipTerm(DID2, DeviceMastershipTerm.of(MYSELF, 2));
 
         ClusterCommunicationService clusterCommunicator = new TestClusterCommunicationService();
         ClusterService clusterService = new TestClusterService();
@@ -556,7 +556,7 @@ public class GossipDeviceStoreTest {
     private static final class TestGossipDeviceStore extends GossipDeviceStore {
 
         public TestGossipDeviceStore(
-                DeviceClockService clockService,
+                ClockService clockService,
                 ClusterService clusterService,
                 ClusterCommunicationService clusterCommunicator) {
             this.clockService = clockService;

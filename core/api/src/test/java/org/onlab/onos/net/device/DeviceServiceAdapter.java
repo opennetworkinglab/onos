@@ -2,6 +2,7 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 
@@ -27,7 +28,7 @@ public class DeviceServiceAdapter implements DeviceService {
     }
 
     @Override
-    public DeviceMastershipRole getRole(DeviceId deviceId) {
+    public MastershipRole getRole(DeviceId deviceId) {
         return null;
     }
 

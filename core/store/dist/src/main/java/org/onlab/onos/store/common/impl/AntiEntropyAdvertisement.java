@@ -3,7 +3,7 @@ package org.onlab.onos.store.common.impl;
 import java.util.Map;
 
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.device.Timestamp;
+import org.onlab.onos.store.Timestamp;
 
 import com.google.common.collect.ImmutableMap;
 

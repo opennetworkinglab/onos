@@ -17,8 +17,8 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipEvent;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipStore;
 import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
 import org.onlab.onos.net.device.DeviceMastershipTerm;
@@ -64,7 +64,7 @@ public class SimpleMastershipStore
 
     @Override
     public DeviceMastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
-        DeviceMastershipRole role = getRole(nodeId, deviceId);
+        MastershipRole role = getRole(nodeId, deviceId);
 
         synchronized (this) {
             switch (role) {
@@ -106,10 +106,10 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public DeviceMastershipRole requestRole(DeviceId deviceId) {
+    public MastershipRole requestRole(DeviceId deviceId) {
         //query+possible reelection
         NodeId node = instance.id();
-        DeviceMastershipRole role = getRole(node, deviceId);
+        MastershipRole role = getRole(node, deviceId);
 
         switch (role) {
             case MASTER:
@@ -121,7 +121,7 @@ public class SimpleMastershipStore
                     if (rel == null) {
                         masterMap.put(deviceId, node);
                         termMap.put(deviceId, new AtomicInteger());
-                        role = DeviceMastershipRole.MASTER;
+                        role = MastershipRole.MASTER;
                     }
                     backups.add(node);
                 }
@@ -132,7 +132,7 @@ public class SimpleMastershipStore
                     masterMap.put(deviceId, node);
                     termMap.put(deviceId, new AtomicInteger());
                     backups.add(node);
-                    role = DeviceMastershipRole.MASTER;
+                    role = MastershipRole.MASTER;
                 }
                 break;
             default:
@@ -142,22 +142,22 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public DeviceMastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
+    public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
         //just query
         NodeId current = masterMap.get(deviceId);
-        DeviceMastershipRole role;
+        MastershipRole role;
 
         if (current == null) {
             if (backups.contains(nodeId)) {
-                role = DeviceMastershipRole.STANDBY;
+                role = MastershipRole.STANDBY;
             } else {
-                role = DeviceMastershipRole.NONE;
+                role = MastershipRole.NONE;
             }
         } else {
             if (current.equals(nodeId)) {
-                role = DeviceMastershipRole.MASTER;
+                role = MastershipRole.MASTER;
             } else {
-                role = DeviceMastershipRole.STANDBY;
+                role = MastershipRole.STANDBY;
             }
         }
         return role;
@@ -175,7 +175,7 @@ public class SimpleMastershipStore
 
     @Override
     public DeviceMastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
-        DeviceMastershipRole role = getRole(nodeId, deviceId);
+        MastershipRole role = getRole(nodeId, deviceId);
         synchronized (this) {
             switch (role) {
                 case MASTER:

@@ -18,11 +18,11 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Element;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
@@ -59,7 +59,7 @@ public final class KryoPoolUtil {
                     DefaultControllerNode.class,
                     DefaultDevice.class,
                     DefaultDeviceDescription.class,
-                    DeviceMastershipRole.class,
+                    MastershipRole.class,
                     Port.class,
                     DefaultPortDescription.class,
                     Element.class,
@@ -75,7 +75,7 @@ public final class KryoPoolUtil {
             .register(ConnectPoint.class, new ConnectPointSerializer())
             .register(DefaultLink.class, new DefaultLinkSerializer())
             .register(DeviceMastershipTerm.class, new MastershipTermSerializer())
-            .register(DeviceMastershipRole.class, new MastershipRoleSerializer())
+            .register(MastershipRole.class, new MastershipRoleSerializer())
 
             .build();
 

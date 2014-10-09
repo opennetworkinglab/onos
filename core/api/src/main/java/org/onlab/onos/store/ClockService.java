@@ -1,4 +1,4 @@
-package org.onlab.onos.net.device;
+package org.onlab.onos.store;
 
 import org.onlab.onos.net.DeviceId;
 
@@ -6,7 +6,7 @@ import org.onlab.onos.net.DeviceId;
 /**
  * Interface for a logical clock service that vends per device timestamps.
  */
-public interface DeviceClockService {
+public interface ClockService {
 
     /**
      * Returns a new timestamp for the specified deviceId.

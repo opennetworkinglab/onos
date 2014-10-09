@@ -1,7 +1,7 @@
 package org.onlab.onos.store.device.impl;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.Timestamp;
+import org.onlab.onos.store.Timestamp;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
