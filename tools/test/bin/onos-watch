@@ -1,0 +1,17 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Monitors selected set of ONOS commands using the system watch command.
+#-------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCI}
+
+commands="${2:-summary,intents,flows,hosts}"
+
+aux=/tmp/onos-watch.$$
+trap "rm -f $aux'" EXIT
+
+echo "$commands" | tr ',' '\n' > $aux
+watch $3 "onos $node -b <$aux 2>/dev/null"
