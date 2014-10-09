@@ -13,7 +13,7 @@ import com.google.common.collect.ComparisonChain;
  * Default implementation of Timestamp.
  * TODO: Better documentation.
  */
-public final class MastershipBasedTimestamp implements Timestamp {
+public final class DeviceMastershipBasedTimestamp implements Timestamp {
 
     private final int termNumber;
     private final int sequenceNumber;
@@ -24,16 +24,16 @@ public final class MastershipBasedTimestamp implements Timestamp {
      * @param termNumber the mastership termNumber
      * @param sequenceNumber  the sequenceNumber number within the termNumber
      */
-    public MastershipBasedTimestamp(int termNumber, int sequenceNumber) {
+    public DeviceMastershipBasedTimestamp(int termNumber, int sequenceNumber) {
         this.termNumber = termNumber;
         this.sequenceNumber = sequenceNumber;
     }
 
     @Override
     public int compareTo(Timestamp o) {
-        checkArgument(o instanceof MastershipBasedTimestamp,
+        checkArgument(o instanceof DeviceMastershipBasedTimestamp,
                 "Must be MastershipBasedTimestamp", o);
-        MastershipBasedTimestamp that = (MastershipBasedTimestamp) o;
+        DeviceMastershipBasedTimestamp that = (DeviceMastershipBasedTimestamp) o;
 
         return ComparisonChain.start()
                 .compare(this.termNumber, that.termNumber)
@@ -51,10 +51,10 @@ public final class MastershipBasedTimestamp implements Timestamp {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof MastershipBasedTimestamp)) {
+        if (!(obj instanceof DeviceMastershipBasedTimestamp)) {
             return false;
         }
-        MastershipBasedTimestamp that = (MastershipBasedTimestamp) obj;
+        DeviceMastershipBasedTimestamp that = (DeviceMastershipBasedTimestamp) obj;
         return Objects.equals(this.termNumber, that.termNumber) &&
                 Objects.equals(this.sequenceNumber, that.sequenceNumber);
     }
@@ -87,7 +87,7 @@ public final class MastershipBasedTimestamp implements Timestamp {
 
     // Default constructor for serialization
     @Deprecated
-    protected MastershipBasedTimestamp() {
+    protected DeviceMastershipBasedTimestamp() {
         this.termNumber = -1;
         this.sequenceNumber = -1;
     }

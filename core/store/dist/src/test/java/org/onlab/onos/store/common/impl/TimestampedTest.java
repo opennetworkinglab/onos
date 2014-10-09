@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 import org.onlab.onos.store.Timestamp;
+import org.onlab.onos.store.Timestamped;
 import org.onlab.util.KryoPool;
 
 import com.google.common.testing.EqualsTester;
@@ -15,9 +16,9 @@ import com.google.common.testing.EqualsTester;
  */
 public class TimestampedTest {
 
-    private static final Timestamp TS_1_1 = new MastershipBasedTimestamp(1, 1);
-    private static final Timestamp TS_1_2 = new MastershipBasedTimestamp(1, 2);
-    private static final Timestamp TS_2_1 = new MastershipBasedTimestamp(2, 1);
+    private static final Timestamp TS_1_1 = new DeviceMastershipBasedTimestamp(1, 1);
+    private static final Timestamp TS_1_2 = new DeviceMastershipBasedTimestamp(1, 2);
+    private static final Timestamp TS_2_1 = new DeviceMastershipBasedTimestamp(2, 1);
 
     @Test
     public final void testHashCode() {
@@ -79,7 +80,7 @@ public class TimestampedTest {
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
         final KryoPool kryos = KryoPool.newBuilder()
                 .register(Timestamped.class,
-                        MastershipBasedTimestamp.class)
+                        DeviceMastershipBasedTimestamp.class)
                 .build();
 
         Timestamped<String> original = new Timestamped<>("foobar", TS_1_1);

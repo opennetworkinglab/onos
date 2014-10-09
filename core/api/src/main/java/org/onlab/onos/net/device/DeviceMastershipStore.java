@@ -1,7 +1,8 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.net.device;
 
 import java.util.Set;
 
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.Store;
@@ -10,7 +11,7 @@ import org.onlab.onos.store.Store;
  * Manages inventory of mastership roles for devices, across controller
  * instances; not intended for direct use.
  */
-public interface MastershipStore extends Store<MastershipEvent, MastershipStoreDelegate> {
+public interface DeviceMastershipStore extends Store<DeviceMastershipEvent, DeviceMastershipStoreDelegate> {
 
     // three things to map: NodeId, DeviceId, MastershipRole
 
@@ -54,7 +55,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device identifier
      * @return a mastership event
      */
-    MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId);
+    DeviceMastershipEvent setMaster(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Returns the current master and number of past mastership hand-offs
@@ -63,7 +64,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId the device identifier
      * @return the current master's ID and the term value for device, or null
      */
-    MastershipTerm getTermFor(DeviceId deviceId);
+    DeviceMastershipTerm getTermFor(DeviceId deviceId);
 
     /**
      * Sets a controller instance's mastership role to STANDBY for a device.
@@ -74,7 +75,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device to revoke mastership role for
      * @return a mastership event
      */
-    MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId);
+    DeviceMastershipEvent setStandby(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Allows a controller instance to give up its current role for a device.
@@ -85,6 +86,6 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device to revoke mastership role for
      * @return a mastership event
      */
-    MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId);
+    DeviceMastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId);
 
 }

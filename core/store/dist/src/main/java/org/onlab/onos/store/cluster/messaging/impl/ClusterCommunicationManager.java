@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -23,10 +24,8 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.serializers.ClusterMessageSerializer;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.MessageSubjectSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;

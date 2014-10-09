@@ -1,4 +1,4 @@
-package org.onlab.onos.store.serializers;
+package org.onlab.onos.store.cluster.messaging.impl;
 
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 

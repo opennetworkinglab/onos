@@ -13,11 +13,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.MastershipEvent;
-import org.onlab.onos.cluster.MastershipListener;
-import org.onlab.onos.cluster.MastershipService;
-import org.onlab.onos.cluster.MastershipTermService;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
@@ -36,6 +31,11 @@ import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.DeviceStoreDelegate;
+import org.onlab.onos.net.device.DeviceMastershipEvent;
+import org.onlab.onos.net.device.DeviceMastershipListener;
+import org.onlab.onos.net.device.DeviceMastershipService;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
+import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
@@ -64,7 +64,7 @@ public class DeviceManager
 
     private final DeviceStoreDelegate delegate = new InternalStoreDelegate();
 
-    private final MastershipListener mastershipListener = new InternalMastershipListener();
+    private final DeviceMastershipListener mastershipListener = new InternalMastershipListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceStore store;
@@ -76,9 +76,9 @@ public class DeviceManager
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    protected DeviceMastershipService mastershipService;
 
-    protected MastershipTermService termService;
+    protected DeviceMastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClockProviderService clockProviderService;
@@ -209,7 +209,7 @@ public class DeviceManager
                 return;
             }
 
-            MastershipTerm term = mastershipService.requestTermService()
+            DeviceMastershipTerm term = mastershipService.requestTermService()
                     .getMastershipTerm(deviceId);
             if (!term.master().equals(clusterService.getLocalNode().id())) {
                 // lost mastership after requestRole told this instance was MASTER.
@@ -320,16 +320,16 @@ public class DeviceManager
     }
 
     // Intercepts mastership events
-    private class InternalMastershipListener implements MastershipListener {
+    private class InternalMastershipListener implements DeviceMastershipListener {
 
         @Override
-        public void event(MastershipEvent event) {
+        public void event(DeviceMastershipEvent event) {
             final DeviceId did = event.subject();
             if (isAvailable(did)) {
                 final NodeId myNodeId = clusterService.getLocalNode().id();
 
                 if (myNodeId.equals(event.master())) {
-                    MastershipTerm term = termService.getMastershipTerm(did);
+                    DeviceMastershipTerm term = termService.getMastershipTerm(did);
 
                     if (term.master().equals(myNodeId)) {
                         // only set the new term if I am the master

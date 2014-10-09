@@ -1,11 +1,12 @@
 package org.onlab.onos.cli;
 
 import com.google.common.collect.Lists;
+
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.MastershipService;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.device.DeviceMastershipService;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +23,7 @@ public class MastersListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         ClusterService service = get(ClusterService.class);
-        MastershipService mastershipService = get(MastershipService.class);
+        DeviceMastershipService mastershipService = get(DeviceMastershipService.class);
         List<ControllerNode> nodes = newArrayList(service.getNodes());
         Collections.sort(nodes, Comparators.NODE_COMPARATOR);
         ControllerNode self = service.getLocalNode();
