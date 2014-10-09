@@ -34,7 +34,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
 
         System.exit(0);
     }
-    public static void startStandalone(String... args) throws Exception {
+    public static void startStandalone(String[] args) throws Exception {
         String host = args.length > 0 ? args[0] : "localhost";
         int port = args.length > 1 ? Integer.parseInt(args[1]) : 8081;
         int warmup = args.length > 2 ? Integer.parseInt(args[2]) : 1000;
@@ -46,7 +46,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         metrics.activate();
         MetricsFeature feature = new MetricsFeature("latency");
         MetricsComponent component = metrics.registerComponent("NettyMessaging");
-        log.info("warmup....");
+        log.info("connecting " + host + ":" + port + " warmup:" + warmup + " iterations:" + iterations);
 
         for (int i = 0; i < warmup; i++) {
             messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
@@ -73,6 +73,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
             // System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
             context.stop();
         }
+        metrics.deactivate();
     }
 
     public static class TestNettyMessagingService extends NettyMessagingService {
