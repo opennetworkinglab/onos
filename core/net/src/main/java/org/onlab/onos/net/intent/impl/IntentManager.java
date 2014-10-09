@@ -521,9 +521,8 @@ public class IntentManager
                 Future<CompletedBatchOperation> future = i.next();
                 try {
                     // TODO: we may want to get the future here and go back to the future.
-                    future.get(100, TimeUnit.NANOSECONDS);
-
-
+                    CompletedBatchOperation completed = future.get(100, TimeUnit.NANOSECONDS);
+                    // TODO check if future succeeded and if not report fail items
                     i.remove();
 
                 } catch (TimeoutException | InterruptedException | ExecutionException te) {
