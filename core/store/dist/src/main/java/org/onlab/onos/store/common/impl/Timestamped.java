@@ -1,8 +1,10 @@
-package org.onlab.onos.store;
+package org.onlab.onos.store.common.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
+
+import org.onlab.onos.store.Timestamp;
 
 import com.google.common.base.MoreObjects;
 

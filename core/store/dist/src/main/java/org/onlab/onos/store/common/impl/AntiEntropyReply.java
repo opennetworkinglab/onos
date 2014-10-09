@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.VersionedValue;
+import org.onlab.onos.store.device.impl.VersionedValue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

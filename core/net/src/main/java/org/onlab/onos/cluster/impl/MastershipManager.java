@@ -14,25 +14,25 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.MastershipAdminService;
+import org.onlab.onos.cluster.MastershipEvent;
+import org.onlab.onos.cluster.MastershipListener;
+import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.MastershipStore;
+import org.onlab.onos.cluster.MastershipStoreDelegate;
+import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.device.DeviceMastershipAdminService;
-import org.onlab.onos.net.device.DeviceMastershipEvent;
-import org.onlab.onos.net.device.DeviceMastershipListener;
-import org.onlab.onos.net.device.DeviceMastershipService;
-import org.onlab.onos.net.device.DeviceMastershipStore;
-import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
-import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.slf4j.Logger;
 
 @Component(immediate = true)
 @Service
 public class MastershipManager
-implements DeviceMastershipService, DeviceMastershipAdminService {
+implements MastershipService, MastershipAdminService {
 
     private static final String NODE_ID_NULL = "Node ID cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -40,13 +40,13 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<DeviceMastershipEvent, DeviceMastershipListener>
+    protected final AbstractListenerRegistry<MastershipEvent, MastershipListener>
     listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final DeviceMastershipStoreDelegate delegate = new InternalDelegate();
+    private final MastershipStoreDelegate delegate = new InternalDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceMastershipStore store;
+    protected MastershipStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -58,7 +58,7 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
 
     @Activate
     public void activate() {
-        eventDispatcher.addSink(DeviceMastershipEvent.class, listenerRegistry);
+        eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
         clusterService.addListener(clusterListener);
         store.setDelegate(delegate);
         log.info("Started");
@@ -66,7 +66,7 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
 
     @Deactivate
     public void deactivate() {
-        eventDispatcher.removeSink(DeviceMastershipEvent.class);
+        eventDispatcher.removeSink(MastershipEvent.class);
         clusterService.removeListener(clusterListener);
         store.unsetDelegate(delegate);
         log.info("Stopped");
@@ -78,7 +78,7 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
 
-        DeviceMastershipEvent event = null;
+        MastershipEvent event = null;
         if (role.equals(MastershipRole.MASTER)) {
             event = store.setMaster(nodeId, deviceId);
         } else {
@@ -98,7 +98,7 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
 
     @Override
     public void relinquishMastership(DeviceId deviceId) {
-        DeviceMastershipEvent event = null;
+        MastershipEvent event = null;
         event = store.relinquishRole(
                 clusterService.getLocalNode().id(), deviceId);
 
@@ -127,18 +127,18 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
 
 
     @Override
-    public DeviceMastershipTermService requestTermService() {
+    public MastershipTermService requestTermService() {
         return new InternalMastershipTermService();
     }
 
     @Override
-    public void addListener(DeviceMastershipListener listener) {
+    public void addListener(MastershipListener listener) {
         checkNotNull(listener);
         listenerRegistry.addListener(listener);
     }
 
     @Override
-    public void removeListener(DeviceMastershipListener listener) {
+    public void removeListener(MastershipListener listener) {
         checkNotNull(listener);
         listenerRegistry.removeListener(listener);
     }
@@ -146,16 +146,16 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
     // FIXME: provide wiring to allow events to be triggered by changes within the store
 
     // Posts the specified event to the local event dispatcher.
-    private void post(DeviceMastershipEvent event) {
+    private void post(MastershipEvent event) {
         if (event != null && eventDispatcher != null) {
             eventDispatcher.post(event);
         }
     }
 
-    private class InternalMastershipTermService implements DeviceMastershipTermService {
+    private class InternalMastershipTermService implements MastershipTermService {
 
         @Override
-        public DeviceMastershipTerm getMastershipTerm(DeviceId deviceId) {
+        public MastershipTerm getMastershipTerm(DeviceId deviceId) {
             return store.getTermFor(deviceId);
         }
 
@@ -181,10 +181,10 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
 
     }
 
-    public class InternalDelegate implements DeviceMastershipStoreDelegate {
+    public class InternalDelegate implements MastershipStoreDelegate {
 
         @Override
-        public void notify(DeviceMastershipEvent event) {
+        public void notify(MastershipEvent event) {
             log.info("dispatching mastership event {}", event);
             eventDispatcher.post(event);
         }

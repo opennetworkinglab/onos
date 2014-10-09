@@ -35,14 +35,14 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.Timestamped;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.common.impl.DeviceMastershipBasedTimestamp;
-import org.onlab.onos.store.common.impl.MastershipBasedTimestampSerializer;
+import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.common.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.MastershipBasedTimestampSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
@@ -125,7 +125,7 @@ public class GossipDeviceStore
                     .register(InternalPortStatusEvent.class, new InternalPortStatusEventSerializer())
                     .register(Timestamp.class)
                     .register(Timestamped.class)
-                    .register(DeviceMastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
+                    .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
                     .build()
                     .populate(1);
         }

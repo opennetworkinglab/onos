@@ -1,6 +1,8 @@
-package org.onlab.onos.store;
+package org.onlab.onos.store.device.impl;
 
 import java.util.Objects;
+
+import org.onlab.onos.store.Timestamp;
 
 /**
  * Wrapper class for a entity that is versioned

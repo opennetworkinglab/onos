@@ -21,12 +21,12 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.MastershipEvent;
+import org.onlab.onos.cluster.MastershipEvent.Type;
+import org.onlab.onos.cluster.MastershipStoreDelegate;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceMastershipEvent;
-import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
-import org.onlab.onos.net.device.DeviceMastershipEvent.Type;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
@@ -133,7 +133,7 @@ public class DistributedMastershipStoreTest {
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
         assertTrue("wrong state for store:", !dms.terms.isEmpty());
         assertEquals("wrong term",
-                DeviceMastershipTerm.of(N1, 0), dms.getTermFor(DID1));
+                MastershipTerm.of(N1, 0), dms.getTermFor(DID1));
 
         //CN2 now local. DID2 has N1 as MASTER so N2 is STANDBY
         testStore.setCurrent(CN2);
@@ -143,7 +143,7 @@ public class DistributedMastershipStoreTest {
         //change term and requestRole() again; should persist
         testStore.increment(DID2);
         assertEquals("wrong role for STANDBY:", STANDBY, dms.requestRole(DID2));
-        assertEquals("wrong term", DeviceMastershipTerm.of(N1, 1), dms.getTermFor(DID2));
+        assertEquals("wrong term", MastershipTerm.of(N1, 1), dms.getTermFor(DID2));
     }
 
     @Test
@@ -155,15 +155,15 @@ public class DistributedMastershipStoreTest {
 
         //switch over to N2
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID1).type());
-        assertEquals("wrong term", DeviceMastershipTerm.of(N2, 1), dms.getTermFor(DID1));
+        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID1));
 
         //orphan switch - should be rare case
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID2).type());
-        assertEquals("wrong term", DeviceMastershipTerm.of(N2, 0), dms.getTermFor(DID2));
+        assertEquals("wrong term", MastershipTerm.of(N2, 0), dms.getTermFor(DID2));
         //disconnect and reconnect - sign of failing re-election or single-instance channel
         testStore.reset(true, false, false);
         dms.setMaster(N2, DID2);
-        assertEquals("wrong term", DeviceMastershipTerm.of(N2, 1), dms.getTermFor(DID2));
+        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID2));
     }
 
     @Test
@@ -211,9 +211,9 @@ public class DistributedMastershipStoreTest {
         //shamelessly copy other distributed store tests
         final CountDownLatch addLatch = new CountDownLatch(1);
 
-        DeviceMastershipStoreDelegate checkAdd = new DeviceMastershipStoreDelegate() {
+        MastershipStoreDelegate checkAdd = new MastershipStoreDelegate() {
             @Override
-            public void notify(DeviceMastershipEvent event) {
+            public void notify(MastershipEvent event) {
                 assertEquals("wrong event:", Type.MASTER_CHANGED, event.type());
                 assertEquals("wrong subject", DID1, event.subject());
                 assertEquals("wrong subject", N1, event.master());

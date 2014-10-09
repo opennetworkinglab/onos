@@ -1,21 +1,19 @@
-package org.onlab.onos.net.device;
+package org.onlab.onos.cluster;
 
 import java.util.Objects;
 
-import org.onlab.onos.cluster.NodeId;
-
-public final class DeviceMastershipTerm {
+public final class MastershipTerm {
 
     private final NodeId master;
     private final int termNumber;
 
-    private DeviceMastershipTerm(NodeId master, int term) {
+    private MastershipTerm(NodeId master, int term) {
         this.master = master;
         this.termNumber = term;
     }
 
-    public static DeviceMastershipTerm of(NodeId master, int term) {
-        return new DeviceMastershipTerm(master, term);
+    public static MastershipTerm of(NodeId master, int term) {
+        return new MastershipTerm(master, term);
     }
 
     public NodeId master() {
@@ -36,8 +34,8 @@ public final class DeviceMastershipTerm {
         if (this == other) {
             return true;
         }
-        if (other instanceof DeviceMastershipTerm) {
-            DeviceMastershipTerm that = (DeviceMastershipTerm) other;
+        if (other instanceof MastershipTerm) {
+            MastershipTerm that = (MastershipTerm) other;
             if (!this.master.equals(that.master)) {
                 return false;
             }

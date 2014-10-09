@@ -1,20 +1,19 @@
 package org.onlab.onos.store.serializers;
 
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Kryo Serializer for {@link org.onlab.onos.net.device.DeviceMastershipTerm}.
+ * Kryo Serializer for {@link org.onlab.onos.cluster.MastershipTerm}.
  */
-public class MastershipTermSerializer extends Serializer<DeviceMastershipTerm> {
+public class MastershipTermSerializer extends Serializer<MastershipTerm> {
 
     /**
-     * Creates {@link DeviceMastershipTerm} serializer instance.
+     * Creates {@link MastershipTerm} serializer instance.
      */
     public MastershipTermSerializer() {
         // non-null, immutable
@@ -22,14 +21,14 @@ public class MastershipTermSerializer extends Serializer<DeviceMastershipTerm> {
     }
 
     @Override
-    public DeviceMastershipTerm read(Kryo kryo, Input input, Class<DeviceMastershipTerm> type) {
+    public MastershipTerm read(Kryo kryo, Input input, Class<MastershipTerm> type) {
         final NodeId node = new NodeId(input.readString());
         final int term = input.readInt();
-        return DeviceMastershipTerm.of(node, term);
+        return MastershipTerm.of(node, term);
     }
 
     @Override
-    public void write(Kryo kryo, Output output, DeviceMastershipTerm object) {
+    public void write(Kryo kryo, Output output, MastershipTerm object) {
         output.writeString(object.master().toString());
         output.writeInt(object.termNumber());
     }

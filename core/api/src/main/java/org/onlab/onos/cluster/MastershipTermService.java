@@ -1,4 +1,4 @@
-package org.onlab.onos.net.device;
+package org.onlab.onos.cluster;
 
 import org.onlab.onos.net.DeviceId;
 
@@ -6,7 +6,7 @@ import org.onlab.onos.net.DeviceId;
 /**
  * Service to obtain mastership term information.
  */
-public interface DeviceMastershipTermService {
+public interface MastershipTermService {
 
     // TBD: manage/increment per device mastership change
     //      or increment on any change
@@ -16,5 +16,5 @@ public interface DeviceMastershipTermService {
      * @param deviceId the identifier of the device
      * @return current master's term.
      */
-    DeviceMastershipTerm getMastershipTerm(DeviceId deviceId);
+    MastershipTerm getMastershipTerm(DeviceId deviceId);
 }

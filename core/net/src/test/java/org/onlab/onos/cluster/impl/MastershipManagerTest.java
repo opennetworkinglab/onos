@@ -10,11 +10,11 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceMastershipService;
-import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
 import org.onlab.packet.IpPrefix;
 
@@ -34,7 +34,7 @@ public class MastershipManagerTest {
     private static final DeviceId DEV_OTHER = DeviceId.deviceId("of:2");
 
     private MastershipManager mgr;
-    protected DeviceMastershipService service;
+    protected MastershipService service;
 
     @Before
     public void setUp() {
@@ -120,7 +120,7 @@ public class MastershipManagerTest {
 
     @Test
     public void termService() {
-        DeviceMastershipTermService ts = mgr.requestTermService();
+        MastershipTermService ts = mgr.requestTermService();
 
         //term = 0 for both
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);

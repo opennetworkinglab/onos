@@ -5,7 +5,7 @@ import java.util.List;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.Timestamped;
+import org.onlab.onos.store.common.impl.Timestamped;
 
 /**
  * Information published by GossipDeviceStore to notify peers of a port

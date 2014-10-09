@@ -10,6 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
@@ -24,7 +25,6 @@ import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -114,7 +114,7 @@ public class KryoSerializerTest {
         testSerialized(PID);
         testSerialized(PIDA);
         testSerialized(new NodeId("bar"));
-        testSerialized(DeviceMastershipTerm.of(new NodeId("foo"), 2));
+        testSerialized(MastershipTerm.of(new NodeId("foo"), 2));
         for (MastershipRole role : MastershipRole.values()) {
             testSerialized(role);
         }
