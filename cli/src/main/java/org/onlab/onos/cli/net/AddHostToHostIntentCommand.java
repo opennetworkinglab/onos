@@ -27,7 +27,7 @@ public class AddHostToHostIntentCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String two = null;
 
-    private static long id = 1;
+    private static long id = 0x7870001;
 
     @Override
     protected void execute() {

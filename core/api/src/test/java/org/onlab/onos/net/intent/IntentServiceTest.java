@@ -1,17 +1,25 @@
 package org.onlab.onos.net.intent;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import static org.onlab.onos.net.intent.IntentEvent.Type.FAILED;
+import static org.onlab.onos.net.intent.IntentEvent.Type.INSTALLED;
+import static org.onlab.onos.net.intent.IntentEvent.Type.SUBMITTED;
+import static org.onlab.onos.net.intent.IntentEvent.Type.WITHDRAWN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Future;
 
-import static org.junit.Assert.*;
-import static org.onlab.onos.net.intent.IntentEvent.Type.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.onlab.onos.net.flow.CompletedBatchOperation;
 
 /**
  * Suite of tests for the intent service contract.
@@ -290,17 +298,19 @@ public class IntentServiceTest {
         }
 
         @Override
-        public void install(TestInstallableIntent intent) {
+        public Future<CompletedBatchOperation> install(TestInstallableIntent intent) {
             if (fail) {
                 throw new IntentException("install failed by design");
             }
+            return null;
         }
 
         @Override
-        public void uninstall(TestInstallableIntent intent) {
+        public Future<CompletedBatchOperation> uninstall(TestInstallableIntent intent) {
             if (fail) {
                 throw new IntentException("remove failed by design");
             }
+            return null;
         }
     }
 

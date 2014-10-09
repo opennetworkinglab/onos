@@ -33,6 +33,7 @@ alias obs='onos-build-selective'
 alias op='onos-package'
 alias ot='onos-test'
 alias ol='onos-log'
+alias ow='onos-watch'
 alias go='ob && ot && onos -w'
 alias pub='onos-push-update-bundle'
 

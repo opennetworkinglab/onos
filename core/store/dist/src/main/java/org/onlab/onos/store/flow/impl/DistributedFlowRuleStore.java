@@ -43,8 +43,8 @@ public class DistributedFlowRuleStore
     private final Multimap<DeviceId, FlowEntry> flowEntries =
             ArrayListMultimap.<DeviceId, FlowEntry>create();
 
-    private final Multimap<ApplicationId, FlowRule> flowEntriesById =
-            ArrayListMultimap.<ApplicationId, FlowRule>create();
+    private final Multimap<Short, FlowRule> flowEntriesById =
+            ArrayListMultimap.<Short, FlowRule>create();
 
     @Activate
     public void activate() {
@@ -83,7 +83,7 @@ public class DistributedFlowRuleStore
 
     @Override
     public synchronized Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId) {
-        Collection<FlowRule> rules = flowEntriesById.get(appId);
+        Collection<FlowRule> rules = flowEntriesById.get(appId.id());
         if (rules == null) {
             return Collections.emptyList();
         }

@@ -1,6 +1,5 @@
 package org.onlab.onos.net.flow;
 
-import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.intent.BatchOperationTarget;
 
@@ -26,7 +25,7 @@ public interface FlowRule extends BatchOperationTarget {
      *
      * @return an applicationId
      */
-    ApplicationId appId();
+    short appId();
 
     /**
      * Returns the flow rule priority given in natural order; higher numbers

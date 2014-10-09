@@ -29,7 +29,12 @@ public interface FlowEntry extends FlowRule {
         /**
          * Flow has been removed from flow table and can be purged.
          */
-        REMOVED
+        REMOVED,
+
+        /**
+         * Indicates that the installation of this flow has failed.
+         */
+        FAILED
     }
 
     /**
@@ -94,5 +99,17 @@ public interface FlowEntry extends FlowRule {
      * @param bytes a long value
      */
     void setBytes(long bytes);
+
+    /**
+     * Indicates the error type.
+     * @return an integer value of the error
+     */
+    int errType();
+
+    /**
+     * Indicates the error code.
+     * @return an integer value of the error
+     */
+    int errCode();
 
 }

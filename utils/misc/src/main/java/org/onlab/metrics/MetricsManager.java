@@ -11,6 +11,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
@@ -18,7 +19,6 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
 
 /**
@@ -70,16 +70,20 @@ public final class MetricsManager implements MetricsService {
     /**
      * Default Reporter for this metrics manager.
      */
-    private final Slf4jReporter reporter;
+    //private final Slf4jReporter reporter;
+    private final ConsoleReporter reporter;
 
     public MetricsManager() {
         this.metricsRegistry = new MetricRegistry();
-        this.reporter = Slf4jReporter.forRegistry(this.metricsRegistry)
-                .outputTo(log)
+//        this.reporter = Slf4jReporter.forRegistry(this.metricsRegistry)
+//                .outputTo(log)
+//                .convertRatesTo(TimeUnit.SECONDS)
+//                .convertDurationsTo(TimeUnit.MICROSECONDS)
+//                .build();
+        this.reporter = ConsoleReporter.forRegistry(this.metricsRegistry)
                 .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.NANOSECONDS)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
                 .build();
-        reporter.start(1, TimeUnit.MINUTES);
     }
 
     @Activate

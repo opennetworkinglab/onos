@@ -33,6 +33,8 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
 
     /**
      * Returns the number of intents in the store.
+     *
+     * @return the number of intents in the store
      */
     long getIntentCount();
 
@@ -44,7 +46,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     Iterable<Intent> getIntents();
 
     /**
-     * Returns the intent with the specified identifer.
+     * Returns the intent with the specified identifier.
      *
      * @param intentId intent identification
      * @return intent or null if not found
@@ -94,7 +96,6 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * specified original intent.
      *
      * @param intentId original intent identifier
-     * @return compiled state transition event
      */
     void removeInstalledIntents(IntentId intentId);
 

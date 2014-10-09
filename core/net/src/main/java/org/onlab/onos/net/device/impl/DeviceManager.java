@@ -143,7 +143,7 @@ public class DeviceManager
 
     // Applies the specified role to the device; ignores NONE
     private void applyRole(DeviceId deviceId, MastershipRole newRole) {
-        if (newRole != MastershipRole.NONE) {
+        if (newRole.equals(MastershipRole.NONE)) {
             Device device = store.getDevice(deviceId);
             // FIXME: Device might not be there yet. (eventual consistent)
             if (device == null) {
@@ -257,13 +257,14 @@ public class DeviceManager
             // temporarily request for Master Role and mark offline.
             if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
                 log.debug("Device {} disconnected, but I am not the master", deviceId);
+                //let go of any role anyways
+                mastershipService.relinquishMastership(deviceId);
                 return;
             }
             DeviceEvent event = store.markOffline(deviceId);
-
+            //we're no longer capable of being master or a candidate.
             mastershipService.relinquishMastership(deviceId);
 
-            //we're no longer capable of mastership.
             if (event != null) {
                 log.info("Device {} disconnected", deviceId);
                 post(event);
@@ -319,24 +320,29 @@ public class DeviceManager
     }
 
     // Intercepts mastership events
-    private class InternalMastershipListener
-    implements MastershipListener {
+    private class InternalMastershipListener implements MastershipListener {
+
         @Override
         public void event(MastershipEvent event) {
-            final NodeId myNodeId = clusterService.getLocalNode().id();
-            if (myNodeId.equals(event.master())) {
+            final DeviceId did = event.subject();
+            if (isAvailable(did)) {
+                final NodeId myNodeId = clusterService.getLocalNode().id();
 
-                MastershipTerm term = mastershipService.requestTermService()
-                        .getMastershipTerm(event.subject());
+                if (myNodeId.equals(event.master())) {
+                    MastershipTerm term = termService.getMastershipTerm(did);
 
-                if (term.master().equals(myNodeId)) {
-                    // only set the new term if I am the master
-                    clockProviderService.setMastershipTerm(event.subject(), term);
+                    if (term.master().equals(myNodeId)) {
+                        // only set the new term if I am the master
+                        clockProviderService.setMastershipTerm(did, term);
+                    }
+                    applyRole(did, MastershipRole.MASTER);
+                } else {
+                    applyRole(did, MastershipRole.STANDBY);
                 }
-
-                applyRole(event.subject(), MastershipRole.MASTER);
             } else {
-                applyRole(event.subject(), MastershipRole.STANDBY);
+                //device dead to node, give up
+                mastershipService.relinquishMastership(did);
+                applyRole(did, MastershipRole.STANDBY);
             }
         }
     }

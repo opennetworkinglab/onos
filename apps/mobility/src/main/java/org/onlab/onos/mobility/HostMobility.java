@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.device.DeviceService;
@@ -44,11 +45,14 @@ public class HostMobility {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     private ApplicationId appId;
 
     @Activate
     public void activate() {
-        appId = ApplicationId.getAppId();
+        appId = coreService.registerApplication("org.onlab.onos.mobility");
         hostService.addListener(new InternalHostListener());
         log.info("Started with Application ID {}", appId.id());
     }
