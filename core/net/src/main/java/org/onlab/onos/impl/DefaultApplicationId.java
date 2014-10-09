@@ -1,18 +1,18 @@
 package org.onlab.onos.impl;
 
+import org.onlab.onos.ApplicationId;
+
 import java.util.Objects;
 
-import org.onlab.onos.ApplicationId;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Application id generator class.
  */
 public class DefaultApplicationId implements ApplicationId {
 
-
     private final short id;
     private final String name;
-
 
     // Ban public construction
     protected DefaultApplicationId(Short id, String identifier) {
@@ -40,13 +40,16 @@ public class DefaultApplicationId implements ApplicationId {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
+        if (obj instanceof DefaultApplicationId) {
+            DefaultApplicationId other = (DefaultApplicationId) obj;
+            return Objects.equals(this.id, other.id);
         }
-        if (!(obj instanceof DefaultApplicationId)) {
-            return false;
-        }
-        DefaultApplicationId other = (DefaultApplicationId) obj;
-        return Objects.equals(this.id, other.id);
+        return false;
     }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this).add("id", id).add("name", name).toString();
+    }
+
 }
