@@ -430,9 +430,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         public CompletedBatchOperation get(long timeout, TimeUnit unit)
                 throws InterruptedException, ExecutionException,
                 TimeoutException {
-            countDownLatch.await(timeout, unit);
-            this.state = BatchState.FINISHED;
-            return new CompletedBatchOperation(ok.get(), offendingFlowMods);
+            if (countDownLatch.await(timeout, unit)) {
+                this.state = BatchState.FINISHED;
+                return new CompletedBatchOperation(ok.get(), offendingFlowMods);
+            }
+            throw new TimeoutException();
         }
 
         private void cleanUp() {

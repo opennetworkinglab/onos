@@ -454,7 +454,7 @@ public class FlowRuleManager
 
         private CompletedBatchOperation finalizeBatchOperation(boolean success,
                 List<FlowEntry> failed) {
-            synchronized (overall) {
+            synchronized (this) {
                 if (!state.compareAndSet(BatchState.STARTED, BatchState.FINISHED)) {
                     if (state.get() == BatchState.FINISHED) {
                         return overall;
