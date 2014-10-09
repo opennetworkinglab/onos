@@ -157,9 +157,7 @@ public class Controller {
         }
         log.debug("OpenFlow port set to {}", this.openFlowPort);
         String threads = configParams.get("workerthreads");
-        if (threads != null) {
-            this.workerThreads = Integer.parseInt(threads);
-        }
+        this.workerThreads = threads != null ? Integer.parseInt(threads) : 16;
         log.debug("Number of worker threads set to {}", this.workerThreads);
     }
 

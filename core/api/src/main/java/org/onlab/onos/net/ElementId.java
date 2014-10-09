@@ -9,10 +9,12 @@ import java.util.Objects;
 public abstract class ElementId {
 
     private final URI uri;
+    private final String str;
 
     // Default constructor for serialization
     protected ElementId() {
         this.uri = null;
+        this.str = null;
     }
 
     /**
@@ -22,6 +24,7 @@ public abstract class ElementId {
      */
     protected ElementId(URI uri) {
         this.uri = uri;
+        this.str = uri.toString();
     }
 
     /**
@@ -35,7 +38,7 @@ public abstract class ElementId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(uri);
+        return Objects.hash(str);
     }
 
     @Override
@@ -46,14 +49,14 @@ public abstract class ElementId {
         if (obj instanceof ElementId) {
             final ElementId that = (ElementId) obj;
             return this.getClass() == that.getClass() &&
-                    Objects.equals(this.uri, that.uri);
+                    Objects.equals(this.str, that.str);
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return uri.toString();
+        return str;
     }
 
 }
