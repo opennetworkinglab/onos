@@ -1,6 +1,4 @@
-package org.onlab.onos.store.serializers;
-
-import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
+package org.onlab.onos.store.common.impl;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -9,12 +7,12 @@ import com.esotericsoftware.kryo.io.Output;
 
 // To be used if Timestamp ever needs to cross bundle boundary.
 /**
- * Kryo Serializer for {@link MastershipBasedTimestamp}.
+ * Kryo Serializer for {@link DeviceMastershipBasedTimestamp}.
  */
-public class MastershipBasedTimestampSerializer extends Serializer<MastershipBasedTimestamp> {
+public class MastershipBasedTimestampSerializer extends Serializer<DeviceMastershipBasedTimestamp> {
 
     /**
-     * Creates a serializer for {@link MastershipBasedTimestamp}.
+     * Creates a serializer for {@link DeviceMastershipBasedTimestamp}.
      */
     public MastershipBasedTimestampSerializer() {
         // non-null, immutable
@@ -22,15 +20,15 @@ public class MastershipBasedTimestampSerializer extends Serializer<MastershipBas
     }
 
     @Override
-    public void write(Kryo kryo, Output output, MastershipBasedTimestamp object) {
+    public void write(Kryo kryo, Output output, DeviceMastershipBasedTimestamp object) {
         output.writeInt(object.termNumber());
         output.writeInt(object.sequenceNumber());
     }
 
     @Override
-    public MastershipBasedTimestamp read(Kryo kryo, Input input, Class<MastershipBasedTimestamp> type) {
+    public DeviceMastershipBasedTimestamp read(Kryo kryo, Input input, Class<DeviceMastershipBasedTimestamp> type) {
         final int term = input.readInt();
         final int sequence = input.readInt();
-        return new MastershipBasedTimestamp(term, sequence);
+        return new DeviceMastershipBasedTimestamp(term, sequence);
     }
 }

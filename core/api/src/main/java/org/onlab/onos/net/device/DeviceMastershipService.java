@@ -1,7 +1,8 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.net.device;
 
 import java.util.Set;
 
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 
@@ -11,7 +12,7 @@ import org.onlab.onos.net.MastershipRole;
  * determining mastership, but is not responsible for actually applying it
  * to the devices; this falls on the device service.
  */
-public interface MastershipService {
+public interface DeviceMastershipService {
 
     /**
      * Returns the role of the local node for the specified device, without
@@ -62,20 +63,20 @@ public interface MastershipService {
      *
      * @return the MastershipTermService for this mastership manager
      */
-    MastershipTermService requestTermService();
+    DeviceMastershipTermService requestTermService();
 
     /**
      * Adds the specified mastership change listener.
      *
      * @param listener the mastership listener
      */
-    void addListener(MastershipListener listener);
+    void addListener(DeviceMastershipListener listener);
 
     /**
      * Removes the specified mastership change listener.
      *
      * @param listener the mastership listener
      */
-    void removeListener(MastershipListener listener);
+    void removeListener(DeviceMastershipListener listener);
 
 }

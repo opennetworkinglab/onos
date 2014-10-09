@@ -31,7 +31,7 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.device.impl.VersionedValue;
+import org.onlab.onos.store.VersionedValue;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;

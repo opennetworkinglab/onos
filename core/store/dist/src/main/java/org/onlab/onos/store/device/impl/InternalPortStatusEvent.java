@@ -3,7 +3,7 @@ package org.onlab.onos.store.device.impl;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.Timestamped;
 
 /**
  * Information published by GossipDeviceStore to notify peers of a port

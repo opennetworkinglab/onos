@@ -10,12 +10,12 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.store.ClockProviderService;
 import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.common.impl.DeviceMastershipBasedTimestamp;
 import org.slf4j.Logger;
 
 /**
@@ -29,7 +29,7 @@ public class DeviceClockManager implements ClockService, ClockProviderService {
 
     // TODO: Implement per device ticker that is reset to 0 at the beginning of a new term.
     private final AtomicInteger ticker = new AtomicInteger(0);
-    private ConcurrentMap<DeviceId, MastershipTerm> deviceMastershipTerms = new ConcurrentHashMap<>();
+    private ConcurrentMap<DeviceId, DeviceMastershipTerm> deviceMastershipTerms = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -43,15 +43,15 @@ public class DeviceClockManager implements ClockService, ClockProviderService {
 
     @Override
     public Timestamp getTimestamp(DeviceId deviceId) {
-        MastershipTerm term = deviceMastershipTerms.get(deviceId);
+        DeviceMastershipTerm term = deviceMastershipTerms.get(deviceId);
         if (term == null) {
             throw new IllegalStateException("Requesting timestamp for a deviceId without mastership");
         }
-        return new MastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
+        return new DeviceMastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
     }
 
     @Override
-    public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
+    public void setMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term) {
         deviceMastershipTerms.put(deviceId, term);
     }
 }

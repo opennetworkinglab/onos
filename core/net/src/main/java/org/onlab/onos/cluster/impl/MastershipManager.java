@@ -14,25 +14,25 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.MastershipAdminService;
-import org.onlab.onos.cluster.MastershipEvent;
-import org.onlab.onos.cluster.MastershipListener;
-import org.onlab.onos.cluster.MastershipService;
-import org.onlab.onos.cluster.MastershipStore;
-import org.onlab.onos.cluster.MastershipStoreDelegate;
-import org.onlab.onos.cluster.MastershipTerm;
-import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.device.DeviceMastershipAdminService;
+import org.onlab.onos.net.device.DeviceMastershipEvent;
+import org.onlab.onos.net.device.DeviceMastershipListener;
+import org.onlab.onos.net.device.DeviceMastershipService;
+import org.onlab.onos.net.device.DeviceMastershipStore;
+import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
+import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.slf4j.Logger;
 
 @Component(immediate = true)
 @Service
 public class MastershipManager
-implements MastershipService, MastershipAdminService {
+implements DeviceMastershipService, DeviceMastershipAdminService {
 
     private static final String NODE_ID_NULL = "Node ID cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -40,13 +40,13 @@ implements MastershipService, MastershipAdminService {
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<MastershipEvent, MastershipListener>
+    protected final AbstractListenerRegistry<DeviceMastershipEvent, DeviceMastershipListener>
     listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final MastershipStoreDelegate delegate = new InternalDelegate();
+    private final DeviceMastershipStoreDelegate delegate = new InternalDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipStore store;
+    protected DeviceMastershipStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -58,7 +58,7 @@ implements MastershipService, MastershipAdminService {
 
     @Activate
     public void activate() {
-        eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
+        eventDispatcher.addSink(DeviceMastershipEvent.class, listenerRegistry);
         clusterService.addListener(clusterListener);
         store.setDelegate(delegate);
         log.info("Started");
@@ -66,7 +66,7 @@ implements MastershipService, MastershipAdminService {
 
     @Deactivate
     public void deactivate() {
-        eventDispatcher.removeSink(MastershipEvent.class);
+        eventDispatcher.removeSink(DeviceMastershipEvent.class);
         clusterService.removeListener(clusterListener);
         store.unsetDelegate(delegate);
         log.info("Stopped");
@@ -78,7 +78,7 @@ implements MastershipService, MastershipAdminService {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
 
-        MastershipEvent event = null;
+        DeviceMastershipEvent event = null;
         if (role.equals(MastershipRole.MASTER)) {
             event = store.setMaster(nodeId, deviceId);
         } else {
@@ -98,7 +98,7 @@ implements MastershipService, MastershipAdminService {
 
     @Override
     public void relinquishMastership(DeviceId deviceId) {
-        MastershipEvent event = null;
+        DeviceMastershipEvent event = null;
         event = store.relinquishRole(
                 clusterService.getLocalNode().id(), deviceId);
 
@@ -127,18 +127,18 @@ implements MastershipService, MastershipAdminService {
 
 
     @Override
-    public MastershipTermService requestTermService() {
+    public DeviceMastershipTermService requestTermService() {
         return new InternalMastershipTermService();
     }
 
     @Override
-    public void addListener(MastershipListener listener) {
+    public void addListener(DeviceMastershipListener listener) {
         checkNotNull(listener);
         listenerRegistry.addListener(listener);
     }
 
     @Override
-    public void removeListener(MastershipListener listener) {
+    public void removeListener(DeviceMastershipListener listener) {
         checkNotNull(listener);
         listenerRegistry.removeListener(listener);
     }
@@ -146,16 +146,16 @@ implements MastershipService, MastershipAdminService {
     // FIXME: provide wiring to allow events to be triggered by changes within the store
 
     // Posts the specified event to the local event dispatcher.
-    private void post(MastershipEvent event) {
+    private void post(DeviceMastershipEvent event) {
         if (event != null && eventDispatcher != null) {
             eventDispatcher.post(event);
         }
     }
 
-    private class InternalMastershipTermService implements MastershipTermService {
+    private class InternalMastershipTermService implements DeviceMastershipTermService {
 
         @Override
-        public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+        public DeviceMastershipTerm getMastershipTerm(DeviceId deviceId) {
             return store.getTermFor(deviceId);
         }
 
@@ -181,10 +181,10 @@ implements MastershipService, MastershipAdminService {
 
     }
 
-    public class InternalDelegate implements MastershipStoreDelegate {
+    public class InternalDelegate implements DeviceMastershipStoreDelegate {
 
         @Override
-        public void notify(MastershipEvent event) {
+        public void notify(DeviceMastershipEvent event) {
             log.info("dispatching mastership event {}", event);
             eventDispatcher.post(event);
         }

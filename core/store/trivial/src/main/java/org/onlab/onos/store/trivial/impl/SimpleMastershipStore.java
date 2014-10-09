@@ -15,18 +15,18 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipEvent;
-import org.onlab.onos.cluster.MastershipStore;
-import org.onlab.onos.cluster.MastershipStoreDelegate;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.device.DeviceMastershipEvent;
+import org.onlab.onos.net.device.DeviceMastershipStore;
+import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
-import static org.onlab.onos.cluster.MastershipEvent.Type.*;
+import static org.onlab.onos.net.device.DeviceMastershipEvent.Type.*;
 
 /**
  * Manages inventory of controller mastership over devices using
@@ -35,8 +35,8 @@ import static org.onlab.onos.cluster.MastershipEvent.Type.*;
 @Component(immediate = true)
 @Service
 public class SimpleMastershipStore
-        extends AbstractStore<MastershipEvent, MastershipStoreDelegate>
-        implements MastershipStore {
+        extends AbstractStore<DeviceMastershipEvent, DeviceMastershipStoreDelegate>
+        implements DeviceMastershipStore {
 
     private final Logger log = getLogger(getClass());
 
@@ -63,7 +63,7 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
+    public DeviceMastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
         MastershipRole role = getRole(nodeId, deviceId);
 
         synchronized (this) {
@@ -86,7 +86,7 @@ public class SimpleMastershipStore
             }
         }
 
-        return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+        return new DeviceMastershipEvent(MASTER_CHANGED, deviceId, nodeId);
     }
 
     @Override
@@ -164,17 +164,17 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public MastershipTerm getTermFor(DeviceId deviceId) {
+    public DeviceMastershipTerm getTermFor(DeviceId deviceId) {
         if ((masterMap.get(deviceId) == null) ||
                 (termMap.get(deviceId) == null)) {
             return null;
         }
-        return MastershipTerm.of(
+        return DeviceMastershipTerm.of(
                 masterMap.get(deviceId), termMap.get(deviceId).get());
     }
 
     @Override
-    public MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
+    public DeviceMastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
         MastershipRole role = getRole(nodeId, deviceId);
         synchronized (this) {
             switch (role) {
@@ -185,7 +185,7 @@ public class SimpleMastershipStore
                     } else {
                         masterMap.put(deviceId, backup);
                         termMap.get(deviceId).incrementAndGet();
-                        return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
+                        return new DeviceMastershipEvent(MASTER_CHANGED, deviceId, backup);
                     }
                 case STANDBY:
                 case NONE:
@@ -215,7 +215,7 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
+    public DeviceMastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
         return setStandby(nodeId, deviceId);
     }
 
