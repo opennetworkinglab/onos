@@ -1,12 +1,20 @@
 package org.onlab.onos.net.device.impl;
 
 import com.google.common.collect.Sets;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.onos.cluster.ClusterEventListener;
+import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.ControllerNode;
+import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipServiceAdapter;
+import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.Device;
@@ -27,7 +35,9 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.ClockProviderService;
 import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
+import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,6 +66,8 @@ public class DeviceManagerTest {
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
+    private static final NodeId NID_LOCAL = new NodeId("local");
+    private static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
 
     private DeviceManager mgr;
 
@@ -75,6 +87,8 @@ public class DeviceManagerTest {
         mgr.store = new SimpleDeviceStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.mastershipService = new TestMastershipService();
+        mgr.clusterService = new TestClusterService();
+        mgr.clockProviderService = new TestClockProviderService();
         mgr.activate();
 
         service.addListener(listener);
@@ -258,7 +272,8 @@ public class DeviceManagerTest {
         }
     }
 
-    private static class TestMastershipService extends MastershipServiceAdapter {
+    private static class TestMastershipService
+            extends MastershipServiceAdapter {
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
@@ -273,6 +288,59 @@ public class DeviceManagerTest {
         public MastershipRole requestRoleFor(DeviceId deviceId) {
             return MastershipRole.MASTER;
         }
+
+        @Override
+        public MastershipTermService requestTermService() {
+            return new MastershipTermService() {
+                @Override
+                public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+                    // FIXME: just returning something not null
+                    return MastershipTerm.of(NID_LOCAL, 1);
+                }
+            };
+        }
     }
 
+    // code clone
+    private final class TestClusterService implements ClusterService {
+
+        ControllerNode local = new DefaultControllerNode(NID_LOCAL, LOCALHOST);
+
+        @Override
+        public ControllerNode getLocalNode() {
+            return local;
+        }
+
+        @Override
+        public Set<ControllerNode> getNodes() {
+            return null;
+        }
+
+        @Override
+        public ControllerNode getNode(NodeId nodeId) {
+            return null;
+        }
+
+        @Override
+        public State getState(NodeId nodeId) {
+            return null;
+        }
+
+        @Override
+        public void addListener(ClusterEventListener listener) {
+        }
+
+        @Override
+        public void removeListener(ClusterEventListener listener) {
+        }
+    }
+
+    private final class TestClockProviderService implements
+            ClockProviderService {
+
+        @Override
+        public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
+            // TODO Auto-generated method stub
+        }
+    }
 }

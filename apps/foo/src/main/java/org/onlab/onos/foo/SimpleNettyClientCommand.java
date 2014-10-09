@@ -13,33 +13,29 @@ import org.onlab.onos.cli.AbstractShellCommand;
         description = "Starts the simple Netty client")
 public class SimpleNettyClientCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "serverIp", description = "Server IP address",
+    //FIXME: replace these arguments with proper ones needed for the test.
+    @Argument(index = 0, name = "hostname", description = "Server Hostname",
             required = false, multiValued = false)
-    String serverIp = "127.0.0.1";
+    String hostname = "localhost";
 
-    @Argument(index = 1, name = "workers", description = "IO workers",
+    @Argument(index = 1, name = "port", description = "Port",
             required = false, multiValued = false)
-    String workers = "6";
+    String port = "8081";
 
-    @Argument(index = 2, name = "messageCount", description = "Message count",
+    @Argument(index = 2, name = "warmupCount", description = "Warm-up count",
             required = false, multiValued = false)
-    String messageCount = "1000000";
+    String warmupCount = "1000";
 
-    @Argument(index = 3, name = "messageLength", description = "Message length (bytes)",
+    @Argument(index = 3, name = "messageCount", description = "Message count",
             required = false, multiValued = false)
-    String messageLength = "128";
-
-    @Argument(index = 4, name = "timeoutSecs", description = "Test timeout (seconds)",
-            required = false, multiValued = false)
-    String timeoutSecs = "60";
+    String messageCount = "100000";
 
     @Override
     protected void execute() {
         try {
-            startStandalone(new String[]{serverIp, workers, messageCount, messageLength, timeoutSecs});
+            startStandalone(new String[]{hostname, port, warmupCount, messageCount});
         } catch (Exception e) {
             error("Unable to start client %s", e);
         }
     }
-
 }

@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 
 /**
- * Serializer implementation using Kryo.
+ * StoreSerializer implementation using Kryo.
  */
-public class KryoSerializer implements Serializer {
+public class KryoSerializer implements StoreSerializer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     protected KryoPool serializerPool;

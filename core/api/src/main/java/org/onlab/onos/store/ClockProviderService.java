@@ -12,6 +12,7 @@ public interface ClockProviderService {
 
     /**
      * Updates the mastership term for the specified deviceId.
+     *
      * @param deviceId device identifier.
      * @param term mastership term.
      */

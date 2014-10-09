@@ -1,7 +1,5 @@
 package org.onlab.metrics;
 
-import java.io.File;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -10,9 +8,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -56,6 +56,7 @@ import com.codahale.metrics.Timer;
 @Component(immediate = true)
 public final class MetricsManager implements MetricsService {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     /**
      * Registry to hold the Components defined in the system.
      */
@@ -69,15 +70,20 @@ public final class MetricsManager implements MetricsService {
     /**
      * Default Reporter for this metrics manager.
      */
-    private final CsvReporter reporter;
+    //private final Slf4jReporter reporter;
+    private final ConsoleReporter reporter;
 
     public MetricsManager() {
         this.metricsRegistry = new MetricRegistry();
-        this.reporter = CsvReporter.forRegistry(metricsRegistry)
-                .formatFor(Locale.US)
+//        this.reporter = Slf4jReporter.forRegistry(this.metricsRegistry)
+//                .outputTo(log)
+//                .convertRatesTo(TimeUnit.SECONDS)
+//                .convertDurationsTo(TimeUnit.MICROSECONDS)
+//                .build();
+        this.reporter = ConsoleReporter.forRegistry(this.metricsRegistry)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .build(new File("/var/onos/log/metrics/"));
+                .build();
     }
 
     @Activate

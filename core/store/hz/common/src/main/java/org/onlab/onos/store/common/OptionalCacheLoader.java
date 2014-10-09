@@ -2,7 +2,7 @@ package org.onlab.onos.store.common;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.onlab.onos.store.serializers.Serializer;
+import org.onlab.onos.store.serializers.StoreSerializer;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader;
@@ -18,7 +18,7 @@ import com.hazelcast.core.IMap;
 public final class OptionalCacheLoader<K, V> extends
         CacheLoader<K, Optional<V>> {
 
-    private final Serializer serializer;
+    private final StoreSerializer serializer;
     private IMap<byte[], byte[]> rawMap;
 
     /**
@@ -27,7 +27,7 @@ public final class OptionalCacheLoader<K, V> extends
      * @param serializer to use for serialization
      * @param rawMap underlying IMap
      */
-    public OptionalCacheLoader(Serializer serializer, IMap<byte[], byte[]> rawMap) {
+    public OptionalCacheLoader(StoreSerializer serializer, IMap<byte[], byte[]> rawMap) {
         this.serializer = checkNotNull(serializer);
         this.rawMap = checkNotNull(rawMap);
     }

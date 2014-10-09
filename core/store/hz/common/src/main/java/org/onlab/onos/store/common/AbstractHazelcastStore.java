@@ -16,7 +16,7 @@ import org.onlab.onos.event.Event;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.StoreDelegate;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.Serializer;
+import org.onlab.onos.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,7 +34,7 @@ public abstract class AbstractHazelcastStore<E extends Event, D extends StoreDel
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StoreService storeService;
 
-    protected Serializer serializer;
+    protected StoreSerializer serializer;
 
     protected HazelcastInstance theInstance;
 

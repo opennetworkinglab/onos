@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 /**
  * Service to serialize Objects into byte array.
  */
-public interface Serializer {
+public interface StoreSerializer {
 
     /**
      * Serializes the specified object into bytes.

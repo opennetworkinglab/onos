@@ -4,6 +4,12 @@ import com.google.common.base.Strings;
 import com.google.common.primitives.UnsignedLongs;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadFactory;
 
 public abstract class Tools {
@@ -63,6 +69,26 @@ public abstract class Tools {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
+        }
+    }
+
+    /**
+     * Slurps the contents of a file into a list of strings, one per line.
+     *
+     * @param path file path
+     * @return file contents
+     */
+    public static List<String> slurp(File path) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            List<String> lines = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+            return lines;
+
+        } catch (IOException e) {
+            return null;
         }
     }
 

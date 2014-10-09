@@ -42,6 +42,7 @@ public interface DeviceService {
      * @param deviceId device identifier
      * @return designated mastership role
      */
+    //XXX do we want this method here when MastershipService already does?
     MastershipRole getRole(DeviceId deviceId);
 
 

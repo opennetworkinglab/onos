@@ -1,5 +1,8 @@
 package org.onlab.netty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,6 +13,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
  */
 @Sharable
 public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     // onosiscool in ascii
     public static final byte[] PREAMBLE = "onosiscool".getBytes();
@@ -31,11 +36,6 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         // write preamble
         out.writeBytes(PREAMBLE);
 
-        try {
-            SERIALIZER.encode(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         byte[] payload = SERIALIZER.encode(message);
 
         // write payload length
@@ -46,5 +46,11 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
         // write payload.
         out.writeBytes(payload);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+        log.error("Exception inside channel handling pipeline.", cause);
+        context.close();
     }
 }

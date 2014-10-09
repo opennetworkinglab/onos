@@ -1,6 +1,7 @@
 package org.onlab.onos.cli;
 
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowRuleService;
@@ -21,7 +22,8 @@ public class SummaryCommand extends AbstractShellCommand {
     protected void execute() {
         TopologyService topologyService = get(TopologyService.class);
         Topology topology = topologyService.currentTopology();
-        print("nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, paths=%d, flows=%d, intents=%d",
+        print("version=%s, nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, paths=%d, flows=%d, intents=%d",
+              get(CoreService.class).version().toString(),
               get(ClusterService.class).getNodes().size(),
               get(DeviceService.class).getDeviceCount(),
               get(LinkService.class).getLinkCount(),

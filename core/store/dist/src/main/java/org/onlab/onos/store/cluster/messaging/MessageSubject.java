@@ -45,4 +45,9 @@ public class MessageSubject {
         MessageSubject that = (MessageSubject) obj;
         return Objects.equals(this.value, that.value);
     }
+
+    // for serializer
+    protected MessageSubject() {
+        this.value = "";
+    }
 }

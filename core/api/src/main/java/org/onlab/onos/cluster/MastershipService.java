@@ -34,7 +34,7 @@ public interface MastershipService {
     /**
      * Abandons mastership of the specified device on the local node thus
      * forcing selection of a new master. If the local node is not a master
-     * for this device, no action will be taken.
+     * for this device, no master selection will occur.
      *
      * @param deviceId the identifier of the device
      */

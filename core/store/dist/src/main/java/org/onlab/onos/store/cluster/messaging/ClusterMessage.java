@@ -2,8 +2,7 @@ package org.onlab.onos.store.cluster.messaging;
 
 import org.onlab.onos.cluster.NodeId;
 
-// TODO: ClusterMessage should be aware about how to serialize the payload
-// TODO: Should payload type be made generic?
+// TODO: Should payload type be ByteBuffer?
 /**
  * Base message for cluster-wide communications.
  */
@@ -12,7 +11,6 @@ public class ClusterMessage {
     private final NodeId sender;
     private final MessageSubject subject;
     private final byte[] payload;
-    // TODO: add field specifying Serializer for payload
 
     /**
      * Creates a cluster message.

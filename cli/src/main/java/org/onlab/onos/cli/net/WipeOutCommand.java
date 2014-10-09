@@ -13,40 +13,41 @@ import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.IntentState;
 
 /**
- * Wipes-out the entire network information base, i.e. devices, links, hosts.
+ * Wipes-out the entire network information base, i.e. devices, links, hosts, intents.
  */
 @Command(scope = "onos", name = "wipe-out",
          description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
 public class WipeOutCommand extends ClustersListCommand {
 
-
-    private static final String DISCLAIMER = "Yes, I know it will delete everything!";
+    private static final String DISCLAIMER = "Delete everything please.";
 
     @Argument(index = 0, name = "disclaimer", description = "Device ID",
-              required = true, multiValued = false)
+              required = false, multiValued = false)
     String disclaimer = null;
 
     @Override
     protected void execute() {
-        if (!disclaimer.equals(DISCLAIMER)) {
-            print("I'm afraid I can't do that...");
-            print("You have to acknowledge by: " + DISCLAIMER);
+        if (disclaimer == null || !disclaimer.equals(DISCLAIMER)) {
+            print("I'm afraid I can't do that!\nPlease acknowledge with phrase: '%s'",
+                  DISCLAIMER);
             return;
         }
 
-        print("Good bye...");
+        print("Wiping devices");
         DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
         DeviceService deviceService = get(DeviceService.class);
         for (Device device : deviceService.getDevices()) {
             deviceAdminService.removeDevice(device.id());
         }
 
+        print("Wiping hosts");
         HostAdminService hostAdminService = get(HostAdminService.class);
         HostService hostService = get(HostService.class);
         for (Host host : hostService.getHosts()) {
             hostAdminService.removeHost(host.id());
         }
 
+        print("Wiping intents");
         IntentService intentService = get(IntentService.class);
         for (Intent intent : intentService.getIntents()) {
             if (intentService.getIntentState(intent.id()) == IntentState.INSTALLED) {

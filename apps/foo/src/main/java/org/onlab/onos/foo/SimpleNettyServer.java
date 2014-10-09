@@ -1,6 +1,5 @@
 package org.onlab.onos.foo;
 
-import org.onlab.netty.EchoHandler;
 import org.onlab.netty.NettyMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +8,7 @@ import org.slf4j.LoggerFactory;
  * Test to measure Messaging performance.
  */
     public final class SimpleNettyServer {
-        private static Logger log = LoggerFactory.getLogger(IOLoopTestServer.class);
+        private static Logger log = LoggerFactory.getLogger(SimpleNettyServer.class);
 
             private SimpleNettyServer() {}
 
@@ -19,10 +18,10 @@ import org.slf4j.LoggerFactory;
             }
 
         public static void startStandalone(String[] args) throws Exception {
-            NettyMessagingService server = new NettyMessagingService(8080);
+            NettyMessagingService server = new NettyMessagingService(8081);
             server.activate();
-            server.registerHandler("simple", new org.onlab.netty.LoggingHandler());
-            server.registerHandler("echo", new EchoHandler());
+            server.registerHandler("simple", new NettyLoggingHandler());
+            server.registerHandler("echo", new NettyEchoHandler());
         }
     }
 

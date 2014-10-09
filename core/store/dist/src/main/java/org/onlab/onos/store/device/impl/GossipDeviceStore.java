@@ -42,6 +42,7 @@ import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
 import org.onlab.onos.store.common.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.MastershipBasedTimestampSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
@@ -113,14 +114,18 @@ public class GossipDeviceStore
     protected ClusterService clusterService;
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        @Override
         protected void setupKryoPool() {
             serializerPool = KryoPool.newBuilder()
                     .register(KryoPoolUtil.API)
-                    .register(InternalDeviceEvent.class)
-                    .register(InternalPortEvent.class)
-                    .register(InternalPortStatusEvent.class)
+                    .register(InternalDeviceEvent.class, new InternalDeviceEventSerializer())
+                    .register(InternalDeviceOfflineEvent.class, new InternalDeviceOfflineEventSerializer())
+                    .register(InternalDeviceRemovedEvent.class)
+                    .register(InternalPortEvent.class, new InternalPortEventSerializer())
+                    .register(InternalPortStatusEvent.class, new InternalPortStatusEventSerializer())
+                    .register(Timestamp.class)
                     .register(Timestamped.class)
-                    .register(MastershipBasedTimestamp.class)
+                    .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
                     .build()
                     .populate(1);
         }
@@ -131,6 +136,10 @@ public class GossipDeviceStore
     public void activate() {
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.DEVICE_UPDATE, new InternalDeviceEventListener());
+        clusterCommunicator.addSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE, new InternalDeviceOfflineEventListener());
+        clusterCommunicator.addSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_REMOVED, new InternalDeviceRemovedEventListener());
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.PORT_UPDATE, new InternalPortEventListener());
         clusterCommunicator.addSubscriber(
@@ -175,7 +184,7 @@ public class GossipDeviceStore
             try {
                 notifyPeers(new InternalDeviceEvent(providerId, deviceId, deltaDesc));
             } catch (IOException e) {
-                log.error("Failed to notify peers of a device update topology event or providerId: "
+                log.error("Failed to notify peers of a device update topology event for providerId: "
                         + providerId + " and deviceId: " + deviceId, e);
             }
         }
@@ -278,7 +287,18 @@ public class GossipDeviceStore
     @Override
     public DeviceEvent markOffline(DeviceId deviceId) {
         Timestamp timestamp = clockService.getTimestamp(deviceId);
-        return markOfflineInternal(deviceId, timestamp);
+        DeviceEvent event = markOfflineInternal(deviceId, timestamp);
+        if (event != null) {
+            log.info("Notifying peers of a device offline topology event for deviceId: {}",
+                    deviceId);
+            try {
+                notifyPeers(new InternalDeviceOfflineEvent(deviceId, timestamp));
+            } catch (IOException e) {
+                log.error("Failed to notify peers of a device offline topology event for deviceId: {}",
+                     deviceId);
+            }
+        }
+        return event;
     }
 
     private DeviceEvent markOfflineInternal(DeviceId deviceId, Timestamp timestamp) {
@@ -566,7 +586,16 @@ public class GossipDeviceStore
     public synchronized DeviceEvent removeDevice(DeviceId deviceId) {
         Timestamp timestamp = clockService.getTimestamp(deviceId);
         DeviceEvent event = removeDeviceInternal(deviceId, timestamp);
-        // TODO: broadcast removal event
+        if (event != null) {
+            log.info("Notifying peers of a device removed topology event for deviceId: {}",
+                    deviceId);
+            try {
+                notifyPeers(new InternalDeviceRemovedEvent(deviceId, timestamp));
+            } catch (IOException e) {
+                log.error("Failed to notify peers of a device removed topology event for deviceId: {}",
+                     deviceId);
+            }
+        }
         return event;
     }
 
@@ -809,6 +838,22 @@ public class GossipDeviceStore
         clusterCommunicator.broadcast(message);
     }
 
+    private void notifyPeers(InternalDeviceOfflineEvent event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE,
+                SERIALIZER.encode(event));
+        clusterCommunicator.broadcast(message);
+    }
+
+    private void notifyPeers(InternalDeviceRemovedEvent event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                GossipDeviceStoreMessageSubjects.DEVICE_REMOVED,
+                SERIALIZER.encode(event));
+        clusterCommunicator.broadcast(message);
+    }
+
     private void notifyPeers(InternalPortEvent event) throws IOException {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
@@ -828,12 +873,43 @@ public class GossipDeviceStore
     private class InternalDeviceEventListener implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
+
             log.info("Received device update event from peer: {}", message.sender());
             InternalDeviceEvent event = (InternalDeviceEvent) SERIALIZER.decode(message.payload());
+
             ProviderId providerId = event.providerId();
             DeviceId deviceId = event.deviceId();
             Timestamped<DeviceDescription> deviceDescription = event.deviceDescription();
+
             createOrUpdateDeviceInternal(providerId, deviceId, deviceDescription);
+        }
+    }
+
+    private class InternalDeviceOfflineEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+
+            log.info("Received device offline event from peer: {}", message.sender());
+            InternalDeviceOfflineEvent event = (InternalDeviceOfflineEvent) SERIALIZER.decode(message.payload());
+
+            DeviceId deviceId = event.deviceId();
+            Timestamp timestamp = event.timestamp();
+
+            markOfflineInternal(deviceId, timestamp);
+        }
+    }
+
+    private class InternalDeviceRemovedEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+
+            log.info("Received device removed event from peer: {}", message.sender());
+            InternalDeviceRemovedEvent event = (InternalDeviceRemovedEvent) SERIALIZER.decode(message.payload());
+
+            DeviceId deviceId = event.deviceId();
+            Timestamp timestamp = event.timestamp();
+
+            removeDeviceInternal(deviceId, timestamp);
         }
     }
 

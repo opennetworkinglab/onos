@@ -3,12 +3,9 @@ package org.onlab.onos.store.cluster.messaging.impl;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,8 +23,10 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onlab.onos.store.serializers.ClusterMessageSerializer;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.MessageSubjectSerializer;
 import org.onlab.util.KryoPool;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
@@ -50,8 +49,6 @@ public class ClusterCommunicationManager
     private ClusterService clusterService;
 
     private ClusterNodesDelegate nodesDelegate;
-    // FIXME: `members` should go away and should be using ClusterService
-    private Map<NodeId, ControllerNode> members = new HashMap<>();
     private final Timer timer = new Timer("onos-controller-heatbeats");
     public static final long HEART_BEAT_INTERVAL_MILLIS = 1000L;
 
@@ -59,11 +56,14 @@ public class ClusterCommunicationManager
     private MessagingService messagingService;
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        @Override
         protected void setupKryoPool() {
             serializerPool = KryoPool.newBuilder()
                     .register(KryoPoolUtil.API)
-                    .register(ClusterMessage.class)
+                    .register(ClusterMessage.class, new ClusterMessageSerializer())
                     .register(ClusterMembershipEvent.class)
+                    .register(byte[].class)
+                    .register(MessageSubject.class, new MessageSubjectSerializer())
                     .build()
                     .populate(1);
         }
@@ -73,7 +73,15 @@ public class ClusterCommunicationManager
     @Activate
     public void activate() {
         localNode = clusterService.getLocalNode();
-        messagingService = new NettyMessagingService(localNode.tcpPort());
+        NettyMessagingService netty = new NettyMessagingService(localNode.tcpPort());
+        // FIXME: workaround until it becomes a service.
+        try {
+            netty.activate();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            log.error("NettyMessagingService#activate", e);
+        }
+        messagingService = netty;
         log.info("Started");
     }
 
@@ -86,7 +94,7 @@ public class ClusterCommunicationManager
     @Override
     public boolean broadcast(ClusterMessage message) {
         boolean ok = true;
-        for (ControllerNode node : members.values()) {
+        for (ControllerNode node : clusterService.getNodes()) {
             if (!node.equals(localNode)) {
                 ok = unicast(message, node.id()) && ok;
             }
@@ -107,11 +115,12 @@ public class ClusterCommunicationManager
 
     @Override
     public boolean unicast(ClusterMessage message, NodeId toNodeId) {
-        ControllerNode node = members.get(toNodeId);
+        ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
         try {
-            messagingService.sendAsync(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            messagingService.sendAsync(nodeEp,
+                    message.subject().value(), SERIALIZER.encode(message));
             return true;
         } catch (IOException e) {
             log.error("Failed to send cluster message to nodeId: " + toNodeId, e);
@@ -137,7 +146,7 @@ public class ClusterCommunicationManager
 
     @Override
     public void addNode(ControllerNode node) {
-        members.put(node.id(), node);
+        //members.put(node.id(), node);
     }
 
     @Override
@@ -146,7 +155,7 @@ public class ClusterCommunicationManager
                 localNode.id(),
                 new MessageSubject("CLUSTER_MEMBERSHIP_EVENT"),
                 SERIALIZER.encode(new ClusterMembershipEvent(ClusterMembershipEventType.LEAVING_MEMBER, node))));
-        members.remove(node.id());
+        //members.remove(node.id());
     }
 
     // Sends a heart beat to all peers.
@@ -181,7 +190,7 @@ public class ClusterCommunicationManager
         }
     }
 
-    private static class InternalClusterMessageHandler implements MessageHandler {
+    private final class InternalClusterMessageHandler implements MessageHandler {
 
         private final ClusterMessageHandler handler;
 
@@ -191,8 +200,13 @@ public class ClusterCommunicationManager
 
         @Override
         public void handle(Message message) {
-            ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
-            handler.handle(clusterMessage);
+            try {
+                ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
+                handler.handle(clusterMessage);
+            } catch (Exception e) {
+                log.error("Exception caught during ClusterMessageHandler", e);
+                throw e;
+            }
         }
     }
 }

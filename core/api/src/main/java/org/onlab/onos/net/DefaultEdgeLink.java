@@ -3,6 +3,7 @@ package org.onlab.onos.net;
 import org.onlab.onos.net.provider.ProviderId;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default edge link model implementation.
@@ -52,10 +53,14 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
      *                  for network-to-host direction
      * @return new phantom edge link
      */
-    public static DefaultEdgeLink createEdgeLink(HostLocation edgePort,
+    public static DefaultEdgeLink createEdgeLink(ConnectPoint edgePort,
                                                  boolean isIngress) {
+        checkNotNull(edgePort, "Edge port cannot be null");
+        HostLocation location = (edgePort instanceof HostLocation) ?
+                (HostLocation) edgePort : new HostLocation(edgePort, 0);
         return new DefaultEdgeLink(ProviderId.NONE,
                                    new ConnectPoint(HostId.NONE, PortNumber.P0),
-                                   edgePort, isIngress);
+                                   location, isIngress);
     }
+
 }
