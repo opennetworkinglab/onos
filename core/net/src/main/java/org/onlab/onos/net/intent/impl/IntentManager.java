@@ -19,8 +19,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -516,9 +519,14 @@ public class IntentManager
         public void run() {
             for (Iterator<Future<CompletedBatchOperation>> i = futures.iterator(); i.hasNext();) {
                 Future<CompletedBatchOperation> future = i.next();
-                if (future.isDone()) {
-                    // TODO: we may want to get the future here
+                try {
+                    // TODO: we may want to get the future here and go back to the future.
+                    CompletedBatchOperation completed = future.get(100, TimeUnit.NANOSECONDS);
+                    // TODO check if future succeeded and if not report fail items
                     i.remove();
+
+                } catch (TimeoutException | InterruptedException | ExecutionException te) {
+                    log.debug("Intallations of intent {} is still pending", intent);
                 }
             }
             if (futures.isEmpty()) {

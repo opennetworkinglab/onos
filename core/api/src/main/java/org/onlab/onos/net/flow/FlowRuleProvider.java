@@ -37,6 +37,12 @@ public interface FlowRuleProvider extends Provider {
      */
     void removeRulesById(ApplicationId id, FlowRule... flowRules);
 
-    Future<Void> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
+    /**
+     * Installs a batch of flow rules. Each flowrule is associated to an
+     * operation which results in either addition, removal or modification.
+     * @param batch a batch of flow rules
+     * @return a future indicating the status of this execution
+     */
+    Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
 
 }
