@@ -98,6 +98,20 @@ public interface TrafficSelector {
         public Builder matchIPDst(IpPrefix ip);
 
         /**
+         * Matches a TCP source port number.
+         * @param tcpPort a TCP source port number
+         * @return a selection builder
+         */
+        public Builder matchTcpSrc(Short tcpPort);
+
+        /**
+         * Matches a TCP destination port number.
+         * @param tcpPort a TCP destination port number
+         * @return a selection builder
+         */
+        public Builder matchTcpDst(Short tcpPort);
+
+        /**
          * Builds an immutable traffic selector.
          *
          * @return traffic selector

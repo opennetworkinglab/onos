@@ -113,6 +113,25 @@ public final class Criteria {
         return new IPCriterion(ip, Type.IPV4_DST);
     }
 
+    /**
+     * Creates a match on TCP source port field using the specified value.
+     *
+     * @param tcpPort
+     * @return match criterion
+     */
+    public static Criterion matchTcpSrc(Short tcpPort) {
+        return new TcpPortCriterion(tcpPort, Type.TCP_SRC);
+    }
+
+    /**
+     * Creates a match on TCP destination port field using the specified value.
+     *
+     * @param tcpPort
+     * @return match criterion
+     */
+    public static Criterion matchTcpDst(Short tcpPort) {
+        return new TcpPortCriterion(tcpPort, Type.TCP_DST);
+    }
 
     /*
      * Implementations of criteria.
@@ -437,4 +456,49 @@ public final class Criteria {
     }
 
 
+    public static final class TcpPortCriterion implements Criterion {
+
+        private final Short tcpPort;
+        private final Type type;
+
+        public TcpPortCriterion(Short tcpPort, Type type) {
+            this.tcpPort = tcpPort;
+            this.type = type;
+        }
+
+        @Override
+        public Type type() {
+            return this.type;
+        }
+
+        public Short tcpPort() {
+            return this.tcpPort;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("tcpPort", tcpPort).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(tcpPort, type);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof TcpPortCriterion) {
+                TcpPortCriterion that = (TcpPortCriterion) obj;
+                return Objects.equals(tcpPort, that.tcpPort) &&
+                        Objects.equals(type, that.type);
+
+
+            }
+            return false;
+        }
+    }
 }
