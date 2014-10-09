@@ -1,5 +1,7 @@
 package org.onlab.onos.store;
 
+import java.util.List;
+
 import org.onlab.onos.event.Event;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -39,6 +41,17 @@ public class AbstractStore<E extends Event, D extends StoreDelegate<E>>
     protected void notifyDelegate(E event) {
         if (delegate != null) {
             delegate.notify(event);
+        }
+    }
+
+    /**
+     * Notifies the delegate with the specified list of events.
+     *
+     * @param events list of events to delegate
+     */
+    protected void notifyDelegate(List<E> events) {
+        for (E event: events) {
+            notifyDelegate(event);
         }
     }
 }

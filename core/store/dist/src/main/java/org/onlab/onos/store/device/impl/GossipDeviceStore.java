@@ -870,6 +870,12 @@ public class GossipDeviceStore
         clusterCommunicator.broadcast(message);
     }
 
+    private void notifyDelegateIfNotNull(DeviceEvent event) {
+        if (event != null) {
+            notifyDelegate(event);
+        }
+    }
+
     private class InternalDeviceEventListener implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
@@ -881,7 +887,7 @@ public class GossipDeviceStore
             DeviceId deviceId = event.deviceId();
             Timestamped<DeviceDescription> deviceDescription = event.deviceDescription();
 
-            createOrUpdateDeviceInternal(providerId, deviceId, deviceDescription);
+            notifyDelegateIfNotNull(createOrUpdateDeviceInternal(providerId, deviceId, deviceDescription));
         }
     }
 
@@ -895,7 +901,7 @@ public class GossipDeviceStore
             DeviceId deviceId = event.deviceId();
             Timestamp timestamp = event.timestamp();
 
-            markOfflineInternal(deviceId, timestamp);
+            notifyDelegateIfNotNull(markOfflineInternal(deviceId, timestamp));
         }
     }
 
@@ -909,7 +915,7 @@ public class GossipDeviceStore
             DeviceId deviceId = event.deviceId();
             Timestamp timestamp = event.timestamp();
 
-            removeDeviceInternal(deviceId, timestamp);
+            notifyDelegateIfNotNull(removeDeviceInternal(deviceId, timestamp));
         }
     }
 
@@ -924,7 +930,7 @@ public class GossipDeviceStore
             DeviceId deviceId = event.deviceId();
             Timestamped<List<PortDescription>> portDescriptions = event.portDescriptions();
 
-            updatePortsInternal(providerId, deviceId, portDescriptions);
+            notifyDelegate(updatePortsInternal(providerId, deviceId, portDescriptions));
         }
     }
 
@@ -939,7 +945,7 @@ public class GossipDeviceStore
             DeviceId deviceId = event.deviceId();
             Timestamped<PortDescription> portDescription = event.portDescription();
 
-            updatePortStatusInternal(providerId, deviceId, portDescription);
+            notifyDelegateIfNotNull(updatePortStatusInternal(providerId, deviceId, portDescription));
         }
     }
 }
