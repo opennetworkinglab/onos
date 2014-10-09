@@ -1,10 +1,10 @@
-package org.onlab.onos.net;
+package org.onlab.onos.net.device;
 
 /**
  * Representation of a relationship role of a controller instance to a device
  * or a region of network environment.
  */
-public enum MastershipRole {
+public enum DeviceMastershipRole {
 
     /**
      * Represents a relationship where the controller instance is the master

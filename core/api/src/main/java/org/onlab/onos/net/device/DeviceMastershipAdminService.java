@@ -2,7 +2,6 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 
 /**
  * Service for administering the inventory of device masterships.
@@ -16,6 +15,6 @@ public interface DeviceMastershipAdminService {
      * @param deviceId device identifier
      * @param role     requested role
      */
-    void setRole(NodeId instance, DeviceId deviceId, MastershipRole role);
+    void setRole(NodeId instance, DeviceId deviceId, DeviceMastershipRole role);
 
 }

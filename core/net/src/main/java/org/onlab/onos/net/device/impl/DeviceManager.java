@@ -18,13 +18,14 @@ import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceAdminService;
+import org.onlab.onos.net.device.DeviceClockProviderService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
@@ -39,7 +40,6 @@ import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.store.ClockProviderService;
 import org.slf4j.Logger;
 
 /**
@@ -81,7 +81,7 @@ public class DeviceManager
     protected DeviceMastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockProviderService clockProviderService;
+    protected DeviceClockProviderService clockProviderService;
 
     @Activate
     public void activate() {
@@ -117,7 +117,7 @@ public class DeviceManager
     }
 
     @Override
-    public MastershipRole getRole(DeviceId deviceId) {
+    public DeviceMastershipRole getRole(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return mastershipService.getLocalRole(deviceId);
     }
@@ -142,8 +142,8 @@ public class DeviceManager
     }
 
     // Applies the specified role to the device; ignores NONE
-    private void applyRole(DeviceId deviceId, MastershipRole newRole) {
-        if (newRole.equals(MastershipRole.NONE)) {
+    private void applyRole(DeviceId deviceId, DeviceMastershipRole newRole) {
+        if (newRole.equals(DeviceMastershipRole.NONE)) {
             Device device = store.getDevice(deviceId);
             // FIXME: Device might not be there yet. (eventual consistent)
             if (device == null) {
@@ -201,9 +201,9 @@ public class DeviceManager
 
             log.info("Device {} connected", deviceId);
             // check my Role
-            MastershipRole role = mastershipService.requestRoleFor(deviceId);
+            DeviceMastershipRole role = mastershipService.requestRoleFor(deviceId);
 
-            if (role != MastershipRole.MASTER) {
+            if (role != DeviceMastershipRole.MASTER) {
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is no longer the MASTER? probably not
                 return;
@@ -216,7 +216,7 @@ public class DeviceManager
                 return;
             }
             // tell clock provider if this instance is the master
-            clockProviderService.setMastershipTerm(deviceId, term);
+            clockProviderService.setDeviceMastershipTerm(deviceId, term);
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                     deviceId, deviceDescription);
@@ -255,7 +255,7 @@ public class DeviceManager
             // but if I was the last STANDBY connection, etc. and no one else
             // was there to mark the device offline, this instance may need to
             // temporarily request for Master Role and mark offline.
-            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
+            if (!mastershipService.getLocalRole(deviceId).equals(DeviceMastershipRole.MASTER)) {
                 log.debug("Device {} disconnected, but I am not the master", deviceId);
                 //let go of any role anyways
                 mastershipService.relinquishMastership(deviceId);
@@ -302,11 +302,11 @@ public class DeviceManager
         }
 
         @Override
-        public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
+        public void unableToAssertRole(DeviceId deviceId, DeviceMastershipRole role) {
             // FIXME: implement response to this notification
             log.warn("Failed to assert role [{}] onto Device {}", role,
                     deviceId);
-            if (role == MastershipRole.MASTER) {
+            if (role == DeviceMastershipRole.MASTER) {
                 mastershipService.relinquishMastership(deviceId);
             }
         }
@@ -333,16 +333,16 @@ public class DeviceManager
 
                     if (term.master().equals(myNodeId)) {
                         // only set the new term if I am the master
-                        clockProviderService.setMastershipTerm(did, term);
+                        clockProviderService.setDeviceMastershipTerm(did, term);
                     }
-                    applyRole(did, MastershipRole.MASTER);
+                    applyRole(did, DeviceMastershipRole.MASTER);
                 } else {
-                    applyRole(did, MastershipRole.STANDBY);
+                    applyRole(did, DeviceMastershipRole.STANDBY);
                 }
             } else {
                 //device dead to node, give up
                 mastershipService.relinquishMastership(did);
-                applyRole(did, MastershipRole.STANDBY);
+                applyRole(did, DeviceMastershipRole.STANDBY);
             }
         }
     }

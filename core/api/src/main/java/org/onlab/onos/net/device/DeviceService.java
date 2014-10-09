@@ -2,7 +2,6 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 
@@ -43,7 +42,7 @@ public interface DeviceService {
      * @return designated mastership role
      */
     //XXX do we want this method here when MastershipService already does?
-    MastershipRole getRole(DeviceId deviceId);
+    DeviceMastershipRole getRole(DeviceId deviceId);
 
 
     /**

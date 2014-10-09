@@ -7,8 +7,8 @@ import java.util.Map;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.VersionedValue;
+import org.onlab.onos.net.device.Timestamp;
+import org.onlab.onos.net.device.VersionedValue;
 import org.onlab.onos.store.common.impl.AntiEntropyAdvertisement;
 
 // TODO DeviceID needs to be changed to something like (ProviderID, DeviceID)

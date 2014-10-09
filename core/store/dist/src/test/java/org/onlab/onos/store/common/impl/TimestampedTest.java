@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.Timestamped;
+import org.onlab.onos.net.device.Timestamp;
+import org.onlab.onos.net.device.Timestamped;
 import org.onlab.util.KryoPool;
 
 import com.google.common.testing.EqualsTester;

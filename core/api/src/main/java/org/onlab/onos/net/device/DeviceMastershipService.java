@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 
 /**
  * Service responsible for determining the controller instance mastership of
@@ -21,7 +20,7 @@ public interface DeviceMastershipService {
      * @param deviceId the the identifier of the device
      * @return role of the current node
      */
-    MastershipRole getLocalRole(DeviceId deviceId);
+    DeviceMastershipRole getLocalRole(DeviceId deviceId);
 
     /**
      * Returns the mastership status of the local controller for a given
@@ -30,7 +29,7 @@ public interface DeviceMastershipService {
      * @param deviceId the the identifier of the device
      * @return the role of this controller instance
      */
-    MastershipRole requestRoleFor(DeviceId deviceId);
+    DeviceMastershipRole requestRoleFor(DeviceId deviceId);
 
     /**
      * Abandons mastership of the specified device on the local node thus

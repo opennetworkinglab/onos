@@ -14,8 +14,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipEvent;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipStore;
 import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
 import org.onlab.onos.net.device.DeviceMastershipTerm;
@@ -32,7 +32,7 @@ import com.hazelcast.core.MultiMap;
  */
 @Component(immediate = true)
 @Service
-public class DistributedMastershipStore
+public class DistributedDeviceMastershipStore
 extends AbstractHazelcastStore<DeviceMastershipEvent, DeviceMastershipStoreDelegate>
 implements DeviceMastershipStore {
 
@@ -76,7 +76,7 @@ implements DeviceMastershipStore {
     }
 
     @Override
-    public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
+    public DeviceMastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
         byte[] did = serialize(deviceId);
         byte[] nid = serialize(nodeId);
 
@@ -84,17 +84,17 @@ implements DeviceMastershipStore {
         if (current == null) {
             if (standbys.containsEntry(did, nid)) {
                 //was previously standby, or set to standby from master
-                return MastershipRole.STANDBY;
+                return DeviceMastershipRole.STANDBY;
             } else {
-                return MastershipRole.NONE;
+                return DeviceMastershipRole.NONE;
             }
         } else {
             if (current.equals(nodeId)) {
                 //*should* be in unusable, not always
-                return MastershipRole.MASTER;
+                return DeviceMastershipRole.MASTER;
             } else {
                 //may be in backups or unusable from earlier retirement
-                return MastershipRole.STANDBY;
+                return DeviceMastershipRole.STANDBY;
             }
         }
     }
@@ -107,7 +107,7 @@ implements DeviceMastershipStore {
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
         try {
-            MastershipRole role = getRole(nodeId, deviceId);
+            DeviceMastershipRole role = getRole(nodeId, deviceId);
             switch (role) {
                 case MASTER:
                     //reinforce mastership
@@ -157,7 +157,7 @@ implements DeviceMastershipStore {
     }
 
     @Override
-    public MastershipRole requestRole(DeviceId deviceId) {
+    public DeviceMastershipRole requestRole(DeviceId deviceId) {
         NodeId local = clusterService.getLocalNode().id();
         byte [] did = serialize(deviceId);
         byte [] lnid = serialize(local);
@@ -165,7 +165,7 @@ implements DeviceMastershipStore {
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
         try {
-            MastershipRole role = getRole(local, deviceId);
+            DeviceMastershipRole role = getRole(local, deviceId);
             switch (role) {
                 case MASTER:
                     evict(lnid, did);
@@ -179,7 +179,7 @@ implements DeviceMastershipStore {
                     masters.put(did, lnid);
                     evict(lnid, did);
                     updateTerm(did);
-                    role = MastershipRole.MASTER;
+                    role = DeviceMastershipRole.MASTER;
                     break;
                 default:
                     log.warn("unknown Mastership Role {}", role);
@@ -210,7 +210,7 @@ implements DeviceMastershipStore {
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
         try {
-            MastershipRole role = getRole(nodeId, deviceId);
+            DeviceMastershipRole role = getRole(nodeId, deviceId);
             switch (role) {
                 case MASTER:
                     event = reelect(nodeId, deviceId);
@@ -239,7 +239,7 @@ implements DeviceMastershipStore {
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
         try {
-            MastershipRole role = getRole(nodeId, deviceId);
+            DeviceMastershipRole role = getRole(nodeId, deviceId);
             switch (role) {
                 case MASTER:
                     event = reelect(nodeId, deviceId);

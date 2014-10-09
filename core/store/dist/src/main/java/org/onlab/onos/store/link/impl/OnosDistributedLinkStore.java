@@ -23,15 +23,15 @@ import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.device.DeviceClockService;
+import org.onlab.onos.net.device.Timestamp;
+import org.onlab.onos.net.device.VersionedValue;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.ClockService;
-import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.VersionedValue;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
@@ -71,7 +71,7 @@ public class OnosDistributedLinkStore
     private final Multimap<DeviceId, VersionedValue<Link>> dstLinks = HashMultimap.create();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockService clockService;
+    protected DeviceClockService clockService;
 
     @Activate
     public void activate() {

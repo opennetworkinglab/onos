@@ -1,7 +1,6 @@
 package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Device;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.Provider;
 
 /**
@@ -30,6 +29,6 @@ public interface DeviceProvider extends Provider {
      * @param device  affected device
      * @param newRole newly determined mastership role
      */
-    void roleChanged(Device device, MastershipRole newRole);
+    void roleChanged(Device device, DeviceMastershipRole newRole);
 
 }

@@ -1,14 +1,13 @@
-package org.onlab.onos.store;
+package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
 
 //TODO: Consider renaming to DeviceClockProviderService?
 /**
 * Interface for feeding term information to a logical clock service
 * that vends per device timestamps.
 */
-public interface ClockProviderService {
+public interface DeviceClockProviderService {
 
     /**
      * Updates the mastership term for the specified deviceId.
@@ -16,5 +15,5 @@ public interface ClockProviderService {
      * @param deviceId device identifier.
      * @param term mastership term.
      */
-    public void setMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term);
+    public void setDeviceMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term);
 }
