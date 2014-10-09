@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.Store;
 
 /**
@@ -21,7 +20,7 @@ public interface DeviceMastershipStore extends Store<DeviceMastershipEvent, Devi
      * @param deviceId device identifier
      * @return established or newly negotiated mastership role
      */
-    MastershipRole requestRole(DeviceId deviceId);
+    DeviceMastershipRole requestRole(DeviceId deviceId);
 
     /**
      * Returns the role of a device for a specific controller instance.
@@ -30,7 +29,7 @@ public interface DeviceMastershipStore extends Store<DeviceMastershipEvent, Devi
      * @param deviceId the device identifiers
      * @return the role
      */
-    MastershipRole getRole(NodeId nodeId, DeviceId deviceId);
+    DeviceMastershipRole getRole(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Returns the master for a device.

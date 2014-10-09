@@ -18,10 +18,10 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipAdminService;
 import org.onlab.onos.net.device.DeviceMastershipEvent;
 import org.onlab.onos.net.device.DeviceMastershipListener;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipService;
 import org.onlab.onos.net.device.DeviceMastershipStore;
 import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
@@ -73,13 +73,13 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
     }
 
     @Override
-    public void setRole(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
+    public void setRole(NodeId nodeId, DeviceId deviceId, DeviceMastershipRole role) {
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
 
         DeviceMastershipEvent event = null;
-        if (role.equals(MastershipRole.MASTER)) {
+        if (role.equals(DeviceMastershipRole.MASTER)) {
             event = store.setMaster(nodeId, deviceId);
         } else {
             event = store.setStandby(nodeId, deviceId);
@@ -91,7 +91,7 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
     }
 
     @Override
-    public MastershipRole getLocalRole(DeviceId deviceId) {
+    public DeviceMastershipRole getLocalRole(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getRole(clusterService.getLocalNode().id(), deviceId);
     }
@@ -108,7 +108,7 @@ implements DeviceMastershipService, DeviceMastershipAdminService {
     }
 
     @Override
-    public MastershipRole requestRoleFor(DeviceId deviceId) {
+    public DeviceMastershipRole requestRoleFor(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.requestRole(deviceId);
     }

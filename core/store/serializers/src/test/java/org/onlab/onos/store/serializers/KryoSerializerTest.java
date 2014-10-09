@@ -21,9 +21,9 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
@@ -115,7 +115,7 @@ public class KryoSerializerTest {
         testSerialized(PIDA);
         testSerialized(new NodeId("bar"));
         testSerialized(DeviceMastershipTerm.of(new NodeId("foo"), 2));
-        for (MastershipRole role : MastershipRole.values()) {
+        for (DeviceMastershipRole role : DeviceMastershipRole.values()) {
             testSerialized(role);
         }
     }

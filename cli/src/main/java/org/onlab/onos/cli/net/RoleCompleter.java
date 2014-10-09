@@ -2,7 +2,7 @@ package org.onlab.onos.cli.net;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -16,9 +16,9 @@ public class RoleCompleter implements Completer {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
         SortedSet<String> strings = delegate.getStrings();
-        strings.add(MastershipRole.MASTER.toString().toLowerCase());
-        strings.add(MastershipRole.STANDBY.toString().toLowerCase());
-        strings.add(MastershipRole.NONE.toString().toLowerCase());
+        strings.add(DeviceMastershipRole.MASTER.toString().toLowerCase());
+        strings.add(DeviceMastershipRole.STANDBY.toString().toLowerCase());
+        strings.add(DeviceMastershipRole.NONE.toString().toLowerCase());
 
         // Now let the completer do the work for figuring out what to offer.
         return delegate.complete(buffer, cursor, candidates);

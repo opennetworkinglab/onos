@@ -20,7 +20,7 @@ import org.onlab.packet.IpPrefix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.onlab.onos.net.MastershipRole.*;
+import static org.onlab.onos.net.device.DeviceMastershipRole.*;
 
 /**
  * Test codifying the mastership service contracts.

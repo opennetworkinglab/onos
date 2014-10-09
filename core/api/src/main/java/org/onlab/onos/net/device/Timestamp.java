@@ -1,4 +1,4 @@
-package org.onlab.onos.store;
+package org.onlab.onos.net.device;
 
 /**
  * Opaque version structure.

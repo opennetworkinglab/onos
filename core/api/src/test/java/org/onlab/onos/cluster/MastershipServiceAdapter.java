@@ -1,8 +1,8 @@
 package org.onlab.onos.cluster;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipListener;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.DeviceMastershipService;
 import org.onlab.onos.net.device.DeviceMastershipTermService;
 
@@ -13,12 +13,12 @@ import java.util.Set;
  */
 public class MastershipServiceAdapter implements DeviceMastershipService {
     @Override
-    public MastershipRole getLocalRole(DeviceId deviceId) {
+    public DeviceMastershipRole getLocalRole(DeviceId deviceId) {
         return null;
     }
 
     @Override
-    public MastershipRole requestRoleFor(DeviceId deviceId) {
+    public DeviceMastershipRole requestRoleFor(DeviceId deviceId) {
         return null;
     }
 

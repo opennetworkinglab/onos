@@ -1,7 +1,6 @@
 package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.ProviderService;
 
 import java.util.List;
@@ -53,6 +52,6 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      * @param deviceId identity of the device
      * @param role mastership role that was asserted but failed
      */
-    void unableToAssertRole(DeviceId deviceId, MastershipRole role);
+    void unableToAssertRole(DeviceId deviceId, DeviceMastershipRole role);
 
 }

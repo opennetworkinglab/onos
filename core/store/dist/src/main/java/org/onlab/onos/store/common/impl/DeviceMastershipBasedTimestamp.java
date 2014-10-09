@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 
-import org.onlab.onos.store.Timestamp;
+import org.onlab.onos.net.device.Timestamp;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;

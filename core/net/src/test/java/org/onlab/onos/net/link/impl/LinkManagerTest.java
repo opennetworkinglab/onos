@@ -1,6 +1,7 @@
 package org.onlab.onos.net.link.impl;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +10,6 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkAdminService;
@@ -22,6 +22,7 @@ import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.net.device.DeviceMastershipRole;
 import org.onlab.onos.net.device.impl.DeviceManager;
 import org.onlab.onos.store.trivial.impl.SimpleLinkStore;
 
@@ -243,7 +244,7 @@ public class LinkManagerTest {
 
     private class TestProvider extends AbstractProvider implements LinkProvider {
         private Device deviceReceived;
-        private MastershipRole roleReceived;
+        private DeviceMastershipRole roleReceived;
 
         public TestProvider() {
             super(PID);
