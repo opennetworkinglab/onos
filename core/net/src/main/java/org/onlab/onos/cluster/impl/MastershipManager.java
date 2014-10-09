@@ -99,8 +99,8 @@ implements MastershipService, MastershipAdminService {
     @Override
     public void relinquishMastership(DeviceId deviceId) {
         MastershipEvent event = null;
-            event = store.relinquishRole(
-                    clusterService.getLocalNode().id(), deviceId);
+        event = store.relinquishRole(
+                clusterService.getLocalNode().id(), deviceId);
 
         if (event != null) {
             post(event);

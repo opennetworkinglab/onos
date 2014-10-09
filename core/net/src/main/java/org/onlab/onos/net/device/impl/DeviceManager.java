@@ -257,6 +257,8 @@ public class DeviceManager
             // temporarily request for Master Role and mark offline.
             if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
                 log.debug("Device {} disconnected, but I am not the master", deviceId);
+                //let go of any role anyways
+                mastershipService.relinquishMastership(deviceId);
                 return;
             }
             DeviceEvent event = store.markOffline(deviceId);
