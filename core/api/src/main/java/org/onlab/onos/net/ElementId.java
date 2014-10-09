@@ -38,7 +38,7 @@ public abstract class ElementId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(str);
+        return Objects.hash(uri);
     }
 
     @Override
@@ -49,7 +49,7 @@ public abstract class ElementId {
         if (obj instanceof ElementId) {
             final ElementId that = (ElementId) obj;
             return this.getClass() == that.getClass() &&
-                    Objects.equals(this.str, that.str);
+                    Objects.equals(this.uri, that.uri);
         }
         return false;
     }
