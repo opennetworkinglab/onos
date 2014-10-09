@@ -1,10 +1,5 @@
 package org.onlab.onos.openflow.controller;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
@@ -13,11 +8,11 @@ import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
-import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext {
-
-    private final Logger log = getLogger(getClass());
 
     private final AtomicBoolean free = new AtomicBoolean(true);
     private final AtomicBoolean isBuilt = new AtomicBoolean(false);
@@ -82,7 +77,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     }
 
     public static OpenFlowPacketContext packetContextFromPacketIn(OpenFlowSwitch s,
-            OFPacketIn pkt) {
+                                                                  OFPacketIn pkt) {
         return new DefaultOpenFlowPacketContext(s, pkt);
     }
 

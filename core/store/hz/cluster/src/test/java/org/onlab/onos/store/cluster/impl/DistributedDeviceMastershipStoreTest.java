@@ -21,12 +21,12 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipEvent;
-import org.onlab.onos.cluster.MastershipEvent.Type;
-import org.onlab.onos.cluster.MastershipStoreDelegate;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.device.DeviceMastershipEvent;
+import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
+import org.onlab.onos.net.device.DeviceMastershipEvent.Type;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
@@ -40,7 +40,7 @@ import com.hazelcast.core.Hazelcast;
 /**
  * Test of the Hazelcast-based distributed MastershipStore implementation.
  */
-public class DistributedMastershipStoreTest {
+public class DistributedDeviceMastershipStoreTest {
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:01");
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
@@ -54,8 +54,8 @@ public class DistributedMastershipStoreTest {
     private static final ControllerNode CN1 = new DefaultControllerNode(N1, IP);
     private static final ControllerNode CN2 = new DefaultControllerNode(N2, IP);
 
-    private DistributedMastershipStore dms;
-    private TestDistributedMastershipStore testStore;
+    private DistributedDeviceMastershipStore dms;
+    private TestDistributedDeviceMastershipStore testStore;
     private KryoSerializer serializationMgr;
     private StoreManager storeMgr;
 
@@ -77,11 +77,11 @@ public class DistributedMastershipStoreTest {
 
         serializationMgr = new KryoSerializer();
 
-        dms = new TestDistributedMastershipStore(storeMgr, serializationMgr);
+        dms = new TestDistributedDeviceMastershipStore(storeMgr, serializationMgr);
         dms.clusterService = new TestClusterService();
         dms.activate();
 
-        testStore = (TestDistributedMastershipStore) dms;
+        testStore = (TestDistributedDeviceMastershipStore) dms;
     }
 
     @After
@@ -133,7 +133,7 @@ public class DistributedMastershipStoreTest {
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
         assertTrue("wrong state for store:", !dms.terms.isEmpty());
         assertEquals("wrong term",
-                MastershipTerm.of(N1, 0), dms.getTermFor(DID1));
+                DeviceMastershipTerm.of(N1, 0), dms.getTermFor(DID1));
 
         //CN2 now local. DID2 has N1 as MASTER so N2 is STANDBY
         testStore.setCurrent(CN2);
@@ -143,7 +143,7 @@ public class DistributedMastershipStoreTest {
         //change term and requestRole() again; should persist
         testStore.increment(DID2);
         assertEquals("wrong role for STANDBY:", STANDBY, dms.requestRole(DID2));
-        assertEquals("wrong term", MastershipTerm.of(N1, 1), dms.getTermFor(DID2));
+        assertEquals("wrong term", DeviceMastershipTerm.of(N1, 1), dms.getTermFor(DID2));
     }
 
     @Test
@@ -155,15 +155,15 @@ public class DistributedMastershipStoreTest {
 
         //switch over to N2
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID1).type());
-        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID1));
+        assertEquals("wrong term", DeviceMastershipTerm.of(N2, 1), dms.getTermFor(DID1));
 
         //orphan switch - should be rare case
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID2).type());
-        assertEquals("wrong term", MastershipTerm.of(N2, 0), dms.getTermFor(DID2));
+        assertEquals("wrong term", DeviceMastershipTerm.of(N2, 0), dms.getTermFor(DID2));
         //disconnect and reconnect - sign of failing re-election or single-instance channel
         testStore.reset(true, false, false);
         dms.setMaster(N2, DID2);
-        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID2));
+        assertEquals("wrong term", DeviceMastershipTerm.of(N2, 1), dms.getTermFor(DID2));
     }
 
     @Test
@@ -211,9 +211,9 @@ public class DistributedMastershipStoreTest {
         //shamelessly copy other distributed store tests
         final CountDownLatch addLatch = new CountDownLatch(1);
 
-        MastershipStoreDelegate checkAdd = new MastershipStoreDelegate() {
+        DeviceMastershipStoreDelegate checkAdd = new DeviceMastershipStoreDelegate() {
             @Override
-            public void notify(MastershipEvent event) {
+            public void notify(DeviceMastershipEvent event) {
                 assertEquals("wrong event:", Type.MASTER_CHANGED, event.type());
                 assertEquals("wrong subject", DID1, event.subject());
                 assertEquals("wrong subject", N1, event.master());
@@ -227,9 +227,9 @@ public class DistributedMastershipStoreTest {
         assertTrue("Add event fired", addLatch.await(1, TimeUnit.SECONDS));
     }
 
-    private class TestDistributedMastershipStore extends
-            DistributedMastershipStore {
-        public TestDistributedMastershipStore(StoreService storeService,
+    private class TestDistributedDeviceMastershipStore extends
+            DistributedDeviceMastershipStore {
+        public TestDistributedDeviceMastershipStore(StoreService storeService,
                 KryoSerializer kryoSerialization) {
             this.storeService = storeService;
             this.serializer = kryoSerialization;

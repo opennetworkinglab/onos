@@ -1,12 +1,13 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.net.device;
 
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.DeviceId;
 
 /**
  * Describes a device mastership event.
  */
-public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceId> {
+public class DeviceMastershipEvent extends AbstractEvent<DeviceMastershipEvent.Type, DeviceId> {
 
     //do we worry about explicitly setting slaves/equals? probably not,
     //to keep it simple
@@ -30,7 +31,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param device event device subject
      * @param master master ID subject
      */
-    public MastershipEvent(Type type, DeviceId device, NodeId master) {
+    public DeviceMastershipEvent(Type type, DeviceId device, NodeId master) {
         super(type, device);
         this.master = master;
     }
@@ -44,7 +45,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param master master ID subject
      * @param time   occurrence time
      */
-    public MastershipEvent(Type type, DeviceId device, NodeId master, long time) {
+    public DeviceMastershipEvent(Type type, DeviceId device, NodeId master, long time) {
         super(type, device, time);
         this.master = master;
     }

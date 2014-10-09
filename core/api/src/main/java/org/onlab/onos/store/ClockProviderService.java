@@ -1,7 +1,7 @@
 package org.onlab.onos.store;
 
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
 
 //TODO: Consider renaming to DeviceClockProviderService?
 /**
@@ -16,5 +16,5 @@ public interface ClockProviderService {
      * @param deviceId device identifier.
      * @param term mastership term.
      */
-    public void setMastershipTerm(DeviceId deviceId, MastershipTerm term);
+    public void setMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term);
 }

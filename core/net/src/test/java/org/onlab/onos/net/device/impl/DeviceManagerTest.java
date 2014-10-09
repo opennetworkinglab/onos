@@ -11,8 +11,6 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.MastershipServiceAdapter;
-import org.onlab.onos.cluster.MastershipTerm;
-import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.event.Event;
@@ -32,6 +30,8 @@ import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.device.DeviceMastershipTerm;
+import org.onlab.onos.net.device.DeviceMastershipTermService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
@@ -290,12 +290,12 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public MastershipTermService requestTermService() {
-            return new MastershipTermService() {
+        public DeviceMastershipTermService requestTermService() {
+            return new DeviceMastershipTermService() {
                 @Override
-                public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+                public DeviceMastershipTerm getMastershipTerm(DeviceId deviceId) {
                     // FIXME: just returning something not null
-                    return MastershipTerm.of(NID_LOCAL, 1);
+                    return DeviceMastershipTerm.of(NID_LOCAL, 1);
                 }
             };
         }
@@ -339,7 +339,7 @@ public class DeviceManagerTest {
             ClockProviderService {
 
         @Override
-        public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
+        public void setMastershipTerm(DeviceId deviceId, DeviceMastershipTerm term) {
             // TODO Auto-generated method stub
         }
     }

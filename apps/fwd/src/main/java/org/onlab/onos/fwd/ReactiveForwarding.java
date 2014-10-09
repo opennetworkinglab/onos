@@ -170,7 +170,9 @@ public class ReactiveForwarding {
         // We don't yet support bufferids in the flowservice so packet out first.
         packetOut(context, portNumber);
 
-
+        if (true) {
+            return;
+        }
 
         // Install the flow rule to handle this type of message from now on.
         Ethernet inPkt = context.inPacket().parsed();
