@@ -6,7 +6,7 @@
 export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
 
 # Setup some environmental context for developers
-export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
+export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home -v 1.7)}
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.2.2}
 export KARAF=${KARAF:-~/Applications/apache-karaf-3.0.1}
 export KARAF_LOG=$KARAF/data/log/karaf.log
