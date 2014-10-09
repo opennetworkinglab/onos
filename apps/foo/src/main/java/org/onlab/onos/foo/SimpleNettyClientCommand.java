@@ -16,7 +16,7 @@ public class SimpleNettyClientCommand extends AbstractShellCommand {
     //FIXME: replace these arguments with proper ones needed for the test.
     @Argument(index = 0, name = "hostname", description = "Server Hostname",
             required = false, multiValued = false)
-    String host = "localhost";
+    String hostname = "localhost";
 
     @Argument(index = 3, name = "port", description = "Port",
             required = false, multiValued = false)
@@ -24,7 +24,7 @@ public class SimpleNettyClientCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "warmupCount", description = "Warm-up count",
             required = false, multiValued = false)
-    String warmup = "1000";
+    String warmupCount = "1000";
 
     @Argument(index = 2, name = "messageCount", description = "Message count",
             required = false, multiValued = false)
@@ -33,10 +33,9 @@ public class SimpleNettyClientCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         try {
-            startStandalone(new String[]{host, port, warmup, messageCount});
+            startStandalone(new String[]{hostname, port, warmupCount, messageCount});
         } catch (Exception e) {
             error("Unable to start client %s", e);
         }
     }
-
 }

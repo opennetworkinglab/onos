@@ -78,11 +78,11 @@ public final class MetricsManager implements MetricsService {
 //        this.reporter = Slf4jReporter.forRegistry(this.metricsRegistry)
 //                .outputTo(log)
 //                .convertRatesTo(TimeUnit.SECONDS)
-//                .convertDurationsTo(TimeUnit.NANOSECONDS)
+//                .convertDurationsTo(TimeUnit.MICROSECONDS)
 //                .build();
         this.reporter = ConsoleReporter.forRegistry(this.metricsRegistry)
                 .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.NANOSECONDS)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
                 .build();
     }
 
