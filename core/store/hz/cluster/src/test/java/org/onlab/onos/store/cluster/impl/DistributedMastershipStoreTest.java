@@ -30,8 +30,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.common.StoreManager;
 import org.onlab.onos.store.common.StoreService;
 import org.onlab.onos.store.common.TestStoreManager;
-import org.onlab.onos.store.serializers.KryoSerializationManager;
-import org.onlab.onos.store.serializers.KryoSerializationService;
+import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.packet.IpPrefix;
 
 import com.google.common.collect.Sets;
@@ -57,7 +56,7 @@ public class DistributedMastershipStoreTest {
 
     private DistributedMastershipStore dms;
     private TestDistributedMastershipStore testStore;
-    private KryoSerializationManager serializationMgr;
+    private KryoSerializer serializationMgr;
     private StoreManager storeMgr;
 
     @BeforeClass
@@ -76,8 +75,7 @@ public class DistributedMastershipStoreTest {
         storeMgr = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
         storeMgr.activate();
 
-        serializationMgr = new KryoSerializationManager();
-        serializationMgr.activate();
+        serializationMgr = new KryoSerializer();
 
         dms = new TestDistributedMastershipStore(storeMgr, serializationMgr);
         dms.clusterService = new TestClusterService();
@@ -89,8 +87,6 @@ public class DistributedMastershipStoreTest {
     @After
     public void tearDown() throws Exception {
         dms.deactivate();
-
-        serializationMgr.deactivate();
 
         storeMgr.deactivate();
     }
@@ -234,9 +230,9 @@ public class DistributedMastershipStoreTest {
     private class TestDistributedMastershipStore extends
             DistributedMastershipStore {
         public TestDistributedMastershipStore(StoreService storeService,
-                KryoSerializationService kryoSerializationService) {
+                KryoSerializer kryoSerialization) {
             this.storeService = storeService;
-            this.kryoSerializationService = kryoSerializationService;
+            this.serializer = kryoSerialization;
         }
 
         //helper to populate master/backup structures
@@ -260,6 +256,7 @@ public class DistributedMastershipStoreTest {
             }
         }
 
+        //a dumb utility function.
         public void dump() {
             System.out.println("standbys");
             for (Map.Entry<byte [], byte []> e : standbys.entrySet()) {

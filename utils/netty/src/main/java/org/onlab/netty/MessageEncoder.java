@@ -1,60 +1,56 @@
 package org.onlab.netty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
  * Encode InternalMessage out into a byte buffer.
  */
+@Sharable
 public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     // onosiscool in ascii
     public static final byte[] PREAMBLE = "onosiscool".getBytes();
+    public static final int HEADER_VERSION = 1;
+    public static final int SERIALIZER_VERSION = 1;
 
-    private final Serializer serializer;
 
-    public MessageEncoder(Serializer serializer) {
-        this.serializer = serializer;
-    }
+    private static final KryoSerializer SERIALIZER = new KryoSerializer();
 
     @Override
-    protected void encode(ChannelHandlerContext context, InternalMessage message,
+    protected void encode(
+            ChannelHandlerContext context,
+            InternalMessage message,
             ByteBuf out) throws Exception {
+
+        // write version
+        out.writeInt(HEADER_VERSION);
 
         // write preamble
         out.writeBytes(PREAMBLE);
 
-        // write id
-        out.writeLong(message.id());
+        byte[] payload = SERIALIZER.encode(message);
 
-        // write type length
-        out.writeInt(message.type().length());
-
-        // write type
-        out.writeBytes(message.type().getBytes());
-
-        // write sender host name size
-        out.writeInt(message.sender().host().length());
-
-        // write sender host name.
-        out.writeBytes(message.sender().host().getBytes());
-
-        // write port
-        out.writeInt(message.sender().port());
-
-        try {
-            serializer.encode(message.payload());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        byte[] payload = serializer.encode(message.payload());
-
-        // write payload length.
+        // write payload length
         out.writeInt(payload.length);
 
-        // write payload bytes
+        // write payloadSerializer version
+        out.writeInt(SERIALIZER_VERSION);
+
+        // write payload.
         out.writeBytes(payload);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+        log.error("Exception inside channel handling pipeline.", cause);
+        context.close();
     }
 }

@@ -122,7 +122,7 @@ class RoleManager implements RoleHandler {
                 //FIXME fix below when we actually use generation ids
                 .setGenerationId(U64.ZERO)
                 .build();
-        sw.sendMsg(rrm);
+        sw.write(rrm);
         return xid;
     }
 

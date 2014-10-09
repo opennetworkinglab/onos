@@ -12,10 +12,10 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
     @Test
     public void basics() {
         MultiPointToSinglePointIntent intent = createOne();
-        assertEquals("incorrect id", IID, intent.getId());
-        assertEquals("incorrect match", MATCH, intent.getTrafficSelector());
-        assertEquals("incorrect ingress", PS1, intent.getIngressPorts());
-        assertEquals("incorrect egress", P2, intent.getEgressPort());
+        assertEquals("incorrect id", IID, intent.id());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", PS1, intent.ingressPoints());
+        assertEquals("incorrect egress", P2, intent.egressPoint());
     }
 
     @Override

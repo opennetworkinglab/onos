@@ -1,6 +1,10 @@
 package org.onlab.onos.net.intent;
 //TODO is this the right package?
 
+import org.onlab.onos.net.Link;
+
+import java.util.Collection;
+
 /**
  * An installable intent used in the unit test.
  *
@@ -25,4 +29,8 @@ public class TestInstallableIntent extends AbstractIntent implements Installable
         super();
     }
 
+    @Override
+    public Collection<Link> requiredLinks() {
+        return null;
+    }
 }

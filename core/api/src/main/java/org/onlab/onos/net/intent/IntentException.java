@@ -26,7 +26,7 @@ public class IntentException extends RuntimeException {
      * Constructs an exception with the specified message and the underlying cause.
      *
      * @param message the message describing the specific nature of the error
-     * @param cause the underlying cause of this error
+     * @param cause   the underlying cause of this error
      */
     public IntentException(String message, Throwable cause) {
         super(message, cause);

@@ -5,7 +5,7 @@ import java.util.SortedSet;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.net.flow.FlowRule.FlowRuleState;
+import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 
 /**
  * Device ID completer.
@@ -16,7 +16,7 @@ public class FlowRuleStatusCompleter implements Completer {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
-        FlowRuleState[] states = FlowRuleState.values();
+        FlowEntryState[] states = FlowEntryState.values();
         SortedSet<String> strings = delegate.getStrings();
         for (int i = 0; i < states.length; i++) {
             strings.add(states[i].toString().toLowerCase());

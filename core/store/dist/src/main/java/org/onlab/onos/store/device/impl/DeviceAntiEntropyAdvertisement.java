@@ -8,7 +8,7 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.cluster.messaging.AntiEntropyAdvertisement;
+import org.onlab.onos.store.common.impl.AntiEntropyAdvertisement;
 
 // TODO DeviceID needs to be changed to something like (ProviderID, DeviceID)
 // TODO: Handle Port as part of these messages, or separate messages for Ports?

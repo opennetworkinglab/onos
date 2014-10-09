@@ -2,6 +2,7 @@ package org.onlab.onos.store.serializers;
 
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.LinkKey;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -13,7 +14,7 @@ import com.esotericsoftware.kryo.io.Output;
 public class LinkKeySerializer extends Serializer<LinkKey> {
 
     /**
-     * Default constructor.
+     * Creates {@link LinkKey} serializer instance.
      */
     public LinkKeySerializer() {
         // non-null, immutable

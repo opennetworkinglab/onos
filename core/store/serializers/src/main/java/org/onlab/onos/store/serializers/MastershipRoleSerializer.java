@@ -12,6 +12,14 @@ import com.esotericsoftware.kryo.io.Output;
  */
 public class MastershipRoleSerializer extends Serializer<MastershipRole> {
 
+    /**
+     * Creates {@link MastershipRole} serializer instance.
+     */
+    public MastershipRoleSerializer() {
+        // non-null, immutable
+        super(false, true);
+    }
+
     @Override
     public MastershipRole read(Kryo kryo, Input input, Class<MastershipRole> type) {
         final String role = kryo.readObject(input, String.class);

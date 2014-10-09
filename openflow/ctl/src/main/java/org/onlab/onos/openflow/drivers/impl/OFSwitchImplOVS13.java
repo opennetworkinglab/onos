@@ -138,7 +138,7 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
                 .buildBarrierRequest()
                 .setXid(xid)
                 .build();
-        sendMsg(br);
+        write(br);
     }
 
     @Override
@@ -227,7 +227,7 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
                 .setHardTimeout(0)
                 .setXid(getNextTransactionId())
                 .build();
-        sendMsg(tableMissEntry);
+        write(tableMissEntry);
     }
 
 }

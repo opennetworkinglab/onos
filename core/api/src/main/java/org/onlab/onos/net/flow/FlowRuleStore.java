@@ -10,11 +10,19 @@ import org.onlab.onos.store.Store;
 public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegate> {
 
     /**
+     * Returns the number of flow rule in the store.
+     *
+     * @return number of flow rules
+     */
+    int getFlowRuleCount();
+
+    /**
      * Returns the stored flow.
+     *
      * @param rule the rule to look for
      * @return a flow rule
      */
-    FlowRule getFlowRule(FlowRule rule);
+    FlowEntry getFlowEntry(FlowRule rule);
 
     /**
      * Returns the flow entries associated with a device.
@@ -22,7 +30,7 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
      * @param deviceId the device ID
      * @return the flow entries
      */
-    Iterable<FlowRule> getFlowEntries(DeviceId deviceId);
+    Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
     /**
      * Returns the flow entries associated with an application.
@@ -30,7 +38,7 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
      * @param appId the application id
      * @return the flow entries
      */
-    Iterable<FlowRule> getFlowEntriesByAppId(ApplicationId appId);
+    Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId);
 
     /**
      * Stores a new flow rule without generating events.
@@ -40,7 +48,8 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
     void storeFlowRule(FlowRule rule);
 
     /**
-     * Deletes a flow rule without generating events.
+     * Marks a flow rule for deletion. Actual deletion will occur
+     * when the provider indicates that the flow has been removed.
      *
      * @param rule the flow rule to delete
      */
@@ -52,12 +61,11 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
      * @param rule the flow rule to add or update
      * @return flow_added event, or null if just an update
      */
-    FlowRuleEvent addOrUpdateFlowRule(FlowRule rule);
+    FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule);
 
     /**
-     * @param rule the flow rule to remove
+     * @param rule the flow entry to remove
      * @return flow_removed event, or null if nothing removed
      */
-    FlowRuleEvent removeFlowRule(FlowRule rule);
-
+    FlowRuleEvent removeFlowRule(FlowEntry rule);
 }

@@ -68,12 +68,30 @@ public class FlowModBuilder {
         this.cookie = flowRule.id();
     }
 
-    public OFFlowMod buildFlowMod() {
+    public OFFlowMod buildFlowAdd() {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
         OFFlowMod fm = factory.buildFlowAdd()
+                .setCookie(U64.of(cookie.value()))
+                .setBufferId(OFBufferId.NO_BUFFER)
+                .setActions(actions)
+                .setMatch(match)
+                .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
+                .setPriority(priority)
+                .build();
+
+        return fm;
+
+    }
+
+    public OFFlowMod buildFlowMod() {
+        Match match = buildMatch();
+        List<OFAction> actions = buildActions();
+
+        //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
+        OFFlowMod fm = factory.buildFlowModify()
                 .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)

@@ -16,8 +16,8 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 public abstract class ConnectivityIntentTest extends IntentTest {
 
     public static final IntentId IID = new IntentId(123);
-    public static final TrafficSelector MATCH = (new DefaultTrafficSelector.Builder()).build();
-    public static final TrafficTreatment NOP = (new DefaultTrafficTreatment.Builder()).build();
+    public static final TrafficSelector MATCH = DefaultTrafficSelector.builder().build();
+    public static final TrafficTreatment NOP = DefaultTrafficTreatment.builder().build();
 
     public static final ConnectPoint P1 = new ConnectPoint(DeviceId.deviceId("111"), PortNumber.portNumber(0x1));
     public static final ConnectPoint P2 = new ConnectPoint(DeviceId.deviceId("222"), PortNumber.portNumber(0x2));

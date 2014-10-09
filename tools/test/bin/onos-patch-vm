@@ -15,7 +15,7 @@ name=${2:-onos-1}
 
 ssh $remote "
     sudo perl -pi.bak -e \"s/127.0.1.1.*/127.0.1.1       $name/g\" /etc/hosts
-    sudo perl -pi.bak -e \"s/.*/$name/g\" /etc/hostname
+    sudo bash -c \"echo $name >/etc/hostname\"
     sudo hostname $name
 " 2>/dev/null
 

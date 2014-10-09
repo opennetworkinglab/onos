@@ -58,7 +58,5 @@ public class DefaultDeviceTest {
         assertEquals("incorrect hw", HW, device.hwVersion());
         assertEquals("incorrect sw", SW, device.swVersion());
         assertEquals("incorrect serial", SN1, device.serialNumber());
-        assertEquals("incorrect serial", SN1, device.serialNumber());
     }
-
 }

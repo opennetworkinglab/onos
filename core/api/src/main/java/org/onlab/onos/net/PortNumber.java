@@ -9,6 +9,8 @@ import com.google.common.primitives.UnsignedLongs;
  */
 public final class PortNumber {
 
+    public static final PortNumber P0 = portNumber(0);
+
     // TODO: revisit the max and the logical port value assignments
 
     private static final long MAX_NUMBER = (2L * Integer.MAX_VALUE) + 1;

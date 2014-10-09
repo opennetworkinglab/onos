@@ -73,31 +73,63 @@ public final class DefaultAnnotations implements SparseAnnotations {
     }
 
     /**
-     * Convert Annotations to DefaultAnnotations if needed and merges.
+     * Creates the union of two given SparseAnnotations.
+     * Unlike the {@link #merge(DefaultAnnotations, SparseAnnotations)} method,
+     * result will be {@link SparseAnnotations} instead of {@link Annotations}.
      *
-     * @see #merge(DefaultAnnotations, SparseAnnotations)
+     * A key tagged for removal will remain in the output SparseAnnotations,
+     * if the counterpart of the input does not contain the same key.
      *
      * @param annotations       base annotations
      * @param sparseAnnotations additional sparse annotations
      * @return combined annotations or the original base annotations if there
      * are not additional annotations
      */
-    public static DefaultAnnotations merge(Annotations annotations,
-                                    SparseAnnotations sparseAnnotations) {
-        if (annotations instanceof DefaultAnnotations) {
-            return merge((DefaultAnnotations) annotations, sparseAnnotations);
+    public static SparseAnnotations union(SparseAnnotations annotations,
+                                          SparseAnnotations sparseAnnotations) {
+
+        if (sparseAnnotations == null || sparseAnnotations.keys().isEmpty()) {
+            return annotations;
         }
 
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        for (String key : annotations.keys()) {
-            builder.set(key, annotations.value(key));
+        final HashMap<String, String> newMap;
+        if (annotations instanceof DefaultAnnotations) {
+            newMap = copy(((DefaultAnnotations) annotations).map);
+        } else {
+            newMap = new HashMap<>(annotations.keys().size() +
+                                   sparseAnnotations.keys().size());
+            putAllSparseAnnotations(newMap, annotations);
         }
-        return merge(builder.build(), sparseAnnotations);
+
+        putAllSparseAnnotations(newMap, sparseAnnotations);
+        return new DefaultAnnotations(newMap);
+    }
+
+    // adds the key-values contained in sparseAnnotations to
+    // newMap, if sparseAnnotations had a key tagged for removal,
+    // and corresponding key exist in newMap, entry will be removed.
+    // if corresponding key does not exist, removal tag will be added to
+    // the newMap.
+    private static void putAllSparseAnnotations(
+                            final HashMap<String, String> newMap,
+                            SparseAnnotations sparseAnnotations) {
+
+        for (String key : sparseAnnotations.keys()) {
+            if (sparseAnnotations.isRemoved(key)) {
+                if (newMap.containsKey(key)) {
+                    newMap.remove(key);
+                } else {
+                    newMap.put(key, Builder.REMOVED);
+                }
+            } else {
+                String value = sparseAnnotations.value(key);
+                newMap.put(key, value);
+            }
+        }
     }
 
     @Override
     public Set<String> keys() {
-        // TODO: unmodifiable to be removed after switching to ImmutableMap;
         return Collections.unmodifiableSet(map.keySet());
     }
 
@@ -115,7 +147,7 @@ public final class DefaultAnnotations implements SparseAnnotations {
     @SuppressWarnings("unchecked")
     private static HashMap<String, String> copy(Map<String, String> original) {
         if (original instanceof HashMap) {
-            return (HashMap) ((HashMap) original).clone();
+            return (HashMap<String, String>) ((HashMap<?, ?>) original).clone();
         }
         throw new IllegalArgumentException("Expecting HashMap instance");
     }

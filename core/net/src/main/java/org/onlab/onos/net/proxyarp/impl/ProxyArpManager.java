@@ -31,6 +31,8 @@ import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
+import org.onlab.onos.net.packet.InboundPacket;
+import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.packet.ARP;
@@ -42,7 +44,6 @@ import org.slf4j.Logger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-
 
 @Component(immediate = true)
 @Service
@@ -93,14 +94,14 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public boolean known(IpPrefix addr) {
-        checkNotNull(MAC_ADDR_NULL, addr);
+        checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
     }
 
     @Override
     public void reply(Ethernet eth) {
-        checkNotNull(REQUEST_NULL, eth);
+        checkNotNull(eth, REQUEST_NULL);
         checkArgument(eth.getEtherType() == Ethernet.TYPE_ARP,
                 REQUEST_NOT_ARP);
         ARP arp = (ARP) eth.getPayload();
@@ -128,7 +129,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         Ethernet arpReply = buildArpReply(dst, eth);
         // TODO: check send status with host service.
-        TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         builder.setOutput(src.location().port());
         packetService.emit(new DefaultOutboundPacket(src.location().deviceId(),
                 builder.build(), ByteBuffer.wrap(arpReply.serialize())));
@@ -136,7 +137,7 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public void forward(Ethernet eth) {
-        checkNotNull(REQUEST_NULL, eth);
+        checkNotNull(eth, REQUEST_NULL);
         checkArgument(eth.getEtherType() == Ethernet.TYPE_ARP,
                 REQUEST_NOT_ARP);
         ARP arp = (ARP) eth.getPayload();
@@ -148,12 +149,29 @@ public class ProxyArpManager implements ProxyArpService {
         if (h == null) {
             flood(eth);
         } else {
-            TrafficTreatment.Builder builder = new DefaultTrafficTreatment.Builder();
+            TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
             builder.setOutput(h.location().port());
             packetService.emit(new DefaultOutboundPacket(h.location().deviceId(),
                     builder.build(), ByteBuffer.wrap(eth.serialize())));
         }
 
+    }
+
+    @Override
+    public boolean handleArp(PacketContext context) {
+        InboundPacket pkt = context.inPacket();
+        Ethernet ethPkt = pkt.parsed();
+        if (ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
+            ARP arp = (ARP) ethPkt.getPayload();
+            if (arp.getOpCode() == ARP.OP_REPLY) {
+                forward(ethPkt);
+            } else if (arp.getOpCode() == ARP.OP_REQUEST) {
+                reply(ethPkt);
+            }
+            context.block();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -166,7 +184,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         synchronized (externalPorts) {
             for (Entry<Device, PortNumber> entry : externalPorts.entries()) {
-                builder = new DefaultTrafficTreatment.Builder();
+                builder = DefaultTrafficTreatment.builder();
                 builder.setOutput(entry.getValue());
                 packetService.emit(new DefaultOutboundPacket(entry.getKey().id(),
                         builder.build(), buf));
@@ -188,12 +206,12 @@ public class ProxyArpManager implements ProxyArpService {
             for (Link l : links) {
                 // for each link, mark the concerned ports as internal
                 // and the remaining ports are therefore external.
-                if (l.src().deviceId().equals(d)
+                if (l.src().deviceId().equals(d.id())
                         && ports.contains(l.src().port())) {
                     ports.remove(l.src().port());
                     internalPorts.put(d, l.src().port());
                 }
-                if (l.dst().deviceId().equals(d)
+                if (l.dst().deviceId().equals(d.id())
                         && ports.contains(l.dst().port())) {
                     ports.remove(l.dst().port());
                     internalPorts.put(d, l.dst().port());
@@ -322,7 +340,6 @@ public class ProxyArpManager implements ProxyArpService {
 
         }
 
-}
-
+    }
 
 }

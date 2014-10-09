@@ -13,7 +13,7 @@ import com.esotericsoftware.kryo.io.Output;
 public final class IpPrefixSerializer extends Serializer<IpPrefix> {
 
     /**
-     * Default constructor.
+     * Creates {@link IpPrefix} serializer instance.
      */
     public IpPrefixSerializer() {
         // non-null, immutable

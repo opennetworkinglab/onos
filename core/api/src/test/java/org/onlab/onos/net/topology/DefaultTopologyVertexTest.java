@@ -26,5 +26,4 @@ public class DefaultTopologyVertexTest {
                 .addEqualityGroup(new DefaultTopologyVertex(D2),
                                   new DefaultTopologyVertex(D2)).testEquals();
     }
-
 }

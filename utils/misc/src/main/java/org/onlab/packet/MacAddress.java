@@ -22,6 +22,12 @@ import java.util.Arrays;
  *
  */
 public class MacAddress {
+    public static final byte[] ZERO_MAC_ADDRESS =
+            MacAddress.valueOf("00:00:00:00:00:00").getAddress();
+
+    public static final byte[] BROADCAST_MAC =
+            MacAddress.valueOf("ff:ff:ff:ff:ff:ff").getAddress();
+
     public static final int MAC_ADDRESS_LENGTH = 6;
     private byte[] address = new byte[MacAddress.MAC_ADDRESS_LENGTH];
 

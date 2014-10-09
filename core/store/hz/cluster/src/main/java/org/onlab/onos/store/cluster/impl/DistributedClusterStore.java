@@ -57,7 +57,7 @@ public class DistributedClusterStore
 
         rawNodes = theInstance.getMap("nodes");
         OptionalCacheLoader<NodeId, DefaultControllerNode> nodeLoader
-                = new OptionalCacheLoader<>(kryoSerializationService, rawNodes);
+                = new OptionalCacheLoader<>(serializer, rawNodes);
         nodes = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
         rawNodes.addEntryListener(new RemoteCacheEventHandler<>(nodes), true);
 

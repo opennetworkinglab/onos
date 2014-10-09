@@ -5,9 +5,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -21,7 +22,11 @@ import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.CompletedBatchOperation;
+import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.flow.FlowRuleBatchEntry;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleProvider;
@@ -34,7 +39,9 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
@@ -42,14 +49,14 @@ import com.google.common.collect.Lists;
 @Component(immediate = true)
 @Service
 public class FlowRuleManager
-extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
-implements FlowRuleService, FlowRuleProviderRegistry {
+        extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
+        implements FlowRuleService, FlowRuleProviderRegistry {
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
-    listenerRegistry = new AbstractListenerRegistry<>();
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -61,8 +68,6 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-
-    private final Map<FlowRule, AtomicInteger> deadRounds = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -79,7 +84,12 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     @Override
-    public Iterable<FlowRule> getFlowEntries(DeviceId deviceId) {
+    public int getFlowRuleCount() {
+        return store.getFlowRuleCount();
+    }
+
+    @Override
+    public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         return store.getFlowEntries(deviceId);
     }
 
@@ -89,7 +99,6 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             FlowRule f = flowRules[i];
             final Device device = deviceService.getDevice(f.deviceId());
             final FlowRuleProvider frp = getProvider(device.providerId());
-            deadRounds.put(f, new AtomicInteger(0));
             store.storeFlowRule(f);
             frp.applyFlowRule(f);
         }
@@ -103,16 +112,17 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         for (int i = 0; i < flowRules.length; i++) {
             f = flowRules[i];
             device = deviceService.getDevice(f.deviceId());
-            frp = getProvider(device.providerId());
-            deadRounds.remove(f);
             store.deleteFlowRule(f);
-            frp.removeFlowRule(f);
+            if (device != null) {
+                frp = getProvider(device.providerId());
+                frp.removeFlowRule(f);
+            }
         }
     }
 
     @Override
     public void removeFlowRulesById(ApplicationId id) {
-        Iterable<FlowRule> rules =  getFlowRulesById(id);
+        Iterable<FlowRule> rules = getFlowRulesById(id);
         FlowRuleProvider frp;
         Device device;
 
@@ -126,7 +136,39 @@ implements FlowRuleService, FlowRuleProviderRegistry {
 
     @Override
     public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        return store.getFlowEntriesByAppId(id);
+        return store.getFlowRulesByAppId(id);
+    }
+
+    @Override
+    public Future<CompletedBatchOperation> applyBatch(
+            FlowRuleBatchOperation batch) {
+        Multimap<FlowRuleProvider, FlowRuleBatchEntry> batches =
+                ArrayListMultimap.create();
+        List<Future<Void>> futures = Lists.newArrayList();
+        for (FlowRuleBatchEntry fbe : batch.getOperations()) {
+            final FlowRule f = fbe.getTarget();
+            final Device device = deviceService.getDevice(f.deviceId());
+            final FlowRuleProvider frp = getProvider(device.providerId());
+            batches.put(frp, fbe);
+            switch (fbe.getOperator()) {
+                case ADD:
+                    store.storeFlowRule(f);
+                    break;
+                case REMOVE:
+                    store.deleteFlowRule(f);
+                    break;
+                case MODIFY:
+                default:
+                    log.error("Batch operation type {} unsupported.", fbe.getOperator());
+            }
+        }
+        for (FlowRuleProvider provider : batches.keySet()) {
+            FlowRuleBatchOperation b =
+                    new FlowRuleBatchOperation(batches.get(provider));
+            Future<Void> future = provider.executeBatch(b);
+            futures.add(future);
+        }
+        return new FlowRuleBatchFuture(futures);
     }
 
     @Override
@@ -146,63 +188,63 @@ implements FlowRuleService, FlowRuleProviderRegistry {
     }
 
     private class InternalFlowRuleProviderService
-    extends AbstractProviderService<FlowRuleProvider>
-    implements FlowRuleProviderService {
+            extends AbstractProviderService<FlowRuleProvider>
+            implements FlowRuleProviderService {
 
         protected InternalFlowRuleProviderService(FlowRuleProvider provider) {
             super(provider);
         }
 
         @Override
-        public void flowRemoved(FlowRule flowRule) {
-            checkNotNull(flowRule, FLOW_RULE_NULL);
+        public void flowRemoved(FlowEntry flowEntry) {
+            checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
-            FlowRule stored = store.getFlowRule(flowRule);
+            FlowEntry stored = store.getFlowEntry(flowEntry);
             if (stored == null) {
-                log.debug("Rule already evicted from store: {}", flowRule);
+                log.info("Rule already evicted from store: {}", flowEntry);
                 return;
             }
-            Device device = deviceService.getDevice(flowRule.deviceId());
+            Device device = deviceService.getDevice(flowEntry.deviceId());
             FlowRuleProvider frp = getProvider(device.providerId());
             FlowRuleEvent event = null;
             switch (stored.state()) {
-            case ADDED:
-            case PENDING_ADD:
+                case ADDED:
+                case PENDING_ADD:
                     frp.applyFlowRule(stored);
-                break;
-            case PENDING_REMOVE:
-            case REMOVED:
-                event = store.removeFlowRule(flowRule);
-                break;
-            default:
-                break;
+                    break;
+                case PENDING_REMOVE:
+                case REMOVED:
+                    event = store.removeFlowRule(stored);
+                    break;
+                default:
+                    break;
 
             }
             if (event != null) {
-                log.debug("Flow {} removed", flowRule);
+                log.debug("Flow {} removed", flowEntry);
                 post(event);
             }
         }
 
 
-        private void flowMissing(FlowRule flowRule) {
+        private void flowMissing(FlowEntry flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
             Device device = deviceService.getDevice(flowRule.deviceId());
             FlowRuleProvider frp = getProvider(device.providerId());
             FlowRuleEvent event = null;
             switch (flowRule.state()) {
-            case PENDING_REMOVE:
-            case REMOVED:
-                event = store.removeFlowRule(flowRule);
-                frp.removeFlowRule(flowRule);
-                break;
-            case ADDED:
-            case PENDING_ADD:
-                frp.applyFlowRule(flowRule);
-                break;
-            default:
-                log.debug("Flow {} has not been installed.", flowRule);
+                case PENDING_REMOVE:
+                case REMOVED:
+                    event = store.removeFlowRule(flowRule);
+                    frp.removeFlowRule(flowRule);
+                    break;
+                case ADDED:
+                case PENDING_ADD:
+                    frp.applyFlowRule(flowRule);
+                    break;
+                default:
+                    log.debug("Flow {} has not been installed.", flowRule);
             }
 
             if (event != null) {
@@ -221,36 +263,40 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         }
 
 
-        private void flowAdded(FlowRule flowRule) {
-            checkNotNull(flowRule, FLOW_RULE_NULL);
+        private void flowAdded(FlowEntry flowEntry) {
+            checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
 
-            if (deadRounds.containsKey(flowRule) &&
-                    checkRuleLiveness(flowRule, store.getFlowRule(flowRule))) {
+            if (checkRuleLiveness(flowEntry, store.getFlowEntry(flowEntry))) {
 
-                FlowRuleEvent event = store.addOrUpdateFlowRule(flowRule);
+                FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
                 if (event == null) {
                     log.debug("No flow store event generated.");
                 } else {
-                    log.debug("Flow {} {}", flowRule, event.type());
+                    log.debug("Flow {} {}", flowEntry, event.type());
                     post(event);
                 }
             } else {
-                removeFlowRules(flowRule);
+                removeFlowRules(flowEntry);
             }
 
         }
 
-        private boolean checkRuleLiveness(FlowRule swRule, FlowRule storedRule) {
-            int timeout = storedRule.timeout();
+        private boolean checkRuleLiveness(FlowEntry swRule, FlowEntry storedRule) {
+            if (storedRule == null) {
+                return false;
+            }
+            long timeout = storedRule.timeout() * 1000;
+            Long currentTime = System.currentTimeMillis();
             if (storedRule.packets() != swRule.packets()) {
-                deadRounds.get(swRule).set(0);
+                storedRule.setLastSeen();
                 return true;
             }
 
-            return (deadRounds.get(swRule).getAndIncrement() *
-                    FlowRuleProvider.POLL_INTERVAL) <= timeout;
-
+            if ((currentTime - storedRule.lastSeen()) <= timeout) {
+                return true;
+            }
+            return false;
         }
 
         // Posts the specified event to the local event dispatcher.
@@ -261,13 +307,13 @@ implements FlowRuleService, FlowRuleProviderRegistry {
         }
 
         @Override
-        public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowRule> flowEntries) {
-            List<FlowRule> storedRules = Lists.newLinkedList(store.getFlowEntries(deviceId));
+        public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
+            List<FlowEntry> storedRules = Lists.newLinkedList(store.getFlowEntries(deviceId));
 
-            Iterator<FlowRule> switchRulesIterator = flowEntries.iterator();
+            Iterator<FlowEntry> switchRulesIterator = flowEntries.iterator();
 
             while (switchRulesIterator.hasNext()) {
-                FlowRule rule = switchRulesIterator.next();
+                FlowEntry rule = switchRulesIterator.next();
                 if (storedRules.remove(rule)) {
                     // we both have the rule, let's update some info then.
                     flowAdded(rule);
@@ -276,7 +322,7 @@ implements FlowRuleService, FlowRuleProviderRegistry {
                     extraneousFlow(rule);
                 }
             }
-            for (FlowRule rule : storedRules) {
+            for (FlowEntry rule : storedRules) {
                 // there are rules in the store that aren't on the switch
                 flowMissing(rule);
 
@@ -291,4 +337,63 @@ implements FlowRuleService, FlowRuleProviderRegistry {
             eventDispatcher.post(event);
         }
     }
+
+    private class FlowRuleBatchFuture
+        implements Future<CompletedBatchOperation> {
+
+        private final List<Future<Void>> futures;
+
+        public FlowRuleBatchFuture(List<Future<Void>> futures) {
+            this.futures = futures;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            boolean isDone = true;
+            for (Future<Void> future : futures) {
+                isDone &= future.isDone();
+            }
+            return isDone;
+        }
+
+        @Override
+        public CompletedBatchOperation get() throws InterruptedException,
+        ExecutionException {
+            // TODO Auto-generated method stub
+            for (Future<Void> future : futures) {
+                future.get();
+            }
+            return new CompletedBatchOperation();
+        }
+
+        @Override
+        public CompletedBatchOperation get(long timeout, TimeUnit unit)
+                throws InterruptedException, ExecutionException,
+                TimeoutException {
+            // TODO we should decrement the timeout
+            long start = System.nanoTime();
+            long end = start + unit.toNanos(timeout);
+            for (Future<Void> future : futures) {
+                long now = System.nanoTime();
+                long thisTimeout = end - now;
+                future.get(thisTimeout, TimeUnit.NANOSECONDS);
+            }
+            return new CompletedBatchOperation();
+        }
+
+    }
+
+
 }

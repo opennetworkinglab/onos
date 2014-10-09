@@ -18,6 +18,7 @@ import org.onlab.onos.cluster.MastershipListener;
 import org.onlab.onos.cluster.MastershipService;
 import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Device;
@@ -38,7 +39,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.store.ClockService;
+import org.onlab.onos.store.ClockProviderService;
 import org.slf4j.Logger;
 
 /**
@@ -80,7 +81,7 @@ public class DeviceManager
     protected MastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockService clockService;
+    protected ClockProviderService clockProviderService;
 
     @Activate
     public void activate() {
@@ -144,6 +145,10 @@ public class DeviceManager
     private void applyRole(DeviceId deviceId, MastershipRole newRole) {
         if (newRole.equals(MastershipRole.NONE)) {
             Device device = store.getDevice(deviceId);
+            // FIXME: Device might not be there yet. (eventual consistent)
+            if (device == null) {
+                return;
+            }
             DeviceProvider provider = getProvider(device.providerId());
             if (provider != null) {
                 provider.roleChanged(device, newRole);
@@ -193,13 +198,50 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
+
+            log.info("Device {} connected", deviceId);
+            // check my Role
+            MastershipRole role = mastershipService.requestRoleFor(deviceId);
+
+            if (role != MastershipRole.MASTER) {
+                // TODO: Do we need to explicitly tell the Provider that
+                // this instance is no longer the MASTER? probably not
+                return;
+            }
+
+            MastershipTerm term = mastershipService.requestTermService()
+                    .getMastershipTerm(deviceId);
+            if (!term.master().equals(clusterService.getLocalNode().id())) {
+                // lost mastership after requestRole told this instance was MASTER.
+                return;
+            }
+            // tell clock provider if this instance is the master
+            clockProviderService.setMastershipTerm(deviceId, term);
+
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                     deviceId, deviceDescription);
 
+            // If there was a change of any kind, tell the provider
+            // that this instance is the master.
+            // Note: event can be null, if mastership was lost between
+            // roleRequest and store update calls.
             if (event != null) {
-                log.info("Device {} connected", deviceId);
-                provider().roleChanged(event.subject(),
-                        mastershipService.requestRoleFor(deviceId));
+                // TODO: Check switch reconnected case. Is it assured that
+                //       event will never be null?
+                //       Could there be a situation MastershipService told this
+                //       instance is the new Master, but
+                //       event returned from the store is null?
+
+                // TODO: Confirm: Mastership could be lost after requestRole
+                //       and createOrUpdateDevice call.
+                //       In that case STANDBY node can
+                //       claim itself to be master against the Device.
+                //       Will the Node, chosen by the MastershipService, retry
+                //       to get the MASTER role when that happen?
+
+                // FIXME: 1st argument should be deviceId, to allow setting
+                //        certain roles even if the store returned null.
+                provider().roleChanged(event.subject(), role);
                 post(event);
             }
         }
@@ -208,6 +250,15 @@ public class DeviceManager
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
+
+            // FIXME: only the MASTER should be marking off-line in normal cases,
+            // but if I was the last STANDBY connection, etc. and no one else
+            // was there to mark the device offline, this instance may need to
+            // temporarily request for Master Role and mark offline.
+            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
+                log.debug("Device {} disconnected, but I am not the master", deviceId);
+                return;
+            }
             DeviceEvent event = store.markOffline(deviceId);
             //we're no longer capable of being master or a candidate.
             mastershipService.relinquishMastership(deviceId);
@@ -253,6 +304,9 @@ public class DeviceManager
             // FIXME: implement response to this notification
             log.warn("Failed to assert role [{}] onto Device {}", role,
                     deviceId);
+            if (role == MastershipRole.MASTER) {
+                mastershipService.relinquishMastership(deviceId);
+            }
         }
     }
 
@@ -268,11 +322,17 @@ public class DeviceManager
 
         @Override
         public void event(MastershipEvent event) {
-            DeviceId did = event.subject();
+            final DeviceId did = event.subject();
             if (isAvailable(did)) {
-                if (event.master().equals(clusterService.getLocalNode().id())) {
+                final NodeId myNodeId = clusterService.getLocalNode().id();
+
+                if (myNodeId.equals(event.master())) {
                     MastershipTerm term = termService.getMastershipTerm(did);
-                    clockService.setMastershipTerm(did, term);
+
+                    if (term.master().equals(myNodeId)) {
+                        // only set the new term if I am the master
+                        clockProviderService.setMastershipTerm(did, term);
+                    }
                     applyRole(did, MastershipRole.MASTER);
                 } else {
                     applyRole(did, MastershipRole.STANDBY);

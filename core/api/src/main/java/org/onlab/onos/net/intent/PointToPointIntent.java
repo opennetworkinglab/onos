@@ -1,39 +1,40 @@
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of point-to-point connectivity.
  */
 public class PointToPointIntent extends ConnectivityIntent {
 
-    private final ConnectPoint ingressPort;
-    private final ConnectPoint egressPort;
+    private final ConnectPoint ingressPoint;
+    private final ConnectPoint egressPoint;
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
      * ports.
      *
-     * @param id          intent identifier
-     * @param match       traffic match
-     * @param action      action
-     * @param ingressPort ingress port
-     * @param egressPort  egress port
-     * @throws NullPointerException if {@code ingressPort} or {@code egressPort} is null.
+     * @param id           intent identifier
+     * @param selector     traffic selector
+     * @param treatment    treatment
+     * @param ingressPoint ingress port
+     * @param egressPoint  egress port
+     * @throws NullPointerException if {@code ingressPoint} or {@code egressPoints} is null.
      */
-    public PointToPointIntent(IntentId id, TrafficSelector match, TrafficTreatment action,
-                              ConnectPoint ingressPort, ConnectPoint egressPort) {
-        super(id, match, action);
-        this.ingressPort = checkNotNull(ingressPort);
-        this.egressPort = checkNotNull(egressPort);
+    public PointToPointIntent(IntentId id, TrafficSelector selector,
+                              TrafficTreatment treatment,
+                              ConnectPoint ingressPoint,
+                              ConnectPoint egressPoint) {
+        super(id, selector, treatment);
+        this.ingressPoint = checkNotNull(ingressPoint);
+        this.egressPoint = checkNotNull(egressPoint);
     }
 
     /**
@@ -41,8 +42,8 @@ public class PointToPointIntent extends ConnectivityIntent {
      */
     protected PointToPointIntent() {
         super();
-        this.ingressPort = null;
-        this.egressPort = null;
+        this.ingressPoint = null;
+        this.egressPoint = null;
     }
 
     /**
@@ -51,8 +52,8 @@ public class PointToPointIntent extends ConnectivityIntent {
      *
      * @return ingress port
      */
-    public ConnectPoint getIngressPort() {
-        return ingressPort;
+    public ConnectPoint ingressPoint() {
+        return ingressPoint;
     }
 
     /**
@@ -60,8 +61,8 @@ public class PointToPointIntent extends ConnectivityIntent {
      *
      * @return egress port
      */
-    public ConnectPoint getEgressPort() {
-        return egressPort;
+    public ConnectPoint egressPoint() {
+        return egressPoint;
     }
 
     @Override
@@ -77,23 +78,23 @@ public class PointToPointIntent extends ConnectivityIntent {
         }
 
         PointToPointIntent that = (PointToPointIntent) o;
-        return Objects.equals(this.ingressPort, that.ingressPort)
-                && Objects.equals(this.egressPort, that.egressPort);
+        return Objects.equals(this.ingressPoint, that.ingressPoint)
+                && Objects.equals(this.egressPoint, that.egressPoint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), ingressPort, egressPort);
+        return Objects.hash(super.hashCode(), ingressPoint, egressPoint);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("id", getId())
-                .add("match", getTrafficSelector())
-                .add("action", getTrafficTreatment())
-                .add("ingressPort", ingressPort)
-                .add("egressPort", egressPort)
+                .add("id", id())
+                .add("match", selector())
+                .add("action", treatment())
+                .add("ingressPoint", ingressPoint)
+                .add("egressPoints", egressPoint)
                 .toString();
     }
 

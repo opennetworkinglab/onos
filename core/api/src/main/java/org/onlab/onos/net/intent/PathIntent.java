@@ -1,18 +1,19 @@
 package org.onlab.onos.net.intent;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Abstraction of explicitly path specified connectivity intent.
  */
-public class PathIntent extends PointToPointIntent {
+public class PathIntent extends PointToPointIntent implements InstallableIntent {
 
     private final Path path;
 
@@ -45,7 +46,7 @@ public class PathIntent extends PointToPointIntent {
      *
      * @return traversed links
      */
-    public Path getPath() {
+    public Path path() {
         return path;
     }
 
@@ -78,12 +79,18 @@ public class PathIntent extends PointToPointIntent {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("id", getId())
-                .add("match", getTrafficSelector())
-                .add("action", getTrafficTreatment())
-                .add("ingressPort", getIngressPort())
-                .add("egressPort", getEgressPort())
+                .add("id", id())
+                .add("match", selector())
+                .add("action", treatment())
+                .add("ingressPort", ingressPoint())
+                .add("egressPort", egressPoint())
                 .add("path", path)
                 .toString();
     }
+
+    @Override
+    public Collection<Link> requiredLinks() {
+        return path.links();
+    }
+
 }

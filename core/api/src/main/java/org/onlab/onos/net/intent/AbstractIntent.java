@@ -24,7 +24,7 @@ public abstract class AbstractIntent implements Intent {
     }
 
     @Override
-    public IntentId getId() {
+    public IntentId id() {
         return id;
     }
 

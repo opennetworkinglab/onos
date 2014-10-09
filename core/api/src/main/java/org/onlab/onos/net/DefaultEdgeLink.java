@@ -3,6 +3,7 @@ package org.onlab.onos.net;
 import org.onlab.onos.net.provider.ProviderId;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default edge link model implementation.
@@ -18,9 +19,9 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
      * @param providerId   provider identity
      * @param hostPoint    host-side connection point
      * @param hostLocation location where host attaches to the network
-     * @param isIngress    true to indicated host-to-network direction; false
+     * @param isIngress    true to indicate host-to-network direction; false
      *                     for network-to-host direction
-     * @param annotations optional key/value annotations
+     * @param annotations  optional key/value annotations
      */
     public DefaultEdgeLink(ProviderId providerId, ConnectPoint hostPoint,
                            HostLocation hostLocation, boolean isIngress,
@@ -42,4 +43,24 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
     public HostLocation hostLocation() {
         return hostLocation;
     }
+
+    /**
+     * Creates a phantom edge link, to an unspecified end-station. This link
+     * does not represent any actually discovered link stored in the system.
+     *
+     * @param edgePort  network edge port
+     * @param isIngress true to indicate host-to-network direction; false
+     *                  for network-to-host direction
+     * @return new phantom edge link
+     */
+    public static DefaultEdgeLink createEdgeLink(ConnectPoint edgePort,
+                                                 boolean isIngress) {
+        checkNotNull(edgePort, "Edge port cannot be null");
+        HostLocation location = (edgePort instanceof HostLocation) ?
+                (HostLocation) edgePort : new HostLocation(edgePort, 0);
+        return new DefaultEdgeLink(ProviderId.NONE,
+                                   new ConnectPoint(HostId.NONE, PortNumber.P0),
+                                   location, isIngress);
+    }
+
 }

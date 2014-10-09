@@ -8,17 +8,16 @@ import java.util.concurrent.TimeoutException;
  * This class provides a base implementation of Response, with methods to retrieve the
  * result and query to see if the result is ready. The result can only be retrieved when
  * it is ready and the get methods will block if the result is not ready yet.
- * @param <T> type of response.
  */
-public class AsyncResponse<T> implements Response<T> {
+public class AsyncResponse implements Response {
 
-    private T value;
+    private byte[] value;
     private boolean done = false;
     private final long start = System.nanoTime();
 
     @Override
-    public T get(long timeout, TimeUnit tu) throws TimeoutException {
-        timeout = tu.toNanos(timeout);
+    public byte[] get(long timeout, TimeUnit timeUnit) throws TimeoutException {
+        timeout = timeUnit.toNanos(timeout);
         boolean interrupted = false;
         try {
             synchronized (this) {
@@ -43,7 +42,7 @@ public class AsyncResponse<T> implements Response<T> {
     }
 
     @Override
-    public T get() throws InterruptedException {
+    public byte[] get() throws InterruptedException {
         throw new UnsupportedOperationException();
     }
 
@@ -57,11 +56,10 @@ public class AsyncResponse<T> implements Response<T> {
      * available.
      * @param data response data.
      */
-    @SuppressWarnings("unchecked")
-    public synchronized void setResponse(Object data) {
+    public synchronized void setResponse(byte[] data) {
         if (!done) {
             done = true;
-            value = (T) data;
+            value = data;
             this.notifyAll();
         }
     }

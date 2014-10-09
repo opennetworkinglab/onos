@@ -11,7 +11,7 @@ public class MetricsFeature {
      *
      * @param newName name of the Feature
      */
-    MetricsFeature(final String newName) {
+    public MetricsFeature(final String newName) {
         name = newName;
     }
 

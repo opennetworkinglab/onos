@@ -2,6 +2,9 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
+            <action class="org.onlab.onos.cli.SummaryCommand"/>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.NodesListCommand"/>
         </command>
         <command>
@@ -56,6 +59,30 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+
+        <command>
+            <action class="org.onlab.onos.cli.net.IntentsListCommand"/>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.IntentRemoveCommand"/>
+            <completers>
+                <ref component-id="intentIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.AddHostToHostIntentCommand"/>
+            <completers>
+                <ref component-id="hostIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.AddPointToPointIntentCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+        </command>
+
         <command>
             <action class="org.onlab.onos.cli.net.ClustersListCommand"/>
         </command>
@@ -94,6 +121,8 @@
     <bean id="clusterIdCompleter" class="org.onlab.onos.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onlab.onos.cli.net.RoleCompleter"/>
     <bean id="hostIdCompleter" class="org.onlab.onos.cli.net.HostIdCompleter"/>
+    <bean id="intentIdCompleter" class="org.onlab.onos.cli.net.IntentIdCompleter"/>
     <bean id="flowRuleStatusCompleter" class="org.onlab.onos.cli.net.FlowRuleStatusCompleter"/>
+    <bean id="connectPointCompleter" class="org.onlab.onos.cli.net.ConnectPointCompleter"/>
 
 </blueprint>

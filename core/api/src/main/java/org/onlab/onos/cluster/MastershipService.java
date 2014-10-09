@@ -17,6 +17,7 @@ public interface MastershipService {
      * Returns the role of the local node for the specified device, without
      * triggering master selection.
      *
+     * @param deviceId the the identifier of the device
      * @return role of the current node
      */
     MastershipRole getLocalRole(DeviceId deviceId);

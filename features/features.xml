@@ -9,6 +9,12 @@
         <bundle>mvn:org.apache.commons/commons-lang3/3.3.2</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
+        <bundle>mvn:io.netty/netty-common/4.0.23.Final</bundle>
+        <bundle>mvn:io.netty/netty-buffer/4.0.23.Final</bundle>
+        <bundle>mvn:io.netty/netty-transport/4.0.23.Final</bundle>
+        <bundle>mvn:io.netty/netty-handler/4.0.23.Final</bundle>
+        <bundle>mvn:io.netty/netty-codec/4.0.23.Final</bundle>
+        <bundle>mvn:commons-pool/commons-pool/1.6</bundle>
 
         <bundle>mvn:com.hazelcast/hazelcast/3.3</bundle>
         <bundle>mvn:io.dropwizard.metrics/metrics-core/3.1.0</bundle>
@@ -53,6 +59,11 @@
         <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-core-net/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-core-dist/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-core-serializers/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onlab-netty/1.0.0-SNAPSHOT</bundle>
+
+        <bundle>mvn:org.onlab.onos/onos-core-hz-common/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-core-hz-cluster/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-core-hazelcast" version="1.0.0"
@@ -120,18 +131,29 @@
         <bundle>mvn:org.onlab.onos/onos-app-fwd/1.0.0-SNAPSHOT</bundle>
     </feature>
 
+    <feature name="onos-app-ifwd" version="1.0.0"
+             description="ONOS sample forwarding application using intents">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-ifwd/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
     <feature name="onos-app-mobility" version="1.0.0"
-             description="ONOS sample forwarding application">
+             description="ONOS sample mobility application">
         <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-app-mobility/1.0.0-SNAPSHOT</bundle>
     </feature>
 
-
+    <feature name="onos-app-proxyarp" version="1.0.0"
+             description="ONOS sample proxyarp application">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-proxyarp/1.0.0-SNAPSHOT</bundle>
+    </feature>
 
     <feature name="onos-app-foo" version="1.0.0"
              description="ONOS sample playground application">
         <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-app-foo/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onlab-netty/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-app-config" version="1.0.0"

@@ -18,6 +18,9 @@ public class ImmutableSetSerializer extends FamilySerializer<ImmutableSet<?>> {
 
     private final CollectionSerializer serializer = new CollectionSerializer();
 
+    /**
+     * Creates {@link ImmutableSet} serializer instance.
+     */
     public ImmutableSetSerializer() {
         // non-null, immutable
         super(false, true);

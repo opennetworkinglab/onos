@@ -1,5 +1,6 @@
 package org.onlab.onos.net.proxyarp;
 
+import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 
@@ -32,5 +33,13 @@ public interface ProxyArpService {
      * @param eth an ethernet frame containing an ARP request.
      */
     void forward(Ethernet eth);
+
+    /**
+     * Handles a arp packet.
+     * Replies to arp requests and forwards request to the  right place.
+     * @param context the packet context to handle
+     * @return true if handled, false otherwise.
+     */
+    boolean handleArp(PacketContext context);
 
 }

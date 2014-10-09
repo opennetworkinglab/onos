@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow;
 
+import java.util.concurrent.Future;
+
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 
@@ -13,6 +15,13 @@ import org.onlab.onos.net.DeviceId;
 public interface FlowRuleService {
 
     /**
+     * Returns the number of flow rules in the system.
+     *
+     * @return flow rule count
+     */
+    int getFlowRuleCount();
+
+    /**
      * Returns the collection of flow entries applied on the specified device.
      * This will include flow rules which may not yet have been applied to
      * the device.
@@ -20,7 +29,7 @@ public interface FlowRuleService {
      * @param deviceId device identifier
      * @return collection of flow rules
      */
-    Iterable<FlowRule> getFlowEntries(DeviceId deviceId);
+    Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
     // TODO: add createFlowRule factory method and execute operations method
 
@@ -60,6 +69,13 @@ public interface FlowRuleService {
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
     /**
+     * Applies a batch operation of FlowRules.
+     *
+     * @return future indicating the state of the batch operation
+     */
+    Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch);
+
+    /**
      * Adds the specified flow rule listener.
      *
      * @param listener flow rule listener
@@ -72,7 +88,4 @@ public interface FlowRuleService {
      * @param listener flow rule listener
      */
     void removeListener(FlowRuleListener listener);
-
-
-
 }

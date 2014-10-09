@@ -1,5 +1,9 @@
 package org.onlab.netty;
 
+import java.util.Objects;
+
+import com.google.common.base.MoreObjects;
+
 /**
  * Representation of a TCP/UDP communication end point.
  */
@@ -7,6 +11,15 @@ public class Endpoint {
 
     private final int port;
     private final String host;
+
+    /**
+     * Used for serialization.
+     */
+    @SuppressWarnings("unused")
+    private Endpoint() {
+        port = 0;
+        host = null;
+    }
 
     public Endpoint(String host, int port) {
         this.host = host;
@@ -23,16 +36,15 @@ public class Endpoint {
 
     @Override
     public String toString() {
-        return "Endpoint [port=" + port + ", host=" + host + "]";
+        return MoreObjects.toStringHelper(getClass())
+                .add("port", port)
+                .add("host", host)
+                .toString();
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((host == null) ? 0 : host.hashCode());
-        result = prime * result + port;
-        return result;
+        return Objects.hash(host, port);
     }
 
     @Override
@@ -46,17 +58,8 @@ public class Endpoint {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        Endpoint other = (Endpoint) obj;
-        if (host == null) {
-            if (other.host != null) {
-                return false;
-            }
-        } else if (!host.equals(other.host)) {
-            return false;
-        }
-        if (port != other.port) {
-            return false;
-        }
-        return true;
+        Endpoint that = (Endpoint) obj;
+        return Objects.equals(this.port, that.port) &&
+               Objects.equals(this.host, that.host);
     }
 }

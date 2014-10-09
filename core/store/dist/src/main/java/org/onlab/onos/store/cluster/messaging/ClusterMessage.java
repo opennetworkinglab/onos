@@ -2,6 +2,7 @@ package org.onlab.onos.store.cluster.messaging;
 
 import org.onlab.onos.cluster.NodeId;
 
+// TODO: Should payload type be ByteBuffer?
 /**
  * Base message for cluster-wide communications.
  */
@@ -9,14 +10,14 @@ public class ClusterMessage {
 
     private final NodeId sender;
     private final MessageSubject subject;
-    private final Object payload;
+    private final byte[] payload;
 
     /**
      * Creates a cluster message.
      *
      * @param subject message subject
      */
-    public ClusterMessage(NodeId sender, MessageSubject subject, Object payload) {
+    public ClusterMessage(NodeId sender, MessageSubject subject, byte[] payload) {
         this.sender = sender;
         this.subject = subject;
         this.payload = payload;
@@ -45,7 +46,7 @@ public class ClusterMessage {
      *
      * @return message payload.
      */
-    public Object payload() {
+    public byte[] payload() {
         return payload;
     }
 }

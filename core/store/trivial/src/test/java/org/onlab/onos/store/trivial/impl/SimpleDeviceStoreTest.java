@@ -103,17 +103,19 @@ public class SimpleDeviceStoreTest {
         simpleDeviceStore.deactivate();
     }
 
-    private void putDevice(DeviceId deviceId, String swVersion) {
+    private void putDevice(DeviceId deviceId, String swVersion,
+                           SparseAnnotations... annotations) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                        HW, swVersion, SN);
+                        HW, swVersion, SN, annotations);
         deviceStore.createOrUpdateDevice(PID, deviceId, description);
     }
 
-    private void putDeviceAncillary(DeviceId deviceId, String swVersion) {
+    private void putDeviceAncillary(DeviceId deviceId, String swVersion,
+                                    SparseAnnotations... annotations) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                        HW, swVersion, SN);
+                        HW, swVersion, SN, annotations);
         deviceStore.createOrUpdateDevice(PIDA, deviceId, description);
     }
 
@@ -126,6 +128,7 @@ public class SimpleDeviceStoreTest {
         assertEquals(SN, device.serialNumber());
     }
 
+    // TODO slice this out somewhere
     /**
      * Verifies that Annotations created by merging {@code annotations} is
      * equal to actual Annotations.
@@ -133,7 +136,7 @@ public class SimpleDeviceStoreTest {
      * @param actual Annotations to check
      * @param annotations
      */
-    private static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+    public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
         DefaultAnnotations expected = DefaultAnnotations.builder().build();
         for (SparseAnnotations a : annotations) {
             expected = DefaultAnnotations.merge(expected, a);
@@ -347,6 +350,7 @@ public class SimpleDeviceStoreTest {
         assertFalse("Port is disabled", event.port().isEnabled());
 
     }
+
     @Test
     public final void testUpdatePortStatusAncillary() {
         putDeviceAncillary(DID1, SW1);
@@ -435,16 +439,37 @@ public class SimpleDeviceStoreTest {
 
     @Test
     public final void testRemoveDevice() {
-        putDevice(DID1, SW1);
+        putDevice(DID1, SW1, A1);
+        List<PortDescription> pds = Arrays.<PortDescription>asList(
+                new DefaultPortDescription(P1, true, A2)
+                );
+        deviceStore.updatePorts(PID, DID1, pds);
         putDevice(DID2, SW1);
 
         assertEquals(2, deviceStore.getDeviceCount());
+        assertEquals(1, deviceStore.getPorts(DID1).size());
+        assertAnnotationsEquals(deviceStore.getDevice(DID1).annotations(), A1);
+        assertAnnotationsEquals(deviceStore.getPort(DID1, P1).annotations(), A2);
 
         DeviceEvent event = deviceStore.removeDevice(DID1);
         assertEquals(DEVICE_REMOVED, event.type());
         assertDevice(DID1, SW1, event.subject());
 
         assertEquals(1, deviceStore.getDeviceCount());
+        assertEquals(0, deviceStore.getPorts(DID1).size());
+
+        // putBack Device, Port w/o annotation
+        putDevice(DID1, SW1);
+        List<PortDescription> pds2 = Arrays.<PortDescription>asList(
+                new DefaultPortDescription(P1, true)
+                );
+        deviceStore.updatePorts(PID, DID1, pds2);
+
+        // annotations should not survive
+        assertEquals(2, deviceStore.getDeviceCount());
+        assertEquals(1, deviceStore.getPorts(DID1).size());
+        assertAnnotationsEquals(deviceStore.getDevice(DID1).annotations());
+        assertAnnotationsEquals(deviceStore.getPort(DID1, P1).annotations());
     }
 
     // If Delegates should be called only on remote events,
