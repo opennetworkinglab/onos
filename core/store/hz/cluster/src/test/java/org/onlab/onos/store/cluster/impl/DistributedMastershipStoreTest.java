@@ -40,7 +40,7 @@ import com.hazelcast.core.Hazelcast;
 /**
  * Test of the Hazelcast-based distributed MastershipStore implementation.
  */
-public class DistributedDeviceMastershipStoreTest {
+public class DistributedMastershipStoreTest {
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:01");
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
@@ -54,8 +54,8 @@ public class DistributedDeviceMastershipStoreTest {
     private static final ControllerNode CN1 = new DefaultControllerNode(N1, IP);
     private static final ControllerNode CN2 = new DefaultControllerNode(N2, IP);
 
-    private DistributedDeviceMastershipStore dms;
-    private TestDistributedDeviceMastershipStore testStore;
+    private DistributedMastershipStore dms;
+    private TestDistributedMastershipStore testStore;
     private KryoSerializer serializationMgr;
     private StoreManager storeMgr;
 
@@ -77,11 +77,11 @@ public class DistributedDeviceMastershipStoreTest {
 
         serializationMgr = new KryoSerializer();
 
-        dms = new TestDistributedDeviceMastershipStore(storeMgr, serializationMgr);
+        dms = new TestDistributedMastershipStore(storeMgr, serializationMgr);
         dms.clusterService = new TestClusterService();
         dms.activate();
 
-        testStore = (TestDistributedDeviceMastershipStore) dms;
+        testStore = (TestDistributedMastershipStore) dms;
     }
 
     @After
@@ -227,9 +227,9 @@ public class DistributedDeviceMastershipStoreTest {
         assertTrue("Add event fired", addLatch.await(1, TimeUnit.SECONDS));
     }
 
-    private class TestDistributedDeviceMastershipStore extends
-            DistributedDeviceMastershipStore {
-        public TestDistributedDeviceMastershipStore(StoreService storeService,
+    private class TestDistributedMastershipStore extends
+            DistributedMastershipStore {
+        public TestDistributedMastershipStore(StoreService storeService,
                 KryoSerializer kryoSerialization) {
             this.storeService = storeService;
             this.serializer = kryoSerialization;
