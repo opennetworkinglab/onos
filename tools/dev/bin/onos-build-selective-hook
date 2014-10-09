@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
-# Echoes project-level directory if a Java file within is newer than its
-# class file counterpart
+# Echoes project-level directory if a Java file within is newer than the
+# target directory.
 #------------------------------------------------------------------------------
 
 javaFile=${1#*\/src\/*\/java/}
@@ -10,9 +10,7 @@ basename=${1/*\//}
 
 src=${1/$javaFile/}
 project=${src/src*/}
-classFile=${javaFile/.java/.class}
+target=$project/target
 
-[ ${project}target/classes/$classFile -nt ${src}$javaFile -o \
-    ${project}target/test-classes/$classFile -nt ${src}$javaFile ] \
-    || echo ${src/src*/}
+[ $target -nt ${src}$javaFile ] || echo ${src/src*/}
 
