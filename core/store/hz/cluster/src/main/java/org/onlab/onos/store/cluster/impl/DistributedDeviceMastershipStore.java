@@ -32,7 +32,7 @@ import com.hazelcast.core.MultiMap;
  */
 @Component(immediate = true)
 @Service
-public class DistributedMastershipStore
+public class DistributedDeviceMastershipStore
 extends AbstractHazelcastStore<DeviceMastershipEvent, DeviceMastershipStoreDelegate>
 implements DeviceMastershipStore {
 
