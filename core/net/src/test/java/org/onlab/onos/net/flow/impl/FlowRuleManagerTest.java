@@ -28,6 +28,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.FlowEntry;
@@ -408,7 +409,7 @@ public class FlowRuleManagerTest {
         }
 
         @Override
-        public Future<Void> executeBatch(
+        public Future<CompletedBatchOperation> executeBatch(
                 BatchOperation<FlowRuleBatchEntry> batch) {
             // TODO Auto-generated method stub
             return null;

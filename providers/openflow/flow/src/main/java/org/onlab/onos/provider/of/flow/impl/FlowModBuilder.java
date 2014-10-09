@@ -27,6 +27,8 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanPcp
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.OFFlowAdd;
+import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -68,12 +70,13 @@ public class FlowModBuilder {
         this.cookie = flowRule.id();
     }
 
-    public OFFlowMod buildFlowAdd() {
+    public OFFlowAdd buildFlowAdd() {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
-        OFFlowMod fm = factory.buildFlowAdd()
+        OFFlowAdd fm = factory.buildFlowAdd()
+                .setXid(cookie.value())
                 .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
@@ -92,6 +95,7 @@ public class FlowModBuilder {
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
         OFFlowMod fm = factory.buildFlowModify()
+                .setXid(cookie.value())
                 .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
@@ -104,11 +108,12 @@ public class FlowModBuilder {
 
     }
 
-    public OFFlowMod buildFlowDel() {
+    public OFFlowDelete buildFlowDel() {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
 
-        OFFlowMod fm = factory.buildFlowDelete()
+        OFFlowDelete fm = factory.buildFlowDelete()
+                .setXid(cookie.value())
                 .setCookie(U64.of(cookie.value()))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
