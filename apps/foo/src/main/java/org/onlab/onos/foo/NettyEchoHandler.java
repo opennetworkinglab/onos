@@ -4,8 +4,6 @@ import java.io.IOException;
 
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -13,11 +11,8 @@ import org.slf4j.LoggerFactory;
  */
 public class NettyEchoHandler implements MessageHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
     @Override
     public void handle(Message message) throws IOException {
-        //log.info("Received message. Echoing it back to the sender.");
         message.respond(message.payload());
     }
 }
