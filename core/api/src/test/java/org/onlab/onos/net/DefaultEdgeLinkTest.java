@@ -18,8 +18,8 @@ public class DefaultEdgeLinkTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
     private static final DeviceId DID1 = deviceId("of:foo");
-    private static final HostId HID1 = hostId("nic:foobar");
-    private static final HostId HID2 = hostId("nic:barfoo");
+    private static final HostId HID1 = hostId("00:00:00:00:00:01/-1");
+    private static final HostId HID2 = hostId("00:00:00:00:00:01/-1");
     private static final PortNumber P0 = portNumber(0);
     private static final PortNumber P1 = portNumber(1);
 
@@ -35,12 +35,8 @@ public class DefaultEdgeLinkTest {
         EdgeLink l4 = new DefaultEdgeLink(PID, cp(HID2, P0),
                                           new HostLocation(DID1, P1, 123L), false);
 
-        EdgeLink l5 = new DefaultEdgeLink(PID, cp(HID1, P0),
-                                          new HostLocation(DID1, P1, 123L), false);
-
         new EqualsTester().addEqualityGroup(l1, l2)
                 .addEqualityGroup(l3, l4)
-                .addEqualityGroup(l5)
                 .testEquals();
     }
 

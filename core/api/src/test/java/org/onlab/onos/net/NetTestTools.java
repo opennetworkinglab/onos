@@ -31,7 +31,7 @@ public final class NetTestTools {
 
     // Short-hand for producing a host id from a string
     public static HostId hid(String id) {
-        return hostId("nic:" + id);
+        return hostId(id);
     }
 
     // Crates a new device with the specified id

@@ -65,47 +65,48 @@ public class PathManagerTest {
     @Test
     public void infraToEdge() {
         DeviceId src = did("src");
-        HostId dst = hid("dst");
+        HostId dst = hid("12:34:56:78:90:ab/1");
         fakeTopoMgr.paths.add(createPath("src", "middle", "edge"));
-        fakeHostMgr.hosts.put(dst, host("dst", "edge"));
+        fakeHostMgr.hosts.put(dst, host("12:34:56:78:90:ab/1", "edge"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 3, src, dst);
     }
 
     @Test
     public void edgeToInfra() {
-        HostId src = hid("src");
+        HostId src = hid("12:34:56:78:90:ab/1");
         DeviceId dst = did("dst");
         fakeTopoMgr.paths.add(createPath("edge", "middle", "dst"));
-        fakeHostMgr.hosts.put(src, host("src", "edge"));
+        fakeHostMgr.hosts.put(src, host("12:34:56:78:90:ab/1", "edge"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 3, src, dst);
     }
 
     @Test
     public void edgeToEdge() {
-        HostId src = hid("src");
-        HostId dst = hid("dst");
+        HostId src = hid("12:34:56:78:90:ab/1");
+        HostId dst = hid("12:34:56:78:90:ef/1");
         fakeTopoMgr.paths.add(createPath("srcEdge", "middle", "dstEdge"));
-        fakeHostMgr.hosts.put(src, host("src", "srcEdge"));
-        fakeHostMgr.hosts.put(dst, host("dst", "dstEdge"));
+        fakeHostMgr.hosts.put(src, host("12:34:56:78:90:ab/1", "srcEdge"));
+        fakeHostMgr.hosts.put(dst, host("12:34:56:78:90:ef/1", "dstEdge"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 4, src, dst);
     }
 
     @Test
     public void edgeToEdgeDirect() {
-        HostId src = hid("src");
-        HostId dst = hid("dst");
-        fakeHostMgr.hosts.put(src, host("src", "edge"));
-        fakeHostMgr.hosts.put(dst, host("dst", "edge"));
+        HostId src = hid("12:34:56:78:90:ab/1");
+        HostId dst = hid("12:34:56:78:90:ef/1");
+        fakeHostMgr.hosts.put(src, host("12:34:56:78:90:ab/1", "edge"));
+        fakeHostMgr.hosts.put(dst, host("12:34:56:78:90:ef/1", "edge"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 2, src, dst);
     }
 
     @Test
     public void noEdge() {
-        Set<Path> paths = service.getPaths(hid("src"), hid("dst"));
+        Set<Path> paths = service.getPaths(hid("12:34:56:78:90:ab/1"),
+                                           hid("12:34:56:78:90:ef/1"));
         assertTrue("there should be no paths", paths.isEmpty());
     }
 
