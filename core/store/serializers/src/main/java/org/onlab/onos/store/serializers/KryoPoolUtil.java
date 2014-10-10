@@ -30,8 +30,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
 
-import de.javakaffee.kryoserializers.URISerializer;
-
 public final class KryoPoolUtil {
 
     /**
