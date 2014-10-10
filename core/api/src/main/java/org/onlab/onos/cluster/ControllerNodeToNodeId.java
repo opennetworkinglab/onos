@@ -1,7 +1,4 @@
-package org.onlab.onos.store.common.impl;
-
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.NodeId;
+package org.onlab.onos.cluster;
 
 import com.google.common.base.Function;
 
@@ -18,6 +15,11 @@ public final class ControllerNodeToNodeId
         return input.id();
     }
 
+    /**
+     * Returns a Function to convert ControllerNode to NodeId.
+     *
+     * @return ControllerNodeToNodeId instance.
+     */
     public static ControllerNodeToNodeId toNodeId() {
         return INSTANCE;
     }
