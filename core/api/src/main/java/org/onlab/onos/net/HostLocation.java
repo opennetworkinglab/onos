@@ -1,10 +1,17 @@
 package org.onlab.onos.net;
 
+import static org.onlab.onos.net.PortNumber.P0;
+
 /**
  * Representation of a network edge location where an end-station host is
  * connected.
  */
 public class HostLocation extends ConnectPoint {
+
+    /**
+     * Represents a no location or an unknown location.
+     */
+    public static final HostLocation NONE = new HostLocation(DeviceId.NONE, P0, 0L);
 
     // Note that time is explicitly excluded from the notion of equality.
     private final long time;

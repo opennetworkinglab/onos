@@ -1,13 +1,12 @@
-package org.onlab.onos.net.device;
+package org.onlab.onos.cluster;
 
-import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 
 /**
  * Service for administering the inventory of device masterships.
  */
-public interface DeviceMastershipAdminService {
+public interface MastershipAdminService {
 
     /**
      * Applies the current mastership role for the specified device.

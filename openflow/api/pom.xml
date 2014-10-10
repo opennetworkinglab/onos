@@ -30,7 +30,7 @@
             <groupId>org.projectfloodlight</groupId>
             <artifactId>openflowj</artifactId>
             <!-- FIXME once experimenter gets merged to upstream -->
-            <version>0.3.8-optical_experimenter</version>
+            <version>0.3.8-optical_experimenter2</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>

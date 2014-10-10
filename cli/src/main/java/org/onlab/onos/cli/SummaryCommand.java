@@ -22,8 +22,10 @@ public class SummaryCommand extends AbstractShellCommand {
     protected void execute() {
         TopologyService topologyService = get(TopologyService.class);
         Topology topology = topologyService.currentTopology();
-        print("version=%s, nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, paths=%d, flows=%d, intents=%d",
-              get(CoreService.class).version().toString(),
+        print("node=%s, version=%s",
+              get(ClusterService.class).getLocalNode().ip(),
+              get(CoreService.class).version().toString());
+        print("nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, paths=%d, flows=%d, intents=%d",
               get(ClusterService.class).getNodes().size(),
               get(DeviceService.class).getDeviceCount(),
               get(LinkService.class).getLinkCount(),

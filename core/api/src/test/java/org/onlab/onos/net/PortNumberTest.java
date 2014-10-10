@@ -10,9 +10,8 @@ import com.google.common.testing.EqualsTester;
 /**
  * Test of the port number.
  */
-public class PortNumberTest extends ElementIdTest {
+public class PortNumberTest {
 
-    @Override
     @Test
     public void basics() {
         new EqualsTester()

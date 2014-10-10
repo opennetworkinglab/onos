@@ -58,8 +58,6 @@ public class HostManagerTest {
 
     private static final IpPrefix IP1 = IpPrefix.valueOf("10.0.0.1");
     private static final IpPrefix IP2 = IpPrefix.valueOf("10.0.0.2");
-    private static final Set<IpPrefix> IPSET1 = Sets.newHashSet(IP1);
-    private static final Set<IpPrefix> IPSET2 = Sets.newHashSet(IP2);
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:001");
     private static final DeviceId DID2 = DeviceId.deviceId("of:002");
@@ -94,14 +92,14 @@ public class HostManagerTest {
         provider = new TestHostProvider();
         providerService = registry.register(provider);
         assertTrue("provider should be registered",
-                registry.getProviders().contains(provider.id()));
+                   registry.getProviders().contains(provider.id()));
     }
 
     @After
     public void tearDown() {
         registry.unregister(provider);
         assertFalse("provider should not be registered",
-                registry.getProviders().contains(provider.id()));
+                    registry.getProviders().contains(provider.id()));
 
         mgr.removeListener(listener);
         mgr.deactivate();
@@ -109,8 +107,8 @@ public class HostManagerTest {
     }
 
     private void detect(HostId hid, MacAddress mac, VlanId vlan,
-            HostLocation loc, Set<IpPrefix> ips) {
-        HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ips);
+                        HostLocation loc, IpPrefix ip) {
+        HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ip);
         providerService.hostDetected(hid, descr);
         assertNotNull("host should be found", mgr.getHost(hid));
     }
@@ -130,26 +128,26 @@ public class HostManagerTest {
         assertNull("host shouldn't be found", mgr.getHost(HID1));
 
         // host addition
-        detect(HID1, MAC1, VLAN1, LOC1, IPSET1);
+        detect(HID1, MAC1, VLAN1, LOC1, IP1);
         assertEquals("exactly one should be found", 1, mgr.getHostCount());
-        detect(HID2, MAC2, VLAN2, LOC2, IPSET1);
+        detect(HID2, MAC2, VLAN2, LOC2, IP1);
         assertEquals("two hosts should be found", 2, mgr.getHostCount());
         validateEvents(HOST_ADDED, HOST_ADDED);
 
         // host motion
-        detect(HID1, MAC1, VLAN1, LOC2, IPSET1);
+        detect(HID1, MAC1, VLAN1, LOC2, IP1);
         validateEvents(HOST_MOVED);
         assertEquals("only two hosts should be found", 2, mgr.getHostCount());
 
         // host update
-        detect(HID1, MAC1, VLAN1, LOC2, IPSET2);
+        detect(HID1, MAC1, VLAN1, LOC2, IP2);
         validateEvents(HOST_UPDATED);
         assertEquals("only two hosts should be found", 2, mgr.getHostCount());
     }
 
     @Test
     public void hostVanished() {
-        detect(HID1, MAC1, VLAN1, LOC1, IPSET1);
+        detect(HID1, MAC1, VLAN1, LOC1, IP1);
         providerService.hostVanished(HID1);
         validateEvents(HOST_ADDED, HOST_REMOVED);
 
@@ -157,7 +155,7 @@ public class HostManagerTest {
     }
 
     private void validateHosts(
-            String msg, Iterable<Host> hosts, HostId ... ids) {
+            String msg, Iterable<Host> hosts, HostId... ids) {
         Set<HostId> hids = Sets.newHashSet(ids);
         for (Host h : hosts) {
             assertTrue(msg, hids.remove(h.id()));
@@ -167,8 +165,8 @@ public class HostManagerTest {
 
     @Test
     public void getHosts() {
-        detect(HID1, MAC1, VLAN1, LOC1, IPSET1);
-        detect(HID2, MAC2, VLAN1, LOC2, IPSET2);
+        detect(HID1, MAC1, VLAN1, LOC1, IP1);
+        detect(HID2, MAC2, VLAN1, LOC2, IP2);
 
         validateHosts("host not properly stored", mgr.getHosts(), HID1, HID2);
         validateHosts("can't get hosts by VLAN", mgr.getHostsByVlan(VLAN1), HID1, HID2);
@@ -210,7 +208,7 @@ public class HostManagerTest {
     @Test
     public void bindAddressesToPort() {
         PortAddresses add1 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
@@ -241,7 +239,7 @@ public class HostManagerTest {
     @Test
     public void unbindAddressesFromPort() {
         PortAddresses add1 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
@@ -250,7 +248,7 @@ public class HostManagerTest {
         assertNotNull(storedAddresses.mac());
 
         PortAddresses rem1 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX1), null);
+                                               Sets.newHashSet(PREFIX1), null);
 
         mgr.unbindAddressesFromPort(rem1);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
@@ -267,7 +265,7 @@ public class HostManagerTest {
         assertNull(storedAddresses.mac());
 
         PortAddresses rem3 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX2), MAC1);
+                                               Sets.newHashSet(PREFIX2), MAC1);
 
         mgr.unbindAddressesFromPort(rem3);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
@@ -279,7 +277,7 @@ public class HostManagerTest {
     @Test
     public void clearAddresses() {
         PortAddresses add1 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
@@ -297,7 +295,7 @@ public class HostManagerTest {
     @Test
     public void getAddressBindingsForPort() {
         PortAddresses add1 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
@@ -314,7 +312,7 @@ public class HostManagerTest {
         assertTrue(storedAddresses.isEmpty());
 
         PortAddresses add1 = new PortAddresses(CP1,
-                Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
 
         mgr.bindAddressesToPort(add1);
 
@@ -323,7 +321,7 @@ public class HostManagerTest {
         assertTrue(storedAddresses.size() == 1);
 
         PortAddresses add2 = new PortAddresses(CP2,
-                Sets.newHashSet(PREFIX3), MAC2);
+                                               Sets.newHashSet(PREFIX3), MAC2);
 
         mgr.bindAddressesToPort(add2);
 

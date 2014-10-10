@@ -1,9 +1,6 @@
 package org.onlab.onos.store.serializers;
 
 import org.onlab.util.KryoPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 
 /**
@@ -11,9 +8,7 @@ import java.nio.ByteBuffer;
  */
 public class KryoSerializer implements StoreSerializer {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
     protected KryoPool serializerPool;
-
 
     public KryoSerializer() {
         setupKryoPool();

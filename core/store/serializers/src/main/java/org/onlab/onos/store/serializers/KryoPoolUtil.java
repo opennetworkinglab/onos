@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -23,13 +24,11 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
-
-import de.javakaffee.kryoserializers.URISerializer;
 
 public final class KryoPoolUtil {
 
@@ -63,7 +62,9 @@ public final class KryoPoolUtil {
                     Port.class,
                     DefaultPortDescription.class,
                     Element.class,
-                    Link.Type.class
+                    Link.Type.class,
+                    Timestamp.class
+
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())
@@ -74,7 +75,7 @@ public final class KryoPoolUtil {
             .register(LinkKey.class, new LinkKeySerializer())
             .register(ConnectPoint.class, new ConnectPointSerializer())
             .register(DefaultLink.class, new DefaultLinkSerializer())
-            .register(DeviceMastershipTerm.class, new MastershipTermSerializer())
+            .register(MastershipTerm.class, new MastershipTermSerializer())
             .register(MastershipRole.class, new MastershipRoleSerializer())
 
             .build();

@@ -981,13 +981,13 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 // switch was a duplicate-dpid, calling the method below would clear
                 // all state for the original switch (with the same dpid),
                 // which we obviously don't want.
-                log.info("{}:removal called");
+                log.info("{}:removal called", getSwitchInfoString());
                 sw.removeConnectedSwitch();
             } else {
                 // A duplicate was disconnected on this ChannelHandler,
                 // this is the same switch reconnecting, but the original state was
                 // not cleaned up - XXX check liveness of original ChannelHandler
-                log.info("{}:duplicate found");
+                log.info("{}:duplicate found", getSwitchInfoString());
                 duplicateDpidFound = Boolean.FALSE;
             }
         } else {

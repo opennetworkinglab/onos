@@ -3,7 +3,7 @@ package org.onlab.onos.store.device.impl;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.Timestamped;
+import org.onlab.onos.store.common.impl.Timestamped;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -35,6 +35,7 @@ public class InternalPortStatusEventSerializer extends Serializer<InternalPortSt
                                Class<InternalPortStatusEvent> type) {
         ProviderId providerId = (ProviderId) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
+        @SuppressWarnings("unchecked")
         Timestamped<PortDescription> portDescription = (Timestamped<PortDescription>) kryo.readClassAndObject(input);
 
         return new InternalPortStatusEvent(providerId, deviceId, portDescription);

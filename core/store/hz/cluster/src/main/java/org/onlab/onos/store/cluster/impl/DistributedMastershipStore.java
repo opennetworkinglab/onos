@@ -1,6 +1,6 @@
 package org.onlab.onos.store.cluster.impl;
 
-import static org.onlab.onos.net.device.DeviceMastershipEvent.Type.MASTER_CHANGED;
+import static org.onlab.onos.cluster.MastershipEvent.Type.MASTER_CHANGED;
 
 import java.util.Map;
 import java.util.Set;
@@ -12,13 +12,13 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.MastershipEvent;
+import org.onlab.onos.cluster.MastershipStore;
+import org.onlab.onos.cluster.MastershipStoreDelegate;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.device.DeviceMastershipEvent;
-import org.onlab.onos.net.device.DeviceMastershipStore;
-import org.onlab.onos.net.device.DeviceMastershipStoreDelegate;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.store.common.AbstractHazelcastStore;
 
 import com.google.common.collect.ImmutableSet;
@@ -32,9 +32,9 @@ import com.hazelcast.core.MultiMap;
  */
 @Component(immediate = true)
 @Service
-public class DistributedDeviceMastershipStore
-extends AbstractHazelcastStore<DeviceMastershipEvent, DeviceMastershipStoreDelegate>
-implements DeviceMastershipStore {
+public class DistributedMastershipStore
+extends AbstractHazelcastStore<MastershipEvent, MastershipStoreDelegate>
+implements MastershipStore {
 
     //arbitrary lock name
     private static final String LOCK = "lock";
@@ -100,7 +100,7 @@ implements DeviceMastershipStore {
     }
 
     @Override
-    public DeviceMastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
+    public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
         byte [] did = serialize(deviceId);
         byte [] nid = serialize(nodeId);
 
@@ -123,12 +123,12 @@ implements DeviceMastershipStore {
                     masters.put(did, nid);
                     evict(nid, did);
                     updateTerm(did);
-                    return new DeviceMastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+                    return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
                 case NONE:
                     masters.put(did, nid);
                     evict(nid, did);
                     updateTerm(did);
-                    return new DeviceMastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+                    return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
                 default:
                     log.warn("unknown Mastership Role {}", role);
                     return null;
@@ -191,21 +191,21 @@ implements DeviceMastershipStore {
     }
 
     @Override
-    public DeviceMastershipTerm getTermFor(DeviceId deviceId) {
+    public MastershipTerm getTermFor(DeviceId deviceId) {
         byte[] did = serialize(deviceId);
         if ((masters.get(did) == null) ||
                 (terms.get(did) == null)) {
             return null;
         }
-        return DeviceMastershipTerm.of(
+        return MastershipTerm.of(
                 (NodeId) deserialize(masters.get(did)), terms.get(did));
     }
 
     @Override
-    public DeviceMastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
+    public MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
         byte [] did = serialize(deviceId);
         byte [] nid = serialize(nodeId);
-        DeviceMastershipEvent event = null;
+        MastershipEvent event = null;
 
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
@@ -231,10 +231,10 @@ implements DeviceMastershipStore {
     }
 
     @Override
-    public DeviceMastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
+    public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
         byte [] did = serialize(deviceId);
         byte [] nid = serialize(nodeId);
-        DeviceMastershipEvent event = null;
+        MastershipEvent event = null;
 
         ILock lock = theInstance.getLock(LOCK);
         lock.lock();
@@ -260,7 +260,7 @@ implements DeviceMastershipStore {
     }
 
     //helper to fetch a new master candidate for a given device.
-    private DeviceMastershipEvent reelect(NodeId current, DeviceId deviceId) {
+    private MastershipEvent reelect(NodeId current, DeviceId deviceId) {
         byte [] did = serialize(deviceId);
         byte [] nid = serialize(current);
 
@@ -281,7 +281,7 @@ implements DeviceMastershipStore {
             evict(backup, did);
             Integer term = terms.get(did);
             terms.put(did, ++term);
-            return new DeviceMastershipEvent(
+            return new MastershipEvent(
                     MASTER_CHANGED, deviceId, (NodeId) deserialize(backup));
         }
     }
@@ -320,7 +320,7 @@ implements DeviceMastershipStore {
 
         @Override
         protected void onAdd(DeviceId deviceId, NodeId nodeId) {
-            notifyDelegate(new DeviceMastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
         }
 
         @Override

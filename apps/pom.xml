@@ -23,7 +23,8 @@
         <module>foo</module>
         <module>mobility</module>
         <module>proxyarp</module>
-	    <module>config</module>
+        <module>config</module>
+        <module>sdnip</module>
     </modules>
 
     <properties>

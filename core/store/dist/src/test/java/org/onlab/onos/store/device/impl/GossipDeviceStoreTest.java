@@ -25,6 +25,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -39,7 +40,6 @@ import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.DeviceStoreDelegate;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.ClockService;
@@ -113,8 +113,8 @@ public class GossipDeviceStoreTest {
         deviceClockManager.activate();
         clockService = deviceClockManager;
 
-        deviceClockManager.setMastershipTerm(DID1, DeviceMastershipTerm.of(MYSELF, 1));
-        deviceClockManager.setMastershipTerm(DID2, DeviceMastershipTerm.of(MYSELF, 2));
+        deviceClockManager.setMastershipTerm(DID1, MastershipTerm.of(MYSELF, 1));
+        deviceClockManager.setMastershipTerm(DID2, MastershipTerm.of(MYSELF, 2));
 
         ClusterCommunicationService clusterCommunicator = new TestClusterCommunicationService();
         ClusterService clusterService = new TestClusterService();

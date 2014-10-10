@@ -1,12 +1,5 @@
 package org.onlab.onos.provider.of.host.impl;
 
-import static com.google.common.collect.Sets.newHashSet;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -36,6 +29,10 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Provider which uses an OpenFlow controller to detect network
  * end-station hosts.
@@ -58,6 +55,8 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
 
     private final InternalHostProvider listener = new InternalHostProvider();
 
+    private boolean ipLearn = true;
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -69,7 +68,6 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
     public void activate() {
         providerService = providerRegistry.register(this);
         controller.addPacketListener(10, listener);
-
         log.info("Started");
     }
 
@@ -78,7 +76,6 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
         providerRegistry.unregister(this);
         controller.removePacketListener(listener);
         providerService = null;
-
         log.info("Stopped");
     }
 
@@ -95,33 +92,33 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
             ConnectPoint heardOn = new ConnectPoint(deviceId(Dpid.uri(pktCtx.dpid())),
-                    portNumber(pktCtx.inPort()));
+                                                    portNumber(pktCtx.inPort()));
 
-         // If this is not an edge port, bail out.
+            // If this is not an edge port, bail out.
             Topology topology = topologyService.currentTopology();
             if (topologyService.isInfrastructure(topology, heardOn)) {
                 return;
             }
 
             HostLocation hloc = new HostLocation(deviceId(Dpid.uri(pktCtx.dpid())),
-                    portNumber(pktCtx.inPort()),
-                    System.currentTimeMillis());
+                                                 portNumber(pktCtx.inPort()),
+                                                 System.currentTimeMillis());
+
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
+
             // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
-
-
                 ARP arp = (ARP) eth.getPayload();
-                Set<IpPrefix> ips = newHashSet(IpPrefix.valueOf(arp.getSenderProtocolAddress()));
+                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress());
                 HostDescription hdescr =
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ips);
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
-            } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                IPv4 ip = (IPv4) eth.getPayload();
-                Set<IpPrefix> ips = newHashSet(IpPrefix.valueOf(ip.getSourceAddress()));
+            } else if (ipLearn && eth.getEtherType() == Ethernet.TYPE_IPV4) {
+                IPv4 pip = (IPv4) eth.getPayload();
+                IpPrefix ip = IpPrefix.valueOf(pip.getSourceAddress());
                 HostDescription hdescr =
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ips);
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
             }

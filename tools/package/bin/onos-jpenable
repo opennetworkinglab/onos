@@ -1,0 +1,7 @@
+#!/bin/bash
+
+kpid=$(ps -ef | grep karaf.main.Main | grep -v grep | cut -c10-15 | tr -d ' ')
+
+[ -z "$kpid" ] && echo "No ONOS!" && exit 1
+
+/opt/jprofiler8/bin/jpenable --gui --port=8849 --pid=$kpid

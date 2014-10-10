@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceMastershipTerm;
 
 import com.google.common.collect.Sets;
 
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.onos.net.MastershipRole.*;
-import static org.onlab.onos.net.device.DeviceMastershipEvent.Type.*;
+import static org.onlab.onos.cluster.MastershipEvent.Type.*;
 
 /**
  * Test for the simple MastershipStore implementation.
@@ -98,12 +98,12 @@ public class SimpleMastershipStoreTest {
     @Test
     public void getTermFor() {
         put(DID1, N1, true, true);
-        assertEquals("wrong term", DeviceMastershipTerm.of(N1, 0), sms.getTermFor(DID1));
+        assertEquals("wrong term", MastershipTerm.of(N1, 0), sms.getTermFor(DID1));
 
         //switch to N2 and back - 2 term switches
         sms.setMaster(N2, DID1);
         sms.setMaster(N1, DID1);
-        assertEquals("wrong term", DeviceMastershipTerm.of(N1, 2), sms.getTermFor(DID1));
+        assertEquals("wrong term", MastershipTerm.of(N1, 2), sms.getTermFor(DID1));
     }
 
     @Test

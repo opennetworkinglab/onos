@@ -3,7 +3,9 @@ package org.onlab.onos.store.device.impl;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.Timestamped;
+import org.onlab.onos.store.common.impl.Timestamped;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Information published by GossipDeviceStore to notify peers of a port
@@ -34,6 +36,15 @@ public class InternalPortStatusEvent {
 
     public Timestamped<PortDescription> portDescription() {
         return portDescription;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("providerId", providerId)
+                .add("deviceId", deviceId)
+                .add("portDescription", portDescription)
+                .toString();
     }
 
     // for serializer
