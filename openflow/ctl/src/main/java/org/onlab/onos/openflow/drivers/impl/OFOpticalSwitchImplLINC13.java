@@ -46,7 +46,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     private final Logger log =
             LoggerFactory.getLogger(OFOpticalSwitchImplLINC13.class);
 
-    OFOpticalSwitchImplLINC13(Dpid dpid,OFDescStatsReply desc) {
+    OFOpticalSwitchImplLINC13(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
         //setAttribute("optical", "true");
         driverHandshakeComplete = new AtomicBoolean(false);

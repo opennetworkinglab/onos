@@ -59,8 +59,8 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
 
         String sw = desc.getSwDesc();
         if (sw.startsWith("LINC-OE")) {
-            log.debug("Optical Emulator LINC-OE with DPID:{} found..",dpid);
-            return new OFOpticalSwitchImplLINC13(dpid,desc);
+            log.debug("Optical Emulator LINC-OE with DPID:{} found..", dpid);
+            return new OFOpticalSwitchImplLINC13(dpid, desc);
         }
 
         log.warn("DriverManager could not identify switch desc: {}. "
