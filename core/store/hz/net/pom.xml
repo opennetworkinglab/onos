@@ -23,11 +23,6 @@
         </dependency>
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-core-serializers</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
             <artifactId>onos-core-hz-common</artifactId>
             <version>${project.version}</version>
         </dependency>
