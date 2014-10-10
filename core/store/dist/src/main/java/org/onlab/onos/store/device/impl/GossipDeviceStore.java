@@ -960,7 +960,7 @@ public class GossipDeviceStore
                         final PortFragmentId portFragId = new PortFragmentId(deviceId, provId, num);
 
                         Timestamp advPortTimestamp = portAds.get(portFragId);
-                        if ( advPortTimestamp == null || lPort.isNewer(advPortTimestamp)) {
+                        if (advPortTimestamp == null || lPort.isNewer(advPortTimestamp)) {
                             // remote does not have it or outdated, suggest
                             notifyPeer(sender, new InternalPortStatusEvent(provId, deviceId, lPort));
                         } else if (!lPort.timestamp().equals(advPortTimestamp)) {
