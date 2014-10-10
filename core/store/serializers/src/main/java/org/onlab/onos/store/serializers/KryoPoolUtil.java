@@ -24,6 +24,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
+import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.IpAddress;
@@ -58,6 +59,7 @@ public final class KryoPoolUtil {
                     DefaultControllerNode.class,
                     DefaultDevice.class,
                     DefaultDeviceDescription.class,
+                    DefaultLinkDescription.class,
                     MastershipRole.class,
                     Port.class,
                     DefaultPortDescription.class,
