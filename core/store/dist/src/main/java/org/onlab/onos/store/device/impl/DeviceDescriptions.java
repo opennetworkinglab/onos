@@ -58,7 +58,7 @@ class DeviceDescriptions {
      *
      * @param newDesc new DeviceDescription
      */
-    public synchronized void putDeviceDesc(Timestamped<DeviceDescription> newDesc) {
+    public void putDeviceDesc(Timestamped<DeviceDescription> newDesc) {
         Timestamped<DeviceDescription> oldOne = deviceDesc;
         Timestamped<DeviceDescription> newOne = newDesc;
         if (oldOne != null) {
@@ -76,7 +76,7 @@ class DeviceDescriptions {
      *
      * @param newDesc new PortDescription
      */
-    public synchronized void putPortDesc(Timestamped<PortDescription> newDesc) {
+    public void putPortDesc(Timestamped<PortDescription> newDesc) {
         Timestamped<PortDescription> oldOne = portDescs.get(newDesc.value().portNumber());
         Timestamped<PortDescription> newOne = newDesc;
         if (oldOne != null) {
