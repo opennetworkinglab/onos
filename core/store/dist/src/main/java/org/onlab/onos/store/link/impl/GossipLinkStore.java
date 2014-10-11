@@ -115,6 +115,8 @@ public class GossipLinkStore
                     .register(DistributedStoreSerializers.COMMON)
                     .register(InternalLinkEvent.class)
                     .register(InternalLinkRemovedEvent.class)
+                    .register(LinkAntiEntropyAdvertisement.class)
+                    .register(LinkFragmentId.class)
                     .build()
                     .populate(1);
         }
