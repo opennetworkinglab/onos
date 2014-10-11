@@ -74,6 +74,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
         int count = Integer.parseInt(countString);
 
         service.addListener(this);
+        latch = new CountDownLatch(count);
+
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             TrafficSelector s = selector
@@ -87,9 +89,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
                                                      egress);
             service.submit(intent);
         }
-        latch = new CountDownLatch(count);
         try {
-            latch.await(3, TimeUnit.SECONDS);
+            latch.await(5, TimeUnit.SECONDS);
             printResults(count);
         } catch (InterruptedException e) {
             print(e.toString());
@@ -134,7 +135,11 @@ public class IntentPushTestCommand extends AbstractShellCommand
     public void event(IntentEvent event) {
         if (event.type() == Type.INSTALLED) {
             end = event.time();
-            latch.countDown();
+            if (latch != null) {
+                latch.countDown();
+            } else {
+                log.warn("install event latch is null");
+            }
         }
     }
 }
