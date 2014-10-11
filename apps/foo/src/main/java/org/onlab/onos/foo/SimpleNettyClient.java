@@ -1,5 +1,7 @@
 package org.onlab.onos.foo;
 
+import static java.lang.Thread.sleep;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -79,15 +81,6 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
             response.get(100000, TimeUnit.MILLISECONDS);
         }
 
-        log.info("measuring async sender");
-        Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
-
-        for (int i = 0; i < iterations; i++) {
-            Timer.Context context = sendAsyncTimer.time();
-            messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
-            context.stop();
-        }
-
         log.info("measuring round-trip send & receive");
         Timer sendAndReceiveTimer = metrics.createTimer(component, feature, "SendAndReceive");
         int timeouts = 0;
@@ -108,6 +101,17 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
             }
             // System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
         }
+
+        sleep(1000);
+        log.info("measuring async sender");
+        Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
+
+        for (int i = 0; i < iterations; i++) {
+        Timer.Context context = sendAsyncTimer.time();
+        messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
+        context.stop();
+        }
+        sleep(1000);
     }
 
     public static void stop() {
