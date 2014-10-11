@@ -28,6 +28,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DeviceAdminService;
+import org.onlab.onos.net.device.DeviceClockProviderService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
@@ -40,7 +41,6 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.store.ClockProviderService;
 import org.slf4j.Logger;
 
 /**
@@ -82,7 +82,7 @@ public class DeviceManager
     protected MastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockProviderService clockProviderService;
+    protected DeviceClockProviderService deviceClockProviderService;
 
     @Activate
     public void activate() {
@@ -217,7 +217,7 @@ public class DeviceManager
                 return;
             }
             // tell clock provider if this instance is the master
-            clockProviderService.setMastershipTerm(deviceId, term);
+            deviceClockProviderService.setMastershipTerm(deviceId, term);
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                     deviceId, deviceDescription);
@@ -333,7 +333,7 @@ public class DeviceManager
 
                 if (term.master().equals(myNodeId)) {
                     // only set the new term if I am the master
-                    clockProviderService.setMastershipTerm(did, term);
+                    deviceClockProviderService.setMastershipTerm(did, term);
                 }
 
                 // FIXME: we should check that the device is connected on our end.

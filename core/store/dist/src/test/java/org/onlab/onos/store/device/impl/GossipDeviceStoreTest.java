@@ -8,6 +8,7 @@ import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.onlab.onos.cluster.ControllerNode.State.*;
 import static org.onlab.onos.net.DefaultAnnotations.union;
 import static java.util.Arrays.asList;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,13 +42,13 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
+import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
@@ -112,7 +113,7 @@ public class GossipDeviceStoreTest {
     private DeviceStore deviceStore;
 
     private DeviceClockManager deviceClockManager;
-    private ClockService clockService;
+    private DeviceClockService deviceClockService;
     private ClusterCommunicationService clusterCommunicator;
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -127,7 +128,7 @@ public class GossipDeviceStoreTest {
     public void setUp() throws Exception {
         deviceClockManager = new DeviceClockManager();
         deviceClockManager.activate();
-        clockService = deviceClockManager;
+        deviceClockService = deviceClockManager;
 
         deviceClockManager.setMastershipTerm(DID1, MastershipTerm.of(NID1, 1));
         deviceClockManager.setMastershipTerm(DID2, MastershipTerm.of(NID1, 2));
@@ -139,7 +140,7 @@ public class GossipDeviceStoreTest {
         replay(clusterCommunicator);
         ClusterService clusterService = new TestClusterService();
 
-        testGossipDeviceStore = new TestGossipDeviceStore(clockService, clusterService, clusterCommunicator);
+        testGossipDeviceStore = new TestGossipDeviceStore(deviceClockService, clusterService, clusterCommunicator);
         gossipDeviceStore = testGossipDeviceStore;
         gossipDeviceStore.activate();
         deviceStore = gossipDeviceStore;
@@ -797,10 +798,10 @@ public class GossipDeviceStoreTest {
     private static final class TestGossipDeviceStore extends GossipDeviceStore {
 
         public TestGossipDeviceStore(
-                ClockService clockService,
+                DeviceClockService deviceClockService,
                 ClusterService clusterService,
                 ClusterCommunicationService clusterCommunicator) {
-            this.clockService = clockService;
+            this.deviceClockService = deviceClockService;
             this.clusterService = clusterService;
             this.clusterCommunicator = clusterCommunicator;
         }

@@ -25,6 +25,7 @@ import org.onlab.onos.net.Device.Type;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
@@ -32,7 +33,6 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
@@ -111,7 +111,7 @@ public class GossipDeviceStore
     private final Set<DeviceId> availableDevices = Sets.newConcurrentHashSet();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockService clockService;
+    protected DeviceClockService deviceClockService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -207,7 +207,7 @@ public class GossipDeviceStore
     public synchronized DeviceEvent createOrUpdateDevice(ProviderId providerId,
                                      DeviceId deviceId,
                                      DeviceDescription deviceDescription) {
-        final Timestamp newTimestamp = clockService.getTimestamp(deviceId);
+        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
         final Timestamped<DeviceDescription> deltaDesc = new Timestamped<>(deviceDescription, newTimestamp);
         final DeviceEvent event;
         final Timestamped<DeviceDescription> mergedDesc;
@@ -323,7 +323,7 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent markOffline(DeviceId deviceId) {
-        final Timestamp timestamp = clockService.getTimestamp(deviceId);
+        final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         final DeviceEvent event = markOfflineInternal(deviceId, timestamp);
         if (event != null) {
             log.info("Notifying peers of a device offline topology event for deviceId: {}",
@@ -397,7 +397,7 @@ public class GossipDeviceStore
                                        DeviceId deviceId,
                                        List<PortDescription> portDescriptions) {
 
-        final Timestamp newTimestamp = clockService.getTimestamp(deviceId);
+        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
 
         final Timestamped<List<PortDescription>> timestampedInput
                 = new Timestamped<>(portDescriptions, newTimestamp);
@@ -553,7 +553,7 @@ public class GossipDeviceStore
                                                      DeviceId deviceId,
                                                      PortDescription portDescription) {
 
-        final Timestamp newTimestamp = clockService.getTimestamp(deviceId);
+        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
         final Timestamped<PortDescription> deltaDesc
             = new Timestamped<>(portDescription, newTimestamp);
         final DeviceEvent event;
@@ -646,7 +646,7 @@ public class GossipDeviceStore
 
     @Override
     public synchronized DeviceEvent removeDevice(DeviceId deviceId) {
-        Timestamp timestamp = clockService.getTimestamp(deviceId);
+        Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         DeviceEvent event = removeDeviceInternal(deviceId, timestamp);
         if (event != null) {
             log.info("Notifying peers of a device removed topology event for deviceId: {}",

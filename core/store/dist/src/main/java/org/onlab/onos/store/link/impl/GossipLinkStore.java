@@ -29,6 +29,7 @@ import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.Provided;
+import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
@@ -36,7 +37,6 @@ import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
@@ -100,7 +100,7 @@ public class GossipLinkStore
     private final Map<LinkKey, Timestamp> removedLinks = Maps.newHashMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockService clockService;
+    protected DeviceClockService deviceClockService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -223,7 +223,7 @@ public class GossipLinkStore
                                         LinkDescription linkDescription) {
 
         DeviceId dstDeviceId = linkDescription.dst().deviceId();
-        Timestamp newTimestamp = clockService.getTimestamp(dstDeviceId);
+        Timestamp newTimestamp = deviceClockService.getTimestamp(dstDeviceId);
 
         final Timestamped<LinkDescription> deltaDesc = new Timestamped<>(linkDescription, newTimestamp);
 
@@ -344,7 +344,7 @@ public class GossipLinkStore
         final LinkKey key = new LinkKey(src, dst);
 
         DeviceId dstDeviceId = dst.deviceId();
-        Timestamp timestamp = clockService.getTimestamp(dstDeviceId);
+        Timestamp timestamp = deviceClockService.getTimestamp(dstDeviceId);
 
         LinkEvent event = removeLinkInternal(key, timestamp);
 
