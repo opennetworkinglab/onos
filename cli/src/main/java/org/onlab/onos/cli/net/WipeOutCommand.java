@@ -19,17 +19,16 @@ import org.onlab.onos.net.intent.IntentState;
          description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
 public class WipeOutCommand extends ClustersListCommand {
 
-    private static final String DISCLAIMER = "Delete everything please.";
+    private static final String PLEASE = "please";
 
-    @Argument(index = 0, name = "disclaimer", description = "Device ID",
+    @Argument(index = 0, name = "please", description = "Confirmation phrase",
               required = false, multiValued = false)
-    String disclaimer = null;
+    String please = null;
 
     @Override
     protected void execute() {
-        if (disclaimer == null || !disclaimer.equals(DISCLAIMER)) {
-            print("I'm afraid I can't do that!\nPlease acknowledge with phrase: '%s'",
-                  DISCLAIMER);
+        if (please == null || !please.equals(PLEASE)) {
+            print("I'm afraid I can't do that!\nSay: %s", PLEASE);
             return;
         }
 

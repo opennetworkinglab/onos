@@ -1,15 +1,11 @@
 package org.onlab.onos.net.host;
 
-import com.google.common.collect.ImmutableSet;
 import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -22,7 +18,7 @@ public class DefaultHostDescription extends AbstractDescription
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
-    private final Set<IpPrefix> ips;
+    private final IpPrefix ip;
 
     /**
      * Creates a host description using the supplied information.
@@ -35,7 +31,7 @@ public class DefaultHostDescription extends AbstractDescription
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location,
                                   SparseAnnotations... annotations) {
-        this(mac, vlan, location, new HashSet<IpPrefix>(), annotations);
+        this(mac, vlan, location, null, annotations);
     }
 
     /**
@@ -44,17 +40,17 @@ public class DefaultHostDescription extends AbstractDescription
      * @param mac         host MAC address
      * @param vlan        host VLAN identifier
      * @param location    host location
-     * @param ips         of host IP addresses
+     * @param ip          host IP address
      * @param annotations optional key/value annotations map
      */
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
-                                  HostLocation location, Set<IpPrefix> ips,
+                                  HostLocation location, IpPrefix ip,
                                   SparseAnnotations... annotations) {
         super(annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.location = location;
-        this.ips = new HashSet<>(ips);
+        this.ip = ip;
     }
 
     @Override
@@ -73,8 +69,8 @@ public class DefaultHostDescription extends AbstractDescription
     }
 
     @Override
-    public Set<IpPrefix> ipAddresses() {
-        return ImmutableSet.copyOf(ips);
+    public IpPrefix ipAddress() {
+        return ip;
     }
 
     @Override
@@ -83,7 +79,7 @@ public class DefaultHostDescription extends AbstractDescription
                 .add("mac", mac)
                 .add("vlan", vlan)
                 .add("location", location)
-                .add("ipAddresses", ips)
+                .add("ipAddress", ip)
                 .toString();
     }
 

@@ -1,26 +1,20 @@
 package org.onlab.onos.store.host.impl;
 
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostStore;
@@ -33,10 +27,13 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.onlab.onos.net.host.HostEvent.Type.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of end-station hosts using trivial in-memory
@@ -46,13 +43,13 @@ import com.google.common.collect.Sets;
 @Component(immediate = true)
 @Service
 public class DistributedHostStore
-extends AbstractStore<HostEvent, HostStoreDelegate>
-implements HostStore {
+        extends AbstractStore<HostEvent, HostStoreDelegate>
+        implements HostStore {
 
     private final Logger log = getLogger(getClass());
 
     // Host inventory
-    private final Map<HostId, Host> hosts = new ConcurrentHashMap<>();
+    private final Map<HostId, StoredHost> hosts = new ConcurrentHashMap<>(2000000, 0.75f, 16);
 
     // Hosts tracked by their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
@@ -72,8 +69,8 @@ implements HostStore {
 
     @Override
     public HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-            HostDescription hostDescription) {
-        Host host = hosts.get(hostId);
+                                        HostDescription hostDescription) {
+        StoredHost host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
         }
@@ -82,12 +79,12 @@ implements HostStore {
 
     // creates a new host and sends HOST_ADDED
     private HostEvent createHost(ProviderId providerId, HostId hostId,
-            HostDescription descr) {
-        DefaultHost newhost = new DefaultHost(providerId, hostId,
-                descr.hwAddress(),
-                descr.vlan(),
-                descr.location(),
-                descr.ipAddresses());
+                                 HostDescription descr) {
+        StoredHost newhost = new StoredHost(providerId, hostId,
+                                            descr.hwAddress(),
+                                            descr.vlan(),
+                                            descr.location(),
+                                            ImmutableSet.of(descr.ipAddress()));
         synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
@@ -96,28 +93,24 @@ implements HostStore {
     }
 
     // checks for type of update to host, sends appropriate event
-    private HostEvent updateHost(ProviderId providerId, Host host,
-            HostDescription descr) {
-        DefaultHost updated;
+    private HostEvent updateHost(ProviderId providerId, StoredHost host,
+                                 HostDescription descr) {
         HostEvent event;
         if (!host.location().equals(descr.location())) {
-            updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    descr.location(),
-                    host.ipAddresses());
-            event = new HostEvent(HOST_MOVED, updated);
+            host.setLocation(descr.location());
+            return new HostEvent(HOST_MOVED, host);
+        }
 
-        } else if (!(host.ipAddresses().equals(descr.ipAddresses()))) {
-            updated = new DefaultHost(providerId, host.id(),
-                    host.mac(),
-                    host.vlan(),
-                    descr.location(),
-                    descr.ipAddresses());
-            event = new HostEvent(HOST_UPDATED, updated);
-        } else {
+        if (host.ipAddresses().contains(descr.ipAddress())) {
             return null;
         }
+
+        Set<IpPrefix> addresses = new HashSet<>(host.ipAddresses());
+        addresses.add(descr.ipAddress());
+        StoredHost updated = new StoredHost(providerId, host.id(),
+                                            host.mac(), host.vlan(),
+                                            descr.location(), addresses);
+        event = new HostEvent(HOST_UPDATED, updated);
         synchronized (this) {
             hosts.put(host.id(), updated);
             locations.remove(host.location(), host);
@@ -145,7 +138,7 @@ implements HostStore {
 
     @Override
     public Iterable<Host> getHosts() {
-        return Collections.unmodifiableSet(new HashSet<>(hosts.values()));
+        return ImmutableSet.<Host>copyOf(hosts.values());
     }
 
     @Override
@@ -275,4 +268,35 @@ implements HostStore {
         return addresses;
     }
 
+    // Auxiliary extension to allow location to mutate.
+    private class StoredHost extends DefaultHost {
+        private HostLocation location;
+
+        /**
+         * Creates an end-station host using the supplied information.
+         *
+         * @param providerId  provider identity
+         * @param id          host identifier
+         * @param mac         host MAC address
+         * @param vlan        host VLAN identifier
+         * @param location    host location
+         * @param ips         host IP addresses
+         * @param annotations optional key/value annotations
+         */
+        public StoredHost(ProviderId providerId, HostId id,
+                          MacAddress mac, VlanId vlan, HostLocation location,
+                          Set<IpPrefix> ips, Annotations... annotations) {
+            super(providerId, id, mac, vlan, location, ips, annotations);
+            this.location = location;
+        }
+
+        void setLocation(HostLocation location) {
+            this.location = location;
+        }
+
+        @Override
+        public HostLocation location() {
+            return location;
+        }
+    }
 }

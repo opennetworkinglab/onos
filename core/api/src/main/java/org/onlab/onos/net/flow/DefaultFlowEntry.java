@@ -17,6 +17,10 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
 
     private long lastSeen = -1;
 
+    private final int errType;
+
+    private final int errCode;
+
 
     public DefaultFlowEntry(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, FlowEntryState state,
@@ -27,6 +31,8 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
         this.life = life;
         this.packets = packets;
         this.bytes = bytes;
+        this.errCode = -1;
+        this.errType = -1;
         this.lastSeen = System.currentTimeMillis();
     }
 
@@ -37,6 +43,8 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
         this.life = life;
         this.packets = packets;
         this.bytes = bytes;
+        this.errCode = -1;
+        this.errType = -1;
         this.lastSeen = System.currentTimeMillis();
     }
 
@@ -46,7 +54,16 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
         this.life = 0;
         this.packets = 0;
         this.bytes = 0;
+        this.errCode = -1;
+        this.errType = -1;
         this.lastSeen = System.currentTimeMillis();
+    }
+
+    public DefaultFlowEntry(FlowRule rule, int errType, int errCode) {
+        super(rule);
+        this.state = FlowEntryState.FAILED;
+        this.errType = errType;
+        this.errCode = errCode;
     }
 
     @Override
@@ -100,12 +117,24 @@ public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
     }
 
     @Override
+    public int errType() {
+        return this.errType;
+    }
+
+    @Override
+    public int errCode() {
+        return this.errCode;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("rule", super.toString())
                 .add("state", state)
                 .toString();
     }
+
+
 
 
 }

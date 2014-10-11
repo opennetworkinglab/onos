@@ -140,6 +140,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchTcpSrc(Short tcpPort) {
+            return add(Criteria.matchTcpSrc(tcpPort));
+        }
+
+        @Override
+        public Builder matchTcpDst(Short tcpPort) {
+            return add(Criteria.matchTcpDst(tcpPort));
+        }
+
+        @Override
         public TrafficSelector build() {
             return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
         }

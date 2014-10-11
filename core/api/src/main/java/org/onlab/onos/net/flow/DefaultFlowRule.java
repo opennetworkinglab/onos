@@ -21,7 +21,7 @@ public class DefaultFlowRule implements FlowRule {
 
     private final FlowId id;
 
-    private final ApplicationId appId;
+    private final short appId;
 
     private final int timeout;
 
@@ -36,7 +36,7 @@ public class DefaultFlowRule implements FlowRule {
         this.timeout = timeout;
         this.created = System.currentTimeMillis();
 
-        this.appId = ApplicationId.valueOf((int) (flowId >> 32));
+        this.appId = (short) (flowId >>> 48);
         this.id = FlowId.valueOf(flowId);
     }
 
@@ -52,11 +52,11 @@ public class DefaultFlowRule implements FlowRule {
         this.priority = priority;
         this.selector = selector;
         this.treatment = treatement;
-        this.appId = appId;
+        this.appId = appId.id();
         this.timeout = timeout;
         this.created = System.currentTimeMillis();
 
-        this.id = FlowId.valueOf((((long) appId().id()) << 32) | (this.hash() & 0xffffffffL));
+        this.id = FlowId.valueOf((((long) this.appId) << 48) | (this.hash() & 0x0000ffffffffL));
     }
 
     public DefaultFlowRule(FlowRule rule) {
@@ -78,7 +78,7 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     @Override
-    public ApplicationId appId() {
+    public short appId() {
         return appId;
     }
 

@@ -1,7 +1,5 @@
 package org.onlab.onos.net.host;
 
-import java.util.Set;
-
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.packet.IpPrefix;
@@ -35,10 +33,10 @@ public interface HostDescription extends Description {
     HostLocation location();
 
     /**
-     * Returns zero or more IP address(es) associated with this host's MAC.
+     * Returns the IP address associated with this host's MAC.
      *
-     * @return a set of IP addresses.
+     * @return host IP address
      */
-    Set<IpPrefix> ipAddresses();
+    IpPrefix ipAddress();
 
 }

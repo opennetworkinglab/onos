@@ -1,19 +1,16 @@
 package org.onlab.onos.net.flow;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Default traffic treatment implementation.
@@ -58,7 +55,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
         if (obj instanceof DefaultTrafficTreatment) {
             DefaultTrafficTreatment that = (DefaultTrafficTreatment) obj;
-            return  Objects.equals(instructions, that.instructions);
+            return Objects.equals(instructions, that.instructions);
 
         }
         return false;
@@ -69,8 +66,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
      * Modifications -> Group -> Output (including drop)
      */
     public static final class Builder implements TrafficTreatment.Builder {
-
-        private final Logger log = getLogger(getClass());
 
         boolean drop = false;
 
@@ -107,7 +102,8 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     groups.add(instruction);
                     break;
                 default:
-                    log.warn("Unknown instruction type {}", instruction.type());
+                    throw new IllegalArgumentException("Unknown instruction type: " +
+                                                               instruction.type());
             }
             return this;
         }

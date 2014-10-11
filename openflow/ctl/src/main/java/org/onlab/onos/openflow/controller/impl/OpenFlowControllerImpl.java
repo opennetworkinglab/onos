@@ -44,7 +44,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private final ExecutorService executor = Executors.newFixedThreadPool(16,
             namedThreads("of-event-%d"));
 
-
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeMasterSwitches =

@@ -5,6 +5,8 @@ import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.common.impl.Timestamped;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Information published by GossipDeviceStore to notify peers of a device
  * change event.
@@ -34,6 +36,15 @@ public class InternalDeviceEvent {
 
     public Timestamped<DeviceDescription> deviceDescription() {
         return deviceDescription;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("providerId", providerId)
+                .add("deviceId", deviceId)
+                .add("deviceDescription", deviceDescription)
+                .toString();
     }
 
     // for serializer

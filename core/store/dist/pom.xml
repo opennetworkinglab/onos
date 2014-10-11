@@ -54,8 +54,18 @@
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
         <dependency>
-          <groupId>de.javakaffee</groupId>
-          <artifactId>kryo-serializers</artifactId>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-testlib</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>org.easymock</groupId>
+          <artifactId>easymock</artifactId>
+          <scope>test</scope>
         </dependency>
     </dependencies>
 

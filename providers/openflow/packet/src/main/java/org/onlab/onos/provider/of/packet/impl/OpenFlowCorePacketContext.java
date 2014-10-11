@@ -1,9 +1,5 @@
 package org.onlab.onos.provider.of.packet.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instruction.Type;
@@ -14,16 +10,16 @@ import org.onlab.onos.net.packet.OutboundPacket;
 import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.types.OFPort;
-import org.slf4j.Logger;
+
+import java.util.List;
 
 public class OpenFlowCorePacketContext extends DefaultPacketContext {
-
-    private final Logger log = getLogger(getClass());
 
     private final OpenFlowPacketContext ofPktCtx;
 
     protected OpenFlowCorePacketContext(long time, InboundPacket inPkt,
-            OutboundPacket outPkt, boolean block, OpenFlowPacketContext ofPktCtx) {
+                                        OutboundPacket outPkt, boolean block,
+                                        OpenFlowPacketContext ofPktCtx) {
         super(time, inPkt, outPkt, block);
         this.ofPktCtx = ofPktCtx;
     }
@@ -36,9 +32,8 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
             } else {
                 Ethernet eth = new Ethernet();
                 eth.deserialize(outPacket().data().array(), 0,
-                        outPacket().data().array().length);
+                                outPacket().data().array().length);
                 sendPacket(eth);
-
             }
 
         }
@@ -61,6 +56,7 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
         }
         ofPktCtx.send();
     }
+
     private OFPort buildPort(PortNumber port) {
         return OFPort.of((int) port.toLong());
     }

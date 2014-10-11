@@ -8,7 +8,7 @@ import static org.onlab.onos.net.DeviceId.deviceId;
 /**
  * Test of the device identifier.
  */
-public class DeviceIdTest extends ElementIdTest {
+public class DeviceIdTest {
 
     @Test
     public void basics() {

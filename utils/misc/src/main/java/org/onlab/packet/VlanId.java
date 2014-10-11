@@ -3,12 +3,15 @@ package org.onlab.packet;
 /**
  * Representation of a VLAN ID.
  */
-// FIXME: This will end-up looking like a constant; we should name it 'VlanId', 'IpAddress', 'MacAddress'.
 public class VlanId {
 
     private final short value;
+
     // Based on convention used elsewhere? Check and change if needed
     public static final short UNTAGGED = (short) 0xffff;
+
+    public static final VlanId NONE = VlanId.vlanId(UNTAGGED);
+
     // A VLAN ID is actually 12 bits of a VLAN tag.
     public static final short MAX_VLAN = 4095;
 

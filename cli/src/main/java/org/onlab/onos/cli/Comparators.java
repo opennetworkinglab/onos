@@ -21,14 +21,14 @@ public final class Comparators {
     public static final Comparator<ElementId> ELEMENT_ID_COMPARATOR = new Comparator<ElementId>() {
         @Override
         public int compare(ElementId id1, ElementId id2) {
-            return id1.uri().toString().compareTo(id2.uri().toString());
+            return id1.toString().compareTo(id2.toString());
         }
     };
 
     public static final Comparator<Element> ELEMENT_COMPARATOR = new Comparator<Element>() {
         @Override
         public int compare(Element e1, Element e2) {
-            return e1.id().uri().toString().compareTo(e2.id().uri().toString());
+            return e1.id().toString().compareTo(e2.id().toString());
         }
     };
 

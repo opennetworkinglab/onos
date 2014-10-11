@@ -55,6 +55,7 @@ public class ProxyArpManager implements ProxyArpService {
     private static final String REQUEST_NULL = "Arp request cannot be null.";
     private static final String REQUEST_NOT_ARP = "Ethernet frame does not contain ARP request.";
     private static final String NOT_ARP_REQUEST = "ARP is not a request.";
+    private static final String NOT_ARP_REPLY = "ARP is not a reply.";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -141,7 +142,7 @@ public class ProxyArpManager implements ProxyArpService {
         checkArgument(eth.getEtherType() == Ethernet.TYPE_ARP,
                 REQUEST_NOT_ARP);
         ARP arp = (ARP) eth.getPayload();
-        checkArgument(arp.getOpCode() == ARP.OP_REPLY, NOT_ARP_REQUEST);
+        checkArgument(arp.getOpCode() == ARP.OP_REPLY, NOT_ARP_REPLY);
 
         Host h = hostService.getHost(HostId.hostId(eth.getDestinationMAC(),
                 VlanId.vlanId(eth.getVlanID())));

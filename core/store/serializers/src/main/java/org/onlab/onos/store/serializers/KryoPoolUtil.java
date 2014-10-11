@@ -24,12 +24,15 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
+import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
 
-import de.javakaffee.kryoserializers.URISerializer;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 public final class KryoPoolUtil {
 
@@ -47,11 +50,14 @@ public final class KryoPoolUtil {
      */
     public static final KryoPool API = KryoPool.newBuilder()
             .register(MISC)
+            .register(ImmutableMap.class, new ImmutableMapSerializer())
+            .register(ImmutableList.class, new ImmutableListSerializer())
             .register(
                     //
                     ArrayList.class,
                     Arrays.asList().getClass(),
                     HashMap.class,
+                    //
                     //
                     ControllerNode.State.class,
                     Device.Type.class,
@@ -59,11 +65,14 @@ public final class KryoPoolUtil {
                     DefaultControllerNode.class,
                     DefaultDevice.class,
                     DefaultDeviceDescription.class,
+                    DefaultLinkDescription.class,
                     MastershipRole.class,
                     Port.class,
                     DefaultPortDescription.class,
                     Element.class,
-                    Link.Type.class
+                    Link.Type.class,
+                    Timestamp.class
+
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())

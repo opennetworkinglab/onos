@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.Path;
@@ -53,13 +54,16 @@ public class ReactiveForwarding {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
     private ApplicationId appId;
 
     @Activate
     public void activate() {
-        appId = ApplicationId.getAppId();
+        appId = coreService.registerApplication("org.onlab.onos.fwd");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         log.info("Started with Application ID {}", appId.id());
     }
@@ -165,8 +169,6 @@ public class ReactiveForwarding {
     private void installRule(PacketContext context, PortNumber portNumber) {
         // We don't yet support bufferids in the flowservice so packet out first.
         packetOut(context, portNumber);
-
-
 
         // Install the flow rule to handle this type of message from now on.
         Ethernet inPkt = context.inPacket().parsed();

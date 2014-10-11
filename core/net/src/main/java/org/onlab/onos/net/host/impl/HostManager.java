@@ -168,7 +168,6 @@ public class HostManager
         checkNotNull(hostId, HOST_ID_NULL);
         HostEvent event = store.removeHost(hostId);
         if (event != null) {
-            log.info("Host {} administratively removed", hostId);
             post(event);
         }
     }
@@ -214,7 +213,6 @@ public class HostManager
             HostEvent event = store.createOrUpdateHost(provider().id(), hostId,
                                                        hostDescription);
             if (event != null) {
-                log.debug("Host {} detected", hostId);
                 post(event);
             }
         }
@@ -225,7 +223,6 @@ public class HostManager
             checkValidity();
             HostEvent event = store.removeHost(hostId);
             if (event != null) {
-                log.debug("Host {} vanished", hostId);
                 post(event);
             }
         }

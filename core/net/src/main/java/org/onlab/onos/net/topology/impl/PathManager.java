@@ -22,9 +22,9 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.LinkWeight;
+import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -162,8 +161,8 @@ public class PathManager implements PathService {
     // edge link since the src or dst are really an infrastructure device.
     private static class NotHost extends DefaultEdgeLink implements EdgeLink {
         NotHost() {
-            super(PID, new ConnectPoint(HostId.hostId("nic:none"), P0),
-                  new HostLocation(deviceId("none:none"), P0, 0L), false);
+            super(PID, new ConnectPoint(HostId.NONE, P0),
+                  new HostLocation(DeviceId.NONE, P0, 0L), false);
         }
     }
 }
