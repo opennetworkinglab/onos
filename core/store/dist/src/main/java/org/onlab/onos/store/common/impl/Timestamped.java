@@ -10,7 +10,8 @@ import com.google.common.base.MoreObjects;
 
 /**
  * Wrapper class to store Timestamped value.
- * @param <T>
+ *
+ * @param <T> Timestamped value type
  */
 public final class Timestamped<T> {
 

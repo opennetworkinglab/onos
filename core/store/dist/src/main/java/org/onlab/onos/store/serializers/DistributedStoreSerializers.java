@@ -1,7 +1,7 @@
 package org.onlab.onos.store.serializers;
 
-import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
 import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.impl.MastershipBasedTimestamp;
 import org.onlab.util.KryoPool;
 
 public final class DistributedStoreSerializers {

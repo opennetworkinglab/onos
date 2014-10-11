@@ -15,7 +15,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceClockProviderService;
 import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.impl.MastershipBasedTimestamp;
 import org.slf4j.Logger;
 
 /**

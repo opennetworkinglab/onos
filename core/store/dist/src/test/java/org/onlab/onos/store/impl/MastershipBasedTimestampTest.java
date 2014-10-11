@@ -1,4 +1,4 @@
-package org.onlab.onos.store.common.impl;
+package org.onlab.onos.store.impl;
 
 import static org.junit.Assert.*;
 
