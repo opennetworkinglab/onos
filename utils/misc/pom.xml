@@ -44,16 +44,8 @@
             <artifactId>minimal-json</artifactId>
         </dependency>
         <dependency>
-          <groupId>com.esotericsoftware.kryo</groupId>
+          <groupId>com.esotericsoftware</groupId>
           <artifactId>kryo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>minlog</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.objenesis</groupId>
-            <artifactId>objenesis</artifactId>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>

@@ -12,16 +12,30 @@ import org.slf4j.LoggerFactory;
 
             private SimpleNettyServer() {}
 
-            public static void main(String... args) throws Exception {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws Exception the exception
+     */
+    public static void main(String... args) throws Exception {
                 startStandalone(args);
                 System.exit(0);
             }
 
-        public static void startStandalone(String[] args) throws Exception {
-            NettyMessagingService server = new NettyMessagingService(8081);
+    /**
+     * Start standalone server.
+     *
+     * @param args the args
+     * @throws Exception the exception
+     */
+    public static void startStandalone(String[] args) throws Exception {
+            int port = args.length > 0 ? Integer.parseInt(args[0]) : 8081;
+            NettyMessagingService server = new NettyMessagingService(port);
             server.activate();
-            server.registerHandler("simple", new NettyLoggingHandler());
+            server.registerHandler("simple", new NettyNothingHandler());
             server.registerHandler("echo", new NettyEchoHandler());
+            log.info("Netty Server server on port " + port);
         }
     }
 

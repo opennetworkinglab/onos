@@ -35,8 +35,8 @@
           <artifactId>hazelcast</artifactId>
         </dependency>
         <dependency>
-          <groupId>de.javakaffee</groupId>
-          <artifactId>kryo-serializers</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
     </dependencies>
 

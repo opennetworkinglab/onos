@@ -65,6 +65,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
+import static org.onlab.onos.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
@@ -73,7 +74,6 @@ import static com.google.common.base.Verify.verify;
 import static org.onlab.util.Tools.namedThreads;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.onos.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE;
-import static org.onlab.onos.store.common.impl.ControllerNodeToNodeId.toNodeId;
 
 // TODO: give me a better name
 /**
