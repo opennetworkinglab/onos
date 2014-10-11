@@ -26,6 +26,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DeviceAdminService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
@@ -257,12 +258,12 @@ public class DeviceManager
             // temporarily request for Master Role and mark offline.
             if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
                 log.debug("Device {} disconnected, but I am not the master", deviceId);
-                //let go of any role anyways
+                //let go of ability to be backup
                 mastershipService.relinquishMastership(deviceId);
                 return;
             }
             DeviceEvent event = store.markOffline(deviceId);
-            //we're no longer capable of being master or a candidate.
+            //relinquish master role and ability to be backup.
             mastershipService.relinquishMastership(deviceId);
 
             if (event != null) {
@@ -325,23 +326,31 @@ public class DeviceManager
         @Override
         public void event(MastershipEvent event) {
             final DeviceId did = event.subject();
-            if (isAvailable(did)) {
-                final NodeId myNodeId = clusterService.getLocalNode().id();
+            final NodeId myNodeId = clusterService.getLocalNode().id();
 
-                if (myNodeId.equals(event.master())) {
-                    MastershipTerm term = termService.getMastershipTerm(did);
+            if (myNodeId.equals(event.master())) {
+                MastershipTerm term = termService.getMastershipTerm(did);
 
-                    if (term.master().equals(myNodeId)) {
-                        // only set the new term if I am the master
-                        clockProviderService.setMastershipTerm(did, term);
-                    }
-                    applyRole(did, MastershipRole.MASTER);
-                } else {
-                    applyRole(did, MastershipRole.STANDBY);
+                if (term.master().equals(myNodeId)) {
+                    // only set the new term if I am the master
+                    clockProviderService.setMastershipTerm(did, term);
                 }
+
+                // FIXME: we should check that the device is connected on our end.
+                // currently, this is not straight forward as the actual switch
+                // implementation is hidden from the registry.
+                if (!isAvailable(did)) {
+                    //flag the device as online. Is there a better way to do this?
+                    Device device = getDevice(did);
+                    store.createOrUpdateDevice(device.providerId(), did,
+                            new DefaultDeviceDescription(
+                                    did.uri(), device.type(), device.manufacturer(),
+                                    device.hwVersion(), device.swVersion(),
+                                    device.serialNumber()));
+                }
+
+                applyRole(did, MastershipRole.MASTER);
             } else {
-                //device dead to node, give up
-                mastershipService.relinquishMastership(did);
                 applyRole(did, MastershipRole.STANDBY);
             }
         }

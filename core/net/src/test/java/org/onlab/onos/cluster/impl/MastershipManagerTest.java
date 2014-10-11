@@ -18,6 +18,8 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
 import org.onlab.packet.IpPrefix;
 
+import com.google.common.collect.Sets;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.onlab.onos.net.MastershipRole.*;
@@ -143,7 +145,7 @@ public class MastershipManagerTest {
 
         @Override
         public Set<ControllerNode> getNodes() {
-            return null;
+            return Sets.newHashSet();
         }
 
         @Override
