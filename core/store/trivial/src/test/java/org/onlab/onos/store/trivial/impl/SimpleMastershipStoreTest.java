@@ -6,8 +6,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 
 import com.google.common.collect.Sets;
@@ -15,8 +15,8 @@ import com.google.common.collect.Sets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.onlab.onos.mastership.MastershipEvent.Type.*;
 import static org.onlab.onos.net.MastershipRole.*;
-import static org.onlab.onos.cluster.MastershipEvent.Type.*;
 
 /**
  * Test for the simple MastershipStore implementation.

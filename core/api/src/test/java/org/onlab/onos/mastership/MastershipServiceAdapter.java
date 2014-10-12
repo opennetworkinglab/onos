@@ -1,5 +1,6 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.mastership;
 
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 

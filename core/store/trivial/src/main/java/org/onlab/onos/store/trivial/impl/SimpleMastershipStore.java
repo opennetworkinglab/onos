@@ -15,18 +15,18 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipEvent;
-import org.onlab.onos.cluster.MastershipStore;
-import org.onlab.onos.cluster.MastershipStoreDelegate;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipEvent;
+import org.onlab.onos.mastership.MastershipStore;
+import org.onlab.onos.mastership.MastershipStoreDelegate;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
-import static org.onlab.onos.cluster.MastershipEvent.Type.*;
+import static org.onlab.onos.mastership.MastershipEvent.Type.*;
 
 /**
  * Manages inventory of controller mastership over devices using

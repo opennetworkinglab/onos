@@ -1,6 +1,8 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.mastership;
 
 import java.util.Objects;
+
+import org.onlab.onos.cluster.NodeId;
 
 public final class MastershipTerm {
 

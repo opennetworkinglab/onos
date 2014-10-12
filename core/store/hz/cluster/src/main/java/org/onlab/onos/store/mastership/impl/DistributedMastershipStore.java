@@ -1,6 +1,6 @@
-package org.onlab.onos.store.cluster.impl;
+package org.onlab.onos.store.mastership.impl;
 
-import static org.onlab.onos.cluster.MastershipEvent.Type.MASTER_CHANGED;
+import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
 
 import java.util.Map;
 import java.util.Set;
@@ -12,11 +12,11 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.MastershipEvent;
-import org.onlab.onos.cluster.MastershipStore;
-import org.onlab.onos.cluster.MastershipStoreDelegate;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipEvent;
+import org.onlab.onos.mastership.MastershipStore;
+import org.onlab.onos.mastership.MastershipStoreDelegate;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.common.AbstractHazelcastStore;

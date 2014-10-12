@@ -7,8 +7,8 @@ import java.util.HashMap;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;

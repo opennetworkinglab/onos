@@ -1,14 +1,15 @@
 package org.onlab.onos.store.serializers;
 
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipTerm;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Kryo Serializer for {@link org.onlab.onos.cluster.MastershipTerm}.
+ * Kryo Serializer for {@link org.onlab.onos.mastership.MastershipTerm}.
  */
 public class MastershipTermSerializer extends Serializer<MastershipTerm> {
 

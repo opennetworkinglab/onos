@@ -1,6 +1,6 @@
 package org.onlab.onos.net.device;
 
-import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 
 //TODO: Consider renaming to DeviceClockProviderService?

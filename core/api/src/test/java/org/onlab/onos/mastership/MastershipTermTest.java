@@ -1,8 +1,9 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.mastership;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.onlab.onos.cluster.NodeId;
 
 import com.google.common.testing.EqualsTester;
 

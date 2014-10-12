@@ -1,4 +1,4 @@
-package org.onlab.onos.cluster;
+package org.onlab.onos.mastership;
 
 import org.onlab.onos.event.EventListener;
 

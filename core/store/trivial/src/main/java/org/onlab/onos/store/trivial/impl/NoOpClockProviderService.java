@@ -2,7 +2,7 @@ package org.onlab.onos.store.trivial.impl;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceClockProviderService;
 
