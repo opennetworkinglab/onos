@@ -1,4 +1,4 @@
-package org.onlab.onos.store.cluster.impl;
+package org.onlab.onos.store.cluster.messaging.impl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -6,8 +6,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.cluster.messaging.impl.ClusterCommunicationManager;
-import org.onlab.onos.store.cluster.messaging.impl.MessageSerializer;
+import org.onlab.onos.store.cluster.impl.ClusterNodesDelegate;
 import org.onlab.netty.NettyMessagingService;
 import org.onlab.packet.IpPrefix;
 
