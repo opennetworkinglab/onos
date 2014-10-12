@@ -1,4 +1,4 @@
-package org.onlab.onos.store.device.impl.peermsg;
+package org.onlab.onos.store.device.impl;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
 

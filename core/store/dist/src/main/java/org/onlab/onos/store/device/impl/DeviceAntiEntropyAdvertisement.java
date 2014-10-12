@@ -1,4 +1,4 @@
-package org.onlab.onos.store.device.impl.peermsg;
+package org.onlab.onos.store.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
