@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
 
+// TODO: remove IOExceptions?
 /**
  * Service for assisting communications between controller cluster nodes.
  */
