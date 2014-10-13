@@ -3,6 +3,7 @@ package org.onlab.onos.store.link.impl;
 import static org.junit.Assert.*;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.Link.Type.*;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 
 import java.util.HashMap;
@@ -122,8 +123,8 @@ public class DistributedLinkStoreTest {
         assertEquals("initialy empty", 0,
                 Iterables.size(linkStore.getLinks()));
 
-        LinkKey linkId1 = new LinkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
-        LinkKey linkId2 = new LinkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
+        LinkKey linkId1 = linkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
+        LinkKey linkId2 = linkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -134,7 +135,7 @@ public class DistributedLinkStoreTest {
 
         Map<LinkKey, Link> links = new HashMap<>();
         for (Link link : linkStore.getLinks()) {
-            links.put(new LinkKey(link.src(), link.dst()), link);
+            links.put(linkKey(link), link);
         }
 
         assertLink(linkId1, DIRECT, links.get(linkId1));
@@ -143,9 +144,9 @@ public class DistributedLinkStoreTest {
 
     @Test
     public final void testGetDeviceEgressLinks() {
-        LinkKey linkId1 = new LinkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
-        LinkKey linkId2 = new LinkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = linkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
+        LinkKey linkId2 = linkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
+        LinkKey linkId3 = linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -166,9 +167,9 @@ public class DistributedLinkStoreTest {
 
     @Test
     public final void testGetDeviceIngressLinks() {
-        LinkKey linkId1 = new LinkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
-        LinkKey linkId2 = new LinkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = linkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
+        LinkKey linkId2 = linkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
+        LinkKey linkId3 = linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -191,7 +192,7 @@ public class DistributedLinkStoreTest {
     public final void testGetLink() {
         ConnectPoint src = new ConnectPoint(DID1, P1);
         ConnectPoint dst = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(src, dst);
+        LinkKey linkId1 = linkKey(src, dst);
 
         putLink(linkId1, DIRECT);
 
@@ -206,9 +207,9 @@ public class DistributedLinkStoreTest {
     public final void testGetEgressLinks() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(d1P1, d2P2);
-        LinkKey linkId2 = new LinkKey(d2P2, d1P1);
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = linkKey(d1P1, d2P2);
+        LinkKey linkId2 = linkKey(d2P2, d1P1);
+        LinkKey linkId3 = linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -231,9 +232,9 @@ public class DistributedLinkStoreTest {
     public final void testGetIngressLinks() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(d1P1, d2P2);
-        LinkKey linkId2 = new LinkKey(d2P2, d1P1);
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = linkKey(d1P1, d2P2);
+        LinkKey linkId2 = linkKey(d2P2, d1P1);
+        LinkKey linkId3 = linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -282,8 +283,8 @@ public class DistributedLinkStoreTest {
     public final void testRemoveLink() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(d1P1, d2P2);
-        LinkKey linkId2 = new LinkKey(d2P2, d1P1);
+        LinkKey linkId1 = linkKey(d1P1, d2P2);
+        LinkKey linkId2 = linkKey(d2P2, d1P1);
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -306,7 +307,7 @@ public class DistributedLinkStoreTest {
 
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        final LinkKey linkId1 = new LinkKey(d1P1, d2P2);
+        final LinkKey linkId1 = linkKey(d1P1, d2P2);
 
         final CountDownLatch addLatch = new CountDownLatch(1);
         LinkStoreDelegate checkAdd = new LinkStoreDelegate() {

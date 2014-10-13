@@ -108,7 +108,7 @@ public class KryoSerializerTest {
         testSerialized(ImmutableSet.of());
         testSerialized(IpPrefix.valueOf("192.168.0.1/24"));
         testSerialized(IpAddress.valueOf("192.168.0.1"));
-        testSerialized(new LinkKey(CP1, CP2));
+        testSerialized(LinkKey.linkKey(CP1, CP2));
         testSerialized(new NodeId("SomeNodeIdentifier"));
         testSerialized(P1);
         testSerialized(PID);

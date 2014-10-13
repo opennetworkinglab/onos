@@ -67,6 +67,7 @@ import static org.onlab.onos.net.DefaultAnnotations.union;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -203,7 +204,7 @@ public class GossipLinkStore
 
     @Override
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
-        return links.get(new LinkKey(src, dst));
+        return links.get(linkKey(src, dst));
     }
 
     @Override
@@ -237,7 +238,7 @@ public class GossipLinkStore
 
         final Timestamped<LinkDescription> deltaDesc = new Timestamped<>(linkDescription, newTimestamp);
 
-        LinkKey key = new LinkKey(linkDescription.src(), linkDescription.dst());
+        LinkKey key = linkKey(linkDescription);
         final LinkEvent event;
         final Timestamped<LinkDescription> mergedDesc;
         synchronized (getLinkDescriptions(key)) {
@@ -264,7 +265,7 @@ public class GossipLinkStore
             ProviderId providerId,
             Timestamped<LinkDescription> linkDescription) {
 
-        LinkKey key = new LinkKey(linkDescription.value().src(), linkDescription.value().dst());
+        LinkKey key = linkKey(linkDescription.value());
         ConcurrentMap<ProviderId, Timestamped<LinkDescription>> descs = getLinkDescriptions(key);
 
         synchronized (descs) {
@@ -357,7 +358,7 @@ public class GossipLinkStore
 
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
-        final LinkKey key = new LinkKey(src, dst);
+        final LinkKey key = linkKey(src, dst);
 
         DeviceId dstDeviceId = dst.deviceId();
         Timestamp timestamp = deviceClockService.getTimestamp(dstDeviceId);

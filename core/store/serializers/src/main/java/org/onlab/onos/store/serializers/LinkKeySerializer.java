@@ -31,6 +31,6 @@ public class LinkKeySerializer extends Serializer<LinkKey> {
     public LinkKey read(Kryo kryo, Input input, Class<LinkKey> type) {
         ConnectPoint src = (ConnectPoint) kryo.readClassAndObject(input);
         ConnectPoint dst = (ConnectPoint) kryo.readClassAndObject(input);
-        return new LinkKey(src, dst);
+        return LinkKey.linkKey(src, dst);
     }
 }

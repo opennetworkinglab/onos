@@ -1,6 +1,10 @@
 package org.onlab.onos.net;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Objects;
+
+import org.onlab.onos.net.link.LinkDescription;
 
 import com.google.common.base.MoreObjects;
 
@@ -10,7 +14,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Immutable representation of a link identity.
  */
-public class LinkKey {
+public final class LinkKey {
 
     private final ConnectPoint src;
     private final ConnectPoint dst;
@@ -39,18 +43,40 @@ public class LinkKey {
      * @param src source connection point
      * @param dst destination connection point
      */
-    public LinkKey(ConnectPoint src, ConnectPoint dst) {
-        this.src = src;
-        this.dst = dst;
+    private LinkKey(ConnectPoint src, ConnectPoint dst) {
+        this.src = checkNotNull(src);
+        this.dst = checkNotNull(dst);
+    }
+
+    /**
+     * Creates a link identifier with source and destination connection point.
+     *
+     * @param src source connection point
+     * @param dst destination connection point
+     * @return a link identifier
+     */
+    public static LinkKey linkKey(ConnectPoint src, ConnectPoint dst) {
+        return new LinkKey(src, dst);
     }
 
     /**
      * Creates a link identifier for the specified link.
      *
      * @param link link descriptor
+     * @return a link identifier
      */
-    public LinkKey(Link link) {
-        this(link.src(), link.dst());
+    public static LinkKey linkKey(Link link) {
+        return new LinkKey(link.src(), link.dst());
+    }
+
+    /**
+     * Creates a link identifier for the specified link.
+     *
+     * @param desc link description
+     * @return a link identifier
+     */
+    public static LinkKey linkKey(LinkDescription desc) {
+        return new LinkKey(desc.src(), desc.dst());
     }
 
     @Override
@@ -65,7 +91,7 @@ public class LinkKey {
         }
         if (obj instanceof LinkKey) {
             final LinkKey other = (LinkKey) obj;
-            return Objects.equals(this.src(), other.src()) &&
+            return Objects.equals(this.src, other.src) &&
                     Objects.equals(this.dst, other.dst);
         }
         return false;
@@ -74,7 +100,7 @@ public class LinkKey {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("src", src())
+                .add("src", src)
                 .add("dst", dst)
                 .toString();
     }
