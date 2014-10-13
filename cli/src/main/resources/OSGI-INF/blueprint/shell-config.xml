@@ -83,6 +83,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.AddMultiPointToSinglePointIntentCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.IntentPushTestCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
