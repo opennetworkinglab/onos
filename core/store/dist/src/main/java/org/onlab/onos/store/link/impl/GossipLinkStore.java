@@ -237,14 +237,20 @@ public class GossipLinkStore
 
         final Timestamped<LinkDescription> deltaDesc = new Timestamped<>(linkDescription, newTimestamp);
 
-        LinkEvent event = createOrUpdateLinkInternal(providerId, deltaDesc);
+        LinkKey key = new LinkKey(linkDescription.src(), linkDescription.dst());
+        final LinkEvent event;
+        final Timestamped<LinkDescription> mergedDesc;
+        synchronized (getLinkDescriptions(key)) {
+            event = createOrUpdateLinkInternal(providerId, deltaDesc);
+            mergedDesc = getLinkDescriptions(key).get(providerId);
+        }
 
         if (event != null) {
             log.info("Notifying peers of a link update topology event from providerId: "
                     + "{}  between src: {} and dst: {}",
                     providerId, linkDescription.src(), linkDescription.dst());
             try {
-                notifyPeers(new InternalLinkEvent(providerId, deltaDesc));
+                notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
             } catch (IOException e) {
                 log.info("Failed to notify peers of a link update topology event from providerId: "
                         + "{}  between src: {} and dst: {}",
