@@ -92,7 +92,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean broadcast(ClusterMessage message) {
+    public boolean broadcast(ClusterMessage message) throws IOException {
         boolean ok = true;
         for (ControllerNode node : clusterService.getNodes()) {
             if (!node.equals(localNode)) {
@@ -103,7 +103,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean multicast(ClusterMessage message, Set<NodeId> nodes) {
+    public boolean multicast(ClusterMessage message, Set<NodeId> nodes) throws IOException {
         boolean ok = true;
         for (NodeId nodeId : nodes) {
             if (!nodeId.equals(localNode.id())) {
@@ -114,7 +114,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean unicast(ClusterMessage message, NodeId toNodeId) {
+    public boolean unicast(ClusterMessage message, NodeId toNodeId) throws IOException {
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
@@ -124,9 +124,8 @@ public class ClusterCommunicationManager
             return true;
         } catch (IOException e) {
             log.error("Failed to send cluster message to nodeId: " + toNodeId, e);
+            throw e;
         }
-
-        return false;
     }
 
     @Override
@@ -151,10 +150,10 @@ public class ClusterCommunicationManager
 
     @Override
     public void removeNode(ControllerNode node) {
-        broadcast(new ClusterMessage(
-                localNode.id(),
-                new MessageSubject("CLUSTER_MEMBERSHIP_EVENT"),
-                SERIALIZER.encode(new ClusterMembershipEvent(ClusterMembershipEventType.LEAVING_MEMBER, node))));
+//        broadcast(new ClusterMessage(
+//                localNode.id(),
+//                new MessageSubject("CLUSTER_MEMBERSHIP_EVENT"),
+//                SERIALIZER.encode(new ClusterMembershipEvent(ClusterMembershipEventType.LEAVING_MEMBER, node))));
         //members.remove(node.id());
     }
 
@@ -163,10 +162,14 @@ public class ClusterCommunicationManager
 
         @Override
         public void run() {
-            broadcast(new ClusterMessage(
-                localNode.id(),
-                new MessageSubject("CLUSTER_MEMBERSHIP_EVENT"),
-                SERIALIZER.encode(new ClusterMembershipEvent(ClusterMembershipEventType.HEART_BEAT, localNode))));
+            try {
+                broadcast(new ClusterMessage(
+                    localNode.id(),
+                    new MessageSubject("CLUSTER_MEMBERSHIP_EVENT"),
+                    SERIALIZER.encode(new ClusterMembershipEvent(ClusterMembershipEventType.HEART_BEAT, localNode))));
+            } catch (IOException e) {
+                log.warn("I/O error while broadcasting heart beats.", e);
+            }
         }
     }
 
