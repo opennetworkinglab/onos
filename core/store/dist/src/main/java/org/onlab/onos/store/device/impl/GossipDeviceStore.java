@@ -1090,7 +1090,7 @@ public class GossipDeviceStore
                         .toList();
 
                 if (nodeIds.size() == 1 && nodeIds.get(0).equals(self)) {
-                    log.info("No other peers in the cluster.");
+                    log.debug("No other peers in the cluster.");
                     return;
                 }
 

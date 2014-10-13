@@ -28,6 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -82,14 +83,14 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Override
     public void addTrackedResources(IntentId intentId, Collection<Link> resources) {
         for (Link link : resources) {
-            intentsByLink.put(new LinkKey(link), intentId);
+            intentsByLink.put(linkKey(link), intentId);
         }
     }
 
     @Override
     public void removeTrackedResources(IntentId intentId, Collection<Link> resources) {
         for (Link link : resources) {
-            intentsByLink.remove(new LinkKey(link), intentId);
+            intentsByLink.remove(linkKey(link), intentId);
         }
     }
 
@@ -125,7 +126,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
                         if (linkEvent.type() == LINK_REMOVED) {
-                            Set<IntentId> intentIds = intentsByLink.get(new LinkKey(linkEvent.subject()));
+                            Set<IntentId> intentIds = intentsByLink.get(linkKey(linkEvent.subject()));
                             toBeRecompiled.addAll(intentIds);
                         }
                         recompileOnly = recompileOnly && linkEvent.type() == LINK_REMOVED;

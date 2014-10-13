@@ -136,8 +136,8 @@ public class SimpleLinkStoreTest {
         assertEquals("initialy empty", 0,
                 Iterables.size(linkStore.getLinks()));
 
-        LinkKey linkId1 = new LinkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
-        LinkKey linkId2 = new LinkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
+        LinkKey linkId1 = LinkKey.linkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
+        LinkKey linkId2 = LinkKey.linkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -148,7 +148,7 @@ public class SimpleLinkStoreTest {
 
         Map<LinkKey, Link> links = new HashMap<>();
         for (Link link : linkStore.getLinks()) {
-            links.put(new LinkKey(link.src(), link.dst()), link);
+            links.put(LinkKey.linkKey(link), link);
         }
 
         assertLink(linkId1, DIRECT, links.get(linkId1));
@@ -157,9 +157,9 @@ public class SimpleLinkStoreTest {
 
     @Test
     public final void testGetDeviceEgressLinks() {
-        LinkKey linkId1 = new LinkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
-        LinkKey linkId2 = new LinkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = LinkKey.linkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
+        LinkKey linkId2 = LinkKey.linkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
+        LinkKey linkId3 = LinkKey.linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -180,9 +180,9 @@ public class SimpleLinkStoreTest {
 
     @Test
     public final void testGetDeviceIngressLinks() {
-        LinkKey linkId1 = new LinkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
-        LinkKey linkId2 = new LinkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = LinkKey.linkKey(new ConnectPoint(DID1, P1), new ConnectPoint(DID2, P2));
+        LinkKey linkId2 = LinkKey.linkKey(new ConnectPoint(DID2, P2), new ConnectPoint(DID1, P1));
+        LinkKey linkId3 = LinkKey.linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -205,7 +205,7 @@ public class SimpleLinkStoreTest {
     public final void testGetLink() {
         ConnectPoint src = new ConnectPoint(DID1, P1);
         ConnectPoint dst = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(src, dst);
+        LinkKey linkId1 = LinkKey.linkKey(src, dst);
 
         putLink(linkId1, DIRECT);
 
@@ -220,9 +220,9 @@ public class SimpleLinkStoreTest {
     public final void testGetEgressLinks() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(d1P1, d2P2);
-        LinkKey linkId2 = new LinkKey(d2P2, d1P1);
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
+        LinkKey linkId2 = LinkKey.linkKey(d2P2, d1P1);
+        LinkKey linkId3 = LinkKey.linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -245,9 +245,9 @@ public class SimpleLinkStoreTest {
     public final void testGetIngressLinks() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(d1P1, d2P2);
-        LinkKey linkId2 = new LinkKey(d2P2, d1P1);
-        LinkKey linkId3 = new LinkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
+        LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
+        LinkKey linkId2 = LinkKey.linkKey(d2P2, d1P1);
+        LinkKey linkId3 = LinkKey.linkKey(new ConnectPoint(DID1, P2), new ConnectPoint(DID2, P3));
 
         putLink(linkId1, DIRECT);
         putLink(linkId2, DIRECT);
@@ -349,8 +349,8 @@ public class SimpleLinkStoreTest {
     public final void testRemoveLink() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        LinkKey linkId1 = new LinkKey(d1P1, d2P2);
-        LinkKey linkId2 = new LinkKey(d2P2, d1P1);
+        LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
+        LinkKey linkId2 = LinkKey.linkKey(d2P2, d1P1);
 
         putLink(linkId1, DIRECT, A1);
         putLink(linkId2, DIRECT, A2);
@@ -406,7 +406,7 @@ public class SimpleLinkStoreTest {
 
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
-        final LinkKey linkId1 = new LinkKey(d1P1, d2P2);
+        final LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
 
         final CountDownLatch addLatch = new CountDownLatch(1);
         LinkStoreDelegate checkAdd = new LinkStoreDelegate() {

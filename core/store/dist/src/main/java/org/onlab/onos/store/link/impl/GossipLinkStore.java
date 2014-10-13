@@ -67,6 +67,7 @@ import static org.onlab.onos.net.DefaultAnnotations.union;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -203,7 +204,7 @@ public class GossipLinkStore
 
     @Override
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
-        return links.get(new LinkKey(src, dst));
+        return links.get(linkKey(src, dst));
     }
 
     @Override
@@ -237,14 +238,20 @@ public class GossipLinkStore
 
         final Timestamped<LinkDescription> deltaDesc = new Timestamped<>(linkDescription, newTimestamp);
 
-        LinkEvent event = createOrUpdateLinkInternal(providerId, deltaDesc);
+        LinkKey key = linkKey(linkDescription);
+        final LinkEvent event;
+        final Timestamped<LinkDescription> mergedDesc;
+        synchronized (getLinkDescriptions(key)) {
+            event = createOrUpdateLinkInternal(providerId, deltaDesc);
+            mergedDesc = getLinkDescriptions(key).get(providerId);
+        }
 
         if (event != null) {
             log.info("Notifying peers of a link update topology event from providerId: "
                     + "{}  between src: {} and dst: {}",
                     providerId, linkDescription.src(), linkDescription.dst());
             try {
-                notifyPeers(new InternalLinkEvent(providerId, deltaDesc));
+                notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
             } catch (IOException e) {
                 log.info("Failed to notify peers of a link update topology event from providerId: "
                         + "{}  between src: {} and dst: {}",
@@ -258,7 +265,7 @@ public class GossipLinkStore
             ProviderId providerId,
             Timestamped<LinkDescription> linkDescription) {
 
-        LinkKey key = new LinkKey(linkDescription.value().src(), linkDescription.value().dst());
+        LinkKey key = linkKey(linkDescription.value());
         ConcurrentMap<ProviderId, Timestamped<LinkDescription>> descs = getLinkDescriptions(key);
 
         synchronized (descs) {
@@ -351,7 +358,7 @@ public class GossipLinkStore
 
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
-        final LinkKey key = new LinkKey(src, dst);
+        final LinkKey key = linkKey(src, dst);
 
         DeviceId dstDeviceId = dst.deviceId();
         Timestamp timestamp = deviceClockService.getTimestamp(dstDeviceId);
@@ -538,7 +545,7 @@ public class GossipLinkStore
                         .toList();
 
                 if (nodeIds.size() == 1 && nodeIds.get(0).equals(self)) {
-                    log.info("No other peers in the cluster.");
+                    log.debug("No other peers in the cluster.");
                     return;
                 }
 

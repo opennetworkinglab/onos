@@ -3,6 +3,7 @@ package org.onlab.onos.store.link.impl;
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_UPDATED;
@@ -122,7 +123,7 @@ public class DistributedLinkStore
 
     @Override
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
-        return links.getUnchecked(new LinkKey(src, dst)).orNull();
+        return links.getUnchecked(linkKey(src, dst)).orNull();
     }
 
     @Override
@@ -150,7 +151,7 @@ public class DistributedLinkStore
     @Override
     public LinkEvent createOrUpdateLink(ProviderId providerId,
                                         LinkDescription linkDescription) {
-        LinkKey key = new LinkKey(linkDescription.src(), linkDescription.dst());
+        LinkKey key = linkKey(linkDescription);
         Optional<DefaultLink> link = links.getUnchecked(key);
         if (!link.isPresent()) {
             return createLink(providerId, key, linkDescription);
@@ -216,7 +217,7 @@ public class DistributedLinkStore
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
         synchronized (this) {
-            LinkKey key = new LinkKey(src, dst);
+            LinkKey key = linkKey(src, dst);
             byte[] keyBytes = serialize(key);
             Link link = deserialize(rawLinks.remove(keyBytes));
             links.invalidate(key);

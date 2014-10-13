@@ -42,6 +42,7 @@ import static org.onlab.onos.net.DefaultAnnotations.union;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
@@ -120,7 +121,7 @@ public class SimpleLinkStore
 
     @Override
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
-        return links.get(new LinkKey(src, dst));
+        return links.get(linkKey(src, dst));
     }
 
     @Override
@@ -148,7 +149,7 @@ public class SimpleLinkStore
     @Override
     public LinkEvent createOrUpdateLink(ProviderId providerId,
                                         LinkDescription linkDescription) {
-        LinkKey key = new LinkKey(linkDescription.src(), linkDescription.dst());
+        LinkKey key = linkKey(linkDescription);
 
         ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
         synchronized (descs) {
@@ -225,7 +226,7 @@ public class SimpleLinkStore
 
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
-        final LinkKey key = new LinkKey(src, dst);
+        final LinkKey key = linkKey(src, dst);
         ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
         synchronized (descs) {
             Link link = links.remove(key);
