@@ -10,8 +10,12 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 
 /**
- * Default implementation of Timestamp.
- * TODO: Better documentation.
+ * A logical timestamp that derives its value from two things:
+ * <ul>
+ * <li> The current mastership term of the device.</li>
+ * <li> The value of the counter used for tracking topology events observed from
+ * the device during that current time of a device. </li>
+ * </ul>
  */
 public final class MastershipBasedTimestamp implements Timestamp {
 
