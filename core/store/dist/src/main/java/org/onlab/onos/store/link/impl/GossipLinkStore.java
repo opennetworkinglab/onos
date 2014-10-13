@@ -152,6 +152,16 @@ public class GossipLinkStore
 
     @Deactivate
     public void deactivate() {
+
+        executor.shutdownNow();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.error("Timeout during executor shutdown");
+            }
+        } catch (InterruptedException e) {
+            log.error("Error during executor shutdown", e);
+        }
+
         linkDescs.clear();
         links.clear();
         srcLinks.clear();
