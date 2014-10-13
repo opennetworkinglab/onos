@@ -169,7 +169,6 @@ public class FlowRuleManagerTest {
     //backing store is sensitive to the order of additions/removals
     private boolean validateState(FlowEntryState... state) {
         Iterable<FlowEntry> rules = service.getFlowEntries(DID);
-        System.out.println(rules);
         int i = 0;
         for (FlowEntry f : rules) {
             if (f.state() != state[i]) {
