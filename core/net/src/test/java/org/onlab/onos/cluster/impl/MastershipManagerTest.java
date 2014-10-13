@@ -10,13 +10,15 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipService;
-import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.mastership.MastershipService;
+import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
 import org.onlab.packet.IpPrefix;
+
+import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -143,7 +145,7 @@ public class MastershipManagerTest {
 
         @Override
         public Set<ControllerNode> getNodes() {
-            return null;
+            return Sets.newHashSet();
         }
 
         @Override

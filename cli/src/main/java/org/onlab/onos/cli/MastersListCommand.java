@@ -1,10 +1,11 @@
 package org.onlab.onos.cli;
 
 import com.google.common.collect.Lists;
+
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.MastershipService;
+import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.DeviceId;
 
 import java.util.Collections;

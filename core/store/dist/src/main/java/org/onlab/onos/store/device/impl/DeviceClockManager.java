@@ -10,12 +10,12 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.MastershipTerm;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.ClockProviderService;
-import org.onlab.onos.store.ClockService;
+import org.onlab.onos.net.device.DeviceClockProviderService;
+import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.common.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.impl.MastershipBasedTimestamp;
 import org.slf4j.Logger;
 
 /**
@@ -23,7 +23,7 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class DeviceClockManager implements ClockService, ClockProviderService {
+public class DeviceClockManager implements DeviceClockService, DeviceClockProviderService {
 
     private final Logger log = getLogger(getClass());
 

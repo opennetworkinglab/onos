@@ -11,6 +11,7 @@ import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//FIXME: not used any more? remove
 /**
  * Factory for parsing messages sent between cluster members.
  */

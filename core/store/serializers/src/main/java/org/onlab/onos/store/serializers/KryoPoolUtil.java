@@ -7,8 +7,8 @@ import java.util.HashMap;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipTerm;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
@@ -31,6 +31,9 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 public final class KryoPoolUtil {
 
     /**
@@ -47,11 +50,14 @@ public final class KryoPoolUtil {
      */
     public static final KryoPool API = KryoPool.newBuilder()
             .register(MISC)
+            .register(ImmutableMap.class, new ImmutableMapSerializer())
+            .register(ImmutableList.class, new ImmutableListSerializer())
             .register(
                     //
                     ArrayList.class,
                     Arrays.asList().getClass(),
                     HashMap.class,
+                    //
                     //
                     ControllerNode.State.class,
                     Device.Type.class,

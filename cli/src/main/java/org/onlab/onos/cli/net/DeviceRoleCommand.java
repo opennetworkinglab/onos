@@ -3,8 +3,8 @@ package org.onlab.onos.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.cluster.MastershipAdminService;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipAdminService;
 import org.onlab.onos.net.MastershipRole;
 
 import static org.onlab.onos.net.DeviceId.deviceId;

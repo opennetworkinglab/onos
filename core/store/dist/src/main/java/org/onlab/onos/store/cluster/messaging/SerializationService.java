@@ -1,5 +1,6 @@
 package org.onlab.onos.store.cluster.messaging;
 
+// FIXME: not used any more? remove
 /**
  * Service for encoding &amp; decoding intra-cluster message payload.
  */

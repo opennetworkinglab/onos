@@ -102,7 +102,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
             // System.out.println("Got back:" + new String(response.get(2, TimeUnit.SECONDS)));
         }
 
-        sleep(1000);
+        //sleep(1000);
         log.info("measuring async sender");
         Timer sendAsyncTimer = metrics.createTimer(component, feature, "AsyncSender");
 
@@ -111,7 +111,7 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
         context.stop();
         }
-        sleep(1000);
+        sleep(10000);
     }
 
     public static void stop() {

@@ -10,13 +10,13 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.MastershipServiceAdapter;
-import org.onlab.onos.cluster.MastershipTerm;
-import org.onlab.onos.cluster.MastershipTermService;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.impl.TestEventDispatcher;
+import org.onlab.onos.mastership.MastershipServiceAdapter;
+import org.onlab.onos.mastership.MastershipTerm;
+import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
@@ -25,6 +25,7 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceAdminService;
+import org.onlab.onos.net.device.DeviceClockProviderService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
@@ -35,7 +36,6 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.ClockProviderService;
 import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
 import org.onlab.packet.IpPrefix;
 
@@ -88,7 +88,7 @@ public class DeviceManagerTest {
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.mastershipService = new TestMastershipService();
         mgr.clusterService = new TestClusterService();
-        mgr.clockProviderService = new TestClockProviderService();
+        mgr.deviceClockProviderService = new TestClockProviderService();
         mgr.activate();
 
         service.addListener(listener);
@@ -336,7 +336,7 @@ public class DeviceManagerTest {
     }
 
     private final class TestClockProviderService implements
-            ClockProviderService {
+            DeviceClockProviderService {
 
         @Override
         public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {

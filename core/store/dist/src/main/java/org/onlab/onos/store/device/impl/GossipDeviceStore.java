@@ -1,5 +1,6 @@
 package org.onlab.onos.store.device.impl;
 
+import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -24,6 +25,7 @@ import org.onlab.onos.net.Device.Type;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceStore;
@@ -31,16 +33,12 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.ClockService;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.common.impl.Timestamped;
-import org.onlab.onos.store.device.impl.peermsg.DeviceAntiEntropyAdvertisement;
-import org.onlab.onos.store.device.impl.peermsg.DeviceFragmentId;
-import org.onlab.onos.store.device.impl.peermsg.PortFragmentId;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.util.KryoPool;
@@ -110,7 +108,7 @@ public class GossipDeviceStore
     private final Set<DeviceId> availableDevices = Sets.newConcurrentHashSet();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClockService clockService;
+    protected DeviceClockService deviceClockService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -118,7 +116,7 @@ public class GossipDeviceStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
+    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
             serializerPool = KryoPool.newBuilder()
@@ -206,14 +204,19 @@ public class GossipDeviceStore
     public synchronized DeviceEvent createOrUpdateDevice(ProviderId providerId,
                                      DeviceId deviceId,
                                      DeviceDescription deviceDescription) {
-        Timestamp newTimestamp = clockService.getTimestamp(deviceId);
+        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
         final Timestamped<DeviceDescription> deltaDesc = new Timestamped<>(deviceDescription, newTimestamp);
-        DeviceEvent event = createOrUpdateDeviceInternal(providerId, deviceId, deltaDesc);
+        final DeviceEvent event;
+        final Timestamped<DeviceDescription> mergedDesc;
+        synchronized (getDeviceDescriptions(deviceId)) {
+            event = createOrUpdateDeviceInternal(providerId, deviceId, deltaDesc);
+            mergedDesc = getDeviceDescriptions(deviceId).get(providerId).getDeviceDesc();
+        }
         if (event != null) {
             log.info("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
                 providerId, deviceId);
             try {
-                notifyPeers(new InternalDeviceEvent(providerId, deviceId, deltaDesc));
+                notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
             } catch (IOException e) {
                 log.error("Failed to notify peers of a device update topology event for providerId: "
                         + providerId + " and deviceId: " + deviceId, e);
@@ -317,8 +320,8 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent markOffline(DeviceId deviceId) {
-        Timestamp timestamp = clockService.getTimestamp(deviceId);
-        DeviceEvent event = markOfflineInternal(deviceId, timestamp);
+        final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
+        final DeviceEvent event = markOfflineInternal(deviceId, timestamp);
         if (event != null) {
             log.info("Notifying peers of a device offline topology event for deviceId: {}",
                     deviceId);
@@ -390,17 +393,33 @@ public class GossipDeviceStore
     public synchronized List<DeviceEvent> updatePorts(ProviderId providerId,
                                        DeviceId deviceId,
                                        List<PortDescription> portDescriptions) {
-        Timestamp newTimestamp = clockService.getTimestamp(deviceId);
 
-        Timestamped<List<PortDescription>> timestampedPortDescriptions =
-            new Timestamped<>(portDescriptions, newTimestamp);
+        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
 
-        List<DeviceEvent> events = updatePortsInternal(providerId, deviceId, timestampedPortDescriptions);
+        final Timestamped<List<PortDescription>> timestampedInput
+                = new Timestamped<>(portDescriptions, newTimestamp);
+        final List<DeviceEvent> events;
+        final Timestamped<List<PortDescription>> merged;
+
+        synchronized (getDeviceDescriptions(deviceId)) {
+            events = updatePortsInternal(providerId, deviceId, timestampedInput);
+            final DeviceDescriptions descs = getDeviceDescriptions(deviceId).get(providerId);
+            List<PortDescription> mergedList =
+                    FluentIterable.from(portDescriptions)
+                .transform(new Function<PortDescription, PortDescription>() {
+                    @Override
+                    public PortDescription apply(PortDescription input) {
+                        // lookup merged port description
+                        return descs.getPortDesc(input.portNumber()).value();
+                    }
+                }).toList();
+            merged = new Timestamped<List<PortDescription>>(mergedList, newTimestamp);
+        }
         if (!events.isEmpty()) {
             log.info("Notifying peers of a port update topology event for providerId: {} and deviceId: {}",
                     providerId, deviceId);
             try {
-                notifyPeers(new InternalPortEvent(providerId, deviceId, timestampedPortDescriptions));
+                notifyPeers(new InternalPortEvent(providerId, deviceId, merged));
             } catch (IOException e) {
                 log.error("Failed to notify peers of a port update topology event or providerId: "
                     + providerId + " and deviceId: " + deviceId, e);
@@ -527,16 +546,25 @@ public class GossipDeviceStore
     }
 
     @Override
-    public synchronized DeviceEvent updatePortStatus(ProviderId providerId, DeviceId deviceId,
-            PortDescription portDescription) {
-        Timestamp newTimestamp = clockService.getTimestamp(deviceId);
-        final Timestamped<PortDescription> deltaDesc = new Timestamped<>(portDescription, newTimestamp);
-        DeviceEvent event = updatePortStatusInternal(providerId, deviceId, deltaDesc);
+    public synchronized DeviceEvent updatePortStatus(ProviderId providerId,
+                                                     DeviceId deviceId,
+                                                     PortDescription portDescription) {
+
+        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
+        final Timestamped<PortDescription> deltaDesc
+            = new Timestamped<>(portDescription, newTimestamp);
+        final DeviceEvent event;
+        final Timestamped<PortDescription> mergedDesc;
+        synchronized (getDeviceDescriptions(deviceId)) {
+            event = updatePortStatusInternal(providerId, deviceId, deltaDesc);
+            mergedDesc = getDeviceDescriptions(deviceId).get(providerId)
+                            .getPortDesc(portDescription.portNumber());
+        }
         if (event != null) {
             log.info("Notifying peers of a port status update topology event for providerId: {} and deviceId: {}",
                         providerId, deviceId);
             try {
-                notifyPeers(new InternalPortStatusEvent(providerId, deviceId, deltaDesc));
+                notifyPeers(new InternalPortStatusEvent(providerId, deviceId, mergedDesc));
             } catch (IOException e) {
                 log.error("Failed to notify peers of a port status update topology event or providerId: "
                         + providerId + " and deviceId: " + deviceId, e);
@@ -615,7 +643,7 @@ public class GossipDeviceStore
 
     @Override
     public synchronized DeviceEvent removeDevice(DeviceId deviceId) {
-        Timestamp timestamp = clockService.getTimestamp(deviceId);
+        Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         DeviceEvent event = removeDeviceInternal(deviceId, timestamp);
         if (event != null) {
             log.info("Notifying peers of a device removed topology event for deviceId: {}",
@@ -684,7 +712,7 @@ public class GossipDeviceStore
      * @return Device instance
      */
     private Device composeDevice(DeviceId deviceId,
-            ConcurrentMap<ProviderId, DeviceDescriptions> providerDescs) {
+            Map<ProviderId, DeviceDescriptions> providerDescs) {
 
         checkArgument(!providerDescs.isEmpty(), "No Device descriptions supplied");
 
