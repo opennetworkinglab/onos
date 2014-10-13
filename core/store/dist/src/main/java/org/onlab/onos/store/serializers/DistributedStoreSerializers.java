@@ -2,6 +2,7 @@ package org.onlab.onos.store.serializers;
 
 import org.onlab.onos.store.common.impl.Timestamped;
 import org.onlab.onos.store.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.impl.WallClockTimestamp;
 import org.onlab.util.KryoPool;
 
 public final class DistributedStoreSerializers {
@@ -13,6 +14,7 @@ public final class DistributedStoreSerializers {
             .register(KryoPoolUtil.API)
             .register(Timestamped.class)
             .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
+            .register(WallClockTimestamp.class)
             .build();
 
     // avoid instantiation

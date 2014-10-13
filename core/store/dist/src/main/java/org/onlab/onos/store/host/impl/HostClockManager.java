@@ -6,10 +6,10 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.host.HostClockService;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.impl.WallClockTimestamp;
-import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 
 /**
@@ -32,7 +32,7 @@ public class HostClockManager implements HostClockService {
     }
 
     @Override
-    public Timestamp getTimestamp(MacAddress hostMac) {
+    public Timestamp getTimestamp(HostId hostId) {
         return new WallClockTimestamp();
     }
 }

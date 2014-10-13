@@ -1,7 +1,7 @@
 package org.onlab.onos.net.host;
 
+import org.onlab.onos.net.HostId;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.packet.MacAddress;
 
 /**
  * Interface for a logical clock service that issues per host timestamps.
@@ -9,9 +9,9 @@ import org.onlab.packet.MacAddress;
 public interface HostClockService {
 
     /**
-     * Returns a new timestamp for the specified host mac address.
-     * @param hostMac host MAC address.
+     * Returns a new timestamp for the specified host.
+     * @param hostId identifier for the host.
      * @return timestamp.
      */
-    public Timestamp getTimestamp(MacAddress hostMac);
+    public Timestamp getTimestamp(HostId hostId);
 }
