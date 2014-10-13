@@ -27,12 +27,14 @@
             <action class="org.onlab.onos.cli.net.DevicePortsListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
             <action class="org.onlab.onos.cli.net.DeviceRemoveCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
@@ -40,6 +42,8 @@
             <completers>
                 <ref component-id="deviceIdCompleter"/>
                 <ref component-id="roleCompleter"/>
+                <ref component-id="roleCompleter"/>
+                <null/>
             </completers>
         </command>
 
@@ -47,6 +51,7 @@
             <action class="org.onlab.onos.cli.net.LinksListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <null/>
             </completers>
         </command>
 
@@ -57,6 +62,8 @@
             <action class="org.onlab.onos.cli.net.PathListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <ref component-id="deviceIdCompleter"/>
+                <null/>
             </completers>
         </command>
 
@@ -67,12 +74,15 @@
             <action class="org.onlab.onos.cli.net.IntentRemoveCommand"/>
             <completers>
                 <ref component-id="intentIdCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
             <action class="org.onlab.onos.cli.net.AddHostToHostIntentCommand"/>
             <completers>
                 <ref component-id="hostIdCompleter"/>
+                <ref component-id="hostIdCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
@@ -80,6 +90,7 @@
             <completers>
                 <ref component-id="connectPointCompleter"/>
                 <ref component-id="connectPointCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
@@ -93,6 +104,8 @@
             <completers>
                 <ref component-id="connectPointCompleter"/>
                 <ref component-id="connectPointCompleter"/>
+                <ref component-id="nullCompleter"/>
+                <null/>
             </completers>
         </command>
 
@@ -103,12 +116,14 @@
             <action class="org.onlab.onos.cli.net.ClusterDevicesCommand"/>
             <completers>
                 <ref component-id="clusterIdCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
             <action class="org.onlab.onos.cli.net.ClusterLinksCommand"/>
             <completers>
                 <ref component-id="clusterIdCompleter"/>
+                <null/>
             </completers>
         </command>
 
@@ -121,6 +136,7 @@
             <completers>
                 <ref component-id="flowRuleStatusCompleter"/>
                 <ref component-id="deviceIdCompleter"/>
+                <null/>
             </completers>
         </command>
 
@@ -137,5 +153,6 @@
     <bean id="intentIdCompleter" class="org.onlab.onos.cli.net.IntentIdCompleter"/>
     <bean id="flowRuleStatusCompleter" class="org.onlab.onos.cli.net.FlowRuleStatusCompleter"/>
     <bean id="connectPointCompleter" class="org.onlab.onos.cli.net.ConnectPointCompleter"/>
+    <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
 
 </blueprint>
