@@ -25,6 +25,7 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
+import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry;
@@ -472,6 +473,7 @@ public class FlowRuleManager
                         fbe.getOperator() == FlowRuleOperation.MODIFY) {
                     store.deleteFlowRule(fbe.getTarget());
                 } else if (fbe.getOperator() == FlowRuleOperation.REMOVE) {
+                    store.removeFlowRule(new DefaultFlowEntry(fbe.getTarget()));
                     store.storeFlowRule(fbe.getTarget());
                 }
             }

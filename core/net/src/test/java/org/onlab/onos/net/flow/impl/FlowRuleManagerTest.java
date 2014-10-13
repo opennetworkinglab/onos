@@ -1,9 +1,7 @@
 package org.onlab.onos.net.flow.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static java.util.Collections.EMPTY_LIST;
+import static org.junit.Assert.*;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
@@ -12,7 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +37,7 @@ import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleProvider;
@@ -167,6 +169,7 @@ public class FlowRuleManagerTest {
     //backing store is sensitive to the order of additions/removals
     private boolean validateState(FlowEntryState... state) {
         Iterable<FlowEntry> rules = service.getFlowEntries(DID);
+        System.out.println(rules);
         int i = 0;
         for (FlowEntry f : rules) {
             if (f.state() != state[i]) {
@@ -185,12 +188,12 @@ public class FlowRuleManagerTest {
         FlowRule r3 = flowRule(3, 3);
 
         assertTrue("store should be empty",
-                Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
+                   Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
         mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
         assertTrue("Entries should be pending add.",
-                validateState(FlowEntryState.PENDING_ADD, FlowEntryState.PENDING_ADD,
-                        FlowEntryState.PENDING_ADD));
+                   validateState(FlowEntryState.PENDING_ADD, FlowEntryState.PENDING_ADD,
+                                 FlowEntryState.PENDING_ADD));
     }
 
     @Test
@@ -211,8 +214,8 @@ public class FlowRuleManagerTest {
         validateEvents();
         assertEquals("3 rule should exist", 3, flowCount());
         assertTrue("Entries should be pending remove.",
-                validateState(FlowEntryState.PENDING_REMOVE, FlowEntryState.PENDING_REMOVE,
-                        FlowEntryState.ADDED));
+                   validateState(FlowEntryState.PENDING_REMOVE, FlowEntryState.PENDING_REMOVE,
+                                 FlowEntryState.ADDED));
 
         mgr.removeFlowRules(f1);
         assertEquals("3 rule should still exist", 3, flowCount());
@@ -320,7 +323,7 @@ public class FlowRuleManagerTest {
         mgr.applyFlowRules(f1, f2);
 
         assertTrue("should have two rules",
-                Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
+                   Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
     }
 
     @Test
@@ -336,6 +339,79 @@ public class FlowRuleManagerTest {
         // be set by flowRemoved call.
         validateState(FlowEntryState.PENDING_REMOVE, FlowEntryState.PENDING_REMOVE);
     }
+
+    @Test
+    public void applyBatch() {
+        FlowRule f1 = flowRule(1, 1);
+        FlowRule f2 = flowRule(2, 2);
+
+
+        mgr.applyFlowRules(f1);
+
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        providerService.pushFlowMetrics(DID, Collections.<FlowEntry>singletonList(fe1));
+
+        FlowRuleBatchEntry fbe1 = new FlowRuleBatchEntry(
+                FlowRuleBatchEntry.FlowRuleOperation.REMOVE, f1);
+
+        FlowRuleBatchEntry fbe2 = new FlowRuleBatchEntry(
+                FlowRuleBatchEntry.FlowRuleOperation.ADD, f2);
+
+        FlowRuleBatchOperation fbo = new FlowRuleBatchOperation(
+                Lists.newArrayList(fbe1, fbe2));
+        Future<CompletedBatchOperation> future = mgr.applyBatch(fbo);
+        assertTrue("Entries in wrong state",
+                   validateState(FlowEntryState.PENDING_REMOVE, FlowEntryState.PENDING_ADD));
+        CompletedBatchOperation completed = null;
+        try {
+            completed = future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            fail("Unexpected exception: " + e);
+        }
+        if (!completed.isSuccess()) {
+            fail("Installation should be a success");
+        }
+
+    }
+
+    @Test
+    public void cancelBatch() {
+        FlowRule f1 = flowRule(1, 1);
+        FlowRule f2 = flowRule(2, 2);
+
+
+        mgr.applyFlowRules(f1);
+
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        providerService.pushFlowMetrics(DID, Collections.<FlowEntry>singletonList(fe1));
+
+        FlowRuleBatchEntry fbe1 = new FlowRuleBatchEntry(
+                FlowRuleBatchEntry.FlowRuleOperation.REMOVE, f1);
+
+        FlowRuleBatchEntry fbe2 = new FlowRuleBatchEntry(
+                FlowRuleBatchEntry.FlowRuleOperation.ADD, f2);
+
+        FlowRuleBatchOperation fbo = new FlowRuleBatchOperation(
+                Lists.newArrayList(fbe1, fbe2));
+        Future<CompletedBatchOperation> future = mgr.applyBatch(fbo);
+
+        future.cancel(true);
+
+        assertTrue(flowCount() == 2);
+
+        /*
+         * Rule f1 should be re-added to the list and therefore be in a pending add
+         * state.
+         */
+        assertTrue("Entries in wrong state",
+                   validateState(FlowEntryState.PENDING_REMOVE,
+                                 FlowEntryState.PENDING_ADD));
+
+
+
+    }
+
+
 
     private static class TestListener implements FlowRuleListener {
         final List<FlowRuleEvent> events = new ArrayList<>();
@@ -414,10 +490,40 @@ public class FlowRuleManagerTest {
         @Override
         public Future<CompletedBatchOperation> executeBatch(
                 BatchOperation<FlowRuleBatchEntry> batch) {
-            // TODO Auto-generated method stub
-            return null;
+            return new TestInstallationFuture();
         }
 
+        private class TestInstallationFuture
+                implements Future<CompletedBatchOperation> {
+
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                return true;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return true;
+            }
+
+            @Override
+            public boolean isDone() {
+                return false;
+            }
+
+            @Override
+            public CompletedBatchOperation get()
+                    throws InterruptedException, ExecutionException {
+                return new CompletedBatchOperation(true, EMPTY_LIST);
+            }
+
+            @Override
+            public CompletedBatchOperation get(long timeout, TimeUnit unit)
+                    throws InterruptedException,
+                    ExecutionException, TimeoutException {
+                return null;
+            }
+        }
 
     }
 
