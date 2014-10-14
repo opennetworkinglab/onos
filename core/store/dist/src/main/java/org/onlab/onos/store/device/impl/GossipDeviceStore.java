@@ -1199,7 +1199,7 @@ public class GossipDeviceStore
 
         @Override
         public void handle(ClusterMessage message) {
-            log.info("Received Device advertisement from peer: {}", message.sender());
+            log.debug("Received Device Anti-Entropy advertisement from peer: {}", message.sender());
             DeviceAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
             handleAdvertisement(advertisement);
         }

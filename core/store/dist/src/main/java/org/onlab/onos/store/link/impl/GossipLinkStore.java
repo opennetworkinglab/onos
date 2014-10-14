@@ -671,7 +671,7 @@ public class GossipLinkStore
 
         @Override
         public void handle(ClusterMessage message) {
-            log.info("Received Link Anti-Entropy advertisement from peer: {}", message.sender());
+            log.debug("Received Link Anti-Entropy advertisement from peer: {}", message.sender());
             LinkAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
             handleAntiEntropyAdvertisement(advertisement);
         }
