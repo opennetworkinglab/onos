@@ -163,4 +163,10 @@
         <bundle>mvn:org.onlab.onos/onos-app-config/1.0.0-SNAPSHOT</bundle>
     </feature>
 
+    <feature name="onos-app-sdnip" version="1.0.0"
+             description="SDN-IP peering application">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-sdnip/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
 </features>
