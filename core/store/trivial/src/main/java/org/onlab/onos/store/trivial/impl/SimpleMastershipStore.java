@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,6 +93,11 @@ public class SimpleMastershipStore
     @Override
     public NodeId getMaster(DeviceId deviceId) {
         return masterMap.get(deviceId);
+    }
+
+    @Override
+    public List<NodeId> getNodes(DeviceId deviceId) {
+        return null;
     }
 
     @Override

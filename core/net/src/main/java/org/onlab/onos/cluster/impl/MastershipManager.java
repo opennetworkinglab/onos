@@ -3,6 +3,7 @@ package org.onlab.onos.cluster.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -127,6 +128,11 @@ implements MastershipService, MastershipAdminService {
         return store.getDevices(nodeId);
     }
 
+    @Override
+    public List<NodeId> getNodesFor(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getNodes(deviceId);
+    }
 
     @Override
     public MastershipTermService requestTermService() {

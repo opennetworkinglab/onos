@@ -2,6 +2,8 @@ package org.onlab.onos.store.mastership.impl;
 
 import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -141,6 +143,30 @@ implements MastershipStore {
     @Override
     public NodeId getMaster(DeviceId deviceId) {
         return deserialize(masters.get(serialize(deviceId)));
+    }
+
+
+    @Override
+    public List<NodeId> getNodes(DeviceId deviceId) {
+        byte [] did = serialize(deviceId);
+        List<NodeId> nodes = new LinkedList<>();
+
+        //add current master to head - if there is one
+        ILock lock = theInstance.getLock(LOCK);
+        lock.lock();
+        try {
+            byte [] master = masters.get(did);
+            if (master != null) {
+                nodes.add((NodeId) deserialize(master));
+            }
+
+            for (byte [] el : standbys.get(serialize(deviceId))) {
+                nodes.add((NodeId) deserialize(el));
+            }
+            return nodes;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

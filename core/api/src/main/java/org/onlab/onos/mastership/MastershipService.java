@@ -1,5 +1,6 @@
 package org.onlab.onos.mastership;
 
+import java.util.List;
 import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
@@ -48,6 +49,15 @@ public interface MastershipService {
      * @return the ID of the master controller for the device
      */
     NodeId getMasterFor(DeviceId deviceId);
+
+    /**
+     * Returns controllers connected to a given device, in order of
+     * preference. The first entry in the list is the current master.
+     *
+     * @param deviceId the identifier of the device
+     * @return a list of controller IDs
+     */
+    List<NodeId> getNodesFor(DeviceId deviceId);
 
     /**
      * Returns the devices for which a controller is master.
