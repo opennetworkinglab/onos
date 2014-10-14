@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.onlab.onos.net.host.HostEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+// TODO: multi-provider, annotation not supported.
 /**
  * Manages inventory of end-station hosts using trivial in-memory
  * implementation.

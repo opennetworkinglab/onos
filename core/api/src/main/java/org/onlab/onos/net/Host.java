@@ -38,6 +38,7 @@ public interface Host extends Element {
      *
      * @return set of IP addresses; empty if no IP address is bound
      */
+    // FIXME: Switch to IpAddress
     Set<IpPrefix> ipAddresses();
 
     /**

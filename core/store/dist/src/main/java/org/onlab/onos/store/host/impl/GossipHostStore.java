@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.onlab.onos.net.host.HostEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+//TODO: multi-provider, annotation not supported.
 /**
  * Manages inventory of end-station hosts in distributed data store
  * that uses optimistic replication and gossip based techniques.
