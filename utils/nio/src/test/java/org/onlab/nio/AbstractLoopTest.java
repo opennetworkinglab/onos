@@ -15,7 +15,7 @@ import static org.onlab.util.Tools.namedThreads;
  */
 public abstract class AbstractLoopTest {
 
-    protected static final long MAX_MS_WAIT = 500;
+    protected static final long MAX_MS_WAIT = 1500;
 
     /** Block on specified countdown latch. Return when countdown reaches
      * zero, or fail the test if the {@value #MAX_MS_WAIT} ms timeout expires.
