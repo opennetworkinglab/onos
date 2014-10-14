@@ -151,7 +151,7 @@ public class DistributedLinkStore
     @Override
     public LinkEvent createOrUpdateLink(ProviderId providerId,
                                         LinkDescription linkDescription) {
-        LinkKey key = linkKey(linkDescription);
+        LinkKey key = linkKey(linkDescription.src(), linkDescription.dst());
         Optional<DefaultLink> link = links.getUnchecked(key);
         if (!link.isPresent()) {
             return createLink(providerId, key, linkDescription);

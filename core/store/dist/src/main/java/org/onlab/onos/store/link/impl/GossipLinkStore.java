@@ -238,7 +238,7 @@ public class GossipLinkStore
 
         final Timestamped<LinkDescription> deltaDesc = new Timestamped<>(linkDescription, newTimestamp);
 
-        LinkKey key = linkKey(linkDescription);
+        LinkKey key = linkKey(linkDescription.src(), linkDescription.dst());
         final LinkEvent event;
         final Timestamped<LinkDescription> mergedDesc;
         synchronized (getLinkDescriptions(key)) {
@@ -265,7 +265,8 @@ public class GossipLinkStore
             ProviderId providerId,
             Timestamped<LinkDescription> linkDescription) {
 
-        LinkKey key = linkKey(linkDescription.value());
+        LinkKey key = linkKey(linkDescription.value().src(),
+                              linkDescription.value().dst());
         ConcurrentMap<ProviderId, Timestamped<LinkDescription>> descs = getLinkDescriptions(key);
 
         synchronized (descs) {
