@@ -3,6 +3,9 @@
 # ONOS remote command-line client.
 #-------------------------------------------------------------------------------
 
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
 [ "$1" = "-w" ] && shift && onos-wait-for-start $1
 
 [ -n "$1" ] && OCI=$1 && shift
