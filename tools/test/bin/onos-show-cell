@@ -1,0 +1,53 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Print the configuration of an ONOS cell.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+function print_usage {
+    echo "Print the configuration of an ONOS cell."
+    echo "If no arguments are specified, it will print the configuration for the default"
+    echo "ONOS cell as specified in the 'ONOS_CELL' environmental variable."
+    echo
+    echo "Optional arguments:"
+    echo "  [cell-name]       Print the configuration of 'cell-name'"
+    echo "  [-h | --help]     Print this help"
+}
+
+if [ "${1}" = "-h" -o "${1}" = "--help" ]; then
+    print_usage
+    exit 0
+fi
+
+if [ -n "${1}" ]; then
+    cell="${1}"
+else
+    if [ -z "${ONOS_CELL}" ]; then
+        echo "Environmental variable 'ONOS_CELL' is not defiled"
+        exit 1
+    else
+        cell="${ONOS_CELL}"
+    fi
+fi
+
+if [ ! -f $ONOS_ROOT/tools/test/cells/${cell} ]; then
+    echo "No such cell: ${cell}"
+    exit 1
+fi
+
+# Load the cell setup
+. $ONOS_ROOT/tools/test/cells/${cell}
+
+echo "ONOS_CELL=${ONOS_CELL}"
+echo "ONOS_NIC=${ONOS_NIC}"
+for n in {0..9}; do
+    ocn="OC${n}"
+    if [ -n "${!ocn}" ]; then
+        echo "$ocn=${!ocn}"
+    fi
+done
+echo "OCN=${OCN}"
+echo "OCI=${OCI}"
+echo "ONOS_FEATURES=${ONOS_FEATURES}"

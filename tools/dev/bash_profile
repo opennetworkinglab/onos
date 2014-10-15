@@ -61,15 +61,14 @@ function cell {
     if [ -n "$1" ]; then
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
+        unset ONOS_CELL ONOS_NIC ONOS_FEATURES
         unset OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
         . $ONOS_ROOT/tools/test/cells/$1
-        export OCI=$OC1
-        export ONOS_CELL=$1
         cell
     else
         env | egrep "ONOS_CELL"
         env | egrep "OCI"
-        env | egrep "OC[0-9]+" | sort
+        env | egrep "OC[1-9]+" | sort
         env | egrep "OCN"
         env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL'
     fi
