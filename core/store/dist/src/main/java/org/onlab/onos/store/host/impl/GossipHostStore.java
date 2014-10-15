@@ -30,6 +30,7 @@ import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.common.impl.Timestamped;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
@@ -95,6 +96,11 @@ public class GossipHostStore
 
     @Activate
     public void activate() {
+        clusterCommunicator.addSubscriber(
+                GossipHostStoreMessageSubjects.HOST_UPDATED, new InternalHostEventListener());
+        clusterCommunicator.addSubscriber(
+                GossipHostStoreMessageSubjects.HOST_REMOVED, new InternalHostRemovedEventListener());
+
         log.info("Started");
     }
 
@@ -391,5 +397,41 @@ public class GossipHostStore
                 subject,
                 SERIALIZER.encode(event));
         clusterCommunicator.broadcast(message);
+    }
+
+    private void notifyDelegateIfNotNull(HostEvent event) {
+        if (event != null) {
+            notifyDelegate(event);
+        }
+    }
+
+    private class InternalHostEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+
+            log.info("Received host update event from peer: {}", message.sender());
+            InternalHostEvent event = (InternalHostEvent) SERIALIZER.decode(message.payload());
+
+            ProviderId providerId = event.providerId();
+            HostId hostId = event.hostId();
+            HostDescription hostDescription = event.hostDescription();
+            Timestamp timestamp = event.timestamp();
+
+            notifyDelegateIfNotNull(createOrUpdateHostInternal(providerId, hostId, hostDescription, timestamp));
+        }
+    }
+
+    private class InternalHostRemovedEventListener implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+
+            log.info("Received host removed event from peer: {}", message.sender());
+            InternalHostRemovedEvent event = (InternalHostRemovedEvent) SERIALIZER.decode(message.payload());
+
+            HostId hostId = event.hostId();
+            Timestamp timestamp = event.timestamp();
+
+            notifyDelegateIfNotNull(removeHostInternal(hostId, timestamp));
+        }
     }
 }
