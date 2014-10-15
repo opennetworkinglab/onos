@@ -8,6 +8,8 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.packet.IpAddress;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Represents an address of a {@link BgpSpeaker} configured on an
  * {@link Interface}.
@@ -19,10 +21,10 @@ public class InterfaceAddress {
     private final IpAddress ipAddress;
 
     /**
-     * Class constructor used by the JSON library to create an object.
+     * Creates an InterfaceAddress object.
      *
-     * @param interfaceName the interface name for which an IP address of a BGP
-     * router is configured
+     * @param dpid the DPID of the interface as a String
+     * @param port the port of the interface
      * @param ipAddress the IP address of a {@link BgpSpeaker} configured on
      * the interface
      */
@@ -40,7 +42,7 @@ public class InterfaceAddress {
      *
      * @return the connection point
      */
-    public ConnectPoint getConnectPoint() {
+    public ConnectPoint connectPoint() {
         return connectPoint;
     }
 
@@ -49,7 +51,7 @@ public class InterfaceAddress {
      *
      * @return the IP address
      */
-    public IpAddress getIpAddress() {
+    public IpAddress ipAddress() {
         return ipAddress;
     }
 
@@ -71,5 +73,13 @@ public class InterfaceAddress {
         InterfaceAddress that = (InterfaceAddress) obj;
         return Objects.equals(this.connectPoint, that.connectPoint)
                 && Objects.equals(this.ipAddress, that.ipAddress);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("connectPoint", connectPoint)
+                .add("ipAddress", ipAddress)
+                .toString();
     }
 }

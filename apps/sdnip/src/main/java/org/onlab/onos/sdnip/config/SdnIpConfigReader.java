@@ -50,11 +50,11 @@ public class SdnIpConfigReader implements SdnIpConfigService {
             }*/
             bgpSpeakers = new ConcurrentHashMap<>();
             for (BgpSpeaker speaker : config.getBgpSpeakers()) {
-                bgpSpeakers.put(speaker.getSpeakerName(), speaker);
+                bgpSpeakers.put(speaker.name(), speaker);
             }
             bgpPeers = new ConcurrentHashMap<>();
             for (BgpPeer peer : config.getPeers()) {
-                bgpPeers.put(peer.getIpAddress(), peer);
+                bgpPeers.put(peer.ipAddress(), peer);
             }
         } catch (IOException e) {
             log.error("Error reading JSON file", e);

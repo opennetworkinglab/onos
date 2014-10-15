@@ -8,19 +8,20 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.packet.IpAddress;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Configuration details for a BGP peer. It contains the peer's IP address and
- * an interface name which maps to the interface they are attached at.
+ * Configuration details for a BGP peer.
  */
 public class BgpPeer {
     private final ConnectPoint connectPoint;
     private final IpAddress ipAddress;
 
     /**
-     * Class constructor, taking the interface name and IP address of the peer.
+     * Creates a new BgpPeer.
      *
-     * @param interfaceName the String name of the interface which can be used
-     * to look up the interface this peer is attached at
+     * @param dpid the DPID of the switch the peer is attached at, as a String
+     * @param port the port the peer is attached at
      * @param ipAddress the IP address of the peer as a String
      */
     public BgpPeer(@JsonProperty("attachmentDpid") String dpid,
@@ -37,7 +38,7 @@ public class BgpPeer {
      *
      * @return the connection point
      */
-    public ConnectPoint getConnectPoint() {
+    public ConnectPoint connectPoint() {
         return connectPoint;
     }
 
@@ -46,7 +47,7 @@ public class BgpPeer {
      *
      * @return the IP address
      */
-    public IpAddress getIpAddress() {
+    public IpAddress ipAddress() {
         return ipAddress;
     }
 
@@ -68,5 +69,13 @@ public class BgpPeer {
         BgpPeer that = (BgpPeer) obj;
         return Objects.equals(this.connectPoint, that.connectPoint)
                 && Objects.equals(this.ipAddress, that.ipAddress);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("connectPoint", connectPoint)
+                .add("ipAddress", ipAddress)
+                .toString();
     }
 }

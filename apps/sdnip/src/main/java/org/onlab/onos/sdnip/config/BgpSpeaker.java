@@ -10,6 +10,8 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.packet.MacAddress;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Represents a BGP daemon in SDN network.
  * <p/>
@@ -23,28 +25,28 @@ import org.onlab.packet.MacAddress;
  * used to reference this speaker in the configuration.
  */
 public class BgpSpeaker {
-    private final String speakerName;
-    private final ConnectPoint attachmentSwitchPort;
+    private final String name;
+    private final ConnectPoint connectPoint;
     private final MacAddress macAddress;
     private List<InterfaceAddress> interfaceAddresses;
 
     /**
      * Class constructor used by the JSON library to create an object.
      *
-     * @param speakerName the name of the BGP router inside SDN network
-     * @param attachmentDpid the DPID where the BGP router is attached to
-     * @param attachmentPort the port where the BGP router is attached to
-     * @param macAddress the MAC address of the BGP router
+     * @param name the name of the BGP speaker inside SDN network
+     * @param attachmentDpid the DPID where the BGP speaker is attached to
+     * @param attachmentPort the port where the BGP speaker is attached to
+     * @param macAddress the MAC address of the BGP speaker
      */
     @JsonCreator
-    public BgpSpeaker(@JsonProperty("name") String speakerName,
+    public BgpSpeaker(@JsonProperty("name") String name,
             @JsonProperty("attachmentDpid") String attachmentDpid,
             @JsonProperty("attachmentPort") int attachmentPort,
             @JsonProperty("macAddress") String macAddress) {
 
-        this.speakerName = speakerName;
+        this.name = name;
         this.macAddress = MacAddress.valueOf(macAddress);
-        this.attachmentSwitchPort = new ConnectPoint(
+        this.connectPoint = new ConnectPoint(
                 DeviceId.deviceId(SdnIpConfigReader.dpidToUri(attachmentDpid)),
                 PortNumber.portNumber(attachmentPort));
     }
@@ -67,25 +69,25 @@ public class BgpSpeaker {
      *
      * @return the BGP speaker name
      */
-    public String getSpeakerName() {
-        return speakerName;
+    public String name() {
+        return name;
     }
 
     /**
-     * Gets the switch port where the BGP speaker is attached.
+     * Gets the connect point where the BGP speaker is attached.
      *
-     * @return the switch port where the BGP speaker is attached
+     * @return the connect point
      */
-    public ConnectPoint getAttachmentSwitchPort() {
-        return attachmentSwitchPort;
+    public ConnectPoint connectPoint() {
+        return connectPoint;
     }
 
     /**
      * Gets the MAC address of the BGP speaker.
      *
-     * @return the MAC address of the BGP speaker
+     * @return the MAC address
      */
-    public MacAddress getMacAddress() {
+    public MacAddress macAddress() {
         return macAddress;
     }
 
@@ -96,7 +98,7 @@ public class BgpSpeaker {
      * @return a list of IP addresses of the BGP speaker configured on all
      * virtual interfaces
      */
-    public List<InterfaceAddress> getInterfaceAddresses() {
+    public List<InterfaceAddress> interfaceAddresses() {
         return interfaceAddresses;
     }
 
@@ -108,17 +110,27 @@ public class BgpSpeaker {
 
         BgpSpeaker otherBgpSpeaker = (BgpSpeaker) other;
 
-        return  speakerName.equals(otherBgpSpeaker.speakerName) &&
-                attachmentSwitchPort.equals(
-                        otherBgpSpeaker.attachmentSwitchPort) &&
+        return  name.equals(otherBgpSpeaker.name) &&
+                connectPoint.equals(
+                        otherBgpSpeaker.connectPoint) &&
                 macAddress.equals(otherBgpSpeaker.macAddress) &&
                 interfaceAddresses.equals(otherBgpSpeaker.interfaceAddresses);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(speakerName, attachmentSwitchPort, macAddress,
+        return Objects.hash(name, connectPoint, macAddress,
                 interfaceAddresses);
 
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("speakerName", name)
+                .add("connectPoint", connectPoint)
+                .add("macAddress", macAddress)
+                .add("interfaceAddresses", interfaceAddresses)
+                .toString();
     }
 }
