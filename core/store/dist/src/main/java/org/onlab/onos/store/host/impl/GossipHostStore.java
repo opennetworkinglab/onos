@@ -29,12 +29,18 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.serializers.DistributedStoreSerializers;
+import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -76,6 +82,17 @@ public class GossipHostStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        @Override
+        protected void setupKryoPool() {
+            serializerPool = KryoPool.newBuilder()
+                    .register(DistributedStoreSerializers.COMMON)
+                    .register(InternalHostRemovedEvent.class)
+                    .build()
+                    .populate(1);
+        }
+    };
+
     @Activate
     public void activate() {
         log.info("Started");
@@ -90,8 +107,18 @@ public class GossipHostStore
     public HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
                                         HostDescription hostDescription) {
         Timestamp timestamp = hostClockService.getTimestamp(hostId);
-        return createOrUpdateHostInternal(providerId, hostId, hostDescription, timestamp);
-        // TODO: tell peers.
+        HostEvent event = createOrUpdateHostInternal(providerId, hostId, hostDescription, timestamp);
+        if (event != null) {
+            log.info("Notifying peers of a host topology event for providerId: "
+                    + "{}; hostId: {}; hostDescription: {}", providerId, hostId, hostDescription);
+            try {
+                notifyPeers(new InternalHostEvent(providerId, hostId, hostDescription, timestamp));
+            } catch (IOException e) {
+                log.error("Failed to notify peers of a host topology event for providerId: "
+                        + "{}; hostId: {}; hostDescription: {}", providerId, hostId, hostDescription);
+            }
+        }
+        return event;
     }
 
     private HostEvent createOrUpdateHostInternal(ProviderId providerId, HostId hostId,
@@ -157,8 +184,16 @@ public class GossipHostStore
     @Override
     public HostEvent removeHost(HostId hostId) {
         Timestamp timestamp = hostClockService.getTimestamp(hostId);
-        return removeHostInternal(hostId, timestamp);
-        // TODO: tell peers
+        HostEvent event = removeHostInternal(hostId, timestamp);
+        if (event != null) {
+            log.info("Notifying peers of a host removed topology event for hostId: {}", hostId);
+            try {
+                notifyPeers(new InternalHostRemovedEvent(hostId, timestamp));
+            } catch (IOException e) {
+                log.info("Failed to notify peers of a host removed topology event for hostId: {}", hostId);
+            }
+        }
+        return event;
     }
 
     private HostEvent removeHostInternal(HostId hostId, Timestamp timestamp) {
@@ -340,5 +375,21 @@ public class GossipHostStore
         public HostLocation location() {
             return location.value();
         }
+    }
+
+    private void notifyPeers(InternalHostRemovedEvent event) throws IOException {
+        broadcastMessage(GossipHostStoreMessageSubjects.HOST_REMOVED, event);
+    }
+
+    private void notifyPeers(InternalHostEvent event) throws IOException {
+        broadcastMessage(GossipHostStoreMessageSubjects.HOST_UPDATED, event);
+    }
+
+    private void broadcastMessage(MessageSubject subject, Object event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                subject,
+                SERIALIZER.encode(event));
+        clusterCommunicator.broadcast(message);
     }
 }
