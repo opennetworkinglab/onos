@@ -1,0 +1,18 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# List available ONOS cells configuration.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+# Lists available cells
+for cell in $(ls -1 $ONOS_ROOT/tools/test/cells); do
+    if [ ${cell} = "${ONOS_CELL}" ]; then
+        cell_id="${cell} *"
+    else
+        cell_id="${cell}"
+    fi
+    cell_descr="$(grep '^#' $ONOS_ROOT/tools/test/cells/$cell | head -n 1)"
+    printf "%-12s  %s\n" "${cell_id}" "${cell_descr}"
+done
