@@ -123,18 +123,7 @@ public class PeerConnectivity {
                 // TODO: The usage of PacketMatchBuilder will be improved, then we
                 // only need to new the PacketMatchBuilder once.
                 // By then, the code here will be improved accordingly.
-                /*PacketMatch packetMatch = new PacketMatchBuilder().setEtherType(
-                        Ethernet.TYPE_IPV4)
-                        .setIpProto(PROTOCOL_TCP)
-                        .setSrcIpNet(new Ip4Prefix(bgpdAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setDstIpNet(new Ip4Prefix(bgpdPeerAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setDstTcpPort(BGP_PORT)
-                        .build();
-                        */
-
-                TrafficSelector selector = DefaultTrafficSelector.builder()
+                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
@@ -155,14 +144,6 @@ public class PeerConnectivity {
 
                 // install intent for BGP path from BGPd to BGP peer matching
                 // source TCP port 179
-                /*packetMatch = new PacketMatchBuilder().setEtherType(Ethernet.TYPE_IPV4)
-                        .setIpProto(PROTOCOL_TCP)
-                        .setSrcIpNet(new Ip4Prefix(bgpdAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setDstIpNet(new Ip4Prefix(bgpdPeerAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setSrcTcpPort(BGP_PORT)
-                        .build();*/
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
@@ -181,14 +162,6 @@ public class PeerConnectivity {
 
                 // install intent for reversed BGP path from BGP peer to BGPd
                 // matching destination TCP port 179
-                /*packetMatch = new PacketMatchBuilder().setEtherType(Ethernet.TYPE_IPV4)
-                        .setIpProto(PROTOCOL_TCP)
-                        .setSrcIpNet(new Ip4Prefix(bgpdPeerAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setDstIpNet(new Ip4Prefix(bgpdAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setDstTcpPort(BGP_PORT)
-                        .build();*/
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
@@ -207,14 +180,6 @@ public class PeerConnectivity {
 
                 // install intent for reversed BGP path from BGP peer to BGPd
                 // matching source TCP port 179
-                /*packetMatch = new PacketMatchBuilder().setEtherType(Ethernet.TYPE_IPV4)
-                        .setIpProto(PROTOCOL_TCP)
-                        .setSrcIpNet(new Ip4Prefix(bgpdPeerAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setDstIpNet(new Ip4Prefix(bgpdAddress,
-                                                   (short) Ip4Address.BIT_LENGTH))
-                        .setSrcTcpPort(BGP_PORT)
-                        .build();*/
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
@@ -283,15 +248,6 @@ public class PeerConnectivity {
                 ConnectPoint bgpdPeerConnectPoint = peerInterface.connectPoint();
 
                 // install intent for ICMP path from BGPd to BGP peer
-                /*PacketMatch packetMatch =
-                        new PacketMatchBuilder().setEtherType(
-                                Ethernet.TYPE_IPV4)
-                        .setIpProto(PROTOCOL_ICMP)
-                        .setSrcIpNet(new Ip4Prefix(bgpdAddress,
-                                (short) Ip4Address.BIT_LENGTH))
-                                .setDstIpNet(new Ip4Prefix(bgpdPeerAddress,
-                                        (short) Ip4Address.BIT_LENGTH))
-                                        .build();*/
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
@@ -310,15 +266,6 @@ public class PeerConnectivity {
                         + " {}", bgpdAddress, bgpdPeerAddress, intent);
 
                 // install intent for reversed ICMP path from BGP peer to BGPd
-                /*packetMatch = new PacketMatchBuilder().setEtherType(
-                        Ethernet.TYPE_IPV4)
-                        .setIpProto(PROTOCOL_ICMP)
-                        .setSrcIpNet(new Ip4Prefix(bgpdPeerAddress,
-                                (short) Ip4Address.BIT_LENGTH))
-                                .setDstIpNet(new Ip4Prefix(bgpdAddress,
-                                        (short) Ip4Address.BIT_LENGTH))
-                                        .build();*/
-
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
