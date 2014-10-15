@@ -18,7 +18,7 @@ ssh $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
 
     # Prepare a landing zone and unroll the bits
-    sudo mkdir -p $ONOS_INSTALL_DIR && sudo chown sdn:sdn $ONOS_INSTALL_DIR
+    sudo mkdir -p $ONOS_INSTALL_DIR && sudo chown ${ONOS_USER}:${ONOS_USER} $ONOS_INSTALL_DIR
     tar zxmf /tmp/$ONOS_BITS.tar.gz -C $ONOS_INSTALL_DIR --strip-components=1
 
     # Make a link to the log file directory and make a home for auxiliaries
