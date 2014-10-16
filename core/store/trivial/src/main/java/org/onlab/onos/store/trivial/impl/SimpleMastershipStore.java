@@ -2,6 +2,7 @@ package org.onlab.onos.store.trivial.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -97,7 +98,14 @@ public class SimpleMastershipStore
 
     @Override
     public List<NodeId> getNodes(DeviceId deviceId) {
-        return null;
+        List<NodeId> nodes = new ArrayList<>();
+
+        nodes.addAll(backups);
+        if (!nodes.contains(masterMap.get(deviceId))) {
+            nodes.add(masterMap.get(deviceId));
+        }
+
+        return Collections.unmodifiableList(nodes);
     }
 
     @Override
