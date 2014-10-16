@@ -68,6 +68,7 @@ function cell {
             echo "No such cell: $1" >&2 && return 1
         unset ONOS_CELL ONOS_NIC ONOS_FEATURES
         unset OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
+        export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
         cell
     else

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
           name="onos-1.0.0">
-    <repository>mvn:org.onlab.onos/onos-features/1.0.0-SNAPSHOT/xml/features</repository>
+    <repository>mvn:org.onlab.onos/onos-features/1.0.0-SNAPSHOT/xml/features
+    </repository>
 
     <feature name="onos-thirdparty-base" version="1.0.0"
              description="ONOS 3rd party dependencies">
@@ -28,21 +29,22 @@
 
         <bundle>mvn:org.onlab.onos/onlab-nio/1.0.0-SNAPSHOT</bundle>
 
-	<bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.13</bundle>
-	<bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13</bundle>
-	<bundle>mvn:org.onlab.onos/onlab-thirdparty/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.13</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13</bundle>
+        <bundle>mvn:org.onlab.onos/onlab-thirdparty/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-thirdparty-web" version="1.0.0"
              description="ONOS 3rd party dependencies">
         <feature>war</feature>
         <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.4.2</bundle>
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.4.2</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.4.2
+        </bundle>
         <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.4.2</bundle>
         <bundle>mvn:com.sun.jersey/jersey-core/1.18.1</bundle>
         <bundle>mvn:com.sun.jersey/jersey-server/1.18.1</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/1.18.1</bundle>
-        
+
     </feature>
 
     <feature name="onos-api" version="1.0.0"
@@ -96,16 +98,18 @@
     </feature>
 
     <feature name="onos-openflow" version="1.0.0"
-            description="ONOS OpenFlow API, Controller &amp; Providers">
+             description="ONOS OpenFlow API, Controller &amp; Providers">
         <feature>onos-api</feature>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-api/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
 
-        <bundle>mvn:org.onlab.onos/onos-of-provider-device/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-of-provider-device/1.0.0-SNAPSHOT
+        </bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-link/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-host/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-of-provider-packet/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-of-provider-packet/1.0.0-SNAPSHOT
+        </bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-flow/1.0.0-SNAPSHOT</bundle>
 
     </feature>
