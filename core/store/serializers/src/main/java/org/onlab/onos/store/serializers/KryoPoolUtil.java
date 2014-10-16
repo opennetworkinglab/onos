@@ -17,6 +17,8 @@ import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Element;
+import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.MastershipRole;
@@ -24,15 +26,20 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
+import org.onlab.onos.net.host.DefaultHostDescription;
+import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoPool;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 public final class KryoPoolUtil {
 
@@ -42,6 +49,8 @@ public final class KryoPoolUtil {
     public static final KryoPool MISC = KryoPool.newBuilder()
             .register(IpPrefix.class, new IpPrefixSerializer())
             .register(IpAddress.class, new IpAddressSerializer())
+            .register(MacAddress.class, new MacAddressSerializer())
+            .register(VlanId.class)
             .build();
 
     // TODO: Populate other classes
@@ -52,6 +61,7 @@ public final class KryoPoolUtil {
             .register(MISC)
             .register(ImmutableMap.class, new ImmutableMapSerializer())
             .register(ImmutableList.class, new ImmutableListSerializer())
+            .register(ImmutableSet.class, new ImmutableSetSerializer())
             .register(
                     //
                     ArrayList.class,
@@ -71,8 +81,10 @@ public final class KryoPoolUtil {
                     DefaultPortDescription.class,
                     Element.class,
                     Link.Type.class,
-                    Timestamp.class
-
+                    Timestamp.class,
+                    HostId.class,
+                    HostDescription.class,
+                    DefaultHostDescription.class
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())
@@ -85,6 +97,7 @@ public final class KryoPoolUtil {
             .register(DefaultLink.class, new DefaultLinkSerializer())
             .register(MastershipTerm.class, new MastershipTermSerializer())
             .register(MastershipRole.class, new MastershipRoleSerializer())
+            .register(HostLocation.class, new HostLocationSerializer())
 
             .build();
 
