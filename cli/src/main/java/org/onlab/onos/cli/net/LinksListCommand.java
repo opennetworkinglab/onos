@@ -66,7 +66,7 @@ public class LinksListCommand extends AbstractShellCommand {
     public static ObjectNode json(ObjectMapper mapper, Link link) {
         ObjectNode result = mapper.createObjectNode();
         result.set("src", json(mapper, link.src()));
-        result.set("dst", json(mapper, link.src()));
+        result.set("dst", json(mapper, link.dst()));
         return result;
     }
 
