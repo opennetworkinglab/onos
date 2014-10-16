@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.sdnip.RouteUpdate.Type;
+import org.onlab.onos.sdnip.bgp.BgpSessionManager;
 import org.onlab.onos.sdnip.config.SdnIpConfigReader;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -32,6 +33,7 @@ public class SdnIp {
     private SdnIpConfigReader config;
     private PeerConnectivity peerConnectivity;
     private Router router;
+    private BgpSessionManager bgpSessionManager;
 
     @Activate
     protected void activate() {
@@ -47,6 +49,9 @@ public class SdnIp {
 
         router = new Router(intentService, hostService, config, interfaceService);
         router.start();
+
+        bgpSessionManager = new BgpSessionManager(router);
+        bgpSessionManager.startUp(2000); // TODO
 
         // TODO need to disable link discovery on external ports
 

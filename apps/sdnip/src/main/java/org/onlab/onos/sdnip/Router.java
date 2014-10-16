@@ -126,6 +126,8 @@ public class Router implements RouteListener {
         bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
                 .setNameFormat("bgp-intents-synchronizer-%d").build());
+
+        this.hostService.addListener(new InternalHostListener());
     }
 
     /**

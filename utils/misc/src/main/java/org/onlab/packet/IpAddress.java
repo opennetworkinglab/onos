@@ -2,13 +2,15 @@ package org.onlab.packet;
 
 import java.util.Arrays;
 
+
+
 /**
  * A class representing an IPv4 address.
  * <p/>
  * TODO this class is a clone of IpPrefix and still needs to be modified to
  * look more like an IpAddress.
  */
-public final class IpAddress {
+public final class IpAddress implements Comparable<IpAddress> {
 
     // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
 
@@ -286,6 +288,13 @@ public final class IpAddress {
             return network().equals(otherMasked);
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(IpAddress o) {
+        Long lv = ((long) this.toRealInt()) & 0xffffffffL;
+        Long rv = ((long) o.toRealInt()) & 0xffffffffL;
+        return lv.compareTo(rv);
     }
 
     @Override
