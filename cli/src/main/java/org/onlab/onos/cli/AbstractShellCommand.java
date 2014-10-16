@@ -1,5 +1,6 @@
 package org.onlab.onos.cli;
 
+import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
@@ -8,6 +9,10 @@ import org.onlab.osgi.ServiceNotFoundException;
  * Base abstraction of Karaf shell commands.
  */
 public abstract class AbstractShellCommand extends OsgiCommandSupport {
+
+    @Option(name = "-j", aliases = "--json", description = "Output JSON",
+            required = false, multiValued = false)
+    private boolean json = false;
 
     /**
      * Returns the reference to the implementation of the specified service.
@@ -45,6 +50,15 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * Executes this command.
      */
     protected abstract void execute();
+
+    /**
+     * Indicates whether JSON format should be output.
+     *
+     * @return true if JSON is requested
+     */
+    protected boolean outputJson() {
+        return json;
+    }
 
     @Override
     protected Object doExecute() throws Exception {

@@ -1,5 +1,6 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -10,6 +11,7 @@ import org.onlab.onos.net.topology.TopologyCluster;
 import java.util.Collections;
 import java.util.List;
 
+import static org.onlab.onos.cli.MastersListCommand.json;
 import static org.onlab.onos.net.topology.ClusterId.clusterId;
 
 /**
@@ -33,11 +35,14 @@ public class ClusterDevicesCommand extends ClustersListCommand {
         } else {
             List<DeviceId> ids = Lists.newArrayList(service.getClusterDevices(topology, cluster));
             Collections.sort(ids, Comparators.ELEMENT_ID_COMPARATOR);
-            for (DeviceId deviceId : ids) {
-                print("%s", deviceId);
+            if (outputJson()) {
+                print("%s", json(new ObjectMapper(), ids));
+            } else {
+                for (DeviceId deviceId : ids) {
+                    print("%s", deviceId);
+                }
             }
         }
     }
-
 
 }

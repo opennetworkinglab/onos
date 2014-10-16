@@ -1,5 +1,9 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.Comparators;
@@ -30,17 +34,59 @@ public class DevicePortsListCommand extends DevicesListCommand {
     protected void execute() {
         DeviceService service = get(DeviceService.class);
         if (uri == null) {
-            for (Device device : getSortedDevices(service)) {
-                printDevice(service, device);
+            if (outputJson()) {
+                print("%s", jsonPorts(service, getSortedDevices(service)));
+            } else {
+                for (Device device : getSortedDevices(service)) {
+                    printDevice(service, device);
+                }
             }
+
         } else {
             Device device = service.getDevice(deviceId(uri));
             if (device == null) {
                 error("No such device %s", uri);
+            } else if (outputJson()) {
+                print("%s", jsonPorts(service, new ObjectMapper(), device));
             } else {
                 printDevice(service, device);
             }
         }
+    }
+
+    /**
+     * Produces JSON array containing ports of the specified devices.
+     *
+     * @param service device service
+     * @param devices collection of devices
+     * @return JSON array
+     */
+    public static JsonNode jsonPorts(DeviceService service, Iterable<Device> devices) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Device device : devices) {
+            result.add(jsonPorts(service, mapper, device));
+        }
+        return result;
+    }
+
+    /**
+     * Produces JSON array containing ports of the specified device.
+     *
+     * @param service device service
+     * @param mapper  object mapper
+     * @param device  infrastructure devices
+     * @return JSON array
+     */
+    public static JsonNode jsonPorts(DeviceService service, ObjectMapper mapper, Device device) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode ports = mapper.createArrayNode();
+        for (Port port : service.getPorts(device.id())) {
+            ports.add(mapper.createObjectNode()
+                              .put("port", port.number().toString())
+                              .put("isEnabled", port.isEnabled()));
+        }
+        return result.put("device", device.id().toString()).set("ports", ports);
     }
 
     @Override

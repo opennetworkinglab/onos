@@ -1,10 +1,15 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.packet.IpPrefix;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +20,7 @@ import static com.google.common.collect.Lists.newArrayList;
  * Lists all currently-known hosts.
  */
 @Command(scope = "onos", name = "hosts",
-        description = "Lists all currently-known hosts.")
+         description = "Lists all currently-known hosts.")
 public class HostsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
@@ -24,9 +29,40 @@ public class HostsListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         HostService service = get(HostService.class);
-        for (Host host : getSortedHosts(service)) {
-            printHost(host);
+        if (outputJson()) {
+            print("%s", json(getSortedHosts(service)));
+        } else {
+            for (Host host : getSortedHosts(service)) {
+                printHost(host);
+            }
         }
+    }
+
+    // Produces JSON structure.
+    private static JsonNode json(Iterable<Host> hosts) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Host host : hosts) {
+            result.add(json(mapper, host));
+        }
+        return result;
+    }
+
+    // Produces JSON structure.
+    private static JsonNode json(ObjectMapper mapper, Host host) {
+        ObjectNode loc = LinksListCommand.json(mapper, host.location())
+                .put("time", host.location().time());
+        ArrayNode ips = mapper.createArrayNode();
+        for (IpPrefix ip : host.ipAddresses()) {
+            ips.add(ip.toString());
+        }
+        ObjectNode result = mapper.createObjectNode()
+                .put("id", host.id().toString())
+                .put("mac", host.mac().toString())
+                .put("vlan", host.vlan().toString());
+        result.set("location", loc);
+        result.set("ips", ips);
+        return result;
     }
 
     /**
@@ -44,14 +80,14 @@ public class HostsListCommand extends AbstractShellCommand {
     /**
      * Prints information about a host.
      *
-     * @param host
+     * @param host end-station host
      */
     protected void printHost(Host host) {
         if (host != null) {
             print(FMT, host.id(), host.mac(),
-                    host.location().deviceId(),
-                    host.location().port(),
-                    host.vlan(), host.ipAddresses());
+                  host.location().deviceId(),
+                  host.location().port(),
+                  host.vlan(), host.ipAddresses());
         }
     }
- }
+}
