@@ -176,14 +176,6 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @return the IP address's value as an integer
      */
     public int toInt() {
-        int address = 0;
-        for (int i = 0; i < INET_LEN; i++) {
-            address |= octets[i] << ((INET_LEN - (i + 1)) * 8);
-        }
-        return address;
-    }
-
-    public int toRealInt() {
         int val = 0;
         for (int i = 0; i < octets.length; i++) {
           val <<= 8;
@@ -292,8 +284,8 @@ public final class IpAddress implements Comparable<IpAddress> {
 
     @Override
     public int compareTo(IpAddress o) {
-        Long lv = ((long) this.toRealInt()) & 0xffffffffL;
-        Long rv = ((long) o.toRealInt()) & 0xffffffffL;
+        Long lv = ((long) this.toInt()) & 0xffffffffL;
+        Long rv = ((long) o.toInt()) & 0xffffffffL;
         return lv.compareTo(rv);
     }
 

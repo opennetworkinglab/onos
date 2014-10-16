@@ -1226,7 +1226,7 @@ public class BgpSession extends SimpleChannelHandler {
             }
             address <<= extraShift;
             IpPrefix prefix =
-                IpPrefix.valueOf(IpAddress.valueOf((int) address).toRealInt(),
+                IpPrefix.valueOf(IpAddress.valueOf((int) address).toInt(),
                               (short) prefixBitlen);
             result.add(prefix);
         }
@@ -1600,7 +1600,7 @@ public class BgpSession extends SimpleChannelHandler {
         message.writeByte(localBgpVersion);
         message.writeShort((int) localAs);
         message.writeShort((int) localHoldtime);
-        message.writeInt(bgpSessionManager.getMyBgpId().toRealInt());
+        message.writeInt(bgpSessionManager.getMyBgpId().toInt());
         message.writeByte(0);               // No Optional Parameters
         return prepareBgpMessage(BgpConstants.BGP_TYPE_OPEN, message);
     }

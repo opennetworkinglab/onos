@@ -94,7 +94,7 @@ public class Router implements RouteListener {
     private volatile boolean isElectedLeader = false;
     private volatile boolean isActivatedLeader = false;
 
-    // For routes announced by local BGP deamon in SDN network,
+    // For routes announced by local BGP daemon in SDN network,
     // the next hop will be 0.0.0.0.
     public static final IpAddress LOCAL_NEXT_HOP = IpAddress.valueOf("0.0.0.0");
 

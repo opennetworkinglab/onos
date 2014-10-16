@@ -126,8 +126,8 @@ public class PeerConnectivity {
                  TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toRealInt(), IPV4_BIT_LENGTH))
+                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
+                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(), IPV4_BIT_LENGTH))
                         .matchTcpDst(BGP_PORT)
                         .build();
 
@@ -147,8 +147,8 @@ public class PeerConnectivity {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toRealInt(), IPV4_BIT_LENGTH))
+                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
+                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(), IPV4_BIT_LENGTH))
                         .matchTcpSrc(BGP_PORT)
                         .build();
 
@@ -165,8 +165,8 @@ public class PeerConnectivity {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toRealInt(), IPV4_BIT_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
+                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(), IPV4_BIT_LENGTH))
+                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
                         .matchTcpDst(BGP_PORT)
                         .build();
 
@@ -183,8 +183,8 @@ public class PeerConnectivity {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toRealInt(), IPV4_BIT_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
+                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(), IPV4_BIT_LENGTH))
+                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
                         .matchTcpSrc(BGP_PORT)
                         .build();
 
@@ -251,8 +251,8 @@ public class PeerConnectivity {
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toRealInt(), IPV4_BIT_LENGTH))
+                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
+                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(), IPV4_BIT_LENGTH))
                         .build();
 
                 TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -269,8 +269,8 @@ public class PeerConnectivity {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toRealInt(), IPV4_BIT_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toRealInt(), IPV4_BIT_LENGTH))
+                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(), IPV4_BIT_LENGTH))
+                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
                         .build();
 
                 PointToPointIntent reversedIntent = new PointToPointIntent(
