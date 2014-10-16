@@ -25,6 +25,7 @@
         <module>proxyarp</module>
         <module>config</module>
         <module>sdnip</module>
+        <module>calendar</module>
     </modules>
 
     <properties>
