@@ -42,23 +42,6 @@
 	    <scope>test</scope>
 	</dependency>
 
-        <!-- TODO Consider removing store dependency.
-              Currently required for DistributedDeviceManagerTest. -->
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-core-hz-net</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <!-- FIXME: should be somewhere else -->
-            <artifactId>onos-core-hz-common</artifactId>
-            <version>${project.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
