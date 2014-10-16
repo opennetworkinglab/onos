@@ -348,7 +348,7 @@ public class SimpleDeviceStore
 
         synchronized (descsMap) {
             DeviceDescriptions descs = descsMap.get(providerId);
-            // assuming all providers must to give DeviceDescription
+            // assuming all providers must give DeviceDescription first
             checkArgument(descs != null,
                     "Device description for Device ID %s from Provider %s was not found",
                     deviceId, providerId);
