@@ -94,7 +94,7 @@ public class FlowsListCommand extends AbstractShellCommand {
 
         result.put("device", device.id().toString())
                 .put("flowCount", flows.size())
-                .put("flows", array);
+                .set("flows", array);
         return result;
     }
 
