@@ -339,9 +339,14 @@ public class LinkDiscovery implements TimerTask {
             final Iterator<Integer> fastIterator = this.fastPorts.iterator();
             while (fastIterator.hasNext()) {
                 final Integer portNumber = fastIterator.next();
+                OFPortDesc port = findPort(portNumber);
+                if (port == null) {
+                    // port can be null
+                    // #removePort modifies `ports` outside synchronized block
+                    continue;
+                }
                 final int probeCount = this.portProbeCount.get(portNumber)
                         .getAndIncrement();
-                OFPortDesc port = findPort(portNumber);
                 if (probeCount < LinkDiscovery.MAX_PROBE_COUNT) {
                     this.log.debug("sending fast probe to port");
 

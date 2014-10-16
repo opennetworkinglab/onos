@@ -355,7 +355,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         arp.setTargetProtocolAddress(((ARP) request.getPayload())
                 .getSenderProtocolAddress());
-        arp.setSenderProtocolAddress(srcIp.toRealInt());
+        arp.setSenderProtocolAddress(srcIp.toInt());
         eth.setPayload(arp);
         return eth;
     }

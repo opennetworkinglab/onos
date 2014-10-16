@@ -161,10 +161,10 @@ public class FlowModBuilder {
         switch (l3m.subtype()) {
         case IP_DST:
             ip = (ModIPInstruction) i;
-            return factory.actions().setNwDst(IPv4Address.of(ip.ip().toRealInt()));
+            return factory.actions().setNwDst(IPv4Address.of(ip.ip().toInt()));
         case IP_SRC:
             ip = (ModIPInstruction) i;
-            return factory.actions().setNwSrc(IPv4Address.of(ip.ip().toRealInt()));
+            return factory.actions().setNwSrc(IPv4Address.of(ip.ip().toInt()));
         default:
             log.warn("Unimplemented action type {}.", l3m.subtype());
             break;
@@ -220,21 +220,21 @@ public class FlowModBuilder {
             case IPV4_DST:
                 ip = (IPCriterion) c;
                 if (ip.ip().isMasked()) {
-                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toRealInt()),
-                            IPv4Address.of(ip.ip().netmask().toRealInt()));
+                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toInt()),
+                            IPv4Address.of(ip.ip().netmask().toInt()));
                     mBuilder.setMasked(MatchField.IPV4_DST, maskedIp);
                 } else {
-                    mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toRealInt()));
+                    mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toInt()));
                 }
                 break;
             case IPV4_SRC:
                 ip = (IPCriterion) c;
                 if (ip.ip().isMasked()) {
-                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toRealInt()),
-                            IPv4Address.of(ip.ip().netmask().toRealInt()));
+                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toInt()),
+                            IPv4Address.of(ip.ip().netmask().toInt()));
                     mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
                 } else {
-                    mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toRealInt()));
+                    mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toInt()));
                 }
                 break;
             case IP_PROTO:

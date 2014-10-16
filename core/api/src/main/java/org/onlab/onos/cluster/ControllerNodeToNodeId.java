@@ -12,7 +12,11 @@ public final class ControllerNodeToNodeId
 
     @Override
     public NodeId apply(ControllerNode input) {
-        return input.id();
+        if (input == null) {
+            return null;
+        } else {
+            return input.id();
+        }
     }
 
     /**

@@ -6,7 +6,13 @@
 export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
 
 # Setup some environmental context for developers
-export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home -v 1.7)}
+if [ -z "${JAVA_HOME}" ]; then
+    if [ -x /usr/libexec/java_home ]; then
+        export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
+    elif [ -d /usr/lib/jvm/java-7-openjdk-amd64 ]; then
+        export JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+    fi
+fi
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.2.2}
 export KARAF=${KARAF:-~/Applications/apache-karaf-3.0.1}
 export KARAF_LOG=$KARAF/data/log/karaf.log
@@ -15,7 +21,6 @@ export KARAF_LOG=$KARAF/data/log/karaf.log
 export PATH="$PATH:$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/build"
 export PATH="$PATH:$MAVEN/bin:$KARAF/bin"
-export PATH="$PATH:."
 
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'

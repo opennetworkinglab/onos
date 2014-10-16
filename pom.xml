@@ -107,7 +107,13 @@
             </dependency>
 
             <dependency>
-                <groupId>commons-lang</groupId>
+              <groupId>com.googlecode.concurrent-trees</groupId>
+              <artifactId>concurrent-trees</artifactId>
+              <version>2.4.0</version>
+            </dependency>
+
+            <dependency>
+              <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
                 <version>2.6</version>
             </dependency>
@@ -160,6 +166,12 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
+                <version>4.3.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.compendium</artifactId>
                 <version>4.3.1</version>
                 <scope>provided</scope>
             </dependency>
@@ -260,6 +272,13 @@
                 <artifactId>onos-of-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+              <groupId>org.onlab.onos</groupId>
+              <artifactId>onlab-thirdparty</artifactId>
+	      <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.onlab.onos</groupId>
                 <artifactId>onos-of-api</artifactId>

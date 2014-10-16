@@ -8,6 +8,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
+import com.google.common.collect.ImmutableSet;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -33,7 +35,7 @@ public class DefualtHostDecriptionTest {
         assertEquals("incorrect mac", MAC, host.hwAddress());
         assertEquals("incorrect vlan", VLAN, host.vlan());
         assertEquals("incorrect location", LOC, host.location());
-        assertEquals("incorrect ip's", IP, host.ipAddress());
+        assertEquals("incorrect ip's", ImmutableSet.of(IP), host.ipAddress());
         assertTrue("incorrect toString", host.toString().contains("vlan=10"));
     }
 
