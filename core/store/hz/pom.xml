@@ -17,7 +17,6 @@
     <modules>
         <module>common</module>
         <module>cluster</module>
-        <module>net</module>
     </modules>
 
     <dependencies>
