@@ -515,12 +515,12 @@ public class GossipDeviceStore
                                             Map<PortNumber, Port> ports,
                                             Set<PortNumber> processed) {
         List<DeviceEvent> events = new ArrayList<>();
-        Iterator<PortNumber> iterator = ports.keySet().iterator();
+        Iterator<Entry<PortNumber, Port>> iterator = ports.entrySet().iterator();
         while (iterator.hasNext()) {
-            PortNumber portNumber = iterator.next();
+            Entry<PortNumber, Port> e = iterator.next();
+            PortNumber portNumber = e.getKey();
             if (!processed.contains(portNumber)) {
-                events.add(new DeviceEvent(PORT_REMOVED, device,
-                                           ports.get(portNumber)));
+                events.add(new DeviceEvent(PORT_REMOVED, device, e.getValue()));
                 iterator.remove();
             }
         }
