@@ -1,4 +1,4 @@
-package org.onlab.onos.store.common.impl;
+package org.onlab.onos.store.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

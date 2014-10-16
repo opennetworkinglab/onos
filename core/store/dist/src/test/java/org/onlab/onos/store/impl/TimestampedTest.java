@@ -1,4 +1,4 @@
-package org.onlab.onos.store.common.impl;
+package org.onlab.onos.store.impl;
 
 import static org.junit.Assert.*;
 
@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.util.KryoPool;
 
 import com.google.common.testing.EqualsTester;
