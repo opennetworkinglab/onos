@@ -4,7 +4,7 @@ import com.google.common.base.MoreObjects;
 
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.impl.Timestamped;
 
 /**
  * Information published by GossipDeviceStore to notify peers of a device

@@ -1,4 +1,4 @@
-package org.onlab.onos.store.common.impl;
+package org.onlab.onos.store.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -58,12 +58,12 @@ public final class Timestamped<T> {
     }
 
     /**
-     * Tests if this timestamp is newer thatn the specified timestamp.
-     * @param timestamp to compare agains
+     * Tests if this timestamp is newer than the specified timestamp.
+     * @param other timestamp to compare against
      * @return true if this instance is newer
      */
-    public boolean isNewer(Timestamp timestamp) {
-        return this.timestamp.compareTo(checkNotNull(timestamp)) > 0;
+    public boolean isNewer(Timestamp other) {
+        return this.timestamp.compareTo(checkNotNull(other)) > 0;
     }
 
     @Override

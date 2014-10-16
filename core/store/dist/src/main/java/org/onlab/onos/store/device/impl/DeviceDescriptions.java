@@ -15,7 +15,7 @@ import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.impl.Timestamped;
 
 /*
  * Collection of Description of a Device and Ports, given from a Provider.
