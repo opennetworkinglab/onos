@@ -1,11 +1,10 @@
-package org.onlab.onos.store.serializers;
+package org.onlab.onos.store.mastership.impl;
 
 import java.util.List;
 import java.util.Map;
 
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.mastership.impl.RoleValue;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -13,7 +12,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Serializer for RoleValues used by {@link DistributedMastershipStore}
+ * Serializer for RoleValues used by {@link DistributedMastershipStore}.
  */
 public class RoleValueSerializer extends Serializer<RoleValue> {
 

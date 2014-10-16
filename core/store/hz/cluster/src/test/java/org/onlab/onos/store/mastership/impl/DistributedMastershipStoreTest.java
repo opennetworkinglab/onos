@@ -116,7 +116,6 @@ public class DistributedMastershipStoreTest {
         testStore.put(DID1, N1, true, false, false);
         testStore.put(DID2, N1, true, false, false);
         testStore.put(DID3, N2, true, false, false);
-
         assertEquals("wrong devices",
                 Sets.newHashSet(DID1, DID2), dms.getDevices(N1));
     }
@@ -244,7 +243,6 @@ public class DistributedMastershipStoreTest {
             RoleValue rv = dms.roleMap.get(dev);
             if (rv == null) {
                 rv = new RoleValue();
-                dms.roleMap.put(dev, rv);
             }
 
             if (master) {
@@ -259,6 +257,7 @@ public class DistributedMastershipStoreTest {
             if (term) {
                 dms.terms.put(dev, 0);
             }
+            dms.roleMap.put(dev, rv);
         }
 
         //a dumb utility function.
@@ -266,9 +265,9 @@ public class DistributedMastershipStoreTest {
             for (Map.Entry<DeviceId, RoleValue> el : dms.roleMap.entrySet()) {
                 System.out.println("DID: " + el.getKey());
                 for (MastershipRole role : MastershipRole.values()) {
-                    System.out.println(role.toString() + ":");
+                    System.out.println("\t" + role.toString() + ":");
                     for (NodeId n : el.getValue().nodesOfRole(role)) {
-                        System.out.println("\t" + n);
+                        System.out.println("\t\t" + n);
                     }
                 }
             }

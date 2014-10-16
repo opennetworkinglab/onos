@@ -22,11 +22,9 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.mastership.impl.RoleValue;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
@@ -59,13 +57,6 @@ public class KryoSerializerTest {
             .remove("A1")
             .set("B3", "b3")
             .build();
-    private static final RoleValue RV = new RoleValue();
-    static {
-        RV.add(MastershipRole.MASTER, new NodeId("node1"));
-        RV.add(MastershipRole.STANDBY, new NodeId("node2"));
-        RV.add(MastershipRole.STANDBY, new NodeId("node3"));
-        RV.add(MastershipRole.NONE, new NodeId("node4"));
-    };
 
     private static KryoPool kryos;
 
@@ -123,9 +114,6 @@ public class KryoSerializerTest {
         testSerialized(PIDA);
         testSerialized(new NodeId("bar"));
         testSerialized(MastershipTerm.of(new NodeId("foo"), 2));
-        for (MastershipRole role : MastershipRole.values()) {
-            testSerialized(role);
-        }
     }
 
     @Test

@@ -1,6 +1,7 @@
 package org.onlab.onos.store.mastership.impl;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.onlab.onos.net.MastershipRole;
  */
 public class RoleValue {
 
-    Map<MastershipRole, List<NodeId>> value;
+    protected Map<MastershipRole, List<NodeId>> value = new HashMap<>();
 
     public RoleValue() {
         value.put(MastershipRole.MASTER, new LinkedList<NodeId>());
@@ -96,4 +97,16 @@ public class RoleValue {
         add(type, to);
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        for (Map.Entry<MastershipRole, List<NodeId>> el : value.entrySet()) {
+            builder.append(el.getKey().toString()).append(": [");
+            for (NodeId n : el.getValue()) {
+                builder.append(n);
+            }
+            builder.append("]\n");
+        }
+        return builder.toString();
+    }
 }
