@@ -114,7 +114,7 @@ public class ClusterCommunicationManager
                     message.subject().value(), SERIALIZER.encode(message));
             return true;
         } catch (IOException e) {
-            log.error("Failed to send cluster message to nodeId: " + toNodeId, e);
+            log.trace("Failed to send cluster message to nodeId: " + toNodeId, e);
             throw e;
         }
     }
