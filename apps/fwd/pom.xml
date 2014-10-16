@@ -16,4 +16,11 @@
 
     <description>ONOS simple reactive forwarding app</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
