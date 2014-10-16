@@ -29,6 +29,7 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
                                  HostDescription hostDescription);
 
+    // FIXME: API to remove only IpAddress is missing
     /**
      * Removes the specified host from the inventory.
      *
@@ -81,6 +82,7 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
+    // FIXME: Switch to IpAddress
     Set<Host> getHosts(IpPrefix ip);
 
     /**

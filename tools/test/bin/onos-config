@@ -1,7 +1,7 @@
 #!/bin/bash
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Remotely configures & starts ONOS for the first time.
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
@@ -24,5 +24,4 @@ ssh $remote "
     echo \"onos.ip = \$(ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/system.properties
 "
-
 scp -q $CDEF_FILE $remote:$ONOS_INSTALL_DIR/config/

@@ -149,7 +149,7 @@ public class SimpleLinkStore
     @Override
     public LinkEvent createOrUpdateLink(ProviderId providerId,
                                         LinkDescription linkDescription) {
-        LinkKey key = linkKey(linkDescription);
+        LinkKey key = linkKey(linkDescription.src(), linkDescription.dst());
 
         ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
         synchronized (descs) {

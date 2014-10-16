@@ -37,6 +37,7 @@ public interface HostDescription extends Description {
      *
      * @return host IP address
      */
+    // FIXME: Switch to IpAddress
     IpPrefix ipAddress();
 
 }

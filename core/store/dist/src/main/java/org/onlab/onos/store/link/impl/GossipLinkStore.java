@@ -9,7 +9,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -46,7 +45,6 @@ import org.onlab.onos.store.common.impl.Timestamped;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoPool;
-import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -87,7 +85,7 @@ public class GossipLinkStore
     private final Logger log = getLogger(getClass());
 
     // Link inventory
-    private final ConcurrentMap<LinkKey, ConcurrentMap<ProviderId, Timestamped<LinkDescription>>> linkDescs =
+    private final ConcurrentMap<LinkKey, Map<ProviderId, Timestamped<LinkDescription>>> linkDescs =
         new ConcurrentHashMap<>();
 
     // Link instance cache
@@ -238,7 +236,7 @@ public class GossipLinkStore
 
         final Timestamped<LinkDescription> deltaDesc = new Timestamped<>(linkDescription, newTimestamp);
 
-        LinkKey key = linkKey(linkDescription);
+        LinkKey key = linkKey(linkDescription.src(), linkDescription.dst());
         final LinkEvent event;
         final Timestamped<LinkDescription> mergedDesc;
         synchronized (getLinkDescriptions(key)) {
@@ -265,8 +263,9 @@ public class GossipLinkStore
             ProviderId providerId,
             Timestamped<LinkDescription> linkDescription) {
 
-        LinkKey key = linkKey(linkDescription.value());
-        ConcurrentMap<ProviderId, Timestamped<LinkDescription>> descs = getLinkDescriptions(key);
+        LinkKey key = linkKey(linkDescription.value().src(),
+                              linkDescription.value().dst());
+        Map<ProviderId, Timestamped<LinkDescription>> descs = getLinkDescriptions(key);
 
         synchronized (descs) {
             // if the link was previously removed, we should proceed if and
@@ -293,12 +292,12 @@ public class GossipLinkStore
 
     // Guarded by linkDescs value (=locking each Link)
     private Timestamped<LinkDescription> createOrUpdateLinkDescription(
-            ConcurrentMap<ProviderId, Timestamped<LinkDescription>> existingLinkDescriptions,
+            Map<ProviderId, Timestamped<LinkDescription>> descs,
             ProviderId providerId,
             Timestamped<LinkDescription> linkDescription) {
 
         // merge existing attributes and merge
-        Timestamped<LinkDescription> existingLinkDescription = existingLinkDescriptions.get(providerId);
+        Timestamped<LinkDescription> existingLinkDescription = descs.get(providerId);
         if (existingLinkDescription != null && existingLinkDescription.isNewer(linkDescription)) {
             return null;
         }
@@ -313,7 +312,7 @@ public class GossipLinkStore
                         linkDescription.value().type(), merged),
                     linkDescription.timestamp());
         }
-        return existingLinkDescriptions.put(providerId, newLinkDescription);
+        return descs.put(providerId, newLinkDescription);
     }
 
     // Creates and stores the link and returns the appropriate event.
@@ -379,7 +378,7 @@ public class GossipLinkStore
     }
 
     private LinkEvent removeLinkInternal(LinkKey key, Timestamp timestamp) {
-        ConcurrentMap<ProviderId, Timestamped<LinkDescription>> linkDescriptions =
+        Map<ProviderId, Timestamped<LinkDescription>> linkDescriptions =
                 getLinkDescriptions(key);
         synchronized (linkDescriptions) {
             // accept removal request if given timestamp is newer than
@@ -408,10 +407,10 @@ public class GossipLinkStore
      * @return primary ProviderID, or randomly chosen one if none exists
      */
     private ProviderId pickPrimaryProviderId(
-            ConcurrentMap<ProviderId, Timestamped<LinkDescription>> providerDescs) {
+            Map<ProviderId, Timestamped<LinkDescription>> linkDescriptions) {
 
         ProviderId fallBackPrimary = null;
-        for (Entry<ProviderId, Timestamped<LinkDescription>> e : providerDescs.entrySet()) {
+        for (Entry<ProviderId, Timestamped<LinkDescription>> e : linkDescriptions.entrySet()) {
             if (!e.getKey().isAncillary()) {
                 return e.getKey();
             } else if (fallBackPrimary == null) {
@@ -422,9 +421,9 @@ public class GossipLinkStore
         return fallBackPrimary;
     }
 
-    private Link composeLink(ConcurrentMap<ProviderId, Timestamped<LinkDescription>> linkDescriptions) {
-        ProviderId primaryProviderId = pickPrimaryProviderId(linkDescriptions);
-        Timestamped<LinkDescription> base = linkDescriptions.get(primaryProviderId);
+    private Link composeLink(Map<ProviderId, Timestamped<LinkDescription>> descs) {
+        ProviderId primaryProviderId = pickPrimaryProviderId(descs);
+        Timestamped<LinkDescription> base = descs.get(primaryProviderId);
 
         ConnectPoint src = base.value().src();
         ConnectPoint dst = base.value().dst();
@@ -432,7 +431,7 @@ public class GossipLinkStore
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
         annotations = merge(annotations, base.value().annotations());
 
-        for (Entry<ProviderId, Timestamped<LinkDescription>> e : linkDescriptions.entrySet()) {
+        for (Entry<ProviderId, Timestamped<LinkDescription>> e : descs.entrySet()) {
             if (primaryProviderId.equals(e.getKey())) {
                 continue;
             }
@@ -449,9 +448,20 @@ public class GossipLinkStore
         return new DefaultLink(primaryProviderId , src, dst, type, annotations);
     }
 
-    private ConcurrentMap<ProviderId, Timestamped<LinkDescription>> getLinkDescriptions(LinkKey key) {
-        return ConcurrentUtils.createIfAbsentUnchecked(linkDescs, key,
-                NewConcurrentHashMap.<ProviderId, Timestamped<LinkDescription>>ifNeeded());
+    private Map<ProviderId, Timestamped<LinkDescription>> getLinkDescriptions(LinkKey key) {
+        Map<ProviderId, Timestamped<LinkDescription>> r;
+        r = linkDescs.get(key);
+        if (r != null) {
+            return r;
+        }
+        r = new HashMap<>();
+        final Map<ProviderId, Timestamped<LinkDescription>> concurrentlyAdded;
+        concurrentlyAdded = linkDescs.putIfAbsent(key, r);
+        if (concurrentlyAdded != null) {
+            return concurrentlyAdded;
+        } else {
+            return r;
+        }
     }
 
     private Timestamped<LinkDescription> getLinkDescription(LinkKey key, ProviderId providerId) {
@@ -470,12 +480,12 @@ public class GossipLinkStore
         }
     }
 
-    private static final Predicate<Provided> IS_PRIMARY = new IsPrimary();
-    private static final Predicate<Provided> isPrimary() {
-        return IS_PRIMARY;
-    }
-
     private static final class IsPrimary implements Predicate<Provided> {
+
+        private static final Predicate<Provided> IS_PRIMARY = new IsPrimary();
+        public static final Predicate<Provided> isPrimary() {
+            return IS_PRIMARY;
+        }
 
         @Override
         public boolean apply(Provided input) {
@@ -581,11 +591,11 @@ public class GossipLinkStore
         Map<LinkFragmentId, Timestamp> linkTimestamps = new HashMap<>(linkDescs.size());
         Map<LinkKey, Timestamp> linkTombstones = new HashMap<>(removedLinks.size());
 
-        for (Entry<LinkKey, ConcurrentMap<ProviderId, Timestamped<LinkDescription>>>
+        for (Entry<LinkKey, Map<ProviderId, Timestamped<LinkDescription>>>
             provs : linkDescs.entrySet()) {
 
             final LinkKey linkKey = provs.getKey();
-            final ConcurrentMap<ProviderId, Timestamped<LinkDescription>> linkDesc = provs.getValue();
+            final Map<ProviderId, Timestamped<LinkDescription>> linkDesc = provs.getValue();
             synchronized (linkDesc) {
                 for (Map.Entry<ProviderId, Timestamped<LinkDescription>> e : linkDesc.entrySet()) {
                     linkTimestamps.put(new LinkFragmentId(linkKey, e.getKey()), e.getValue().timestamp());
@@ -670,7 +680,7 @@ public class GossipLinkStore
 
         @Override
         public void handle(ClusterMessage message) {
-            log.info("Received Link Anti-Entropy advertisement from peer: {}", message.sender());
+            log.debug("Received Link Anti-Entropy advertisement from peer: {}", message.sender());
             LinkAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
             handleAntiEntropyAdvertisement(advertisement);
         }

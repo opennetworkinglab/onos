@@ -40,22 +40,18 @@ public class ClusterCommunicationManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        MessageSerializer messageSerializer = new MessageSerializer();
-        messageSerializer.activate();
 
         NettyMessagingService messagingService = new NettyMessagingService();
         messagingService.activate();
 
         ccm1 = new ClusterCommunicationManager();
-//        ccm1.serializationService = messageSerializer;
         ccm1.activate();
 
         ccm2 = new ClusterCommunicationManager();
-//        ccm2.serializationService = messageSerializer;
         ccm2.activate();
 
-        ccm1.initialize(node1, cnd1);
-        ccm2.initialize(node2, cnd2);
+//        ccm1.initialize(node1, cnd1);
+//        ccm2.initialize(node2, cnd2);
     }
 
     @After
@@ -70,7 +66,7 @@ public class ClusterCommunicationManagerTest {
         cnd1.latch = new CountDownLatch(1);
         cnd2.latch = new CountDownLatch(1);
 
-        ccm1.addNode(node2);
+//        ccm1.addNode(node2);
         validateDelegateEvent(cnd1, Op.DETECTED, node2.id());
         validateDelegateEvent(cnd2, Op.DETECTED, node1.id());
     }
@@ -81,7 +77,7 @@ public class ClusterCommunicationManagerTest {
         cnd1.latch = new CountDownLatch(1);
         cnd2.latch = new CountDownLatch(1);
 
-        ccm1.addNode(node2);
+//        ccm1.addNode(node2);
         validateDelegateEvent(cnd1, Op.DETECTED, node2.id());
         validateDelegateEvent(cnd2, Op.DETECTED, node1.id());
 

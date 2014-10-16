@@ -20,6 +20,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
+    // FIXME: should be IpAddress
     private final Set<IpPrefix> ips;
 
     /**

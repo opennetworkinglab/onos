@@ -75,4 +75,14 @@ public class HostServiceAdapter implements HostService {
     public void removeListener(HostListener listener) {
     }
 
+    @Override
+    public Set<PortAddresses> getAddressBindings() {
+        return null;
+    }
+
+    @Override
+    public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
+        return null;
+    }
+
 }

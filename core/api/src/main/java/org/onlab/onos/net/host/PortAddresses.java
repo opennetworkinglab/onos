@@ -17,6 +17,7 @@ import com.google.common.base.MoreObjects;
 public class PortAddresses {
 
     private final ConnectPoint connectPoint;
+    // TODO: Should this be IpAddress or IpPrefix?
     private final Set<IpPrefix> ipAddresses;
     private final MacAddress macAddress;
 

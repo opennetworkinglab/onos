@@ -1,6 +1,7 @@
 package org.onlab.onos.net.topology.impl;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,10 +22,12 @@ import org.onlab.onos.net.topology.TopologyProviderService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.onlab.junit.TestTools.assertAfter;
+import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
 import static org.onlab.onos.net.NetTestTools.device;
 import static org.onlab.onos.net.NetTestTools.link;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
@@ -40,6 +43,9 @@ public class DefaultTopologyProviderTest {
     private TestDeviceService deviceService = new TestDeviceService();
     private TestLinkService linkService = new TestLinkService();
     private TestTopoProviderService providerService;
+
+    // phase corresponds to number of topologyChanged called
+    private Phaser topologyChangedCounts = new Phaser(1);
 
     @Before
     public void setUp() {
@@ -66,26 +72,23 @@ public class DefaultTopologyProviderTest {
     }
 
     @Test
-    public void basics() {
-        assertAfter(100, new Runnable() {
-            @Override
-            public void run() {
-                validateSubmission();
-            }
-        });
+    public void basics() throws InterruptedException, TimeoutException {
+        assertEquals(1, topologyChangedCounts.awaitAdvanceInterruptibly(0, 1, TimeUnit.SECONDS));
+        validateSubmission();
     }
 
     @Test
-    public void eventDriven() {
-        assertAfter(100, new Runnable() {
-            @Override
-            public void run() {
-                validateSubmission();
-                deviceService.post(new DeviceEvent(DEVICE_ADDED, device("z"), null));
-                linkService.post(new LinkEvent(LINK_ADDED, link("z", 1, "a", 4)));
-                validateSubmission();
-            }
-        });
+    public void eventDriven() throws InterruptedException, TimeoutException {
+        assertEquals(1, topologyChangedCounts.awaitAdvanceInterruptibly(0, 1, TimeUnit.SECONDS));
+        validateSubmission();
+
+        deviceService.post(new DeviceEvent(DEVICE_ADDED, device("z"), null));
+        linkService.post(new LinkEvent(LINK_ADDED, link("z", 1, "a", 4)));
+        assertThat(topologyChangedCounts.awaitAdvanceInterruptibly(1, 1, TimeUnit.SECONDS),
+                is(greaterThanOrEqualTo(2)));
+        // Note: posting event, to trigger topologyChanged call,
+        // but dummy topology will not change.
+        validateSubmission();
     }
 
 
@@ -119,6 +122,7 @@ public class DefaultTopologyProviderTest {
         @Override
         public void topologyChanged(GraphDescription graphDescription, List<Event> reasons) {
             graphDesc = graphDescription;
+            topologyChangedCounts.arrive();
         }
     }
 

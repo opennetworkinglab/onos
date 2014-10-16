@@ -5,6 +5,7 @@ import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeComplet
 import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
+import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
@@ -21,7 +22,6 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxmInPort;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigid;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigtype;
-import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigtypeBasic;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U8;
@@ -119,11 +119,12 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                 processHandshakeOFExperimenterPortDescRequest(
                         (OFCircuitPortsReply) m);
                 driverHandshakeComplete.set(true);
-               /* try {
+                try {
                     testMA();
+                    testReverseMA();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }*/
+                }
                 break;
             default:
                 log.debug("Received message {} during switch-driver " +
@@ -163,32 +164,23 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                           "message " +
                           "{}",
                   circuitPortsRequest.toString());
-        channel.write(Collections.singletonList(circuitPortsRequest));
+        sendMsg(Collections.<OFMessage>singletonList(circuitPortsRequest));
     }
 
 
-
-    //todo for testing
-    public static final U8 SIGNAL_TYPE = U8.of((short) 1);
+    public static final U8 SIGNAL_TYPE = U8.of((short) 10);
     private void testMA() throws IOException {
         log.debug("LINC OE *** Testing MA ");
-        short lambda = 100;
-        if (getId() == 0x0000ffffffffff02L) {
+        short lambda = 1;
+        if (getId() == 0x0000ffffffffff01L) {
             final int inport = 10;
             final int outport = 20;
             //Circuit signal id
             CircuitSignalID sigID = getSignalID(lambda);
 
-            OFOxmOchSigid fieldSigIDMatch = factory().oxms().ochSigid(sigID);
-            OFOxmOchSigtype fieldSigType = factory()
-                    .oxms()
-                    .ochSigtype(SIGNAL_TYPE);
-
             OFOxmOchSigidBasic ofOxmOchSigidBasic =
                     factory().oxms().ochSigidBasic(sigID);
 
-            OFOxmOchSigtypeBasic ofOxmOchSigtypeBasic =
-                    factory().oxms().ochSigtypeBasic(SIGNAL_TYPE);
 
             //Match Port
             OFOxmInPort fieldPort = factory().oxms()
@@ -196,27 +188,21 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             OFMatchV3 matchPort =
                     factory()
                             .buildMatchV3().
-                            setOxmList(OFOxmList.of(fieldPort,
-                                                    fieldSigType,
-                                                    fieldSigIDMatch)).build();
+                            setOxmList(OFOxmList.of(fieldPort)).build();
 
 
             // Set Action outport ,sigType and sigID
             List<OFAction> actionList = new ArrayList<>();
             OFAction actionOutPort =
                     factory().actions().output(OFPort.of(outport),
-                                                  Short.MAX_VALUE);
+                                                  0xffff);
 
             OFActionCircuit actionCircuit = factory()
                     .actions()
                     .circuit(ofOxmOchSigidBasic);
-            OFActionCircuit setActionSigType = factory()
-                    .actions()
-                    .circuit(ofOxmOchSigtypeBasic);
 
-            actionList.add(actionOutPort);
-            actionList.add(setActionSigType);
             actionList.add(actionCircuit);
+            actionList.add(actionOutPort);
 
             OFInstruction instructionAction =
                     factory().instructions().buildApplyActions()
@@ -228,6 +214,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             OFMessage opticalFlowEntry =
                     factory().buildFlowAdd()
                                 .setMatch(matchPort)
+                                .setPriority(100)
                                 .setInstructions(instructions)
                                 .setXid(getNextTransactionId())
                                 .build();
@@ -235,9 +222,10 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             List<OFMessage> msglist = new ArrayList<>(1);
             msglist.add(opticalFlowEntry);
             write(msglist);
+            sendBarrier(true);
         } else if (getId() == 0x0000ffffffffff03L) {
-            final int inport = 21;
-            final int outport = 22;
+            final int inport = 30;
+            final int outport = 31;
             //Circuit signal id
             CircuitSignalID sigID = getSignalID(lambda);
 
@@ -249,9 +237,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             OFOxmOchSigidBasic ofOxmOchSigidBasic =
                     factory().oxms().ochSigidBasic(sigID);
 
-            OFOxmOchSigtypeBasic ofOxmOchSigtypeBasic =
-                    factory().oxms().ochSigtypeBasic(SIGNAL_TYPE);
-
             //Match Port,SigType,SigID
             OFOxmInPort fieldPort = factory()
                     .oxms()
@@ -259,27 +244,26 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             OFMatchV3 matchPort = factory()
                     .buildMatchV3()
                     .setOxmList(OFOxmList.of(fieldPort,
-                                             fieldSigType,
-                                             fieldSigIDMatch))
+                                             fieldSigIDMatch,
+                                             fieldSigType
+                    ))
                     .build();
 
             // Set Action outport ,SigType, sigID
             List<OFAction> actionList = new ArrayList<>();
             OFAction actionOutPort =
                     factory().actions().output(OFPort.of(outport),
-                                                  Short.MAX_VALUE);
+                                                  0xffff);
 
-            OFActionCircuit setActionSigType = factory()
-                    .actions()
-                    .circuit(ofOxmOchSigtypeBasic);
             OFActionCircuit actionCircuit = factory()
                     .actions()
                     .circuit(ofOxmOchSigidBasic);
 
 
-            actionList.add(actionOutPort);
-            actionList.add(setActionSigType);
+
+            //actionList.add(setActionSigType);
             actionList.add(actionCircuit);
+            actionList.add(actionOutPort);
 
             OFInstruction instructionAction =
                     factory().instructions().buildApplyActions()
@@ -290,17 +274,19 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
             OFMessage opticalFlowEntry =
                     factory().buildFlowAdd()
-                                 .setMatch(matchPort)
-                                 .setInstructions(instructions)
-                                 .setXid(getNextTransactionId())
-                                 .build();
+                                .setMatch(matchPort)
+                                .setPriority(100)
+                                .setInstructions(instructions)
+                                .setXid(getNextTransactionId())
+                                .build();
             log.debug("Adding optical flow in sw {}", getStringId());
             List<OFMessage> msglist = new ArrayList<>(1);
             msglist.add(opticalFlowEntry);
             write(msglist);
+            sendBarrier(true);
 
-        } else if (getId() == 0x0000ffffffffff04L) {
-            final int inport = 23;
+        } else if (getId() == 0x0000ffffffffff02L) {
+            final int inport = 21;
             final int outport = 11;
             //Circuit signal id
             CircuitSignalID sigID = getSignalID(lambda);
@@ -318,15 +304,16 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             OFMatchV3 matchPort =
                     factory().buildMatchV3()
                                 .setOxmList(OFOxmList.of(fieldPort,
-                                                         fieldSigType,
-                                                         fieldSigIDMatch))
+                                                         fieldSigIDMatch,
+                                                         fieldSigType
+                                ))
                                 .build();
 
             // Set Action outport
             List<OFAction> actionList = new ArrayList<>();
             OFAction actionOutPort =
                     factory().actions().output(OFPort.of(outport),
-                                                  Short.MAX_VALUE);
+                                                  0xffff);
 
             actionList.add(actionOutPort);
 
@@ -339,17 +326,184 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
             OFMessage opticalFlowEntry =
                     factory().buildFlowAdd()
-                                 .setMatch(matchPort)
-                                 .setInstructions(instructions)
-                                 .setXid(getNextTransactionId())
-                                 .build();
+                                .setMatch(matchPort)
+                                .setPriority(100)
+                                .setInstructions(instructions)
+                                .setXid(getNextTransactionId())
+                                .build();
             log.debug("Adding optical flow in sw {}", getStringId());
             List<OFMessage> msglist = new ArrayList<>(1);
             msglist.add(opticalFlowEntry);
             write(msglist);
+            sendBarrier(true);
         }
 
     }
+    private void testReverseMA() throws IOException {
+        log.debug("LINC OE *** Testing MA ");
+        short lambda = 1;
+        if (getId() == 0x0000ffffffffff02L) {
+            final int inport = 11;
+            final int outport = 21;
+            //Circuit signal id
+            CircuitSignalID sigID = getSignalID(lambda);
+
+            OFOxmOchSigidBasic ofOxmOchSigidBasic =
+                    factory().oxms().ochSigidBasic(sigID);
+
+            //Match Port
+            OFOxmInPort fieldPort = factory().oxms()
+                                                .inPort(OFPort.of(inport));
+            OFMatchV3 matchPort =
+                    factory()
+                            .buildMatchV3().
+                            setOxmList(OFOxmList.of(fieldPort)).build();
+
+
+            // Set Action outport ,sigType and sigID
+            List<OFAction> actionList = new ArrayList<>();
+            OFAction actionOutPort =
+                    factory().actions().output(OFPort.of(outport),
+                                                  0xffff);
+
+            OFActionCircuit actionCircuit = factory()
+                    .actions()
+                    .circuit(ofOxmOchSigidBasic);
+            actionList.add(actionCircuit);
+            actionList.add(actionOutPort);
+
+            OFInstruction instructionAction =
+                    factory().instructions().buildApplyActions()
+                                .setActions(actionList)
+                                .build();
+            List<OFInstruction> instructions =
+                    Collections.singletonList(instructionAction);
+
+            OFMessage opticalFlowEntry =
+                    factory().buildFlowAdd()
+                                .setMatch(matchPort)
+                                .setPriority(100)
+                                .setInstructions(instructions)
+                                .setXid(getNextTransactionId())
+                                .build();
+            log.debug("Adding optical flow in sw {}", getStringId());
+            List<OFMessage> msglist = new ArrayList<>(1);
+            msglist.add(opticalFlowEntry);
+            write(msglist);
+            sendBarrier(true);
+        } else if (getId() == 0x0000ffffffffff03L) {
+            final int inport = 31;
+            final int outport = 30;
+            //Circuit signal id
+            CircuitSignalID sigID = getSignalID(lambda);
+
+            OFOxmOchSigid fieldSigIDMatch = factory().oxms().ochSigid(sigID);
+            OFOxmOchSigtype fieldSigType = factory()
+                    .oxms()
+                    .ochSigtype(SIGNAL_TYPE);
+
+            OFOxmOchSigidBasic ofOxmOchSigidBasic =
+                    factory().oxms().ochSigidBasic(sigID);
+
+            //Match Port,SigType,SigID
+            OFOxmInPort fieldPort = factory()
+                    .oxms()
+                    .inPort(OFPort.of(inport));
+            OFMatchV3 matchPort = factory()
+                    .buildMatchV3()
+                    .setOxmList(OFOxmList.of(fieldPort,
+                                             fieldSigIDMatch,
+                                             fieldSigType
+                    ))
+                    .build();
+
+            // Set Action outport ,SigType, sigID
+            List<OFAction> actionList = new ArrayList<>();
+            OFAction actionOutPort =
+                    factory().actions().output(OFPort.of(outport),
+                                                  0xffff);
+            OFActionCircuit actionCircuit = factory()
+                    .actions()
+                    .circuit(ofOxmOchSigidBasic);
+
+            actionList.add(actionCircuit);
+            actionList.add(actionOutPort);
+
+            OFInstruction instructionAction =
+                    factory().instructions().buildApplyActions()
+                                .setActions(actionList)
+                                .build();
+            List<OFInstruction> instructions =
+                    Collections.singletonList(instructionAction);
+
+            OFMessage opticalFlowEntry =
+                    factory().buildFlowAdd()
+                                .setMatch(matchPort)
+                                .setPriority(100)
+                                .setInstructions(instructions)
+                                .setXid(getNextTransactionId())
+                                .build();
+            log.debug("Adding optical flow in sw {}", getStringId());
+            List<OFMessage> msglist = new ArrayList<>(1);
+            msglist.add(opticalFlowEntry);
+            write(msglist);
+            sendBarrier(true);
+
+        } else if (getId() == 0x0000ffffffffff01L) {
+            final int inport = 20;
+            final int outport = 10;
+            //Circuit signal id
+            CircuitSignalID sigID = getSignalID(lambda);
+
+            OFOxmOchSigid fieldSigIDMatch = factory().oxms().ochSigid(sigID);
+            OFOxmOchSigtype fieldSigType = factory()
+                    .oxms()
+                    .ochSigtype(SIGNAL_TYPE);
+
+
+            //Match Port, sig type and sig id
+            OFOxmInPort fieldPort = factory()
+                    .oxms()
+                    .inPort(OFPort.of(inport));
+            OFMatchV3 matchPort =
+                    factory().buildMatchV3()
+                                .setOxmList(OFOxmList.of(fieldPort,
+                                                         fieldSigIDMatch,
+                                                         fieldSigType
+                                ))
+                                .build();
+
+            // Set Action outport
+            List<OFAction> actionList = new ArrayList<>();
+            OFAction actionOutPort =
+                    factory().actions().output(OFPort.of(outport),
+                                                  0xffff);
+
+            actionList.add(actionOutPort);
+
+            OFInstruction instructionAction =
+                    factory().instructions().buildApplyActions()
+                                .setActions(actionList)
+                                .build();
+            List<OFInstruction> instructions =
+                    Collections.singletonList(instructionAction);
+
+            OFMessage opticalFlowEntry =
+                    factory().buildFlowAdd()
+                                .setMatch(matchPort)
+                                .setPriority(100)
+                                .setInstructions(instructions)
+                                .setXid(getNextTransactionId())
+                                .build();
+            log.debug("Adding optical flow in sw {}", getStringId());
+            List<OFMessage> msglist = new ArrayList<>(1);
+            msglist.add(opticalFlowEntry);
+            write(msglist);
+            sendBarrier(true);
+        }
+
+    }
+
 
     // Todo remove - for testing purpose only
     private static CircuitSignalID getSignalID(short lambda) {
@@ -365,9 +519,21 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
         return signalID;
     }
 
+    private void sendBarrier(boolean finalBarrier) throws IOException {
+        int xid = getNextTransactionId();
+        if (finalBarrier) {
+            barrierXidToWaitFor = xid;
+        }
+        OFBarrierRequest br = factory()
+                .buildBarrierRequest()
+                .setXid(xid)
+                .build();
+        sendMsg(br);
+    }
+
     @Override
     public void write(OFMessage msg) {
-        this.channel.write(msg);
+        this.sendMsg(msg);
     }
 
     @Override
