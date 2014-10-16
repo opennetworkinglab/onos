@@ -191,6 +191,15 @@ public final class IpAddress {
     }
 
     /**
+     * Converts the IP address to a /32 IP prefix.
+     *
+     * @return the new IP prefix
+     */
+    public IpPrefix toPrefix() {
+        return IpPrefix.valueOf(octets, MAX_INET_MASK);
+    }
+
+    /**
      * Helper for computing the mask value from CIDR.
      *
      * @return an integer bitmask
