@@ -62,10 +62,8 @@ public class Router implements RouteListener {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
-    // Store all route updates in a InvertedRadixTree.
-    // The key in this Tree is the binary sting of prefix of route.
-    // The Ip4Address is the next hop address of route, and is also the value
-    // of each entry.
+    // Store all route updates in a radix tree.
+    // The key in this tree is the binary string of prefix of the route.
     private InvertedRadixTree<RouteEntry> bgpRoutes;
 
     // Stores all incoming route updates in a queue.
@@ -102,7 +100,7 @@ public class Router implements RouteListener {
      * Class constructor.
      *
      * @param intentService the intent service
-     * @param proxyArp the proxy ARP service
+     * @param hostService the host service
      * @param configInfoService the configuration service
      * @param interfaceService the interface service
      */
@@ -441,8 +439,8 @@ public class Router implements RouteListener {
     /**
      * Processes adding a route entry.
      * <p/>
-     * Put new route entry into InvertedRadixTree. If there was an existing
-     * nexthop for this prefix, but the next hop was different, then execute
+     * Put new route entry into the radix tree. If there was an existing
+     * next hop for this prefix, but the next hop was different, then execute
      * deleting old route entry. If the next hop is the SDN domain, we do not
      * handle it at the moment. Otherwise, execute adding a route.
      *
@@ -623,8 +621,8 @@ public class Router implements RouteListener {
     /**
      * Executes deleting a route entry.
      * <p/>
-     * Removes prefix from InvertedRadixTree, if success, then try to delete
-     * the relative intent.
+     * Removes prefix from radix tree, and if successful, then try to delete
+     * the related intent.
      *
      * @param routeEntry the route entry to delete
      */
@@ -690,9 +688,9 @@ public class Router implements RouteListener {
     public void arpResponse(IpAddress ipAddress, MacAddress macAddress) {
         log.debug("Received ARP response: {} => {}", ipAddress, macAddress);
 
-         // We synchronize on this to prevent changes to the InvertedRadixTree
-         // while we're pushing intent. If the InvertedRadixTree changes, the
-         // InvertedRadixTree and intent could get out of sync.
+         // We synchronize on this to prevent changes to the radix tree
+         // while we're pushing intents. If the tree changes, the
+         // tree and intents could get out of sync.
         synchronized (this) {
 
             Set<RouteEntry> routesToPush =
@@ -709,14 +707,14 @@ public class Router implements RouteListener {
                     log.debug("Pushing prefix {} next hop {}",
                               routeEntry.prefix(), routeEntry.nextHop());
                     // We only push prefix flows if the prefix is still in the
-                    // InvertedRadixTree and the next hop is the same as our
+                    // radix tree and the next hop is the same as our
                     // update.
                     // The prefix could have been removed while we were waiting
                     // for the ARP, or the next hop could have changed.
                     addRouteIntentToNextHop(prefix, ipAddress, macAddress);
                 } else {
                     log.debug("Received ARP response, but {}/{} is no longer in"
-                            + " InvertedRadixTree", routeEntry.prefix(),
+                            + " the radix tree", routeEntry.prefix(),
                             routeEntry.nextHop());
                 }
             }
