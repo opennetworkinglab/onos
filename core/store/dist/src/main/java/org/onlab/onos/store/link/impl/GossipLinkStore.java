@@ -518,7 +518,11 @@ public class GossipLinkStore
     private final class LookupLink implements Function<LinkKey, Link> {
         @Override
         public Link apply(LinkKey input) {
-            return links.get(input);
+            if (input == null) {
+                return null;
+            } else {
+                return links.get(input);
+            }
         }
     }
 
