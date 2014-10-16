@@ -521,7 +521,7 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.impl:org.onlab.onos.cluster.impl:org.onlab.onos.net.device.impl:org.onlab.onos.net.link.impl:org.onlab.onos.net.host.impl:org.onlab.onos.net.topology.impl:org.onlab.onos.net.packet.impl:org.onlab.onos.net.flow.impl:org.onlab.onos.store.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.event.impl:org.onlab.onos.store.*:org.onlab.onos.net.intent.impl:org.onlab.onos.net.proxyarp.impl:org.onlab.onos.mastership.impl
+                                org.onlab.onos.impl:org.onlab.onos.cluster.impl:org.onlab.onos.net.device.impl:org.onlab.onos.net.link.impl:org.onlab.onos.net.host.impl:org.onlab.onos.net.topology.impl:org.onlab.onos.net.packet.impl:org.onlab.onos.net.flow.impl:org.onlab.onos.store.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.event.impl:org.onlab.onos.store.*:org.onlab.onos.net.intent.impl:org.onlab.onos.net.proxyarp.impl:org.onlab.onos.mastership.impl:org.onlab.onos.json:org.onlab.onos.json.*
                             </packages>
                         </group>
                         <group>
@@ -546,10 +546,11 @@
                         <group>
                             <title>Sample Applications</title>
                             <packages>
-                                org.onlab.onos.tvue:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.foo
+                                org.onlab.onos.tvue:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.foo:org.onlab.onos.calendar
                             </packages>
                         </group>
                     </groups>
+                    <excludePackageNames>org.onlab.thirdparty</excludePackageNames>
                 </configuration>
             </plugin>
 
