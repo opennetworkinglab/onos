@@ -65,7 +65,8 @@ public class ReactiveForwarding {
 
     private ApplicationId appId;
 
-    @Property(name = "enabled", boolValue = true, label = "Forwarding enabled")
+    @Property(name = "enabled", boolValue = true,
+              label = "Enable forwarding; default is true")
     private boolean isEnabled = true;
 
     @Activate
@@ -94,7 +95,8 @@ public class ReactiveForwarding {
                 if (!isEnabled) {
                     flowRuleService.removeFlowRulesById(appId);
                 }
-                log.info("Reconfigured enabled = {}", isEnabled);
+                log.info("Reconfigured. Forwarding is {}",
+                         isEnabled ? "enabled" : "disabled");
             }
         }
     }
@@ -207,7 +209,6 @@ public class ReactiveForwarding {
                                          builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
 
         flowRuleService.applyFlowRules(f);
-
     }
 
 }
