@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Port;
@@ -25,6 +26,14 @@ import static org.onlab.onos.net.DeviceId.deviceId;
 public class DevicePortsListCommand extends DevicesListCommand {
 
     private static final String FMT = "  port=%s, state=%s";
+
+    @Option(name = "-e", aliases = "--enabled", description = "Show only enabled ports",
+            required = false, multiValued = false)
+    private boolean enabled = false;
+
+    @Option(name = "-d", aliases = "--disabled", description = "Show only disabled ports",
+            required = false, multiValued = false)
+    private boolean disabled = false;
 
     @Argument(index = 0, name = "uri", description = "Device ID",
               required = false, multiValued = false)
@@ -61,7 +70,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
      * @param devices collection of devices
      * @return JSON array
      */
-    public static JsonNode jsonPorts(DeviceService service, Iterable<Device> devices) {
+    public JsonNode jsonPorts(DeviceService service, Iterable<Device> devices) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (Device device : devices) {
@@ -78,15 +87,23 @@ public class DevicePortsListCommand extends DevicesListCommand {
      * @param device  infrastructure devices
      * @return JSON array
      */
-    public static JsonNode jsonPorts(DeviceService service, ObjectMapper mapper, Device device) {
+    public JsonNode jsonPorts(DeviceService service, ObjectMapper mapper, Device device) {
         ObjectNode result = mapper.createObjectNode();
         ArrayNode ports = mapper.createArrayNode();
         for (Port port : service.getPorts(device.id())) {
-            ports.add(mapper.createObjectNode()
-                              .put("port", port.number().toString())
-                              .put("isEnabled", port.isEnabled()));
+            if (isIncluded(port)) {
+                ports.add(mapper.createObjectNode()
+                                  .put("port", port.number().toString())
+                                  .put("isEnabled", port.isEnabled()));
+            }
         }
         return result.put("device", device.id().toString()).set("ports", ports);
+    }
+
+    // Determines if a port should be included in output.
+    private boolean isIncluded(Port port) {
+        return enabled && port.isEnabled() || disabled && !port.isEnabled() ||
+                !enabled && !disabled;
     }
 
     @Override
@@ -95,7 +112,9 @@ public class DevicePortsListCommand extends DevicesListCommand {
         List<Port> ports = new ArrayList<>(service.getPorts(device.id()));
         Collections.sort(ports, Comparators.PORT_COMPARATOR);
         for (Port port : ports) {
-            print(FMT, port.number(), port.isEnabled() ? "enabled" : "disabled");
+            if (isIncluded(port)) {
+                print(FMT, port.number(), port.isEnabled() ? "enabled" : "disabled");
+            }
         }
     }
 
