@@ -36,11 +36,11 @@
             <scope>test</scope>
         </dependency>
 
-	<dependency>
-	    <groupId>org.easymock</groupId>
-	    <artifactId>easymock</artifactId>
-	    <scope>test</scope>
-	</dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- TODO Consider removing store dependency.
               Currently required for DistributedDeviceManagerTest. -->

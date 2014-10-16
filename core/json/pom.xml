@@ -11,22 +11,28 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-core-store</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-json</artifactId>
+    <packaging>bundle</packaging>
 
-    <description>ONOS Core Store subsystem</description>
-
-    <modules>
-        <module>trivial</module>
-        <module>dist</module>
-        <module>hz</module>
-        <module>serializers</module>
-    </modules>
+    <description>ONOS JSON encode/decode facilities</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onos-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-core-trivial</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
