@@ -120,7 +120,7 @@ public final class IpPrefix {
 
         int mask = DEFAULT_MASK;
         if (parts.length == 2) {
-            mask = Integer.valueOf(parts[1]);
+            mask = Integer.parseInt(parts[1]);
             if (mask > MAX_INET_MASK) {
                 throw new IllegalArgumentException(
                         "Value of subnet mask cannot exceed "
