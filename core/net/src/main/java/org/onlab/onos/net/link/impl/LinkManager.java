@@ -214,6 +214,7 @@ public class LinkManager
             checkNotNull(connectPoint, "Connect point cannot be null");
             checkValidity();
             log.info("Links for connection point {} vanished", connectPoint);
+            // FIXME: This will remove links registered by other providers
             removeLinks(getLinks(connectPoint));
         }
 
