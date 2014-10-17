@@ -8,6 +8,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.Port;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
@@ -90,53 +91,50 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         public void event(DeviceEvent event) {
             LinkDiscovery ld = null;
             Device device = event.subject();
-            // it's not a switch so leave.
-            if (device.type() != Device.Type.SWITCH) {
-                return;
-            }
+            Port port = event.port();
             switch (event.type()) {
                 case DEVICE_ADDED:
-                    discoverers.put(event.subject().id(),
-                                    new LinkDiscovery(event.subject(), packetSevice,
+                    discoverers.put(device.id(),
+                                    new LinkDiscovery(device, packetSevice,
                                                       providerService, useBDDP));
                     break;
                 case PORT_ADDED:
                 case PORT_UPDATED:
                     if (event.port().isEnabled()) {
-                        ld = discoverers.get(event.subject().id());
+                        ld = discoverers.get(device.id());
                         if (ld == null) {
                             return;
                         }
-                        ld.addPort(event.port());
+                        ld.addPort(port);
                     } else {
-                        ConnectPoint point = new ConnectPoint(event.subject().id(),
-                                                              event.port().number());
+                        ConnectPoint point = new ConnectPoint(device.id(),
+                                                              port.number());
                         providerService.linksVanished(point);
                     }
                     break;
                 case PORT_REMOVED:
-                    ConnectPoint point = new ConnectPoint(event.subject().id(),
-                                                          event.port().number());
+                    ConnectPoint point = new ConnectPoint(device.id(),
+                                                          port.number());
                     providerService.linksVanished(point);
                     break;
                 case DEVICE_REMOVED:
                 case DEVICE_SUSPENDED:
-                    ld = discoverers.get(event.subject().id());
+                    ld = discoverers.get(device.id());
                     if (ld == null) {
                         return;
                     }
                     ld.stop();
-                    providerService.linksVanished(event.subject().id());
+                    providerService.linksVanished(device.id());
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
-                    ld = discoverers.get(event.subject().id());
+                    ld = discoverers.get(device.id());
                     if (ld == null) {
                         return;
                     }
-                    if (deviceService.isAvailable(event.subject().id())) {
+                    if (deviceService.isAvailable(device.id())) {
                         ld.start();
                     } else {
-                        providerService.linksVanished(event.subject().id());
+                        providerService.linksVanished(device.id());
                         ld.stop();
                     }
                     break;

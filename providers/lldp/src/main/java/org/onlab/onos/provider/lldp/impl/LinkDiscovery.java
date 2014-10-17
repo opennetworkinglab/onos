@@ -184,14 +184,13 @@ public class LinkDiscovery implements TimerTask {
                 this.slowPorts.remove(portNumber);
                 this.fastPorts.add(portNumber);
                 this.portProbeCount.put(portNumber, new AtomicInteger(0));
-            } else {
-                if (this.fastPorts.contains(portNumber)) {
+            } else if (this.fastPorts.contains(portNumber)) {
                     this.portProbeCount.get(portNumber).set(0);
-                } else {
+            } else {
                     this.log.debug(
                             "Got ackProbe for non-existing port: {}",
                             portNumber);
-                }
+
             }
         }
     }
@@ -256,7 +255,7 @@ public class LinkDiscovery implements TimerTask {
                     //fastIterator.remove();
                     //this.slowPorts.add(portNumber);
                     //this.portProbeCount.remove(portNumber);
-
+                    this.portProbeCount.get(portNumber).set(0);
 
                     ConnectPoint cp = new ConnectPoint(
                             device.id(),
