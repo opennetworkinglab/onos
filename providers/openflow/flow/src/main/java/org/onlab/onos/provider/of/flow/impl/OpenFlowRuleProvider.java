@@ -62,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -166,7 +167,14 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             FlowRule flowRule = fbe.getTarget();
             OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
             if (sw == null) {
-                log.warn("WTF {}", flowRule.deviceId());
+                /*
+                 * if a switch we are supposed to install to is gone then
+                 * cancel (ie. rollback) the work that has been done so far
+                 * and return the associated future.
+                 */
+                InstallationFuture failed = new InstallationFuture(sws, fmXids);
+                failed.cancel(true);
+                return failed;
             }
             sws.add(new Dpid(sw.getId()));
             FlowModBuilder builder = new FlowModBuilder(flowRule, sw.factory());
@@ -377,7 +385,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
 
         public void satisfyRequirement(Dpid dpid) {
-            log.warn("Satisfaction from switch {}", dpid);
+            log.debug("Satisfaction from switch {}", dpid);
             removeRequirement(dpid);
         }
 
@@ -432,7 +440,6 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 throws InterruptedException, ExecutionException,
                 TimeoutException {
             if (countDownLatch.await(timeout, unit)) {
-
                 this.state = BatchState.FINISHED;
                 return new CompletedBatchOperation(ok.get(), offendingFlowMods);
             }

@@ -401,7 +401,7 @@ public class FlowRuleManager
             CompletedBatchOperation completed;
             for (Future<CompletedBatchOperation> future : futures) {
                 completed = future.get();
-                success = validateBatchOperation(failed, completed, future);
+                success = validateBatchOperation(failed, completed);
             }
 
             return finalizeBatchOperation(success, failed);
@@ -426,14 +426,13 @@ public class FlowRuleManager
                 long now = System.nanoTime();
                 long thisTimeout = end - now;
                 completed = future.get(thisTimeout, TimeUnit.NANOSECONDS);
-                success = validateBatchOperation(failed, completed, future);
+                success = validateBatchOperation(failed, completed);
             }
             return finalizeBatchOperation(success, failed);
         }
 
         private boolean validateBatchOperation(List<FlowEntry> failed,
-                CompletedBatchOperation completed,
-                Future<CompletedBatchOperation> future) {
+                CompletedBatchOperation completed) {
 
             if (isCancelled()) {
                 throw new CancellationException();
