@@ -133,6 +133,10 @@ public class Router implements RouteListener {
      */
     public void start() {
 
+        // TODO hack to enable SDN-IP now for testing
+        isElectedLeader = true;
+        isActivatedLeader = true;
+
         bgpUpdatesExecutor.execute(new Runnable() {
             @Override
             public void run() {
