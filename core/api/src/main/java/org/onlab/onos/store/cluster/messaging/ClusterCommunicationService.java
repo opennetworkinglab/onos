@@ -37,6 +37,15 @@ public interface ClusterCommunicationService {
     boolean multicast(ClusterMessage message, Set<NodeId> nodeIds) throws IOException;
 
     /**
+     * Sends a message synchronously.
+     * @param message message to send
+     * @param toNodeId recipient node identifier
+     * @return ClusterMessageResponse which is reply future.
+     * @throws IOException
+     */
+    ClusterMessageResponse sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException;
+
+    /**
      * Adds a new subscriber for the specified message subject.
      *
      * @param subject    message subject
