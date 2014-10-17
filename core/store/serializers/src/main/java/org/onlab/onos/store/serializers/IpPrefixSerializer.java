@@ -34,7 +34,7 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
             Class<IpPrefix> type) {
         int octLen = input.readInt();
         byte[] octs = new byte[octLen];
-        input.read(octs);
+        input.readBytes(octs);
         int prefLen = input.readInt();
         return IpPrefix.valueOf(octs, prefLen);
     }

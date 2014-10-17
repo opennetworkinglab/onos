@@ -120,7 +120,7 @@ public final class IpPrefix {
 
         int mask = DEFAULT_MASK;
         if (parts.length == 2) {
-            mask = Integer.valueOf(parts[1]);
+            mask = Integer.parseInt(parts[1]);
             if (mask > MAX_INET_MASK) {
                 throw new IllegalArgumentException(
                         "Value of subnet mask cannot exceed "
@@ -173,14 +173,6 @@ public final class IpPrefix {
      * @return the IP address's value as an integer
      */
     public int toInt() {
-        int address = 0;
-        for (int i = 0; i < INET_LEN; i++) {
-            address |= octets[i] << ((INET_LEN - (i + 1)) * 8);
-        }
-        return address;
-    }
-
-    public int toRealInt() {
         int val = 0;
         for (int i = 0; i < octets.length; i++) {
           val <<= 8;

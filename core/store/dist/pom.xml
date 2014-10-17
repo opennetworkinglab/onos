@@ -19,21 +19,10 @@
     <dependencies>
         <dependency>
             <groupId>org.onlab.onos</groupId>
-            <artifactId>onos-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
             <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-
-        <dependency>
-            <groupId>org.onlab.onos</groupId>
-            <artifactId>onlab-nio</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onlab-netty</artifactId>
@@ -50,10 +39,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
             <scope>test</scope>
@@ -68,14 +53,5 @@
           <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

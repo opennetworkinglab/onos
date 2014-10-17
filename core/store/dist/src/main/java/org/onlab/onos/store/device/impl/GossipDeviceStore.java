@@ -38,7 +38,7 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.packet.ChassisId;
@@ -516,12 +516,12 @@ public class GossipDeviceStore
                                             Map<PortNumber, Port> ports,
                                             Set<PortNumber> processed) {
         List<DeviceEvent> events = new ArrayList<>();
-        Iterator<PortNumber> iterator = ports.keySet().iterator();
+        Iterator<Entry<PortNumber, Port>> iterator = ports.entrySet().iterator();
         while (iterator.hasNext()) {
-            PortNumber portNumber = iterator.next();
+            Entry<PortNumber, Port> e = iterator.next();
+            PortNumber portNumber = e.getKey();
             if (!processed.contains(portNumber)) {
-                events.add(new DeviceEvent(PORT_REMOVED, device,
-                                           ports.get(portNumber)));
+                events.add(new DeviceEvent(PORT_REMOVED, device, e.getValue()));
                 iterator.remove();
             }
         }
@@ -1139,7 +1139,7 @@ public class GossipDeviceStore
                 try {
                     unicastMessage(peer, DEVICE_ADVERTISE, ad);
                 } catch (IOException e) {
-                    log.error("Failed to send anti-entropy advertisement", e);
+                    log.debug("Failed to send anti-entropy advertisement to {}", peer);
                     return;
                 }
             } catch (Exception e) {

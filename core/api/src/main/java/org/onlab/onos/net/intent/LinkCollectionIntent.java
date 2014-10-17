@@ -14,7 +14,7 @@ import com.google.common.base.MoreObjects;
  * Abstraction of a connectivity intent that is implemented by a set of path
  * segments.
  */
-public class LinkCollectionIntent extends ConnectivityIntent implements InstallableIntent {
+public final class LinkCollectionIntent extends ConnectivityIntent implements InstallableIntent {
 
     private final Set<Link> links;
 
@@ -46,6 +46,12 @@ public class LinkCollectionIntent extends ConnectivityIntent implements Installa
         return links;
     }
 
+    /**
+     * Returns the set of links that represent the network connections needed
+     * by this intent.
+     *
+     * @return Set of links for the network hops needed by this intent
+     */
     public Set<Link> links() {
         return links;
     }

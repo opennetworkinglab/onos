@@ -1,12 +1,10 @@
 package org.onlab.onos.fwd;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
@@ -29,7 +27,13 @@ import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.util.Dictionary;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive forwarding application.
@@ -61,6 +65,10 @@ public class ReactiveForwarding {
 
     private ApplicationId appId;
 
+    @Property(name = "enabled", boolValue = true,
+              label = "Enable forwarding; default is true")
+    private boolean isEnabled = true;
+
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onlab.onos.fwd");
@@ -76,6 +84,22 @@ public class ReactiveForwarding {
         log.info("Stopped");
     }
 
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary properties = context.getProperties();
+        String flag = (String) properties.get("enabled");
+        if (flag != null) {
+            boolean enabled = flag.equals("true");
+            if (isEnabled != enabled) {
+                isEnabled = enabled;
+                if (!isEnabled) {
+                    flowRuleService.removeFlowRulesById(appId);
+                }
+                log.info("Reconfigured. Forwarding is {}",
+                         isEnabled ? "enabled" : "disabled");
+            }
+        }
+    }
 
     /**
      * Packet processor responsible for forwarding packets along their paths.
@@ -86,7 +110,7 @@ public class ReactiveForwarding {
         public void process(PacketContext context) {
             // Stop processing if the packet has been handled, since we
             // can't do any more to it.
-            if (context.isHandled()) {
+            if (!isEnabled || context.isHandled()) {
                 return;
             }
 
@@ -114,8 +138,8 @@ public class ReactiveForwarding {
             // Otherwise, get a set of paths that lead from here to the
             // destination edge switch.
             Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
-                    pkt.receivedFrom().deviceId(),
-                    dst.location().deviceId());
+                                                       pkt.receivedFrom().deviceId(),
+                                                       dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
                 flood(context);
@@ -127,8 +151,8 @@ public class ReactiveForwarding {
             Path path = pickForwardPath(paths, pkt.receivedFrom().port());
             if (path == null) {
                 log.warn("Doh... don't know where to go... {} -> {} received on {}",
-                        ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
-                        pkt.receivedFrom());
+                         ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
+                         pkt.receivedFrom());
                 flood(context);
                 return;
             }
@@ -152,7 +176,7 @@ public class ReactiveForwarding {
     // Floods the specified packet if permissible.
     private void flood(PacketContext context) {
         if (topologyService.isBroadcastPoint(topologyService.currentTopology(),
-                context.inPacket().receivedFrom())) {
+                                             context.inPacket().receivedFrom())) {
             packetOut(context, PortNumber.FLOOD);
         } else {
             context.block();
@@ -174,18 +198,17 @@ public class ReactiveForwarding {
         Ethernet inPkt = context.inPacket().parsed();
         TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
         builder.matchEthType(inPkt.getEtherType())
-        .matchEthSrc(inPkt.getSourceMAC())
-        .matchEthDst(inPkt.getDestinationMAC())
-        .matchInport(context.inPacket().receivedFrom().port());
+                .matchEthSrc(inPkt.getSourceMAC())
+                .matchEthDst(inPkt.getDestinationMAC())
+                .matchInport(context.inPacket().receivedFrom().port());
 
         TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
         treat.setOutput(portNumber);
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
+                                         builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
 
         flowRuleService.applyFlowRules(f);
-
     }
 
 }

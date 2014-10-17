@@ -1,5 +1,6 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.topology.Topology;
@@ -30,8 +31,17 @@ public class TopologyCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         init();
-        print(FMT, topology.time(), topology.deviceCount(), topology.linkCount(),
-              topology.clusterCount(), topology.pathCount());
+        if (outputJson()) {
+            print("%s", new ObjectMapper().createObjectNode()
+                    .put("time", topology.time())
+                    .put("deviceCount", topology.deviceCount())
+                    .put("linkCount", topology.linkCount())
+                    .put("clusterCount", topology.clusterCount())
+                    .put("pathCount", topology.pathCount()));
+        } else {
+            print(FMT, topology.time(), topology.deviceCount(), topology.linkCount(),
+                  topology.clusterCount(), topology.pathCount());
+        }
     }
 
 }

@@ -48,10 +48,16 @@ public final class NetTestTools {
                                new HashSet<IpPrefix>());
     }
 
+    // Short-hand for creating a connection point.
+    public static ConnectPoint connectPoint(String id, int port) {
+        return new ConnectPoint(did(id), portNumber(port));
+    }
+
     // Short-hand for creating a link.
     public static Link link(String src, int sp, String dst, int dp) {
-        return new DefaultLink(PID, new ConnectPoint(did(src), portNumber(sp)),
-                               new ConnectPoint(did(dst), portNumber(dp)),
+        return new DefaultLink(PID,
+                               connectPoint(src, sp),
+                               connectPoint(dst, dp),
                                Link.Type.DIRECT);
     }
 

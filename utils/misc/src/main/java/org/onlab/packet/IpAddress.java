@@ -2,13 +2,15 @@ package org.onlab.packet;
 
 import java.util.Arrays;
 
+
+
 /**
  * A class representing an IPv4 address.
  * <p/>
  * TODO this class is a clone of IpPrefix and still needs to be modified to
  * look more like an IpAddress.
  */
-public final class IpAddress {
+public final class IpAddress implements Comparable<IpAddress> {
 
     // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
 
@@ -121,7 +123,7 @@ public final class IpAddress {
 
         int mask = DEFAULT_MASK;
         if (parts.length == 2) {
-            mask = Integer.valueOf(parts[1]);
+            mask = Integer.parseInt(parts[1]);
             if (mask > MAX_INET_MASK) {
                 throw new IllegalArgumentException(
                         "Value of subnet mask cannot exceed "
@@ -174,20 +176,21 @@ public final class IpAddress {
      * @return the IP address's value as an integer
      */
     public int toInt() {
-        int address = 0;
-        for (int i = 0; i < INET_LEN; i++) {
-            address |= octets[i] << ((INET_LEN - (i + 1)) * 8);
-        }
-        return address;
-    }
-
-    public int toRealInt() {
         int val = 0;
         for (int i = 0; i < octets.length; i++) {
           val <<= 8;
           val |= octets[i] & 0xff;
         }
         return val;
+    }
+
+    /**
+     * Converts the IP address to a /32 IP prefix.
+     *
+     * @return the new IP prefix
+     */
+    public IpPrefix toPrefix() {
+        return IpPrefix.valueOf(octets, MAX_INET_MASK);
     }
 
     /**
@@ -277,6 +280,13 @@ public final class IpAddress {
             return network().equals(otherMasked);
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(IpAddress o) {
+        Long lv = ((long) this.toInt()) & 0xffffffffL;
+        Long rv = ((long) o.toInt()) & 0xffffffffL;
+        return lv.compareTo(rv);
     }
 
     @Override

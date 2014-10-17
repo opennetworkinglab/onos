@@ -20,8 +20,7 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
     }
 
     @Override
-    public void write(Kryo kryo, Output output,
-            IpAddress object) {
+    public void write(Kryo kryo, Output output, IpAddress object) {
         byte[] octs = object.toOctets();
         output.writeInt(octs.length);
         output.writeBytes(octs);
@@ -29,11 +28,10 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
     }
 
     @Override
-    public IpAddress read(Kryo kryo, Input input,
-            Class<IpAddress> type) {
-        int octLen = input.readInt();
+    public IpAddress read(Kryo kryo, Input input, Class<IpAddress> type) {
+        final int octLen = input.readInt();
         byte[] octs = new byte[octLen];
-        input.read(octs);
+        input.readBytes(octs);
         int prefLen = input.readInt();
         return IpAddress.valueOf(octs, prefLen);
     }

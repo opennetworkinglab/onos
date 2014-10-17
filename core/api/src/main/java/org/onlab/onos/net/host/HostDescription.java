@@ -1,5 +1,7 @@
 package org.onlab.onos.net.host;
 
+import java.util.Set;
+
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.packet.IpPrefix;
@@ -38,6 +40,6 @@ public interface HostDescription extends Description {
      * @return host IP address
      */
     // FIXME: Switch to IpAddress
-    IpPrefix ipAddress();
+    Set<IpPrefix> ipAddress();
 
 }

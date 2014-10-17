@@ -1,5 +1,6 @@
 package org.onlab.onos.cluster;
 
+import static com.google.common.base.Predicates.notNull;
 import static org.junit.Assert.*;
 import static org.onlab.onos.cluster.ControllerNodeToNodeId.toNodeId;
 
@@ -30,12 +31,13 @@ public class ControllerNodeToNodeIdTest {
     @Test
     public final void testToNodeId() {
 
-        final Iterable<ControllerNode> nodes = Arrays.asList(CN1, CN2, CN3);
+        final Iterable<ControllerNode> nodes = Arrays.asList(CN1, CN2, CN3, null);
         final List<NodeId> nodeIds = Arrays.asList(NID1, NID2, NID3);
 
         assertEquals(nodeIds,
                 FluentIterable.from(nodes)
                     .transform(toNodeId())
+                    .filter(notNull())
                     .toList());
     }
 

@@ -37,7 +37,7 @@ public class MultiPointToSinglePointIntentCompiler
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PathService pathService;
 
-    private IdGenerator<IntentId> intentIdGenerator;
+    protected IdGenerator<IntentId> intentIdGenerator;
 
     @Activate
     public void activate() {

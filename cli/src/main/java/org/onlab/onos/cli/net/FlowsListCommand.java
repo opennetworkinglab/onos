@@ -1,5 +1,9 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -12,6 +16,8 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowRuleService;
+import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onlab.onos.net.flow.instructions.Instruction;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,9 +54,73 @@ public class FlowsListCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
         Map<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
-        for (Device d : getSortedDevices(deviceService)) {
-            printFlows(d, flows.get(d), coreService);
+
+        if (outputJson()) {
+            print("%s", json(coreService, getSortedDevices(deviceService), flows));
+        } else {
+            for (Device d : getSortedDevices(deviceService)) {
+                printFlows(d, flows.get(d), coreService);
+            }
         }
+    }
+
+    /**
+     * Produces a JSON array of flows grouped by the each device.
+     *
+     * @param coreService core service
+     * @param devices     collection of devices to group flow by
+     * @param flows       collection of flows per each device
+     * @return JSON array
+     */
+    private JsonNode json(CoreService coreService, Iterable<Device> devices,
+                          Map<Device, List<FlowEntry>> flows) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Device device : devices) {
+            result.add(json(coreService, mapper, device, flows.get(device)));
+        }
+        return result;
+    }
+
+    // Produces JSON object with the flows of the given device.
+    private ObjectNode json(CoreService coreService, ObjectMapper mapper,
+                            Device device, List<FlowEntry> flows) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode array = mapper.createArrayNode();
+
+        for (FlowEntry flow : flows) {
+            array.add(json(coreService, mapper, flow));
+        }
+
+        result.put("device", device.id().toString())
+                .put("flowCount", flows.size())
+                .set("flows", array);
+        return result;
+    }
+
+    // Produces JSON structure with the specified flow data.
+    private ObjectNode json(CoreService coreService, ObjectMapper mapper,
+                            FlowEntry flow) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode crit = mapper.createArrayNode();
+        for (Criterion c : flow.selector().criteria()) {
+            crit.add(c.toString());
+        }
+
+        ArrayNode instr = mapper.createArrayNode();
+        for (Instruction i : flow.treatment().instructions()) {
+            instr.add(i.toString());
+        }
+
+        result.put("flowId", Long.toHexString(flow.id().value()))
+                .put("state", flow.state().toString())
+                .put("bytes", flow.bytes())
+                .put("packets", flow.packets())
+                .put("life", flow.life())
+                .put("appId", coreService.getAppId(flow.appId()).name());
+        result.set("selector", crit);
+        result.set("treatment", instr);
+        return result;
     }
 
     /**
