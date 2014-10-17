@@ -62,6 +62,9 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
             ((AbstractProviderService) service).invalidate();
             services.remove(provider.id());
             providers.remove(provider.id());
+            if (!provider.id().isAncillary()) {
+                providersByScheme.remove(provider.id().scheme());
+            }
         }
     }
 
