@@ -3,7 +3,7 @@ package org.onlab.onos.store.flow;
 import org.onlab.onos.net.DeviceId;
 
 /**
- * Service to return where the Replica should be placed.
+ * Service to return where the replica should be placed.
  */
 public interface ReplicaInfoService {
 
@@ -15,4 +15,19 @@ public interface ReplicaInfoService {
      * @return placement information
      */
     ReplicaInfo getReplicaInfoFor(DeviceId deviceId);
+
+    /**
+     * Adds the specified replica placement info change listener.
+     *
+     * @param listener the replica placement info change listener
+     */
+    void addListener(ReplicaInfoEventListener listener);
+
+    /**
+     * Removes the specified replica placement info change listener.
+     *
+     * @param listener the replica placement info change listener
+     */
+    void removeListener(ReplicaInfoEventListener listener);
+
 }
