@@ -172,7 +172,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          */
         private List<PortDescription> buildPortDescriptions(
                 List<OFPortDesc> ports) {
-            final List<PortDescription> portDescs = new ArrayList<>();
+            final List<PortDescription> portDescs = new ArrayList<>(ports.size());
             for (OFPortDesc port : ports) {
                 portDescs.add(buildPortDescription(port));
             }
