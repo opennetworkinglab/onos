@@ -1,4 +1,4 @@
-package org.onlab.onos.provider.of.host.impl;
+package org.onlab.onos.provider.host.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -14,23 +14,21 @@ import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
+import org.onlab.onos.net.packet.PacketContext;
+import org.onlab.onos.net.packet.PacketProcessor;
+import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowController;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.PacketListener;
+
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
+
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -38,8 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * end-station hosts.
  */
 @Component(immediate = true)
-@Deprecated
-public class OpenFlowHostProvider extends AbstractProvider implements HostProvider {
+public class HostLocationProvider extends AbstractProvider implements HostProvider {
 
     private final Logger log = getLogger(getClass());
 
@@ -47,35 +44,34 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
     protected HostProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenFlowController controller;
+    protected PacketService pktService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
     private HostProviderService providerService;
 
-    private final InternalHostProvider listener = new InternalHostProvider();
+    private final InternalHostProvider processor = new InternalHostProvider();
 
-    private boolean ipLearn = true;
 
     /**
      * Creates an OpenFlow host provider.
      */
-    public OpenFlowHostProvider() {
-        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
+    public HostLocationProvider() {
+        super(new ProviderId("of", "org.onlab.onos.provider.host"));
     }
 
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
-        controller.addPacketListener(10, listener);
+        pktService.addProcessor(processor, 1);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
-        controller.removePacketListener(listener);
+        pktService.removeProcessor(processor);
         providerService = null;
         log.info("Stopped");
     }
@@ -85,15 +81,14 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
         log.info("Triggering probe on device {}", host);
     }
 
-    private class InternalHostProvider implements PacketListener {
+    private class InternalHostProvider implements PacketProcessor {
 
         @Override
-        public void handlePacket(OpenFlowPacketContext pktCtx) {
-            Ethernet eth = pktCtx.parsed();
+        public void process(PacketContext context) {
+            Ethernet eth = context.inPacket().parsed();
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
-            ConnectPoint heardOn = new ConnectPoint(deviceId(Dpid.uri(pktCtx.dpid())),
-                                                    portNumber(pktCtx.inPort()));
+            ConnectPoint heardOn = context.inPacket().receivedFrom();
 
             // If this is not an edge port, bail out.
             Topology topology = topologyService.currentTopology();
@@ -101,9 +96,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
                 return;
             }
 
-            HostLocation hloc = new HostLocation(deviceId(Dpid.uri(pktCtx.dpid())),
-                                                 portNumber(pktCtx.inPort()),
-                                                 System.currentTimeMillis());
+            HostLocation hloc = new HostLocation(heardOn, System.currentTimeMillis());
 
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
 
@@ -115,17 +108,13 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
-            } else if (ipLearn && eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                IPv4 pip = (IPv4) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(pip.getSourceAddress());
+            } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
+                //Do not learn new ip from ip packet.
                 HostDescription hdescr =
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc);
                 providerService.hostDetected(hid, hdescr);
 
             }
-
-            // TODO: Use DHCP packets as well later...
         }
-
     }
 }

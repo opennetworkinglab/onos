@@ -105,8 +105,8 @@
         <bundle>mvn:org.onlab.onos/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
 
         <bundle>mvn:org.onlab.onos/onos-lldp-provider/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onlab.onos/onos-host-provider/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-device/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-of-provider-host/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-packet/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-of-provider-flow/1.0.0-SNAPSHOT</bundle>
 
