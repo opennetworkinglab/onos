@@ -37,6 +37,7 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ public class DeviceManagerTest {
     private static final String SW1 = "3.8.1";
     private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
+    private static final ChassisId CID = new ChassisId();
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
@@ -111,7 +113,7 @@ public class DeviceManagerTest {
     private void connectDevice(DeviceId deviceId, String swVersion) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                                             HW, swVersion, SN);
+                                             HW, swVersion, SN, CID);
         providerService.deviceConnected(deviceId, description);
         assertNotNull("device should be found", service.getDevice(DID1));
     }

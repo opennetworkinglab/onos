@@ -68,7 +68,7 @@ public class FlowRuleManagerTest {
     private static final DeviceId DID = DeviceId.deviceId("of:001");
     private static final int TIMEOUT = 10;
     private static final Device DEV = new DefaultDevice(
-            PID, DID, Type.SWITCH, "", "", "", "");
+            PID, DID, Type.SWITCH, "", "", "", "", null);
 
     private FlowRuleManager mgr;
 
@@ -405,7 +405,6 @@ public class FlowRuleManagerTest {
         assertTrue("Entries in wrong state",
                    validateState(FlowEntryState.PENDING_REMOVE,
                                  FlowEntryState.PENDING_ADD));
-
 
 
     }

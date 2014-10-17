@@ -18,6 +18,7 @@
 
     <modules>
         <module>openflow</module>
+        <module>lldp</module>
     </modules>
 
     <dependencies>

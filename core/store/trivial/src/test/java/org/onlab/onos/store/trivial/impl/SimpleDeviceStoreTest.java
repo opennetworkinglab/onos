@@ -40,6 +40,7 @@ import org.onlab.onos.net.provider.ProviderId;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import org.onlab.packet.ChassisId;
 
 /**
  * Test of the simple DeviceStore implementation.
@@ -55,6 +56,7 @@ public class SimpleDeviceStoreTest {
     private static final String SW1 = "3.8.1";
     private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
+    private static final ChassisId CID = new ChassisId();
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
@@ -107,7 +109,7 @@ public class SimpleDeviceStoreTest {
                            SparseAnnotations... annotations) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                        HW, swVersion, SN, annotations);
+                        HW, swVersion, SN, CID, annotations);
         deviceStore.createOrUpdateDevice(PID, deviceId, description);
     }
 
@@ -115,7 +117,7 @@ public class SimpleDeviceStoreTest {
                                     SparseAnnotations... annotations) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                        HW, swVersion, SN, annotations);
+                        HW, swVersion, SN, CID, annotations);
         deviceStore.createOrUpdateDevice(PIDA, deviceId, description);
     }
 
@@ -193,14 +195,14 @@ public class SimpleDeviceStoreTest {
     public final void testCreateOrUpdateDevice() {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN);
+                        HW, SW1, SN, CID);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PID, DID1, description);
         assertEquals(DEVICE_ADDED, event.type());
         assertDevice(DID1, SW1, event.subject());
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN);
+                        HW, SW2, SN, CID);
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
         assertEquals(DEVICE_UPDATED, event2.type());
         assertDevice(DID1, SW2, event2.subject());
@@ -212,7 +214,7 @@ public class SimpleDeviceStoreTest {
     public final void testCreateOrUpdateDeviceAncillary() {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN, A2);
+                        HW, SW1, SN, CID, A2);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PIDA, DID1, description);
         assertEquals(DEVICE_ADDED, event.type());
         assertDevice(DID1, SW1, event.subject());
@@ -222,7 +224,7 @@ public class SimpleDeviceStoreTest {
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN, A1);
+                        HW, SW2, SN, CID, A1);
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
         assertEquals(DEVICE_UPDATED, event2.type());
         assertDevice(DID1, SW2, event2.subject());
@@ -238,7 +240,7 @@ public class SimpleDeviceStoreTest {
         // But, Ancillary annotations will be in effect
         DeviceDescription description3 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN, A2_2);
+                        HW, SW1, SN, CID, A2_2);
         DeviceEvent event3 = deviceStore.createOrUpdateDevice(PIDA, DID1, description3);
         assertEquals(DEVICE_UPDATED, event3.type());
         // basic information will be the one from Primary
@@ -508,7 +510,7 @@ public class SimpleDeviceStoreTest {
 
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN);
+                        HW, SW1, SN, CID);
         deviceStore.setDelegate(checkAdd);
         deviceStore.createOrUpdateDevice(PID, DID1, description);
         assertTrue("Add event fired", addLatch.await(1, TimeUnit.SECONDS));
@@ -516,7 +518,7 @@ public class SimpleDeviceStoreTest {
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN);
+                        HW, SW2, SN, CID);
         deviceStore.unsetDelegate(checkAdd);
         deviceStore.setDelegate(checkUpdate);
         deviceStore.createOrUpdateDevice(PID, DID1, description2);

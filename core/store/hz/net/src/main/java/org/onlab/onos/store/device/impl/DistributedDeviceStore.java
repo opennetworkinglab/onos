@@ -169,7 +169,7 @@ public class DistributedDeviceStore
         DefaultDevice device = new DefaultDevice(providerId, deviceId, desc.type(),
                                                  desc.manufacturer(),
                                                  desc.hwVersion(), desc.swVersion(),
-                                                 desc.serialNumber());
+                                                 desc.serialNumber(), desc.chassisId());
 
         synchronized (this) {
             final byte[] deviceIdBytes = serialize(deviceId);
@@ -193,7 +193,8 @@ public class DistributedDeviceStore
                                                       desc.manufacturer(),
                                                       desc.hwVersion(),
                                                       desc.swVersion(),
-                                                      desc.serialNumber());
+                                                      desc.serialNumber(),
+                                                      desc.chassisId());
             synchronized (this) {
                 final byte[] deviceIdBytes = serialize(device.id());
                 rawDevices.put(deviceIdBytes, serialize(updated));

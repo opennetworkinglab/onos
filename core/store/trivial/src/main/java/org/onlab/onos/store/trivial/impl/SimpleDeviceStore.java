@@ -30,6 +30,7 @@ import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
+import org.onlab.packet.ChassisId;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
@@ -404,6 +405,7 @@ public class SimpleDeviceStore
         String hwVersion = base.hwVersion();
         String swVersion = base.swVersion();
         String serialNumber = base.serialNumber();
+        ChassisId chassisId = base.chassisId();
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
         annotations = merge(annotations, base.annotations());
 
@@ -421,7 +423,8 @@ public class SimpleDeviceStore
         }
 
         return new DefaultDevice(primary, deviceId , type, manufacturer,
-                            hwVersion, swVersion, serialNumber, annotations);
+                            hwVersion, swVersion, serialNumber,
+                            chassisId, annotations);
     }
 
     /**

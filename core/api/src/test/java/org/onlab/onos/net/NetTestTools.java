@@ -1,6 +1,7 @@
 package org.onlab.onos.net;
 
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public final class NetTestTools {
     // Crates a new device with the specified id
     public static Device device(String id) {
         return new DefaultDevice(PID, did(id), Device.Type.SWITCH,
-                                 "mfg", "1.0", "1.1", "1234");
+                                 "mfg", "1.0", "1.1", "1234", new ChassisId());
     }
 
     // Crates a new host with the specified id

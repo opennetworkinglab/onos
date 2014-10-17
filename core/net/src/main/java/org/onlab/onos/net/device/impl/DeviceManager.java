@@ -346,7 +346,7 @@ public class DeviceManager
                             new DefaultDeviceDescription(
                                     did.uri(), device.type(), device.manufacturer(),
                                     device.hwVersion(), device.swVersion(),
-                                    device.serialNumber()));
+                                    device.serialNumber(), device.chassisId()));
                 }
 
                 applyRole(did, MastershipRole.MASTER);

@@ -26,6 +26,7 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoPool;
@@ -49,7 +50,9 @@ public class KryoSerializerTest {
     private static final String SW1 = "3.8.1";
     private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
-    private static final Device DEV1 = new DefaultDevice(PID, DID1, Device.Type.SWITCH, MFR, HW, SW1, SN);
+    private static final ChassisId CID = new ChassisId();
+    private static final Device DEV1 = new DefaultDevice(PID, DID1, Device.Type.SWITCH, MFR, HW,
+                                                         SW1, SN, CID);
     private static final SparseAnnotations A1 = DefaultAnnotations.builder()
             .set("A1", "a1")
             .set("B1", "b1")
