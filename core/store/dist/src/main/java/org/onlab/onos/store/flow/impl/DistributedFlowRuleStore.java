@@ -127,7 +127,7 @@ public class DistributedFlowRuleStore
     @Override
     public void storeFlowRule(FlowRule rule) {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
-        if (replicaInfo.master().get().equals(clusterService.getLocalNode())) {
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             storeFlowEntryInternal(rule);
             return;
         }
@@ -146,7 +146,7 @@ public class DistributedFlowRuleStore
         }
     }
 
-    public synchronized void storeFlowEntryInternal(FlowRule flowRule) {
+    private synchronized void storeFlowEntryInternal(FlowRule flowRule) {
         FlowEntry flowEntry = new DefaultFlowEntry(flowRule);
         DeviceId deviceId = flowRule.deviceId();
         // write to local copy.
@@ -161,7 +161,7 @@ public class DistributedFlowRuleStore
     @Override
     public synchronized void deleteFlowRule(FlowRule rule) {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
-        if (replicaInfo.master().get().equals(clusterService.getLocalNode())) {
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             deleteFlowRuleInternal(rule);
             return;
         }
@@ -180,7 +180,7 @@ public class DistributedFlowRuleStore
         }
     }
 
-    public synchronized void deleteFlowRuleInternal(FlowRule flowRule) {
+    private synchronized void deleteFlowRuleInternal(FlowRule flowRule) {
         FlowEntry entry = getFlowEntry(flowRule);
         if (entry == null) {
             return;
@@ -192,7 +192,7 @@ public class DistributedFlowRuleStore
     @Override
     public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
-        if (replicaInfo.master().get().equals(clusterService.getLocalNode())) {
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return addOrUpdateFlowRuleInternal(rule);
         }
 
@@ -235,7 +235,7 @@ public class DistributedFlowRuleStore
     @Override
     public FlowRuleEvent removeFlowRule(FlowEntry rule) {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
-        if (replicaInfo.master().get().equals(clusterService.getLocalNode())) {
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             // bypass and handle it locally
             return removeFlowRuleInternal(rule);
         }
