@@ -31,6 +31,7 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
 import org.onlab.onos.store.flow.ReplicaInfo;
+import org.onlab.onos.store.flow.ReplicaInfoService;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoPool;
@@ -59,7 +60,7 @@ public class DistributedFlowRuleStore
             ArrayListMultimap.<Short, FlowRule>create();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ReplicaInfoManager replicaInfoManager;
+    private ReplicaInfoService replicaInfoManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterCommunicationService clusterCommunicator;
