@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages the connectivity requirements between peers.
  */
-public class PeerConnectivity {
+public class PeerConnectivityManager {
 
     private static final Logger log = LoggerFactory.getLogger(
-            PeerConnectivity.class);
+            PeerConnectivityManager.class);
 
     // TODO these shouldn't be defined here
     private static final short BGP_PORT = 179;
@@ -41,7 +41,7 @@ public class PeerConnectivity {
     // TODO this sucks.
     private int intentId = 0;
 
-    public PeerConnectivity(SdnIpConfigService configInfoService,
+    public PeerConnectivityManager(SdnIpConfigService configInfoService,
             InterfaceService interfaceService, IntentService intentService) {
         this.configInfoService = configInfoService;
         this.interfaceService = interfaceService;
