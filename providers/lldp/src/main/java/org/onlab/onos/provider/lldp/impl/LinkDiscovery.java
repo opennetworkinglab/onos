@@ -30,10 +30,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
+import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link.Type;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
@@ -79,22 +81,24 @@ public class LinkDiscovery implements TimerTask {
     private final boolean useBDDP;
     private final LinkProviderService linkProvider;
     private final PacketService pktService;
+    private final MastershipService mastershipService;
     private Timeout timeout;
 
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
      * generic LLDP packet that will be customized for the port it is sent out on.
      * Starts the the timer for the discovery process.
-     *
-     * @param device the physical switch
+     *  @param device the physical switch
+     * @param masterService
      * @param useBDDP flag to also use BDDP for discovery
      */
     public LinkDiscovery(Device device, PacketService pktService,
-             LinkProviderService providerService, Boolean... useBDDP) {
+                         MastershipService masterService, LinkProviderService providerService, Boolean... useBDDP) {
         this.device = device;
         this.probeRate = 3000;
         this.linkProvider = providerService;
         this.pktService = pktService;
+        this.mastershipService = masterService;
         this.slowPorts = Collections.synchronizedSet(new HashSet<Long>());
         this.fastPorts = Collections.synchronizedSet(new HashSet<Long>());
         this.portProbeCount = new HashMap<>();
@@ -337,12 +341,15 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private void sendProbes(Long portNumber) {
-        OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
-        pktService.emit(pkt);
-        if (useBDDP) {
-            OutboundPacket bpkt = this.createOutBoundBDDP(portNumber);
-            pktService.emit(bpkt);
-        }
+       if (mastershipService.getLocalRole(this.device.id()) ==
+               MastershipRole.MASTER) {
+           OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
+           pktService.emit(pkt);
+           if (useBDDP) {
+               OutboundPacket bpkt = this.createOutBoundBDDP(portNumber);
+               pktService.emit(bpkt);
+           }
+       }
     }
 
 }

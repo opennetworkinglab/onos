@@ -5,6 +5,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -45,6 +46,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetSevice;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService masterService;
 
     private LinkProviderService providerService;
 
@@ -95,7 +99,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             switch (event.type()) {
                 case DEVICE_ADDED:
                     discoverers.put(device.id(),
-                                    new LinkDiscovery(device, packetSevice,
+                                    new LinkDiscovery(device, packetSevice, masterService,
                                                       providerService, useBDDP));
                     break;
                 case PORT_ADDED:
