@@ -35,6 +35,7 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyAct
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.Masked;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
@@ -218,23 +219,35 @@ public class FlowEntryBuilder {
                 builder.matchEthType((short) ethType);
                 break;
             case IPV4_DST:
-                IPv4Address di = match.get(MatchField.IPV4_DST);
                 IpPrefix dip;
-                if (di.isCidrMask()) {
-                    dip = IpPrefix.valueOf(di.getInt(), di.asCidrMaskLength());
+                if (match.isPartiallyMasked(MatchField.IPV4_DST)) {
+                    Masked<IPv4Address> maskedIp = match.getMasked(MatchField.IPV4_DST);
+
+                    dip = IpPrefix.valueOf(
+                            maskedIp.getValue().getInt(),
+                            maskedIp.getMask().asCidrMaskLength());
                 } else {
-                    dip = IpPrefix.valueOf(di.getInt(), IpPrefix.MAX_INET_MASK);
+                    dip = IpPrefix.valueOf(
+                            match.get(MatchField.IPV4_DST).getInt(),
+                            IpPrefix.MAX_INET_MASK);
                 }
+
                 builder.matchIPDst(dip);
                 break;
             case IPV4_SRC:
-                IPv4Address si = match.get(MatchField.IPV4_SRC);
                 IpPrefix sip;
-                if (si.isCidrMask()) {
-                    sip = IpPrefix.valueOf(si.getInt(), si.asCidrMaskLength());
+                if (match.isPartiallyMasked(MatchField.IPV4_SRC)) {
+                    Masked<IPv4Address> maskedIp = match.getMasked(MatchField.IPV4_SRC);
+
+                    sip = IpPrefix.valueOf(
+                            maskedIp.getValue().getInt(),
+                            maskedIp.getMask().asCidrMaskLength());
                 } else {
-                    sip = IpPrefix.valueOf(si.getInt(), IpPrefix.MAX_INET_MASK);
+                    sip = IpPrefix.valueOf(
+                            match.get(MatchField.IPV4_SRC).getInt(),
+                            IpPrefix.MAX_INET_MASK);
                 }
+
                 builder.matchIPSrc(sip);
                 break;
             case IP_PROTO:
