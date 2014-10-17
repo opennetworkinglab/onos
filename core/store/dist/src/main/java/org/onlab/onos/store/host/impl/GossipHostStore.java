@@ -534,7 +534,7 @@ public class GossipHostStore
                 try {
                     unicastMessage(peer, GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT, ad);
                 } catch (IOException e) {
-                    log.debug("Failed to send anti-entropy advertisement", e);
+                    log.debug("Failed to send anti-entropy advertisement to {}", peer);
                     return;
                 }
             } catch (Exception e) {

@@ -1136,7 +1136,7 @@ public class GossipDeviceStore
                 try {
                     unicastMessage(peer, DEVICE_ADVERTISE, ad);
                 } catch (IOException e) {
-                    log.error("Failed to send anti-entropy advertisement", e);
+                    log.debug("Failed to send anti-entropy advertisement to {}", peer);
                     return;
                 }
             } catch (Exception e) {
