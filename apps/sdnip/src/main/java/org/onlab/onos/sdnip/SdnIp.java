@@ -36,7 +36,7 @@ public class SdnIp implements SdnIpService {
     protected HostService hostService;
 
     private SdnIpConfigReader config;
-    private PeerConnectivity peerConnectivity;
+    private PeerConnectivityManager peerConnectivity;
     private Router router;
     private BgpSessionManager bgpSessionManager;
 
@@ -49,7 +49,7 @@ public class SdnIp implements SdnIpService {
 
         InterfaceService interfaceService = new HostServiceBasedInterfaceService(hostService);
 
-        peerConnectivity = new PeerConnectivity(config, interfaceService, intentService);
+        peerConnectivity = new PeerConnectivityManager(config, interfaceService, intentService);
         peerConnectivity.start();
 
         router = new Router(intentService, hostService, config, interfaceService);
@@ -78,5 +78,9 @@ public class SdnIp implements SdnIpService {
     @Override
     public Collection<RouteEntry> getRoutes() {
         return router.getRoutes();
+    }
+
+    static String dpidToUri(String dpid) {
+        return "of:" + dpid.replace(":", "");
     }
 }

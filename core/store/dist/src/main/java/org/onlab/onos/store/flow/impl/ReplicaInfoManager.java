@@ -1,5 +1,6 @@
 package org.onlab.onos.store.flow.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.onos.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
 
@@ -64,6 +65,16 @@ public class ReplicaInfoManager implements ReplicaInfoService {
         // TODO: populate backup List when we reach the point we need them.
         return new ReplicaInfo(mastershipService.getMasterFor(deviceId),
                                Collections.<NodeId>emptyList());
+    }
+
+    @Override
+    public void addListener(ReplicaInfoEventListener listener) {
+        listenerRegistry.addListener(checkNotNull(listener));
+    }
+
+    @Override
+    public void removeListener(ReplicaInfoEventListener listener) {
+        listenerRegistry.removeListener(checkNotNull(listener));
     }
 
     final class InternalMastershipListener implements MastershipListener {
