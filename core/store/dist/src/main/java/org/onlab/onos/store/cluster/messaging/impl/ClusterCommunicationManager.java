@@ -4,6 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,6 +20,7 @@ import org.onlab.onos.store.cluster.impl.ClusterMembershipEvent;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ClusterMessageSerializer;
 import org.onlab.onos.store.serializers.KryoPoolUtil;
@@ -28,6 +32,7 @@ import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
 import org.onlab.netty.NettyMessagingService;
+import org.onlab.netty.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,6 +125,22 @@ public class ClusterCommunicationManager
     }
 
     @Override
+    public ClusterMessageResponse sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException {
+        ControllerNode node = clusterService.getNode(toNodeId);
+        checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
+        Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
+        try {
+            Response responseFuture =
+                    messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            return new InternalClusterMessageResponse(toNodeId, responseFuture);
+
+        } catch (IOException e) {
+            log.error("Failed interaction with remote nodeId: " + toNodeId, e);
+            throw e;
+        }
+    }
+
+    @Override
     public void addSubscriber(MessageSubject subject,
             ClusterMessageHandler subscriber) {
         messagingService.registerHandler(subject.value(), new InternalClusterMessageHandler(subscriber));
@@ -142,6 +163,32 @@ public class ClusterCommunicationManager
                 log.error("Exception caught during ClusterMessageHandler", e);
                 throw e;
             }
+        }
+    }
+
+    private static final class InternalClusterMessageResponse implements ClusterMessageResponse {
+
+        private final NodeId sender;
+        private final Response responseFuture;
+
+        public InternalClusterMessageResponse(NodeId sender, Response responseFuture) {
+            this.sender = sender;
+            this.responseFuture = responseFuture;
+        }
+        @Override
+        public NodeId sender() {
+            return sender;
+        }
+
+        @Override
+        public byte[] get(long timeout, TimeUnit timeunit)
+                throws TimeoutException {
+            return responseFuture.get(timeout, timeunit);
+        }
+
+        @Override
+        public byte[] get(long timeout) throws InterruptedException {
+            return responseFuture.get();
         }
     }
 }

@@ -15,6 +15,7 @@ import org.onlab.onos.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPProtocolCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.PortCriterion;
+import org.onlab.onos.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -42,6 +43,7 @@ import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
@@ -199,6 +201,7 @@ public class FlowModBuilder {
         Match.Builder mBuilder = factory.buildMatch();
         EthCriterion eth;
         IPCriterion ip;
+        TcpPortCriterion tp;
         for (Criterion c : selector.criteria()) {
             switch (c.type()) {
             case IN_PORT:
@@ -250,6 +253,14 @@ public class FlowModBuilder {
                 mBuilder.setExact(MatchField.VLAN_VID,
                         OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
                 break;
+            case TCP_DST:
+                tp = (TcpPortCriterion) c;
+                mBuilder.setExact(MatchField.TCP_DST, TransportPort.of(tp.tcpPort()));
+                break;
+            case TCP_SRC:
+                tp = (TcpPortCriterion) c;
+                mBuilder.setExact(MatchField.TCP_SRC, TransportPort.of(tp.tcpPort()));
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
@@ -276,8 +287,6 @@ public class FlowModBuilder {
             case PBB_ISID:
             case SCTP_DST:
             case SCTP_SRC:
-            case TCP_DST:
-            case TCP_SRC:
             case TUNNEL_ID:
             case UDP_DST:
             case UDP_SRC:

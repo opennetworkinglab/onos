@@ -223,7 +223,7 @@ public class FlowEntryBuilder {
                 if (di.isCidrMask()) {
                     dip = IpPrefix.valueOf(di.getInt(), di.asCidrMaskLength());
                 } else {
-                    dip = IpPrefix.valueOf(di.getInt());
+                    dip = IpPrefix.valueOf(di.getInt(), IpPrefix.MAX_INET_MASK);
                 }
                 builder.matchIPDst(dip);
                 break;
@@ -233,7 +233,7 @@ public class FlowEntryBuilder {
                 if (si.isCidrMask()) {
                     sip = IpPrefix.valueOf(si.getInt(), si.asCidrMaskLength());
                 } else {
-                    sip = IpPrefix.valueOf(si.getInt());
+                    sip = IpPrefix.valueOf(si.getInt(), IpPrefix.MAX_INET_MASK);
                 }
                 builder.matchIPSrc(sip);
                 break;
@@ -248,6 +248,12 @@ public class FlowEntryBuilder {
             case VLAN_VID:
                 VlanId vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
                 builder.matchVlanId(vlanId);
+                break;
+            case TCP_DST:
+                builder.matchTcpDst((short) match.get(MatchField.TCP_DST).getPort());
+                break;
+            case TCP_SRC:
+                builder.matchTcpSrc((short) match.get(MatchField.TCP_SRC).getPort());
                 break;
             case ARP_OP:
             case ARP_SHA:
@@ -272,8 +278,6 @@ public class FlowEntryBuilder {
             case MPLS_TC:
             case SCTP_DST:
             case SCTP_SRC:
-            case TCP_DST:
-            case TCP_SRC:
             case TUNNEL_ID:
             case UDP_DST:
             case UDP_SRC:
