@@ -1,5 +1,7 @@
 package org.onlab.onos.store.cluster.messaging;
 
+import java.io.IOException;
+
 import org.onlab.onos.cluster.NodeId;
 
 // TODO: Should payload type be ByteBuffer?
@@ -48,5 +50,15 @@ public class ClusterMessage {
      */
     public byte[] payload() {
         return payload;
+    }
+
+    /**
+     * Sends a response to the sender.
+     *
+     * @param data payload response.
+     * @throws IOException
+     */
+    public void respond(byte[] data) throws IOException {
+        throw new IllegalStateException("One can only repond to message recived from others.");
     }
 }

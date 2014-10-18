@@ -158,11 +158,26 @@ public class ClusterCommunicationManager
         public void handle(Message message) {
             try {
                 ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
-                handler.handle(clusterMessage);
+                handler.handle(new InternalClusterMessage(clusterMessage, message));
             } catch (Exception e) {
                 log.error("Exception caught during ClusterMessageHandler", e);
                 throw e;
             }
+        }
+    }
+
+    public static final class InternalClusterMessage extends ClusterMessage {
+
+        private final Message rawMessage;
+
+        public InternalClusterMessage(ClusterMessage clusterMessage, Message rawMessage) {
+            super(clusterMessage.sender(), clusterMessage.subject(), clusterMessage.payload());
+            this.rawMessage = rawMessage;
+        }
+
+        @Override
+        public void respond(byte[] response) throws IOException {
+            rawMessage.respond(response);
         }
     }
 
