@@ -62,7 +62,7 @@ public class MultiPointToSinglePointIntentCompiler
 
         Intent result = new LinkCollectionIntent(intentIdGenerator.getNewId(),
                 intent.selector(), intent.treatment(),
-                links);
+                links, intent.egressPoint());
         return Arrays.asList(result);
     }
 
