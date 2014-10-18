@@ -152,6 +152,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void process(PacketContext context) {
+            if (context == null) {
+                return;
+            }
             LinkDiscovery ld = discoverers.get(
                     context.inPacket().receivedFrom().deviceId());
             if (ld == null) {

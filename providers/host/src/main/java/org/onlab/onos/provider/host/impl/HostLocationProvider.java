@@ -85,6 +85,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
         @Override
         public void process(PacketContext context) {
+            if (context == null) {
+                return;
+            }
             Ethernet eth = context.inPacket().parsed();
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
