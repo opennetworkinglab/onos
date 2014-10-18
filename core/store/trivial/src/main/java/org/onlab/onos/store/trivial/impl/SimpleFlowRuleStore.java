@@ -2,9 +2,13 @@ package org.onlab.onos.store.trivial.impl;
 
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
+import static java.util.Collections.unmodifiableCollection;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -15,17 +19,15 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
+import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
 import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
 import org.onlab.onos.store.AbstractStore;
+import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 
 /**
  * Manages inventory of flow rules using trivial in-memory implementation.
@@ -38,12 +40,11 @@ public class SimpleFlowRuleStore
 
     private final Logger log = getLogger(getClass());
 
-    // store entries as a pile of rules, no info about device tables
-    private final Multimap<DeviceId, FlowEntry> flowEntries =
-            ArrayListMultimap.<DeviceId, FlowEntry>create();
 
-    private final Multimap<Short, FlowRule> flowEntriesById =
-            ArrayListMultimap.<Short, FlowRule>create();
+    // inner Map is Device flow table
+    // Assumption: FlowId cannot have synonyms
+    private final ConcurrentMap<DeviceId, ConcurrentMap<FlowId, FlowEntry>>
+            flowEntries = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -52,88 +53,130 @@ public class SimpleFlowRuleStore
 
     @Deactivate
     public void deactivate() {
+        flowEntries.clear();
         log.info("Stopped");
     }
 
 
     @Override
     public int getFlowRuleCount() {
-        return flowEntries.size();
+        int sum = 0;
+        for (ConcurrentMap<FlowId, FlowEntry> ft : flowEntries.values()) {
+            sum += ft.size();
+        }
+        return sum;
+    }
+
+    private static NewConcurrentHashMap<FlowId, FlowEntry> lazyEmptyFlowTable() {
+        return NewConcurrentHashMap.<FlowId, FlowEntry>ifNeeded();
+    }
+
+    /**
+     * Returns the flow table for specified device.
+     *
+     * @param deviceId identifier of the device
+     * @return Map representing Flow Table of given device.
+     */
+    private ConcurrentMap<FlowId, FlowEntry> getFlowTable(DeviceId deviceId) {
+        return createIfAbsentUnchecked(flowEntries,
+                                       deviceId, lazyEmptyFlowTable());
+    }
+
+    private FlowEntry getFlowEntry(DeviceId deviceId, FlowId flowId) {
+        return getFlowTable(deviceId).get(flowId);
     }
 
     @Override
-    public synchronized FlowEntry getFlowEntry(FlowRule rule) {
-        for (FlowEntry f : flowEntries.get(rule.deviceId())) {
-            if (f.equals(rule)) {
-                return f;
+    public FlowEntry getFlowEntry(FlowRule rule) {
+        return getFlowEntry(rule.deviceId(), rule.id());
+    }
+
+    @Override
+    public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
+        return unmodifiableCollection(getFlowTable(deviceId).values());
+    }
+
+    @Override
+    public Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId) {
+
+        Set<FlowRule> rules = new HashSet<>();
+        for (DeviceId did : flowEntries.keySet()) {
+            ConcurrentMap<FlowId, FlowEntry> ft = getFlowTable(did);
+            for (FlowEntry fe : ft.values()) {
+                if (fe.appId() == appId.id()) {
+                    rules.add(fe);
+                }
             }
         }
-        return null;
+        return rules;
     }
 
     @Override
-    public synchronized Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-        Collection<FlowEntry> rules = flowEntries.get(deviceId);
-        if (rules == null) {
-            return Collections.emptyList();
-        }
-        return ImmutableSet.copyOf(rules);
+    public void storeFlowRule(FlowRule rule) {
+        final boolean added = storeFlowRuleInternal(rule);
     }
 
-    @Override
-    public synchronized Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId) {
-        Collection<FlowRule> rules = flowEntriesById.get(appId.id());
-        if (rules == null) {
-            return Collections.emptyList();
-        }
-        return ImmutableSet.copyOf(rules);
-    }
-
-    @Override
-    public synchronized void storeFlowRule(FlowRule rule) {
+    private boolean storeFlowRuleInternal(FlowRule rule) {
         FlowEntry f = new DefaultFlowEntry(rule);
-        DeviceId did = f.deviceId();
-        if (!flowEntries.containsEntry(did, f)) {
-            flowEntries.put(did, f);
-            flowEntriesById.put(rule.appId(), f);
+        final DeviceId did = f.deviceId();
+        final FlowId fid = f.id();
+        FlowEntry existing = getFlowTable(did).putIfAbsent(fid, f);
+        if (existing != null) {
+            // was already there? ignore
+            return false;
         }
+        // new flow rule added
+        // TODO: notify through delegate about remote event?
+        return true;
     }
 
     @Override
-    public synchronized void deleteFlowRule(FlowRule rule) {
-        FlowEntry entry = getFlowEntry(rule);
+    public void deleteFlowRule(FlowRule rule) {
+
+        FlowEntry entry = getFlowEntry(rule.deviceId(), rule.id());
         if (entry == null) {
-            //log.warn("Cannot find rule {}", rule);
+            log.warn("Cannot find rule {}", rule);
+            System.err.println("Cannot find rule " + rule);
             return;
         }
-        entry.setState(FlowEntryState.PENDING_REMOVE);
+        synchronized (entry) {
+            entry.setState(FlowEntryState.PENDING_REMOVE);
+        }
     }
 
     @Override
-    public synchronized FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
-        DeviceId did = rule.deviceId();
-
+    public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
         // check if this new rule is an update to an existing entry
-        FlowEntry stored = getFlowEntry(rule);
+        FlowEntry stored = getFlowEntry(rule.deviceId(), rule.id());
         if (stored != null) {
-            stored.setBytes(rule.bytes());
-            stored.setLife(rule.life());
-            stored.setPackets(rule.packets());
-            if (stored.state() == FlowEntryState.PENDING_ADD) {
-                stored.setState(FlowEntryState.ADDED);
-                return new FlowRuleEvent(Type.RULE_ADDED, rule);
+            synchronized (stored) {
+                stored.setBytes(rule.bytes());
+                stored.setLife(rule.life());
+                stored.setPackets(rule.packets());
+                if (stored.state() == FlowEntryState.PENDING_ADD) {
+                    stored.setState(FlowEntryState.ADDED);
+                    // TODO: Do we need to change `rule` state?
+                    return new FlowRuleEvent(Type.RULE_ADDED, rule);
+                }
+                return new FlowRuleEvent(Type.RULE_UPDATED, rule);
             }
-            return new FlowRuleEvent(Type.RULE_UPDATED, rule);
         }
+
+        // should not reach here
+        // storeFlowRule was expected to be called
+        log.error("FlowRule was not found in store {} to update", rule);
 
         //flowEntries.put(did, rule);
         return null;
     }
 
     @Override
-    public synchronized FlowRuleEvent removeFlowRule(FlowEntry rule) {
+    public FlowRuleEvent removeFlowRule(FlowEntry rule) {
         // This is where one could mark a rule as removed and still keep it in the store.
-        if (flowEntries.remove(rule.deviceId(), rule)) {
+        final DeviceId did = rule.deviceId();
+
+        ConcurrentMap<FlowId, FlowEntry> ft = getFlowTable(did);
+        if (ft.remove(rule.id(), rule)) {
             return new FlowRuleEvent(RULE_REMOVED, rule);
         } else {
             return null;
