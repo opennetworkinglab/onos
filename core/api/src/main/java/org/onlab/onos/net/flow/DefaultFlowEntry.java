@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 
 public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
 
-    private final Logger log = getLogger(getClass());
+    private static final Logger log = getLogger(DefaultFlowEntry.class);
 
     private long life;
     private long packets;
