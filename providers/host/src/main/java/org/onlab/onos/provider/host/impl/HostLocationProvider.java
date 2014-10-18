@@ -1,5 +1,7 @@
 package org.onlab.onos.provider.host.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -21,15 +23,11 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyService;
-
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -106,7 +104,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress());
+                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress(),
+                        IpPrefix.MAX_INET_MASK);
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
