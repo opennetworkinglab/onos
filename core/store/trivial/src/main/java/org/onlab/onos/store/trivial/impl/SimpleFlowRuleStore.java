@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static java.util.Collections.unmodifiableCollection;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,7 @@ import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
 import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
+import org.onlab.onos.net.flow.StoredFlowEntry;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
@@ -43,7 +45,7 @@ public class SimpleFlowRuleStore
 
     // inner Map is Device flow table
     // Assumption: FlowId cannot have synonyms
-    private final ConcurrentMap<DeviceId, ConcurrentMap<FlowId, FlowEntry>>
+    private final ConcurrentMap<DeviceId, ConcurrentMap<FlowId, StoredFlowEntry>>
             flowEntries = new ConcurrentHashMap<>();
 
     @Activate
@@ -61,14 +63,14 @@ public class SimpleFlowRuleStore
     @Override
     public int getFlowRuleCount() {
         int sum = 0;
-        for (ConcurrentMap<FlowId, FlowEntry> ft : flowEntries.values()) {
+        for (ConcurrentMap<FlowId, StoredFlowEntry> ft : flowEntries.values()) {
             sum += ft.size();
         }
         return sum;
     }
 
-    private static NewConcurrentHashMap<FlowId, FlowEntry> lazyEmptyFlowTable() {
-        return NewConcurrentHashMap.<FlowId, FlowEntry>ifNeeded();
+    private static NewConcurrentHashMap<FlowId, StoredFlowEntry> lazyEmptyFlowTable() {
+        return NewConcurrentHashMap.<FlowId, StoredFlowEntry>ifNeeded();
     }
 
     /**
@@ -77,12 +79,12 @@ public class SimpleFlowRuleStore
      * @param deviceId identifier of the device
      * @return Map representing Flow Table of given device.
      */
-    private ConcurrentMap<FlowId, FlowEntry> getFlowTable(DeviceId deviceId) {
+    private ConcurrentMap<FlowId, StoredFlowEntry> getFlowTable(DeviceId deviceId) {
         return createIfAbsentUnchecked(flowEntries,
                                        deviceId, lazyEmptyFlowTable());
     }
 
-    private FlowEntry getFlowEntry(DeviceId deviceId, FlowId flowId) {
+    private StoredFlowEntry getFlowEntry(DeviceId deviceId, FlowId flowId) {
         return getFlowTable(deviceId).get(flowId);
     }
 
@@ -93,7 +95,8 @@ public class SimpleFlowRuleStore
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-        return unmodifiableCollection(getFlowTable(deviceId).values());
+        return unmodifiableCollection((Collection<? extends FlowEntry>)
+                                       getFlowTable(deviceId).values());
     }
 
     @Override
@@ -101,7 +104,7 @@ public class SimpleFlowRuleStore
 
         Set<FlowRule> rules = new HashSet<>();
         for (DeviceId did : flowEntries.keySet()) {
-            ConcurrentMap<FlowId, FlowEntry> ft = getFlowTable(did);
+            ConcurrentMap<FlowId, StoredFlowEntry> ft = getFlowTable(did);
             for (FlowEntry fe : ft.values()) {
                 if (fe.appId() == appId.id()) {
                     rules.add(fe);
@@ -117,7 +120,7 @@ public class SimpleFlowRuleStore
     }
 
     private boolean storeFlowRuleInternal(FlowRule rule) {
-        FlowEntry f = new DefaultFlowEntry(rule);
+        StoredFlowEntry f = new DefaultFlowEntry(rule);
         final DeviceId did = f.deviceId();
         final FlowId fid = f.id();
         FlowEntry existing = getFlowTable(did).putIfAbsent(fid, f);
@@ -133,7 +136,7 @@ public class SimpleFlowRuleStore
     @Override
     public void deleteFlowRule(FlowRule rule) {
 
-        FlowEntry entry = getFlowEntry(rule.deviceId(), rule.id());
+        StoredFlowEntry entry = getFlowEntry(rule.deviceId(), rule.id());
         if (entry == null) {
             //log.warn("Cannot find rule {}", rule);
             return;
@@ -146,7 +149,7 @@ public class SimpleFlowRuleStore
     @Override
     public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
         // check if this new rule is an update to an existing entry
-        FlowEntry stored = getFlowEntry(rule.deviceId(), rule.id());
+        StoredFlowEntry stored = getFlowEntry(rule.deviceId(), rule.id());
         if (stored != null) {
             synchronized (stored) {
                 stored.setBytes(rule.bytes());
@@ -174,7 +177,7 @@ public class SimpleFlowRuleStore
         // This is where one could mark a rule as removed and still keep it in the store.
         final DeviceId did = rule.deviceId();
 
-        ConcurrentMap<FlowId, FlowEntry> ft = getFlowTable(did);
+        ConcurrentMap<FlowId, StoredFlowEntry> ft = getFlowTable(did);
         if (ft.remove(rule.id(), rule)) {
             return new FlowRuleEvent(RULE_REMOVED, rule);
         } else {

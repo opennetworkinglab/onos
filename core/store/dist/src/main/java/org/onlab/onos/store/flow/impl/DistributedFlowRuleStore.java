@@ -26,6 +26,7 @@ import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
 import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
+import org.onlab.onos.net.flow.StoredFlowEntry;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
@@ -53,8 +54,8 @@ public class DistributedFlowRuleStore
     private final Logger log = getLogger(getClass());
 
     // store entries as a pile of rules, no info about device tables
-    private final Multimap<DeviceId, FlowEntry> flowEntries =
-            ArrayListMultimap.<DeviceId, FlowEntry>create();
+    private final Multimap<DeviceId, StoredFlowEntry> flowEntries =
+            ArrayListMultimap.<DeviceId, StoredFlowEntry>create();
 
     private final Multimap<Short, FlowRule> flowEntriesById =
             ArrayListMultimap.<Short, FlowRule>create();
@@ -99,7 +100,11 @@ public class DistributedFlowRuleStore
 
     @Override
     public synchronized FlowEntry getFlowEntry(FlowRule rule) {
-        for (FlowEntry f : flowEntries.get(rule.deviceId())) {
+        return getFlowEntryInternal(rule);
+    }
+
+    private synchronized StoredFlowEntry getFlowEntryInternal(FlowRule rule) {
+        for (StoredFlowEntry f : flowEntries.get(rule.deviceId())) {
             if (f.equals(rule)) {
                 return f;
             }
@@ -109,7 +114,7 @@ public class DistributedFlowRuleStore
 
     @Override
     public synchronized Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-        Collection<FlowEntry> rules = flowEntries.get(deviceId);
+        Collection<? extends FlowEntry> rules = flowEntries.get(deviceId);
         if (rules == null) {
             return Collections.emptyList();
         }
@@ -148,7 +153,7 @@ public class DistributedFlowRuleStore
     }
 
     private synchronized void storeFlowEntryInternal(FlowRule flowRule) {
-        FlowEntry flowEntry = new DefaultFlowEntry(flowRule);
+        StoredFlowEntry flowEntry = new DefaultFlowEntry(flowRule);
         DeviceId deviceId = flowRule.deviceId();
         // write to local copy.
         if (!flowEntries.containsEntry(deviceId, flowEntry)) {
@@ -182,7 +187,7 @@ public class DistributedFlowRuleStore
     }
 
     private synchronized void deleteFlowRuleInternal(FlowRule flowRule) {
-        FlowEntry entry = getFlowEntry(flowRule);
+        StoredFlowEntry entry = getFlowEntryInternal(flowRule);
         if (entry == null) {
             return;
         }
@@ -215,7 +220,7 @@ public class DistributedFlowRuleStore
         DeviceId did = rule.deviceId();
 
         // check if this new rule is an update to an existing entry
-        FlowEntry stored = getFlowEntry(rule);
+        StoredFlowEntry stored = getFlowEntryInternal(rule);
         if (stored != null) {
             stored.setBytes(rule.bytes());
             stored.setLife(rule.life());
@@ -227,7 +232,8 @@ public class DistributedFlowRuleStore
             return new FlowRuleEvent(Type.RULE_UPDATED, rule);
         }
 
-        flowEntries.put(did, rule);
+        // TODO: Confirm if this behavior is correct. See SimpleFlowRuleStore
+        flowEntries.put(did, new DefaultFlowEntry(rule));
         return null;
 
         // TODO: also update backup.

@@ -46,6 +46,7 @@ import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
 import org.onlab.onos.net.flow.FlowRuleProviderService;
 import org.onlab.onos.net.flow.FlowRuleService;
+import org.onlab.onos.net.flow.StoredFlowEntry;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -232,7 +233,7 @@ public class FlowRuleManagerTest {
     public void flowRemoved() {
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
-        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        StoredFlowEntry fe1 = new DefaultFlowEntry(f1);
         FlowEntry fe2 = new DefaultFlowEntry(f2);
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2));
         service.removeFlowRules(f1);
