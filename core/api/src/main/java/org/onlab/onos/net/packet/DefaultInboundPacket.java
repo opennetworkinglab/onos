@@ -24,7 +24,7 @@ public class DefaultInboundPacket implements InboundPacket {
      * @param parsed       parsed ethernet frame
      * @param unparsed     unparsed raw bytes
      */
-    public DefaultInboundPacket(ConnectPoint receivedFrom, Ethernet parsed,
+    public  DefaultInboundPacket(ConnectPoint receivedFrom, Ethernet parsed,
                                 ByteBuffer unparsed) {
         this.receivedFrom = receivedFrom;
         this.parsed = parsed;

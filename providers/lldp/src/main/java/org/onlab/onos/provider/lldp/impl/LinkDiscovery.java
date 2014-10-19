@@ -83,6 +83,7 @@ public class LinkDiscovery implements TimerTask {
     private final PacketService pktService;
     private final MastershipService mastershipService;
     private Timeout timeout;
+    private boolean isStopped;
 
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
@@ -289,11 +290,13 @@ public class LinkDiscovery implements TimerTask {
 
     public void stop() {
         timeout.cancel();
+        isStopped = true;
     }
 
     public void start() {
         timeout = Timer.getTimer().newTimeout(this, 0,
                                               TimeUnit.MILLISECONDS);
+        isStopped = false;
     }
 
     /**
@@ -350,6 +353,17 @@ public class LinkDiscovery implements TimerTask {
                pktService.emit(bpkt);
            }
        }
+    }
+
+    public boolean containsPort(Long portNumber) {
+        if (slowPorts.contains(portNumber) || fastPorts.contains(portNumber)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isStopped() {
+        return isStopped;
     }
 
 }
