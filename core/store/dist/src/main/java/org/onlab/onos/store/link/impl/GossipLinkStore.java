@@ -729,7 +729,7 @@ public class GossipLinkStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received link event from peer: {}", message.sender());
+            log.trace("Received link event from peer: {}", message.sender());
             InternalLinkEvent event = (InternalLinkEvent) SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
@@ -743,7 +743,7 @@ public class GossipLinkStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received link removed event from peer: {}", message.sender());
+            log.trace("Received link removed event from peer: {}", message.sender());
             InternalLinkRemovedEvent event = (InternalLinkRemovedEvent) SERIALIZER.decode(message.payload());
 
             LinkKey linkKey = event.linkKey();
