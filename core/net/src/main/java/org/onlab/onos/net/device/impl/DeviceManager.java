@@ -276,9 +276,15 @@ public class DeviceManager
                 //there are times when this node will correctly have mastership, BUT
                 //that isn't reflected in the ClockManager before the device disconnects.
                 //we want to let go of the device anyways, so make sure this happens.
+
+                // FIXME: Come up with workaround for above scenario.
                 MastershipTerm term = termService.getMastershipTerm(deviceId);
-                deviceClockProviderService.setMastershipTerm(deviceId, term);
-                event = store.markOffline(deviceId);
+                final NodeId myNodeId = clusterService.getLocalNode().id();
+                // TODO: Move this type of check inside device clock manager, etc.
+                if (myNodeId.equals(term.master())) {
+                    deviceClockProviderService.setMastershipTerm(deviceId, term);
+                    event = store.markOffline(deviceId);
+                }
             } finally {
                 //relinquish master role and ability to be backup.
                 mastershipService.relinquishMastership(deviceId);
