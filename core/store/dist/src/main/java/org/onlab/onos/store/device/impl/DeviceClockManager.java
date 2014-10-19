@@ -44,7 +44,7 @@ public class DeviceClockManager implements DeviceClockService, DeviceClockProvid
     @Override
     public Timestamp getTimestamp(DeviceId deviceId) {
         MastershipTerm term = deviceMastershipTerms.get(deviceId);
-        log.info("term info for {} is: {}", deviceId, term);
+        log.trace("term info for {} is: {}", deviceId, term);
 
         if (term == null) {
             throw new IllegalStateException("Requesting timestamp for a deviceId without mastership");
