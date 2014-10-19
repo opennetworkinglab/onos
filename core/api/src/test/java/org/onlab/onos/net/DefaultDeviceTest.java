@@ -3,6 +3,7 @@ package org.onlab.onos.net;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.Device.Type.SWITCH;
@@ -21,14 +22,15 @@ public class DefaultDeviceTest {
     static final String SW = "3.9.1";
     static final String SN1 = "43311-12345";
     static final String SN2 = "42346-43512";
+    static final ChassisId CID = new ChassisId();
 
     @Test
     public void testEquality() {
-        Device d1 = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1);
-        Device d2 = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1);
-        Device d3 = new DefaultDevice(PID, DID2, SWITCH, MFR, HW, SW, SN2);
-        Device d4 = new DefaultDevice(PID, DID2, SWITCH, MFR, HW, SW, SN2);
-        Device d5 = new DefaultDevice(PID, DID2, SWITCH, MFR, HW, SW, SN1);
+        Device d1 = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1, CID);
+        Device d2 = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1, CID);
+        Device d3 = new DefaultDevice(PID, DID2, SWITCH, MFR, HW, SW, SN2, CID);
+        Device d4 = new DefaultDevice(PID, DID2, SWITCH, MFR, HW, SW, SN2, CID);
+        Device d5 = new DefaultDevice(PID, DID2, SWITCH, MFR, HW, SW, SN1, CID);
 
         new EqualsTester().addEqualityGroup(d1, d2)
                 .addEqualityGroup(d3, d4)
@@ -38,13 +40,13 @@ public class DefaultDeviceTest {
 
     @Test
     public void basics() {
-        Device device = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1);
+        Device device = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1, CID);
         validate(device);
     }
 
     @Test
     public void annotations() {
-        Device device = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1,
+        Device device = new DefaultDevice(PID, DID1, SWITCH, MFR, HW, SW, SN1, CID,
                                           DefaultAnnotations.builder().set("foo", "bar").build());
         validate(device);
         assertEquals("incorrect provider", "bar", device.annotations().value("foo"));

@@ -2,6 +2,7 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.SparseAnnotations;
+import org.onlab.packet.ChassisId;
 
 import java.net.URI;
 
@@ -20,6 +21,7 @@ public class DefaultDeviceDescription extends AbstractDescription
     private final String hwVersion;
     private final String swVersion;
     private final String serialNumber;
+    private final ChassisId chassisId;
 
     /**
      * Creates a device description using the supplied information.
@@ -34,7 +36,7 @@ public class DefaultDeviceDescription extends AbstractDescription
      */
     public DefaultDeviceDescription(URI uri, Type type, String manufacturer,
                                     String hwVersion, String swVersion,
-                                    String serialNumber,
+                                    String serialNumber, ChassisId chassis,
                                     SparseAnnotations... annotations) {
         super(annotations);
         this.uri = checkNotNull(uri, "Device URI cannot be null");
@@ -43,6 +45,7 @@ public class DefaultDeviceDescription extends AbstractDescription
         this.hwVersion = hwVersion;
         this.swVersion = swVersion;
         this.serialNumber = serialNumber;
+        this.chassisId = chassis;
     }
 
     /**
@@ -54,7 +57,7 @@ public class DefaultDeviceDescription extends AbstractDescription
                                     SparseAnnotations... annotations) {
         this(base.deviceURI(), base.type(), base.manufacturer(),
              base.hwVersion(), base.swVersion(), base.serialNumber(),
-             annotations);
+             base.chassisId(), annotations);
     }
 
     @Override
@@ -88,6 +91,11 @@ public class DefaultDeviceDescription extends AbstractDescription
     }
 
     @Override
+    public ChassisId chassisId() {
+        return chassisId;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("uri", uri).add("type", type).add("mfr", manufacturer)
@@ -104,5 +112,6 @@ public class DefaultDeviceDescription extends AbstractDescription
         this.hwVersion = null;
         this.swVersion = null;
         this.serialNumber = null;
+        this.chassisId = null;
     }
 }

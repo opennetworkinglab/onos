@@ -20,6 +20,7 @@
         <module>api</module>
         <module>net</module>
         <module>store</module>
+        <module>json</module>
     </modules>
 
     <dependencies>

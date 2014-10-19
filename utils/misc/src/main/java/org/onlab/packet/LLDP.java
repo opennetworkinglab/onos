@@ -150,7 +150,7 @@ public class LLDP extends BasePacket {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         LLDPTLV tlv;
         do {
-            tlv = new LLDPTLV().deserialize(bb);
+            tlv = new LLDPOrganizationalTLV().deserialize(bb);
 
             // if there was a failure to deserialize stop processing TLVs
             if (tlv == null) {
@@ -169,6 +169,7 @@ public class LLDP extends BasePacket {
             case 0x3:
                 this.ttl = tlv;
                 break;
+
             default:
                 this.optionalTLVList.add(tlv);
                 break;

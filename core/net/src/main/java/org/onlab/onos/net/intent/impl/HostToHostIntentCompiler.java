@@ -41,7 +41,7 @@ public class HostToHostIntentCompiler
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    private IdGenerator<IntentId> intentIdGenerator;
+    protected IdGenerator<IntentId> intentIdGenerator;
 
     @Activate
     public void activate() {

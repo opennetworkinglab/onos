@@ -140,6 +140,9 @@ public class LLDPOrganizationalTLV extends LLDPTLV {
 
     @Override
     public byte[] serialize() {
+        if (this.type != LLDPOrganizationalTLV.ORGANIZATIONAL_TLV_TYPE) {
+            return super.serialize();
+        }
         final int valueLength = LLDPOrganizationalTLV.OUI_LENGTH
                 + LLDPOrganizationalTLV.SUBTYPE_LENGTH + this.infoString.length;
         this.value = new byte[valueLength];
@@ -152,7 +155,11 @@ public class LLDPOrganizationalTLV extends LLDPTLV {
 
     @Override
     public LLDPTLV deserialize(final ByteBuffer bb) {
-        super.deserialize(bb);
+        LLDPTLV tlv = super.deserialize(bb);
+        if (tlv.getType() != LLDPOrganizationalTLV.ORGANIZATIONAL_TLV_TYPE) {
+            return tlv;
+        }
+
         final ByteBuffer optionalField = ByteBuffer.wrap(this.value);
 
         final byte[] oui = new byte[LLDPOrganizationalTLV.OUI_LENGTH];

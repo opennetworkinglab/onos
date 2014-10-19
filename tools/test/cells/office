@@ -2,8 +2,8 @@
 
 export ONOS_CELL="office"
 
-export ONOS_NIC="10.128.4.*"
-export OC1="10.128.4.60"
+export ONOS_NIC="10.1.10.*"
+export OC1="10.1.10.223"
 export OCI="${OC1}"
 
 export ONOS_FEATURES="webconsole,onos-api,onos-core-trivial,onos-cli,onos-openflow,onos-app-fwd,onos-app-mobility,onos-app-tvue,onos-app-proxyarp"

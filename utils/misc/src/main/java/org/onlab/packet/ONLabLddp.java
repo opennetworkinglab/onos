@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * Refer to IEEE Std 802.1ABTM-2009 for more information.
  *
  */
+@Deprecated
 public class ONLabLddp extends LLDP {
 
     private static final Logger LOG = LoggerFactory.getLogger(ONLabLddp.class);

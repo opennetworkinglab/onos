@@ -3,14 +3,20 @@ package org.onlab.onos.store.flow.impl;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.ApplicationId;
+import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.FlowEntry;
@@ -21,6 +27,14 @@ import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
 import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
 import org.onlab.onos.store.AbstractStore;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
+import org.onlab.onos.store.flow.ReplicaInfo;
+import org.onlab.onos.store.flow.ReplicaInfoService;
+import org.onlab.onos.store.serializers.DistributedStoreSerializers;
+import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.util.KryoPool;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -28,9 +42,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 /**
- * Manages inventory of flow rules using trivial in-memory implementation.
+ * Manages inventory of flow rules using a distributed state management protocol.
  */
-//FIXME I LIE. I AIN'T DISTRIBUTED
 @Component(immediate = true)
 @Service
 public class DistributedFlowRuleStore
@@ -45,6 +58,28 @@ public class DistributedFlowRuleStore
 
     private final Multimap<Short, FlowRule> flowEntriesById =
             ArrayListMultimap.<Short, FlowRule>create();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ReplicaInfoService replicaInfoManager;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ClusterCommunicationService clusterCommunicator;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ClusterService clusterService;
+
+    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        @Override
+        protected void setupKryoPool() {
+            serializerPool = KryoPool.newBuilder()
+                    .register(DistributedStoreSerializers.COMMON)
+                    .build()
+                    .populate(1);
+        }
+    };
+
+    // TODO: make this configurable
+    private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 1000;
 
     @Activate
     public void activate() {
@@ -91,26 +126,92 @@ public class DistributedFlowRuleStore
     }
 
     @Override
-    public synchronized void storeFlowRule(FlowRule rule) {
-        FlowEntry f = new DefaultFlowEntry(rule);
-        DeviceId did = f.deviceId();
-        if (!flowEntries.containsEntry(did, f)) {
-            flowEntries.put(did, f);
-            flowEntriesById.put(rule.appId(), f);
+    public void storeFlowRule(FlowRule rule) {
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+            storeFlowEntryInternal(rule);
+            return;
         }
+
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                FlowStoreMessageSubjects.STORE_FLOW_RULE,
+                SERIALIZER.encode(rule));
+
+        try {
+            ClusterMessageResponse response = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
+            response.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (IOException | TimeoutException e) {
+            // FIXME: throw a FlowStoreException
+            throw new RuntimeException(e);
+        }
+    }
+
+    private synchronized void storeFlowEntryInternal(FlowRule flowRule) {
+        FlowEntry flowEntry = new DefaultFlowEntry(flowRule);
+        DeviceId deviceId = flowRule.deviceId();
+        // write to local copy.
+        if (!flowEntries.containsEntry(deviceId, flowEntry)) {
+            flowEntries.put(deviceId, flowEntry);
+            flowEntriesById.put(flowRule.appId(), flowEntry);
+        }
+        // write to backup.
+        // TODO: write to a hazelcast map.
     }
 
     @Override
     public synchronized void deleteFlowRule(FlowRule rule) {
-        FlowEntry entry = getFlowEntry(rule);
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+            deleteFlowRuleInternal(rule);
+            return;
+        }
+
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                FlowStoreMessageSubjects.DELETE_FLOW_RULE,
+                SERIALIZER.encode(rule));
+
+        try {
+            ClusterMessageResponse response = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
+            response.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (IOException | TimeoutException e) {
+            // FIXME: throw a FlowStoreException
+            throw new RuntimeException(e);
+        }
+    }
+
+    private synchronized void deleteFlowRuleInternal(FlowRule flowRule) {
+        FlowEntry entry = getFlowEntry(flowRule);
         if (entry == null) {
             return;
         }
         entry.setState(FlowEntryState.PENDING_REMOVE);
+        // TODO: also update backup.
     }
 
     @Override
-    public synchronized FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
+    public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+            return addOrUpdateFlowRuleInternal(rule);
+        }
+
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                FlowStoreMessageSubjects.ADD_OR_UPDATE_FLOW_RULE,
+                SERIALIZER.encode(rule));
+
+        try {
+            ClusterMessageResponse response = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
+            return SERIALIZER.decode(response.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
+        } catch (IOException | TimeoutException e) {
+            // FIXME: throw a FlowStoreException
+            throw new RuntimeException(e);
+        }
+    }
+
+    private synchronized FlowRuleEvent addOrUpdateFlowRuleInternal(FlowEntry rule) {
         DeviceId did = rule.deviceId();
 
         // check if this new rule is an update to an existing entry
@@ -128,15 +229,39 @@ public class DistributedFlowRuleStore
 
         flowEntries.put(did, rule);
         return null;
+
+        // TODO: also update backup.
     }
 
     @Override
-    public synchronized FlowRuleEvent removeFlowRule(FlowEntry rule) {
+    public FlowRuleEvent removeFlowRule(FlowEntry rule) {
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
+        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+            // bypass and handle it locally
+            return removeFlowRuleInternal(rule);
+        }
+
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                FlowStoreMessageSubjects.REMOVE_FLOW_RULE,
+                SERIALIZER.encode(rule));
+
+        try {
+            ClusterMessageResponse response = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
+            return SERIALIZER.decode(response.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
+        } catch (IOException | TimeoutException e) {
+            // FIXME: throw a FlowStoreException
+            throw new RuntimeException(e);
+        }
+    }
+
+    private synchronized FlowRuleEvent removeFlowRuleInternal(FlowEntry rule) {
         // This is where one could mark a rule as removed and still keep it in the store.
         if (flowEntries.remove(rule.deviceId(), rule)) {
             return new FlowRuleEvent(RULE_REMOVED, rule);
         } else {
             return null;
         }
+        // TODO: also update backup.
     }
 }

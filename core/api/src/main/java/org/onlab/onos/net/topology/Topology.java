@@ -7,6 +7,8 @@ import org.onlab.onos.net.Provided;
  */
 public interface Topology extends Provided {
 
+    // FIXME: Following is not true right now. It is actually System.nanoTime(),
+    // which has no relation to epoch time, wall clock, etc.
     /**
      * Returns the time, specified in milliseconds since start of epoch,
      * when the topology became active and made available.

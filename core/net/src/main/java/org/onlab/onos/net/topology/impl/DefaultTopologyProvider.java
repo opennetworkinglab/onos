@@ -23,6 +23,7 @@ import org.onlab.onos.net.topology.TopologyProviderRegistry;
 import org.onlab.onos.net.topology.TopologyProviderService;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
@@ -88,7 +89,7 @@ public class DefaultTopologyProvider extends AbstractProvider
         linkService.addListener(linkListener);
 
         isStarted = true;
-        triggerTopologyBuild(null);
+        triggerTopologyBuild(Collections.<Event>emptyList());
         log.info("Started");
     }
 

@@ -388,7 +388,7 @@ public class DeviceManager
                             new DefaultDeviceDescription(
                                     did.uri(), device.type(), device.manufacturer(),
                                     device.hwVersion(), device.swVersion(),
-                                    device.serialNumber()));
+                                    device.serialNumber(), device.chassisId()));
                 }
                 //TODO re-collect device information to fix potential staleness
                 applyRole(did, MastershipRole.MASTER);

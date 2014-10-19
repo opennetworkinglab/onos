@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 
 public class DefaultFlowRule implements FlowRule {
 
-    private final Logger log = getLogger(getClass());
+    private static final Logger log = getLogger(DefaultFlowRule.class);
 
     private final DeviceId deviceId;
     private final int priority;

@@ -45,6 +45,7 @@ alias pub='onos-push-update-bundle'
 # Short-hand for tailing the ONOS (karaf) log 
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
 alias tlo='tl | grep --colour=always org.onlab'
+alias ll='less $KARAF_LOG'
 
 # Pretty-print JSON output
 alias pp='python -m json.tool'
@@ -67,13 +68,14 @@ function cell {
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
         unset ONOS_CELL ONOS_NIC ONOS_FEATURES
-        unset OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
+        unset OC0 OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
+        export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
         cell
     else
         env | egrep "ONOS_CELL"
         env | egrep "OCI"
-        env | egrep "OC[1-9]+" | sort
+        env | egrep "OC[0-9]+" | sort
         env | egrep "OCN"
         env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL'
     fi

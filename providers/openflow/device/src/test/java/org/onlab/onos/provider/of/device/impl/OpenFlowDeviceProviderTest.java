@@ -59,7 +59,7 @@ public class OpenFlowDeviceProviderTest {
     private static final List<OFPortDesc> PLIST = Lists.newArrayList(PD1, PD2);
 
     private static final Device DEV1 =
-            new DefaultDevice(PID, DID1, SWITCH, "", "", "", "");
+            new DefaultDevice(PID, DID1, SWITCH, "", "", "", "", null);
 
     private static final TestOpenFlowSwitch SW1 = new TestOpenFlowSwitch();
 

@@ -17,6 +17,7 @@ import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.TopologyCluster;
 import org.onlab.onos.net.topology.TopologyEdge;
+import org.onlab.packet.ChassisId;
 
 import java.util.Set;
 
@@ -119,7 +120,7 @@ public class DefaultTopologyTest {
     // Crates a new device with the specified id
     public static Device device(String id) {
         return new DefaultDevice(PID, did(id), Device.Type.SWITCH,
-                                 "mfg", "1.0", "1.1", "1234");
+                                 "mfg", "1.0", "1.1", "1234", new ChassisId());
     }
 
     // Short-hand for producing a device id from a string

@@ -96,7 +96,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment,
-                    123, appId, 600);
+                    123, appId, 15);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
             prev = link.dst();
         }

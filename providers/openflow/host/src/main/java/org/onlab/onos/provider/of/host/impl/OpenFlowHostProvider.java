@@ -1,5 +1,9 @@
 package org.onlab.onos.provider.of.host.impl;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,15 +33,12 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * Provider which uses an OpenFlow controller to detect network
  * end-station hosts.
  */
 @Component(immediate = true)
+@Deprecated
 public class OpenFlowHostProvider extends AbstractProvider implements HostProvider {
 
     private final Logger log = getLogger(getClass());
@@ -109,14 +110,16 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
             // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress());
+                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress(),
+                        IpPrefix.MAX_INET_MASK);
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
             } else if (ipLearn && eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 pip = (IPv4) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(pip.getSourceAddress());
+                IpPrefix ip = IpPrefix.valueOf(pip.getSourceAddress(),
+                        IpPrefix.MAX_INET_MASK);
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);

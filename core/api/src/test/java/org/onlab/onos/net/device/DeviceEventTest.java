@@ -11,6 +11,7 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 
 /**
  * Tests of the device event.
@@ -19,7 +20,7 @@ public class DeviceEventTest extends AbstractEventTest {
 
     private Device createDevice() {
         return new DefaultDevice(new ProviderId("of", "foo"), deviceId("of:foo"),
-                Device.Type.SWITCH, "box", "hw", "sw", "sn");
+                Device.Type.SWITCH, "box", "hw", "sw", "sn", new ChassisId());
     }
 
     @Override

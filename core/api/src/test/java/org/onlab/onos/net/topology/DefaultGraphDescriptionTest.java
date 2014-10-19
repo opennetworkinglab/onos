@@ -18,9 +18,9 @@ public class DefaultGraphDescriptionTest {
 
     private static final DeviceId D3 = deviceId("3");
 
-    static final Device DEV1 = new DefaultDevice(PID, D1, SWITCH, "", "", "", "");
-    static final Device DEV2 = new DefaultDevice(PID, D2, SWITCH, "", "", "", "");
-    static final Device DEV3 = new DefaultDevice(PID, D3, SWITCH, "", "", "", "");
+    static final Device DEV1 = new DefaultDevice(PID, D1, SWITCH, "", "", "", "", null);
+    static final Device DEV2 = new DefaultDevice(PID, D2, SWITCH, "", "", "", "", null);
+    static final Device DEV3 = new DefaultDevice(PID, D3, SWITCH, "", "", "", "", null);
 
     @Test
     public void basics() {

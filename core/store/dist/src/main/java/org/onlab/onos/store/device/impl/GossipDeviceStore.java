@@ -38,9 +38,10 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
+import org.onlab.packet.ChassisId;
 import org.onlab.util.KryoPool;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
@@ -746,6 +747,7 @@ public class GossipDeviceStore
         String hwVersion = base.hwVersion();
         String swVersion = base.swVersion();
         String serialNumber = base.serialNumber();
+        ChassisId chassisId = base.chassisId();
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
         annotations = merge(annotations, base.annotations());
 
@@ -763,7 +765,8 @@ public class GossipDeviceStore
         }
 
         return new DefaultDevice(primary, deviceId , type, manufacturer,
-                            hwVersion, swVersion, serialNumber, annotations);
+                            hwVersion, swVersion, serialNumber,
+                            chassisId, annotations);
     }
 
     /**
@@ -1137,7 +1140,7 @@ public class GossipDeviceStore
                 try {
                     unicastMessage(peer, DEVICE_ADVERTISE, ad);
                 } catch (IOException e) {
-                    log.error("Failed to send anti-entropy advertisement", e);
+                    log.debug("Failed to send anti-entropy advertisement to {}", peer);
                     return;
                 }
             } catch (Exception e) {

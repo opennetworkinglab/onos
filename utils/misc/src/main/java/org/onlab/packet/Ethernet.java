@@ -58,6 +58,7 @@ public class Ethernet extends BasePacket {
         Ethernet.etherTypeClassMap.put(Ethernet.TYPE_RARP, ARP.class);
         Ethernet.etherTypeClassMap.put(Ethernet.TYPE_IPV4, IPv4.class);
         Ethernet.etherTypeClassMap.put(Ethernet.TYPE_LLDP, LLDP.class);
+        Ethernet.etherTypeClassMap.put(Ethernet.TYPE_BSN, LLDP.class);
     }
 
     protected MacAddress destinationMACAddress;

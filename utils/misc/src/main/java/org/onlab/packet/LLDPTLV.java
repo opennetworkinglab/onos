@@ -111,6 +111,7 @@ public class LLDPTLV {
         sscratch = bb.getShort();
         this.type = (byte) (sscratch >> 9 & 0x7f);
         this.length = (short) (sscratch & 0x1ff);
+
         if (this.length > 0) {
             this.value = new byte[this.length];
 
@@ -120,6 +121,7 @@ public class LLDPTLV {
             }
             bb.get(this.value);
         }
+
         return this;
     }
 

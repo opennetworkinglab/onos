@@ -2,6 +2,7 @@ package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.Device;
+import org.onlab.packet.ChassisId;
 
 import java.net.URI;
 
@@ -53,5 +54,12 @@ public interface DeviceDescription extends Description {
      * @return serial number
      */
     String serialNumber();
+
+    /**
+     * Returns a device chassis id.
+     *
+     * @return chassis id
+     */
+    ChassisId chassisId();
 
 }

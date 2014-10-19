@@ -53,6 +53,7 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpPrefix;
 
 import com.google.common.collect.Iterables;
@@ -74,6 +75,7 @@ public class GossipDeviceStoreTest {
     private static final String SW1 = "3.8.1";
     private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
+    private static final ChassisId CID = new ChassisId();
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
@@ -158,7 +160,7 @@ public class GossipDeviceStoreTest {
                            SparseAnnotations... annotations) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                        HW, swVersion, SN, annotations);
+                        HW, swVersion, SN, CID, annotations);
         reset(clusterCommunicator);
         try {
             expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
@@ -175,7 +177,7 @@ public class GossipDeviceStoreTest {
                                     SparseAnnotations... annotations) {
         DeviceDescription description =
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
-                        HW, swVersion, SN, annotations);
+                        HW, swVersion, SN, CID, annotations);
         deviceStore.createOrUpdateDevice(PIDA, deviceId, description);
     }
 
@@ -315,7 +317,7 @@ public class GossipDeviceStoreTest {
     public final void testCreateOrUpdateDevice() throws IOException {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN);
+                        HW, SW1, SN, CID);
         Capture<ClusterMessage> bcast = new Capture<>();
 
         resetCommunicatorExpectingSingleBroadcast(bcast);
@@ -328,7 +330,7 @@ public class GossipDeviceStoreTest {
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN);
+                        HW, SW2, SN, CID);
         resetCommunicatorExpectingSingleBroadcast(bcast);
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
         assertEquals(DEVICE_UPDATED, event2.type());
@@ -346,7 +348,7 @@ public class GossipDeviceStoreTest {
         // add
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN, A2);
+                        HW, SW1, SN, CID, A2);
         Capture<ClusterMessage> bcast = new Capture<>();
 
         resetCommunicatorExpectingSingleBroadcast(bcast);
@@ -362,7 +364,7 @@ public class GossipDeviceStoreTest {
         // update from primary
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN, A1);
+                        HW, SW2, SN, CID, A1);
         resetCommunicatorExpectingSingleBroadcast(bcast);
 
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
@@ -392,7 +394,7 @@ public class GossipDeviceStoreTest {
         // But, Ancillary annotations will be in effect
         DeviceDescription description3 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN, A2_2);
+                        HW, SW1, SN, CID, A2_2);
         resetCommunicatorExpectingSingleBroadcast(bcast);
 
         DeviceEvent event3 = deviceStore.createOrUpdateDevice(PIDA, DID1, description3);
@@ -775,7 +777,7 @@ public class GossipDeviceStoreTest {
 
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW1, SN);
+                        HW, SW1, SN, CID);
         deviceStore.setDelegate(checkAdd);
         deviceStore.createOrUpdateDevice(PID, DID1, description);
         assertTrue("Add event fired", addLatch.await(1, TimeUnit.SECONDS));
@@ -783,7 +785,7 @@ public class GossipDeviceStoreTest {
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
-                        HW, SW2, SN);
+                        HW, SW2, SN, CID);
         deviceStore.unsetDelegate(checkAdd);
         deviceStore.setDelegate(checkUpdate);
         deviceStore.createOrUpdateDevice(PID, DID1, description2);

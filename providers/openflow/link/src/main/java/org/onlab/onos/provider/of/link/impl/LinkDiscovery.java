@@ -66,6 +66,7 @@ import org.slf4j.Logger;
  * TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen
  * for flow_removed messages
  */
+@Deprecated
 public class LinkDiscovery implements TimerTask {
 
     private final OpenFlowSwitch sw;

@@ -23,6 +23,7 @@ import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.RoleState;
+import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
@@ -117,13 +118,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
-
+            ChassisId cId = new ChassisId(dpid.value());
             DeviceDescription description =
                     new DefaultDeviceDescription(did.uri(), Device.Type.SWITCH,
                                                  sw.manfacturerDescription(),
                                                  sw.hardwareDescription(),
                                                  sw.softwareDescription(),
-                                                 sw.serialNumber());
+                                                 sw.serialNumber(),
+                                                cId);
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
         }
@@ -170,7 +172,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          */
         private List<PortDescription> buildPortDescriptions(
                 List<OFPortDesc> ports) {
-            final List<PortDescription> portDescs = new ArrayList<>();
+            final List<PortDescription> portDescs = new ArrayList<>(ports.size());
             for (OFPortDesc port : ports) {
                 portDescs.add(buildPortDescription(port));
             }

@@ -1,20 +1,9 @@
 package org.onlab.onos.provider.of.flow.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -68,10 +57,20 @@ import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U32;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -166,6 +165,16 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             FlowRule flowRule = fbe.getTarget();
             OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
+            if (sw == null) {
+                /*
+                 * if a switch we are supposed to install to is gone then
+                 * cancel (ie. rollback) the work that has been done so far
+                 * and return the associated future.
+                 */
+                InstallationFuture failed = new InstallationFuture(sws, fmXids);
+                failed.cancel(true);
+                return failed;
+            }
             sws.add(new Dpid(sw.getId()));
             FlowModBuilder builder = new FlowModBuilder(flowRule, sw.factory());
             switch (fbe.getOperator()) {
@@ -322,6 +331,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         public void fail(OFErrorMsg msg, Dpid dpid) {
             ok.set(false);
+            removeRequirement(dpid);
             FlowEntry fe = null;
             FlowRuleBatchEntry fbe = fms.get(msg.getXid());
             FlowRule offending = fbe.getTarget();
@@ -374,11 +384,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
 
         public void satisfyRequirement(Dpid dpid) {
-            log.warn("Satisfaction from switch {}", dpid);
-            sws.remove(dpid);
-            countDownLatch.countDown();
-            cleanUp();
-
+            log.debug("Satisfaction from switch {}", dpid);
+            removeRequirement(dpid);
         }
 
 
@@ -395,6 +402,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
+            ok.set(false);
             this.state = BatchState.CANCELLED;
             cleanUp();
             for (FlowRuleBatchEntry fbe : fms.values()) {
@@ -438,12 +446,18 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         private void cleanUp() {
-            if (sws.isEmpty()) {
+            if (isDone() || isCancelled()) {
                 pendingFutures.remove(pendingXid);
                 for (Long xid : fms.keySet()) {
                     pendingFMs.remove(xid);
                 }
             }
+        }
+
+        private void removeRequirement(Dpid dpid) {
+            countDownLatch.countDown();
+            sws.remove(dpid);
+            cleanUp();
         }
 
     }

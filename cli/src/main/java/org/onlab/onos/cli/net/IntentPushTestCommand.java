@@ -90,11 +90,15 @@ public class IntentPushTestCommand extends AbstractShellCommand
             service.submit(intent);
         }
         try {
-            latch.await(5, TimeUnit.SECONDS);
-            printResults(count);
+            if (latch.await(10, TimeUnit.SECONDS)) {
+                printResults(count);
+            } else {
+                print("I FAIL MISERABLY -> %d", latch.getCount());
+            }
         } catch (InterruptedException e) {
             print(e.toString());
         }
+
         service.removeListener(this);
     }
 
@@ -140,6 +144,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
             } else {
                 log.warn("install event latch is null");
             }
+        } else {
+            log.info("I FAIL -> {}", event);
         }
     }
 }

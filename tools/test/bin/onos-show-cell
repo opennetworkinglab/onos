@@ -42,7 +42,7 @@ fi
 
 echo "ONOS_CELL=${ONOS_CELL}"
 echo "ONOS_NIC=${ONOS_NIC}"
-for n in {1..9}; do
+for n in {0..9}; do
     ocn="OC${n}"
     if [ -n "${!ocn}" ]; then
         echo "$ocn=${!ocn}"

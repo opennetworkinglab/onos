@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of multiple source to single destination connectivity intent.
  */
-public class MultiPointToSinglePointIntent extends ConnectivityIntent {
+public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
 
     private final Set<ConnectPoint> ingressPoints;
     private final ConnectPoint egressPoint;

@@ -1,12 +1,10 @@
 package org.onlab.onos.store.trivial.impl;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
-import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -20,7 +18,6 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.Provided;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
@@ -28,11 +25,12 @@ import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +45,7 @@ import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Verify.verifyNotNull;
 
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
@@ -61,8 +60,7 @@ public class SimpleLinkStore
     private final Logger log = getLogger(getClass());
 
     // Link inventory
-    private final ConcurrentMap<LinkKey,
-            ConcurrentMap<ProviderId, LinkDescription>>
+    private final ConcurrentMap<LinkKey, Map<ProviderId, LinkDescription>>
                     linkDescs = new ConcurrentHashMap<>();
 
     // Link instance cache
@@ -151,7 +149,7 @@ public class SimpleLinkStore
                                         LinkDescription linkDescription) {
         LinkKey key = linkKey(linkDescription.src(), linkDescription.dst());
 
-        ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
+        Map<ProviderId, LinkDescription> descs = getOrCreateLinkDescriptions(key);
         synchronized (descs) {
             final Link oldLink = links.get(key);
             // update description
@@ -166,7 +164,7 @@ public class SimpleLinkStore
 
     // Guarded by linkDescs value (=locking each Link)
     private LinkDescription createOrUpdateLinkDescription(
-                             ConcurrentMap<ProviderId, LinkDescription> descs,
+                             Map<ProviderId, LinkDescription> descs,
                              ProviderId providerId,
                              LinkDescription linkDescription) {
 
@@ -227,7 +225,7 @@ public class SimpleLinkStore
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
         final LinkKey key = linkKey(src, dst);
-        ConcurrentMap<ProviderId, LinkDescription> descs = getLinkDescriptions(key);
+        Map<ProviderId, LinkDescription> descs = getOrCreateLinkDescriptions(key);
         synchronized (descs) {
             Link link = links.remove(key);
             descs.clear();
@@ -247,8 +245,8 @@ public class SimpleLinkStore
     /**
      * @return primary ProviderID, or randomly chosen one if none exists
      */
-    private ProviderId pickPrimaryPID(
-            ConcurrentMap<ProviderId, LinkDescription> providerDescs) {
+    // Guarded by linkDescs value (=locking each Link)
+    private ProviderId getBaseProviderId(Map<ProviderId, LinkDescription> providerDescs) {
 
         ProviderId fallBackPrimary = null;
         for (Entry<ProviderId, LinkDescription> e : providerDescs.entrySet()) {
@@ -262,9 +260,10 @@ public class SimpleLinkStore
         return fallBackPrimary;
     }
 
-    private Link composeLink(ConcurrentMap<ProviderId, LinkDescription> descs) {
-        ProviderId primary = pickPrimaryPID(descs);
-        LinkDescription base = descs.get(primary);
+    // Guarded by linkDescs value (=locking each Link)
+    private Link composeLink(Map<ProviderId, LinkDescription> descs) {
+        ProviderId primary = getBaseProviderId(descs);
+        LinkDescription base = descs.get(verifyNotNull(primary));
 
         ConnectPoint src = base.src();
         ConnectPoint dst = base.dst();
@@ -289,9 +288,20 @@ public class SimpleLinkStore
         return new DefaultLink(primary , src, dst, type, annotations);
     }
 
-    private ConcurrentMap<ProviderId, LinkDescription> getLinkDescriptions(LinkKey key) {
-        return ConcurrentUtils.createIfAbsentUnchecked(linkDescs, key,
-                NewConcurrentHashMap.<ProviderId, LinkDescription>ifNeeded());
+    private Map<ProviderId, LinkDescription> getOrCreateLinkDescriptions(LinkKey key) {
+        Map<ProviderId, LinkDescription> r;
+        r = linkDescs.get(key);
+        if (r != null) {
+            return r;
+        }
+        r = new HashMap<>();
+        final Map<ProviderId, LinkDescription> concurrentlyAdded;
+        concurrentlyAdded = linkDescs.putIfAbsent(key, r);
+        if (concurrentlyAdded == null) {
+            return r;
+        } else {
+            return concurrentlyAdded;
+        }
     }
 
     private final Function<LinkKey, Link> lookupLink = new LookupLink();
@@ -302,20 +312,11 @@ public class SimpleLinkStore
     private final class LookupLink implements Function<LinkKey, Link> {
         @Override
         public Link apply(LinkKey input) {
-            return links.get(input);
-        }
-    }
-
-    private static final Predicate<Provided> IS_PRIMARY = new IsPrimary();
-    private static final Predicate<Provided> isPrimary() {
-        return IS_PRIMARY;
-    }
-
-    private static final class IsPrimary implements Predicate<Provided> {
-
-        @Override
-        public boolean apply(Provided input) {
-            return !input.providerId().isAncillary();
+            if (input == null) {
+                return null;
+            } else {
+                return links.get(input);
+            }
         }
     }
 }

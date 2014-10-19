@@ -244,6 +244,7 @@ public class LinkManager
                 return;
             }
             log.info("Links for connection point {} vanished", connectPoint);
+            // FIXME: This will remove links registered by other providers
             removeLinks(getLinks(connectPoint));
         }
 
