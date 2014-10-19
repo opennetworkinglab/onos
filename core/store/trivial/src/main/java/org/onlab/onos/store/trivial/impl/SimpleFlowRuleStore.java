@@ -135,8 +135,7 @@ public class SimpleFlowRuleStore
 
         FlowEntry entry = getFlowEntry(rule.deviceId(), rule.id());
         if (entry == null) {
-            log.warn("Cannot find rule {}", rule);
-            System.err.println("Cannot find rule " + rule);
+            //log.warn("Cannot find rule {}", rule);
             return;
         }
         synchronized (entry) {
