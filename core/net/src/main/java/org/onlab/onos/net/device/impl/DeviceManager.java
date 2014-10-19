@@ -144,7 +144,7 @@ public class DeviceManager
 
     // Applies the specified role to the device; ignores NONE
     private void applyRole(DeviceId deviceId, MastershipRole newRole) {
-        if (newRole.equals(MastershipRole.NONE)) {
+        if (!newRole.equals(MastershipRole.NONE)) {
             Device device = store.getDevice(deviceId);
             // FIXME: Device might not be there yet. (eventual consistent)
             if (device == null) {
