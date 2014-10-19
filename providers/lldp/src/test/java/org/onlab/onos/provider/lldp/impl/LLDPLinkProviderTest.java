@@ -4,6 +4,7 @@ package org.onlab.onos.provider.lldp.impl;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,22 +36,18 @@ import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.onlab.onos.net.provider.ProviderId;
-
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ethernet;
-
 import org.onlab.packet.ONOSLLDP;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class LLDPLinkProviderTest {
 
@@ -481,6 +478,11 @@ public class LLDPLinkProviderTest {
         @Override
         public void removeListener(MastershipListener listener) {
 
+        }
+
+        @Override
+        public List<NodeId> getNodesFor(DeviceId deviceId) {
+            return Collections.emptyList();
         }
     }
 
