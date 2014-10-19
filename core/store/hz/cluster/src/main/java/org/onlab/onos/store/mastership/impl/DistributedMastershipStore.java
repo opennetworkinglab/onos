@@ -29,7 +29,10 @@ import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoPool;
 
 import com.google.common.collect.ImmutableSet;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IAtomicLong;
+import com.hazelcast.core.MapEvent;
 
 import static org.onlab.onos.net.MastershipRole.*;
 
@@ -78,7 +81,7 @@ implements MastershipStore {
         roleMap = new SMap(theInstance.getMap("nodeRoles"), this.serializer);
         terms = new SMap(theInstance.getMap("terms"), this.serializer);
         clusterSize = theInstance.getAtomicLong("clustersize");
-       // roleMap.addEntryListener(new RemoteMasterShipEventHandler(), true);
+        roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
 
         log.info("Started");
     }
@@ -207,6 +210,7 @@ implements MastershipStore {
                     rv.reassign(local, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
                     terms.putIfAbsent(deviceId, INIT);
+
                     break;
                 case NONE:
                     //claim mastership
@@ -289,7 +293,8 @@ implements MastershipStore {
     }
 
     //helper to fetch a new master candidate for a given device.
-    private MastershipEvent reelect(NodeId current, DeviceId deviceId, RoleValue rv) {
+    private MastershipEvent reelect(
+            NodeId current, DeviceId deviceId, RoleValue rv) {
 
         //if this is an queue it'd be neater.
         NodeId backup = null;
@@ -301,17 +306,18 @@ implements MastershipStore {
         }
 
         if (backup == null) {
+            log.info("{} giving up and going to NONE for {}", current, deviceId);
             rv.remove(MASTER, current);
             roleMap.put(deviceId, rv);
             return null;
         } else {
+            log.info("{} trying to pass mastership for {} to {}", current, deviceId, backup);
             rv.replace(current, backup, MASTER);
             rv.reassign(backup, STANDBY, NONE);
             roleMap.put(deviceId, rv);
             Integer term = terms.get(deviceId);
             terms.put(deviceId, ++term);
-            return new MastershipEvent(
-                    MASTER_CHANGED, deviceId, backup);
+            return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
         }
     }
 
@@ -346,30 +352,51 @@ implements MastershipStore {
 
     //adds or updates term information.
     private void updateTerm(DeviceId deviceId) {
-        Integer term = terms.get(deviceId);
-        if (term == null) {
-            terms.put(deviceId, INIT);
-        } else {
-            terms.put(deviceId, ++term);
+        terms.lock(deviceId);
+        try {
+            Integer term = terms.get(deviceId);
+            if (term == null) {
+                terms.put(deviceId, INIT);
+            } else {
+                terms.put(deviceId, ++term);
+            }
+        } finally {
+            terms.unlock(deviceId);
         }
     }
 
-    private class RemoteMasterShipEventHandler extends RemoteEventHandler<DeviceId, NodeId> {
+    private class RemoteMasterShipEventHandler implements EntryListener<DeviceId, RoleValue> {
 
         @Override
-        protected void onAdd(DeviceId deviceId, NodeId nodeId) {
-            notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+        public void entryAdded(EntryEvent<DeviceId, RoleValue> event) {
         }
 
         @Override
-        protected void onRemove(DeviceId deviceId, NodeId nodeId) {
-            //notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+        public void entryRemoved(EntryEvent<DeviceId, RoleValue> event) {
         }
 
         @Override
-        protected void onUpdate(DeviceId deviceId, NodeId oldNodeId, NodeId nodeId) {
-            //only addition indicates a change in mastership
-            //notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, nodeId));
+        public void entryUpdated(EntryEvent<DeviceId, RoleValue> event) {
+            NodeId myId = clusterService.getLocalNode().id();
+            NodeId node = event.getValue().get(MASTER);
+            if (myId.equals(node)) {
+                // XXX or do we just let it get sent and caught by ourself?
+                return;
+            }
+            notifyDelegate(new MastershipEvent(
+                    MASTER_CHANGED, event.getKey(), event.getValue().get(MASTER)));
+        }
+
+        @Override
+        public void entryEvicted(EntryEvent<DeviceId, RoleValue> event) {
+        }
+
+        @Override
+        public void mapEvicted(MapEvent event) {
+        }
+
+        @Override
+        public void mapCleared(MapEvent event) {
         }
     }
 

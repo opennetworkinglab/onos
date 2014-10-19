@@ -390,6 +390,7 @@ public class GossipDeviceStore
                                        List<PortDescription> portDescriptions) {
 
         final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
+        log.info("timestamp for {} {}", deviceId, newTimestamp);
 
         final Timestamped<List<PortDescription>> timestampedInput
                 = new Timestamped<>(portDescriptions, newTimestamp);

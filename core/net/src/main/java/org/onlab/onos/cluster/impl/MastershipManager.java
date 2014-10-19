@@ -104,7 +104,6 @@ implements MastershipService, MastershipAdminService {
         MastershipEvent event = null;
         event = store.relinquishRole(
                 clusterService.getLocalNode().id(), deviceId);
-
         if (event != null) {
             post(event);
         }
@@ -229,7 +228,8 @@ implements MastershipService, MastershipAdminService {
                 return true;
             }
             //else {
-                //FIXME: break tie for equal-sized clusters, can we use hz's functions?
+                //FIXME: break tie for equal-sized clusters,
+                //       maybe by number of connected switches
             // }
             return false;
         }

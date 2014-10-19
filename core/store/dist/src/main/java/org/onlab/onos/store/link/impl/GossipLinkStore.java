@@ -360,7 +360,14 @@ public class GossipLinkStore
         final LinkKey key = linkKey(src, dst);
 
         DeviceId dstDeviceId = dst.deviceId();
-        Timestamp timestamp = deviceClockService.getTimestamp(dstDeviceId);
+        Timestamp timestamp = null;
+        try {
+            timestamp = deviceClockService.getTimestamp(dstDeviceId);
+        } catch (IllegalStateException e) {
+            //there are times when this is called before mastership
+            // handoff correctly completes.
+            return null;
+        }
 
         LinkEvent event = removeLinkInternal(key, timestamp);
 

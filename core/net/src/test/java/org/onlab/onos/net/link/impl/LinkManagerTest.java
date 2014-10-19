@@ -59,6 +59,7 @@ public class LinkManagerTest {
     protected LinkProviderService providerService;
     protected TestProvider provider;
     protected TestListener listener = new TestListener();
+    protected DeviceManager devmgr = new TestDeviceManager();
 
     @Before
     public void setUp() {
@@ -68,7 +69,7 @@ public class LinkManagerTest {
         registry = mgr;
         mgr.store = new SimpleLinkStore();
         mgr.eventDispatcher = new TestEventDispatcher();
-        mgr.deviceService = new DeviceManager();
+        mgr.deviceService = devmgr;
         mgr.activate();
 
         service.addListener(listener);
@@ -256,6 +257,13 @@ public class LinkManagerTest {
         @Override
         public void event(LinkEvent event) {
             events.add(event);
+        }
+    }
+
+    private static class TestDeviceManager extends DeviceManager {
+        @Override
+        public MastershipRole getRole(DeviceId deviceId) {
+            return MastershipRole.MASTER;
         }
     }
 

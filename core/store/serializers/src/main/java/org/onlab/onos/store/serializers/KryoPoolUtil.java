@@ -94,7 +94,6 @@ public final class KryoPoolUtil {
             .register(ConnectPoint.class, new ConnectPointSerializer())
             .register(DefaultLink.class, new DefaultLinkSerializer())
             .register(MastershipTerm.class, new MastershipTermSerializer())
-            .register(MastershipRole.class, new MastershipRoleSerializer())
             .register(HostLocation.class, new HostLocationSerializer())
 
             .build();
