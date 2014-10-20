@@ -36,18 +36,18 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public final class KryoPoolUtil {
+public final class KryoNamespaces {
 
     /**
-     * KryoPool which can serialize ON.lab misc classes.
+     * KryoNamespace which can serialize ON.lab misc classes.
      */
-    public static final KryoPool MISC = KryoPool.newBuilder()
+    public static final KryoNamespace MISC = KryoNamespace.newBuilder()
             .register(IpPrefix.class, new IpPrefixSerializer())
             .register(IpAddress.class, new IpAddressSerializer())
             .register(MacAddress.class, new MacAddressSerializer())
@@ -56,9 +56,9 @@ public final class KryoPoolUtil {
 
     // TODO: Populate other classes
     /**
-     * KryoPool which can serialize API bundle classes.
+     * KryoNamespace which can serialize API bundle classes.
      */
-    public static final KryoPool API = KryoPool.newBuilder()
+    public static final KryoNamespace API = KryoNamespace.newBuilder()
             .register(MISC)
             .register(ImmutableMap.class, new ImmutableMapSerializer())
             .register(ImmutableList.class, new ImmutableListSerializer())
@@ -104,5 +104,5 @@ public final class KryoPoolUtil {
 
 
     // not to be instantiated
-    private KryoPoolUtil() {}
+    private KryoNamespaces() {}
 }

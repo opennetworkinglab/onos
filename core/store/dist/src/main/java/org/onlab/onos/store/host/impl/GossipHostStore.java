@@ -44,7 +44,7 @@ import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -99,7 +99,7 @@ public class GossipHostStore
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
-            serializerPool = KryoPool.newBuilder()
+            serializerPool = KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.COMMON)
                     .register(InternalHostEvent.class)
                     .register(InternalHostRemovedEvent.class)

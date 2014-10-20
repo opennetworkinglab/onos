@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.onos.store.serializers.MastershipBasedTimestampSerializer;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;
 
@@ -63,7 +63,7 @@ public class MastershipBasedTimestampTest {
     @Test
     public final void testKryoSerializable() {
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
-        final KryoPool kryos = KryoPool.newBuilder()
+        final KryoNamespace kryos = KryoNamespace.newBuilder()
                 .register(MastershipBasedTimestamp.class)
                 .build();
 
@@ -79,7 +79,7 @@ public class MastershipBasedTimestampTest {
     @Test
     public final void testKryoSerializableWithHandcraftedSerializer() {
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
-        final KryoPool kryos = KryoPool.newBuilder()
+        final KryoNamespace kryos = KryoNamespace.newBuilder()
                 .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
                 .build();
 

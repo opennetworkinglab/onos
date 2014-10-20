@@ -42,7 +42,7 @@ import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.packet.ChassisId;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
@@ -117,7 +117,7 @@ public class GossipDeviceStore
     protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
-            serializerPool = KryoPool.newBuilder()
+            serializerPool = KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.COMMON)
 
                     .register(InternalDeviceEvent.class, new InternalDeviceEventSerializer())

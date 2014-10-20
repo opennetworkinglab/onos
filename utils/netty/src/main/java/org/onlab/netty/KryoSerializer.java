@@ -1,6 +1,6 @@
 package org.onlab.netty;
 
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.HashMap;
  */
 public class KryoSerializer {
 
-    private KryoPool serializerPool;
+    private KryoNamespace serializerPool;
 
     public KryoSerializer() {
         setupKryoPool();
@@ -23,7 +23,7 @@ public class KryoSerializer {
      */
     protected void setupKryoPool() {
         // FIXME Slice out types used in common to separate pool/namespace.
-        serializerPool = KryoPool.newBuilder()
+        serializerPool = KryoNamespace.newBuilder()
                 .register(ArrayList.class,
                           HashMap.class,
                           ArrayList.class,

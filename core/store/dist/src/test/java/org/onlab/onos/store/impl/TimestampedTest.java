@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;
 
@@ -77,7 +77,7 @@ public class TimestampedTest {
     @Test
     public final void testKryoSerializable() {
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
-        final KryoPool kryos = KryoPool.newBuilder()
+        final KryoNamespace kryos = KryoNamespace.newBuilder()
                 .register(Timestamped.class,
                         MastershipBasedTimestamp.class)
                 .build();

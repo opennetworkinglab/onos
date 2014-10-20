@@ -24,9 +24,9 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.common.AbstractHazelcastStore;
 import org.onlab.onos.store.common.SMap;
-import org.onlab.onos.store.serializers.KryoPoolUtil;
+import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.EntryEvent;
@@ -69,8 +69,8 @@ implements MastershipStore {
         this.serializer = new KryoSerializer() {
             @Override
             protected void setupKryoPool() {
-                serializerPool = KryoPool.newBuilder()
-                        .register(KryoPoolUtil.API)
+                serializerPool = KryoNamespace.newBuilder()
+                        .register(KryoNamespaces.API)
 
                         .register(RoleValue.class, new RoleValueSerializer())
                         .build()

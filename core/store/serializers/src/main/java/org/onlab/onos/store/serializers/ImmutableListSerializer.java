@@ -1,6 +1,6 @@
 package org.onlab.onos.store.serializers;
 
-import org.onlab.util.KryoPool.FamilySerializer;
+import org.onlab.util.KryoNamespace.FamilySerializer;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
  * Pool of Kryo instances, with classes pre-registered.
  */
 //@ThreadSafe
-public final class KryoPool {
+public final class KryoNamespace {
 
     /**
      * Default buffer size used for serialization.
@@ -34,7 +34,7 @@ public final class KryoPool {
     private final boolean registrationRequired;
 
     /**
-     * KryoPool builder.
+     * KryoNamespace builder.
      */
     //@NotThreadSafe
     public static final class Builder {
@@ -42,12 +42,12 @@ public final class KryoPool {
         private final List<Pair<Class<?>, Serializer<?>>> types = new ArrayList<>();
 
         /**
-         * Builds a {@link KryoPool} instance.
+         * Builds a {@link KryoNamespace} instance.
          *
-         * @return KryoPool
+         * @return KryoNamespace
          */
-        public KryoPool build() {
-            return new KryoPool(types);
+        public KryoNamespace build() {
+            return new KryoNamespace(types);
         }
 
         /**
@@ -76,19 +76,19 @@ public final class KryoPool {
         }
 
         /**
-         * Registers all the class registered to given KryoPool.
+         * Registers all the class registered to given KryoNamespace.
          *
-         * @param pool KryoPool
+         * @param pool KryoNamespace
          * @return this
          */
-        public Builder register(final KryoPool pool) {
+        public Builder register(final KryoNamespace pool) {
             types.addAll(pool.registeredTypes);
             return this;
         }
     }
 
     /**
-     * Creates a new {@link KryoPool} builder.
+     * Creates a new {@link KryoNamespace} builder.
      *
      * @return builder
      */
@@ -101,7 +101,7 @@ public final class KryoPool {
      *
      * @param registerdTypes types to register
      */
-    private KryoPool(final List<Pair<Class<?>, Serializer<?>>> registerdTypes) {
+    private KryoNamespace(final List<Pair<Class<?>, Serializer<?>>> registerdTypes) {
         this.registeredTypes = ImmutableList.copyOf(registerdTypes);
         // always true for now
         this.registrationRequired = true;
@@ -113,7 +113,7 @@ public final class KryoPool {
      * @param instances to add to the pool
      * @return this
      */
-    public KryoPool populate(int instances) {
+    public KryoNamespace populate(int instances) {
         List<Kryo> kryos = new ArrayList<>(instances);
         for (int i = 0; i < instances; ++i) {
             kryos.add(newKryoInstance());

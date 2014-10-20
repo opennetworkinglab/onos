@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 import org.onlab.onos.store.Timestamp;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;
 
@@ -30,7 +30,7 @@ public class WallClockTimestampTest {
     public final void testKryoSerializable() {
         WallClockTimestamp ts1 = new WallClockTimestamp();
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
-        final KryoPool kryos = KryoPool.newBuilder()
+        final KryoNamespace kryos = KryoNamespace.newBuilder()
                 .register(WallClockTimestamp.class)
                 .build();
 

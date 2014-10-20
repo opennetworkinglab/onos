@@ -23,10 +23,10 @@ import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ClusterMessageSerializer;
-import org.onlab.onos.store.serializers.KryoPoolUtil;
+import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.MessageSubjectSerializer;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
@@ -52,8 +52,8 @@ public class ClusterCommunicationManager
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
-            serializerPool = KryoPool.newBuilder()
-                    .register(KryoPoolUtil.API)
+            serializerPool = KryoNamespace.newBuilder()
+                    .register(KryoNamespaces.API)
                     .register(ClusterMessage.class, new ClusterMessageSerializer())
                     .register(ClusterMembershipEvent.class)
                     .register(byte[].class)

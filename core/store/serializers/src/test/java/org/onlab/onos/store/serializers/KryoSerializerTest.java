@@ -30,7 +30,7 @@ import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -76,8 +76,8 @@ public class KryoSerializerTest {
 
             @Override
             protected void setupKryoPool() {
-                serializerPool = KryoPool.newBuilder()
-                        .register(KryoPoolUtil.API)
+                serializerPool = KryoNamespace.newBuilder()
+                        .register(KryoNamespaces.API)
                         .build()
                         .populate(1);
             }
