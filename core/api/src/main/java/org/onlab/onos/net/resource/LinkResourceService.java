@@ -56,5 +56,5 @@ public interface LinkResourceService {
      * @param link a target link
      * @return available resources for the target link
      */
-    LinkResource availableResources(Link link);
+    LinkResources availableResources(Link link);
 }
