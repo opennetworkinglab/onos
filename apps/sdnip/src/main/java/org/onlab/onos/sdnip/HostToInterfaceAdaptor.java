@@ -18,11 +18,11 @@ import com.google.common.collect.Sets;
 /**
  * Provides IntefaceService using PortAddresses data from the HostService.
  */
-public class HostServiceBasedInterfaceService implements InterfaceService {
+public class HostToInterfaceAdaptor implements InterfaceService {
 
     private final HostService hostService;
 
-    public HostServiceBasedInterfaceService(HostService hostService) {
+    public HostToInterfaceAdaptor(HostService hostService) {
         this.hostService = checkNotNull(hostService);
     }
 

@@ -47,7 +47,7 @@ public class SdnIp implements SdnIpService {
         config = new SdnIpConfigReader();
         config.init();
 
-        InterfaceService interfaceService = new HostServiceBasedInterfaceService(hostService);
+        InterfaceService interfaceService = new HostToInterfaceAdaptor(hostService);
 
         peerConnectivity = new PeerConnectivityManager(config, interfaceService, intentService);
         peerConnectivity.start();
