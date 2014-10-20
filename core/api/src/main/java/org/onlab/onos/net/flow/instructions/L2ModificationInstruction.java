@@ -78,7 +78,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(mac, subtype);
+            return Objects.hash(mac, type(), subtype);
         }
 
         @Override
@@ -89,6 +89,7 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (obj instanceof ModEtherInstruction) {
                 ModEtherInstruction that = (ModEtherInstruction) obj;
                 return  Objects.equals(mac, that.mac) &&
+                        Objects.equals(this.type(), that.type()) &&
                         Objects.equals(subtype, that.subtype);
 
             }
@@ -126,7 +127,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanId, subtype());
+            return Objects.hash(vlanId, type(), subtype());
         }
 
         @Override
@@ -136,7 +137,9 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModVlanIdInstruction) {
                 ModVlanIdInstruction that = (ModVlanIdInstruction) obj;
-                return  Objects.equals(vlanId, that.vlanId);
+                return  Objects.equals(vlanId, that.vlanId) &&
+                        Objects.equals(this.type(), that.type()) &&
+                        Objects.equals(this.subtype(), that.subtype());
 
             }
             return false;
@@ -173,7 +176,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanPcp, subtype());
+            return Objects.hash(vlanPcp, type(), subtype());
         }
 
         @Override
@@ -183,7 +186,9 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModVlanPcpInstruction) {
                 ModVlanPcpInstruction that = (ModVlanPcpInstruction) obj;
-                return  Objects.equals(vlanPcp, that.vlanPcp);
+                return  Objects.equals(vlanPcp, that.vlanPcp) &&
+                        Objects.equals(this.type(), that.type()) &&
+                        Objects.equals(this.subtype(), that.subtype());
 
             }
             return false;

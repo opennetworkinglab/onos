@@ -161,7 +161,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(port);
+            return Objects.hash(port, type());
         }
 
         @Override
@@ -171,7 +171,8 @@ public final class Criteria {
             }
             if (obj instanceof PortCriterion) {
                 PortCriterion that = (PortCriterion) obj;
-                return Objects.equals(port, that.port);
+                return Objects.equals(port, that.port) &&
+                        Objects.equals(this.type(), that.type());
 
             }
             return false;
@@ -252,7 +253,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(ethType);
+            return Objects.hash(ethType, type());
         }
 
         @Override
@@ -262,7 +263,8 @@ public final class Criteria {
             }
             if (obj instanceof EthTypeCriterion) {
                 EthTypeCriterion that = (EthTypeCriterion) obj;
-                return Objects.equals(ethType, that.ethType);
+                return Objects.equals(ethType, that.ethType) &&
+                        Objects.equals(this.type(), that.type());
 
 
             }
@@ -345,7 +347,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(proto);
+            return Objects.hash(proto, type());
         }
 
         @Override
@@ -400,7 +402,8 @@ public final class Criteria {
             }
             if (obj instanceof VlanPcpCriterion) {
                 VlanPcpCriterion that = (VlanPcpCriterion) obj;
-                return Objects.equals(vlanPcp, that.vlanPcp);
+                return Objects.equals(vlanPcp, that.vlanPcp) &&
+                        Objects.equals(this.type(), that.type());
 
 
             }
@@ -436,7 +439,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanId);
+            return Objects.hash(vlanId, type());
         }
 
         @Override
@@ -446,7 +449,8 @@ public final class Criteria {
             }
             if (obj instanceof VlanIdCriterion) {
                 VlanIdCriterion that = (VlanIdCriterion) obj;
-                return Objects.equals(vlanId, that.vlanId);
+                return Objects.equals(vlanId, that.vlanId) &&
+                        Objects.equals(this.type(), that.type());
 
 
             }
