@@ -14,12 +14,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Future;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 
 /**
  * Suite of tests for the intent service contract.
@@ -298,7 +297,7 @@ public class IntentServiceTest {
         }
 
         @Override
-        public Future<CompletedBatchOperation> install(TestInstallableIntent intent) {
+        public List<FlowRuleBatchOperation> install(TestInstallableIntent intent) {
             if (fail) {
                 throw new IntentException("install failed by design");
             }
@@ -306,7 +305,7 @@ public class IntentServiceTest {
         }
 
         @Override
-        public Future<CompletedBatchOperation> uninstall(TestInstallableIntent intent) {
+        public List<FlowRuleBatchOperation> uninstall(TestInstallableIntent intent) {
             if (fail) {
                 throw new IntentException("remove failed by design");
             }

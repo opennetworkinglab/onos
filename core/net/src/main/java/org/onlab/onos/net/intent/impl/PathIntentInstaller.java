@@ -5,7 +5,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Future;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -16,14 +15,12 @@ import org.onlab.onos.ApplicationId;
 import org.onlab.onos.CoreService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.IntentExtensionService;
@@ -45,9 +42,6 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     protected IntentExtensionService intentManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowRuleService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
     private ApplicationId appId;
@@ -63,31 +57,14 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         intentManager.unregisterInstaller(PathIntent.class);
     }
 
-    /**
-     * Apply a list of FlowRules.
-     *
-     * @param rules rules to apply
-     */
-    private Future<CompletedBatchOperation> applyBatch(List<FlowRuleBatchEntry> rules) {
-        FlowRuleBatchOperation batch = new FlowRuleBatchOperation(rules);
-        Future<CompletedBatchOperation> future = flowRuleService.applyBatch(batch);
-        return future;
-//        try {
-//            //FIXME don't do this here
-//            future.get();
-//        } catch (InterruptedException | ExecutionException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-    }
-
     @Override
-    public Future<CompletedBatchOperation> install(PathIntent intent) {
+    public List<FlowRuleBatchOperation> install(PathIntent intent) {
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+        // TODO Generate multiple batches
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
@@ -100,18 +77,17 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
             prev = link.dst();
         }
-
-        return applyBatch(rules);
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
     @Override
-    public Future<CompletedBatchOperation> uninstall(PathIntent intent) {
+    public List<FlowRuleBatchOperation> uninstall(PathIntent intent) {
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-
+        // TODO Generate multiple batches
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
@@ -123,7 +99,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
             prev = link.dst();
         }
-        return applyBatch(rules);
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
     // TODO refactor below this line... ----------------------------
