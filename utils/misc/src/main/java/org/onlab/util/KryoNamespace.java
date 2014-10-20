@@ -13,6 +13,7 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.google.common.collect.ImmutableList;
 
 // TODO Add tests for this class.
@@ -20,7 +21,7 @@ import com.google.common.collect.ImmutableList;
  * Pool of Kryo instances, with classes pre-registered.
  */
 //@ThreadSafe
-public final class KryoNamespace {
+public final class KryoNamespace implements KryoFactory {
 
     /**
      * Default buffer size used for serialization.
@@ -116,7 +117,7 @@ public final class KryoNamespace {
     public KryoNamespace populate(int instances) {
         List<Kryo> kryos = new ArrayList<>(instances);
         for (int i = 0; i < instances; ++i) {
-            kryos.add(newKryoInstance());
+            kryos.add(create());
         }
         pool.addAll(kryos);
         return this;
@@ -130,7 +131,7 @@ public final class KryoNamespace {
     public Kryo getKryo() {
         Kryo kryo = pool.poll();
         if (kryo == null) {
-            return newKryoInstance();
+            return create();
         }
         return kryo;
     }
@@ -235,7 +236,8 @@ public final class KryoNamespace {
      *
      * @return Kryo instance
      */
-    private Kryo newKryoInstance() {
+    @Override
+    public Kryo create() {
         Kryo kryo = new Kryo();
         kryo.setRegistrationRequired(registrationRequired);
         for (Pair<Class<?>, Serializer<?>> registry : registeredTypes) {
