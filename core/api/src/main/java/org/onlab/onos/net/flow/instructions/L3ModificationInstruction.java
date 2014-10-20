@@ -70,7 +70,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(ip, subtype());
+            return Objects.hash(ip, type(), subtype());
         }
 
         @Override
@@ -80,7 +80,9 @@ public abstract class L3ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModIPInstruction) {
                 ModIPInstruction that = (ModIPInstruction) obj;
-                return  Objects.equals(ip, that.ip);
+                return  Objects.equals(ip, that.ip) &&
+                        Objects.equals(this.type(), that.type()) &&
+                        Objects.equals(this.subtype(), that.subtype());
 
             }
             return false;
