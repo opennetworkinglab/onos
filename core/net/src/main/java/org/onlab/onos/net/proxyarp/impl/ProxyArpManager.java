@@ -167,6 +167,7 @@ public class ProxyArpManager implements ProxyArpService {
             return;
         }
 
+        // TODO find the correct IP address
         Ethernet arpReply = buildArpReply(dst.ipAddresses().iterator().next(),
                 dst.mac(), eth);
         // TODO: check send status with host service.
@@ -355,7 +356,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         arp.setTargetProtocolAddress(((ARP) request.getPayload())
                 .getSenderProtocolAddress());
-        arp.setSenderProtocolAddress(srcIp.toRealInt());
+        arp.setSenderProtocolAddress(srcIp.toInt());
         eth.setPayload(arp);
         return eth;
     }

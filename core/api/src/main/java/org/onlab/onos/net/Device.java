@@ -1,5 +1,7 @@
 package org.onlab.onos.net;
 
+import org.onlab.packet.ChassisId;
+
 /**
  * Representation of a network infrastructure device.
  */
@@ -53,6 +55,13 @@ public interface Device extends Element {
      * @return serial number
      */
     String serialNumber();
+
+    /**
+     * Returns the device chassis id.
+     *
+     * @return chassis id
+     */
+    ChassisId chassisId();
 
     // Device realizedBy(); ?
 

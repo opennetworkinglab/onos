@@ -3,6 +3,7 @@ package org.onlab.onos.net;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.Device.Type.SWITCH;
@@ -22,7 +23,8 @@ public class DefaultPortTest {
 
     @Test
     public void testEquality() {
-        Device device = new DefaultDevice(PID, DID1, SWITCH, "m", "h", "s", "n");
+        Device device = new DefaultDevice(PID, DID1, SWITCH, "m", "h", "s", "n",
+                                          new ChassisId());
         Port p1 = new DefaultPort(device, portNumber(1), true);
         Port p2 = new DefaultPort(device, portNumber(1), true);
         Port p3 = new DefaultPort(device, portNumber(2), true);
@@ -37,7 +39,8 @@ public class DefaultPortTest {
 
     @Test
     public void basics() {
-        Device device = new DefaultDevice(PID, DID1, SWITCH, "m", "h", "s", "n");
+        Device device = new DefaultDevice(PID, DID1, SWITCH, "m", "h", "s", "n",
+                                          new ChassisId());
         Port port = new DefaultPort(device, portNumber(1), true);
         assertEquals("incorrect element", device, port.element());
         assertEquals("incorrect number", portNumber(1), port.number());

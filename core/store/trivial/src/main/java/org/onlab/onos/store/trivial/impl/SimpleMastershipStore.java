@@ -2,9 +2,11 @@ package org.onlab.onos.store.trivial.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,6 +94,18 @@ public class SimpleMastershipStore
     @Override
     public NodeId getMaster(DeviceId deviceId) {
         return masterMap.get(deviceId);
+    }
+
+    @Override
+    public List<NodeId> getNodes(DeviceId deviceId) {
+        List<NodeId> nodes = new ArrayList<>();
+
+        nodes.addAll(backups);
+        if (!nodes.contains(masterMap.get(deviceId))) {
+            nodes.add(masterMap.get(deviceId));
+        }
+
+        return Collections.unmodifiableList(nodes);
     }
 
     @Override

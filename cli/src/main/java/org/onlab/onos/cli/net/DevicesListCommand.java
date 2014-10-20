@@ -1,5 +1,9 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.cli.Comparators;
@@ -24,9 +28,52 @@ public class DevicesListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         DeviceService service = get(DeviceService.class);
-        for (Device device : getSortedDevices(service)) {
-            printDevice(service, device);
+        if (outputJson()) {
+            print("%s", json(service, getSortedDevices(service)));
+        } else {
+            for (Device device : getSortedDevices(service)) {
+                printDevice(service, device);
+            }
         }
+    }
+
+    /**
+     * Returns JSON node representing the specified devices.
+     *
+     * @param service device service
+     * @param devices collection of devices
+     * @return JSON node
+     */
+    public static JsonNode json(DeviceService service, Iterable<Device> devices) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Device device : devices) {
+            result.add(json(service, mapper, device));
+        }
+        return result;
+    }
+
+    /**
+     * Returns JSON node representing the specified device.
+     *
+     * @param service device service
+     * @param mapper  object mapper
+     * @param device  infrastructure device
+     * @return JSON node
+     */
+    public static ObjectNode json(DeviceService service, ObjectMapper mapper,
+                                  Device device) {
+        ObjectNode result = mapper.createObjectNode();
+        if (device != null) {
+            result.put("id", device.id().toString())
+                    .put("available", service.isAvailable(device.id()))
+                    .put("role", service.getRole(device.id()).toString())
+                    .put("mfr", device.manufacturer())
+                    .put("hw", device.hwVersion())
+                    .put("sw", device.swVersion())
+                    .put("serial", device.serialNumber());
+        }
+        return result;
     }
 
     /**

@@ -15,6 +15,7 @@ import org.onlab.onos.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPProtocolCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.PortCriterion;
+import org.onlab.onos.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -42,6 +43,7 @@ import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
@@ -161,10 +163,10 @@ public class FlowModBuilder {
         switch (l3m.subtype()) {
         case IP_DST:
             ip = (ModIPInstruction) i;
-            return factory.actions().setNwDst(IPv4Address.of(ip.ip().toRealInt()));
+            return factory.actions().setNwDst(IPv4Address.of(ip.ip().toInt()));
         case IP_SRC:
             ip = (ModIPInstruction) i;
-            return factory.actions().setNwSrc(IPv4Address.of(ip.ip().toRealInt()));
+            return factory.actions().setNwSrc(IPv4Address.of(ip.ip().toInt()));
         default:
             log.warn("Unimplemented action type {}.", l3m.subtype());
             break;
@@ -199,6 +201,7 @@ public class FlowModBuilder {
         Match.Builder mBuilder = factory.buildMatch();
         EthCriterion eth;
         IPCriterion ip;
+        TcpPortCriterion tp;
         for (Criterion c : selector.criteria()) {
             switch (c.type()) {
             case IN_PORT:
@@ -220,21 +223,21 @@ public class FlowModBuilder {
             case IPV4_DST:
                 ip = (IPCriterion) c;
                 if (ip.ip().isMasked()) {
-                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toRealInt()),
-                            IPv4Address.of(ip.ip().netmask().toRealInt()));
+                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toInt()),
+                            IPv4Address.of(ip.ip().netmask().toInt()));
                     mBuilder.setMasked(MatchField.IPV4_DST, maskedIp);
                 } else {
-                    mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toRealInt()));
+                    mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toInt()));
                 }
                 break;
             case IPV4_SRC:
                 ip = (IPCriterion) c;
                 if (ip.ip().isMasked()) {
-                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toRealInt()),
-                            IPv4Address.of(ip.ip().netmask().toRealInt()));
+                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toInt()),
+                            IPv4Address.of(ip.ip().netmask().toInt()));
                     mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
                 } else {
-                    mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toRealInt()));
+                    mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toInt()));
                 }
                 break;
             case IP_PROTO:
@@ -249,6 +252,14 @@ public class FlowModBuilder {
                 VlanIdCriterion vid = (VlanIdCriterion) c;
                 mBuilder.setExact(MatchField.VLAN_VID,
                         OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
+                break;
+            case TCP_DST:
+                tp = (TcpPortCriterion) c;
+                mBuilder.setExact(MatchField.TCP_DST, TransportPort.of(tp.tcpPort()));
+                break;
+            case TCP_SRC:
+                tp = (TcpPortCriterion) c;
+                mBuilder.setExact(MatchField.TCP_SRC, TransportPort.of(tp.tcpPort()));
                 break;
             case ARP_OP:
             case ARP_SHA:
@@ -276,8 +287,6 @@ public class FlowModBuilder {
             case PBB_ISID:
             case SCTP_DST:
             case SCTP_SRC:
-            case TCP_DST:
-            case TCP_SRC:
             case TUNNEL_ID:
             case UDP_DST:
             case UDP_SRC:

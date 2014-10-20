@@ -1,5 +1,8 @@
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.net.Link;
@@ -32,9 +35,30 @@ public class PathListCommand extends TopologyCommand {
     protected void execute() {
         init();
         Set<Path> paths = service.getPaths(topology, deviceId(src), deviceId(dst));
-        for (Path path : paths) {
-            print(pathString(path));
+        if (outputJson()) {
+            print("%s", json(paths));
+        } else {
+            for (Path path : paths) {
+                print(pathString(path));
+            }
         }
+    }
+
+    /**
+     * Produces a JSON array containing the specified paths.
+     *
+     * @param paths collection of paths
+     * @return JSON array
+     */
+    public static JsonNode json(Iterable<Path> paths) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Path path : paths) {
+            result.add(LinksListCommand.json(mapper, path)
+                               .put("cost", path.cost())
+                               .set("links", LinksListCommand.json(path.links())));
+        }
+        return result;
     }
 
     /**

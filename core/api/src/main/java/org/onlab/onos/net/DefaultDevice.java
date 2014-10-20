@@ -1,6 +1,7 @@
 package org.onlab.onos.net;
 
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 
 import java.util.Objects;
 
@@ -16,6 +17,7 @@ public class DefaultDevice extends AbstractElement implements Device {
     private final String serialNumber;
     private final String hwVersion;
     private final String swVersion;
+    private final ChassisId chassisId;
 
     // For serialization
     private DefaultDevice() {
@@ -24,6 +26,7 @@ public class DefaultDevice extends AbstractElement implements Device {
         this.hwVersion = null;
         this.swVersion = null;
         this.serialNumber = null;
+        this.chassisId = null;
     }
 
     /**
@@ -40,13 +43,15 @@ public class DefaultDevice extends AbstractElement implements Device {
      */
     public DefaultDevice(ProviderId providerId, DeviceId id, Type type,
                          String manufacturer, String hwVersion, String swVersion,
-                         String serialNumber, Annotations... annotations) {
+                         String serialNumber, ChassisId chassisId,
+                         Annotations... annotations) {
         super(providerId, id, annotations);
         this.type = type;
         this.manufacturer = manufacturer;
         this.hwVersion = hwVersion;
         this.swVersion = swVersion;
         this.serialNumber = serialNumber;
+        this.chassisId = chassisId;
     }
 
     @Override
@@ -77,6 +82,11 @@ public class DefaultDevice extends AbstractElement implements Device {
     @Override
     public String serialNumber() {
         return serialNumber;
+    }
+
+    @Override
+    public ChassisId chassisId() {
+        return chassisId;
     }
 
     @Override

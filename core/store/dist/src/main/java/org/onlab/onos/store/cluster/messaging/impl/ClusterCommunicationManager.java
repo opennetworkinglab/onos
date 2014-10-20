@@ -4,6 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,17 +20,19 @@ import org.onlab.onos.store.cluster.impl.ClusterMembershipEvent;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ClusterMessageSerializer;
-import org.onlab.onos.store.serializers.KryoPoolUtil;
+import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.MessageSubjectSerializer;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
 import org.onlab.netty.NettyMessagingService;
+import org.onlab.netty.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +52,8 @@ public class ClusterCommunicationManager
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
-            serializerPool = KryoPool.newBuilder()
-                    .register(KryoPoolUtil.API)
+            serializerPool = KryoNamespace.newBuilder()
+                    .register(KryoNamespaces.API)
                     .register(ClusterMessage.class, new ClusterMessageSerializer())
                     .register(ClusterMembershipEvent.class)
                     .register(byte[].class)
@@ -114,7 +119,23 @@ public class ClusterCommunicationManager
                     message.subject().value(), SERIALIZER.encode(message));
             return true;
         } catch (IOException e) {
-            log.error("Failed to send cluster message to nodeId: " + toNodeId, e);
+            log.trace("Failed to send cluster message to nodeId: " + toNodeId, e);
+            throw e;
+        }
+    }
+
+    @Override
+    public ClusterMessageResponse sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException {
+        ControllerNode node = clusterService.getNode(toNodeId);
+        checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
+        Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
+        try {
+            Response responseFuture =
+                    messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
+            return new InternalClusterMessageResponse(toNodeId, responseFuture);
+
+        } catch (IOException e) {
+            log.error("Failed interaction with remote nodeId: " + toNodeId, e);
             throw e;
         }
     }
@@ -137,11 +158,52 @@ public class ClusterCommunicationManager
         public void handle(Message message) {
             try {
                 ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
-                handler.handle(clusterMessage);
+                handler.handle(new InternalClusterMessage(clusterMessage, message));
             } catch (Exception e) {
                 log.error("Exception caught during ClusterMessageHandler", e);
                 throw e;
             }
+        }
+    }
+
+    public static final class InternalClusterMessage extends ClusterMessage {
+
+        private final Message rawMessage;
+
+        public InternalClusterMessage(ClusterMessage clusterMessage, Message rawMessage) {
+            super(clusterMessage.sender(), clusterMessage.subject(), clusterMessage.payload());
+            this.rawMessage = rawMessage;
+        }
+
+        @Override
+        public void respond(byte[] response) throws IOException {
+            rawMessage.respond(response);
+        }
+    }
+
+    private static final class InternalClusterMessageResponse implements ClusterMessageResponse {
+
+        private final NodeId sender;
+        private final Response responseFuture;
+
+        public InternalClusterMessageResponse(NodeId sender, Response responseFuture) {
+            this.sender = sender;
+            this.responseFuture = responseFuture;
+        }
+        @Override
+        public NodeId sender() {
+            return sender;
+        }
+
+        @Override
+        public byte[] get(long timeout, TimeUnit timeunit)
+                throws TimeoutException {
+            return responseFuture.get(timeout, timeunit);
+        }
+
+        @Override
+        public byte[] get(long timeout) throws InterruptedException {
+            return responseFuture.get();
         }
     }
 }

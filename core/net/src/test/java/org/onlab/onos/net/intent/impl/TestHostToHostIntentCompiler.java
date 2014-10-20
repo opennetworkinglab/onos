@@ -1,0 +1,151 @@
+package org.onlab.onos.net.intent.impl;
+
+import java.util.List;
+
+import org.hamcrest.Matchers;
+import org.junit.Before;
+import org.junit.Test;
+import org.onlab.onos.net.Host;
+import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.HostToHostIntent;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentTestsMocks;
+import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.onlab.onos.net.NetTestTools.hid;
+import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairMatcher.linksHasPath;
+
+/**
+ * Unit tests for the HostToHost intent compiler.
+ */
+public class TestHostToHostIntentCompiler {
+    private static final String HOST_ONE_MAC = "00:00:00:00:00:01";
+    private static final String HOST_TWO_MAC = "00:00:00:00:00:02";
+    private static final String HOST_ONE_VLAN = "-1";
+    private static final String HOST_TWO_VLAN = "-1";
+    private static final String HOST_ONE = HOST_ONE_MAC + "/" + HOST_ONE_VLAN;
+    private static final String HOST_TWO = HOST_TWO_MAC + "/" + HOST_TWO_VLAN;
+
+    private TrafficSelector selector = new IntentTestsMocks.MockSelector();
+    private TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
+
+    private HostId hostOneId = HostId.hostId(HOST_ONE);
+    private HostId hostTwoId = HostId.hostId(HOST_TWO);
+    private HostService mockHostService;
+
+    @Before
+    public void setup() {
+        Host hostOne = createMock(Host.class);
+        expect(hostOne.mac()).andReturn(new MacAddress(HOST_ONE_MAC.getBytes())).anyTimes();
+        expect(hostOne.vlan()).andReturn(VlanId.vlanId()).anyTimes();
+        replay(hostOne);
+
+        Host hostTwo = createMock(Host.class);
+        expect(hostTwo.mac()).andReturn(new MacAddress(HOST_TWO_MAC.getBytes())).anyTimes();
+        expect(hostTwo.vlan()).andReturn(VlanId.vlanId()).anyTimes();
+        replay(hostTwo);
+
+        mockHostService = createMock(HostService.class);
+        expect(mockHostService.getHost(eq(hostOneId))).andReturn(hostOne).anyTimes();
+        expect(mockHostService.getHost(eq(hostTwoId))).andReturn(hostTwo).anyTimes();
+        replay(mockHostService);
+    }
+
+    /**
+     * Creates a HostToHost intent based on two host Ids.
+     *
+     * @param oneIdString string for host one id
+     * @param twoIdString string for host two id
+     * @return HostToHostIntent for the two hosts
+     */
+    private HostToHostIntent makeIntent(String oneIdString, String twoIdString) {
+        return new HostToHostIntent(new IntentId(12),
+                                    hid(oneIdString),
+                                    hid(twoIdString),
+                                    selector,
+                                    treatment);
+    }
+
+    /**
+     * Creates a compiler for HostToHost intents.
+     *
+     * @param hops string array describing the path hops to use when compiling
+     * @return HostToHost intent compiler
+     */
+    private HostToHostIntentCompiler makeCompiler(String[] hops) {
+        HostToHostIntentCompiler compiler =
+                new HostToHostIntentCompiler();
+        compiler.pathService = new IntentTestsMocks.MockPathService(hops);
+        compiler.hostService = mockHostService;
+        IdBlockAllocator idBlockAllocator = new DummyIdBlockAllocator();
+        compiler.intentIdGenerator =
+                new IdBlockAllocatorBasedIntentIdGenerator(idBlockAllocator);
+        return compiler;
+    }
+
+
+    /**
+     * Tests a pair of hosts with 8 hops between them.
+     */
+    @Test
+    public void testSingleLongPathCompilation() {
+
+        HostToHostIntent intent = makeIntent(HOST_ONE,
+                                             HOST_TWO);
+        assertThat(intent, is(notNullValue()));
+
+        String[] hops = {HOST_ONE, "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", HOST_TWO};
+        HostToHostIntentCompiler compiler = makeCompiler(hops);
+        assertThat(compiler, is(notNullValue()));
+
+        List<Intent> result = compiler.compile(intent);
+        assertThat(result, is(Matchers.notNullValue()));
+        assertThat(result, hasSize(2));
+        Intent forwardResultIntent = result.get(0);
+        assertThat(forwardResultIntent instanceof PathIntent, is(true));
+        Intent reverseResultIntent = result.get(1);
+        assertThat(reverseResultIntent instanceof PathIntent, is(true));
+
+        if (forwardResultIntent instanceof PathIntent) {
+            PathIntent forwardPathIntent = (PathIntent) forwardResultIntent;
+            assertThat(forwardPathIntent.path().links(), hasSize(9));
+            assertThat(forwardPathIntent.path().links(), linksHasPath(HOST_ONE, "h1"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h1", "h2"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h2", "h3"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h3", "h4"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h4", "h5"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h5", "h6"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h6", "h7"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h7", "h8"));
+            assertThat(forwardPathIntent.path().links(), linksHasPath("h8", HOST_TWO));
+        }
+
+        if (reverseResultIntent instanceof PathIntent) {
+            PathIntent reversePathIntent = (PathIntent) reverseResultIntent;
+            assertThat(reversePathIntent.path().links(), hasSize(9));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h1", HOST_ONE));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h2", "h1"));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h3", "h2"));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h4", "h3"));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h5", "h4"));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h6", "h5"));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h7", "h6"));
+            assertThat(reversePathIntent.path().links(), linksHasPath("h8", "h7"));
+            assertThat(reversePathIntent.path().links(), linksHasPath(HOST_TWO, "h8"));
+        }
+    }
+}

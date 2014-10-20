@@ -28,7 +28,6 @@ import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.PacketListener;
-import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -96,13 +95,13 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
             return;
         }
 
-        Ethernet eth = new Ethernet();
-        eth.deserialize(packet.data().array(), 0, packet.data().array().length);
+        //Ethernet eth = new Ethernet();
+        //eth.deserialize(packet.data().array(), 0, packet.data().array().length);
         OFPortDesc p = null;
         for (Instruction inst : packet.treatment().instructions()) {
             if (inst.type().equals(Instruction.Type.OUTPUT)) {
                 p = portDesc(((OutputInstruction) inst).port());
-                OFPacketOut po = packetOut(sw, eth, p.getPortNo());
+                OFPacketOut po = packetOut(sw, packet.data().array(), p.getPortNo());
                 sw.sendMsg(po);
             }
         }
@@ -116,7 +115,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
         return builder.build();
     }
 
-    private OFPacketOut packetOut(OpenFlowSwitch sw, Ethernet eth, OFPort out) {
+    private OFPacketOut packetOut(OpenFlowSwitch sw, byte[] eth, OFPort out) {
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
         OFAction act = sw.factory().actions()
                 .buildOutput()
@@ -126,7 +125,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setInPort(OFPort.NO_MASK)
                 .setActions(Collections.singletonList(act))
-                .setData(eth.serialize())
+                .setData(eth)
                 .build();
     }
 

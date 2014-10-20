@@ -37,7 +37,7 @@ public class MultiPointToSinglePointIntentCompiler
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PathService pathService;
 
-    private IdGenerator<IntentId> intentIdGenerator;
+    protected IdGenerator<IntentId> intentIdGenerator;
 
     @Activate
     public void activate() {
@@ -62,7 +62,7 @@ public class MultiPointToSinglePointIntentCompiler
 
         Intent result = new LinkCollectionIntent(intentIdGenerator.getNewId(),
                 intent.selector(), intent.treatment(),
-                links);
+                links, intent.egressPoint());
         return Arrays.asList(result);
     }
 

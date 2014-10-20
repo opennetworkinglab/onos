@@ -9,6 +9,8 @@
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 onos-package
+onos-verify-cell || exit 1
+
 for node in $nodes; do onos-install -f $node 1>/dev/null & done
 
 # Wait for shutdown before waiting for restart

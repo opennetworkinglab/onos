@@ -5,5 +5,5 @@
 
 export JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-openjdk-amd64/}
 
-cd $(dirname $0)/../apache-karaf-*/bin
+cd $(dirname $0)/../apache-karaf-$KARAF_VERSION/bin
 ./client -h localhost "$@"

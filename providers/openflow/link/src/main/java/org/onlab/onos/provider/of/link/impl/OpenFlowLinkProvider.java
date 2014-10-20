@@ -35,6 +35,7 @@ import org.slf4j.Logger;
  * infrastructure links.
  */
 @Component(immediate = true)
+@Deprecated
 public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvider {
 
     private final Logger log = getLogger(getClass());

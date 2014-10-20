@@ -1,10 +1,13 @@
 package org.onlab.onos.store.host.impl;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -12,6 +15,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.ControllerNode;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
@@ -19,6 +24,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
+import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostClockService;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
@@ -32,22 +38,29 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.common.impl.Timestamped;
+import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.KryoPool;
+import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.onos.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onlab.onos.net.host.HostEvent.Type.*;
+import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 //TODO: multi-provider, annotation not supported.
@@ -86,26 +99,60 @@ public class GossipHostStore
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
-            serializerPool = KryoPool.newBuilder()
+            serializerPool = KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.COMMON)
+                    .register(InternalHostEvent.class)
                     .register(InternalHostRemovedEvent.class)
+                    .register(HostFragmentId.class)
+                    .register(HostAntiEntropyAdvertisement.class)
                     .build()
                     .populate(1);
         }
     };
 
+    private ScheduledExecutorService executor;
+
     @Activate
     public void activate() {
         clusterCommunicator.addSubscriber(
-                GossipHostStoreMessageSubjects.HOST_UPDATED, new InternalHostEventListener());
+                GossipHostStoreMessageSubjects.HOST_UPDATED,
+                new InternalHostEventListener());
         clusterCommunicator.addSubscriber(
-                GossipHostStoreMessageSubjects.HOST_REMOVED, new InternalHostRemovedEventListener());
+                GossipHostStoreMessageSubjects.HOST_REMOVED,
+                new InternalHostRemovedEventListener());
+        clusterCommunicator.addSubscriber(
+                GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT,
+                new InternalHostAntiEntropyAdvertisementListener());
+
+        executor =
+                newSingleThreadScheduledExecutor(namedThreads("link-anti-entropy-%d"));
+
+        // TODO: Make these configurable
+        long initialDelaySec = 5;
+        long periodSec = 5;
+        // start anti-entropy thread
+        executor.scheduleAtFixedRate(new SendAdvertisementTask(),
+                    initialDelaySec, periodSec, TimeUnit.SECONDS);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        executor.shutdownNow();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.error("Timeout during executor shutdown");
+            }
+        } catch (InterruptedException e) {
+            log.error("Error during executor shutdown", e);
+        }
+
+        hosts.clear();
+        removedHosts.clear();
+        locations.clear();
+        portAddresses.clear();
+
         log.info("Stopped");
     }
 
@@ -153,7 +200,7 @@ public class GossipHostStore
                     descr.hwAddress(),
                     descr.vlan(),
                     new Timestamped<>(descr.location(), timestamp),
-                    ImmutableSet.of(descr.ipAddress()));
+                    ImmutableSet.copyOf(descr.ipAddress()));
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
             return new HostEvent(HOST_ADDED, newhost);
@@ -169,12 +216,12 @@ public class GossipHostStore
             return new HostEvent(HOST_MOVED, host);
         }
 
-        if (host.ipAddresses().contains(descr.ipAddress())) {
+        if (host.ipAddresses().containsAll(descr.ipAddress())) {
             return null;
         }
 
         Set<IpPrefix> addresses = new HashSet<>(host.ipAddresses());
-        addresses.add(descr.ipAddress());
+        addresses.addAll(descr.ipAddress());
         StoredHost updated = new StoredHost(providerId, host.id(),
                                             host.mac(), host.vlan(),
                                             host.location, addresses);
@@ -381,6 +428,10 @@ public class GossipHostStore
         public HostLocation location() {
             return location.value();
         }
+
+        public Timestamp timestamp() {
+            return location.timestamp();
+        }
     }
 
     private void notifyPeers(InternalHostRemovedEvent event) throws IOException {
@@ -397,6 +448,16 @@ public class GossipHostStore
                 subject,
                 SERIALIZER.encode(event));
         clusterCommunicator.broadcast(message);
+    }
+
+    private void unicastMessage(NodeId peer,
+                                MessageSubject subject,
+                                Object event) throws IOException {
+        ClusterMessage message = new ClusterMessage(
+                clusterService.getLocalNode().id(),
+                subject,
+                SERIALIZER.encode(event));
+        clusterCommunicator.unicast(message, peer);
     }
 
     private void notifyDelegateIfNotNull(HostEvent event) {
@@ -432,6 +493,167 @@ public class GossipHostStore
             Timestamp timestamp = event.timestamp();
 
             notifyDelegateIfNotNull(removeHostInternal(hostId, timestamp));
+        }
+    }
+
+    private final class SendAdvertisementTask implements Runnable {
+
+        @Override
+        public void run() {
+            if (Thread.currentThread().isInterrupted()) {
+                log.info("Interrupted, quitting");
+                return;
+            }
+
+            try {
+                final NodeId self = clusterService.getLocalNode().id();
+                Set<ControllerNode> nodes = clusterService.getNodes();
+
+                ImmutableList<NodeId> nodeIds = FluentIterable.from(nodes)
+                        .transform(toNodeId())
+                        .toList();
+
+                if (nodeIds.size() == 1 && nodeIds.get(0).equals(self)) {
+                    log.debug("No other peers in the cluster.");
+                    return;
+                }
+
+                NodeId peer;
+                do {
+                    int idx = RandomUtils.nextInt(0, nodeIds.size());
+                    peer = nodeIds.get(idx);
+                } while (peer.equals(self));
+
+                HostAntiEntropyAdvertisement ad = createAdvertisement();
+
+                if (Thread.currentThread().isInterrupted()) {
+                    log.info("Interrupted, quitting");
+                    return;
+                }
+
+                try {
+                    unicastMessage(peer, GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT, ad);
+                } catch (IOException e) {
+                    log.debug("Failed to send anti-entropy advertisement to {}", peer);
+                    return;
+                }
+            } catch (Exception e) {
+                // catch all Exception to avoid Scheduled task being suppressed.
+                log.error("Exception thrown while sending advertisement", e);
+            }
+        }
+    }
+
+    private HostAntiEntropyAdvertisement createAdvertisement() {
+        final NodeId self = clusterService.getLocalNode().id();
+
+        Map<HostFragmentId, Timestamp> timestamps = new HashMap<>(hosts.size());
+        Map<HostId, Timestamp> tombstones = new HashMap<>(removedHosts.size());
+
+        for (Entry<HostId, StoredHost> e : hosts.entrySet()) {
+
+            final HostId hostId = e.getKey();
+            final StoredHost hostInfo = e.getValue();
+            final ProviderId providerId = hostInfo.providerId();
+            timestamps.put(new HostFragmentId(hostId, providerId), hostInfo.timestamp());
+        }
+
+        for (Entry<HostId, Timestamped<Host>> e : removedHosts.entrySet()) {
+            tombstones.put(e.getKey(), e.getValue().timestamp());
+        }
+
+        return new HostAntiEntropyAdvertisement(self, timestamps, tombstones);
+    }
+
+    private synchronized void handleAntiEntropyAdvertisement(HostAntiEntropyAdvertisement ad) {
+
+        final NodeId sender = ad.sender();
+
+        for (Entry<HostId, StoredHost> host : hosts.entrySet()) {
+            // for each locally live Hosts...
+            final HostId hostId = host.getKey();
+            final StoredHost localHost = host.getValue();
+            final ProviderId providerId = localHost.providerId();
+            final HostFragmentId hostFragId = new HostFragmentId(hostId, providerId);
+            final Timestamp localLiveTimestamp = localHost.timestamp();
+
+            Timestamp remoteTimestamp = ad.timestamps().get(hostFragId);
+            if (remoteTimestamp == null) {
+                remoteTimestamp = ad.tombstones().get(hostId);
+            }
+            if (remoteTimestamp == null ||
+                localLiveTimestamp.compareTo(remoteTimestamp) > 0) {
+
+                // local is more recent, push
+                // TODO: annotation is lost
+                final HostDescription desc = new DefaultHostDescription(
+                            localHost.mac(),
+                            localHost.vlan(),
+                            localHost.location(),
+                            localHost.ipAddresses());
+                try {
+                    unicastMessage(sender, GossipHostStoreMessageSubjects.HOST_UPDATED,
+                            new InternalHostEvent(providerId, hostId, desc, localHost.timestamp()));
+                } catch (IOException e1) {
+                    log.debug("Failed to send advertisement response", e1);
+                }
+            }
+
+            final Timestamp remoteDeadTimestamp = ad.tombstones().get(hostId);
+            if (remoteDeadTimestamp != null &&
+                remoteDeadTimestamp.compareTo(localLiveTimestamp) > 0) {
+                // sender has recent remove
+                notifyDelegateIfNotNull(removeHostInternal(hostId, remoteDeadTimestamp));
+            }
+        }
+
+        for (Entry<HostId, Timestamped<Host>> dead : removedHosts.entrySet()) {
+            // for each locally dead Hosts
+            final HostId hostId = dead.getKey();
+            final Timestamp localDeadTimestamp = dead.getValue().timestamp();
+
+            // TODO: pick proper ProviderId, when supporting multi-provider
+            final ProviderId providerId = dead.getValue().value().providerId();
+            final HostFragmentId hostFragId = new HostFragmentId(hostId, providerId);
+
+            final Timestamp remoteLiveTimestamp = ad.timestamps().get(hostFragId);
+            if (remoteLiveTimestamp != null &&
+                localDeadTimestamp.compareTo(remoteLiveTimestamp) > 0) {
+                // sender has zombie, push
+                try {
+                    unicastMessage(sender, GossipHostStoreMessageSubjects.HOST_REMOVED,
+                            new InternalHostRemovedEvent(hostId, localDeadTimestamp));
+                } catch (IOException e1) {
+                    log.debug("Failed to send advertisement response", e1);
+                }
+            }
+        }
+
+
+        for (Entry<HostId, Timestamp> e : ad.tombstones().entrySet()) {
+            // for each remote tombstone advertisement...
+            final HostId hostId = e.getKey();
+            final Timestamp adRemoveTimestamp = e.getValue();
+
+            final StoredHost storedHost = hosts.get(hostId);
+            if (storedHost == null) {
+                continue;
+            }
+            if (adRemoveTimestamp.compareTo(storedHost.timestamp()) > 0) {
+                // sender has recent remove info, locally remove
+                notifyDelegateIfNotNull(removeHostInternal(hostId, adRemoveTimestamp));
+            }
+        }
+    }
+
+    private final class InternalHostAntiEntropyAdvertisementListener implements
+            ClusterMessageHandler {
+
+        @Override
+        public void handle(ClusterMessage message) {
+            log.debug("Received Host Anti-Entropy advertisement from peer: {}", message.sender());
+            HostAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
+            handleAntiEntropyAdvertisement(advertisement);
         }
     }
 }

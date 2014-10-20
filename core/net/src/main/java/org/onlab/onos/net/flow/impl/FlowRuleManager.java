@@ -3,8 +3,8 @@ package org.onlab.onos.net.flow.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 /**
@@ -197,6 +198,8 @@ public class FlowRuleManager
             extends AbstractProviderService<FlowRuleProvider>
             implements FlowRuleProviderService {
 
+        final Map<FlowEntry, Long> lastSeen = Maps.newConcurrentMap();
+
         protected InternalFlowRuleProviderService(FlowRuleProvider provider) {
             super(provider);
         }
@@ -205,6 +208,7 @@ public class FlowRuleManager
         public void flowRemoved(FlowEntry flowEntry) {
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
+            lastSeen.remove(flowEntry);
             FlowEntry stored = store.getFlowEntry(flowEntry);
             if (stored == null) {
                 log.info("Rule already evicted from store: {}", flowEntry);
@@ -292,14 +296,25 @@ public class FlowRuleManager
             if (storedRule == null) {
                 return false;
             }
-            long timeout = storedRule.timeout() * 1000;
-            Long currentTime = System.currentTimeMillis();
+            final long timeout = storedRule.timeout() * 1000;
+            final long currentTime = System.currentTimeMillis();
             if (storedRule.packets() != swRule.packets()) {
-                storedRule.setLastSeen();
+                lastSeen.put(storedRule, currentTime);
                 return true;
             }
+            if (!lastSeen.containsKey(storedRule)) {
+                // checking for the first time
+                lastSeen.put(storedRule, storedRule.lastSeen());
+                // Use following if lastSeen attr. was removed.
+                //lastSeen.put(storedRule, currentTime);
+            }
+            Long last = lastSeen.get(storedRule);
+            if (last == null) {
+                // concurrently removed? let the liveness check fail
+                return false;
+            }
 
-            if ((currentTime - storedRule.lastSeen()) <= timeout) {
+            if ((currentTime - last) <= timeout) {
                 return true;
             }
             return false;
@@ -316,10 +331,7 @@ public class FlowRuleManager
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
             List<FlowEntry> storedRules = Lists.newLinkedList(store.getFlowEntries(deviceId));
 
-            Iterator<FlowEntry> switchRulesIterator = flowEntries.iterator();
-
-            while (switchRulesIterator.hasNext()) {
-                FlowEntry rule = switchRulesIterator.next();
+            for (FlowEntry rule : flowEntries) {
                 if (storedRules.remove(rule)) {
                     // we both have the rule, let's update some info then.
                     flowAdded(rule);
@@ -401,7 +413,7 @@ public class FlowRuleManager
             CompletedBatchOperation completed;
             for (Future<CompletedBatchOperation> future : futures) {
                 completed = future.get();
-                success = validateBatchOperation(failed, completed, future);
+                success = validateBatchOperation(failed, completed);
             }
 
             return finalizeBatchOperation(success, failed);
@@ -426,14 +438,13 @@ public class FlowRuleManager
                 long now = System.nanoTime();
                 long thisTimeout = end - now;
                 completed = future.get(thisTimeout, TimeUnit.NANOSECONDS);
-                success = validateBatchOperation(failed, completed, future);
+                success = validateBatchOperation(failed, completed);
             }
             return finalizeBatchOperation(success, failed);
         }
 
         private boolean validateBatchOperation(List<FlowEntry> failed,
-                CompletedBatchOperation completed,
-                Future<CompletedBatchOperation> future) {
+                CompletedBatchOperation completed) {
 
             if (isCancelled()) {
                 throw new CancellationException();

@@ -1,6 +1,7 @@
 package org.onlab.onos.net;
 
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpPrefix;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public final class NetTestTools {
     // Crates a new device with the specified id
     public static Device device(String id) {
         return new DefaultDevice(PID, did(id), Device.Type.SWITCH,
-                                 "mfg", "1.0", "1.1", "1234");
+                                 "mfg", "1.0", "1.1", "1234", new ChassisId());
     }
 
     // Crates a new host with the specified id
@@ -47,10 +48,16 @@ public final class NetTestTools {
                                new HashSet<IpPrefix>());
     }
 
+    // Short-hand for creating a connection point.
+    public static ConnectPoint connectPoint(String id, int port) {
+        return new ConnectPoint(did(id), portNumber(port));
+    }
+
     // Short-hand for creating a link.
     public static Link link(String src, int sp, String dst, int dp) {
-        return new DefaultLink(PID, new ConnectPoint(did(src), portNumber(sp)),
-                               new ConnectPoint(did(dst), portNumber(dp)),
+        return new DefaultLink(PID,
+                               connectPoint(src, sp),
+                               connectPoint(dst, dp),
                                Link.Type.DIRECT);
     }
 

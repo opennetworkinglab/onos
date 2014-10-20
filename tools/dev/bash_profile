@@ -6,7 +6,13 @@
 export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
 
 # Setup some environmental context for developers
-export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home -v 1.7)}
+if [ -z "${JAVA_HOME}" ]; then
+    if [ -x /usr/libexec/java_home ]; then
+        export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
+    elif [ -d /usr/lib/jvm/java-7-openjdk-amd64 ]; then
+        export JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+    fi
+fi
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.2.2}
 export KARAF=${KARAF:-~/Applications/apache-karaf-3.0.1}
 export KARAF_LOG=$KARAF/data/log/karaf.log
@@ -15,7 +21,6 @@ export KARAF_LOG=$KARAF/data/log/karaf.log
 export PATH="$PATH:$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/build"
 export PATH="$PATH:$MAVEN/bin:$KARAF/bin"
-export PATH="$PATH:."
 
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
@@ -40,6 +45,7 @@ alias pub='onos-push-update-bundle'
 # Short-hand for tailing the ONOS (karaf) log 
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
 alias tlo='tl | grep --colour=always org.onlab'
+alias ll='less $KARAF_LOG'
 
 # Pretty-print JSON output
 alias pp='python -m json.tool'
@@ -62,13 +68,14 @@ function cell {
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
         unset ONOS_CELL ONOS_NIC ONOS_FEATURES
-        unset OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
+        unset OC0 OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
+        export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
         cell
     else
         env | egrep "ONOS_CELL"
         env | egrep "OCI"
-        env | egrep "OC[1-9]+" | sort
+        env | egrep "OC[0-9]+" | sort
         env | egrep "OCN"
         env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL'
     fi

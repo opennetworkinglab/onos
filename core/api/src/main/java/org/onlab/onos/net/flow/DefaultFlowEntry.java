@@ -6,9 +6,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import org.onlab.onos.net.DeviceId;
 import org.slf4j.Logger;
 
-public class DefaultFlowEntry extends DefaultFlowRule implements FlowEntry {
+public class DefaultFlowEntry extends DefaultFlowRule
+    implements FlowEntry, StoredFlowEntry {
 
-    private final Logger log = getLogger(getClass());
+    private static final Logger log = getLogger(DefaultFlowEntry.class);
 
     private long life;
     private long packets;

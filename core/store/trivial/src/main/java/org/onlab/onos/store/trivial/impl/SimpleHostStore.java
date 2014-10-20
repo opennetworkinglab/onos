@@ -84,7 +84,7 @@ public class SimpleHostStore
                                             descr.hwAddress(),
                                             descr.vlan(),
                                             descr.location(),
-                                            ImmutableSet.of(descr.ipAddress()));
+                                            ImmutableSet.copyOf(descr.ipAddress()));
         synchronized (this) {
             hosts.put(hostId, newhost);
             locations.put(descr.location(), newhost);
@@ -101,12 +101,12 @@ public class SimpleHostStore
             return new HostEvent(HOST_MOVED, host);
         }
 
-        if (host.ipAddresses().contains(descr.ipAddress())) {
+        if (host.ipAddresses().containsAll(descr.ipAddress())) {
             return null;
         }
 
         Set<IpPrefix> addresses = new HashSet<>(host.ipAddresses());
-        addresses.add(descr.ipAddress());
+        addresses.addAll(descr.ipAddress());
         StoredHost updated = new StoredHost(providerId, host.id(),
                                             host.mac(), host.vlan(),
                                             descr.location(), addresses);

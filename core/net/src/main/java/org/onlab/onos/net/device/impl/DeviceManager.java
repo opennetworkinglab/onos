@@ -144,7 +144,7 @@ public class DeviceManager
 
     // Applies the specified role to the device; ignores NONE
     private void applyRole(DeviceId deviceId, MastershipRole newRole) {
-        if (newRole.equals(MastershipRole.NONE)) {
+        if (!newRole.equals(MastershipRole.NONE)) {
             Device device = store.getDevice(deviceId);
             // FIXME: Device might not be there yet. (eventual consistent)
             if (device == null) {
@@ -161,6 +161,9 @@ public class DeviceManager
     @Override
     public void removeDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
+        // XXX is this intended to apply to the full global topology?
+        // if so, we probably don't want the fact that we aren't
+        // MASTER to get in the way, as it would do now.
         DeviceEvent event = store.removeDevice(deviceId);
         if (event != null) {
             log.info("Device {} administratively removed", deviceId);
@@ -203,19 +206,21 @@ public class DeviceManager
             log.info("Device {} connected", deviceId);
             // check my Role
             MastershipRole role = mastershipService.requestRoleFor(deviceId);
-
+            log.info("## - our role for {} is {} [master is {}]", deviceId, role,
+                    mastershipService.getMasterFor(deviceId));
             if (role != MastershipRole.MASTER) {
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is no longer the MASTER? probably not
                 return;
             }
-
             MastershipTerm term = mastershipService.requestTermService()
                     .getMastershipTerm(deviceId);
+
             if (!term.master().equals(clusterService.getLocalNode().id())) {
                 // lost mastership after requestRole told this instance was MASTER.
                 return;
             }
+
             // tell clock provider if this instance is the master
             deviceClockProviderService.setMastershipTerm(deviceId, term);
 
@@ -256,19 +261,38 @@ public class DeviceManager
             // but if I was the last STANDBY connection, etc. and no one else
             // was there to mark the device offline, this instance may need to
             // temporarily request for Master Role and mark offline.
+            log.info("## for {} role is {}", deviceId, mastershipService.getLocalRole(deviceId));
             if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
                 log.debug("Device {} disconnected, but I am not the master", deviceId);
                 //let go of ability to be backup
                 mastershipService.relinquishMastership(deviceId);
                 return;
             }
-            DeviceEvent event = store.markOffline(deviceId);
-            //relinquish master role and ability to be backup.
-            mastershipService.relinquishMastership(deviceId);
 
-            if (event != null) {
-                log.info("Device {} disconnected", deviceId);
-                post(event);
+            DeviceEvent event = null;
+            try {
+                event = store.markOffline(deviceId);
+            } catch (IllegalStateException e) {
+                //there are times when this node will correctly have mastership, BUT
+                //that isn't reflected in the ClockManager before the device disconnects.
+                //we want to let go of the device anyways, so make sure this happens.
+
+                // FIXME: Come up with workaround for above scenario.
+                MastershipTerm term = termService.getMastershipTerm(deviceId);
+                final NodeId myNodeId = clusterService.getLocalNode().id();
+                // TODO: Move this type of check inside device clock manager, etc.
+                if (myNodeId.equals(term.master())) {
+                    deviceClockProviderService.setMastershipTerm(deviceId, term);
+                    event = store.markOffline(deviceId);
+                }
+            } finally {
+                //relinquish master role and ability to be backup.
+                mastershipService.relinquishMastership(deviceId);
+
+                if (event != null) {
+                    log.info("Device {} disconnected", deviceId);
+                    post(event);
+                }
             }
         }
 
@@ -279,7 +303,15 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                     "Port descriptions list cannot be null");
             checkValidity();
+            //XXX what's this doing here?
             this.provider().id();
+
+            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
+                // TODO If we become master, then we'll trigger something to update this
+                //      info to fix any inconsistencies that may result during the handoff.
+                return;
+            }
+
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                     deviceId, portDescriptions);
             for (DeviceEvent event : events) {
@@ -293,6 +325,12 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
+
+            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
+                // TODO If we become master, then we'll trigger something to update this
+                //      info to fix any inconsistencies that may result during the handoff.
+                return;
+            }
             DeviceEvent event = store.updatePortStatus(this.provider().id(),
                     deviceId, portDescription);
             if (event != null) {
@@ -328,27 +366,37 @@ public class DeviceManager
             final DeviceId did = event.subject();
             final NodeId myNodeId = clusterService.getLocalNode().id();
 
+            log.info("## got Mastershipevent for dev {}", did);
             if (myNodeId.equals(event.master())) {
                 MastershipTerm term = termService.getMastershipTerm(did);
 
-                if (term.master().equals(myNodeId)) {
-                    // only set the new term if I am the master
-                    deviceClockProviderService.setMastershipTerm(did, term);
+                if (!myNodeId.equals(term.master())) {
+                    // something went wrong in consistency, let go
+                    mastershipService.relinquishMastership(did);
+                    applyRole(did, MastershipRole.STANDBY);
+                    return;
                 }
+
+                log.info("## setting term for CPS as new master for {}", did);
+                // only set the new term if I am the master
+                deviceClockProviderService.setMastershipTerm(did, term);
 
                 // FIXME: we should check that the device is connected on our end.
                 // currently, this is not straight forward as the actual switch
-                // implementation is hidden from the registry.
-                if (!isAvailable(did)) {
+                // implementation is hidden from the registry. Maybe we can ask the
+                // provider.
+                // if the device is null here, we are the first master to claim the
+                // device. No worries, the DeviceManager will create one soon.
+                Device device = getDevice(did);
+                if ((device != null) && !isAvailable(did)) {
                     //flag the device as online. Is there a better way to do this?
-                    Device device = getDevice(did);
                     store.createOrUpdateDevice(device.providerId(), did,
                             new DefaultDeviceDescription(
                                     did.uri(), device.type(), device.manufacturer(),
                                     device.hwVersion(), device.swVersion(),
-                                    device.serialNumber()));
+                                    device.serialNumber(), device.chassisId()));
                 }
-
+                //TODO re-collect device information to fix potential staleness
                 applyRole(did, MastershipRole.MASTER);
             } else {
                 applyRole(did, MastershipRole.STANDBY);
