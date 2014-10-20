@@ -118,8 +118,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
 
+            Device.Type deviceType = sw.isOptical() ? Device.Type.ROADM :
+                    Device.Type.SWITCH;
             DeviceDescription description =
-                    new DefaultDeviceDescription(did.uri(), Device.Type.SWITCH,
+                    new DefaultDeviceDescription(did.uri(), deviceType,
                                                  sw.manfacturerDescription(),
                                                  sw.hardwareDescription(),
                                                  sw.softwareDescription(),

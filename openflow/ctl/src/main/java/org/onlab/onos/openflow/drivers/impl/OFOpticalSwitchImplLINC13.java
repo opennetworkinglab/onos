@@ -6,6 +6,7 @@ import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeNotStar
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
+import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
@@ -14,7 +15,10 @@ import org.projectfloodlight.openflow.protocol.OFMatchV3;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFOxmList;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
+import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
@@ -43,12 +47,13 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     private final AtomicBoolean driverHandshakeComplete;
     private long barrierXidToWaitFor = -1;
 
+    private OFPortDescStatsReply wPorts;
+
     private final Logger log =
             LoggerFactory.getLogger(OFOpticalSwitchImplLINC13.class);
 
     OFOpticalSwitchImplLINC13(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
-        //setAttribute("optical", "true");
         driverHandshakeComplete = new AtomicBoolean(false);
         setSwitchDescription(desc);
     }
@@ -62,7 +67,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void startDriverHandshake() {
-        log.debug("Starting driver handshake for sw {}", getStringId());
+        log.warn("Starting driver handshake for sw {}", getStringId());
         if (startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeAlreadyStarted();
         }
@@ -70,6 +75,8 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
         try {
             sendHandshakeOFExperimenterPortDescRequest();
         } catch (IOException e) {
+            log.error("LINC-OE exception while sending experimenter port desc:",
+                     e.getMessage());
             e.printStackTrace();
         }
     }
@@ -84,7 +91,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void processDriverHandshakeMessage(OFMessage m) {
-        if (!startDriverHandshakeCalled) {
+         if (!startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeNotStarted();
         }
         if (driverHandshakeComplete.get()) {
@@ -109,38 +116,49 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             case PACKET_IN:
                 break;
             case PORT_STATUS:
+                log.warn("****LINC-OE Port Status {} {}", getStringId(), m);
+                processOFPortStatus((OFCircuitPortStatus) m);
                 break;
             case QUEUE_GET_CONFIG_REPLY:
                 break;
             case ROLE_REPLY:
                 break;
             case STATS_REPLY:
-                log.debug("LINC-OE : Received stats reply message {}", m);
-                processHandshakeOFExperimenterPortDescRequest(
-                        (OFCircuitPortsReply) m);
-                driverHandshakeComplete.set(true);
-                try {
+                OFStatsReply stats = (OFStatsReply) m;
+                if (stats.getStatsType() == OFStatsType.EXPERIMENTER) {
+                    log.warn("LINC-OE : Received stats reply message {}", m);
+                    processHandshakeOFExperimenterPortDescRequest(
+                            (OFCircuitPortsReply) m);
+                    driverHandshakeComplete.set(true);
+                }
+                /*try {
                     testMA();
                     testReverseMA();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
             default:
-                log.debug("Received message {} during switch-driver " +
-                                  "subhandshake " + "from switch {} ... " +
-                                  "Ignoring message", m,
-                          getStringId());
+                log.warn("Received message {} during switch-driver " +
+                                 "subhandshake " + "from switch {} ... " +
+                                 "Ignoring message", m,
+                         getStringId());
 
         }
     }
 
+    //Todo
+    public void processOFPortStatus(OFCircuitPortStatus ps) {
+        log.debug("LINC-OE ..OF Port Status :", ps);
+
+    }
 
     private void processHandshakeOFExperimenterPortDescRequest(
             OFCircuitPortsReply sr) {
         Collection<OFPortOptical> entries = sr.getEntries();
         List<OFPortDesc> ofPortDescList = new ArrayList<>(entries.size());
         for (OFPortOptical entry : entries) {
+            log.warn("LINC:OE port message {}", entry.toString());
             ofPortDescList.add(factory().buildPortDesc().
                     setPortNo(entry.getPortNo())
                                            .setConfig(entry.getConfig())
@@ -148,9 +166,14 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                                            .setHwAddr(entry.getHwAddr())
                                            .setName(entry.getName())
                                            .build());
+
         }
-        setPortDescReply(factory().buildPortDescStatsReply().
+        setExperimenterPortDescReply(factory().buildPortDescStatsReply().
                 setEntries(ofPortDescList).build());
+    }
+
+    private void setExperimenterPortDescReply(OFPortDescStatsReply reply) {
+        wPorts = reply;
     }
 
 
@@ -160,11 +183,22 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
         OFCircuitPortsRequest circuitPortsRequest = factory()
                 .buildCircuitPortsRequest().setXid(getNextTransactionId())
                 .build();
-        log.debug("LINC-OE : Sending experimented circuit port stats " +
-                          "message " +
-                          "{}",
-                  circuitPortsRequest.toString());
-        sendMsg(Collections.<OFMessage>singletonList(circuitPortsRequest));
+        log.warn("LINC-OE : Sending experimented circuit port stats " +
+                         "message " +
+                         "{}",
+                 circuitPortsRequest.toString());
+        this.write(Collections.<OFMessage>singletonList(circuitPortsRequest));
+    }
+
+
+    @Override
+    public List<OFPortDesc> getPorts() {
+        List<OFPortDesc> portEntries = new ArrayList<>();
+        portEntries.addAll(ports.getEntries());
+        if (wPorts != null) {
+            portEntries.addAll(wPorts.getEntries());
+        }
+        return Collections.unmodifiableList(portEntries);
     }
 
 
@@ -533,7 +567,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void write(OFMessage msg) {
-        this.sendMsg(msg);
+        this.channel.write(Collections.singletonList(msg));
     }
 
     @Override
@@ -545,5 +579,11 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     public Boolean supportNxRole() {
         return false;
     }
+
+    @Override
+    public boolean isOptical() {
+        return true;
+    }
+
 
 }

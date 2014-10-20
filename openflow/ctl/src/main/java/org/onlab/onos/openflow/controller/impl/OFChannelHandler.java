@@ -399,12 +399,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 h.sw.setPortDescReply(h.portDescReply);
                 h.sw.setConnected(true);
                 h.sw.setChannel(h.channel);
-                boolean success = h.sw.connectSwitch();
-
-                if (!success) {
-                    disconnectDuplicate(h);
-                    return;
-                }
+//                boolean success = h.sw.connectSwitch();
+//
+//                if (!success) {
+//                    disconnectDuplicate(h);
+//                    return;
+//                }
                 // set switch information
 
 
@@ -462,6 +462,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     throws IOException, SwitchStateException {
                 if (m.getType() == OFType.ECHO_REQUEST) {
                     processOFEchoRequest(h, (OFEchoRequest) m);
+                } else if (m.getType() == OFType.ECHO_REPLY) {
+                    processOFEchoReply(h, (OFEchoReply) m);
                 } else if (m.getType() == OFType.ROLE_REPLY) {
                     h.sw.handleRole(m);
                 } else if (m.getType() == OFType.ERROR) {
@@ -479,6 +481,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     } else {
                         h.sw.processDriverHandshakeMessage(m);
                         if (h.sw.isDriverHandshakeComplete()) {
+                            boolean success = h.sw.connectSwitch();
+
+                            if (!success) {
+                                disconnectDuplicate(h);
+                                return;
+                            }
                             h.setState(ACTIVE);
                         }
                     }

@@ -165,6 +165,11 @@ public class RoleManagerTest {
         }
 
         @Override
+        public boolean isOptical() {
+            return false;
+        }
+
+        @Override
         public void setAgent(OpenFlowAgent agent) {
         }
 

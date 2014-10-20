@@ -112,4 +112,13 @@ public interface OpenFlowSwitch {
      */
     void returnRoleAssertFailure(RoleState role);
 
+
+    /**
+     * Indicates if this switch is optical.
+     *
+     * @return true if optical
+     */
+    public boolean isOptical();
+
+
 }

@@ -374,4 +374,9 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         return this.desc.getSerialNum();
     }
 
+    @Override
+    public boolean isOptical() {
+        return false;
+    }
+
 }

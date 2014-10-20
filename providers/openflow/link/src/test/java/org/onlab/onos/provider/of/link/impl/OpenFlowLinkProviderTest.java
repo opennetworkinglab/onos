@@ -467,5 +467,10 @@ public class OpenFlowLinkProviderTest {
         public void returnRoleAssertFailure(RoleState role) {
         }
 
+        @Override
+        public boolean isOptical() {
+            return false;
+        }
+
     }
 }
