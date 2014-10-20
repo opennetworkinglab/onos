@@ -5,8 +5,9 @@ export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
 
 # M2 repository and Karaf gold bits
 export M2_REPO=${M2_REPO:-~/.m2/repository}
-export KARAF_ZIP=${KARAF_ZIP:-~/Downloads/apache-karaf-3.0.1.zip}
-export KARAF_TAR=${KARAF_TAR:-~/Downloads/apache-karaf-3.0.1.tar.gz}
+export KARAF_VERSION=${KARAF_VERSION:-3.0.1}
+export KARAF_ZIP=${KARAF_ZIP:-~/Downloads/apache-karaf-$KARAF_VERSION.zip}
+export KARAF_TAR=${KARAF_TAR:-~/Downloads/apache-karaf-$KARAF_VERSION.tar.gz}
 export KARAF_DIST=$(basename $KARAF_ZIP .zip)
 
 # Add ONOS-specific directories to the exectable PATH

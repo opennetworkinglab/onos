@@ -13,12 +13,22 @@ rm -fr $ONOS_STAGE # Remove this when package script is completed
 
 # Make sure we have the original apache karaf bits first
 [ ! -d $M2_REPO ] && echo "M2 repository $M2_REPO not found" && exit 1
-[ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
 [ -d $ONOS_STAGE ] && echo "ONOS stage $ONOS_STAGE already exists" && exit 1
 
 # Create the stage directory and warp into it
 mkdir -p $ONOS_STAGE
 cd $ONOS_STAGE
+
+# Check if Apache Karaf bits are available and if not, fetch them.
+if [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ]; then
+    echo "Downloading $KARAF_TAR..."
+    karafURL=$(curl -s http://www.apache.org/dyn/closer.cgi/karaf/$KARAF_VERSION/apache-karaf-$KARAF_VERSION.tar.gz |
+                grep "<a href=\".*apache-karaf-$KARAF_VERSION.tar.gz\"" |
+                head -n 1 | sed 's/.*<a href="//g;s/".*//g')
+    curl -s $karafURL > $KARAF_TAR
+fi
+[ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && \
+    echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 [ -f $KARAF_ZIP ] && unzip -q $KARAF_ZIP && rm -rf $KARAF_DIST/demos
@@ -28,23 +38,19 @@ mkdir bin
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
 cp -r $ONOS_ROOT/tools/package/bin .
 cp -r $ONOS_ROOT/tools/package/debian $ONOS_STAGE/debian
-cp -r $ONOS_ROOT/tools/package/etc/* $KARAF_DIST/etc
+cp -r $ONOS_ROOT/tools/package/etc/* $ONOS_STAGE/$KARAF_DIST/etc
+
+# Patch-in proper Karaf version into the startup script.
+sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
+    $ONOS_ROOT/tools/package/bin/onos-service > bin/onos-service
+sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
+    $ONOS_ROOT/tools/package/bin/onos > bin/onos
 
 # Stage the ONOS bundles
 mkdir -p $KARAF_DIST/system/org/onlab 
 cp -r $M2_REPO/org/onlab $KARAF_DIST/system/org/
 
 export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo}"
-
-# Cellar Patching --------------------------------------------------------------
-
-# Patch the Apache Karaf distribution file to add Cellar features repository
-#perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.apache.karaf.cellar/apache-karaf-cellar/3.0.0/xml/features|" \
-#    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
-
-# Patch the Apache Karaf distribution file to load ONOS features
-#perl -pi.old -e 's|^(featuresBoot=.*)|\1,cellar|' \
-#    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 
 # ONOS Patching ----------------------------------------------------------------
 
