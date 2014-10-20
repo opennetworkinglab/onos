@@ -20,6 +20,7 @@ import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.PortNumber;
@@ -28,8 +29,10 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoPool;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
@@ -61,78 +64,147 @@ public class KryoSerializerTest {
             .set("B3", "b3")
             .build();
 
-    private static KryoPool kryos;
+    private KryoSerializer serializer;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        kryos = KryoPool.newBuilder()
-                .register(KryoPoolUtil.API)
-                .register(ImmutableMap.class, new ImmutableMapSerializer())
-                .register(ImmutableSet.class, new ImmutableSetSerializer())
-                .build();
     }
 
     @Before
     public void setUp() throws Exception {
+        serializer = new KryoSerializer() {
+
+            @Override
+            protected void setupKryoPool() {
+                serializerPool = KryoPool.newBuilder()
+                        .register(KryoPoolUtil.API)
+                        .build()
+                        .populate(1);
+            }
+        };
     }
 
     @After
     public void tearDown() throws Exception {
-        // removing Kryo instance to use fresh Kryo on each tests
-        kryos.getKryo();
     }
 
-    private static <T> void testSerialized(T original) {
+    private <T> void testSerialized(T original) {
         ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
-        kryos.serialize(original, buffer);
+        serializer.encode(original, buffer);
         buffer.flip();
-        T copy = kryos.deserialize(buffer);
+        T copy = serializer.decode(buffer);
+
+        T copy2 = serializer.decode(serializer.encode(original));
 
         new EqualsTester()
-            .addEqualityGroup(original, copy)
+            .addEqualityGroup(original, copy, copy2)
             .testEquals();
     }
 
 
     @Test
-    public final void testSerialization() {
+    public void testConnectPoint() {
         testSerialized(new ConnectPoint(DID1, P1));
+    }
+
+    @Test
+    public void testDefaultLink() {
         testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT));
-        testSerialized(new DefaultPort(DEV1, P1, true));
         testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT, A1));
+    }
+
+    @Test
+    public void testDefaultPort() {
+        testSerialized(new DefaultPort(DEV1, P1, true));
         testSerialized(new DefaultPort(DEV1, P1, true, A1_2));
+    }
+
+    @Test
+    public void testDeviceId() {
         testSerialized(DID1);
+    }
+
+    @Test
+    public void testImmutableMap() {
         testSerialized(ImmutableMap.of(DID1, DEV1, DID2, DEV1));
         testSerialized(ImmutableMap.of(DID1, DEV1));
         testSerialized(ImmutableMap.of());
+    }
+
+    @Test
+    public void testImmutableSet() {
         testSerialized(ImmutableSet.of(DID1, DID2));
         testSerialized(ImmutableSet.of(DID1));
         testSerialized(ImmutableSet.of());
+    }
+
+    @Test
+    public void testImmutableList() {
+        testSerialized(ImmutableList.of(DID1, DID2));
+        testSerialized(ImmutableList.of(DID1));
+        testSerialized(ImmutableList.of());
+    }
+
+    @Test
+    public void testIpPrefix() {
         testSerialized(IpPrefix.valueOf("192.168.0.1/24"));
+    }
+
+    @Test
+    public void testIpAddress() {
         testSerialized(IpAddress.valueOf("192.168.0.1"));
+    }
+
+    @Test
+    public void testMacAddress() {
+        testSerialized(MacAddress.valueOf("12:34:56:78:90:ab"));
+    }
+
+    @Test
+    public void testLinkKey() {
         testSerialized(LinkKey.linkKey(CP1, CP2));
+    }
+
+    @Test
+    public void testNodeId() {
         testSerialized(new NodeId("SomeNodeIdentifier"));
+    }
+
+    @Test
+    public void testPortNumber() {
         testSerialized(P1);
+    }
+
+    @Test
+    public void testProviderId() {
         testSerialized(PID);
         testSerialized(PIDA);
-        testSerialized(new NodeId("bar"));
+    }
+
+    @Test
+    public void testMastershipTerm() {
         testSerialized(MastershipTerm.of(new NodeId("foo"), 2));
     }
 
     @Test
-    public final void testAnnotations() {
+    public void testHostLocation() {
+        testSerialized(new HostLocation(CP1, 1234L));
+    }
+
+    @Test
+    public void testAnnotations() {
         // Annotations does not have equals defined, manually test equality
-        final byte[] a1Bytes = kryos.serialize(A1);
-        SparseAnnotations copiedA1 = kryos.deserialize(a1Bytes);
+        final byte[] a1Bytes = serializer.encode(A1);
+        SparseAnnotations copiedA1 = serializer.decode(a1Bytes);
         assertAnnotationsEquals(copiedA1, A1);
 
-        final byte[] a12Bytes = kryos.serialize(A1_2);
-        SparseAnnotations copiedA12 = kryos.deserialize(a12Bytes);
+        final byte[] a12Bytes = serializer.encode(A1_2);
+        SparseAnnotations copiedA12 = serializer.decode(a12Bytes);
         assertAnnotationsEquals(copiedA12, A1_2);
     }
 
     // code clone
-    public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+    protected static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
         SparseAnnotations expected = DefaultAnnotations.builder().build();
         for (SparseAnnotations a : annotations) {
             expected = DefaultAnnotations.union(expected, a);
