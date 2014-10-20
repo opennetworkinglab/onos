@@ -4,19 +4,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 
 import com.google.common.collect.Sets;
 
-
-
 /**
- * Provides IntefaceService using PortAddresses data from the HostService.
+ * Provides InterfaceService using PortAddresses data from the HostService.
  */
 public class HostToInterfaceAdaptor implements InterfaceService {
 
@@ -52,8 +50,17 @@ public class HostToInterfaceAdaptor implements InterfaceService {
 
     @Override
     public Interface getMatchingInterface(IpAddress ipAddress) {
-        // TODO implement
-        throw new NotImplementedException("getMatchingInteface is not yet implemented");
+        checkNotNull(ipAddress);
+
+        for (PortAddresses portAddresses : hostService.getAddressBindings()) {
+            for (IpPrefix p : portAddresses.ips()) {
+                if (p.contains(ipAddress)) {
+                    return new Interface(portAddresses);
+                }
+            }
+        }
+
+        return null;
     }
 
 }

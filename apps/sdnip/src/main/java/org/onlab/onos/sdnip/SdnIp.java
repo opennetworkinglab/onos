@@ -64,6 +64,7 @@ public class SdnIp implements SdnIpService {
         bgpSessionManager.startUp(2000); // TODO
 
         // TODO need to disable link discovery on external ports
+
     }
 
     @Deactivate
