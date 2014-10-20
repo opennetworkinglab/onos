@@ -367,7 +367,7 @@ public class DeviceManager
             final NodeId myNodeId = clusterService.getLocalNode().id();
 
             log.info("## got Mastershipevent for dev {}", did);
-            if (myNodeId.equals(event.master())) {
+            if (myNodeId.equals(event.node())) {
                 MastershipTerm term = termService.getMastershipTerm(did);
 
                 if (!myNodeId.equals(term.master())) {

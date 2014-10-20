@@ -11,7 +11,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
 
     //do we worry about explicitly setting slaves/equals? probably not,
     //to keep it simple
-    NodeId master;
+    NodeId node;
 
     /**
      * Type of mastership events.
@@ -20,7 +20,12 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
         /**
          * Signifies that the master for a device has changed.
          */
-        MASTER_CHANGED
+        MASTER_CHANGED,
+
+        /**
+         * Signifies that the list of backup nodes has changed.
+         */
+        BACKUPS_CHANGED
     }
 
     /**
@@ -29,11 +34,11 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      *
      * @param type   device event type
      * @param device event device subject
-     * @param master master ID subject
+     * @param node master ID subject
      */
-    public MastershipEvent(Type type, DeviceId device, NodeId master) {
+    public MastershipEvent(Type type, DeviceId device, NodeId node) {
         super(type, device);
-        this.master = master;
+        this.node = node;
     }
 
     /**
@@ -47,15 +52,15 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      */
     public MastershipEvent(Type type, DeviceId device, NodeId master, long time) {
         super(type, device, time);
-        this.master = master;
+        this.node = master;
     }
 
     /**
-     * Returns the current master's ID as a subject.
+     * Returns the NodeID of the node responsible for triggering the event.
      *
-     * @return master ID subject
+     * @return node ID as a subject
      */
-    public NodeId master() {
-        return master;
+    public NodeId node() {
+        return node;
     }
 }

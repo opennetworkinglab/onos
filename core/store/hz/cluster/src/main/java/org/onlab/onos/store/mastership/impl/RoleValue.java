@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.store.common.RoleInfo;
 
 /**
  * A structure that holds node mastership roles associated with a
@@ -77,7 +78,6 @@ public class RoleValue {
      * @param from the old role
      * @param to the new role
      */
-    // might want to add anyways as default behavior
     public void reassign(NodeId nodeId, MastershipRole from, MastershipRole to) {
         remove(from, nodeId);
         add(to, nodeId);
@@ -91,10 +91,20 @@ public class RoleValue {
      * @param to the new NodeId
      * @param type the role associated with the old NodeId
      */
-    // might want to add anyways as default behavior
     public void replace(NodeId from, NodeId to, MastershipRole type) {
         remove(type, from);
         add(type, to);
+    }
+
+    /**
+     * Summarizes this RoleValue as a RoleInfo. Note that master and/or backups
+     * may be empty, so the values should be checked for safety.
+     *
+     * @return the RoleInfo.
+     */
+    public RoleInfo roleInfo() {
+        return new RoleInfo(
+                get(MastershipRole.MASTER), nodesOfRole(MastershipRole.STANDBY));
     }
 
     @Override

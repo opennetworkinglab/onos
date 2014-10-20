@@ -79,9 +79,9 @@ implements MastershipStore {
         };
 
         roleMap = new SMap(theInstance.getMap("nodeRoles"), this.serializer);
+        roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
         terms = new SMap(theInstance.getMap("terms"), this.serializer);
         clusterSize = theInstance.getAtomicLong("clustersize");
-        roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
 
         log.info("Started");
     }

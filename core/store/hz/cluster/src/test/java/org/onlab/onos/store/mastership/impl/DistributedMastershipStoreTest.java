@@ -218,7 +218,7 @@ public class DistributedMastershipStoreTest {
             public void notify(MastershipEvent event) {
                 assertEquals("wrong event:", Type.MASTER_CHANGED, event.type());
                 assertEquals("wrong subject", DID1, event.subject());
-                assertEquals("wrong subject", N1, event.master());
+                assertEquals("wrong subject", N1, event.node());
                 addLatch.countDown();
             }
         };

@@ -86,7 +86,7 @@ public class ReplicaInfoManager implements ReplicaInfoService {
             final List<NodeId> standbyList = Collections.<NodeId>emptyList();
             eventDispatcher.post(new ReplicaInfoEvent(MASTER_CHANGED,
                                 event.subject(),
-                                new ReplicaInfo(event.master(), standbyList)));
+                                new ReplicaInfo(event.node(), standbyList)));
         }
     }
 

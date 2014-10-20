@@ -228,8 +228,8 @@ implements MastershipService, MastershipAdminService {
                 return true;
             }
             //else {
-                //FIXME: break tie for equal-sized clusters,
-                //       maybe by number of connected switches
+                //FIXME: break tie for equal-sized clusters, by number of
+                //       connected switches, then masters, then nodeId hash
             // }
             return false;
         }
