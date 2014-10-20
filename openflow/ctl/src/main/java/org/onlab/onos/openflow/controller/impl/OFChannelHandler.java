@@ -457,9 +457,17 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 // will never be called. We override processOFMessage
             }
 
+
+
             @Override
             void processOFMessage(OFChannelHandler h, OFMessage m)
                     throws IOException, SwitchStateException {
+
+                if (h.sw.isDriverHandshakeComplete()) {
+                    moveToActive(h);
+
+                }
+
                 if (m.getType() == OFType.ECHO_REQUEST) {
                     processOFEchoRequest(h, (OFEchoRequest) m);
                 } else if (m.getType() == OFType.ECHO_REPLY) {
@@ -470,6 +478,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     if (!h.sw.handleRoleError((OFErrorMsg)m)) {
                         h.sw.processDriverHandshakeMessage(m);
                         if (h.sw.isDriverHandshakeComplete()) {
+                            moveToActive(h);
                             h.setState(ACTIVE);
                         }
                     }
@@ -481,13 +490,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     } else {
                         h.sw.processDriverHandshakeMessage(m);
                         if (h.sw.isDriverHandshakeComplete()) {
-                            boolean success = h.sw.connectSwitch();
-
-                            if (!success) {
-                                disconnectDuplicate(h);
-                                return;
-                            }
-                            h.setState(ACTIVE);
+                            moveToActive(h);
                         }
                     }
                 }
@@ -498,6 +501,16 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     throws IOException, SwitchStateException {
                 h.pendingPortStatusMsg.add(m);
             }
+
+            private void moveToActive(OFChannelHandler h) {
+                boolean success = h.sw.connectSwitch();
+                h.setState(ACTIVE);
+                if (!success) {
+                    disconnectDuplicate(h);
+                    return;
+                }
+            }
+
         },
 
 
