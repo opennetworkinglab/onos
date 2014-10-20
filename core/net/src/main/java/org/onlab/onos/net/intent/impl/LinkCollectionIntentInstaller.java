@@ -4,7 +4,6 @@ import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
-import java.util.concurrent.Future;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -16,14 +15,12 @@ import org.onlab.onos.CoreService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.IntentExtensionService;
@@ -47,9 +44,6 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
     protected IntentExtensionService intentManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowRuleService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
     private ApplicationId appId;
@@ -65,18 +59,8 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
         intentManager.unregisterInstaller(PathIntent.class);
     }
 
-    /**
-     * Apply a list of FlowRules.
-     *
-     * @param rules rules to apply
-     */
-    private Future<CompletedBatchOperation> applyBatch(List<FlowRuleBatchEntry> rules) {
-        FlowRuleBatchOperation batch = new FlowRuleBatchOperation(rules);
-        return flowRuleService.applyBatch(batch);
-    }
-
     @Override
-    public Future<CompletedBatchOperation> install(LinkCollectionIntent intent) {
+    public List<FlowRuleBatchOperation> install(LinkCollectionIntent intent) {
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
@@ -92,11 +76,11 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
                 intent.egressPoint().deviceId(),
                 intent.egressPoint().port()));
 
-        return applyBatch(rules);
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
     @Override
-    public Future<CompletedBatchOperation> uninstall(LinkCollectionIntent intent) {
+    public List<FlowRuleBatchOperation> uninstall(LinkCollectionIntent intent) {
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
@@ -113,7 +97,7 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
                intent.egressPoint().deviceId(),
                intent.egressPoint().port()));
 
-        return applyBatch(rules);
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
     /**

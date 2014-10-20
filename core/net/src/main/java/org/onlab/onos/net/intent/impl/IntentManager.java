@@ -34,6 +34,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
+import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.intent.InstallableIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
@@ -89,6 +91,9 @@ public class IntentManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
 
     @Activate
     public void activate() {
@@ -283,7 +288,7 @@ public class IntentManager
         // Indicate that the intent is entering the installing phase.
         store.setState(intent, INSTALLING);
 
-        List<Future<CompletedBatchOperation>> installFutures = Lists.newArrayList();
+        List<FlowRuleBatchOperation> installWork = Lists.newArrayList();
         try {
             List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
             if (installables != null) {
@@ -291,13 +296,13 @@ public class IntentManager
                     registerSubclassInstallerIfNeeded(installable);
                     trackerService.addTrackedResources(intent.id(),
                                                        installable.requiredLinks());
-                    Future<CompletedBatchOperation> future = getInstaller(installable).install(installable);
-                    installFutures.add(future);
+                    List<FlowRuleBatchOperation> batch = getInstaller(installable).install(installable);
+                    installWork.addAll(batch);
                 }
             }
             // FIXME we have to wait for the installable intents
             //eventDispatcher.post(store.setState(intent, INSTALLED));
-            monitorExecutor.execute(new IntentInstallMonitor(intent, installFutures, INSTALLED));
+            monitorExecutor.execute(new IntentInstallMonitor(intent, installWork, INSTALLED));
         } catch (Exception e) {
             log.warn("Unable to install intent {} due to: {}", intent.id(), e);
             uninstallIntent(intent, RECOMPILING);
@@ -369,16 +374,16 @@ public class IntentManager
      * @param intent intent to be uninstalled
      */
     private void uninstallIntent(Intent intent, IntentState nextState) {
-        List<Future<CompletedBatchOperation>> uninstallFutures = Lists.newArrayList();
+        List<FlowRuleBatchOperation> uninstallWork = Lists.newArrayList();
         try {
             List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
             if (installables != null) {
                 for (InstallableIntent installable : installables) {
-                    Future<CompletedBatchOperation> future = getInstaller(installable).uninstall(installable);
-                    uninstallFutures.add(future);
+                    List<FlowRuleBatchOperation> batches = getInstaller(installable).uninstall(installable);
+                    uninstallWork.addAll(batches);
                 }
             }
-            monitorExecutor.execute(new IntentInstallMonitor(intent, uninstallFutures, nextState));
+            monitorExecutor.execute(new IntentInstallMonitor(intent, uninstallWork, nextState));
         } catch (IntentException e) {
             log.warn("Unable to uninstall intent {} due to: {}", intent.id(), e);
         }
@@ -495,17 +500,27 @@ public class IntentManager
     private class IntentInstallMonitor implements Runnable {
 
         private final Intent intent;
+        private final List<FlowRuleBatchOperation> work;
         private final List<Future<CompletedBatchOperation>> futures;
         private final IntentState nextState;
 
         public IntentInstallMonitor(Intent intent,
-                List<Future<CompletedBatchOperation>> futures, IntentState nextState) {
+                List<FlowRuleBatchOperation> work,
+                IntentState nextState) {
             this.intent = intent;
-            this.futures = futures;
+            this.work = work;
+            // TODO how many Futures can be outstanding? one?
+            this.futures = Lists.newLinkedList();
             this.nextState = nextState;
+
+            // TODO need to kick off the first batch sometime, why not now?
+            futures.add(applyNextBatch());
         }
 
-        private void updateIntent(Intent intent) {
+        /**
+         * Update the intent store with the next status for this intent.
+         */
+        private void updateIntent() {
             if (nextState == RECOMPILING) {
                 executor.execute(new IntentTask(nextState, intent));
             } else if (nextState == INSTALLED || nextState == WITHDRAWN) {
@@ -515,22 +530,55 @@ public class IntentManager
             }
         }
 
-        @Override
-        public void run() {
+        /**
+         * Apply a list of FlowRules.
+         *
+         * @param rules rules to apply
+         */
+        private Future<CompletedBatchOperation> applyNextBatch() {
+            if (work.isEmpty()) {
+                return null;
+            }
+            FlowRuleBatchOperation batch = work.remove(0);
+            return flowRuleService.applyBatch(batch);
+        }
+
+        /**
+         * Iterate through the pending futures, and remove them when they have completed.
+         */
+        private void processFutures() {
+            List<Future<CompletedBatchOperation>> newFutures = Lists.newArrayList();
             for (Iterator<Future<CompletedBatchOperation>> i = futures.iterator(); i.hasNext();) {
                 Future<CompletedBatchOperation> future = i.next();
                 try {
                     // TODO: we may want to get the future here and go back to the future.
                     CompletedBatchOperation completed = future.get(100, TimeUnit.NANOSECONDS);
-                    // TODO check if future succeeded and if not report fail items
+                    if (completed.isSuccess()) {
+                        Future<CompletedBatchOperation> newFuture = applyNextBatch();
+                        if (newFuture != null) {
+                            // we'll add this later so that we don't get a ConcurrentModException
+                            newFutures.add(newFuture);
+                        }
+                    } else {
+                        // TODO check if future succeeded and if not report fail items
+                        log.warn("Failed items: {}", completed.failedItems());
+                        // TODO revert....
+                        //uninstallIntent(intent, RECOMPILING);
+                    }
                     i.remove();
-
                 } catch (TimeoutException | InterruptedException | ExecutionException te) {
                     log.debug("Intallations of intent {} is still pending", intent);
                 }
             }
+            futures.addAll(newFutures);
+        }
+
+        @Override
+        public void run() {
+            processFutures();
             if (futures.isEmpty()) {
-                updateIntent(intent);
+                // woohoo! we are done!
+                updateIntent();
             } else {
                 // resubmit ourselves if we are not done yet
                 monitorExecutor.submit(this);

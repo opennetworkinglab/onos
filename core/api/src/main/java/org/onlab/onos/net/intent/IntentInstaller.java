@@ -1,8 +1,8 @@
 package org.onlab.onos.net.intent;
 
-import java.util.concurrent.Future;
+import java.util.List;
 
-import org.onlab.onos.net.flow.CompletedBatchOperation;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 
 /**
  * Abstraction of entity capable of installing intents to the environment.
@@ -14,7 +14,7 @@ public interface IntentInstaller<T extends InstallableIntent> {
      * @param intent intent to be installed
      * @throws IntentException if issues are encountered while installing the intent
      */
-    Future<CompletedBatchOperation> install(T intent);
+    List<FlowRuleBatchOperation> install(T intent);
 
     /**
      * Uninstalls the specified intent from the environment.
@@ -22,5 +22,5 @@ public interface IntentInstaller<T extends InstallableIntent> {
      * @param intent intent to be uninstalled
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
-    Future<CompletedBatchOperation> uninstall(T intent);
+    List<FlowRuleBatchOperation> uninstall(T intent);
 }
