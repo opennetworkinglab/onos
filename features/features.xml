@@ -15,6 +15,7 @@
         <bundle>mvn:io.netty/netty-transport/4.0.23.Final</bundle>
         <bundle>mvn:io.netty/netty-handler/4.0.23.Final</bundle>
         <bundle>mvn:io.netty/netty-codec/4.0.23.Final</bundle>
+        <bundle>io.netty/netty-transport-native-epoll/4.0.23.Final</bundle>
         <bundle>mvn:commons-pool/commons-pool/1.6</bundle>
 
         <bundle>mvn:com.hazelcast/hazelcast/3.3</bundle>
