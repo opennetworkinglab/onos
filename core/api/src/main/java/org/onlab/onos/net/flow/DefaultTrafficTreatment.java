@@ -1,5 +1,9 @@
 package org.onlab.onos.net.flow;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions;
@@ -7,11 +11,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Default traffic treatment implementation.
@@ -60,6 +61,13 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("instructions", instructions)
+                .toString();
     }
 
     /**
