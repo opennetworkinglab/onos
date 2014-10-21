@@ -8,6 +8,7 @@ import java.util.HashMap;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -107,7 +108,8 @@ public final class KryoNamespaces {
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,
                     Instructions.DropInstruction.class,
-                    Instructions.OutputInstruction.class
+                    Instructions.OutputInstruction.class,
+                    RoleInfo.class
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())
