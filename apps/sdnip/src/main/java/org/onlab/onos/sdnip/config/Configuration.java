@@ -3,7 +3,7 @@ package org.onlab.onos.sdnip.config;
 import java.util.Collections;
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Contains the configuration data for SDN-IP that has been read from a

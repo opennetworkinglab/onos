@@ -13,7 +13,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
@@ -22,6 +21,8 @@ import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Simple configuration module to read in supplementary network configuration

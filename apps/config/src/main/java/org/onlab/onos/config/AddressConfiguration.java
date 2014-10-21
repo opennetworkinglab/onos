@@ -3,7 +3,7 @@ package org.onlab.onos.config;
 import java.util.Collections;
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Object to store address configuration read from a JSON file.

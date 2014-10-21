@@ -6,10 +6,11 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * SDN-IP Config Reader provides IConfigInfoService

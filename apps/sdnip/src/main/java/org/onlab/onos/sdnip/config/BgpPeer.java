@@ -2,12 +2,12 @@ package org.onlab.onos.sdnip.config;
 
 import java.util.Objects;
 
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.packet.IpAddress;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 /**

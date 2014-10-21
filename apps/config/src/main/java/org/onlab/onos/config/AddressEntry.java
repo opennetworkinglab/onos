@@ -2,7 +2,7 @@ package org.onlab.onos.config;
 
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a set of addresses bound to a port.
