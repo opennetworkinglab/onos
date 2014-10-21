@@ -7,6 +7,8 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 
+import java.math.BigInteger;
+
 /**
  * Removes host-to-host connectivity intent.
  */
@@ -22,12 +24,11 @@ public class IntentRemoveCommand extends AbstractShellCommand {
     protected void execute() {
         IntentService service = get(IntentService.class);
 
-        int radix = id.startsWith("0x") ? 16 : 10;
-        if (radix == 16) {
+        if (id.startsWith("0x")) {
             id = id.replaceFirst("0x", "");
         }
 
-        IntentId intentId = IntentId.valueOf(Long.parseLong(id, radix));
+        IntentId intentId = IntentId.valueOf(new BigInteger(id, 16).longValue());
         Intent intent = service.getIntent(intentId);
         if (intent != null) {
             service.withdraw(intent);

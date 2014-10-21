@@ -257,8 +257,8 @@ public class IntentManager
      * @return result of compilation
      */
     private List<Intent> compileIntent(Intent intent) {
-        if (intent instanceof Intent) {
-            return ImmutableList.of((Intent) intent);
+        if (intent.isInstallable()) {
+            return ImmutableList.of(intent);
         }
 
         List<Intent> installable = new ArrayList<>();
