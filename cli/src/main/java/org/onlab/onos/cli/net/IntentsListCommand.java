@@ -19,6 +19,7 @@ import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.intent.SinglePointToMultiPointIntent;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,19 +40,23 @@ public class IntentsListCommand extends AbstractShellCommand {
                 print("id=%s, state=%s, type=%s, appId=%s",
                       intent.id(), state, intent.getClass().getSimpleName(),
                       intent.appId().name());
-                printDetails(intent);
+                printDetails(service, intent);
             }
         }
     }
 
-    private void printDetails(Intent intent) {
+    private void printDetails(IntentService service, Intent intent) {
         if (intent.resources() != null && !intent.resources().isEmpty()) {
             print("    resources=%s", intent.resources());
         }
         if (intent instanceof ConnectivityIntent) {
             ConnectivityIntent ci = (ConnectivityIntent) intent;
-            print("    selector=%s", ci.selector().criteria());
-            print("    treatment=%s", ci.treatment().instructions());
+            if (!ci.selector().criteria().isEmpty()) {
+                print("    selector=%s", ci.selector().criteria());
+            }
+            if (!ci.treatment().instructions().isEmpty()) {
+                print("    treatment=%s", ci.treatment().instructions());
+            }
         }
 
         if (intent instanceof PointToPointIntent) {
@@ -71,6 +76,11 @@ public class IntentsListCommand extends AbstractShellCommand {
             print("    links=%s", li.links());
             print("    egress=%s", li.egressPoint());
         }
+
+        List<Intent> installable = service.getInstallableIntents(intent.id());
+        if (installable != null && !installable.isEmpty()) {
+            print("    installable=%s", installable);
+        }
     }
 
     // Produces JSON array of the specified intents.
@@ -86,9 +96,13 @@ public class IntentsListCommand extends AbstractShellCommand {
     private JsonNode json(IntentService service, ObjectMapper mapper, Intent intent) {
         ObjectNode result = mapper.createObjectNode()
                 .put("id", intent.id().toString())
-                .put("state", service.getIntentState(intent.id()).toString())
                 .put("type", intent.getClass().getSimpleName())
                 .put("appId", intent.appId().name());
+
+        IntentState state = service.getIntentState(intent.id());
+        if (state != null) {
+            result.put("state", state.toString());
+        }
 
         if (intent.resources() != null && !intent.resources().isEmpty()) {
             ArrayNode rnode = mapper.createArrayNode();
@@ -136,6 +150,10 @@ public class IntentsListCommand extends AbstractShellCommand {
             result.set("links", LinksListCommand.json(li.links()));
         }
 
+        List<Intent> installable = service.getInstallableIntents(intent.id());
+        if (installable != null && !installable.isEmpty()) {
+            result.set("installable", json(service, installable));
+        }
         return result;
     }
 

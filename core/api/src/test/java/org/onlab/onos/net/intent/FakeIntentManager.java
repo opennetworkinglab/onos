@@ -196,6 +196,11 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public List<Intent> getInstallableIntents(IntentId intentId) {
+        return installables.get(intentId);
+    }
+
+    @Override
     public void addListener(IntentListener listener) {
         listeners.add(listener);
     }
