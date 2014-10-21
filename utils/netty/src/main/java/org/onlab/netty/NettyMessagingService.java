@@ -42,7 +42,6 @@ public class NettyMessagingService implements MessagingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final int port;
     private final Endpoint localEp;
     private final ConcurrentMap<String, MessageHandler> handlers = new ConcurrentHashMap<>();
     private final Cache<Long, AsyncResponse> responseFutures = CacheBuilder.newBuilder()
@@ -77,6 +76,10 @@ public class NettyMessagingService implements MessagingService {
         clientChannelClass = NioSocketChannel.class;
     }
 
+    public NettyMessagingService(String ip, int port) {
+        localEp = new Endpoint(ip, port);
+    }
+
     public NettyMessagingService() {
         // TODO: Default port should be configurable.
         this(8080);
@@ -84,7 +87,6 @@ public class NettyMessagingService implements MessagingService {
 
     // FIXME: Constructor should not throw exceptions.
     public NettyMessagingService(int port) {
-        this.port = port;
         try {
             localEp = new Endpoint(java.net.InetAddress.getLocalHost().getHostName(), port);
         } catch (UnknownHostException e) {
@@ -104,6 +106,14 @@ public class NettyMessagingService implements MessagingService {
         channels.close();
         serverGroup.shutdownGracefully();
         clientGroup.shutdownGracefully();
+    }
+
+    /**
+     * Returns the local endpoint for this instance.
+     * @return local end point.
+     */
+    public Endpoint localEp() {
+        return localEp;
     }
 
     @Override
@@ -127,7 +137,7 @@ public class NettyMessagingService implements MessagingService {
                 channels.returnObject(ep, channel);
             }
         } catch (Exception e) {
-            throw new IOException(e);
+            throw new IOException("Failed to send message to " + ep.toString(), e);
         }
     }
 
@@ -174,7 +184,7 @@ public class NettyMessagingService implements MessagingService {
             .childOption(ChannelOption.SO_KEEPALIVE, true);
 
         // Bind and start to accept incoming connections.
-        b.bind(port).sync();
+        b.bind(localEp.port()).sync();
     }
 
     private class OnosCommunicationChannelFactory

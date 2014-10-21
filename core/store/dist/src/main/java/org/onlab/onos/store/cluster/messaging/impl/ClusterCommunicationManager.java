@@ -67,7 +67,7 @@ public class ClusterCommunicationManager
     @Activate
     public void activate() {
         ControllerNode localNode = clusterService.getLocalNode();
-        NettyMessagingService netty = new NettyMessagingService(localNode.tcpPort());
+        NettyMessagingService netty = new NettyMessagingService(localNode.ip().toString(), localNode.tcpPort());
         // FIXME: workaround until it becomes a service.
         try {
             netty.activate();
