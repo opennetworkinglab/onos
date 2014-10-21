@@ -25,6 +25,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
+import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
@@ -189,6 +190,11 @@ public class KryoSerializerTest {
     @Test
     public void testHostLocation() {
         testSerialized(new HostLocation(CP1, 1234L));
+    }
+
+    @Test
+    public void testFlowId() {
+        testSerialized(FlowId.valueOf(0x12345678L));
     }
 
     @Test

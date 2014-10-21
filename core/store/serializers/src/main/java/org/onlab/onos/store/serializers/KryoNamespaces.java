@@ -26,6 +26,7 @@ import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.flow.DefaultFlowRule;
+import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.link.DefaultLinkDescription;
@@ -86,7 +87,8 @@ public final class KryoNamespaces {
                     HostId.class,
                     HostDescription.class,
                     DefaultHostDescription.class,
-                    DefaultFlowRule.class
+                    DefaultFlowRule.class,
+                    FlowId.class
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())
