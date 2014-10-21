@@ -48,13 +48,10 @@ import org.slf4j.LoggerFactory;
 public class Controller {
 
     protected static final Logger log = LoggerFactory.getLogger(Controller.class);
-    static final String ERROR_DATABASE =
-            "The controller could not communicate with the system database.";
+
     protected static final OFFactory FACTORY13 = OFFactories.getFactory(OFVersion.OF_13);
     protected static final OFFactory FACTORY10 = OFFactories.getFactory(OFVersion.OF_10);
 
-    // The controllerNodeIPsCache maps Controller IDs to their IP address.
-    // It's only used by handleControllerNodeIPsChanged
     protected HashMap<String, String> controllerNodeIPsCache;
 
     private ChannelGroup cg;

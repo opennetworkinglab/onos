@@ -188,6 +188,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
         @Override
         public boolean addConnectedSwitch(Dpid dpid, OpenFlowSwitch sw) {
+
             if (connectedSwitches.get(dpid) != null) {
                 log.error("Trying to add connectedSwitch but found a previous "
                         + "value for dpid: {}", dpid);

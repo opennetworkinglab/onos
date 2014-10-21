@@ -41,6 +41,7 @@ import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFHelloElem;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
+import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
@@ -418,7 +419,14 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 //h.setSwitchRole(RoleState.EQUAL);
 
                 h.sw.startDriverHandshake();
-                h.setState(WAIT_SWITCH_DRIVER_SUB_HANDSHAKE);
+                if (h.sw.isDriverHandshakeComplete()) {
+                    if (!h.sw.connectSwitch()) {
+                        disconnectDuplicate(h);
+                    }
+                    h.setState(ACTIVE);
+                } else {
+                    h.setState(WAIT_SWITCH_DRIVER_SUB_HANDSHAKE);
+                }
 
             }
 
@@ -465,6 +473,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
                 if (h.sw.isDriverHandshakeComplete()) {
                     moveToActive(h);
+                    h.state.processOFMessage(h, m);
+                    return;
 
                 }
 
@@ -479,7 +489,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                         h.sw.processDriverHandshakeMessage(m);
                         if (h.sw.isDriverHandshakeComplete()) {
                             moveToActive(h);
-                            h.setState(ACTIVE);
                         }
                     }
                 } else {
@@ -507,7 +516,6 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 h.setState(ACTIVE);
                 if (!success) {
                     disconnectDuplicate(h);
-                    return;
                 }
             }
 
@@ -581,6 +589,11 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
             @Override
             void processOFPacketIn(OFChannelHandler h, OFPacketIn m) {
+//                OFPacketOut out =
+//                        h.sw.factory().buildPacketOut()
+//                                .setXid(m.getXid())
+//                                .setBufferId(m.getBufferId()).build();
+//                h.sw.sendMsg(out);
                 h.dispatchMessage(m);
             }
 
