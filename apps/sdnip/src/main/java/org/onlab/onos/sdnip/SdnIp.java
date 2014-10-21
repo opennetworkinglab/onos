@@ -12,12 +12,9 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.sdnip.RouteUpdate.Type;
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
 import org.onlab.onos.sdnip.bgp.BgpSessionManager;
 import org.onlab.onos.sdnip.config.SdnIpConfigReader;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
 /**
@@ -59,10 +56,6 @@ public class SdnIp implements SdnIpService {
         bgpSessionManager.startUp(2000); // TODO
 
         // TODO need to disable link discovery on external ports
-
-        router.update(new RouteUpdate(Type.UPDATE, new RouteEntry(
-                IpPrefix.valueOf("172.16.20.0/24"),
-                IpAddress.valueOf("192.168.10.1"))));
     }
 
     @Deactivate
