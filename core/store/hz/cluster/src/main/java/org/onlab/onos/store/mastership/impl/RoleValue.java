@@ -10,6 +10,9 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.net.MastershipRole;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
+
 /**
  * A structure that holds node mastership roles associated with a
  * {@link DeviceId}. This structure needs to be locked through IMap.
@@ -109,14 +112,10 @@ public class RoleValue {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
+        ToStringHelper helper = MoreObjects.toStringHelper(this.getClass());
         for (Map.Entry<MastershipRole, List<NodeId>> el : value.entrySet()) {
-            builder.append(el.getKey().toString()).append(": [");
-            for (NodeId n : el.getValue()) {
-                builder.append(n);
-            }
-            builder.append("]\n");
+            helper.add(el.getKey().toString(), el.getValue());
         }
-        return builder.toString();
+        return helper.toString();
     }
 }

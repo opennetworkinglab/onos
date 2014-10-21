@@ -29,6 +29,8 @@ import org.onlab.onos.store.AbstractStore;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 
+import com.google.common.collect.Lists;
+
 import static org.onlab.onos.mastership.MastershipEvent.Type.*;
 
 /**
@@ -89,7 +91,8 @@ public class SimpleMastershipStore
             }
         }
 
-        return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+        return new MastershipEvent(MASTER_CHANGED, deviceId,
+                new RoleInfo(nodeId, Lists.newLinkedList(backups)));
     }
 
     @Override
@@ -196,7 +199,8 @@ public class SimpleMastershipStore
                     } else {
                         masterMap.put(deviceId, backup);
                         termMap.get(deviceId).incrementAndGet();
-                        return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
+                        return new MastershipEvent(MASTER_CHANGED, deviceId,
+                                new RoleInfo(backup, Lists.newLinkedList(backups)));
                     }
                 case STANDBY:
                 case NONE:
