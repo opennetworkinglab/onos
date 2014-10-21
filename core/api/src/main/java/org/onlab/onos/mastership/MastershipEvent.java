@@ -1,6 +1,7 @@
 package org.onlab.onos.mastership;
 
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.DeviceId;
 
@@ -9,9 +10,8 @@ import org.onlab.onos.net.DeviceId;
  */
 public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceId> {
 
-    //do we worry about explicitly setting slaves/equals? probably not,
-    //to keep it simple
-    NodeId node;
+    //Contains master and standby information.
+    RoleInfo roleInfo;
 
     /**
      * Type of mastership events.
@@ -29,16 +29,16 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
     }
 
     /**
-     * Creates an event of a given type and for the specified device, master,
-     * and the current time.
+     * Creates an event of a given type and for the specified device,
+     * role information, and the current time.
      *
      * @param type   device event type
      * @param device event device subject
-     * @param node master ID subject
+     * @param info mastership role information subject
      */
-    public MastershipEvent(Type type, DeviceId device, NodeId node) {
+    public MastershipEvent(Type type, DeviceId device, RoleInfo info) {
         super(type, device);
-        this.node = node;
+        this.roleInfo = info;
     }
 
     /**
@@ -50,9 +50,9 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * @param master master ID subject
      * @param time   occurrence time
      */
-    public MastershipEvent(Type type, DeviceId device, NodeId master, long time) {
+    public MastershipEvent(Type type, DeviceId device, RoleInfo info, long time) {
         super(type, device, time);
-        this.node = master;
+        this.roleInfo = info;
     }
 
     /**
@@ -63,7 +63,17 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      *
      * @return node ID as a subject
      */
+    //XXX to-be removed - or keep for convenience?
     public NodeId node() {
-        return node;
+        return roleInfo.master();
+    }
+
+    /**
+     * Returns the current role state for the subject.
+     *
+     * @return RoleInfo associated with Device ID subject
+     */
+    public RoleInfo roleInfo() {
+        return roleInfo;
     }
 }

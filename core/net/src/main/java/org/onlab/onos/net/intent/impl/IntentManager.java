@@ -153,6 +153,12 @@ public class IntentManager
     }
 
     @Override
+    public List<Intent> getInstallableIntents(IntentId intentId) {
+        checkNotNull(intentId, INTENT_ID_NULL);
+        return store.getInstallableIntents(intentId);
+    }
+
+    @Override
     public void addListener(IntentListener listener) {
         listenerRegistry.addListener(listener);
     }

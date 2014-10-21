@@ -1,5 +1,10 @@
 package org.onlab.onos.fwd;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Dictionary;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,11 +34,6 @@ import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
-
-import java.util.Dictionary;
-import java.util.Set;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive forwarding application.
@@ -206,7 +206,7 @@ public class ReactiveForwarding {
         treat.setOutput(portNumber);
 
         FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                                         builder.build(), treat.build(), PRIORITY, appId, TIMEOUT);
+                                         builder.build(), treat.build(), PRIORITY, appId, TIMEOUT, false);
 
         flowRuleService.applyFlowRules(f);
     }

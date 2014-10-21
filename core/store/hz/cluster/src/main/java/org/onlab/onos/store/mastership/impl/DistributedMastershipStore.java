@@ -136,13 +136,13 @@ implements MastershipStore {
                     rv.reassign(nodeId, STANDBY, NONE);
                     roleMap.put(deviceId, rv);
                     updateTerm(deviceId);
-                    return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+                    return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                 case NONE:
                     rv.add(MASTER, nodeId);
                     rv.reassign(nodeId, STANDBY, NONE);
                     roleMap.put(deviceId, rv);
                     updateTerm(deviceId);
-                    return new MastershipEvent(MASTER_CHANGED, deviceId, nodeId);
+                    return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                 default:
                     log.warn("unknown Mastership Role {}", role);
                     return null;
@@ -306,7 +306,7 @@ implements MastershipStore {
             roleMap.put(deviceId, rv);
             Integer term = terms.get(deviceId);
             terms.put(deviceId, ++term);
-            return new MastershipEvent(MASTER_CHANGED, deviceId, backup);
+            return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
         }
     }
 
@@ -373,7 +373,7 @@ implements MastershipStore {
                 return;
             }
             notifyDelegate(new MastershipEvent(
-                    MASTER_CHANGED, event.getKey(), event.getValue().get(MASTER)));
+                    MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
         }
 
         @Override

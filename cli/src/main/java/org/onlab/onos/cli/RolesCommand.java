@@ -21,7 +21,7 @@ import org.onlab.onos.net.device.DeviceService;
         description = "Lists mastership roles of nodes for each device.")
 public class RolesCommand extends AbstractShellCommand {
 
-    private static final String FMT_HDR = "%s: master=%s, standbys=%s";
+    private static final String FMT_HDR = "%s: master=%s, standbys=[ %s]";
 
     @Override
     protected void execute() {

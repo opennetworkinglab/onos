@@ -3,10 +3,11 @@ package org.onlab.onos.cluster;
 import java.util.List;
 import java.util.Objects;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 /**
- * A container for detailed role information for a device,
+ * An immutable container for role information for a device,
  * within the current cluster. Role attributes include current
  * master and a preference-ordered list of backup nodes.
  */
@@ -52,12 +53,9 @@ public class RoleInfo {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("master:").append(master).append(",");
-        builder.append("backups:");
-        for (NodeId n : backups) {
-            builder.append(" ").append(n);
-        }
-        return builder.toString();
+        return MoreObjects.toStringHelper(this.getClass())
+            .add("master", master)
+            .add("backups", backups)
+            .toString();
     }
 }

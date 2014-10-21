@@ -24,16 +24,18 @@ public class DefaultFlowRule implements FlowRule {
     private final short appId;
 
     private final int timeout;
+    private final boolean permanent;
 
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, long flowId,
-            int timeout) {
+            int timeout, boolean permanent) {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
         this.treatment = treatment;
         this.timeout = timeout;
+        this.permanent = permanent;
         this.created = System.currentTimeMillis();
 
         this.appId = (short) (flowId >>> 48);
@@ -42,7 +44,7 @@ public class DefaultFlowRule implements FlowRule {
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatement, int priority, ApplicationId appId,
-            int timeout) {
+            int timeout, boolean permanent) {
 
         if (priority < FlowRule.MIN_PRIORITY) {
             throw new IllegalArgumentException("Priority cannot be less than " + MIN_PRIORITY);
@@ -54,6 +56,7 @@ public class DefaultFlowRule implements FlowRule {
         this.treatment = treatement;
         this.appId = appId.id();
         this.timeout = timeout;
+        this.permanent = permanent;
         this.created = System.currentTimeMillis();
 
         this.id = FlowId.valueOf((((long) this.appId) << 48) | (this.hash() & 0x0000ffffffffL));
@@ -67,6 +70,7 @@ public class DefaultFlowRule implements FlowRule {
         this.appId = rule.appId();
         this.id = rule.id();
         this.timeout = rule.timeout();
+        this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
 
     }
@@ -155,6 +159,11 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public int timeout() {
         return timeout;
+    }
+
+    @Override
+    public boolean isPermanent() {
+        return permanent;
     }
 
 }

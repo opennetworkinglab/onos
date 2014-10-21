@@ -1,6 +1,8 @@
 package org.onlab.onos.net.intent;
 
 
+import java.util.List;
+
 /**
  * Service for application submitting or withdrawing their intents.
  */
@@ -66,6 +68,15 @@ public interface IntentService {
      * found
      */
     IntentState getIntentState(IntentId id);
+
+    /**
+     * Returns the list of the installable events associated with the specified
+     * top-level intent.
+     *
+     * @param intentId top-level intent identifier
+     * @return compiled installable intents
+     */
+    List<Intent> getInstallableIntents(IntentId intentId);
 
     /**
      * Adds the specified listener for intent events.
