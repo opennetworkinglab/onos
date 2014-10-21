@@ -27,7 +27,11 @@ import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
+import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.FlowId;
+import org.onlab.onos.net.flow.criteria.Criteria;
+import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.link.DefaultLinkDescription;
@@ -90,7 +94,20 @@ public final class KryoNamespaces {
                     DefaultHostDescription.class,
                     DefaultFlowRule.class,
                     FlowId.class,
-                    DefaultTrafficSelector.class
+                    DefaultTrafficSelector.class,
+                    Criteria.PortCriterion.class,
+                    Criteria.EthCriterion.class,
+                    Criteria.EthTypeCriterion.class,
+                    Criteria.IPCriterion.class,
+                    Criteria.IPProtocolCriterion.class,
+                    Criteria.VlanIdCriterion.class,
+                    Criteria.VlanPcpCriterion.class,
+                    Criteria.TcpPortCriterion.class,
+                    Criterion.class,
+                    Criterion.Type.class,
+                    DefaultTrafficTreatment.class,
+                    Instructions.DropInstruction.class,
+                    Instructions.OutputInstruction.class
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())
