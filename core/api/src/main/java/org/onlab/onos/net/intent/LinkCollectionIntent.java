@@ -78,8 +78,9 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
-                .add("match", selector())
-                .add("action", treatment())
+                .add("appId", appId())
+                .add("selector", selector())
+                .add("treatment", treatment())
                 .add("links", links())
                 .add("egress", egressPoint())
                 .toString();

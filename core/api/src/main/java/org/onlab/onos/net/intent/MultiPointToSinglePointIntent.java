@@ -81,10 +81,11 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
-                .add("match", selector())
-                .add("action", treatment())
-                .add("ingressPoints", ingressPoints())
-                .add("egressPoint", egressPoint())
+                .add("appId", appId())
+                .add("selector", selector())
+                .add("treatment", treatment())
+                .add("ingress", ingressPoints())
+                .add("egress", egressPoint())
                 .toString();
     }
 }

@@ -66,6 +66,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
+                .add("appId", appId())
                 .add("selector", selector())
                 .add("treatment", treatment())
                 .add("one", one)

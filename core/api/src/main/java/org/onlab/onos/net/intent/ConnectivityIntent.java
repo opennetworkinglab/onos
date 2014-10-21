@@ -73,7 +73,12 @@ public abstract class ConnectivityIntent extends Intent {
         return treatment;
     }
 
-
+    /**
+     * Produces a collection of network resources from the given links.
+     *
+     * @param links collection of links
+     * @return collection of link resources
+     */
     protected static Collection<NetworkResource> resources(Collection<Link> links) {
         return ImmutableSet.<NetworkResource>copyOf(links);
     }

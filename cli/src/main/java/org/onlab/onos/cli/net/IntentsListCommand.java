@@ -18,7 +18,8 @@ public class IntentsListCommand extends AbstractShellCommand {
         IntentService service = get(IntentService.class);
         for (Intent intent : service.getIntents()) {
             IntentState state = service.getIntentState(intent.id());
-            print("%s %s %s", intent.id(), state, intent);
+            print("id=%s, state=%s, appId=%s, %s",
+                  intent.id(), state, intent.appId().name(), intent);
         }
     }
 
