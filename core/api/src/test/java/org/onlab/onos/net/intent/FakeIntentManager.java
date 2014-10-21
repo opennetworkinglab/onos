@@ -18,11 +18,11 @@ public class FakeIntentManager implements TestableIntentService {
 
     private final Map<IntentId, Intent> intents = new HashMap<>();
     private final Map<IntentId, IntentState> intentStates = new HashMap<>();
-    private final Map<IntentId, List<InstallableIntent>> installables = new HashMap<>();
+    private final Map<IntentId, List<Intent>> installables = new HashMap<>();
     private final Set<IntentListener> listeners = new HashSet<>();
 
     private final Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> compilers = new HashMap<>();
-    private final Map<Class<? extends InstallableIntent>, IntentInstaller<? extends InstallableIntent>> installers
+    private final Map<Class<? extends Intent>, IntentInstaller<? extends Intent>> installers
         = new HashMap<>();
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -54,7 +54,7 @@ public class FakeIntentManager implements TestableIntentService {
             @Override
             public void run() {
                 try {
-                    List<InstallableIntent> installable = getInstallable(intent.id());
+                    List<Intent> installable = getInstallable(intent.id());
                     executeWithdrawingPhase(intent, installable);
                 } catch (IntentException e) {
                     exceptions.add(e);
@@ -73,7 +73,7 @@ public class FakeIntentManager implements TestableIntentService {
         return compiler;
     }
 
-    private <T extends InstallableIntent> IntentInstaller<T> getInstaller(T intent) {
+    private <T extends Intent> IntentInstaller<T> getInstaller(T intent) {
         @SuppressWarnings("unchecked")
         IntentInstaller<T> installer = (IntentInstaller<T>) installers.get(intent
                 .getClass());
@@ -87,9 +87,9 @@ public class FakeIntentManager implements TestableIntentService {
         setState(intent, IntentState.COMPILING);
         try {
             // For the fake, we compile using a single level pass
-            List<InstallableIntent> installable = new ArrayList<>();
+            List<Intent> installable = new ArrayList<>();
             for (Intent compiled : getCompiler(intent).compile(intent)) {
-                installable.add((InstallableIntent) compiled);
+                installable.add((Intent) compiled);
             }
             executeInstallingPhase(intent, installable);
 
@@ -100,10 +100,10 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     private void executeInstallingPhase(Intent intent,
-                                        List<InstallableIntent> installable) {
+                                        List<Intent> installable) {
         setState(intent, IntentState.INSTALLING);
         try {
-            for (InstallableIntent ii : installable) {
+            for (Intent ii : installable) {
                 registerSubclassInstallerIfNeeded(ii);
                 getInstaller(ii).install(ii);
             }
@@ -118,10 +118,10 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     private void executeWithdrawingPhase(Intent intent,
-                                         List<InstallableIntent> installable) {
+                                         List<Intent> installable) {
         setState(intent, IntentState.WITHDRAWING);
         try {
-            for (InstallableIntent ii : installable) {
+            for (Intent ii : installable) {
                 getInstaller(ii).uninstall(ii);
             }
             removeInstallable(intent.id());
@@ -139,7 +139,7 @@ public class FakeIntentManager implements TestableIntentService {
         intentStates.put(intent.id(), state);
     }
 
-    private void putInstallable(IntentId id, List<InstallableIntent> installable) {
+    private void putInstallable(IntentId id, List<Intent> installable) {
         installables.put(id, installable);
     }
 
@@ -147,8 +147,8 @@ public class FakeIntentManager implements TestableIntentService {
         installables.remove(id);
     }
 
-    private List<InstallableIntent> getInstallable(IntentId id) {
-        List<InstallableIntent> installable = installables.get(id);
+    private List<Intent> getInstallable(IntentId id) {
+        List<Intent> installable = installables.get(id);
         if (installable != null) {
             return installable;
         } else {
@@ -228,19 +228,19 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public <T extends InstallableIntent> void registerInstaller(Class<T> cls,
+    public <T extends Intent> void registerInstaller(Class<T> cls,
             IntentInstaller<T> installer) {
         installers.put(cls, installer);
     }
 
     @Override
-    public <T extends InstallableIntent> void unregisterInstaller(Class<T> cls) {
+    public <T extends Intent> void unregisterInstaller(Class<T> cls) {
         installers.remove(cls);
     }
 
     @Override
-    public Map<Class<? extends InstallableIntent>,
-    IntentInstaller<? extends InstallableIntent>> getInstallers() {
+    public Map<Class<? extends Intent>,
+    IntentInstaller<? extends Intent>> getInstallers() {
         return Collections.unmodifiableMap(installers);
     }
 
@@ -261,13 +261,13 @@ public class FakeIntentManager implements TestableIntentService {
         }
     }
 
-    private void registerSubclassInstallerIfNeeded(InstallableIntent intent) {
+    private void registerSubclassInstallerIfNeeded(Intent intent) {
         if (!installers.containsKey(intent.getClass())) {
             Class<?> cls = intent.getClass();
             while (cls != Object.class) {
-                // As long as we're within the InstallableIntent class
+                // As long as we're within the Intent class
                 // descendants
-                if (InstallableIntent.class.isAssignableFrom(cls)) {
+                if (Intent.class.isAssignableFrom(cls)) {
                     IntentInstaller<?> installer = installers.get(cls);
                     if (installer != null) {
                         installers.put(intent.getClass(), installer);

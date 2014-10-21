@@ -1,21 +1,19 @@
 package org.onlab.onos.net.intent;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Set;
 
 /**
  * Abstraction of a connectivity intent that is implemented by a set of path
  * segments.
  */
-public final class LinkCollectionIntent extends ConnectivityIntent implements InstallableIntent {
+public final class LinkCollectionIntent extends ConnectivityIntent {
 
     private final Set<Link> links;
 
@@ -25,32 +23,31 @@ public final class LinkCollectionIntent extends ConnectivityIntent implements In
      * Creates a new point-to-point intent with the supplied ingress/egress
      * ports and using the specified explicit path.
      *
-     * @param id          intent identifier
+     * @param appId       application identifier
      * @param selector    traffic match
      * @param treatment   action
      * @param links       traversed links
      * @param egressPoint egress point
      * @throws NullPointerException {@code path} is null
      */
-    public LinkCollectionIntent(IntentId id,
+    public LinkCollectionIntent(ApplicationId appId,
                                 TrafficSelector selector,
                                 TrafficTreatment treatment,
                                 Set<Link> links,
                                 ConnectPoint egressPoint) {
-        super(id, selector, treatment);
+        super(id(LinkCollectionIntent.class, selector, treatment, links, egressPoint),
+              appId, resources(links), selector, treatment);
         this.links = links;
         this.egressPoint = egressPoint;
     }
 
+    /**
+     * Constructor for serializer.
+     */
     protected LinkCollectionIntent() {
         super();
         this.links = null;
         this.egressPoint = null;
-    }
-
-    @Override
-    public Collection<Link> requiredLinks() {
-        return links;
     }
 
     /**
@@ -73,26 +70,8 @@ public final class LinkCollectionIntent extends ConnectivityIntent implements In
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        LinkCollectionIntent that = (LinkCollectionIntent) o;
-
-        return Objects.equals(this.links, that.links) &&
-                Objects.equals(this.egressPoint, that.egressPoint);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), links, egressPoint);
+    public boolean isInstallable() {
+        return true;
     }
 
     @Override

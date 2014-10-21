@@ -2,11 +2,11 @@ package org.onlab.onos.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
-import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -23,7 +23,7 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
     /**
      * Creates a new single-to-multi point connectivity intent.
      *
-     * @param id           intent identifier
+     * @param appId        application identifier
      * @param selector     traffic selector
      * @param treatment    treatment
      * @param ingressPoint port on which traffic will ingress
@@ -33,16 +33,15 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      * @throws IllegalArgumentException if the size of {@code egressPoints} is
      *                                  not more than 1
      */
-    public SinglePointToMultiPointIntent(IntentId id, TrafficSelector selector,
+    public SinglePointToMultiPointIntent(ApplicationId appId,
+                                         TrafficSelector selector,
                                          TrafficTreatment treatment,
                                          ConnectPoint ingressPoint,
                                          Set<ConnectPoint> egressPoints) {
-        super(id, selector, treatment);
-
+        super(id(SinglePointToMultiPointIntent.class, selector, treatment,
+                 ingressPoint, egressPoints), appId, null, selector, treatment);
         checkNotNull(egressPoints);
-        checkArgument(!egressPoints.isEmpty(),
-                      "there should be at least one egress port");
-
+        checkArgument(!egressPoints.isEmpty(), "Egress point set cannot be empty");
         this.ingressPoint = checkNotNull(ingressPoint);
         this.egressPoints = Sets.newHashSet(egressPoints);
     }
@@ -72,28 +71,6 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      */
     public Set<ConnectPoint> egressPoints() {
         return egressPoints;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        SinglePointToMultiPointIntent that = (SinglePointToMultiPointIntent) o;
-        return Objects.equals(this.ingressPoint, that.ingressPoint)
-                && Objects.equals(this.egressPoints, that.egressPoints);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), ingressPoint, egressPoints);
     }
 
     @Override

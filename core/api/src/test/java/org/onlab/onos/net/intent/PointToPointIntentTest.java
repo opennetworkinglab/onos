@@ -12,7 +12,7 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
     @Test
     public void basics() {
         PointToPointIntent intent = createOne();
-        assertEquals("incorrect id", IID, intent.id());
+        assertEquals("incorrect id", APPID, intent.appId());
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect ingress", P1, intent.ingressPoint());
         assertEquals("incorrect egress", P2, intent.egressPoint());
@@ -20,11 +20,11 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
 
     @Override
     protected PointToPointIntent createOne() {
-        return new PointToPointIntent(IID, MATCH, NOP, P1, P2);
+        return new PointToPointIntent(APPID, MATCH, NOP, P1, P2);
     }
 
     @Override
     protected PointToPointIntent createAnother() {
-        return new PointToPointIntent(IID, MATCH, NOP, P2, P1);
+        return new PointToPointIntent(APPID, MATCH, NOP, P2, P1);
     }
 }

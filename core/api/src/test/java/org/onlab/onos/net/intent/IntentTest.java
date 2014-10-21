@@ -1,14 +1,12 @@
 package org.onlab.onos.net.intent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * Base facilities to test various intent tests.
@@ -33,11 +31,7 @@ public abstract class IntentTest {
 
         assertTrue("should be equal", one.equals(like));
         assertEquals("incorrect hashCode", one.hashCode(), like.hashCode());
-
         assertFalse("should not be equal", one.equals(another));
-
-        assertFalse("should not be equal", one.equals(null));
-        assertFalse("should not be equal", one.equals("foo"));
     }
 
     @Test

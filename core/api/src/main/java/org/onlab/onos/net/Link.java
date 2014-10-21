@@ -3,7 +3,7 @@ package org.onlab.onos.net;
 /**
  * Abstraction of a network infrastructure link.
  */
-public interface Link extends Annotated, Provided {
+public interface Link extends Annotated, Provided, NetworkResource {
 
     /**
      * Coarse representation of the link type.

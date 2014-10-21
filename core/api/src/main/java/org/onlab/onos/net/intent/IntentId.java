@@ -7,43 +7,37 @@ package org.onlab.onos.net.intent;
  */
 public final class IntentId implements BatchOperationTarget {
 
-    private static final int DEC = 10;
-    private static final int HEX = 16;
-
-    private final long id;
+    private final long fingerprint;
 
     /**
      * Creates an intent identifier from the specified string representation.
      *
-     * @param value long value
+     * @param fingerprint long value
      * @return intent identifier
      */
-    public static IntentId valueOf(String value) {
-        long id = value.toLowerCase().startsWith("0x")
-                ? Long.parseLong(value.substring(2), HEX)
-                : Long.parseLong(value, DEC);
-        return new IntentId(id);
+    static IntentId valueOf(long fingerprint) {
+        return new IntentId(fingerprint);
     }
 
     /**
      * Constructor for serializer.
      */
-    protected IntentId() {
-        this.id = 0;
+    IntentId() {
+        this.fingerprint = 0;
     }
 
     /**
      * Constructs the ID corresponding to a given long value.
      *
-     * @param id the underlying value of this ID
+     * @param fingerprint the underlying value of this ID
      */
-    public IntentId(long id) {
-        this.id = id;
+    IntentId(long fingerprint) {
+        this.fingerprint = fingerprint;
     }
 
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return (int) (fingerprint ^ (fingerprint >>> 32));
     }
 
     @Override
@@ -51,18 +45,16 @@ public final class IntentId implements BatchOperationTarget {
         if (obj == this) {
             return true;
         }
-
         if (!(obj instanceof IntentId)) {
             return false;
         }
-
         IntentId that = (IntentId) obj;
-        return this.id == that.id;
+        return this.fingerprint == that.fingerprint;
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(id);
+        return "0x" + Long.toHexString(fingerprint);
     }
 
 }

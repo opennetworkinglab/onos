@@ -44,14 +44,8 @@ public class IntentIdTest {
 
     @Test
     public void valueOf() {
-        IntentId id = new IntentId(12345);
-        assertEquals("incorrect valueOf", id, IntentId.valueOf("12345"));
-    }
-
-    @Test
-    public void valueOfHex() {
         IntentId id = new IntentId(0xdeadbeefL);
-        assertEquals("incorrect valueOf", id, IntentId.valueOf(id.toString()));
+        assertEquals("incorrect valueOf", id, IntentId.valueOf(0xdeadbeefL));
     }
 
 }
