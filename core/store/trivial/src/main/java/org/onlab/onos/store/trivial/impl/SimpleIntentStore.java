@@ -1,6 +1,15 @@
 package org.onlab.onos.store.trivial.impl;
 
-import com.google.common.collect.ImmutableSet;
+import static org.onlab.onos.net.intent.IntentState.FAILED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onlab.onos.net.intent.IntentState.SUBMITTED;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -15,12 +24,7 @@ import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.onlab.onos.net.intent.IntentState.*;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableSet;
 
 @Component(immediate = true)
 @Service
@@ -29,9 +33,10 @@ public class SimpleIntentStore
         implements IntentStore {
 
     private final Logger log = getLogger(getClass());
-    private final Map<IntentId, Intent> intents = new HashMap<>();
-    private final Map<IntentId, IntentState> states = new HashMap<>();
-    private final Map<IntentId, List<InstallableIntent>> installable = new HashMap<>();
+    private final Map<IntentId, Intent> intents = new ConcurrentHashMap<>();
+    private final Map<IntentId, IntentState> states = new ConcurrentHashMap<>();
+    private final Map<IntentId, List<InstallableIntent>> installable =
+            new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {

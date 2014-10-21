@@ -251,7 +251,7 @@ public class IntentManager
             executeInstallingPhase(intent);
 
         } catch (Exception e) {
-            log.warn("Unable to compile intent {} due to: {}", intent.id(), e);
+            log.warn("Unable to compile intent {} due to:", intent.id(), e);
 
             // If compilation failed, mark the intent as failed.
             store.setState(intent, FAILED);
@@ -304,7 +304,7 @@ public class IntentManager
             //eventDispatcher.post(store.setState(intent, INSTALLED));
             monitorExecutor.execute(new IntentInstallMonitor(intent, installWork, INSTALLED));
         } catch (Exception e) {
-            log.warn("Unable to install intent {} due to: {}", intent.id(), e);
+            log.warn("Unable to install intent {} due to:", intent.id(), e);
             uninstallIntent(intent, RECOMPILING);
 
             // If compilation failed, kick off the recompiling phase.
@@ -342,7 +342,7 @@ public class IntentManager
                 executeInstallingPhase(intent);
             }
         } catch (Exception e) {
-            log.warn("Unable to recompile intent {} due to: {}", intent.id(), e);
+            log.warn("Unable to recompile intent {} due to:", intent.id(), e);
 
             // If compilation failed, mark the intent as failed.
             eventDispatcher.post(store.setState(intent, FAILED));
@@ -385,7 +385,7 @@ public class IntentManager
             }
             monitorExecutor.execute(new IntentInstallMonitor(intent, uninstallWork, nextState));
         } catch (IntentException e) {
-            log.warn("Unable to uninstall intent {} due to: {}", intent.id(), e);
+            log.warn("Unable to uninstall intent {} due to:", intent.id(), e);
         }
     }
 
