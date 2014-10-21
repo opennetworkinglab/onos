@@ -171,6 +171,7 @@ public final class KryoNamespace implements KryoFactory {
         Kryo kryo = getKryo();
         try {
             kryo.writeClassAndObject(out, obj);
+            out.flush();
             return out.toBytes();
         } finally {
             putKryo(kryo);
@@ -188,6 +189,7 @@ public final class KryoNamespace implements KryoFactory {
         Kryo kryo = getKryo();
         try {
             kryo.writeClassAndObject(out, obj);
+            out.flush();
         } finally {
             putKryo(kryo);
         }
