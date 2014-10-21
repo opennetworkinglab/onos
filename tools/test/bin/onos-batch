@@ -1,0 +1,17 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Executes selected set of ONOS commands using the batch mode.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCI}
+
+commands="${2:-summary,intents,flows,hosts}"
+
+aux=/tmp/onos-batch.$$
+trap "rm -f $aux" EXIT
+
+echo "$commands" | tr ',' '\n' > $aux
+onos $node -b <$aux
