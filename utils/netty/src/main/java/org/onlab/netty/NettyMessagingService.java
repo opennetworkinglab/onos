@@ -16,11 +16,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -44,10 +40,9 @@ public class NettyMessagingService implements MessagingService {
 
     private final int port;
     private final Endpoint localEp;
-    private EventLoopGroup bossGroup;
+    private final EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workerGroup;
-    private Class<? extends Channel> clientChannelClass;
-    private Class<? extends ServerChannel> serverChannelClass;
+    private Class<? extends Channel> channelClass;
     private final ConcurrentMap<String, MessageHandler> handlers = new ConcurrentHashMap<>();
     private final Cache<Long, AsyncResponse> responseFutures = CacheBuilder.newBuilder()
             .maximumSize(100000)
@@ -60,17 +55,8 @@ public class NettyMessagingService implements MessagingService {
 
     // TODO: make this configurable.
     private void initEventLoopGroup() {
-        try {
-            bossGroup = new EpollEventLoopGroup();
-            workerGroup = new EpollEventLoopGroup();
-            clientChannelClass = EpollSocketChannel.class;
-            serverChannelClass = EpollServerSocketChannel.class;
-        } catch (Throwable th) {
-            bossGroup = new NioEventLoopGroup();
-            workerGroup = new NioEventLoopGroup();
-            serverChannelClass = NioServerSocketChannel.class;
-            clientChannelClass = NioSocketChannel.class;
-        }
+        workerGroup = new NioEventLoopGroup();
+        channelClass = NioSocketChannel.class;
     }
 
     public NettyMessagingService() {
@@ -164,7 +150,7 @@ public class NettyMessagingService implements MessagingService {
         // TODO: Need JVM options to configure PooledByteBufAllocator.
         b.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         b.group(bossGroup, workerGroup)
-            .channel(serverChannelClass)
+            .channel(NioServerSocketChannel.class)
             .childHandler(new OnosCommunicationChannelInitializer())
             .option(ChannelOption.SO_BACKLOG, 128)
             .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -195,7 +181,7 @@ public class NettyMessagingService implements MessagingService {
             bootstrap.group(workerGroup);
             // TODO: Make this faster:
             // http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#37.0
-            bootstrap.channel(clientChannelClass);
+            bootstrap.channel(channelClass);
             bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
             bootstrap.handler(new OnosCommunicationChannelInitializer());
             // Start the client.
