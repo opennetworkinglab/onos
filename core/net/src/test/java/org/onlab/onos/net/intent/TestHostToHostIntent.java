@@ -47,14 +47,13 @@ public class TestHostToHostIntent {
      * to different Hosts. These should compare not equal.
      */
     @Test
-    public void testLinksDifferentEquals() {
-
+    public void testSameEquals2() {
         HostId one = hid("00:00:00:00:00:01/-1");
         HostId two = hid("00:00:00:00:00:02/-1");
         HostToHostIntent i1 = makeHostToHost(one, two);
         HostToHostIntent i2 = makeHostToHost(two, one);
 
-        assertThat(i1, is(not(equalTo(i2))));
+        assertThat(i1, is(equalTo(i2)));
     }
 
     /**
@@ -76,11 +75,26 @@ public class TestHostToHostIntent {
      * objects are different.
      */
     @Test
-    public void testHashCodeDifferent() {
+    public void testHashCodeEquals2() {
         HostId one = hid("00:00:00:00:00:01/-1");
         HostId two = hid("00:00:00:00:00:02/-1");
         HostToHostIntent i1 = makeHostToHost(one, two);
         HostToHostIntent i2 = makeHostToHost(two, one);
+
+        assertThat(i1.hashCode(), is(equalTo(i2.hashCode())));
+    }
+
+    /**
+     * Tests that the hashCode() values for two distinct LinkCollectionIntent
+     * objects are different.
+     */
+    @Test
+    public void testHashCodeDifferent() {
+        HostId one = hid("00:00:00:00:00:01/-1");
+        HostId two = hid("00:00:00:00:00:02/-1");
+        HostId three = hid("00:00:00:00:00:32/-1");
+        HostToHostIntent i1 = makeHostToHost(one, two);
+        HostToHostIntent i2 = makeHostToHost(one, three);
 
         assertThat(i1.hashCode(), is(not(equalTo(i2.hashCode()))));
     }
