@@ -27,7 +27,7 @@ public class DefaultFlowEntry extends DefaultFlowRule
             TrafficTreatment treatment, int priority, FlowEntryState state,
             long life, long packets, long bytes, long flowId,
             int timeout) {
-        super(deviceId, selector, treatment, priority, flowId, timeout);
+        super(deviceId, selector, treatment, priority, flowId, timeout, false);
         this.state = state;
         this.life = life;
         this.packets = packets;

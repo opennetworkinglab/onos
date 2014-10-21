@@ -78,7 +78,7 @@ public class FlowEntryBuilder {
         if (addedRule) {
             FlowRule rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), buildTreatment(), stat.getPriority(),
-                    stat.getCookie().getValue(), stat.getIdleTimeout());
+                    stat.getCookie().getValue(), stat.getIdleTimeout(), false);
             return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
                     stat.getDurationSec(), stat.getPacketCount().getValue(),
                     stat.getByteCount().getValue());
@@ -86,7 +86,7 @@ public class FlowEntryBuilder {
         } else {
             FlowRule rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                     buildSelector(), null, removed.getPriority(),
-                   removed.getCookie().getValue(), removed.getIdleTimeout());
+                   removed.getCookie().getValue(), removed.getIdleTimeout(), false);
             return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
                     removed.getPacketCount().getValue(), removed.getByteCount().getValue());
         }

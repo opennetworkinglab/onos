@@ -327,6 +327,10 @@ public class FlowRuleManager
             if (storedRule == null) {
                 return false;
             }
+            if (storedRule.isPermanent()) {
+                return true;
+            }
+
             final long timeout = storedRule.timeout() * 1000;
             final long currentTime = System.currentTimeMillis();
             if (storedRule.packets() != swRule.packets()) {

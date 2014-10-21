@@ -1,7 +1,11 @@
 package org.onlab.onos.net.flow.impl;
 
 import static java.util.Collections.EMPTY_LIST;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
@@ -115,7 +119,7 @@ public class FlowRuleManagerTest {
     private FlowRule flowRule(int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
-        return new DefaultFlowRule(DID, ts, tr, 10, appId, TIMEOUT);
+        return new DefaultFlowRule(DID, ts, tr, 10, appId, TIMEOUT, false);
     }
 
 
