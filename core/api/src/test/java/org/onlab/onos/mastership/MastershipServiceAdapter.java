@@ -1,10 +1,10 @@
 package org.onlab.onos.mastership;
 
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -49,7 +49,7 @@ public class MastershipServiceAdapter implements MastershipService {
     }
 
     @Override
-    public List<NodeId> getNodesFor(DeviceId deviceId) {
+    public RoleInfo getNodesFor(DeviceId deviceId) {
         return null;
     }
 }

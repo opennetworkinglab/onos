@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.common.RoleInfo;
 
 /**
  * A structure that holds node mastership roles associated with a

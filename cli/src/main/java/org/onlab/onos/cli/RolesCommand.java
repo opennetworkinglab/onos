@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -20,8 +21,7 @@ import org.onlab.onos.net.device.DeviceService;
         description = "Lists mastership roles of nodes for each device.")
 public class RolesCommand extends AbstractShellCommand {
 
-    private static final String FMT_HDR = "%s: master=%s\nstandbys: %s nodes";
-    private static final String FMT_SB = "\t%s";
+    private static final String FMT_HDR = "%s: master=%s, standbys=%s";
 
     @Override
     protected void execute() {
@@ -53,22 +53,14 @@ public class RolesCommand extends AbstractShellCommand {
      * @param master the current master
      */
     protected void printRoles(MastershipService service, DeviceId deviceId) {
-        List<NodeId> nodes = service.getNodesFor(deviceId);
-        NodeId first = null;
-        NodeId master = null;
+        RoleInfo nodes = service.getNodesFor(deviceId);
+        StringBuilder builder = new StringBuilder();
+        for (NodeId nid : nodes.backups()) {
+            builder.append(nid).append(" ");
+        }
 
-        if (!nodes.isEmpty()) {
-            first = nodes.get(0);
-        }
-        if (first != null &&
-                first.equals(service.getMasterFor(deviceId))) {
-            master = nodes.get(0);
-            nodes.remove(master);
-        }
-        print(FMT_HDR, deviceId, master == null ? "NONE" : master, nodes.size());
-
-        for (NodeId nid : nodes) {
-            print(FMT_SB, nid);
-        }
+        print(FMT_HDR, deviceId,
+                nodes.master() == null ? "NONE" : nodes.master(),
+                builder.toString());
     }
 }

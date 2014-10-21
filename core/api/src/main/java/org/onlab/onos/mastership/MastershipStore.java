@@ -1,9 +1,9 @@
 package org.onlab.onos.mastership;
 
-import java.util.List;
 import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.store.Store;
@@ -42,13 +42,12 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
     NodeId getMaster(DeviceId deviceId);
 
     /**
-     * Returns the controllers connected to a device, in mastership-
-     * preference order.
+     * Returns the master and backup nodes for a device.
      *
      * @param deviceId the device identifier
-     * @return an ordered list of controller IDs
+     * @return a RoleInfo containing controller IDs
      */
-    List<NodeId> getNodes(DeviceId deviceId);
+    RoleInfo getNodes(DeviceId deviceId);
 
     /**
      * Returns the devices that a controller instance is master of.

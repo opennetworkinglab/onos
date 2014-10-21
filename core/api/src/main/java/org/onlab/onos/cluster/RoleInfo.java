@@ -1,11 +1,9 @@
-package org.onlab.onos.store.common;
+package org.onlab.onos.cluster;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-
-import org.onlab.onos.cluster.NodeId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

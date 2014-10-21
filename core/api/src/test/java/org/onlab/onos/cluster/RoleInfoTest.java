@@ -1,9 +1,8 @@
-package org.onlab.onos.store.common;
+package org.onlab.onos.cluster;
 
 import java.util.List;
 
 import org.junit.Test;
-import org.onlab.onos.cluster.NodeId;
 
 import com.google.common.collect.Lists;
 
@@ -29,7 +28,6 @@ public class RoleInfoTest {
     @Test
     public void basics() {
         assertEquals("wrong master", new NodeId("n1"), RI1.master());
-        System.out.println(RI1.toString());
         assertEquals("wrong Backups", RI1.backups(), Lists.newArrayList(N2, N3));
 
         assertNotEquals("equals() broken", RI1, RI2);

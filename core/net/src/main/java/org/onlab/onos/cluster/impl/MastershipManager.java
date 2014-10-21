@@ -3,7 +3,6 @@ package org.onlab.onos.cluster.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,6 +17,7 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.mastership.MastershipAdminService;
@@ -128,7 +128,7 @@ implements MastershipService, MastershipAdminService {
     }
 
     @Override
-    public List<NodeId> getNodesFor(DeviceId deviceId) {
+    public RoleInfo getNodesFor(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getNodes(deviceId);
     }

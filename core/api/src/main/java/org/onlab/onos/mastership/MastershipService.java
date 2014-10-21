@@ -1,9 +1,9 @@
 package org.onlab.onos.mastership;
 
-import java.util.List;
 import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 
@@ -57,7 +57,7 @@ public interface MastershipService {
      * @param deviceId the identifier of the device
      * @return a list of controller IDs
      */
-    List<NodeId> getNodesFor(DeviceId deviceId);
+    RoleInfo getNodesFor(DeviceId deviceId);
 
     /**
      * Returns the devices for which a controller is master.

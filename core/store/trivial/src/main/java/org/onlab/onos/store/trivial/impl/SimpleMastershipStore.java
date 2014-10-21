@@ -18,6 +18,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipStore;
 import org.onlab.onos.mastership.MastershipStoreDelegate;
@@ -97,15 +98,11 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public List<NodeId> getNodes(DeviceId deviceId) {
+    public RoleInfo getNodes(DeviceId deviceId) {
         List<NodeId> nodes = new ArrayList<>();
-
         nodes.addAll(backups);
-        if (!nodes.contains(masterMap.get(deviceId))) {
-            nodes.add(masterMap.get(deviceId));
-        }
 
-        return Collections.unmodifiableList(nodes);
+        return new RoleInfo(masterMap.get(deviceId), nodes);
     }
 
     @Override

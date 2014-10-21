@@ -2,9 +2,6 @@ package org.onlab.onos.store.mastership.impl;
 
 import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +13,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipStore;
 import org.onlab.onos.mastership.MastershipStoreDelegate;
@@ -161,20 +159,11 @@ implements MastershipStore {
 
 
     @Override
-    public List<NodeId> getNodes(DeviceId deviceId) {
-        List<NodeId> nodes = new LinkedList<>();
-
-        //add current master to head - if there is one.
+    public RoleInfo getNodes(DeviceId deviceId) {
         roleMap.lock(deviceId);
         try {
             RoleValue rv = getRoleValue(deviceId);
-            NodeId master = rv.get(MASTER);
-            if (master != null) {
-                nodes.add(master);
-            }
-            //We ignore NONE nodes.
-            nodes.addAll(rv.nodesOfRole(STANDBY));
-            return Collections.unmodifiableList(nodes);
+            return rv.roleInfo();
         } finally {
             roleMap.unlock(deviceId);
         }

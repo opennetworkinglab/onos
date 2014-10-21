@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipListener;
 import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.mastership.MastershipTermService;
@@ -481,8 +482,8 @@ public class LLDPLinkProviderTest {
         }
 
         @Override
-        public List<NodeId> getNodesFor(DeviceId deviceId) {
-            return Collections.emptyList();
+        public RoleInfo getNodesFor(DeviceId deviceId) {
+            return new RoleInfo(new NodeId("foo"), Collections.<NodeId>emptyList());
         }
     }
 

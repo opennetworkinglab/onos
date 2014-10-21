@@ -56,7 +56,10 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
     }
 
     /**
-     * Returns the NodeID of the node responsible for triggering the event.
+     * Returns the NodeID of the node associated with the event.
+     * For MASTER_CHANGED this is the newly elected master, and for
+     * BACKUPS_CHANGED, this is the node that was newly added, removed, or
+     * whose position was changed in the list.
      *
      * @return node ID as a subject
      */
