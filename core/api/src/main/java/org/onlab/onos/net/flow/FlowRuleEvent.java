@@ -24,7 +24,18 @@ public class FlowRuleEvent extends AbstractEvent<FlowRuleEvent.Type, FlowRule> {
         /**
          * Signifies that a rule has been updated.
          */
-        RULE_UPDATED
+        RULE_UPDATED,
+
+        // internal event between Manager <-> Store
+
+        /*
+         * Signifies that a request to add flow rule has been added to the store.
+         */
+        RULE_ADD_REQUESTED,
+        /*
+         * Signifies that a request to remove flow rule has been added to the store.
+         */
+        RULE_REMOVE_REQUESTED,
     }
 
     /**

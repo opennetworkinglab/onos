@@ -3,6 +3,7 @@ package org.onlab.onos.store.serializers;
 import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
+import static java.util.Arrays.asList;
 
 import java.nio.ByteBuffer;
 
@@ -11,6 +12,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
@@ -195,6 +197,12 @@ public class KryoSerializerTest {
     @Test
     public void testFlowId() {
         testSerialized(FlowId.valueOf(0x12345678L));
+    }
+
+    @Test
+    public void testRoleInfo() {
+        testSerialized(new RoleInfo(new NodeId("master"),
+                            asList(new NodeId("stby1"), new NodeId("stby2"))));
     }
 
     @Test

@@ -1,8 +1,9 @@
 package org.onlab.onos.cluster;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * A container for detailed role information for a device,
@@ -15,7 +16,7 @@ public class RoleInfo {
 
     public RoleInfo(NodeId master, List<NodeId> backups) {
         this.master = master;
-        this.backups = Collections.unmodifiableList(backups);
+        this.backups = ImmutableList.copyOf(backups);
     }
 
     public NodeId master() {

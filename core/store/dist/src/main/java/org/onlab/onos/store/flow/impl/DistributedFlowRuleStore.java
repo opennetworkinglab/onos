@@ -2,6 +2,7 @@ package org.onlab.onos.store.flow.impl;
 
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.onos.store.flow.impl.FlowStoreMessageSubjects.*;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -30,6 +31,7 @@ import org.onlab.onos.net.flow.StoredFlowEntry;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
 import org.onlab.onos.store.flow.ReplicaInfo;
 import org.onlab.onos.store.flow.ReplicaInfoService;
@@ -80,10 +82,44 @@ public class DistributedFlowRuleStore
     };
 
     // TODO: make this configurable
-    private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 1000;
+    private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
     @Activate
     public void activate() {
+        clusterCommunicator.addSubscriber(STORE_FLOW_RULE, new ClusterMessageHandler() {
+
+            @Override
+            public void handle(ClusterMessage message) {
+                FlowRule rule = SERIALIZER.decode(message.payload());
+                log.info("received add request for {}", rule);
+                storeFlowEntryInternal(rule);
+                // FIXME what to respond.
+                try {
+                    // FIXME: #respond() not working. responded message is
+                    // handled by this sender node and never goes back.
+                    message.respond(SERIALIZER.encode("ACK"));
+                } catch (IOException e) {
+                    log.error("Failed to respond back", e);
+                }
+            }
+        });
+
+        clusterCommunicator.addSubscriber(DELETE_FLOW_RULE, new ClusterMessageHandler() {
+
+            @Override
+            public void handle(ClusterMessage message) {
+                FlowRule rule = SERIALIZER.decode(message.payload());
+                log.info("received delete request for {}", rule);
+                deleteFlowRuleInternal(rule);
+                // FIXME what to respond.
+                try {
+                    message.respond(SERIALIZER.encode("ACK"));
+                } catch (IOException e) {
+                    log.error("Failed to respond back", e);
+                }
+
+            }
+        });
         log.info("Started");
     }
 
@@ -131,12 +167,13 @@ public class DistributedFlowRuleStore
     }
 
     @Override
-    public void storeFlowRule(FlowRule rule) {
+    public boolean storeFlowRule(FlowRule rule) {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-            storeFlowEntryInternal(rule);
-            return;
+            return storeFlowEntryInternal(rule);
         }
+
+        log.warn("Not my flow forwarding to {}", replicaInfo.master().orNull());
 
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
@@ -150,26 +187,29 @@ public class DistributedFlowRuleStore
             // FIXME: throw a FlowStoreException
             throw new RuntimeException(e);
         }
+        return false;
     }
 
-    private synchronized void storeFlowEntryInternal(FlowRule flowRule) {
+    private synchronized boolean storeFlowEntryInternal(FlowRule flowRule) {
         StoredFlowEntry flowEntry = new DefaultFlowEntry(flowRule);
         DeviceId deviceId = flowRule.deviceId();
         // write to local copy.
         if (!flowEntries.containsEntry(deviceId, flowEntry)) {
             flowEntries.put(deviceId, flowEntry);
             flowEntriesById.put(flowRule.appId(), flowEntry);
+            notifyDelegate(new FlowRuleEvent(Type.RULE_ADD_REQUESTED, flowRule));
+            return true;
         }
         // write to backup.
         // TODO: write to a hazelcast map.
+        return false;
     }
 
     @Override
-    public synchronized void deleteFlowRule(FlowRule rule) {
+    public synchronized boolean deleteFlowRule(FlowRule rule) {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-            deleteFlowRuleInternal(rule);
-            return;
+            return deleteFlowRuleInternal(rule);
         }
 
         ClusterMessage message = new ClusterMessage(
@@ -184,15 +224,21 @@ public class DistributedFlowRuleStore
             // FIXME: throw a FlowStoreException
             throw new RuntimeException(e);
         }
+        return false;
     }
 
-    private synchronized void deleteFlowRuleInternal(FlowRule flowRule) {
+    private synchronized boolean deleteFlowRuleInternal(FlowRule flowRule) {
         StoredFlowEntry entry = getFlowEntryInternal(flowRule);
         if (entry == null) {
-            return;
+            return false;
         }
         entry.setState(FlowEntryState.PENDING_REMOVE);
+
         // TODO: also update backup.
+
+        notifyDelegate(new FlowRuleEvent(Type.RULE_REMOVE_REQUESTED, flowRule));
+
+        return true;
     }
 
     @Override

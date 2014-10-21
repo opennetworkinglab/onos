@@ -44,16 +44,18 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
      * Stores a new flow rule without generating events.
      *
      * @param rule the flow rule to add
+     * @return true if the rule should be handled locally
      */
-    void storeFlowRule(FlowRule rule);
+    boolean storeFlowRule(FlowRule rule);
 
     /**
      * Marks a flow rule for deletion. Actual deletion will occur
      * when the provider indicates that the flow has been removed.
      *
      * @param rule the flow rule to delete
+     * @return true if the rule should be handled locally
      */
-    void deleteFlowRule(FlowRule rule);
+    boolean deleteFlowRule(FlowRule rule);
 
     /**
      * Stores a new flow rule, or updates an existing entry.
