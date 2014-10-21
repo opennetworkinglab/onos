@@ -36,6 +36,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <netty4.version>4.0.23.Final</netty4.version>
     </properties>
 
     <dependencyManagement>
@@ -87,11 +88,6 @@
                 <version>18.0</version>
             </dependency>
 
-             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <version>4.0.23.Final</version>
-            </dependency>
 
              <dependency>
                 <groupId>io.netty</groupId>
@@ -290,6 +286,31 @@
               <groupId>commons-pool</groupId>
               <artifactId>commons-pool</artifactId>
               <version>1.6</version>
+            </dependency>
+            <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-common</artifactId>
+              <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-buffer</artifactId>
+              <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-transport</artifactId>
+              <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-handler</artifactId>
+              <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-codec</artifactId>
+              <version>${netty4.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
