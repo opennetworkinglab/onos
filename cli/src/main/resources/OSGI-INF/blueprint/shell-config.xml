@@ -96,12 +96,18 @@
                 <ref component-id="connectPointCompleter"/>
                 <null/>
             </completers>
+            <optional-completers>
+                <entry key="-t" value-ref="ethTypeCompleter"/>
+            </optional-completers>
         </command>
         <command>
             <action class="org.onlab.onos.cli.net.AddMultiPointToSinglePointIntentCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
             </completers>
+            <optional-completers>
+                <entry key="-t" value-ref="ethTypeCompleter"/>
+            </optional-completers>
         </command>
         <command>
             <action class="org.onlab.onos.cli.net.IntentPushTestCommand"/>
@@ -158,5 +164,6 @@
     <bean id="flowRuleStatusCompleter" class="org.onlab.onos.cli.net.FlowRuleStatusCompleter"/>
     <bean id="connectPointCompleter" class="org.onlab.onos.cli.net.ConnectPointCompleter"/>
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
+    <bean id="ethTypeCompleter" class="org.onlab.onos.cli.net.EthTypeCompleter"/>
 
 </blueprint>

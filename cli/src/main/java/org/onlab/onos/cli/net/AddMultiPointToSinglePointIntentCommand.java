@@ -2,18 +2,15 @@ package org.onlab.onos.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.packet.Ethernet;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +23,7 @@ import static org.onlab.onos.net.PortNumber.portNumber;
  */
 @Command(scope = "onos", name = "add-multi-to-single-intent",
          description = "Installs point-to-point connectivity intent")
-public class AddMultiPointToSinglePointIntentCommand extends AbstractShellCommand {
+public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentCommand {
 
     @Argument(index = 0, name = "ingressDevices",
               description = "Ingress Device/Port Description",
@@ -55,9 +52,7 @@ public class AddMultiPointToSinglePointIntentCommand extends AbstractShellComman
             ingressPoints.add(ingress);
         }
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .build();
+        TrafficSelector selector = buildTrafficSelector();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         Intent intent = new MultiPointToSinglePointIntent(appId(), selector, treatment,
