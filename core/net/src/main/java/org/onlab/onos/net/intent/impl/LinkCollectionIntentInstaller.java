@@ -117,7 +117,7 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
         TrafficTreatment treatment = builder().setOutput(outPort).build();
 
         FlowRule rule = new DefaultFlowRule(deviceId,
-                selector, treatment, 123, appId, 600);
+                selector, treatment, 123, appId, 0, true);
 
         return new FlowRuleBatchEntry(operation, rule);
     }

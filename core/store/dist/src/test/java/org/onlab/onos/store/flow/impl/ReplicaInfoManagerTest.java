@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.DefaultEventSinkRegistry;
 import org.onlab.onos.event.Event;
@@ -87,7 +89,8 @@ public class ReplicaInfoManagerTest {
         service.addListener(new MasterNodeCheck(latch, DID1, NID1));
 
         // fake MastershipEvent
-        eventDispatcher.post(new MastershipEvent(Type.MASTER_CHANGED, DID1, NID1));
+        eventDispatcher.post(new MastershipEvent(Type.MASTER_CHANGED, DID1,
+                new RoleInfo(NID1, new LinkedList<NodeId>())));
 
         assertTrue(latch.await(1, TimeUnit.SECONDS));
     }

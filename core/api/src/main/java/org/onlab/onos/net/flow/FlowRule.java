@@ -59,8 +59,16 @@ public interface FlowRule extends BatchOperationTarget {
 
     /**
      * Returns the timeout for this flow requested by an application.
+     *
      * @return integer value of the timeout
      */
     int timeout();
+
+    /**
+     * Returns whether the flow is permanent i.e. does not time out.
+     *
+     * @return true if the flow is permanent, otherwise false
+     */
+    boolean isPermanent();
 
 }
