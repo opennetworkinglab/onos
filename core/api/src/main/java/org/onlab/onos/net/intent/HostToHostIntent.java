@@ -17,24 +17,31 @@ public final class HostToHostIntent extends ConnectivityIntent {
     private final HostId two;
 
     /**
-     * Creates a new point-to-point intent with the supplied ingress/egress
-     * ports.
+     * Creates a new host-to-host intent with the supplied host pair.
      *
      * @param appId     application identifier
      * @param one       first host
      * @param two       second host
      * @param selector  action
      * @param treatment ingress port
-     * @throws NullPointerException if {@code ingressPort} or {@code egressPort}
-     *                              is null.
+     * @throws NullPointerException if {@code one} or {@code two} is null.
      */
     public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
                             TrafficSelector selector,
                             TrafficTreatment treatment) {
-        super(id(HostToHostIntent.class, one, two, selector, treatment),
+        super(id(HostToHostIntent.class, min(one, two), max(one, two),
+                 selector, treatment),
               appId, null, selector, treatment);
         this.one = checkNotNull(one);
         this.two = checkNotNull(two);
+    }
+
+    private static HostId min(HostId one, HostId two) {
+        return one.hashCode() < two.hashCode() ? one : two;
+    }
+
+    private static HostId max(HostId one, HostId two) {
+        return one.hashCode() > two.hashCode() ? one : two;
     }
 
     /**
