@@ -18,7 +18,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
@@ -64,18 +63,13 @@ public class NettyMessagingService implements MessagingService {
         // try Epoll first and if that does work, use nio.
         // TODO: make this configurable.
         try {
-            if (Epoll.isAvailable()) {
-                clientGroup = new EpollEventLoopGroup();
-                serverGroup = new EpollEventLoopGroup();
-                serverChannelClass = EpollServerSocketChannel.class;
-                clientChannelClass = EpollSocketChannel.class;
-                return;
-            } else {
-                log.info("Netty epoll support is not available. Proceeding with nio.");
-            }
-
+            clientGroup = new EpollEventLoopGroup();
+            serverGroup = new EpollEventLoopGroup();
+            serverChannelClass = EpollServerSocketChannel.class;
+            clientChannelClass = EpollSocketChannel.class;
+            return;
         } catch (Throwable t) {
-            log.warn("Failed to initialize epoll sockets. Proceeding with nio.", t);
+            log.warn("Failed to initialize native (epoll) transport. Proceeding with nio.", t);
         }
         clientGroup = new NioEventLoopGroup();
         serverGroup = new NioEventLoopGroup();
