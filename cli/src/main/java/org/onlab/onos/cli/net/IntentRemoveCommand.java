@@ -26,9 +26,8 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         if (radix == 16) {
             id = id.replaceFirst("0x", "");
         }
-        IntentId intentId = new IntentId(Long.parseLong(id, radix));
 
-
+        IntentId intentId = IntentId.valueOf(Long.parseLong(id, radix));
         Intent intent = service.getIntent(intentId);
         if (intent != null) {
             service.withdraw(intent);

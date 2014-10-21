@@ -1,16 +1,17 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.List;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
+
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,6 +25,8 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
  */
 public class TestPointToPointIntentCompiler {
 
+    private static final ApplicationId APPID = new TestApplicationId("foo");
+
     private TrafficSelector selector = new IntentTestsMocks.MockSelector();
     private TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
 
@@ -31,14 +34,12 @@ public class TestPointToPointIntentCompiler {
      * Creates a PointToPoint intent based on ingress and egress device Ids.
      *
      * @param ingressIdString string for id of ingress device
-     * @param egressIdString string for id of egress device
+     * @param egressIdString  string for id of egress device
      * @return PointToPointIntent for the two devices
      */
     private PointToPointIntent makeIntent(String ingressIdString,
                                           String egressIdString) {
-        return new PointToPointIntent(new IntentId(12),
-                                      selector,
-                                      treatment,
+        return new PointToPointIntent(APPID, selector, treatment,
                                       connectPoint(ingressIdString, 1),
                                       connectPoint(egressIdString, 1));
     }
@@ -53,9 +54,6 @@ public class TestPointToPointIntentCompiler {
         PointToPointIntentCompiler compiler =
                 new PointToPointIntentCompiler();
         compiler.pathService = new IntentTestsMocks.MockPathService(hops);
-        IdBlockAllocator idBlockAllocator = new DummyIdBlockAllocator();
-        compiler.intentIdGenerator =
-                new IdBlockAllocatorBasedIntentIdGenerator(idBlockAllocator);
         return compiler;
     }
 

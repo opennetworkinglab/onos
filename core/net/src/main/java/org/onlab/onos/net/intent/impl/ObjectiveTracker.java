@@ -11,6 +11,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.topology.TopologyEvent;
@@ -27,8 +28,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onlab.onos.net.LinkKey.linkKey;
+import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -81,16 +82,22 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     }
 
     @Override
-    public void addTrackedResources(IntentId intentId, Collection<Link> resources) {
-        for (Link link : resources) {
-            intentsByLink.put(linkKey(link), intentId);
+    public void addTrackedResources(IntentId intentId,
+                                    Collection<NetworkResource> resources) {
+        for (NetworkResource resource : resources) {
+            if (resource instanceof Link) {
+                intentsByLink.put(linkKey((Link) resource), intentId);
+            }
         }
     }
 
     @Override
-    public void removeTrackedResources(IntentId intentId, Collection<Link> resources) {
-        for (Link link : resources) {
-            intentsByLink.remove(linkKey(link), intentId);
+    public void removeTrackedResources(IntentId intentId,
+                                       Collection<NetworkResource> resources) {
+        for (NetworkResource resource : resources) {
+            if (resource instanceof Link) {
+                intentsByLink.remove(linkKey((Link) resource), intentId);
+            }
         }
     }
 

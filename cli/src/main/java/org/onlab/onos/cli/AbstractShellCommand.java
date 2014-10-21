@@ -2,6 +2,8 @@ package org.onlab.onos.cli;
 
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 
@@ -24,6 +26,15 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      */
     public static <T> T get(Class<T> serviceClass) {
         return DefaultServiceDirectory.getService(serviceClass);
+    }
+
+    /**
+     * Returns application ID for the CLI.
+     *
+     * @return command-line application identifier
+     */
+    protected ApplicationId appId() {
+        return get(CoreService.class).registerApplication("org.onlab.onos.cli");
     }
 
     /**

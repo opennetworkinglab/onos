@@ -27,6 +27,7 @@ public class CoreManager implements CoreService {
     private static Version version = Version.version("1.0.0-SNAPSHOT");
 
     private final Map<Short, DefaultApplicationId> appIds = new ConcurrentHashMap<>();
+    private final Map<String, DefaultApplicationId> appIdsByName = new ConcurrentHashMap<>();
 
     // TODO: work in progress
 
@@ -50,9 +51,13 @@ public class CoreManager implements CoreService {
 
     @Override
     public ApplicationId registerApplication(String name) {
-        short id = (short) ID_DISPENSER.getAndIncrement();
-        DefaultApplicationId appId = new DefaultApplicationId(id, name);
-        appIds.put(id, appId);
+        DefaultApplicationId appId = appIdsByName.get(name);
+        if (appId == null) {
+            short id = (short) ID_DISPENSER.getAndIncrement();
+            appId = new DefaultApplicationId(id, name);
+            appIds.put(id, appId);
+            appIdsByName.put(name, appId);
+        }
         return appId;
     }
 

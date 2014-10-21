@@ -1,5 +1,41 @@
 package org.onlab.onos.sdnip;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.googlecode.concurrenttrees.common.KeyValuePair;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import org.apache.commons.lang3.tuple.Pair;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Host;
+import org.onlab.onos.net.flow.DefaultTrafficSelector;
+import org.onlab.onos.net.flow.DefaultTrafficTreatment;
+import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
+import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onlab.onos.net.flow.criteria.Criterion.Type;
+import org.onlab.onos.net.host.HostEvent;
+import org.onlab.onos.net.host.HostListener;
+import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.sdnip.config.BgpPeer;
+import org.onlab.onos.sdnip.config.Interface;
+import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,47 +51,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
-import org.onlab.onos.net.flow.criteria.Criterion;
-import org.onlab.onos.net.flow.criteria.Criterion.Type;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.sdnip.config.BgpPeer;
-import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.googlecode.concurrenttrees.common.KeyValuePair;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
-
 /**
  * This class processes BGP route update, translates each update into a intent
  * and submits the intent.
- *
+ * <p/>
  * TODO: Make it thread-safe.
  */
 public class Router implements RouteListener {
@@ -82,8 +81,7 @@ public class Router implements RouteListener {
     private ExecutorService bgpUpdatesExecutor;
     private ExecutorService bgpIntentsSynchronizerExecutor;
 
-    // TODO temporary
-    private int intentId = Integer.MAX_VALUE / 2;
+    private final ApplicationId appId;
 
     //
     // State to deal with SDN-IP Leader election and pushing Intents
@@ -99,14 +97,15 @@ public class Router implements RouteListener {
     /**
      * Class constructor.
      *
-     * @param intentService the intent service
-     * @param hostService the host service
+     * @param intentService     the intent service
+     * @param hostService       the host service
      * @param configInfoService the configuration service
-     * @param interfaceService the interface service
+     * @param interfaceService  the interface service
      */
-    public Router(IntentService intentService, HostService hostService,
-            SdnIpConfigService configInfoService, InterfaceService interfaceService) {
-
+    public Router(ApplicationId appId, IntentService intentService,
+                  HostService hostService, SdnIpConfigService configInfoService,
+                  InterfaceService interfaceService) {
+        this.appId = appId;
         this.intentService = intentService;
         this.hostService = hostService;
         this.configInfoService = configInfoService;
@@ -123,7 +122,7 @@ public class Router implements RouteListener {
                 new ThreadFactoryBuilder().setNameFormat("bgp-updates-%d").build());
         bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
-                .setNameFormat("bgp-intents-synchronizer-%d").build());
+                        .setNameFormat("bgp-intents-synchronizer-%d").build());
 
         this.hostService.addListener(new InternalHostListener());
     }
@@ -198,7 +197,7 @@ public class Router implements RouteListener {
                     intentsSynchronizerSemaphore.drainPermits();
                 } catch (InterruptedException e) {
                     log.debug("Interrupted while waiting to become " +
-                              "Intent Synchronization leader");
+                                      "Intent Synchronization leader");
                     interrupted = true;
                     break;
                 }
@@ -221,15 +220,15 @@ public class Router implements RouteListener {
                 try {
                     RouteUpdate update = routeUpdates.take();
                     switch (update.type()) {
-                    case UPDATE:
-                        processRouteAdd(update.routeEntry());
-                        break;
-                    case DELETE:
-                        processRouteDelete(update.routeEntry());
-                        break;
-                    default:
-                        log.error("Unknown update Type: {}", update.type());
-                        break;
+                        case UPDATE:
+                            processRouteAdd(update.routeEntry());
+                            break;
+                        case DELETE:
+                            processRouteDelete(update.routeEntry());
+                            break;
+                        default:
+                            log.error("Unknown update Type: {}", update.type());
+                            break;
                     }
                 } catch (InterruptedException e) {
                     log.debug("Interrupted while taking from updates queue", e);
@@ -257,7 +256,7 @@ public class Router implements RouteListener {
             log.debug("Syncing SDN-IP Route Intents...");
 
             Map<IpPrefix, MultiPointToSinglePointIntent> fetchedIntents =
-                new HashMap<>();
+                    new HashMap<>();
 
             //
             // Fetch all intents, and classify the Multi-Point-to-Point Intents
@@ -272,7 +271,7 @@ public class Router implements RouteListener {
                     continue;
                 }
                 MultiPointToSinglePointIntent mp2pIntent =
-                    (MultiPointToSinglePointIntent) intent;
+                        (MultiPointToSinglePointIntent) intent;
                 /*Match match = mp2pIntent.getMatch();
                 if (!(match instanceof PacketMatch)) {
                     continue;
@@ -309,18 +308,18 @@ public class Router implements RouteListener {
             //    Intent.
             //
             Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
-                storeInMemoryIntents = new LinkedList<>();
+                    storeInMemoryIntents = new LinkedList<>();
             Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
-                addIntents = new LinkedList<>();
+                    addIntents = new LinkedList<>();
             Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
-                deleteIntents = new LinkedList<>();
+                    deleteIntents = new LinkedList<>();
             for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry :
-                     pushedRouteIntents.entrySet()) {
+                    pushedRouteIntents.entrySet()) {
                 IpPrefix prefix = entry.getKey();
                 MultiPointToSinglePointIntent inMemoryIntent =
-                    entry.getValue();
+                        entry.getValue();
                 MultiPointToSinglePointIntent fetchedIntent =
-                    fetchedIntents.get(prefix);
+                        fetchedIntents.get(prefix);
 
                 if (fetchedIntent == null) {
                     //
@@ -354,7 +353,7 @@ public class Router implements RouteListener {
             // Any remaining FETCHED Intents have to be deleted/withdrawn
             //
             for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry :
-                     fetchedIntents.entrySet()) {
+                    fetchedIntents.entrySet()) {
                 IpPrefix prefix = entry.getKey();
                 MultiPointToSinglePointIntent fetchedIntent = entry.getValue();
                 deleteIntents.add(Pair.of(prefix, fetchedIntent));
@@ -368,17 +367,17 @@ public class Router implements RouteListener {
             // 3. Add intents: check if the leader before each operation
             //
             for (Pair<IpPrefix, MultiPointToSinglePointIntent> pair :
-                     storeInMemoryIntents) {
+                    storeInMemoryIntents) {
                 IpPrefix prefix = pair.getLeft();
                 MultiPointToSinglePointIntent intent = pair.getRight();
                 log.debug("Intent synchronization: updating in-memory " +
-                          "Intent for prefix: {}", prefix);
+                                  "Intent for prefix: {}", prefix);
                 pushedRouteIntents.put(prefix, intent);
             }
             //
             isActivatedLeader = true;           // Allow push of Intents
             for (Pair<IpPrefix, MultiPointToSinglePointIntent> pair :
-                     deleteIntents) {
+                    deleteIntents) {
                 IpPrefix prefix = pair.getLeft();
                 MultiPointToSinglePointIntent intent = pair.getRight();
                 if (!isElectedLeader) {
@@ -386,12 +385,12 @@ public class Router implements RouteListener {
                     return;
                 }
                 log.debug("Intent synchronization: deleting Intent for " +
-                          "prefix: {}", prefix);
+                                  "prefix: {}", prefix);
                 intentService.withdraw(intent);
             }
             //
             for (Pair<IpPrefix, MultiPointToSinglePointIntent> pair :
-                     addIntents) {
+                    addIntents) {
                 IpPrefix prefix = pair.getLeft();
                 MultiPointToSinglePointIntent intent = pair.getRight();
                 if (!isElectedLeader) {
@@ -399,7 +398,7 @@ public class Router implements RouteListener {
                     return;
                 }
                 log.debug("Intent synchronization: adding Intent for " +
-                          "prefix: {}", prefix);
+                                  "prefix: {}", prefix);
                 intentService.submit(intent);
             }
             if (!isElectedLeader) {
@@ -419,8 +418,8 @@ public class Router implements RouteListener {
      * false
      */
     private boolean compareMultiPointToSinglePointIntents(
-                                MultiPointToSinglePointIntent intent1,
-                                MultiPointToSinglePointIntent intent2) {
+            MultiPointToSinglePointIntent intent1,
+            MultiPointToSinglePointIntent intent2) {
         /*Match match1 = intent1.getMatch();
         Match match2 = intent2.getMatch();
         Action action1 = intent1.getAction();
@@ -457,8 +456,8 @@ public class Router implements RouteListener {
             IpPrefix prefix = routeEntry.prefix();
             IpAddress nextHop = null;
             RouteEntry foundRouteEntry =
-                bgpRoutes.put(RouteEntry.createBinaryString(prefix),
-                              routeEntry);
+                    bgpRoutes.put(RouteEntry.createBinaryString(prefix),
+                                  routeEntry);
             if (foundRouteEntry != null) {
                 nextHop = foundRouteEntry.nextHop();
             }
@@ -500,7 +499,7 @@ public class Router implements RouteListener {
 
         // See if we know the MAC address of the next hop
         //MacAddress nextHopMacAddress =
-            //proxyArp.getMacAddress(routeEntry.getNextHop());
+        //proxyArp.getMacAddress(routeEntry.getNextHop());
         MacAddress nextHopMacAddress = null;
         Set<Host> hosts = hostService.getHostsByIp(
                 routeEntry.nextHop().toPrefix());
@@ -526,8 +525,8 @@ public class Router implements RouteListener {
      * Adds a route intent given a prefix and a next hop IP address. This
      * method will find the egress interface for the intent.
      *
-     * @param prefix IP prefix of the route to add
-     * @param nextHopIpAddress IP address of the next hop
+     * @param prefix            IP prefix of the route to add
+     * @param nextHopIpAddress  IP address of the next hop
      * @param nextHopMacAddress MAC address of the next hop
      */
     private void addRouteIntentToNextHop(IpPrefix prefix,
@@ -540,14 +539,14 @@ public class Router implements RouteListener {
             // Route to a peer
             log.debug("Route to peer {}", nextHopIpAddress);
             BgpPeer peer =
-                configInfoService.getBgpPeers().get(nextHopIpAddress);
+                    configInfoService.getBgpPeers().get(nextHopIpAddress);
             egressInterface =
-                interfaceService.getInterface(peer.connectPoint());
+                    interfaceService.getInterface(peer.connectPoint());
         } else {
             // Route to non-peer
             log.debug("Route to non-peer {}", nextHopIpAddress);
             egressInterface =
-                interfaceService.getMatchingInterface(nextHopIpAddress);
+                    interfaceService.getMatchingInterface(nextHopIpAddress);
             if (egressInterface == null) {
                 log.warn("No outgoing interface found for {}",
                          nextHopIpAddress);
@@ -564,17 +563,17 @@ public class Router implements RouteListener {
      * Intent will match dst IP prefix and rewrite dst MAC address at all other
      * border switches, then forward packets according to dst MAC address.
      *
-     * @param prefix IP prefix from route
-     * @param egressInterface egress Interface connected to next hop router
+     * @param prefix            IP prefix from route
+     * @param egressInterface   egress Interface connected to next hop router
      * @param nextHopMacAddress MAC address of next hop router
      */
     private void doAddRouteIntent(IpPrefix prefix, Interface egressInterface,
-            MacAddress nextHopMacAddress) {
+                                  MacAddress nextHopMacAddress) {
         log.debug("Adding intent for prefix {}, next hop mac {}",
                   prefix, nextHopMacAddress);
 
         MultiPointToSinglePointIntent pushedIntent =
-            pushedRouteIntents.get(prefix);
+                pushedRouteIntents.get(prefix);
 
         // Just for testing.
         if (pushedIntent != null) {
@@ -603,14 +602,14 @@ public class Router implements RouteListener {
 
         // Rewrite the destination MAC address
         //ModifyDstMacAction modifyDstMacAction =
-                //new ModifyDstMacAction(nextHopMacAddress);
+        //new ModifyDstMacAction(nextHopMacAddress);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthDst(nextHopMacAddress)
                 .build();
 
         MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(nextIntentId(),
-                        selector, treatment, ingressPorts, egressPort);
+                new MultiPointToSinglePointIntent(appId, selector, treatment,
+                                                  ingressPorts, egressPort);
 
         if (isElectedLeader && isActivatedLeader) {
             log.debug("Intent installation: adding Intent for prefix: {}",
@@ -665,11 +664,11 @@ public class Router implements RouteListener {
         IpPrefix prefix = routeEntry.prefix();
 
         MultiPointToSinglePointIntent intent =
-            pushedRouteIntents.remove(prefix);
+                pushedRouteIntents.remove(prefix);
 
         if (intent == null) {
             log.debug("There is no intent in pushedRouteIntents to delete " +
-                      "for prefix: {}", prefix);
+                              "for prefix: {}", prefix);
         } else {
             if (isElectedLeader && isActivatedLeader) {
                 log.debug("Intent installation: deleting Intent for prefix: {}",
@@ -683,8 +682,8 @@ public class Router implements RouteListener {
      * This method handles the prefixes which are waiting for ARP replies for
      * MAC addresses of next hops.
      *
-     * @param ipAddress next hop router IP address, for which we sent ARP
-     * request out
+     * @param ipAddress  next hop router IP address, for which we sent ARP
+     *                   request out
      * @param macAddress MAC address which is relative to the ipAddress
      */
     //@Override
@@ -692,22 +691,22 @@ public class Router implements RouteListener {
     public void arpResponse(IpAddress ipAddress, MacAddress macAddress) {
         log.debug("Received ARP response: {} => {}", ipAddress, macAddress);
 
-         // We synchronize on this to prevent changes to the radix tree
-         // while we're pushing intents. If the tree changes, the
-         // tree and intents could get out of sync.
+        // We synchronize on this to prevent changes to the radix tree
+        // while we're pushing intents. If the tree changes, the
+        // tree and intents could get out of sync.
         synchronized (this) {
 
             Set<RouteEntry> routesToPush =
-                routesWaitingOnArp.removeAll(ipAddress);
+                    routesWaitingOnArp.removeAll(ipAddress);
 
             for (RouteEntry routeEntry : routesToPush) {
                 // These will always be adds
                 IpPrefix prefix = routeEntry.prefix();
                 String binaryString = RouteEntry.createBinaryString(prefix);
                 RouteEntry foundRouteEntry =
-                    bgpRoutes.getValueForExactKey(binaryString);
+                        bgpRoutes.getValueForExactKey(binaryString);
                 if (foundRouteEntry != null &&
-                    foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
+                        foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
                     log.debug("Pushing prefix {} next hop {}",
                               routeEntry.prefix(), routeEntry.nextHop());
                     // We only push prefix flows if the prefix is still in the
@@ -718,8 +717,8 @@ public class Router implements RouteListener {
                     addRouteIntentToNextHop(prefix, ipAddress, macAddress);
                 } else {
                     log.debug("Received ARP response, but {}/{} is no longer in"
-                            + " the radix tree", routeEntry.prefix(),
-                            routeEntry.nextHop());
+                                      + " the radix tree", routeEntry.prefix(),
+                              routeEntry.nextHop());
                 }
             }
         }
@@ -742,15 +741,6 @@ public class Router implements RouteListener {
         }
 
         return routes;
-    }
-
-    /**
-     * Generates a new unique intent ID.
-     *
-     * @return the new intent ID.
-     */
-    private IntentId nextIntentId() {
-        return new IntentId(intentId++);
     }
 
     /**

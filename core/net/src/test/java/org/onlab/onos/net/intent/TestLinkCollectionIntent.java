@@ -11,6 +11,8 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
@@ -22,6 +24,8 @@ import org.onlab.onos.net.flow.TrafficTreatment;
  * Unit tests for the LinkCollectionIntent class.
  */
 public class TestLinkCollectionIntent {
+
+    private static final ApplicationId APPID = new TestApplicationId("foo");
 
     private Link link1 = link("dev1", 1, "dev2", 2);
     private Link link2 = link("dev1", 1, "dev3", 2);
@@ -38,10 +42,9 @@ public class TestLinkCollectionIntent {
     private TrafficSelector selector = new IntentTestsMocks.MockSelector();
     private TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
 
-    private LinkCollectionIntent makeLinkCollection(long id, Set<Link> links,
+    private LinkCollectionIntent makeLinkCollection(Set<Link> links,
             ConnectPoint egress) {
-        return new LinkCollectionIntent(new IntentId(id),
-                                        selector, treatment, links, egress);
+        return new LinkCollectionIntent(APPID, selector, treatment, links, egress);
     }
 
     @Before
@@ -64,8 +67,8 @@ public class TestLinkCollectionIntent {
         links2.add(link2);
         links2.add(link1);
 
-        LinkCollectionIntent i1 = makeLinkCollection(12, links1, egress1);
-        LinkCollectionIntent i2 = makeLinkCollection(12, links2, egress1);
+        LinkCollectionIntent i1 = makeLinkCollection(links1, egress1);
+        LinkCollectionIntent i2 = makeLinkCollection(links2, egress1);
 
         assertThat(i1, is(equalTo(i2)));
     }
@@ -82,8 +85,8 @@ public class TestLinkCollectionIntent {
         links2.add(link3);
         links2.add(link1);
 
-        LinkCollectionIntent i1 = makeLinkCollection(12, links1, egress1);
-        LinkCollectionIntent i2 = makeLinkCollection(12, links2, egress1);
+        LinkCollectionIntent i1 = makeLinkCollection(links1, egress1);
+        LinkCollectionIntent i2 = makeLinkCollection(links2, egress1);
 
         assertThat(i1, is(not(equalTo(i2))));
     }
@@ -102,26 +105,8 @@ public class TestLinkCollectionIntent {
         links2.add(link2);
         links2.add(link1);
 
-        LinkCollectionIntent i1 = makeLinkCollection(12, links1, egress1);
-        LinkCollectionIntent i2 = makeLinkCollection(12, links2, egress2);
-
-        assertThat(i1, is(not(equalTo(i2))));
-    }
-
-    /**
-     * Tests the equals() method where two LinkCollectionIntents have different
-     * ids. These should compare not equal.
-     */
-    @Test
-    public void testBaseDifferentEquals() {
-        links1.add(link1);
-        links1.add(link2);
-
-        links2.add(link2);
-        links2.add(link1);
-
-        LinkCollectionIntent i1 = makeLinkCollection(1, links1, egress1);
-        LinkCollectionIntent i2 = makeLinkCollection(2, links2, egress1);
+        LinkCollectionIntent i1 = makeLinkCollection(links1, egress1);
+        LinkCollectionIntent i2 = makeLinkCollection(links2, egress2);
 
         assertThat(i1, is(not(equalTo(i2))));
     }
@@ -140,8 +125,8 @@ public class TestLinkCollectionIntent {
         links2.add(link2);
         links2.add(link1);
 
-        LinkCollectionIntent i1 = makeLinkCollection(1, links1, egress1);
-        LinkCollectionIntent i2 = makeLinkCollection(1, links2, egress1);
+        LinkCollectionIntent i1 = makeLinkCollection(links1, egress1);
+        LinkCollectionIntent i2 = makeLinkCollection(links2, egress1);
 
         assertThat(i1.hashCode(), is(equalTo(i2.hashCode())));
     }
@@ -158,8 +143,8 @@ public class TestLinkCollectionIntent {
         links2.add(link1);
         links2.add(link3);
 
-        LinkCollectionIntent i1 = makeLinkCollection(1, links1, egress1);
-        LinkCollectionIntent i2 = makeLinkCollection(1, links2, egress2);
+        LinkCollectionIntent i1 = makeLinkCollection(links1, egress1);
+        LinkCollectionIntent i2 = makeLinkCollection(links2, egress2);
 
         assertThat(i1.hashCode(), is(not(equalTo(i2.hashCode()))));
     }

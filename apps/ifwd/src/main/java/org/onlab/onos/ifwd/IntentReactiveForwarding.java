@@ -1,12 +1,12 @@
 package org.onlab.onos.ifwd;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.PortNumber;
@@ -16,7 +16,6 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.packet.InboundPacket;
@@ -28,6 +27,8 @@ import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * WORK-IN-PROGRESS: Sample reactive forwarding application using intent framework.
  */
@@ -35,6 +36,9 @@ import org.slf4j.Logger;
 public class IntentReactiveForwarding {
 
     private final Logger log = getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
@@ -49,11 +53,11 @@ public class IntentReactiveForwarding {
     protected HostService hostService;
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
-
-    private static long intentId = 0x123000;
+    private ApplicationId appId;
 
     @Activate
     public void activate() {
+        appId = coreService.registerApplication("org.onlab.onos.ifwd");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         log.info("Started");
     }
@@ -126,9 +130,8 @@ public class IntentReactiveForwarding {
         TrafficSelector selector = DefaultTrafficSelector.builder().build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
-        HostToHostIntent intent =
-                new HostToHostIntent(new IntentId(intentId++), srcId, dstId,
-                                     selector, treatment);
+        HostToHostIntent intent = new HostToHostIntent(appId, srcId, dstId,
+                                                       selector, treatment);
 
         intentService.submit(intent);
     }

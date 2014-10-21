@@ -1,20 +1,10 @@
 package org.onlab.onos.store.intent.impl;
 
-import static org.onlab.onos.net.intent.IntentState.FAILED;
-import static org.onlab.onos.net.intent.IntentState.INSTALLED;
-import static org.onlab.onos.net.intent.IntentState.SUBMITTED;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.intent.InstallableIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentId;
@@ -24,7 +14,12 @@ import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.onlab.onos.net.intent.IntentState.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 //FIXME: I LIE I AM NOT DISTRIBUTED
 @Component(immediate = true)
@@ -36,8 +31,7 @@ public class DistributedIntentStore
     private final Logger log = getLogger(getClass());
     private final Map<IntentId, Intent> intents = new ConcurrentHashMap<>();
     private final Map<IntentId, IntentState> states = new ConcurrentHashMap<>();
-    private final Map<IntentId, List<InstallableIntent>> installable =
-            new ConcurrentHashMap<>();
+    private final Map<IntentId, List<Intent>> installable = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
@@ -97,12 +91,12 @@ public class DistributedIntentStore
     }
 
     @Override
-    public void addInstallableIntents(IntentId intentId, List<InstallableIntent> result) {
+    public void addInstallableIntents(IntentId intentId, List<Intent> result) {
         installable.put(intentId, result);
     }
 
     @Override
-    public List<InstallableIntent> getInstallableIntents(IntentId intentId) {
+    public List<Intent> getInstallableIntents(IntentId intentId) {
         return installable.get(intentId);
     }
 

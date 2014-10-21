@@ -1,6 +1,6 @@
 package org.onlab.onos.net.intent.impl;
 
-import org.onlab.onos.net.Link;
+import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.intent.IntentId;
 
 import java.util.Collection;
@@ -28,17 +28,19 @@ public interface ObjectiveTrackerService {
     /**
      * Adds a path flow to be tracked.
      *
-     * @param intentId intent identity on whose behalf the path is being tracked
+     * @param intentId  intent identity on whose behalf the path is being tracked
      * @param resources resources to track
      */
-    public void addTrackedResources(IntentId intentId, Collection<Link> resources);
+    public void addTrackedResources(IntentId intentId,
+                                    Collection<NetworkResource> resources);
 
     /**
      * Removes a path flow to be tracked.
      *
-     * @param intentId intent identity on whose behalf the path is being tracked
+     * @param intentId  intent identity on whose behalf the path is being tracked
      * @param resources resources to stop tracking
      */
-    public void removeTrackedResources(IntentId intentId, Collection<Link> resources);
+    public void removeTrackedResources(IntentId intentId,
+                                       Collection<NetworkResource> resources);
 
 }

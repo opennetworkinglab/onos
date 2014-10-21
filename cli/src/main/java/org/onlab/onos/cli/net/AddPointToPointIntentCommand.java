@@ -11,10 +11,12 @@ import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
+
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -33,20 +35,16 @@ public class AddPointToPointIntentCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-    private static long id = 0x7470001;
-
     @Override
     protected void execute() {
         IntentService service = get(IntentService.class);
 
-        DeviceId ingressDeviceId = DeviceId.deviceId(getDeviceId(ingressDeviceString));
-        PortNumber ingressPortNumber =
-                PortNumber.portNumber(getPortNumber(ingressDeviceString));
+        DeviceId ingressDeviceId = deviceId(getDeviceId(ingressDeviceString));
+        PortNumber ingressPortNumber = portNumber(getPortNumber(ingressDeviceString));
         ConnectPoint ingress = new ConnectPoint(ingressDeviceId, ingressPortNumber);
 
-        DeviceId egressDeviceId = DeviceId.deviceId(getDeviceId(egressDeviceString));
-        PortNumber egressPortNumber =
-                PortNumber.portNumber(getPortNumber(egressDeviceString));
+        DeviceId egressDeviceId = deviceId(getDeviceId(egressDeviceString));
+        PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -54,12 +52,8 @@ public class AddPointToPointIntentCommand extends AbstractShellCommand {
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
-        Intent intent =
-                new PointToPointIntent(new IntentId(id++),
-                                                 selector,
-                                                 treatment,
-                                                 ingress,
-                                                 egress);
+        Intent intent = new PointToPointIntent(appId(), selector, treatment,
+                                               ingress, egress);
         service.submit(intent);
     }
 

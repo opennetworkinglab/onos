@@ -15,7 +15,7 @@ public final class IntentId implements BatchOperationTarget {
      * @param fingerprint long value
      * @return intent identifier
      */
-    static IntentId valueOf(long fingerprint) {
+    public static IntentId valueOf(long fingerprint) {
         return new IntentId(fingerprint);
     }
 

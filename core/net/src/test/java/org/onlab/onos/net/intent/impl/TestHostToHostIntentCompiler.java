@@ -1,10 +1,10 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.List;
-
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
@@ -12,16 +12,14 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import java.util.List;
+
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -39,6 +37,8 @@ public class TestHostToHostIntentCompiler {
     private static final String HOST_TWO_VLAN = "-1";
     private static final String HOST_ONE = HOST_ONE_MAC + "/" + HOST_ONE_VLAN;
     private static final String HOST_TWO = HOST_TWO_MAC + "/" + HOST_TWO_VLAN;
+
+    private static final ApplicationId APPID = new TestApplicationId("foo");
 
     private TrafficSelector selector = new IntentTestsMocks.MockSelector();
     private TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
@@ -73,11 +73,8 @@ public class TestHostToHostIntentCompiler {
      * @return HostToHostIntent for the two hosts
      */
     private HostToHostIntent makeIntent(String oneIdString, String twoIdString) {
-        return new HostToHostIntent(new IntentId(12),
-                                    hid(oneIdString),
-                                    hid(twoIdString),
-                                    selector,
-                                    treatment);
+        return new HostToHostIntent(APPID, hid(oneIdString), hid(twoIdString),
+                                    selector, treatment);
     }
 
     /**
@@ -91,9 +88,6 @@ public class TestHostToHostIntentCompiler {
                 new HostToHostIntentCompiler();
         compiler.pathService = new IntentTestsMocks.MockPathService(hops);
         compiler.hostService = mockHostService;
-        IdBlockAllocator idBlockAllocator = new DummyIdBlockAllocator();
-        compiler.intentIdGenerator =
-                new IdBlockAllocatorBasedIntentIdGenerator(idBlockAllocator);
         return compiler;
     }
 
