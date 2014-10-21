@@ -7,7 +7,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
-import java.util.Collections;
+import com.google.common.collect.ImmutableList;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +26,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
      * @param instructions treatment instructions
      */
     private DefaultTrafficTreatment(List<Instruction> instructions) {
-        this.instructions = Collections.unmodifiableList(instructions);
+        this.instructions = ImmutableList.copyOf(instructions);
     }
 
     @Override

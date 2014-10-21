@@ -9,7 +9,6 @@ import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 
 /**
@@ -27,8 +26,6 @@ public class AddHostToHostIntentCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String two = null;
 
-    private static long id = 0x7870001;
-
     @Override
     protected void execute() {
         IntentService service = get(IntentService.class);
@@ -39,9 +36,8 @@ public class AddHostToHostIntentCommand extends AbstractShellCommand {
         TrafficSelector selector = DefaultTrafficSelector.builder().build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
-        HostToHostIntent intent =
-                new HostToHostIntent(new IntentId(id++), oneId, twoId,
-                                     selector, treatment);
+        HostToHostIntent intent = new HostToHostIntent(appId(), oneId, twoId,
+                                                       selector, treatment);
         service.submit(intent);
     }
 

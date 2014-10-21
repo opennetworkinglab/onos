@@ -1,4 +1,4 @@
-package org.onlab.onos.store.trivial.impl;
+package org.onlab.onos.store.intent.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
@@ -21,17 +21,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+//FIXME: I LIE I AM NOT DISTRIBUTED
 @Component(immediate = true)
 @Service
-public class SimpleIntentStore
+public class DistributedIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
         implements IntentStore {
 
     private final Logger log = getLogger(getClass());
     private final Map<IntentId, Intent> intents = new ConcurrentHashMap<>();
     private final Map<IntentId, IntentState> states = new ConcurrentHashMap<>();
-    private final Map<IntentId, List<Intent>> installable =
-            new ConcurrentHashMap<>();
+    private final Map<IntentId, List<Intent>> installable = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {

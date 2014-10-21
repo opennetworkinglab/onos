@@ -7,7 +7,7 @@ import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 /**
  * Abstraction of entity capable of installing intents to the environment.
  */
-public interface IntentInstaller<T extends InstallableIntent> {
+public interface IntentInstaller<T extends Intent> {
     /**
      * Installs the specified intent to the environment.
      *

@@ -572,7 +572,7 @@
                         <group>
                             <title>Sample Applications</title>
                             <packages>
-                                org.onlab.onos.tvue:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.foo:org.onlab.onos.calendar
+                                org.onlab.onos.tvue:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.foo:org.onlab.onos.calendar:org.onlab.onos.sdnip:org.onlab.onos.sdnip.*:org.onlab.onos.optical:org.onlab.onos.optical.*
                             </packages>
                         </group>
                     </groups>

@@ -1,23 +1,11 @@
 package org.onlab.onos.sdnip;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reportMatcher;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Sets;
 import org.easymock.IArgumentMatcher;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
@@ -25,7 +13,6 @@ import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.sdnip.bgp.BgpConstants;
@@ -40,12 +27,31 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import static org.easymock.EasyMock.*;
 
 /**
  * Unit tests for PeerConnectivityManager interface.
  */
 public class PeerConnectivityManagerTest {
+
+    private static final ApplicationId APPID = new ApplicationId() {
+        @Override
+        public short id() {
+            return 0;
+        }
+
+        @Override
+        public String name() {
+            return "foo";
+        }
+    };
 
     private PeerConnectivityManager peerConnectivityManager;
     private IntentService intentService;
@@ -80,9 +86,6 @@ public class PeerConnectivityManagerTest {
             new ConnectPoint(deviceId1, PortNumber.portNumber(1));
     private final ConnectPoint s2Eth1 =
             new ConnectPoint(deviceId2, PortNumber.portNumber(1));
-
-    // We don't compare the intent ID so all expected intents can use the same ID
-    private final IntentId testIntentId = new IntentId(0);
 
     private final TrafficTreatment noTreatment =
             DefaultTrafficTreatment.builder().build();
@@ -257,7 +260,7 @@ public class PeerConnectivityManagerTest {
         }
 
         PointToPointIntent intent = new PointToPointIntent(
-                testIntentId, builder.build(), noTreatment,
+                APPID, builder.build(), noTreatment,
                 srcConnectPoint, dstConnectPoint);
 
         intentList.add(intent);
@@ -429,7 +432,7 @@ public class PeerConnectivityManagerTest {
                 .build();
 
         PointToPointIntent intent = new PointToPointIntent(
-                testIntentId, selector, noTreatment,
+                APPID, selector, noTreatment,
                 srcConnectPoint, dstConnectPoint);
 
         intentList.add(intent);
@@ -511,7 +514,7 @@ public class PeerConnectivityManagerTest {
         intentService = createMock(IntentService.class);
         replay(intentService);
 
-        peerConnectivityManager = new PeerConnectivityManager(configInfoService,
+        peerConnectivityManager = new PeerConnectivityManager(APPID, configInfoService,
                 interfaceService, intentService);
     }
 
@@ -557,7 +560,7 @@ public class PeerConnectivityManagerTest {
             providedIntentString = providedIntent.toString();
 
             PointToPointIntent matchIntent =
-                    new PointToPointIntent(providedIntent.id(),
+                    new PointToPointIntent(providedIntent.appId(),
                             intent.selector(), intent.treatment(),
                             intent.ingressPoint(), intent.egressPoint());
 

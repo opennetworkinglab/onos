@@ -1,23 +1,24 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,6 +32,8 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
  * Unit tests for the MultiPointToSinglePoint intent compiler.
  */
 public class TestMultiPointToSinglePointIntentCompiler {
+
+    private static final ApplicationId APPID = new TestApplicationId("foo");
 
     private TrafficSelector selector = new IntentTestsMocks.MockSelector();
     private TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
@@ -74,7 +77,7 @@ public class TestMultiPointToSinglePointIntentCompiler {
      * and an egress point.
      *
      * @param ingressIds array of ingress device ids
-     * @param egressId device id of the egress point
+     * @param egressId   device id of the egress point
      * @return MultiPointToSinglePoint intent
      */
     private MultiPointToSinglePointIntent makeIntent(String[] ingressIds, String egressId) {
@@ -82,15 +85,11 @@ public class TestMultiPointToSinglePointIntentCompiler {
         ConnectPoint egressPoint = connectPoint(egressId, 1);
 
         for (String ingressId : ingressIds) {
-                ingressPoints.add(connectPoint(ingressId, 1));
+            ingressPoints.add(connectPoint(ingressId, 1));
         }
 
-        return new MultiPointToSinglePointIntent(
-                new IntentId(12),
-                selector,
-                treatment,
-                ingressPoints,
-                egressPoint);
+        return new MultiPointToSinglePointIntent(APPID, selector, treatment,
+                                                 ingressPoints, egressPoint);
     }
 
     /**
@@ -103,9 +102,6 @@ public class TestMultiPointToSinglePointIntentCompiler {
         MultiPointToSinglePointIntentCompiler compiler =
                 new MultiPointToSinglePointIntentCompiler();
         compiler.pathService = new MockPathService(hops);
-        IdBlockAllocator idBlockAllocator = new DummyIdBlockAllocator();
-        compiler.intentIdGenerator =
-                new IdBlockAllocatorBasedIntentIdGenerator(idBlockAllocator);
         return compiler;
     }
 
@@ -122,7 +118,7 @@ public class TestMultiPointToSinglePointIntentCompiler {
         assertThat(intent, is(notNullValue()));
 
         String[] hops = {"h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8",
-                         egress};
+                egress};
         MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
@@ -184,7 +180,7 @@ public class TestMultiPointToSinglePointIntentCompiler {
     @Test
     public void testMultiIngressCompilation() {
         String[] ingress = {"i1", "i2", "i3", "i4", "i5",
-                            "i6", "i7", "i8", "i9", "i10"};
+                "i6", "i7", "i8", "i9", "i10"};
         String egress = "e";
 
         MultiPointToSinglePointIntent intent = makeIntent(ingress, egress);

@@ -148,8 +148,9 @@ public class SimpleFlowRuleStore
     }
 
     @Override
-    public void storeFlowRule(FlowRule rule) {
+    public boolean storeFlowRule(FlowRule rule) {
         final boolean added = storeFlowRuleInternal(rule);
+        return added;
     }
 
     private boolean storeFlowRuleInternal(FlowRule rule) {
@@ -166,13 +167,14 @@ public class SimpleFlowRuleStore
             }
             // new flow rule added
             existing.add(f);
-            // TODO: notify through delegate about remote event?
+            // TODO: Should we notify only if it's "remote" event?
+            //notifyDelegate(new FlowRuleEvent(Type.RULE_ADD_REQUESTED, rule));
             return true;
         }
     }
 
     @Override
-    public void deleteFlowRule(FlowRule rule) {
+    public boolean deleteFlowRule(FlowRule rule) {
 
         List<StoredFlowEntry> entries = getFlowEntries(rule.deviceId(), rule.id());
         synchronized (entries) {
@@ -180,12 +182,15 @@ public class SimpleFlowRuleStore
                 if (entry.equals(rule)) {
                     synchronized (entry) {
                         entry.setState(FlowEntryState.PENDING_REMOVE);
-                        return;
+                        // TODO: Should we notify only if it's "remote" event?
+                        //notifyDelegate(new FlowRuleEvent(Type.RULE_REMOVE_REQUESTED, rule));
+                        return true;
                     }
                 }
             }
         }
         //log.warn("Cannot find rule {}", rule);
+        return false;
     }
 
     @Override

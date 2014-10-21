@@ -10,6 +10,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.CoreService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
@@ -24,7 +26,12 @@ import org.slf4j.Logger;
 @Service
 public class SdnIp implements SdnIpService {
 
+    private static final String SDN_ID_APP = "org.onlab.onos.sdnip";
+
     private final Logger log = getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
@@ -46,10 +53,11 @@ public class SdnIp implements SdnIpService {
 
         InterfaceService interfaceService = new HostToInterfaceAdaptor(hostService);
 
-        peerConnectivity = new PeerConnectivityManager(config, interfaceService, intentService);
+        ApplicationId appId = coreService.registerApplication(SDN_ID_APP);
+        peerConnectivity = new PeerConnectivityManager(appId, config, interfaceService, intentService);
         peerConnectivity.start();
 
-        router = new Router(intentService, hostService, config, interfaceService);
+        router = new Router(appId, intentService, hostService, config, interfaceService);
         router.start();
 
         bgpSessionManager = new BgpSessionManager(router);

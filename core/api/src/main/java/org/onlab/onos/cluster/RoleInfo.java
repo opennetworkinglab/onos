@@ -1,11 +1,9 @@
 package org.onlab.onos.cluster;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A container for detailed role information for a device,
@@ -18,9 +16,7 @@ public class RoleInfo {
 
     public RoleInfo(NodeId master, List<NodeId> backups) {
         this.master = master;
-        this.backups = new LinkedList<>();
-
-        this.backups.addAll(checkNotNull(backups));
+        this.backups = ImmutableList.copyOf(backups);
     }
 
     public NodeId master() {
@@ -28,7 +24,7 @@ public class RoleInfo {
     }
 
     public List<NodeId> backups() {
-        return Collections.unmodifiableList(backups);
+        return backups;
     }
 
     @Override
@@ -57,10 +53,10 @@ public class RoleInfo {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("master: \n\t").append(master).append("\n");
-        builder.append("backups: \n");
+        builder.append("master:").append(master).append(",");
+        builder.append("backups:");
         for (NodeId n : backups) {
-            builder.append("\t").append(n).append("\n");
+            builder.append(" ").append(n);
         }
         return builder.toString();
     }

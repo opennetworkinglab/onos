@@ -11,11 +11,9 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.IdGenerator;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.topology.PathService;
 
@@ -41,12 +39,8 @@ public class HostToHostIntentCompiler
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    protected IdGenerator<IntentId> intentIdGenerator;
-
     @Activate
     public void activate() {
-        IdBlockAllocator idBlockAllocator = new DummyIdBlockAllocator();
-        intentIdGenerator = new IdBlockAllocatorBasedIntentIdGenerator(idBlockAllocator);
         intentManager.registerCompiler(HostToHostIntent.class, this);
     }
 
@@ -70,13 +64,10 @@ public class HostToHostIntentCompiler
     // Creates a path intent from the specified path and original connectivity intent.
     private Intent createPathIntent(Path path, Host src, Host dst,
                                     HostToHostIntent intent) {
-
         TrafficSelector selector = builder(intent.selector())
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
-
-        return new PathIntent(intentIdGenerator.getNewId(),
-                              selector, intent.treatment(),
-                              path.src(), path.dst(), path);
+        return new PathIntent(intent.appId(), selector, intent.treatment(),
+                              path);
     }
 
     private Path getPath(HostId one, HostId two) {

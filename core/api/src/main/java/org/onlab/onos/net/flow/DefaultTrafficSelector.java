@@ -8,7 +8,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +26,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
      * @param criteria criteria
      */
     private DefaultTrafficSelector(Set<Criterion> criteria) {
-        this.criteria = Collections.unmodifiableSet(criteria);
+        this.criteria = ImmutableSet.copyOf(criteria);
     }
 
     @Override

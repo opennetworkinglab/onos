@@ -1,15 +1,20 @@
 package org.onlab.onos.net.intent;
 
-import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.net.Link;
+import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+
+import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of connectivity intent for traffic matching some criteria.
  */
-public abstract class ConnectivityIntent extends AbstractIntent {
+public abstract class ConnectivityIntent extends Intent {
 
     // TODO: other forms of intents should be considered for this family:
     //   point-to-point with constraints (waypoints/obstacles)
@@ -19,24 +24,26 @@ public abstract class ConnectivityIntent extends AbstractIntent {
     //   ...
 
     private final TrafficSelector selector;
-    // TODO: should consider which is better for multiple actions,
-    // defining compound action class or using list of actions.
     private final TrafficTreatment treatment;
 
     /**
-     * Creates a connectivity intent that matches on the specified intent
-     * and applies the specified treatement.
+     * Creates a connectivity intent that matches on the specified selector
+     * and applies the specified treatment.
      *
-     * @param intentId   intent identifier
-     * @param selector   traffic selector
-     * @param treatement treatement
+     * @param id        intent identifier
+     * @param appId     application identifier
+     * @param resources required network resources (optional)
+     * @param selector  traffic selector
+     * @param treatment treatment
      * @throws NullPointerException if the selector or treatement is null
      */
-    protected ConnectivityIntent(IntentId intentId, TrafficSelector selector,
-                                 TrafficTreatment treatement) {
-        super(intentId);
+    protected ConnectivityIntent(IntentId id, ApplicationId appId,
+                                 Collection<NetworkResource> resources,
+                                 TrafficSelector selector,
+                                 TrafficTreatment treatment) {
+        super(id, appId, resources);
         this.selector = checkNotNull(selector);
-        this.treatment = checkNotNull(treatement);
+        this.treatment = checkNotNull(treatment);
     }
 
     /**
@@ -66,19 +73,14 @@ public abstract class ConnectivityIntent extends AbstractIntent {
         return treatment;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!super.equals(o)) {
-            return false;
-        }
-        ConnectivityIntent that = (ConnectivityIntent) o;
-        return Objects.equal(this.selector, that.selector)
-                && Objects.equal(this.treatment, that.treatment);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), selector, treatment);
+    /**
+     * Produces a collection of network resources from the given links.
+     *
+     * @param links collection of links
+     * @return collection of link resources
+     */
+    protected static Collection<NetworkResource> resources(Collection<Link> links) {
+        return ImmutableSet.<NetworkResource>copyOf(links);
     }
 
 }

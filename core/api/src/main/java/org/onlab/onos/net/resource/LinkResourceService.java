@@ -1,10 +1,7 @@
 package org.onlab.onos.net.resource;
 
-import java.util.Map;
-
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.PathIntent;
 
 /**
  * Service for providing link resource allocation.
@@ -12,49 +9,48 @@ import org.onlab.onos.net.intent.PathIntent;
 public interface LinkResourceService {
 
     /**
-     * Allocates resources along the path.
-     * <p>
-     * Tries to allocate given resources on the links along the path specified
-     * by the given intent.
+     * Requests resources.
      *
-     * @param res resources to be allocated
-     * @param intent an intent to be used for specifying the path
+     * @param req resources to be allocated
+     * @return allocated resources
      */
-    void allocateResource(LinkResources res, PathIntent intent);
+    LinkResourceAllocations requestResources(LinkResourceRequest req);
 
     /**
-     * Releases resources along the path.
+     * Releases resources.
      *
-     * @param intentId an ID for the intent for specifying the path
+     * @param allocations resources to be released
      */
-    void releaseResource(IntentId intentId);
+    void releaseResources(LinkResourceAllocations allocations);
 
     /**
-     * Returns all allocated resources to each link.
+     * Returns all allocated resources.
      *
-     * @return allocated resources to each link with {@link IntentId}
+     * @return allocated resources
      */
-    Map<Link, Map<IntentId, LinkResources>> allocatedResources();
+    Iterable<LinkResourceAllocations> getAllocations();
 
     /**
      * Returns all allocated resources to given link.
      *
      * @param link a target link
-     * @return allocated resources to the target link with {@link IntentId}
+     * @return allocated resources
      */
-    Map<IntentId, LinkResources> allocatedResources(Link link);
+    Iterable<LinkResourceAllocations> getAllocations(Link link);
 
     /**
-     * Returns available resources for each link.
+     * Returns all IDs of intents using the given link.
      *
-     * @return available resources for each link
+     * @param link a target link
+     * @return IDs of intents using the link
      */
-    Map<Link, LinkResources> availableResources();
+    Iterable<IntentId> getIntents(Link link);
 
     /**
      * Returns available resources for given link.
+     *
      * @param link a target link
      * @return available resources for the target link
      */
-    LinkResources availableResources(Link link);
+    ResourceRequest getAvailableResources(Link link);
 }

@@ -1,30 +1,8 @@
 package org.onlab.onos.net.intent.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.onos.net.intent.IntentState.COMPILING;
-import static org.onlab.onos.net.intent.IntentState.FAILED;
-import static org.onlab.onos.net.intent.IntentState.INSTALLED;
-import static org.onlab.onos.net.intent.IntentState.INSTALLING;
-import static org.onlab.onos.net.intent.IntentState.RECOMPILING;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWING;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -36,7 +14,6 @@ import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.intent.InstallableIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentEvent;
@@ -52,9 +29,24 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.onos.net.intent.IntentState.*;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * An implementation of Intent Manager.
@@ -71,8 +63,8 @@ public class IntentManager
     // Collections for compiler, installer, and listener are ONOS instance local
     private final ConcurrentMap<Class<? extends Intent>,
             IntentCompiler<? extends Intent>> compilers = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Class<? extends InstallableIntent>,
-            IntentInstaller<? extends InstallableIntent>> installers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<? extends Intent>,
+            IntentInstaller<? extends Intent>> installers = new ConcurrentHashMap<>();
 
     private final AbstractListenerRegistry<IntentEvent, IntentListener>
             listenerRegistry = new AbstractListenerRegistry<>();
@@ -186,17 +178,17 @@ public class IntentManager
     }
 
     @Override
-    public <T extends InstallableIntent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer) {
+    public <T extends Intent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer) {
         installers.put(cls, installer);
     }
 
     @Override
-    public <T extends InstallableIntent> void unregisterInstaller(Class<T> cls) {
+    public <T extends Intent> void unregisterInstaller(Class<T> cls) {
         installers.remove(cls);
     }
 
     @Override
-    public Map<Class<? extends InstallableIntent>, IntentInstaller<? extends InstallableIntent>> getInstallers() {
+    public Map<Class<? extends Intent>, IntentInstaller<? extends Intent>> getInstallers() {
         return ImmutableMap.copyOf(installers);
     }
 
@@ -223,7 +215,7 @@ public class IntentManager
      * @param <T>    the type of installable intent
      * @return intent installer corresponding to the specified installable intent
      */
-    private <T extends InstallableIntent> IntentInstaller<T> getInstaller(T intent) {
+    private <T extends Intent> IntentInstaller<T> getInstaller(T intent) {
         @SuppressWarnings("unchecked")
         IntentInstaller<T> installer = (IntentInstaller<T>) installers.get(intent.getClass());
         if (installer == null) {
@@ -243,7 +235,7 @@ public class IntentManager
 
         try {
             // Compile the intent into installable derivatives.
-            List<InstallableIntent> installable = compileIntent(intent);
+            List<Intent> installable = compileIntent(intent);
 
             // If all went well, associate the resulting list of installable
             // intents with the top-level intent and proceed to install.
@@ -264,12 +256,12 @@ public class IntentManager
      * @param intent intent
      * @return result of compilation
      */
-    private List<InstallableIntent> compileIntent(Intent intent) {
-        if (intent instanceof InstallableIntent) {
-            return ImmutableList.of((InstallableIntent) intent);
+    private List<Intent> compileIntent(Intent intent) {
+        if (intent.isInstallable()) {
+            return ImmutableList.of(intent);
         }
 
-        List<InstallableIntent> installable = new ArrayList<>();
+        List<Intent> installable = new ArrayList<>();
         // TODO do we need to registerSubclassCompiler?
         for (Intent compiled : getCompiler(intent).compile(intent)) {
             installable.addAll(compileIntent(compiled));
@@ -290,12 +282,12 @@ public class IntentManager
 
         List<FlowRuleBatchOperation> installWork = Lists.newArrayList();
         try {
-            List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
+            List<Intent> installables = store.getInstallableIntents(intent.id());
             if (installables != null) {
-                for (InstallableIntent installable : installables) {
+                for (Intent installable : installables) {
                     registerSubclassInstallerIfNeeded(installable);
                     trackerService.addTrackedResources(intent.id(),
-                                                       installable.requiredLinks());
+                                                       installable.resources());
                     List<FlowRuleBatchOperation> batch = getInstaller(installable).install(installable);
                     installWork.addAll(batch);
                 }
@@ -324,14 +316,13 @@ public class IntentManager
 
         try {
             // Compile the intent into installable derivatives.
-            List<InstallableIntent> installable = compileIntent(intent);
+            List<Intent> installable = compileIntent(intent);
 
             // If all went well, compare the existing list of installable
             // intents with the newly compiled list. If they are the same,
             // bail, out since the previous approach was determined not to
             // be viable.
-            List<InstallableIntent> originalInstallable =
-                    store.getInstallableIntents(intent.id());
+            List<Intent> originalInstallable = store.getInstallableIntents(intent.id());
 
             if (Objects.equals(originalInstallable, installable)) {
                 eventDispatcher.post(store.setState(intent, FAILED));
@@ -376,9 +367,9 @@ public class IntentManager
     private void uninstallIntent(Intent intent, IntentState nextState) {
         List<FlowRuleBatchOperation> uninstallWork = Lists.newArrayList();
         try {
-            List<InstallableIntent> installables = store.getInstallableIntents(intent.id());
+            List<Intent> installables = store.getInstallableIntents(intent.id());
             if (installables != null) {
-                for (InstallableIntent installable : installables) {
+                for (Intent installable : installables) {
                     List<FlowRuleBatchOperation> batches = getInstaller(installable).uninstall(installable);
                     uninstallWork.addAll(batches);
                 }
@@ -422,12 +413,12 @@ public class IntentManager
      *
      * @param intent intent
      */
-    private void registerSubclassInstallerIfNeeded(InstallableIntent intent) {
+    private void registerSubclassInstallerIfNeeded(Intent intent) {
         if (!installers.containsKey(intent.getClass())) {
             Class<?> cls = intent.getClass();
             while (cls != Object.class) {
-                // As long as we're within the InstallableIntent class descendants
-                if (InstallableIntent.class.isAssignableFrom(cls)) {
+                // As long as we're within the Intent class descendants
+                if (Intent.class.isAssignableFrom(cls)) {
                     IntentInstaller<?> installer = installers.get(cls);
                     if (installer != null) {
                         installers.put(intent.getClass(), installer);
@@ -505,8 +496,8 @@ public class IntentManager
         private final IntentState nextState;
 
         public IntentInstallMonitor(Intent intent,
-                List<FlowRuleBatchOperation> work,
-                IntentState nextState) {
+                                    List<FlowRuleBatchOperation> work,
+                                    IntentState nextState) {
             this.intent = intent;
             this.work = work;
             // TODO how many Futures can be outstanding? one?
@@ -531,9 +522,7 @@ public class IntentManager
         }
 
         /**
-         * Apply a list of FlowRules.
-         *
-         * @param rules rules to apply
+         * Applies the next batch.
          */
         private Future<CompletedBatchOperation> applyNextBatch() {
             if (work.isEmpty()) {

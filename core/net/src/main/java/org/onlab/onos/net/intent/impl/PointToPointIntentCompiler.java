@@ -1,10 +1,5 @@
 package org.onlab.onos.net.intent.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -16,15 +11,18 @@ import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.IdGenerator;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.PathService;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A intent compiler for {@link org.onlab.onos.net.intent.HostToHostIntent}.
@@ -43,12 +41,8 @@ public class PointToPointIntentCompiler
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    protected IdGenerator<IntentId> intentIdGenerator;
-
     @Activate
     public void activate() {
-        IdBlockAllocator idBlockAllocator = new DummyIdBlockAllocator();
-        intentIdGenerator = new IdBlockAllocatorBasedIntentIdGenerator(idBlockAllocator);
         intentManager.registerCompiler(PointToPointIntent.class, this);
     }
 
@@ -67,23 +61,21 @@ public class PointToPointIntentCompiler
         links.add(DefaultEdgeLink.createEdgeLink(intent.egressPoint(), false));
 
         return Arrays.asList(createPathIntent(new DefaultPath(PID, links, path.cost() + 2,
-                                              path.annotations()),
-                             intent));
+                                                              path.annotations()),
+                                              intent));
     }
 
     /**
      * Creates a path intent from the specified path and original
      * connectivity intent.
      *
-     * @param path path to create an intent for
+     * @param path   path to create an intent for
      * @param intent original intent
      */
     private Intent createPathIntent(Path path,
                                     PointToPointIntent intent) {
-
-        return new PathIntent(intentIdGenerator.getNewId(),
-                              intent.selector(), intent.treatment(),
-                              path.src(), path.dst(), path);
+        return new PathIntent(intent.appId(),
+                              intent.selector(), intent.treatment(), path);
     }
 
     /**

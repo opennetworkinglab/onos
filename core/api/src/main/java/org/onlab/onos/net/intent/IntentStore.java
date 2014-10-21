@@ -77,8 +77,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param intentId           original intent identifier
      * @param installableIntents compiled installable intents
      */
-    void addInstallableIntents(IntentId intentId,
-                               List<InstallableIntent> installableIntents);
+    void addInstallableIntents(IntentId intentId, List<Intent> installableIntents);
 
     /**
      * Returns the list of the installable events associated with the specified
@@ -87,7 +86,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param intentId original intent identifier
      * @return compiled installable intents
      */
-    List<InstallableIntent> getInstallableIntents(IntentId intentId);
+    List<Intent> getInstallableIntents(IntentId intentId);
 
     // TODO: this should be triggered from with the store as a result of removeIntent call
 

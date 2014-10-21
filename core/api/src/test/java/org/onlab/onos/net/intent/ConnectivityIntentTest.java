@@ -2,6 +2,8 @@ package org.onlab.onos.net.intent;
 
 import java.util.Set;
 
+import org.onlab.onos.ApplicationId;
+import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
@@ -14,6 +16,8 @@ import org.onlab.onos.net.flow.TrafficTreatment;
  * Base facilities to test various connectivity tests.
  */
 public abstract class ConnectivityIntentTest extends IntentTest {
+
+    public static final ApplicationId APPID = new TestApplicationId("foo");
 
     public static final IntentId IID = new IntentId(123);
     public static final TrafficSelector MATCH = DefaultTrafficSelector.builder().build();

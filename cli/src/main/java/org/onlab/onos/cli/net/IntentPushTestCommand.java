@@ -1,8 +1,5 @@
 package org.onlab.onos.cli.net;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
@@ -16,12 +13,17 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentEvent.Type;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -29,7 +31,7 @@ import org.onlab.packet.MacAddress;
 @Command(scope = "onos", name = "push-test-intents",
          description = "Installs random intents to test throughput")
 public class IntentPushTestCommand extends AbstractShellCommand
-    implements IntentListener {
+        implements IntentListener {
 
     @Argument(index = 0, name = "ingressDevice",
               description = "Ingress Device/Port Description",
@@ -42,8 +44,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
     String egressDeviceString = null;
 
     @Argument(index = 2, name = "count",
-            description = "Number of intents to push",
-            required = true, multiValued = false)
+              description = "Number of intents to push",
+              required = true, multiValued = false)
     String countString = null;
 
 
@@ -57,14 +59,12 @@ public class IntentPushTestCommand extends AbstractShellCommand
     protected void execute() {
         service = get(IntentService.class);
 
-        DeviceId ingressDeviceId = DeviceId.deviceId(getDeviceId(ingressDeviceString));
-        PortNumber ingressPortNumber =
-                PortNumber.portNumber(getPortNumber(ingressDeviceString));
+        DeviceId ingressDeviceId = deviceId(getDeviceId(ingressDeviceString));
+        PortNumber ingressPortNumber = portNumber(getPortNumber(ingressDeviceString));
         ConnectPoint ingress = new ConnectPoint(ingressDeviceId, ingressPortNumber);
 
-        DeviceId egressDeviceId = DeviceId.deviceId(getDeviceId(egressDeviceString));
-        PortNumber egressPortNumber =
-                PortNumber.portNumber(getPortNumber(egressDeviceString));
+        DeviceId egressDeviceId = deviceId(getDeviceId(egressDeviceString));
+        PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
@@ -79,14 +79,10 @@ public class IntentPushTestCommand extends AbstractShellCommand
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             TrafficSelector s = selector
-                                .matchEthSrc(MacAddress.valueOf(i))
-                                .build();
-            Intent intent =
-                    new PointToPointIntent(new IntentId(id++),
-                                                     s,
-                                                     treatment,
-                                                     ingress,
-                                                     egress);
+                    .matchEthSrc(MacAddress.valueOf(i))
+                    .build();
+            Intent intent = new PointToPointIntent(appId(), s, treatment,
+                                                   ingress, egress);
             service.submit(intent);
         }
         try {

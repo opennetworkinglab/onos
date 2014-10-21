@@ -1,13 +1,11 @@
 package org.onlab.onos.sdnip;
 
-import java.util.List;
-
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.sdnip.config.BgpPeer;
@@ -21,6 +19,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Manages the connectivity requirements between peers.
@@ -38,11 +38,13 @@ public class PeerConnectivityManager {
     private final InterfaceService interfaceService;
     private final IntentService intentService;
 
-    // TODO this sucks.
-    private int intentId = 0;
+    private final ApplicationId appId;
 
-    public PeerConnectivityManager(SdnIpConfigService configInfoService,
-            InterfaceService interfaceService, IntentService intentService) {
+    public PeerConnectivityManager(ApplicationId appId,
+                                   SdnIpConfigService configInfoService,
+                                   InterfaceService interfaceService,
+                                   IntentService intentService) {
+        this.appId = appId;
         this.configInfoService = configInfoService;
         this.interfaceService = interfaceService;
         this.intentService = intentService;
@@ -53,15 +55,15 @@ public class PeerConnectivityManager {
         if (interfaceService.getInterfaces().isEmpty()) {
 
             log.warn("The interface in configuration file is empty. "
-                    + "Thus, the SDN-IP application can not be started.");
+                             + "Thus, the SDN-IP application can not be started.");
         } else if (configInfoService.getBgpPeers().isEmpty()) {
 
             log.warn("The BGP peer in configuration file is empty."
-                    + "Thus, the SDN-IP application can not be started.");
+                             + "Thus, the SDN-IP application can not be started.");
         } else if (configInfoService.getBgpSpeakers() == null) {
 
             log.error("The BGP speaker in configuration file is empty. "
-                    + "Thus, the SDN-IP application can not be started.");
+                              + "Thus, the SDN-IP application can not be started.");
             return;
         }
 
@@ -80,7 +82,7 @@ public class PeerConnectivityManager {
         for (BgpSpeaker bgpSpeaker : configInfoService.getBgpSpeakers()
                 .values()) {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
-                    bgpSpeaker);
+                      bgpSpeaker);
             ConnectPoint bgpdConnectPoint = bgpSpeaker.connectPoint();
 
             List<InterfaceAddress> interfaceAddresses =
@@ -89,14 +91,14 @@ public class PeerConnectivityManager {
             for (BgpPeer bgpPeer : configInfoService.getBgpPeers().values()) {
 
                 log.debug("Start to set up BGP paths between BGP speaker: {} "
-                        + "to BGP peer: {}", bgpSpeaker, bgpPeer);
+                                  + "to BGP peer: {}", bgpSpeaker, bgpPeer);
 
                 Interface peerInterface = interfaceService.getInterface(
                         bgpPeer.connectPoint());
                 if (peerInterface == null) {
                     log.error("Can not find the corresponding Interface from "
-                            + "configuration for BGP peer {}",
-                            bgpPeer.ipAddress());
+                                      + "configuration for BGP peer {}",
+                              bgpPeer.ipAddress());
                     continue;
                 }
 
@@ -110,7 +112,7 @@ public class PeerConnectivityManager {
                 }
                 if (bgpdAddress == null) {
                     log.debug("There is no interface IP address for bgpPeer: {}"
-                            + " on interface {}", bgpPeer, bgpPeer.connectPoint());
+                                      + " on interface {}", bgpPeer, bgpPeer.connectPoint());
                     return;
                 }
 
@@ -123,7 +125,7 @@ public class PeerConnectivityManager {
                 // TODO: The usage of PacketMatchBuilder will be improved, then we
                 // only need to new the PacketMatchBuilder once.
                 // By then, the code here will be improved accordingly.
-                 TrafficSelector selector = DefaultTrafficSelector.builder()
+                TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
@@ -134,13 +136,13 @@ public class PeerConnectivityManager {
                 TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                         .build();
 
-                PointToPointIntent intentMatchDstTcpPort = new PointToPointIntent(
-                        nextIntentId(), selector, treatment,
-                        bgpdConnectPoint, bgpdPeerConnectPoint);
+                PointToPointIntent intentMatchDstTcpPort =
+                        new PointToPointIntent(appId, selector, treatment,
+                                               bgpdConnectPoint, bgpdPeerConnectPoint);
                 intentService.submit(intentMatchDstTcpPort);
                 log.debug("Submitted BGP path intent matching dst TCP port 179 "
-                        + "from BGPd {} to peer {}: {}",
-                        bgpdAddress, bgpdPeerAddress, intentMatchDstTcpPort);
+                                  + "from BGPd {} to peer {}: {}",
+                          bgpdAddress, bgpdPeerAddress, intentMatchDstTcpPort);
 
                 // install intent for BGP path from BGPd to BGP peer matching
                 // source TCP port 179
@@ -152,13 +154,13 @@ public class PeerConnectivityManager {
                         .matchTcpSrc(BGP_PORT)
                         .build();
 
-                PointToPointIntent intentMatchSrcTcpPort = new PointToPointIntent(
-                        nextIntentId(), selector, treatment,
-                        bgpdConnectPoint, bgpdPeerConnectPoint);
+                PointToPointIntent intentMatchSrcTcpPort =
+                        new PointToPointIntent(appId, selector, treatment,
+                                               bgpdConnectPoint, bgpdPeerConnectPoint);
                 intentService.submit(intentMatchSrcTcpPort);
                 log.debug("Submitted BGP path intent matching src TCP port 179"
-                        + "from BGPd {} to peer {}: {}",
-                        bgpdAddress, bgpdPeerAddress, intentMatchSrcTcpPort);
+                                  + "from BGPd {} to peer {}: {}",
+                          bgpdAddress, bgpdPeerAddress, intentMatchSrcTcpPort);
 
                 // install intent for reversed BGP path from BGP peer to BGPd
                 // matching destination TCP port 179
@@ -170,13 +172,13 @@ public class PeerConnectivityManager {
                         .matchTcpDst(BGP_PORT)
                         .build();
 
-                PointToPointIntent reversedIntentMatchDstTcpPort = new PointToPointIntent(
-                        nextIntentId(), selector, treatment,
-                        bgpdPeerConnectPoint, bgpdConnectPoint);
+                PointToPointIntent reversedIntentMatchDstTcpPort =
+                        new PointToPointIntent(appId, selector, treatment,
+                                               bgpdPeerConnectPoint, bgpdConnectPoint);
                 intentService.submit(reversedIntentMatchDstTcpPort);
                 log.debug("Submitted BGP path intent matching dst TCP port 179"
-                        + "from BGP peer {} to BGPd {} : {}",
-                        bgpdPeerAddress, bgpdAddress, reversedIntentMatchDstTcpPort);
+                                  + "from BGP peer {} to BGPd {} : {}",
+                          bgpdPeerAddress, bgpdAddress, reversedIntentMatchDstTcpPort);
 
                 // install intent for reversed BGP path from BGP peer to BGPd
                 // matching source TCP port 179
@@ -188,13 +190,13 @@ public class PeerConnectivityManager {
                         .matchTcpSrc(BGP_PORT)
                         .build();
 
-                PointToPointIntent reversedIntentMatchSrcTcpPort = new PointToPointIntent(
-                        nextIntentId(), selector, treatment,
-                        bgpdPeerConnectPoint, bgpdConnectPoint);
+                PointToPointIntent reversedIntentMatchSrcTcpPort =
+                        new PointToPointIntent(appId, selector, treatment,
+                                               bgpdPeerConnectPoint, bgpdConnectPoint);
                 intentService.submit(reversedIntentMatchSrcTcpPort);
                 log.debug("Submitted BGP path intent matching src TCP port 179"
-                        + "from BGP peer {} to BGPd {} : {}",
-                        bgpdPeerAddress, bgpdAddress, reversedIntentMatchSrcTcpPort);
+                                  + "from BGP peer {} to BGPd {} : {}",
+                          bgpdPeerAddress, bgpdAddress, reversedIntentMatchSrcTcpPort);
 
             }
         }
@@ -212,7 +214,7 @@ public class PeerConnectivityManager {
         for (BgpSpeaker bgpSpeaker : configInfoService.getBgpSpeakers()
                 .values()) {
             log.debug("Start to set up ICMP paths for BGP speaker: {}",
-                    bgpSpeaker);
+                      bgpSpeaker);
             ConnectPoint bgpdConnectPoint = bgpSpeaker.connectPoint();
             List<InterfaceAddress> interfaceAddresses = bgpSpeaker
                     .interfaceAddresses();
@@ -224,8 +226,8 @@ public class PeerConnectivityManager {
 
                 if (peerInterface == null) {
                     log.error("Can not find the corresponding Interface from "
-                            + "configuration for BGP peer {}",
-                            bgpPeer.ipAddress());
+                                      + "configuration for BGP peer {}",
+                              bgpPeer.ipAddress());
                     continue;
                 }
                 IpAddress bgpdAddress = null;
@@ -239,8 +241,8 @@ public class PeerConnectivityManager {
                 }
                 if (bgpdAddress == null) {
                     log.debug("There is no IP address for bgpPeer: {} on "
-                            + "interface port: {}", bgpPeer,
-                            bgpPeer.connectPoint());
+                                      + "interface port: {}", bgpPeer,
+                              bgpPeer.connectPoint());
                     return;
                 }
 
@@ -258,12 +260,12 @@ public class PeerConnectivityManager {
                 TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                         .build();
 
-                PointToPointIntent intent = new PointToPointIntent(
-                        nextIntentId(), selector, treatment,
-                        bgpdConnectPoint, bgpdPeerConnectPoint);
+                PointToPointIntent intent =
+                        new PointToPointIntent(appId, selector, treatment,
+                                               bgpdConnectPoint, bgpdPeerConnectPoint);
                 intentService.submit(intent);
                 log.debug("Submitted ICMP path intent from BGPd {} to peer {} :"
-                        + " {}", bgpdAddress, bgpdPeerAddress, intent);
+                                  + " {}", bgpdAddress, bgpdPeerAddress, intent);
 
                 // install intent for reversed ICMP path from BGP peer to BGPd
                 selector = DefaultTrafficSelector.builder()
@@ -273,18 +275,15 @@ public class PeerConnectivityManager {
                         .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(), IPV4_BIT_LENGTH))
                         .build();
 
-                PointToPointIntent reversedIntent = new PointToPointIntent(
-                        nextIntentId(), selector, treatment,
-                        bgpdPeerConnectPoint, bgpdConnectPoint);
+                PointToPointIntent reversedIntent =
+                        new PointToPointIntent(appId, selector, treatment,
+                                               bgpdPeerConnectPoint, bgpdConnectPoint);
                 intentService.submit(reversedIntent);
                 log.debug("Submitted ICMP path intent from BGP peer {} to BGPd"
-                        + " {} : {}",
-                        bgpdPeerAddress, bgpdAddress, reversedIntent);
+                                  + " {} : {}",
+                          bgpdPeerAddress, bgpdAddress, reversedIntent);
             }
         }
     }
 
-    private IntentId nextIntentId() {
-        return new IntentId(intentId++);
-    }
 }

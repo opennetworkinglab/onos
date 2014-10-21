@@ -30,6 +30,7 @@ public final class Lambda extends LinkResource {
 
     /**
      * Returns lambda as an int value.
+     *
      * @return lambda as an int value
      */
     public int toInt() {

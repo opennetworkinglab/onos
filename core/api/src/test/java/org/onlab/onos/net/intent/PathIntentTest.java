@@ -16,21 +16,19 @@ public class PathIntentTest extends ConnectivityIntentTest {
     @Test
     public void basics() {
         PathIntent intent = createOne();
-        assertEquals("incorrect id", IID, intent.id());
+        assertEquals("incorrect id", APPID, intent.appId());
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect action", NOP, intent.treatment());
-        assertEquals("incorrect ingress", P1, intent.ingressPoint());
-        assertEquals("incorrect egress", P2, intent.egressPoint());
         assertEquals("incorrect path", PATH1, intent.path());
     }
 
     @Override
     protected PathIntent createOne() {
-        return new PathIntent(IID, MATCH, NOP, P1, P2, PATH1);
+        return new PathIntent(APPID, MATCH, NOP, PATH1);
     }
 
     @Override
     protected PathIntent createAnother() {
-        return new PathIntent(IID, MATCH, NOP, P1, P3, PATH2);
+        return new PathIntent(APPID, MATCH, NOP, PATH2);
     }
 }
