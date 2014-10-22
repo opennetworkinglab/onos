@@ -1,5 +1,6 @@
 package org.onlab.onos.net.link;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
@@ -44,6 +45,13 @@ public class DefaultLinkDescription extends AbstractDescription
     @Override
     public Link.Type type() {
         return type;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper("Link").add("src", src())
+                                .add("dst", dst())
+                                .add("type", type()).toString();
     }
 
 }

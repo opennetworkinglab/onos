@@ -257,10 +257,10 @@ public class LinkDiscovery implements TimerTask {
                     sendProbes(portNumber);
                 } else {
                     // Update fast and slow ports
-                    //fastIterator.remove();
-                    //this.slowPorts.add(portNumber);
-                    //this.portProbeCount.remove(portNumber);
-                    this.portProbeCount.get(portNumber).set(0);
+                    fastIterator.remove();
+                    this.slowPorts.add(portNumber);
+                    this.portProbeCount.remove(portNumber);
+
 
                     ConnectPoint cp = new ConnectPoint(
                             device.id(),

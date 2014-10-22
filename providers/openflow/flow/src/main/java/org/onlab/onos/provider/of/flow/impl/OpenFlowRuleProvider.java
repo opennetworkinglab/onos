@@ -205,7 +205,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             pendingFMs.put(xid, installation);
         }
         pendingFutures.put(U32.f(batch.hashCode()), installation);
-        installation.verify(batch.hashCode());
+        installation.verify(U32.f(batch.hashCode()));
         return installation;
     }
 
@@ -226,7 +226,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public void switchRemoved(Dpid dpid) {
-            collectors.remove(dpid).stop();
+            FlowStatsCollector collector = collectors.remove(dpid);
+            if (collector != null) {
+                collector.stop();
+            }
         }
 
         @Override
@@ -321,7 +324,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         private final List<FlowEntry> offendingFlowMods = Lists.newLinkedList();
 
         private final CountDownLatch countDownLatch;
-        private Integer pendingXid;
+        private Long pendingXid;
         private BatchState state;
 
         public InstallationFuture(Set<Dpid> sws, Map<Long, FlowRuleBatchEntry> fmXids) {
@@ -391,7 +394,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
 
-        public void verify(Integer id) {
+        public void verify(Long id) {
             pendingXid = id;
             for (Dpid dpid : sws) {
                 OpenFlowSwitch sw = controller.getSwitch(dpid);
@@ -449,7 +452,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         private void cleanUp() {
             if (isDone() || isCancelled()) {
-                pendingFutures.remove(pendingXid);
+                if (pendingXid != null) {
+                    pendingFutures.remove(pendingXid);
+                }
                 for (Long xid : fms.keySet()) {
                     pendingFMs.remove(xid);
                 }
