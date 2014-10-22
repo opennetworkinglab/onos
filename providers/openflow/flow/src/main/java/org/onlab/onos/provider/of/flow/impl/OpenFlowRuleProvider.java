@@ -31,7 +31,7 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
 import org.onlab.onos.net.flow.FlowRuleProviderService;
-import org.onlab.onos.net.intent.BatchOperation;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.TopologyService;

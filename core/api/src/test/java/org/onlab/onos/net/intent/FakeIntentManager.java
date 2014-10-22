@@ -172,6 +172,11 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public void replace(IntentId oldIntentId, Intent newIntent) {
+        // TODO: implement later
+    }
+
+    @Override
     public Future<IntentOperations> execute(IntentOperations operations) {
         // TODO: implement later
         return null;

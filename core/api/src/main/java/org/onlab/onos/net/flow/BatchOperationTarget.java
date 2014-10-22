@@ -16,8 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.onlab.onos.net.flow;
 
 /**
- * Traffic treatment model.
+ * An interface of the class which is assigned to BatchOperation.
  */
-package org.onlab.onos.net.flow.instructions;
+public interface BatchOperationTarget {
+
+}

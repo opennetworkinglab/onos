@@ -1,9 +1,28 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.onlab.onos.net.intent;
 
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.onos.net.intent.IntentOperation.Type.REPLACE;
 import static org.onlab.onos.net.intent.IntentOperation.Type.SUBMIT;
 import static org.onlab.onos.net.intent.IntentOperation.Type.WITHDRAW;
@@ -47,7 +66,7 @@ public final class IntentOperations {
      */
     public static final class Builder {
 
-        ImmutableList.Builder<IntentOperation> builder = ImmutableList.builder();
+        private final ImmutableList.Builder<IntentOperation> builder = ImmutableList.builder();
 
         // Public construction is forbidden.
         private Builder() {
@@ -60,6 +79,7 @@ public final class IntentOperations {
          * @return self
          */
         public Builder addSubmitOperation(Intent intent) {
+            checkNotNull(intent, "Intent cannot be null");
             builder.add(new IntentOperation(SUBMIT, intent.id(), intent));
             return this;
         }
@@ -72,6 +92,8 @@ public final class IntentOperations {
          * @return self
          */
         public Builder addReplaceOperation(IntentId oldIntentId, Intent newIntent) {
+            checkNotNull(oldIntentId, "Intent ID cannot be null");
+            checkNotNull(newIntent, "Intent cannot be null");
             builder.add(new IntentOperation(REPLACE, oldIntentId, newIntent));
             return this;
         }
@@ -83,6 +105,7 @@ public final class IntentOperations {
          * @return self
          */
         public Builder addWithdrawOperation(IntentId intentId) {
+            checkNotNull(intentId, "Intent ID cannot be null");
             builder.add(new IntentOperation(WITHDRAW, intentId, null));
             return this;
         }

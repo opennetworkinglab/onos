@@ -45,7 +45,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.intent.BatchOperation;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
