@@ -9,6 +9,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
+
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
@@ -35,12 +36,14 @@ public class StatisticManager implements StatisticService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StatisticStore statisticStore;
 
+
     private final InternalFlowRuleListener listener = new InternalFlowRuleListener();
 
     @Activate
     public void activate() {
         flowRuleService.addListener(listener);
         log.info("Started");
+
     }
 
     @Deactivate
@@ -81,7 +84,22 @@ public class StatisticManager implements StatisticService {
 
         @Override
         public void event(FlowRuleEvent event) {
-
+//            FlowRule rule = event.subject();
+//            switch (event.type()) {
+//                case RULE_ADDED:
+//                case RULE_UPDATED:
+//                    if (rule instanceof FlowEntry) {
+//                        statisticStore.addOrUpdateStatistic((FlowEntry) rule);
+//                    }
+//                    break;
+//                case RULE_ADD_REQUESTED:
+//                    statisticStore.prepareForStatistics(rule);
+//                    break;
+//                case RULE_REMOVE_REQUESTED:
+//                case RULE_REMOVED:
+//                    statisticStore.removeFromStatistics(rule);
+//                    break;
+//            }
         }
     }
 

@@ -177,6 +177,7 @@ public class SimpleFlowRuleStore
     public boolean deleteFlowRule(FlowRule rule) {
 
         List<StoredFlowEntry> entries = getFlowEntries(rule.deviceId(), rule.id());
+
         synchronized (entries) {
             for (StoredFlowEntry entry : entries) {
                 if (entry.equals(rule)) {

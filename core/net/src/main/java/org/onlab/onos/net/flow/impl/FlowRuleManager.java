@@ -299,7 +299,8 @@ public class FlowRuleManager
         private void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            removeFlowRules(flowRule);
+            FlowRuleProvider frp = getProvider(flowRule.deviceId());
+            frp.removeFlowRule(flowRule);
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 

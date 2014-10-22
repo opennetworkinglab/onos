@@ -82,12 +82,28 @@ public class SimpleIntentStore
     public IntentEvent setState(Intent intent, IntentState state) {
         IntentId id = intent.id();
         states.put(id, state);
-        IntentEvent.Type type = (state == SUBMITTED ? IntentEvent.Type.SUBMITTED :
-                (state == INSTALLED ? IntentEvent.Type.INSTALLED :
-                        (state == FAILED ? IntentEvent.Type.FAILED :
-                                state == WITHDRAWN ? IntentEvent.Type.WITHDRAWN :
-                                        null)));
-        return type == null ? null : new IntentEvent(type, intent);
+        IntentEvent.Type type = null;
+
+        switch (state) {
+        case SUBMITTED:
+            type = IntentEvent.Type.SUBMITTED;
+            break;
+        case INSTALLED:
+            type = IntentEvent.Type.INSTALLED;
+            break;
+        case FAILED:
+            type = IntentEvent.Type.FAILED;
+            break;
+        case WITHDRAWN:
+            type = IntentEvent.Type.WITHDRAWN;
+            break;
+        default:
+            break;
+        }
+        if (type == null) {
+            return null;
+        }
+        return new IntentEvent(type, intent);
     }
 
     @Override

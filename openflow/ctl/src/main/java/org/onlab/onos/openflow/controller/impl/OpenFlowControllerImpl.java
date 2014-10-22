@@ -27,6 +27,8 @@ import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,6 +148,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 l.portChanged(dpid, (OFPortStatus) msg);
             }
             break;
+        case FEATURES_REPLY:
+            for (OpenFlowSwitchListener l : ofSwitchListener) {
+                l.switchChanged(dpid);
+            }
+            break;
         case PACKET_IN:
             OpenFlowPacketContext pktCtx = DefaultOpenFlowPacketContext
             .packetContextFromPacketIn(this.getSwitch(dpid),
@@ -154,9 +161,15 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 p.handlePacket(pktCtx);
             }
             break;
+        case STATS_REPLY:
+            OFStatsReply reply = (OFStatsReply) msg;
+            if (reply.getStatsType().equals(OFStatsType.PORT_DESC)) {
+                for (OpenFlowSwitchListener l : ofSwitchListener) {
+                    l.switchChanged(dpid);
+                }
+            }
         case FLOW_REMOVED:
         case ERROR:
-        case STATS_REPLY:
         case BARRIER_REPLY:
             executor.submit(new OFMessageHandler(dpid, msg));
             break;

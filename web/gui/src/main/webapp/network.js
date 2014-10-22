@@ -100,7 +100,7 @@
 
         network.data.nodes.forEach(function(n) {
             var ypc = yPosConstraintForNode(n),
-                ix = Math.random() * 0.8 * nw + 0.1 * nw,
+                ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
                     id: n.id,
@@ -152,11 +152,49 @@
             .attr('width', view.width)
             .attr('height', view.height)
             .append('g')
-            .attr('transform', config.force.translate());
+//            .attr('id', 'zoomable')
+            .attr('transform', config.force.translate())
+//            .call(d3.behavior.zoom().on("zoom", zoomRedraw));
 
-        // TODO: svg.append('defs')
-        // TODO: glow/blur stuff
+//        function zoomRedraw() {
+//            d3.select("#zoomable").attr("transform",
+//                    "translate(" + d3.event.translate + ")"
+//                    + " scale(" + d3.event.scale + ")");
+//        }
+
+        // TODO: svg.append('defs') for markers?
+
+        // TODO: move glow/blur stuff to util script
+        var glow = network.svg.append('filter')
+            .attr('x', '-50%')
+            .attr('y', '-50%')
+            .attr('width', '200%')
+            .attr('height', '200%')
+            .attr('id', 'blue-glow');
+
+        glow.append('feColorMatrix')
+            .attr('type', 'matrix')
+            .attr('values', '0 0 0 0  0 ' +
+                '0 0 0 0  0 ' +
+                '0 0 0 0  .7 ' +
+                '0 0 0 1  0 ');
+
+        glow.append('feGaussianBlur')
+            .attr('stdDeviation', 3)
+            .attr('result', 'coloredBlur');
+
+        glow.append('feMerge').selectAll('feMergeNode')
+            .data(['coloredBlur', 'SourceGraphic'])
+            .enter().append('feMergeNode')
+            .attr('in', String);
+
         // TODO: legend (and auto adjust on scroll)
+//        $('#view').on('scroll', function() {
+//
+//        });
+
+
+
 
         network.link = network.svg.append('g').selectAll('.link')
             .data(network.force.links(), function(d) {return d.id})
@@ -164,27 +202,90 @@
             .attr('class', 'link');
 
         // TODO: drag behavior
-        // TODO: closest node deselect
+        network.draggedThreshold = d3.scale.linear()
+            .domain([0, 0.1])
+            .range([5, 20])
+            .clamp(true);
+
+        function dragged(d) {
+            var threshold = network.draggedThreshold(network.force.alpha()),
+                dx = d.oldX - d.px,
+                dy = d.oldY - d.py;
+            if (Math.abs(dx) >= threshold || Math.abs(dy) >= threshold) {
+                d.dragged = true;
+            }
+            return d.dragged;
+        }
+
+        network.drag = d3.behavior.drag()
+            .origin(function(d) { return d; })
+            .on('dragstart', function(d) {
+                d.oldX = d.x;
+                d.oldY = d.y;
+                d.dragged = false;
+                d.fixed |= 2;
+            })
+            .on('drag', function(d) {
+                d.px = d3.event.x;
+                d.py = d3.event.y;
+                if (dragged(d)) {
+                    if (!network.force.alpha()) {
+                        network.force.alpha(.025);
+                    }
+                }
+            })
+            .on('dragend', function(d) {
+                if (!dragged(d)) {
+                    selectObject(d, this);
+                }
+                d.fixed &= ~6;
+            });
+
+        $('#view').on('click', function(e) {
+            if (!$(e.target).closest('.node').length) {
+                deselectObject();
+            }
+        });
 
         // TODO: add drag, mouseover, mouseout behaviors
         network.node = network.svg.selectAll('.node')
             .data(network.force.nodes(), function(d) {return d.id})
             .enter().append('g')
-            .attr('class', 'node')
+            .attr('class', function(d) {
+                return 'node ' + d.type;
+            })
             .attr('transform', function(d) {
                 return translate(d.x, d.y);
             })
-        //        .call(network.drag)
-            .on('mouseover', function(d) {})
-            .on('mouseout', function(d) {});
+            .call(network.drag)
+            .on('mouseover', function(d) {
+                if (!selected.obj) {
+                    if (network.mouseoutTimeout) {
+                        clearTimeout(network.mouseoutTimeout);
+                        network.mouseoutTimeout = null;
+                    }
+                    highlightObject(d);
+                }
+            })
+            .on('mouseout', function(d) {
+                if (!selected.obj) {
+                    if (network.mouseoutTimeout) {
+                        clearTimeout(network.mouseoutTimeout);
+                        network.mouseoutTimeout = null;
+                    }
+                    network.mouseoutTimeout = setTimeout(function() {
+                        highlightObject(null);
+                    }, 160);
+                }
+            });
 
         // TODO: augment stroke and fill functions
         network.nodeRect = network.node.append('rect')
             // TODO: css for node rects
             .attr('rx', 5)
             .attr('ry', 5)
-            .attr('stroke', function(d) { return '#000'})
-            .attr('fill', function(d) { return '#ddf'})
+//            .attr('stroke', function(d) { return '#000'})
+//            .attr('fill', function(d) { return '#ddf'})
             .attr('width', 60)
             .attr('height', 24);
 

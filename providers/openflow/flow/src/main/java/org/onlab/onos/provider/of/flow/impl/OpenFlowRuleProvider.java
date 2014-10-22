@@ -233,6 +233,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         @Override
+        public void switchChanged(Dpid dpid) {
+        }
+
+        @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
             //TODO: Decide whether to evict flows internal store.
         }
@@ -313,6 +317,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
             return false;
         }
+
     }
 
     private class InstallationFuture implements Future<CompletedBatchOperation> {

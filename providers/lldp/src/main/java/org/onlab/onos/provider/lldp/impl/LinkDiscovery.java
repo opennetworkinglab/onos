@@ -344,7 +344,8 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private void sendProbes(Long portNumber) {
-       if (mastershipService.getLocalRole(this.device.id()) ==
+       if (device.type() != Device.Type.ROADM &&
+               mastershipService.getLocalRole(this.device.id()) ==
                MastershipRole.MASTER) {
            OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
            pktService.emit(pkt);
