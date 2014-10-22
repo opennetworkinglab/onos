@@ -33,7 +33,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetNwSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
-import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteActions;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
@@ -104,8 +104,8 @@ public class FlowEntryBuilder {
             case OF_13:
                 List<OFInstruction> ins = entry.getInstructions();
                 for (OFInstruction in : ins) {
-                    if (in.getType().equals(OFInstructionType.APPLY_ACTIONS)) {
-                        OFInstructionApplyActions apply = (OFInstructionApplyActions) in;
+                    if (in.getType().equals(OFInstructionType.WRITE_ACTIONS)) {
+                        OFInstructionWriteActions apply = (OFInstructionWriteActions) in;
                         return apply.getActions();
                     }
                 }

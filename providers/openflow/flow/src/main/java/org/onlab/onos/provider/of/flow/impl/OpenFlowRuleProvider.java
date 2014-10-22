@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.FlowEntry;
@@ -31,7 +32,6 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
 import org.onlab.onos.net.flow.FlowRuleProviderService;
-import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.TopologyService;
@@ -148,7 +148,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void applyRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        sw.sendMsg(new FlowModBuilder(flowRule, sw.factory()).buildFlowAdd());
+        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory()).buildFlowAdd());
     }
 
 
@@ -163,7 +163,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        sw.sendMsg(new FlowModBuilder(flowRule, sw.factory()).buildFlowDel());
+        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory()).buildFlowDel());
     }
 
     @Override
@@ -192,7 +192,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 return failed;
             }
             sws.add(new Dpid(sw.getId()));
-            FlowModBuilder builder = new FlowModBuilder(flowRule, sw.factory());
+            FlowModBuilder builder = FlowModBuilder.builder(flowRule, sw.factory());
             switch (fbe.getOperator()) {
                 case ADD:
                     mod = builder.buildFlowAdd();
