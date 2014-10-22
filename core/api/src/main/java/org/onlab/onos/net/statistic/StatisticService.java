@@ -41,7 +41,7 @@ public interface StatisticService {
     Link min(Path path);
 
     /**
-     * Returns the highest hitter (a flow rule) of for a given port, ie. the
+     * Returns the highest hitter (a flow rule) for a given port, ie. the
      * flow rule which is generating the most load.
      * @param connectPoint the port
      * @return the flow rule
