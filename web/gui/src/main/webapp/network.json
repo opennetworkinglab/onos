@@ -1,0 +1,56 @@
+{
+    "id": "network-v1",
+    "meta": {
+        "__comment_1__": "This is sample data for developing the ONOS UI",
+        "foo": "bar",
+        "zoo": "goo"
+    },
+    "nodes": [
+        {
+            "id": "switch-1",
+            "type": "opt",
+            "status": "good"
+        },
+        {
+            "id": "switch-2",
+            "type": "opt",
+            "status": "good"
+        },
+        {
+            "id": "switch-3",
+            "type": "opt",
+            "status": "good"
+        },
+        {
+            "id": "switch-4",
+            "type": "opt",
+            "status": "good"
+        },
+        {
+            "id": "switch-11",
+            "type": "pkt",
+            "status": "good"
+        },
+        {
+            "id": "switch-12",
+            "type": "pkt",
+            "status": "good"
+        },
+        {
+            "id": "switch-13",
+            "type": "pkt",
+            "status": "good"
+        }
+    ],
+    "links": [
+        { "src": "switch-1", "dst": "switch-2" },
+        { "src": "switch-1", "dst": "switch-3" },
+        { "src": "switch-1", "dst": "switch-4" },
+        { "src": "switch-2", "dst": "switch-3" },
+        { "src": "switch-2", "dst": "switch-4" },
+        { "src": "switch-3", "dst": "switch-4" },
+        { "src": "switch-13", "dst": "switch-3" },
+        { "src": "switch-12", "dst": "switch-2" },
+        { "src": "switch-11", "dst": "switch-1" }
+    ]
+}

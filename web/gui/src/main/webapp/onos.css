@@ -1,0 +1,124 @@
+/*
+ ONOS CSS file
+
+ @author Simon Hunt
+ */
+
+body, html {
+    height: 100%;
+}
+
+/*
+ * Classes
+ */
+
+span.title {
+    color: red;
+    font-size: 16pt;
+    font-style: italic;
+}
+
+span.radio {
+    color: darkslateblue;
+}
+
+span.right {
+    float: right;
+}
+
+/*
+ * === DEBUGGING ======
+ */
+svg {
+    border: 1px dashed red;
+}
+
+
+/*
+ * Network Graph elements ======================================
+ */
+
+.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 1.5px;
+    opacity: .7;
+    /*marker-end: url(#end);*/
+
+    transition: opacity 250ms;
+    -webkit-transition: opacity 250ms;
+    -moz-transition: opacity 250ms;
+}
+
+marker#end {
+    fill: #666;
+    stroke: #666;
+    stroke-width: 1.5px;
+}
+
+.node rect {
+    stroke-width: 1.5px;
+
+    transition: opacity 250ms;
+    -webkit-transition: opacity 250ms;
+    -moz-transition: opacity 250ms;
+}
+
+.node text {
+    fill: #000;
+    font: 10px sans-serif;
+    pointer-events: none;
+}
+
+.node.selected rect {
+    filter: url(#blue-glow);
+}
+
+.link.inactive,
+.node.inactive rect,
+.node.inactive text {
+    opacity: .2;
+}
+
+.node.inactive.selected rect,
+.node.inactive.selected text {
+    opacity: .6;
+}
+
+.legend {
+    position: fixed;
+}
+
+.legend .category rect {
+    stroke-width: 1px;
+}
+
+.legend .category text {
+    fill: #000;
+    font: 10px sans-serif;
+    pointer-events: none;
+}
+
+/*
+ * =============================================================
+ */
+
+/*
+ * Specific structural elements
+ */
+
+#frame {
+    width: 100%;
+    height: 100%;
+    background-color: #ffd;
+}
+
+#mast {
+    height: 32px;
+    background-color: #dda;
+    vertical-align: baseline;
+}
+
+#main {
+    background-color: #99b;
+}

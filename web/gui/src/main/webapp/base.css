@@ -1,0 +1,15 @@
+/*
+ Base CSS file
+
+ @author Simon Hunt
+ */
+
+html {
+    font-family: sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+}
