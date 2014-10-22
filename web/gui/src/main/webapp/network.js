@@ -10,11 +10,16 @@
     var api = onos.api;
 
     var config = {
+            layering: false,
             jsonUrl: 'network.json',
+            iconUrl: {
+                pkt: 'pkt.png',
+                opt: 'opt.png'
+            },
             mastHeight: 32,
             force: {
-                linkDistance: 150,
-                linkStrength: 0.9,
+                linkDistance: 240,
+                linkStrength: 0.8,
                 charge: -400,
                 ticksWithoutCollisions: 50,
                 marginLR: 20,
@@ -286,16 +291,24 @@
             .attr('ry', 5)
 //            .attr('stroke', function(d) { return '#000'})
 //            .attr('fill', function(d) { return '#ddf'})
-            .attr('width', 60)
+            .attr('width', 126)
             .attr('height', 24);
 
         network.node.each(function(d) {
             var node = d3.select(this),
-                rect = node.select('rect');
-            var text = node.append('text')
-                .text(d.id)
-                .attr('dx', '1em')
-                .attr('dy', '2.1em');
+                rect = node.select('rect'),
+                img = node.append('svg:image')
+                    .attr('x', -9)
+                    .attr('y', -12)
+                    .attr('width', 32)
+                    .attr('height', 32)
+                    .attr('xlink:href', iconUrl(d)),
+                text = node.append('text')
+                    .text(d.id)
+                    .attr('dx', '1.0em')
+                    .attr('dy', '1.8em'),
+                dummy;
+
         });
 
         // this function is scheduled to happen soon after the given thread ends
@@ -322,6 +335,10 @@
 
     }
 
+    function iconUrl(d) {
+        return config.iconUrl[d.type];
+    }
+
     function translate(x, y) {
         return 'translate(' + x + ',' + y + ')';
     }
@@ -330,13 +347,15 @@
     function tick(e) {
         network.numTicks++;
 
-        // adjust the y-coord of each node, based on y-pos constraints
-//        network.nodes.forEach(function (n) {
-//            var z = e.alpha * n.constraint.weight;
-//            if (!isNaN(n.constraint.y)) {
-//                n.y = (n.constraint.y * z + n.y * (1 - z));
-//            }
-//        });
+        if (config.layering) {
+            // adjust the y-coord of each node, based on y-pos constraints
+            network.nodes.forEach(function (n) {
+                var z = e.alpha * n.constraint.weight;
+                if (!isNaN(n.constraint.y)) {
+                    n.y = (n.constraint.y * z + n.y * (1 - z));
+                }
+            });
+        }
 
         network.link
             .attr('x1', function(d) {
