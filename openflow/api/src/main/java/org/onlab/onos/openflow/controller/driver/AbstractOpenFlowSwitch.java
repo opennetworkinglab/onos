@@ -288,6 +288,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
             // The message wasn't really a Nicira role reply. We just
             // dispatch it to the OFMessage listeners in this case.
             this.handleMessage(m);
+            return;
         }
 
         RoleRecvStatus rrs = this.roleMan.deliverRoleReply(
@@ -301,8 +302,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
                 this.transitionToEqualSwitch();
             }
         } else {
-            return;
-            //TODO: tell people that we failed.
+            this.disconnectSwitch();
         }
     }
 

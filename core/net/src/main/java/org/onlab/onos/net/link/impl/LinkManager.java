@@ -201,10 +201,10 @@ public class LinkManager
             ConnectPoint dst = linkDescription.dst();
             // if we aren't master for the device associated with the ConnectPoint
             // we probably shouldn't be doing this.
-            if ((deviceService.getRole(src.deviceId()) != MastershipRole.MASTER) ||
-                    (deviceService.getRole(dst.deviceId()) != MastershipRole.MASTER)) {
-                return;
-            }
+
+//            if (deviceService.getRole(dst.deviceId()) != MastershipRole.MASTER) {
+//                return;
+//            }
             LinkEvent event = store.createOrUpdateLink(provider().id(),
                                                        linkDescription);
             if (event != null) {
@@ -220,14 +220,8 @@ public class LinkManager
 
             ConnectPoint src = linkDescription.src();
             ConnectPoint dst = linkDescription.dst();
-            // if we aren't master for the device associated with the ConnectPoint
-            // we probably shouldn't be doing this.
-            if ((deviceService.getRole(src.deviceId()) != MastershipRole.MASTER) ||
-                    (deviceService.getRole(dst.deviceId()) != MastershipRole.MASTER)) {
-                return;
-            }
-            LinkEvent event = store.removeLink(linkDescription.src(),
-                                               linkDescription.dst());
+
+            LinkEvent event = store.removeLink(src, dst);
             if (event != null) {
                 log.info("Link {} vanished", linkDescription);
                 post(event);

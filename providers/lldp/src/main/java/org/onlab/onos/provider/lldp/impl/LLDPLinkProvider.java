@@ -71,6 +71,15 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         providerService = providerRegistry.register(this);
         deviceService.addListener(listener);
         packetSevice.addProcessor(listener, 0);
+        LinkDiscovery ld;
+        for (Device device : deviceService.getDevices()) {
+            ld = new LinkDiscovery(device, packetSevice, masterService,
+                              providerService, useBDDP);
+            discoverers.put(device.id(), ld);
+            for (Port p : deviceService.getPorts(device.id())) {
+                ld.addPort(p);
+            }
+        }
 
         log.info("Started");
     }
@@ -96,6 +105,10 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             LinkDiscovery ld = null;
             Device device = event.subject();
             Port port = event.port();
+            if (device == null) {
+                log.error("Device is null.");
+                return;
+            }
             switch (event.type()) {
                 case DEVICE_ADDED:
                     discoverers.put(device.id(),
@@ -144,6 +157,11 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     break;
                 case DEVICE_UPDATED:
                 case DEVICE_MASTERSHIP_CHANGED:
+                    if (!discoverers.containsKey(device.id())) {
+                        discoverers.put(device.id(),
+                               new LinkDiscovery(device, packetSevice, masterService,
+                                      providerService, useBDDP));
+                    }
                     break;
                 default:
                     log.debug("Unknown event {}", event);

@@ -239,10 +239,13 @@ public class GossipLinkStore
         LinkKey key = linkKey(linkDescription.src(), linkDescription.dst());
         final LinkEvent event;
         final Timestamped<LinkDescription> mergedDesc;
-        synchronized (getOrCreateLinkDescriptions(key)) {
+        Map<ProviderId, Timestamped<LinkDescription>> map = getOrCreateLinkDescriptions(key);
+        synchronized (map) {
             event = createOrUpdateLinkInternal(providerId, deltaDesc);
-            mergedDesc = getOrCreateLinkDescriptions(key).get(providerId);
+            mergedDesc = map.get(providerId);
         }
+
+
 
         if (event != null) {
             log.info("Notifying peers of a link update topology event from providerId: "
@@ -252,8 +255,8 @@ public class GossipLinkStore
                 notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
             } catch (IOException e) {
                 log.info("Failed to notify peers of a link update topology event from providerId: "
-                        + "{}  between src: {} and dst: {}",
-                        providerId, linkDescription.src(), linkDescription.dst());
+                                 + "{}  between src: {} and dst: {}",
+                         providerId, linkDescription.src(), linkDescription.dst());
             }
         }
         return event;

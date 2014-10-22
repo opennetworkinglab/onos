@@ -134,7 +134,7 @@ public class LLDPLinkProviderTest {
         deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID2, port(DID2, 1, false)));
 
 
-        assertNull("DPID exists",
+        assertNull("DeviceId exists",
                    provider.discoverers.get(DID2));
     }
 
@@ -394,7 +394,7 @@ public class LLDPLinkProviderTest {
 
         @Override
         public Iterable<Device> getDevices() {
-            return devices.values();
+            return Collections.EMPTY_LIST;
         }
 
         @Override
