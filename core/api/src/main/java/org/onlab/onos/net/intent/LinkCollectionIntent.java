@@ -20,8 +20,8 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
     private final ConnectPoint egressPoint;
 
     /**
-     * Creates a new point-to-point intent with the supplied ingress/egress
-     * ports and using the specified explicit path.
+     * Creates a new actionable intent capable of funneling the selected
+     * traffic along the specified convergent tree and out the given egress point.
      *
      * @param appId       application identifier
      * @param selector    traffic match
