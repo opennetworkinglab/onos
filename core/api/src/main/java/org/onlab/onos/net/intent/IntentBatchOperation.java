@@ -3,6 +3,7 @@ package org.onlab.onos.net.intent;
 /**
  * A list of intent operations.
  */
+@Deprecated
 public class IntentBatchOperation extends
         BatchOperation<BatchOperationEntry<IntentBatchOperation.Operator, ?>> {
     /**

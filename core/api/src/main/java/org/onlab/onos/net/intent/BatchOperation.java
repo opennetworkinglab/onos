@@ -14,6 +14,7 @@ import java.util.List;
  * @param <T> the enum of operators <br>
  *            This enum must be defined in each sub-classes.
  */
+@Deprecated
 public abstract class BatchOperation<T extends BatchOperationEntry<?, ?>> {
 
     private final List<T> ops;

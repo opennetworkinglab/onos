@@ -2,6 +2,7 @@ package org.onlab.onos.net.intent;
 
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Service for application submitting or withdrawing their intents.
@@ -27,6 +28,8 @@ public interface IntentService {
      */
     void withdraw(Intent intent);
 
+    // void replace(IntentId oldIntentId, Intent newIntent);
+
     /**
      * Submits a batch of submit &amp; withdraw operations. Such a batch is
      * assumed to be processed together.
@@ -36,7 +39,7 @@ public interface IntentService {
      *
      * @param operations batch of intent operations
      */
-    void execute(IntentOperations operations);
+    Future<IntentOperations> execute(IntentOperations operations);
 
     /**
      * Returns an iterable of intents currently in the system.

@@ -11,6 +11,7 @@ import com.google.common.base.MoreObjects;
  * This is the interface to classes which are maintained by BatchOperation as
  * its entries.
  */
+@Deprecated
 public class BatchOperationEntry<T extends Enum<?>, U extends BatchOperationTarget> {
     private final T operator;
     private final U target;

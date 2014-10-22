@@ -126,7 +126,7 @@ public class IntentManager
 
     // FIXME: implement this method
     @Override
-    public void execute(IntentOperations operations) {
+    public Future<IntentOperations> execute(IntentOperations operations) {
         throw new UnsupportedOperationException("execute() is not implemented yet");
     }
 
