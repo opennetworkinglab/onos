@@ -47,7 +47,7 @@
                 "nodeName1": "ROADM1",
                 "nodeName2": "ROADM3",
                 "numWaves": 80,
-                "port1": 10,
+                "port1": 20,
                 "port2": 30
             },
             "type": "wdmLink"
@@ -63,7 +63,7 @@
                 "nodeName2": "ROADM2",
                 "numWaves": 80,
                 "port1": 31,
-                "port2": 20
+                "port2": 21
             },
             "type": "wdmLink"
        },
@@ -78,7 +78,7 @@
                 "nodeName2": "ROADM1",
                 "bandWidth": 100000,
                 "port1": 10,
-                "port2": 11
+                "port2": 10
             },
             "type": "pktOptLink"
         },
@@ -92,7 +92,7 @@
                 "nodeName2": "ROADM2",
                 "bandWidth": 100000,
                 "port1": 10,
-                "port2": 21
+                "port2": 11
             },
             "type": "pktOptLink"
         } 

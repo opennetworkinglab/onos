@@ -58,7 +58,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
 
     // TODO: fix hard coded file path later.
     private static final String DEFAULT_CONFIG_FILE =
-            "/opt/onos/config/demo-3-roadm-2-ps.json";
+            "config/demo-3-roadm-2-ps.json";
     private String configFileName = DEFAULT_CONFIG_FILE;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -83,7 +83,8 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
     protected OpticalNetworkConfig opticalNetworkConfig;
 
     public OpticalConfigProvider() {
-        super(new ProviderId("of", "org.onlab.onos.provider.opticalConfig", true));
+        super(new ProviderId("optical", "org.onlab.onos.provider" +
+                ".opticalConfig"));
     }
 
     @Activate
@@ -238,7 +239,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
         while (iterWdmNode.hasNext()) {
             Roadm value = iterWdmNode.next();
             DeviceId did = deviceId("of:" + value.getNodeId().replace(":", ""));
-            ChassisId cid = new ChassisId(value.getNodeId());
+            ChassisId cid = new ChassisId();
             DefaultAnnotations extendedAttributes = DefaultAnnotations.builder()
                     .set(OPTICAL_ANNOTATION + "switchType", "ROADM")
                     .set(OPTICAL_ANNOTATION + "switchName", value.getName())
