@@ -161,6 +161,17 @@ public class DeviceManager
         }
     }
 
+    // Queries a device for port information.
+    private void queryPortInfo(DeviceId deviceId) {
+        Device device = store.getDevice(deviceId);
+        // FIXME: Device might not be there yet. (eventual consistent)
+        if (device == null) {
+            return;
+        }
+        DeviceProvider provider = getProvider(device.providerId());
+        provider.triggerProbe(device);
+    }
+
     @Override
     public void removeDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
@@ -210,8 +221,6 @@ public class DeviceManager
             log.info("Device {} connected", deviceId);
             // check my Role
             MastershipRole role = mastershipService.requestRoleFor(deviceId);
-            log.info("## - our role for {} is {} [master is {}]", deviceId, role,
-                    mastershipService.getMasterFor(deviceId));
             if (role != MastershipRole.MASTER) {
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is no longer the MASTER? probably not
@@ -265,7 +274,6 @@ public class DeviceManager
             // but if I was the last STANDBY connection, etc. and no one else
             // was there to mark the device offline, this instance may need to
             // temporarily request for Master Role and mark offline.
-            log.info("## for {} role is {}", deviceId, mastershipService.getLocalRole(deviceId));
             if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
                 log.debug("Device {} disconnected, but I am not the master", deviceId);
                 //let go of ability to be backup
@@ -373,7 +381,6 @@ public class DeviceManager
             final DeviceId did = event.subject();
             final NodeId myNodeId = clusterService.getLocalNode().id();
 
-            log.info("## got Mastershipevent for dev {}", did);
             if (myNodeId.equals(event.roleInfo().master())) {
                 MastershipTerm term = termService.getMastershipTerm(did);
 
@@ -384,7 +391,6 @@ public class DeviceManager
                     return;
                 }
 
-                log.info("## setting term for CPS as new master for {}", did);
                 // only set the new term if I am the master
                 deviceClockProviderService.setMastershipTerm(did, term);
 
@@ -404,6 +410,7 @@ public class DeviceManager
                                     device.serialNumber(), device.chassisId()));
                 }
                 //TODO re-collect device information to fix potential staleness
+                queryPortInfo(did);
                 applyRole(did, MastershipRole.MASTER);
             } else if (event.roleInfo().backups().contains(myNodeId)) {
                 applyRole(did, MastershipRole.STANDBY);

@@ -142,6 +142,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     public void processPacket(Dpid dpid, OFMessage msg) {
         switch (msg.getType()) {
         case PORT_STATUS:
+        case FEATURES_REPLY:
             for (OpenFlowSwitchListener l : ofSwitchListener) {
                 l.portChanged(dpid, (OFPortStatus) msg);
             }

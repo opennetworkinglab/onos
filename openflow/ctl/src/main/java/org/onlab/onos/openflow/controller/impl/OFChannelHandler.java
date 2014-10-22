@@ -608,6 +608,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 h.dispatchMessage(m);
             }
 
+            @Override
+            void processOFFeaturesReply(OFChannelHandler h, OFFeaturesReply  m) {
+                // TODO verify this leads to right behavior.
+                h.dispatchMessage(m);
+            }
+
         };
 
         private final boolean handshakeComplete;
