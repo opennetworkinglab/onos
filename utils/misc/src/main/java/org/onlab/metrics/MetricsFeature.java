@@ -15,6 +15,11 @@ public class MetricsFeature {
         name = newName;
     }
 
+    /**
+     * Fetches the name of the Feature.
+     *
+     * @return name of the Feature
+     */
     public String getName() {
         return name;
     }

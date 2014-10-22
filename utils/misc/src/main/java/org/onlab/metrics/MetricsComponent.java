@@ -24,14 +24,17 @@ public class MetricsComponent implements MetricsComponentRegistry {
         name = newName;
     }
 
-    @Override public String getName() {
+    @Override
+    public String getName() {
         return name;
     }
 
-    @Override public MetricsFeature registerFeature(final String featureName) {
+    @Override
+    public MetricsFeature registerFeature(final String featureName) {
         MetricsFeature feature = featuresRegistry.get(featureName);
         if (feature == null) {
-            final MetricsFeature createdFeature = new MetricsFeature(featureName);
+            final MetricsFeature createdFeature =
+                new MetricsFeature(featureName);
             feature = featuresRegistry.putIfAbsent(featureName, createdFeature);
             if (feature == null) {
                 feature = createdFeature;
