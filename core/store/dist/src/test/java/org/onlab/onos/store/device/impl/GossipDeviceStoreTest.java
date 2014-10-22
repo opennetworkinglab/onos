@@ -32,6 +32,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipServiceAdapter;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -143,6 +144,8 @@ public class GossipDeviceStoreTest {
         ClusterService clusterService = new TestClusterService();
 
         testGossipDeviceStore = new TestGossipDeviceStore(deviceClockService, clusterService, clusterCommunicator);
+        testGossipDeviceStore.mastershipService = new TestMastershipService();
+
         gossipDeviceStore = testGossipDeviceStore;
         gossipDeviceStore.activate();
         deviceStore = gossipDeviceStore;
@@ -795,6 +798,13 @@ public class GossipDeviceStoreTest {
         deviceStore.setDelegate(checkRemove);
         deviceStore.removeDevice(DID1);
         assertTrue("Remove event fired", removeLatch.await(1, TimeUnit.SECONDS));
+    }
+
+    private final class TestMastershipService extends MastershipServiceAdapter {
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return NID1;
+        }
     }
 
     private static final class TestGossipDeviceStore extends GossipDeviceStore {

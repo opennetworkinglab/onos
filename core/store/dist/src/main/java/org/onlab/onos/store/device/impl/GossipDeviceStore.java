@@ -16,6 +16,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
@@ -113,6 +114,9 @@ public class GossipDeviceStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
@@ -664,6 +668,14 @@ public class GossipDeviceStore
 
     @Override
     public synchronized DeviceEvent removeDevice(DeviceId deviceId) {
+        final NodeId master = mastershipService.getMasterFor(deviceId);
+        if (!clusterService.getLocalNode().id().equals(master)) {
+            log.info("remove Device {} requested on non master node", deviceId);
+            // FIXME silently ignoring. Should be forwarding or broadcasting to
+            // master.
+            return null;
+        }
+
         Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         DeviceEvent event = removeDeviceInternal(deviceId, timestamp);
         if (event != null) {
