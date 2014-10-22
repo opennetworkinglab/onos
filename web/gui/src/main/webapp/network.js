@@ -59,7 +59,7 @@
         d3.json(config.jsonUrl, function (err, data) {
             if (err) {
                 alert('Oops! Error reading JSON...\n\n' +
-                    'URL: ' + jsonUrl + '\n\n' +
+                    'URL: ' + config.jsonUrl + '\n\n' +
                     'Error: ' + err.message);
                 return;
             }
@@ -158,8 +158,8 @@
             .attr('width', view.width)
             .attr('height', view.height)
             .append('g')
+            .attr('transform', config.force.translate());
 //            .attr('id', 'zoomable')
-            .attr('transform', config.force.translate())
 //            .call(d3.behavior.zoom().on("zoom", zoomRedraw));
 
 //        function zoomRedraw() {
