@@ -68,7 +68,6 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         metrics = new MetricsManager();
         Endpoint endpoint = new Endpoint(host, port);
         messaging.activate();
-        metrics.activate();
         MetricsFeature feature = new MetricsFeature("latency");
         MetricsComponent component = metrics.registerComponent("NettyMessaging");
         log.info("connecting " + host + ":" + port + " warmup:" + warmup + " iterations:" + iterations);
@@ -117,7 +116,6 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
     public static void stop() {
         try {
             messaging.deactivate();
-            metrics.deactivate();
         } catch (Exception e) {
             log.info("Unable to stop client %s", e);
         }

@@ -3,15 +3,7 @@ package org.onlab.metrics;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
@@ -53,48 +45,25 @@ import com.codahale.metrics.Timer;
  *   </code>
  * </pre>
  */
-@Component(immediate = true)
-public final class MetricsManager implements MetricsService {
+public class MetricsManager implements MetricsService {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
     /**
      * Registry to hold the Components defined in the system.
      */
-    private ConcurrentMap<String, MetricsComponent> componentsRegistry;
+    private ConcurrentMap<String, MetricsComponent> componentsRegistry =
+        new ConcurrentHashMap<>();
 
     /**
      * Registry for the Metrics objects created in the system.
      */
-    private final MetricRegistry metricsRegistry;
+    private MetricRegistry metricsRegistry = new MetricRegistry();
 
     /**
-     * Default Reporter for this metrics manager.
+     * Clears the internal state.
      */
-    //private final Slf4jReporter reporter;
-    private final ConsoleReporter reporter;
-
-    public MetricsManager() {
-        this.metricsRegistry = new MetricRegistry();
-//        this.reporter = Slf4jReporter.forRegistry(this.metricsRegistry)
-//                .outputTo(log)
-//                .convertRatesTo(TimeUnit.SECONDS)
-//                .convertDurationsTo(TimeUnit.MICROSECONDS)
-//                .build();
-        this.reporter = ConsoleReporter.forRegistry(this.metricsRegistry)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .build();
-    }
-
-    @Activate
-    public void activate() {
+    protected void clear() {
         this.componentsRegistry = new ConcurrentHashMap<>();
-        reporter.start(10, TimeUnit.SECONDS);
-    }
-
-    @Deactivate
-    public void deactivate() {
-        reporter.stop();
+        this.metricsRegistry = new MetricRegistry();
     }
 
     /**
@@ -103,11 +72,12 @@ public final class MetricsManager implements MetricsService {
      * @param name name of the Component to register
      * @return MetricsComponent object that can be used to create Metrics.
      */
-  @Override
-  public MetricsComponent registerComponent(final String name) {
+    @Override
+    public MetricsComponent registerComponent(final String name) {
         MetricsComponent component = componentsRegistry.get(name);
         if (component == null) {
-            final MetricsComponent createdComponent = new MetricsComponent(name);
+            final MetricsComponent createdComponent =
+                new MetricsComponent(name);
             component = componentsRegistry.putIfAbsent(name, createdComponent);
             if (component == null) {
                 component = createdComponent;
@@ -125,9 +95,9 @@ public final class MetricsManager implements MetricsService {
      *
      * @return full name of the metric
      */
-  private String generateName(final MetricsComponent component,
-                                      final MetricsFeature feature,
-                                      final String metricName) {
+    private String generateName(final MetricsComponent component,
+                                final MetricsFeature feature,
+                                final String metricName) {
         return MetricRegistry.name(component.getName(),
                                    feature.getName(),
                                    metricName);
@@ -141,10 +111,10 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Counter Meteric
      */
-  @Override
-  public Counter createCounter(final MetricsComponent component,
-                                        final MetricsFeature feature,
-                                        final String metricName) {
+    @Override
+    public Counter createCounter(final MetricsComponent component,
+                                 final MetricsFeature feature,
+                                 final String metricName) {
         final String name = generateName(component, feature, metricName);
         return metricsRegistry.counter(name);
     }
@@ -157,10 +127,10 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Histogram Metric
      */
-  @Override
-  public Histogram createHistogram(final MetricsComponent component,
-                                            final MetricsFeature feature,
-                                            final String metricName) {
+    @Override
+    public Histogram createHistogram(final MetricsComponent component,
+                                     final MetricsFeature feature,
+                                     final String metricName) {
         final String name = generateName(component, feature, metricName);
         return metricsRegistry.histogram(name);
     }
@@ -173,10 +143,10 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Timer Metric
      */
-  @Override
-  public Timer createTimer(final MetricsComponent component,
-                                    final MetricsFeature feature,
-                                    final String metricName) {
+    @Override
+    public Timer createTimer(final MetricsComponent component,
+                             final MetricsFeature feature,
+                             final String metricName) {
         final String name = generateName(component, feature, metricName);
         return metricsRegistry.timer(name);
     }
@@ -189,10 +159,10 @@ public final class MetricsManager implements MetricsService {
      * @param metricName local name of the metric
      * @return the created Meter Metric
      */
-  @Override
-  public Meter createMeter(final MetricsComponent component,
-                                    final MetricsFeature feature,
-                                    final String metricName) {
+    @Override
+    public Meter createMeter(final MetricsComponent component,
+                             final MetricsFeature feature,
+                             final String metricName) {
         final String name = generateName(component, feature, metricName);
         return metricsRegistry.meter(name);
     }
@@ -209,8 +179,8 @@ public final class MetricsManager implements MetricsService {
      * @param metric Metric to register
      * @return the registered Metric
      */
-  @Override
-  public <T extends Metric> T registerMetric(
+    @Override
+    public <T extends Metric> T registerMetric(
                                         final MetricsComponent component,
                                         final MetricsFeature feature,
                                         final String metricName,
@@ -221,14 +191,30 @@ public final class MetricsManager implements MetricsService {
     }
 
     /**
+     * Removes the metric with the given name.
+     *
+     * @param component component the Metric is defined in
+     * @param feature feature the Metric is defined in
+     * @param metricName local name of the metric
+     * @return true if the metric existed and was removed, otherwise false
+     */
+    @Override
+    public boolean removeMetric(final MetricsComponent component,
+                                final MetricsFeature feature,
+                                final String metricName) {
+        final String name = generateName(component, feature, metricName);
+        return metricsRegistry.remove(name);
+    }
+
+    /**
      * Fetches the existing Timers.
      *
      * @param filter filter to use to select Timers
      * @return a map of the Timers that match the filter, with the key as the
      *         name String to the Timer.
      */
-  @Override
-  public Map<String, Timer> getTimers(final MetricFilter filter) {
+    @Override
+    public Map<String, Timer> getTimers(final MetricFilter filter) {
         return metricsRegistry.getTimers(filter);
     }
 
@@ -239,8 +225,8 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Gauges that match the filter, with the key as the
      *         name String to the Gauge.
      */
-  @Override
-  public Map<String, Gauge> getGauges(final MetricFilter filter) {
+    @Override
+    public Map<String, Gauge> getGauges(final MetricFilter filter) {
         return metricsRegistry.getGauges(filter);
     }
 
@@ -251,8 +237,8 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Counters that match the filter, with the key as the
      *         name String to the Counter.
      */
-  @Override
-  public Map<String, Counter> getCounters(final MetricFilter filter) {
+    @Override
+    public Map<String, Counter> getCounters(final MetricFilter filter) {
         return metricsRegistry.getCounters(filter);
     }
 
@@ -263,8 +249,8 @@ public final class MetricsManager implements MetricsService {
      * @return a map of the Meters that match the filter, with the key as the
      *         name String to the Meter.
      */
-  @Override
-  public Map<String, Meter> getMeters(final MetricFilter filter) {
+    @Override
+    public Map<String, Meter> getMeters(final MetricFilter filter) {
         return metricsRegistry.getMeters(filter);
     }
 
@@ -272,11 +258,11 @@ public final class MetricsManager implements MetricsService {
      * Fetches the existing Histograms.
      *
      * @param filter filter to use to select Histograms
-     * @return a map of the Histograms that match the filter, with the key as the
-     *         name String to the Histogram.
+     * @return a map of the Histograms that match the filter, with the key as
+     *         the name String to the Histogram.
      */
-  @Override
-  public Map<String, Histogram> getHistograms(final MetricFilter filter) {
+    @Override
+    public Map<String, Histogram> getHistograms(final MetricFilter filter) {
         return metricsRegistry.getHistograms(filter);
     }
 
@@ -285,9 +271,8 @@ public final class MetricsManager implements MetricsService {
      *
      * @param filter filter to use to select the Metrics to remove.
      */
-  @Override
-  public void removeMatching(final MetricFilter filter) {
+    @Override
+    public void removeMatching(final MetricFilter filter) {
         metricsRegistry.removeMatching(filter);
     }
 }
-

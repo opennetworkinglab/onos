@@ -13,7 +13,7 @@ import com.codahale.metrics.Timer;
 /**
  * Metrics Service to collect metrics.
  */
-interface MetricsService {
+public interface MetricsService {
 
     /**
      * Registers a component.
@@ -90,6 +90,18 @@ interface MetricsService {
              T metric);
 
     /**
+     * Removes the metric with the given name.
+     *
+     * @param component component the Metric is defined in
+     * @param feature feature the Metric is defined in
+     * @param metricName local name of the metric
+     * @return true if the metric existed and was removed, otherwise false
+     */
+    boolean removeMetric(MetricsComponent component,
+                         MetricsFeature feature,
+                         String metricName);
+
+    /**
      * Fetches the existing Timers.
      *
      * @param filter filter to use to select Timers
@@ -129,15 +141,15 @@ interface MetricsService {
      * Fetches the existing Histograms.
      *
      * @param filter filter to use to select Histograms
-     * @return a map of the Histograms that match the filter, with the key as the
-     *         name String to the Histogram.
+     * @return a map of the Histograms that match the filter, with the key as
+     *         the name String to the Histogram.
      */
      Map<String, Histogram> getHistograms(MetricFilter filter);
+
     /**
      * Removes all Metrics that match a given filter.
      *
      * @param filter filter to use to select the Metrics to remove.
      */
      void removeMatching(MetricFilter filter);
-
 }
