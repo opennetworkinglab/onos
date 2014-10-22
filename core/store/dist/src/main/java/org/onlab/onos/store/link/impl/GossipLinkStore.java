@@ -23,9 +23,9 @@ import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DeviceClockService;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
@@ -266,8 +266,8 @@ public class GossipLinkStore
             ProviderId providerId,
             Timestamped<LinkDescription> linkDescription) {
 
-        LinkKey key = linkKey(linkDescription.value().src(),
-                              linkDescription.value().dst());
+        final LinkKey key = linkKey(linkDescription.value().src(),
+                                    linkDescription.value().dst());
         Map<ProviderId, Timestamped<LinkDescription>> descs = getOrCreateLinkDescriptions(key);
 
         synchronized (descs) {
@@ -278,6 +278,7 @@ public class GossipLinkStore
                 if (linkDescription.isNewer(linkRemovedTimestamp)) {
                     removedLinks.remove(key);
                 } else {
+                    log.trace("Link {} was already removed ignoring.", key);
                     return null;
                 }
             }
@@ -302,17 +303,25 @@ public class GossipLinkStore
         // merge existing annotations
         Timestamped<LinkDescription> existingLinkDescription = descs.get(providerId);
         if (existingLinkDescription != null && existingLinkDescription.isNewer(linkDescription)) {
+            log.trace("local info is more up-to-date, ignoring {}.", linkDescription);
             return null;
         }
         Timestamped<LinkDescription> newLinkDescription = linkDescription;
         if (existingLinkDescription != null) {
+            // we only allow transition from INDIRECT -> DIRECT
+            final Type newType;
+            if (existingLinkDescription.value().type() == DIRECT) {
+                newType = DIRECT;
+            } else {
+                newType = linkDescription.value().type();
+            }
             SparseAnnotations merged = union(existingLinkDescription.value().annotations(),
                     linkDescription.value().annotations());
             newLinkDescription = new Timestamped<LinkDescription>(
                     new DefaultLinkDescription(
                         linkDescription.value().src(),
                         linkDescription.value().dst(),
-                        linkDescription.value().type(), merged),
+                        newType, merged),
                     linkDescription.timestamp());
         }
         return descs.put(providerId, newLinkDescription);
@@ -346,6 +355,8 @@ public class GossipLinkStore
             return null;
         }
 
+        // Note: INDIRECT -> DIRECT transition only
+        // so that BDDP discovered Link will not overwrite LDDP Link
         if ((oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
             !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
 

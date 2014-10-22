@@ -172,12 +172,19 @@ public class SimpleLinkStore
         LinkDescription oldDesc = descs.get(providerId);
         LinkDescription newDesc = linkDescription;
         if (oldDesc != null) {
+            // we only allow transition from INDIRECT -> DIRECT
+            final Type newType;
+            if (oldDesc.type() == DIRECT) {
+                newType = DIRECT;
+            } else {
+                newType = linkDescription.type();
+            }
             SparseAnnotations merged = union(oldDesc.annotations(),
                     linkDescription.annotations());
             newDesc = new DefaultLinkDescription(
                         linkDescription.src(),
                         linkDescription.dst(),
-                        linkDescription.type(), merged);
+                        newType, merged);
         }
         return descs.put(providerId, newDesc);
     }

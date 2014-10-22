@@ -41,7 +41,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
     }
 
     private static HostId max(HostId one, HostId two) {
-        return one.hashCode() > two.hashCode() ? one : two;
+        return one.hashCode() >= two.hashCode() ? one : two;
     }
 
     /**

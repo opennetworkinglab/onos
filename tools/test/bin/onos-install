@@ -6,8 +6,17 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-# If the first option is -f attempt uninstall first.
-[ "$1" = "-f" ] && shift && onos-uninstall ${1:-$OCI}
+while getopts fn o; do
+    case "$o" in
+        f) uninstall=true;;
+        n) nostart=true;;
+    esac
+done
+let OPC=$OPTIND-1
+shift $OPC
+
+# If the -f was given, attempt uninstall first.
+[ -n "$uninstall" ] && onos-uninstall ${1:-$OCI}
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
@@ -27,19 +36,20 @@ ssh $remote "
     mkdir $ONOS_INSTALL_DIR/config
 
     # Install the upstart configuration file and setup options for debugging
-    sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
+    [ -z "$nostart" ] && sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
     echo 'export ONOS_OPTS=debug' > $ONOS_INSTALL_DIR/options
 
     # Remove any previous ON.Lab bits from ~/.m2 repo
     rm -fr ~/.m2/repository/org/onlab
 
     # Drop log level for the console
-    echo "log4j.logger.org.apache.sshd = WARN" >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
+    echo "log4j.logger.org.apache.sshd = WARN" \
+        >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 
 "
 
 # Configure the ONOS installation
 onos-config $node
 
-# Ignite the ONOS service.
-onos-service $node start
+# Unless -n option was given, attempt to ignite the ONOS service.
+[ -z "$nostart" ] && onos-service $node start

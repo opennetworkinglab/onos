@@ -55,6 +55,10 @@
           <groupId>io.netty</groupId>
           <artifactId>netty-codec</artifactId>
         </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-transport-native-epoll</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

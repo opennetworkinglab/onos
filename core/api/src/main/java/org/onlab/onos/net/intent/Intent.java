@@ -37,8 +37,8 @@ public abstract class Intent implements BatchOperationTarget {
      */
     protected Intent(IntentId id, ApplicationId appId,
                      Collection<NetworkResource> resources) {
+        this.id = checkNotNull(id, "Intent ID cannot be null");
         this.appId = checkNotNull(appId, "Application ID cannot be null");
-        this.id = checkNotNull(id, "Fingerprint cannot be null");
         this.resources = resources;
     }
 
@@ -77,6 +77,7 @@ public abstract class Intent implements BatchOperationTarget {
      * @return intent identifier
      */
     protected static IntentId id(Object... fields) {
+        // FIXME: spread the bits across the full long spectrum
         return IntentId.valueOf(Objects.hash(fields));
     }
 
@@ -90,12 +91,12 @@ public abstract class Intent implements BatchOperationTarget {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(id);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }

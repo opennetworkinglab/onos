@@ -44,8 +44,7 @@ public final class InternalMessage implements Message {
     public void respond(byte[] data) throws IOException {
         Builder builder = new Builder(messagingService);
         InternalMessage message = builder.withId(this.id)
-             // FIXME: Sender should be messagingService.localEp.
-            .withSender(this.sender)
+            .withSender(messagingService.localEp())
             .withPayload(data)
             .withType(REPLY_MESSAGE_TYPE)
             .build();

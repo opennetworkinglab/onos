@@ -18,26 +18,41 @@
  */
 package org.onlab.onos.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceAdminService;
+import org.onlab.packet.Ethernet;
 
 /**
- * Removes an infrastructure device.
+ * Allowed values for Ethernet types.  Used by the CLI completer for
+ * connectivity based intent L2 parameters.
  */
-@Command(scope = "onos", name = "device-remove",
-         description = "Removes an infrastructure device")
-public class DeviceRemoveCommand extends AbstractShellCommand {
+public enum EthType {
+    /** ARP. */
+    ARP(Ethernet.TYPE_ARP),
+    /** RARP. */
+    RARP(Ethernet.TYPE_RARP),
+    /** IPV4. */
+    IPV4(Ethernet.TYPE_IPV4),
+    /** LLDP. */
+    LLDP(Ethernet.TYPE_LLDP),
+    /** BSN. */
+    BSN(Ethernet.TYPE_BSN);
 
-    @Argument(index = 0, name = "uri", description = "Device ID",
-              required = true, multiValued = false)
-    String uri = null;
+    private short value;
 
-    @Override
-    protected void execute() {
-        get(DeviceAdminService.class).removeDevice(DeviceId.deviceId(uri));
+    /**
+     * Constructs an EthType with the given value.
+     *
+     * @param value value to use when this EthType is seen.
+     */
+    private EthType(short value) {
+        this.value = value;
     }
 
+    /**
+     * Gets the value to use for this EthType.
+     *
+     * @return short value to use for this EthType
+     */
+    public short value() {
+        return this.value;
+    }
 }
