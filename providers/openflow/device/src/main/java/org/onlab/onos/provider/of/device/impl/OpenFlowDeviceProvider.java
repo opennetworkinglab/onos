@@ -165,6 +165,17 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceDisconnected(deviceId(uri(dpid)));
         }
 
+
+        @Override
+        public void switchChanged(Dpid dpid) {
+            if (providerService == null) {
+                return;
+            }
+            DeviceId did = deviceId(uri(dpid));
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
+            providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
+        }
+
         @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
             PortDescription portDescription = buildPortDescription(status.getDesc());
