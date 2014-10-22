@@ -7,7 +7,10 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 remote=$ONOS_USER@${1:-$OCI}
+instance=$2
 
-LOG=$ONOS_INSTALL_DIR/log/karaf.log
+[ -n "$instance" ] && \
+    LOG=$ONOS_INSTALL_DIR/$KARAF_DIST/instances/$instance/data/log/karaf.log || \
+    LOG=$ONOS_INSTALL_DIR/log/karaf.log
 
 ssh $remote "egrep 'ERROR|Exception' $LOG"
