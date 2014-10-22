@@ -353,13 +353,28 @@
 
                 node.select('image')
                     .attr('x', bounds.x1);
+
+                d.extent = {
+                    left: bounds.x1 - lab.marginLR,
+                    right: bounds.x2 + lab.marginLR,
+                    top: bounds.y1 - lab.marginTB,
+                    bottom: bounds.y2 + lab.marginTB
+                };
+
+                d.edge = {
+                    left   : new geo.LineSegment(bounds.x1, bounds.y1, bounds.x1, bounds.y2),
+                    right  : new geo.LineSegment(bounds.x2, bounds.y1, bounds.x2, bounds.y2),
+                    top    : new geo.LineSegment(bounds.x1, bounds.y1, bounds.x2, bounds.y1),
+                    bottom : new geo.LineSegment(bounds.x1, bounds.y2, bounds.x2, bounds.y2)
+                };
+
                 // ====
             });
 
             network.numTicks = 0;
             network.preventCollisions = false;
             network.force.start();
-            for (var i = 0; i < config.ticksWithoutCollisions; i++) {
+            for (var i = 0; i < config.force.ticksWithoutCollisions; i++) {
                 network.force.tick();
             }
             network.preventCollisions = true;
@@ -376,6 +391,51 @@
         return 'translate(' + x + ',' + y + ')';
     }
 
+    function preventCollisions() {
+        var quadtree = d3.geom.quadtree(network.nodes);
+
+        network.nodes.forEach(function(n) {
+            var nx1 = n.x + n.extent.left,
+                nx2 = n.x + n.extent.right,
+                ny1 = n.y + n.extent.top,
+                ny2 = n.y + n.extent.bottom;
+
+            quadtree.visit(function(quad, x1, y1, x2, y2) {
+                if (quad.point && quad.point !== n) {
+                    // check if the rectangles intersect
+                    var p = quad.point,
+                        px1 = p.x + p.extent.left,
+                        px2 = p.x + p.extent.right,
+                        py1 = p.y + p.extent.top,
+                        py2 = p.y + p.extent.bottom,
+                        ix = (px1 <= nx2 && nx1 <= px2 && py1 <= ny2 && ny1 <= py2);
+                    if (ix) {
+                        var xa1 = nx2 - px1, // shift n left , p right
+                            xa2 = px2 - nx1, // shift n right, p left
+                            ya1 = ny2 - py1, // shift n up   , p down
+                            ya2 = py2 - ny1, // shift n down , p up
+                            adj = Math.min(xa1, xa2, ya1, ya2);
+
+                        if (adj == xa1) {
+                            n.x -= adj / 2;
+                            p.x += adj / 2;
+                        } else if (adj == xa2) {
+                            n.x += adj / 2;
+                            p.x -= adj / 2;
+                        } else if (adj == ya1) {
+                            n.y -= adj / 2;
+                            p.y += adj / 2;
+                        } else if (adj == ya2) {
+                            n.y += adj / 2;
+                            p.y -= adj / 2;
+                        }
+                    }
+                    return ix;
+                }
+            });
+
+        });
+    }
 
     function tick(e) {
         network.numTicks++;
@@ -390,6 +450,11 @@
             });
         }
 
+        if (network.preventCollisions) {
+            preventCollisions();
+        }
+
+        // TODO: use intersection technique for source end of link also
         network.link
             .attr('x1', function(d) {
                 return d.source.x;
@@ -397,11 +462,24 @@
             .attr('y1', function(d) {
                 return d.source.y;
             })
-            .attr('x2', function(d) {
-                return d.target.x;
-            })
-            .attr('y2', function(d) {
-                return d.target.y;
+            .each(function(d) {
+                var x = d.target.x,
+                    y = d.target.y,
+                    line = new geo.LineSegment(d.source.x, d.source.y, x, y);
+
+                for (var e in d.target.edge) {
+                    var ix = line.intersect(d.target.edge[e].offset(x,y));
+                    if (ix.in1 && ix.in2) {
+                        x = ix.x;
+                        y = ix.y;
+                        break;
+                    }
+                }
+
+                d3.select(this)
+                    .attr('x2', x)
+                    .attr('y2', y);
+
             });
 
         network.node
