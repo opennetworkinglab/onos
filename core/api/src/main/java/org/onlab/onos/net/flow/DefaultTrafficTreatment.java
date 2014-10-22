@@ -44,6 +44,16 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         return new Builder();
     }
 
+    /**
+     * Returns a new traffic treatment builder primed to produce entities
+     * patterned after the supplied treatment.
+     *
+     * @return traffic treatment builder
+     */
+    public static TrafficTreatment.Builder builder(TrafficTreatment treatment) {
+        return new Builder(treatment);
+    }
+
     //FIXME: Order of instructions may affect hashcode
     @Override
     public int hashCode() {
@@ -88,6 +98,13 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         // Creates a new builder
         private Builder() {
+        }
+
+        // Creates a new builder based off an existing treatment
+        private Builder(TrafficTreatment treatment) {
+            for (Instruction instruction : treatment.instructions()) {
+                add(instruction);
+            }
         }
 
         @Override

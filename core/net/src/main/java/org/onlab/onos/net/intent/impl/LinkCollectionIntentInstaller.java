@@ -1,6 +1,5 @@
 package org.onlab.onos.net.intent.impl;
 
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
@@ -17,6 +16,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
+import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
@@ -61,18 +61,16 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
 
     @Override
     public List<FlowRuleBatchOperation> install(LinkCollectionIntent intent) {
-        TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.selector());
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
         for (Link link : intent.links()) {
             rules.add(createBatchEntry(FlowRuleOperation.ADD,
-                   builder.build(),
+                   intent,
                    link.src().deviceId(),
                    link.src().port()));
         }
 
         rules.add(createBatchEntry(FlowRuleOperation.ADD,
-                builder.build(),
+                intent,
                 intent.egressPoint().deviceId(),
                 intent.egressPoint().port()));
 
@@ -81,19 +79,17 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(LinkCollectionIntent intent) {
-        TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.selector());
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
 
         for (Link link : intent.links()) {
             rules.add(createBatchEntry(FlowRuleOperation.REMOVE,
-                    builder.build(),
+                    intent,
                     link.src().deviceId(),
                     link.src().port()));
         }
 
         rules.add(createBatchEntry(FlowRuleOperation.REMOVE,
-               builder.build(),
+               intent,
                intent.egressPoint().deviceId(),
                intent.egressPoint().port()));
 
@@ -104,17 +100,23 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
      * Creates a FlowRuleBatchEntry based on the provided parameters.
      *
      * @param operation the FlowRuleOperation to use
-     * @param selector the traffic selector
+     * @param intent the link collection intent
      * @param deviceId the device ID for the flow rule
      * @param outPort the output port of the flow rule
      * @return the new flow rule batch entry
      */
     private FlowRuleBatchEntry createBatchEntry(FlowRuleOperation operation,
-                                    TrafficSelector selector,
+                                    LinkCollectionIntent intent,
                                     DeviceId deviceId,
                                     PortNumber outPort) {
 
-        TrafficTreatment treatment = builder().setOutput(outPort).build();
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder(intent.treatment());
+
+        TrafficTreatment treatment = treatmentBuilder.setOutput(outPort).build();
+
+        TrafficSelector selector = DefaultTrafficSelector.builder(intent.selector())
+                                   .build();
 
         FlowRule rule = new DefaultFlowRule(deviceId,
                 selector, treatment, 123, appId, 0, true);
