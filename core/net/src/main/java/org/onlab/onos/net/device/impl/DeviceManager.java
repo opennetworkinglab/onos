@@ -153,8 +153,11 @@ public class DeviceManager
             DeviceProvider provider = getProvider(device.providerId());
             if (provider != null) {
                 provider.roleChanged(device, newRole);
+
+                // only trigger event when request was sent to provider
+                // TODO: consider removing this from Device event type?
+                post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
             }
-            post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
         }
     }
 
@@ -164,6 +167,7 @@ public class DeviceManager
         // XXX is this intended to apply to the full global topology?
         // if so, we probably don't want the fact that we aren't
         // MASTER to get in the way, as it would do now.
+        // FIXME: forward or broadcast and let the Master handler the event.
         DeviceEvent event = store.removeDevice(deviceId);
         if (event != null) {
             log.info("Device {} administratively removed", deviceId);
@@ -347,6 +351,9 @@ public class DeviceManager
                     deviceId);
             if (role == MastershipRole.MASTER) {
                 mastershipService.relinquishMastership(deviceId);
+                // TODO: Shouldn't we be triggering event?
+                //final Device device = getDevice(deviceId);
+                //post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
             }
         }
     }
@@ -367,7 +374,7 @@ public class DeviceManager
             final NodeId myNodeId = clusterService.getLocalNode().id();
 
             log.info("## got Mastershipevent for dev {}", did);
-            if (myNodeId.equals(event.node())) {
+            if (myNodeId.equals(event.roleInfo().master())) {
                 MastershipTerm term = termService.getMastershipTerm(did);
 
                 if (!myNodeId.equals(term.master())) {
@@ -398,7 +405,7 @@ public class DeviceManager
                 }
                 //TODO re-collect device information to fix potential staleness
                 applyRole(did, MastershipRole.MASTER);
-            } else {
+            } else if (event.roleInfo().backups().contains(myNodeId)) {
                 applyRole(did, MastershipRole.STANDBY);
             }
         }
