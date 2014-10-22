@@ -19,6 +19,7 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
     private final Logger log = getLogger(getClass());
 
     private final Set<L> listeners = new CopyOnWriteArraySet<>();
+    private volatile boolean shutdown = false;
 
     /**
      * Adds the specified listener.
@@ -58,7 +59,24 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
      * @param error error encountered while processing
      */
     protected void reportProblem(E event, Throwable error) {
-        log.warn("Exception encountered while processing event " + event, error);
+        if (!shutdown) {
+            log.warn("Exception encountered while processing event " + event, error);
+        }
     }
+
+    /**
+     * Prepares the registry for normal operation.
+     */
+    public void activate() {
+        shutdown = false;
+    }
+
+    /**
+     * Prepares the registry for shutdown.
+     */
+    public void deactivate() {
+        shutdown = true;
+    }
+
 
 }
