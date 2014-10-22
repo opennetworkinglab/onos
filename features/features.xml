@@ -37,6 +37,7 @@
 
         <bundle>mvn:com.hazelcast/hazelcast/3.3</bundle>
         <bundle>mvn:io.dropwizard.metrics/metrics-core/3.1.0</bundle>
+        <bundle>mvn:io.dropwizard.metrics/metrics-json/3.1.0</bundle>
         <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.1</bundle>
 
         <bundle>mvn:com.esotericsoftware/kryo/3.0.0</bundle>
@@ -183,7 +184,6 @@
         <bundle>mvn:org.onlab.onos/onos-app-optical/1.0.0-SNAPSHOT</bundle>
      </feature>
 
-
     <feature name="onos-app-sdnip" version="1.0.0"
              description="SDN-IP peering application">
         <feature>onos-api</feature>
@@ -195,6 +195,17 @@
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.onlab.onos/onos-app-calendar/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+    <feature name="onos-app-metrics" version="1.0.0"
+             description="ONOS metrics applications">
+        <feature>onos-app-metrics-topology</feature>
+    </feature>
+
+    <feature name="onos-app-metrics-topology" version="1.0.0"
+             description="ONOS topology metrics application">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-metrics-topology/1.0.0-SNAPSHOT</bundle>
     </feature>
 
 </features>

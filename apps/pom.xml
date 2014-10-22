@@ -27,6 +27,7 @@
         <module>sdnip</module>
         <module>calendar</module>
         <module>optical</module>
+        <module>metrics</module>
     </modules>
 
     <properties>
