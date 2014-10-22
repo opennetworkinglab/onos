@@ -31,8 +31,9 @@
                 }
             },
             labels: {
-                padLR: 3,
-                padTB: 2,
+                imgPad: 22,
+                padLR: 8,
+                padTB: 6,
                 marginLR: 3,
                 marginTB: 2
             },
@@ -252,7 +253,7 @@
             }
         });
 
-        // TODO: add drag, mouseover, mouseout behaviors
+
         network.node = network.svg.selectAll('.node')
             .data(network.force.nodes(), function(d) {return d.id})
             .enter().append('g')
@@ -284,29 +285,24 @@
                 }
             });
 
-        // TODO: augment stroke and fill functions
         network.nodeRect = network.node.append('rect')
-            // TODO: css for node rects
             .attr('rx', 5)
             .attr('ry', 5)
-//            .attr('stroke', function(d) { return '#000'})
-//            .attr('fill', function(d) { return '#ddf'})
             .attr('width', 126)
-            .attr('height', 24);
+            .attr('height', 40);
 
         network.node.each(function(d) {
             var node = d3.select(this),
                 rect = node.select('rect'),
                 img = node.append('svg:image')
-                    .attr('x', -9)
-                    .attr('y', -12)
+                    .attr('x', -16)
+                    .attr('y', -16)
                     .attr('width', 32)
                     .attr('height', 32)
                     .attr('xlink:href', iconUrl(d)),
                 text = node.append('text')
                     .text(d.id)
-                    .attr('dx', '1.0em')
-                    .attr('dy', '1.8em'),
+                    .attr('dy', '1.1em'),
                 dummy;
 
         });
@@ -321,6 +317,43 @@
                     first = true;
 
                 // NOTE: probably unnecessary code if we only have one line.
+                text.each(function() {
+                    var box = this.getBBox();
+                    if (first || box.x < bounds.x1) {
+                        bounds.x1 = box.x;
+                    }
+                    if (first || box.y < bounds.y1) {
+                        bounds.y1 = box.y;
+                    }
+                    if (first || box.x + box.width < bounds.x2) {
+                        bounds.x2 = box.x + box.width;
+                    }
+                    if (first || box.y + box.height < bounds.y2) {
+                        bounds.y2 = box.y + box.height;
+                    }
+                    first = false;
+                }).attr('text-anchor', 'middle');
+
+                var lab = config.labels,
+                    oldWidth = bounds.x2 - bounds.x1;
+
+                bounds.x1 -= oldWidth / 2;
+                bounds.x2 -= oldWidth / 2;
+
+                bounds.x1 -= (lab.padLR + lab.imgPad);
+                bounds.y1 -= lab.padTB;
+                bounds.x2 += lab.padLR;
+                bounds.y2 += lab.padTB;
+
+                node.select('rect')
+                    .attr('x', bounds.x1)
+                    .attr('y', bounds.y1)
+                    .attr('width', bounds.x2 - bounds.x1)
+                    .attr('height', bounds.y2 - bounds.y1);
+
+                node.select('image')
+                    .attr('x', bounds.x1);
+                // ====
             });
 
             network.numTicks = 0;
