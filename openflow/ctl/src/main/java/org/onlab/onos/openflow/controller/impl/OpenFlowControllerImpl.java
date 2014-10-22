@@ -207,7 +207,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                         + "value for dpid: {}", dpid);
                 return false;
             } else {
-                log.error("Added switch {}", dpid);
+                log.info("Added switch {}", dpid);
                 connectedSwitches.put(dpid, sw);
                 for (OpenFlowSwitchListener l : ofSwitchListener) {
                     l.switchAdded(dpid);
