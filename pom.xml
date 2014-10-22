@@ -347,6 +347,11 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>kr.motd.maven</groupId>
+                    <artifactId>os-maven-plugin</artifactId>
+                    <version>1.2.3.Final</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <!-- TODO: update once following issue is fixed. -->

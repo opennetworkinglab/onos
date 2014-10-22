@@ -95,8 +95,6 @@ public class DistributedFlowRuleStore
                 storeFlowEntryInternal(rule);
                 // FIXME what to respond.
                 try {
-                    // FIXME: #respond() not working. responded message is
-                    // handled by this sender node and never goes back.
                     message.respond(SERIALIZER.encode("ACK"));
                 } catch (IOException e) {
                     log.error("Failed to respond back", e);
@@ -173,7 +171,8 @@ public class DistributedFlowRuleStore
             return storeFlowEntryInternal(rule);
         }
 
-        log.warn("Not my flow forwarding to {}", replicaInfo.master().orNull());
+        log.info("Forwarding storeFlowRule to {}, which is the primary (master) for device {}",
+                replicaInfo.master().orNull(), rule.deviceId());
 
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
