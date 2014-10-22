@@ -48,7 +48,7 @@ public class TopologyEventsMetricsCommand extends AbstractShellCommand {
                 JsonNode gaugeNode = mapper.readTree(gaugeJson);
                 JsonNode meterNode = mapper.readTree(meterJson);
                 result.put("lastTopologyEventTimestamp", gaugeNode);
-                result.put("listenerEventRate", meterNode);
+                result.put("topologyEventRate", meterNode);
             } catch (JsonProcessingException e) {
                 log.error("Error writing value as JSON string", e);
             } catch (IOException e) {
