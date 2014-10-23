@@ -30,7 +30,7 @@ import org.onlab.onos.net.resource.LinkResourceService;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyEdge;
-import org.onlab.onos.net.topology.TopologyGraph;
+
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +120,6 @@ public class OpticalPathProvisioner {
            }
 
            Topology topology = topologyService.currentTopology();
-           TopologyGraph graph = topologyService.getGraph(topology);
 
            LinkWeight weight = new LinkWeight() {
                @Override

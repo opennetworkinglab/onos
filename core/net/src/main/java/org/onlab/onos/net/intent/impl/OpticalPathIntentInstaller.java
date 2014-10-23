@@ -3,9 +3,8 @@ package org.onlab.onos.net.intent.impl;
 import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.Iterator;
+
 import java.util.List;
-import java.util.concurrent.Future;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -16,7 +15,6 @@ import org.onlab.onos.ApplicationId;
 import org.onlab.onos.CoreService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
@@ -30,11 +28,14 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.OpticalPathIntent;
+import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
 import org.onlab.onos.net.resource.Lambda;
+import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.resource.ResourceRequest;
+import org.onlab.onos.net.resource.ResourceAllocation;
+import org.onlab.onos.net.resource.ResourceType;
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 
@@ -67,7 +68,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
     private ApplicationId appId;
 
-    final static short WAVELENGTH = 80;
+    //final short WAVELENGTH = 80;
 
     @Activate
     public void activate() {
@@ -82,44 +83,72 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
     @Override
     public List<FlowRuleBatchOperation> install(OpticalPathIntent intent) {
-        Lambda la = assignWavelength(intent.path().links());
-        if (la == null) {
-            return null;
-        }
-        // resourceService.requestResources(la);
-        // la.toInt();
-        //intent.selector().criteria();
+        LinkResourceAllocations allocations = assignWavelength(intent);
 
-        //TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
-        //builder.matchLambdaType(la.toInt())
-        //        .matchInport(intent.getSrcConnectPoint().port());
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchInport(intent.getSrcConnectPoint().port());
 
-        TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.selector());
-        Iterator<Link> links = intent.path().links().iterator();
-        ConnectPoint prev = links.next().dst();
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-        // TODO Generate multiple batches
-        while (links.hasNext()) {
-            builder.matchInport(prev.port());
-            Link link = links.next();
-            TrafficTreatment treatment = builder()
-                    .setOutput(link.src().port()).build();
+        ConnectPoint prev = intent.getSrcConnectPoint();
 
-            FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                    builder.build(),
-                    treatment,
+        //TODO throw exception if the lambda was not assigned successfully
+        for (Link link : intent.path().links()) {
+            Lambda la = null;
+            for (ResourceAllocation allocation : allocations.getResourceAllocation(link)) {
+                if (allocation.type() == ResourceType.LAMBDA) {
+                    la = ((LambdaResourceAllocation) allocation).lambda();
+                    break;
+                }
+            }
+
+            if (la == null) {
+                log.info("Lambda was not assigned successfully");
+                return null;
+            }
+
+            treatmentBuilder.setOutput(link.src().port());
+            //treatmentBuilder.setLambda(la.toInt());
+
+            FlowRule rule = new DefaultFlowRule(prev.deviceId(),
+                    selectorBuilder.build(),
+                    treatmentBuilder.build(),
                     100,
                     appId,
                     100,
                     true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
+
             prev = link.dst();
+            selectorBuilder.matchInport(link.dst().port());
+            //selectorBuilder.setLambda(la.toInt());
         }
+
+        // build the last T port rule
+        TrafficTreatment treatmentLast = builder()
+                .setOutput(intent.getDst().port()).build();
+        FlowRule rule = new DefaultFlowRule(intent.getDst().deviceId(),
+                selectorBuilder.build(),
+                treatmentLast,
+                100,
+                appId,
+                100,
+                true);
+        rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
+
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
-    private Lambda assignWavelength(List<Link> links) {
+    private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
+        LinkResourceRequest.Builder request = DefaultLinkResourceRequest.builder(intent.id(),
+                intent.path().links())
+                .addLambdaRequest();
+        LinkResourceAllocations retLambda = resourceService.requestResources(request.build());
+        return retLambda;
+    }
+
+    /*private Lambda assignWavelength(List<Link> links) {
         // TODO More wavelength assignment algorithm
         int wavenum = 0;
         Iterator<Link> itrlink = links.iterator();
@@ -154,31 +183,64 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             //}
         }
         return false;
-    }
+    }*/
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(OpticalPathIntent intent) {
-        TrafficSelector.Builder builder =
-                DefaultTrafficSelector.builder(intent.selector());
-        Iterator<Link> links = intent.path().links().iterator();
-        ConnectPoint prev = links.next().dst();
+        LinkResourceAllocations allocations = resourceService.getAllocation(intent.id());
+
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchInport(intent.getSrcConnectPoint().port());
+
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-        // TODO Generate multiple batches
-        while (links.hasNext()) {
-            builder.matchInport(prev.port());
-            Link link = links.next();
-            TrafficTreatment treatment = builder()
-                    .setOutput(link.src().port()).build();
-            FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                    builder.build(),
-                    treatment,
+        ConnectPoint prev = intent.getSrcConnectPoint();
+
+        //TODO throw exception if the lambda was not retrieved successfully
+        for (Link link : intent.path().links()) {
+            Lambda la = null;
+            for (ResourceAllocation allocation : allocations.getResourceAllocation(link)) {
+                if (allocation.type() == ResourceType.LAMBDA) {
+                    la = ((LambdaResourceAllocation) allocation).lambda();
+                    break;
+                }
+            }
+
+            if (la == null) {
+                log.info("Lambda was not retrieved successfully");
+                return null;
+            }
+
+            treatmentBuilder.setOutput(link.src().port());
+            //treatmentBuilder.setLambda(la.toInt());
+
+            FlowRule rule = new DefaultFlowRule(prev.deviceId(),
+                    selectorBuilder.build(),
+                    treatmentBuilder.build(),
                     100,
                     appId,
                     100,
                     true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
+
             prev = link.dst();
+            selectorBuilder.matchInport(link.dst().port());
+            //selectorBuilder.setLambda(la.toInt());
         }
+
+        // build the last T port rule
+        TrafficTreatment treatmentLast = builder()
+                .setOutput(intent.getDst().port()).build();
+        FlowRule rule = new DefaultFlowRule(intent.getDst().deviceId(),
+                selectorBuilder.build(),
+                treatmentLast,
+                100,
+                appId,
+                100,
+                true);
+        rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
+
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 

@@ -14,7 +14,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.CoreService;
 import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultEdgeLink;
+
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
@@ -84,9 +84,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         }
 
         List<Link> links = new ArrayList<>();
-        links.add(DefaultEdgeLink.createEdgeLink(intent.getSrcConnectPoint(), true));
+        // links.add(DefaultEdgeLink.createEdgeLink(intent.getSrcConnectPoint(), true));
         links.addAll(path.links());
-        links.add(DefaultEdgeLink.createEdgeLink(intent.getDst(), false));
+        //links.add(DefaultEdgeLink.createEdgeLink(intent.getDst(), false));
 
         TrafficSelector opticalSelector = null;
         TrafficTreatment opticalTreatment = null;

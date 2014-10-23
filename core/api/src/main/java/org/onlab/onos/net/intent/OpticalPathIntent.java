@@ -13,8 +13,8 @@ import com.google.common.base.MoreObjects;
 
 public class OpticalPathIntent extends OpticalConnectivityIntent {
     private final Path path;
-    private final TrafficSelector opticalMatch;
-    private final TrafficTreatment opticalAction;
+    // private final TrafficSelector opticalMatch;
+    // private final TrafficTreatment opticalAction;
 
     public OpticalPathIntent(ApplicationId appId,
             ConnectPoint src,
@@ -23,29 +23,29 @@ public class OpticalPathIntent extends OpticalConnectivityIntent {
             TrafficTreatment action,
             Path path) {
         super(appId, src, dst);
-        this.opticalMatch = match;
-        this.opticalAction = action;
+        // this.opticalMatch = match;
+        // this.opticalAction = action;
         this.path = path;
     }
 
-    public OpticalPathIntent() {
-        this.opticalMatch = null;
-        this.opticalAction = null;
+    protected OpticalPathIntent() {
+        // this.opticalMatch = null;
+        // this.opticalAction = null;
         this.path = null;
     }
 
     public Path path() {
         return path;
     }
-
+/*
     public TrafficSelector selector() {
-        return opticalMatch;
+        // return opticalMatch;
     }
 
     public TrafficTreatment treatment() {
-        return opticalAction;
+        // return opticalAction;
     }
-
+*/
     @Override
     public boolean isInstallable() {
         return true;
@@ -55,8 +55,8 @@ public class OpticalPathIntent extends OpticalConnectivityIntent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
-                .add("match", opticalMatch)
-                .add("action", opticalAction)
+                //.add("match", opticalMatch)
+                //.add("action", opticalAction)
                 .add("ingressPort", this.getSrcConnectPoint())
                 .add("egressPort", this.getDst())
                 .add("path", path)
