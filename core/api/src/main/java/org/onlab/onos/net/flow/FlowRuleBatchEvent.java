@@ -30,7 +30,7 @@ public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.T
      * @param request batch operation request.
      * @return event.
      */
-    public static FlowRuleBatchEvent create(FlowRuleBatchRequest request) {
+    public static FlowRuleBatchEvent requested(FlowRuleBatchRequest request) {
         FlowRuleBatchEvent event = new FlowRuleBatchEvent(Type.BATCH_OPERATION_REQUESTED, request, null);
         return event;
     }
@@ -41,7 +41,7 @@ public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.T
      * @param result completed batch operation result.
      * @return event.
      */
-    public static FlowRuleBatchEvent create(FlowRuleBatchRequest request, CompletedBatchOperation result) {
+    public static FlowRuleBatchEvent completed(FlowRuleBatchRequest request, CompletedBatchOperation result) {
         FlowRuleBatchEvent event = new FlowRuleBatchEvent(Type.BATCH_OPERATION_COMPLETED, request, result);
         return event;
     }

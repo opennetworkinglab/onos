@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
@@ -27,12 +28,15 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
+import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowId;
+import org.onlab.onos.net.flow.FlowRuleBatchEntry;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.StoredFlowEntry;
 import org.onlab.onos.net.flow.criteria.Criteria;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -80,6 +84,7 @@ public final class KryoNamespaces {
                     Arrays.asList().getClass(),
                     HashMap.class,
                     HashSet.class,
+                    LinkedList.class,
                     //
                     //
                     ControllerNode.State.class,
@@ -118,7 +123,11 @@ public final class KryoNamespaces {
                     DefaultTrafficTreatment.class,
                     Instructions.DropInstruction.class,
                     Instructions.OutputInstruction.class,
-                    RoleInfo.class
+                    RoleInfo.class,
+                    FlowRuleBatchOperation.class,
+                    CompletedBatchOperation.class,
+                    FlowRuleBatchEntry.class,
+                    FlowRuleBatchEntry.FlowRuleOperation.class
                     )
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())

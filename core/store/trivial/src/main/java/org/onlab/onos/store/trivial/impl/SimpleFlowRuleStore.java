@@ -176,8 +176,8 @@ public class SimpleFlowRuleStore
             }
             // new flow rule added
             existing.add(f);
-            notifyDelegate(FlowRuleBatchEvent.create(
-                    new FlowRuleBatchRequest(
+            notifyDelegate(FlowRuleBatchEvent.requested(
+                    new FlowRuleBatchRequest( 1, /* FIXME generate something */
                             Arrays.<FlowEntry>asList(f),
                             Collections.<FlowEntry>emptyList())));
         }
@@ -194,8 +194,8 @@ public class SimpleFlowRuleStore
                     synchronized (entry) {
                         entry.setState(FlowEntryState.PENDING_REMOVE);
                         // TODO: Should we notify only if it's "remote" event?
-                        notifyDelegate(FlowRuleBatchEvent.create(
-                                new FlowRuleBatchRequest(
+                        notifyDelegate(FlowRuleBatchEvent.requested(
+                                new FlowRuleBatchRequest(1, /* FIXME generate something */
                                         Collections.<FlowEntry>emptyList(),
                                         Arrays.<FlowEntry>asList(entry))));
                     }

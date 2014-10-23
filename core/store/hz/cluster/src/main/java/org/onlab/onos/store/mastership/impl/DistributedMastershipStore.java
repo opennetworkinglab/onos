@@ -58,7 +58,6 @@ implements MastershipStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     @Activate
     public void activate() {
@@ -76,9 +75,9 @@ implements MastershipStore {
             }
         };
 
-        roleMap = new SMap(theInstance.getMap("nodeRoles"), this.serializer);
+        roleMap = new SMap<>(theInstance.<byte[], byte[]>getMap("nodeRoles"), this.serializer);
         roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
-        terms = new SMap(theInstance.getMap("terms"), this.serializer);
+        terms = new SMap<>(theInstance.<byte[], byte[]>getMap("terms"), this.serializer);
         clusterSize = theInstance.getAtomicLong("clustersize");
 
         log.info("Started");

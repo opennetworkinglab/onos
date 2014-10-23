@@ -9,10 +9,12 @@ import com.google.common.collect.Lists;
 
 public class FlowRuleBatchRequest {
 
+    private final int batchId;
     private final List<FlowEntry> toAdd;
     private final List<FlowEntry> toRemove;
 
-    public FlowRuleBatchRequest(List<FlowEntry> toAdd, List<FlowEntry> toRemove) {
+    public FlowRuleBatchRequest(int batchId, List<FlowEntry> toAdd, List<FlowEntry> toRemove) {
+        this.batchId = batchId;
         this.toAdd = Collections.unmodifiableList(toAdd);
         this.toRemove = Collections.unmodifiableList(toRemove);
     }
@@ -34,5 +36,9 @@ public class FlowRuleBatchRequest {
             entries.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, e));
         }
         return new FlowRuleBatchOperation(entries);
+    }
+
+    public int batchId() {
+        return batchId;
     }
 }
