@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
@@ -26,6 +27,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
+import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
@@ -75,6 +77,7 @@ public final class KryoNamespaces {
                     ArrayList.class,
                     Arrays.asList().getClass(),
                     HashMap.class,
+                    HashSet.class,
                     //
                     //
                     ControllerNode.State.class,
@@ -94,6 +97,7 @@ public final class KryoNamespaces {
                     HostDescription.class,
                     DefaultHostDescription.class,
                     DefaultFlowRule.class,
+                    DefaultFlowEntry.class,
                     FlowId.class,
                     DefaultTrafficSelector.class,
                     Criteria.PortCriterion.class,

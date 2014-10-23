@@ -103,6 +103,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     private final Map<Long, InstallationFuture> pendingFMs =
             new ConcurrentHashMap<Long, InstallationFuture>();
 
+    private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -115,6 +117,14 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addEventListener(listener);
+
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            FlowStatsCollector fsc = new FlowStatsCollector(sw, POLL_INTERVAL);
+            fsc.start();
+            collectors.put(new Dpid(sw.getId()), fsc);
+        }
+
+
         log.info("Started");
     }
 
@@ -213,7 +223,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     private class InternalFlowProvider
     implements OpenFlowSwitchListener, OpenFlowEventListener {
 
-        private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
+
         private final Multimap<DeviceId, FlowEntry> completeEntries =
                 ArrayListMultimap.create();
 

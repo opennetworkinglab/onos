@@ -108,6 +108,9 @@ public class FlowRuleManager
             if (local) {
                 // TODO: aggregate all local rules and push down once?
                 applyFlowRulesToProviders(f);
+                eventDispatcher.post(
+                        new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADD_REQUESTED, f));
+
             }
         }
     }
@@ -136,6 +139,8 @@ public class FlowRuleManager
             if (local) {
                 // TODO: aggregate all local rules and push down once?
                 removeFlowRulesFromProviders(f);
+                eventDispatcher.post(
+                        new FlowRuleEvent(FlowRuleEvent.Type.RULE_REMOVE_REQUESTED, f));
             }
         }
     }

@@ -10,14 +10,18 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 
+import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleService;
+import org.onlab.onos.net.statistic.DefaultLoad;
 import org.onlab.onos.net.statistic.Load;
 import org.onlab.onos.net.statistic.StatisticService;
 import org.onlab.onos.net.statistic.StatisticStore;
 import org.slf4j.Logger;
+
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -54,12 +58,12 @@ public class StatisticManager implements StatisticService {
 
     @Override
     public Load load(Link link) {
-        return null;
+       return load(link.src());
     }
 
     @Override
     public Load load(ConnectPoint connectPoint) {
-        return null;
+        return loadInternal(connectPoint);
     }
 
     @Override
@@ -77,6 +81,35 @@ public class StatisticManager implements StatisticService {
         return null;
     }
 
+    private Load loadInternal(ConnectPoint connectPoint) {
+        Set<FlowEntry> current;
+        Set<FlowEntry> previous;
+        synchronized (statisticStore) {
+            current = statisticStore.getCurrentStatistic(connectPoint);
+            previous = statisticStore.getPreviousStatistic(connectPoint);
+        }
+        if (current == null || previous == null) {
+            return new DefaultLoad();
+        }
+        long currentAggregate = aggregate(current);
+        long previousAggregate = aggregate(previous);
+
+        return new DefaultLoad(currentAggregate, previousAggregate);
+    }
+
+    /**
+     * Aggregates a set of values.
+     * @param values the values to aggregate
+     * @return a long value
+     */
+    private long aggregate(Set<FlowEntry> values) {
+        long sum = 0;
+        for (FlowEntry f : values) {
+            sum += f.bytes();
+        }
+        return sum;
+    }
+
     /**
      * Internal flow rule event listener.
      */
@@ -84,22 +117,29 @@ public class StatisticManager implements StatisticService {
 
         @Override
         public void event(FlowRuleEvent event) {
-//            FlowRule rule = event.subject();
-//            switch (event.type()) {
-//                case RULE_ADDED:
-//                case RULE_UPDATED:
-//                    if (rule instanceof FlowEntry) {
-//                        statisticStore.addOrUpdateStatistic((FlowEntry) rule);
-//                    }
-//                    break;
-//                case RULE_ADD_REQUESTED:
-//                    statisticStore.prepareForStatistics(rule);
-//                    break;
-//                case RULE_REMOVE_REQUESTED:
-//                case RULE_REMOVED:
-//                    statisticStore.removeFromStatistics(rule);
-//                    break;
-//            }
+            FlowRule rule = event.subject();
+            switch (event.type()) {
+                case RULE_ADDED:
+                case RULE_UPDATED:
+                    if (rule instanceof FlowEntry) {
+                        statisticStore.addOrUpdateStatistic((FlowEntry) rule);
+                    } else {
+                        log.warn("IT AIN'T A FLOWENTRY");
+                    }
+                    break;
+                case RULE_ADD_REQUESTED:
+                    log.info("Preparing for stats");
+                    statisticStore.prepareForStatistics(rule);
+                    break;
+                case RULE_REMOVE_REQUESTED:
+                    log.info("Removing stats");
+                    statisticStore.removeFromStatistics(rule);
+                    break;
+                case RULE_REMOVED:
+                    break;
+                default:
+                    log.warn("Unknown flow rule event {}", event);
+            }
         }
     }
 
