@@ -43,7 +43,7 @@ import static org.onlab.onos.net.DeviceId.deviceId;
          description = "Lists all ports or all ports of a device")
 public class DevicePortsListCommand extends DevicesListCommand {
 
-    private static final String FMT = "  port=%s, state=%s";
+    private static final String FMT = "  port=%s, state=%s%s";
 
     @Option(name = "-e", aliases = "--enabled", description = "Show only enabled ports",
             required = false, multiValued = false)
@@ -112,7 +112,8 @@ public class DevicePortsListCommand extends DevicesListCommand {
             if (isIncluded(port)) {
                 ports.add(mapper.createObjectNode()
                                   .put("port", port.number().toString())
-                                  .put("isEnabled", port.isEnabled()));
+                                  .put("isEnabled", port.isEnabled())
+                                  .set("annotations", annotations(mapper, port.annotations())));
             }
         }
         return result.put("device", device.id().toString()).set("ports", ports);
@@ -131,7 +132,8 @@ public class DevicePortsListCommand extends DevicesListCommand {
         Collections.sort(ports, Comparators.PORT_COMPARATOR);
         for (Port port : ports) {
             if (isIncluded(port)) {
-                print(FMT, port.number(), port.isEnabled() ? "enabled" : "disabled");
+                print(FMT, port.number(), port.isEnabled() ? "enabled" : "disabled",
+                      annotations(port.annotations()));
             }
         }
     }

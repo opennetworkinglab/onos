@@ -41,7 +41,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class DevicesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, available=%s, role=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s";
+            "id=%s, available=%s, role=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s%s";
 
     @Override
     protected void execute() {
@@ -89,7 +89,8 @@ public class DevicesListCommand extends AbstractShellCommand {
                     .put("mfr", device.manufacturer())
                     .put("hw", device.hwVersion())
                     .put("sw", device.swVersion())
-                    .put("serial", device.serialNumber());
+                    .put("serial", device.serialNumber())
+                    .set("annotations", annotations(mapper, device.annotations()));
         }
         return result;
     }
@@ -117,7 +118,7 @@ public class DevicesListCommand extends AbstractShellCommand {
             print(FMT, device.id(), service.isAvailable(device.id()),
                   service.getRole(device.id()), device.type(),
                   device.manufacturer(), device.hwVersion(), device.swVersion(),
-                  device.serialNumber());
+                  device.serialNumber(), annotations(device.annotations()));
         }
     }
 

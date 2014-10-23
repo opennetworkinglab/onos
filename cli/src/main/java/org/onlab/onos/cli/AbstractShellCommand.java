@@ -18,10 +18,13 @@
  */
 package org.onlab.onos.cli;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.CoreService;
+import org.onlab.onos.net.Annotations;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 
@@ -73,6 +76,34 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      */
     public void error(String format, Object... args) {
         System.err.println(String.format(format, args));
+    }
+
+    /**
+     * Produces a string image of the specified key/value annotations.
+     *
+     * @param annotations key/value annotations
+     * @return string image with ", k1=v1, k2=v2, ..." pairs
+     */
+    public static String annotations(Annotations annotations) {
+        StringBuilder sb = new StringBuilder();
+        for (String key : annotations.keys()) {
+            sb.append(", ").append(key).append('=').append(annotations.value(key));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Produces a JSON object from the specified key/value annotations.
+     *
+     * @param annotations key/value annotations
+     * @return JSON object
+     */
+    public static ObjectNode annotations(ObjectMapper mapper, Annotations annotations) {
+        ObjectNode result = mapper.createObjectNode();
+        for (String key : annotations.keys()) {
+            result.put(key, annotations.value(key));
+        }
+        return result;
     }
 
     /**
