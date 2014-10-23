@@ -4,6 +4,7 @@ import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,8 +27,8 @@ import org.onlab.onos.store.flow.ReplicaInfo;
 import org.onlab.onos.store.flow.ReplicaInfoService;
 import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
-
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -70,7 +71,9 @@ public class DistributedStatisticStore implements StatisticStore {
     protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
-            serializerPool = KryoNamespaces.API.newBuilder()
+            serializerPool = KryoNamespace.newBuilder()
+                    .register(KryoNamespaces.API)
+                    // register this store specific classes here
                     .build()
                     .populate(1);
         }
