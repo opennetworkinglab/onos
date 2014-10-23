@@ -7,6 +7,11 @@ public class LambdaResourceAllocation extends LambdaResourceRequest
         implements ResourceAllocation {
     private final Lambda lambda;
 
+    @Override
+    public ResourceType type() {
+        return ResourceType.LAMBDA;
+    }
+
     /**
      * Creates a new {@link LambdaResourceAllocation} with {@link Lambda}
      * object.
@@ -22,7 +27,7 @@ public class LambdaResourceAllocation extends LambdaResourceRequest
      *
      * @return the lambda resource
      */
-    Lambda lambda() {
+    public Lambda lambda() {
         return lambda;
     }
 }

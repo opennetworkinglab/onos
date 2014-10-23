@@ -30,7 +30,7 @@ public class BandwidthResourceRequest implements ResourceRequest {
      *
      * @return the bandwidth resource
      */
-    Bandwidth bandwidth() {
+    public Bandwidth bandwidth() {
         return bandwidth;
     }
 }
