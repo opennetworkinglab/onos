@@ -57,6 +57,11 @@
             <artifactId>onlab-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>

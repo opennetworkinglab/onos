@@ -49,6 +49,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-junit</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>

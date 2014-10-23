@@ -388,6 +388,7 @@
                         <redirectTestOutputToFile>true
                         </redirectTestOutputToFile>
                         <printSummary>true</printSummary>
+                        <excludedGroups>org.onlab.junit.IntegrationTest</excludedGroups>
                     </configuration>
                 </plugin>
 
