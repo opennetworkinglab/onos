@@ -1,4 +1,4 @@
-package org.onlab.onos.net.resource;
+package org.onlab.onos.net.resource.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -12,6 +12,15 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.resource.BandwidthResourceAllocation;
+import org.onlab.onos.net.resource.BandwidthResourceRequest;
+import org.onlab.onos.net.resource.Lambda;
+import org.onlab.onos.net.resource.LambdaResourceAllocation;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceRequest;
+import org.onlab.onos.net.resource.LinkResourceService;
+import org.onlab.onos.net.resource.ResourceAllocation;
+import org.onlab.onos.net.resource.ResourceRequest;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Sets;
