@@ -85,12 +85,14 @@ svg .node.selected rect {
 
 svg .link.inactive,
 svg .node.inactive rect,
-svg .node.inactive text {
+svg .node.inactive text,
+svg .node.inactive image {
     opacity: .2;
 }
 
 svg .node.inactive.selected rect,
-svg .node.inactive.selected text {
+svg .node.inactive.selected text,
+svg .node.inactive.selected image {
     opacity: .6;
 }
 

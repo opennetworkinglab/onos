@@ -68,7 +68,9 @@ implements PacketService, PacketProviderRegistry {
         checkNotNull(packet, "Packet cannot be null");
         final Device device = deviceService.getDevice(packet.sendThrough());
         final PacketProvider packetProvider = getProvider(device.providerId());
-        packetProvider.emit(packet);
+        if (packetProvider != null) {
+            packetProvider.emit(packet);
+        }
     }
 
     @Override

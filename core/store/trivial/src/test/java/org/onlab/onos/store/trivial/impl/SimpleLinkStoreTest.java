@@ -1,18 +1,6 @@
 package org.onlab.onos.store.trivial.impl;
 
-import static org.junit.Assert.*;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.*;
-import static org.onlab.onos.net.link.LinkEvent.Type.*;
-import static org.onlab.onos.store.trivial.impl.SimpleDeviceStoreTest.assertAnnotationsEquals;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -23,17 +11,27 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkStore;
 import org.onlab.onos.net.link.LinkStoreDelegate;
 import org.onlab.onos.net.provider.ProviderId;
 
-import com.google.common.collect.Iterables;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.Link.Type.*;
+import static org.onlab.onos.net.link.LinkEvent.Type.*;
+import static org.onlab.onos.store.trivial.impl.SimpleDeviceStoreTest.assertAnnotationsEquals;
 
 /**
  * Test of the simple LinkStore implementation.
@@ -301,7 +299,7 @@ public class SimpleLinkStoreTest {
         LinkEvent event = linkStore.createOrUpdateLink(PIDA,
                     new DefaultLinkDescription(src, dst, INDIRECT, A1));
 
-        assertNull("Ancillary only link is ignored", event);
+        assertNotNull("Ancillary only link is ignored", event);
 
         // add Primary link
         LinkEvent event2 = linkStore.createOrUpdateLink(PID,
@@ -309,7 +307,7 @@ public class SimpleLinkStoreTest {
 
         assertLink(DID1, P1, DID2, P2, INDIRECT, event2.subject());
         assertAnnotationsEquals(event2.subject().annotations(), A2, A1);
-        assertEquals(LINK_ADDED, event2.type());
+        assertEquals(LINK_UPDATED, event2.type());
 
         // update link type
         LinkEvent event3 = linkStore.createOrUpdateLink(PID,
@@ -375,7 +373,7 @@ public class SimpleLinkStoreTest {
     }
 
     @Test
-    public final void testAncillaryOnlyNotVisible() {
+    public final void testAncillaryVisible() {
         ConnectPoint src = new ConnectPoint(DID1, P1);
         ConnectPoint dst = new ConnectPoint(DID2, P2);
 
@@ -384,18 +382,8 @@ public class SimpleLinkStoreTest {
                     new DefaultLinkDescription(src, dst, INDIRECT, A1));
 
         // Ancillary only link should not be visible
-        assertEquals(0, linkStore.getLinkCount());
-
-        assertTrue(Iterables.isEmpty(linkStore.getLinks()));
-
-        assertNull(linkStore.getLink(src, dst));
-
-        assertEquals(Collections.emptySet(), linkStore.getIngressLinks(dst));
-
-        assertEquals(Collections.emptySet(), linkStore.getEgressLinks(src));
-
-        assertEquals(Collections.emptySet(), linkStore.getDeviceEgressLinks(DID1));
-        assertEquals(Collections.emptySet(), linkStore.getDeviceIngressLinks(DID2));
+        assertEquals(1, linkStore.getLinkCount());
+        assertNotNull(linkStore.getLink(src, dst));
     }
 
     // If Delegates should be called only on remote events,

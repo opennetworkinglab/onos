@@ -1,0 +1,19 @@
+{
+    "devices" : [
+        {
+            "uri": "of:00000000000001", "type": "ROADM", "mfr": "Foo, Inc.", "hw": "Alpha", "sw": "1.2.3",
+            "serial": "ab321", "mac": "00000000000001", "annotations": {"foo": "bar"},
+            "ports": []
+        },
+        {
+            "uri": "of:00000000000002", "type": "ROADM", "mfr": "Foo, Inc.", "hw": "Alpha", "sw": "1.2.3",
+            "serial": "ab456", "mac": "00000000000002", "annotations": {"foo": "bar"},
+            "ports": []
+        }
+    ],
+
+    "links" : [
+        { "src": "of:00000000000001/1", "dst": "of:00000000000002/1", "type": "OPTICAL" },
+        { "src": "of:00000000000002/1", "dst": "of:00000000000001/1", "type": "OPTICAL" }
+    ]
+}

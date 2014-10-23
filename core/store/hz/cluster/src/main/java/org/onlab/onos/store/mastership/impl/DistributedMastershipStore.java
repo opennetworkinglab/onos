@@ -91,23 +91,14 @@ implements MastershipStore {
 
     @Override
     public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
-        NodeId current = getNode(MASTER, deviceId);
-        if (current == null) {
-            if (isRole(STANDBY, nodeId, deviceId)) {
-                //was previously standby, or set to standby from master
-                return MastershipRole.STANDBY;
-            } else {
-                return MastershipRole.NONE;
-            }
-        } else {
-            if (current.equals(nodeId)) {
-                //*should* be in unusable, not always
-                return MastershipRole.MASTER;
-            } else {
-                //may be in backups or unusable from earlier retirement
-                return MastershipRole.STANDBY;
-            }
+        final RoleValue roleInfo = getRoleValue(deviceId);
+        if (roleInfo.contains(MASTER, nodeId)) {
+            return MASTER;
         }
+        if (roleInfo.contains(STANDBY, nodeId)) {
+            return STANDBY;
+        }
+        return NONE;
     }
 
     @Override
@@ -124,21 +115,16 @@ implements MastershipStore {
                     roleMap.put(deviceId, rv);
                     return null;
                 case STANDBY:
+                case NONE:
                     NodeId current = rv.get(MASTER);
                     if (current != null) {
                         //backup and replace current master
-                        rv.reassign(nodeId, NONE, STANDBY);
+                        rv.reassign(current, NONE, STANDBY);
                         rv.replace(current, nodeId, MASTER);
                     } else {
                         //no master before so just add.
                         rv.add(MASTER, nodeId);
                     }
-                    rv.reassign(nodeId, STANDBY, NONE);
-                    roleMap.put(deviceId, rv);
-                    updateTerm(deviceId);
-                    return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
-                case NONE:
-                    rv.add(MASTER, nodeId);
                     rv.reassign(nodeId, STANDBY, NONE);
                     roleMap.put(deviceId, rv);
                     updateTerm(deviceId);
@@ -193,21 +179,28 @@ implements MastershipStore {
             switch (role) {
                 case MASTER:
                     rv.reassign(local, STANDBY, NONE);
+                    terms.putIfAbsent(deviceId, INIT);
                     roleMap.put(deviceId, rv);
                     break;
                 case STANDBY:
                     rv.reassign(local, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
                     terms.putIfAbsent(deviceId, INIT);
-
                     break;
                 case NONE:
-                    //claim mastership
-                    rv.add(MASTER, local);
-                    rv.reassign(local, STANDBY, NONE);
+                    //either we're the first standby, or first to device.
+                    //for latter, claim mastership.
+                    if (rv.get(MASTER) == null) {
+                        rv.add(MASTER, local);
+                        rv.reassign(local, STANDBY, NONE);
+                        updateTerm(deviceId);
+                        role = MastershipRole.MASTER;
+                    } else {
+                        rv.add(STANDBY, local);
+                        rv.reassign(local, NONE, STANDBY);
+                        role = MastershipRole.STANDBY;
+                    }
                     roleMap.put(deviceId, rv);
-                    updateTerm(deviceId);
-                    role = MastershipRole.MASTER;
                     break;
                 default:
                     log.warn("unknown Mastership Role {}", role);
@@ -315,7 +308,10 @@ implements MastershipStore {
         RoleValue value = roleMap.get(deviceId);
         if (value == null) {
             value = new RoleValue();
-            roleMap.put(deviceId, value);
+            RoleValue concurrentlyAdded = roleMap.putIfAbsent(deviceId, value);
+            if (concurrentlyAdded != null) {
+                return concurrentlyAdded;
+            }
         }
         return value;
     }
@@ -327,16 +323,6 @@ implements MastershipStore {
             return value.get(role);
         }
         return null;
-    }
-
-    //check if node is a certain role given a device
-    private boolean isRole(
-            MastershipRole role, NodeId nodeId, DeviceId deviceId) {
-        RoleValue value = roleMap.get(deviceId);
-        if (value != null) {
-            return value.contains(role, nodeId);
-        }
-        return false;
     }
 
     //adds or updates term information.

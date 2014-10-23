@@ -17,6 +17,7 @@
   <description>ONOS metrics applications</description>
 
   <modules>
+    <module>intent</module>
     <module>topology</module>
   </modules>
 

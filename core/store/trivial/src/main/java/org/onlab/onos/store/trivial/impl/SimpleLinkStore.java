@@ -192,14 +192,6 @@ public class SimpleLinkStore
     // Creates and stores the link and returns the appropriate event.
     // Guarded by linkDescs value (=locking each Link)
     private LinkEvent createLink(LinkKey key, Link newLink) {
-
-        if (newLink.providerId().isAncillary()) {
-            // TODO: revisit ancillary only Link handling
-
-            // currently treating ancillary only as down (not visible outside)
-            return null;
-        }
-
         links.put(key, newLink);
         srcLinks.put(newLink.src().deviceId(), key);
         dstLinks.put(newLink.dst().deviceId(), key);
@@ -209,10 +201,8 @@ public class SimpleLinkStore
     // Updates, if necessary the specified link and returns the appropriate event.
     // Guarded by linkDescs value (=locking each Link)
     private LinkEvent updateLink(LinkKey key, Link oldLink, Link newLink) {
-
         if (newLink.providerId().isAncillary()) {
             // TODO: revisit ancillary only Link handling
-
             // currently treating ancillary only as down (not visible outside)
             return null;
         }

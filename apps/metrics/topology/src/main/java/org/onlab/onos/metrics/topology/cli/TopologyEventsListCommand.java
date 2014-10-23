@@ -19,10 +19,8 @@ import org.onlab.onos.net.topology.TopologyEvent;
          description = "Lists the last topology events")
 public class TopologyEventsListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT_EVENT =
-        "Topology Event time=%d type=%s subject=%s";
-    private static final String FORMAT_REASON =
-        "    Reason time=%d type=%s subject=%s";
+    private static final String FORMAT_EVENT =  "Event=%s";
+    private static final String FORMAT_REASON = "    Reason=%s";
 
     @Override
     protected void execute() {
@@ -31,12 +29,13 @@ public class TopologyEventsListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(service.getEvents()));
         } else {
-            for (TopologyEvent event : service.getEvents()) {
-                print(FORMAT_EVENT, event.time(), event.type(),
-                      event.subject());
-                for (Event reason : event.reasons()) {
-                    print(FORMAT_REASON, reason.time(), reason.type(),
-                          reason.subject());
+            for (Event event : service.getEvents()) {
+                print(FORMAT_EVENT, event);
+                if (event instanceof TopologyEvent) {
+                    TopologyEvent topologyEvent = (TopologyEvent) event;
+                    for (Event reason : topologyEvent.reasons()) {
+                        print(FORMAT_REASON, reason);
+                    }
                 }
                 print("");          // Extra empty line for clarity
             }
@@ -46,14 +45,14 @@ public class TopologyEventsListCommand extends AbstractShellCommand {
     /**
      * Produces a JSON array of topology events.
      *
-     * @param topologyEvents the topology events with the data
+     * @param events the topology events with the data
      * @return JSON array with the topology events
      */
-    private JsonNode json(List<TopologyEvent> topologyEvents) {
+    private JsonNode json(List<Event> events) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
 
-        for (TopologyEvent event : topologyEvents) {
+        for (Event event : events) {
             result.add(json(mapper, event));
         }
         return result;
@@ -66,32 +65,23 @@ public class TopologyEventsListCommand extends AbstractShellCommand {
      * @param topologyEvent the topology event with the data
      * @return JSON object for the topology event
      */
-    private ObjectNode json(ObjectMapper mapper, TopologyEvent topologyEvent) {
-        ObjectNode result = mapper.createObjectNode();
-        ArrayNode reasons = mapper.createArrayNode();
-
-        for (Event reason : topologyEvent.reasons()) {
-            reasons.add(json(mapper, reason));
-        }
-        result.put("time", topologyEvent.time())
-            .put("type", topologyEvent.type().toString())
-            .put("subject", topologyEvent.subject().toString())
-            .put("reasons", reasons);
-        return result;
-    }
-
-    /**
-     * Produces JSON object for a generic event.
-     *
-     * @param event the generic event with the data
-     * @return JSON object for the generic event
-     */
     private ObjectNode json(ObjectMapper mapper, Event event) {
         ObjectNode result = mapper.createObjectNode();
 
         result.put("time", event.time())
             .put("type", event.type().toString())
-            .put("subject", event.subject().toString());
+            .put("event", event.toString());
+
+        // Add the reasons if a TopologyEvent
+        if (event instanceof TopologyEvent) {
+            TopologyEvent topologyEvent = (TopologyEvent) event;
+            ArrayNode reasons = mapper.createArrayNode();
+            for (Event reason : topologyEvent.reasons()) {
+                reasons.add(json(mapper, reason));
+            }
+            result.put("reasons", reasons);
+        }
+
         return result;
     }
 }

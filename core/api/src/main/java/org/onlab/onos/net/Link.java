@@ -25,7 +25,18 @@ public interface Link extends Annotated, Provided, NetworkResource {
         /**
          * Signifies that this link is an edge, i.e. host link.
          */
-        EDGE
+        EDGE,
+
+        /**
+         * Signifies that this link represents a logical link backed by
+         * some form of a tunnel.
+         */
+        TUNNEL,
+
+        /**
+         * Signifies that this link is realized by optical connection.
+         */
+        OPTICAL
     }
 
     /**
@@ -48,7 +59,5 @@ public interface Link extends Annotated, Provided, NetworkResource {
      * @return link type
      */
     Type type();
-
-    // LinkInfo info(); // Additional link information / decorations
 
 }

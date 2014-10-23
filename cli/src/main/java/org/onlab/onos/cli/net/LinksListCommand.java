@@ -38,7 +38,7 @@ import static org.onlab.onos.net.DeviceId.deviceId;
          description = "Lists all infrastructure links")
 public class LinksListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s";
+    private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s%s";
     private static final String COMPACT = "%s/%s-%s/%s";
 
     @Argument(index = 0, name = "uri", description = "Device ID",
@@ -85,6 +85,7 @@ public class LinksListCommand extends AbstractShellCommand {
         ObjectNode result = mapper.createObjectNode();
         result.set("src", json(mapper, link.src()));
         result.set("dst", json(mapper, link.dst()));
+        result.set("annotations", annotations(mapper, link.annotations()));
         return result;
     }
 
@@ -109,7 +110,8 @@ public class LinksListCommand extends AbstractShellCommand {
      */
     public static String linkString(Link link) {
         return String.format(FMT, link.src().deviceId(), link.src().port(),
-                             link.dst().deviceId(), link.dst().port(), link.type());
+                             link.dst().deviceId(), link.dst().port(), link.type(),
+                             annotations(link.annotations()));
     }
 
     /**

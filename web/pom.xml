@@ -44,6 +44,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
         </dependency>
@@ -93,6 +98,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
+                            org.slf4j,
                             org.osgi.framework,
                             javax.ws.rs,javax.ws.rs.core,
                             com.sun.jersey.api.core,
@@ -100,6 +106,8 @@
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
+                            com.google.common.base.*,
+                            org.onlab.packet.*,
                             org.onlab.rest.*,
                             org.onlab.onos.*
                         </Import-Package>

@@ -1,6 +1,7 @@
 package org.onlab.nio;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -33,7 +34,8 @@ public class IOLoopIntegrationTest {
         }
     }
 
-
+    // TODO: this test can not pass in some environments, need to be improved
+    @Ignore
     @Test
     public void basic() throws Exception {
         runTest(MILLION, MESSAGE_LENGTH, TIMEOUT);

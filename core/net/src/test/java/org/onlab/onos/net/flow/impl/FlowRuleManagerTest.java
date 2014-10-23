@@ -1,5 +1,10 @@
 package org.onlab.onos.net.flow.impl;
 
+
+
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
+
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +50,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.intent.BatchOperation;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
@@ -164,7 +169,8 @@ public class FlowRuleManagerTest {
         assertEquals("2 rules should exist", 2, flowCount());
 
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2));
-        validateEvents(RULE_ADDED, RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
+                       RULE_ADDED, RULE_ADDED);
 
         addFlowRule(1);
         assertEquals("should still be 2 rules", 2, flowCount());
@@ -218,11 +224,12 @@ public class FlowRuleManagerTest {
         FlowEntry fe2 = new DefaultFlowEntry(f2);
         FlowEntry fe3 = new DefaultFlowEntry(f3);
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2, fe3));
-        validateEvents(RULE_ADDED, RULE_ADDED, RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
+                       RULE_ADDED, RULE_ADDED, RULE_ADDED);
 
         mgr.removeFlowRules(f1, f2);
         //removing from north, so no events generated
-        validateEvents();
+        validateEvents(RULE_REMOVE_REQUESTED, RULE_REMOVE_REQUESTED);
         assertEquals("3 rule should exist", 3, flowCount());
         assertTrue("Entries should be pending remove.",
                    validateState(ImmutableMap.of(
@@ -244,7 +251,8 @@ public class FlowRuleManagerTest {
         service.removeFlowRules(f1);
         fe1.setState(FlowEntryState.REMOVED);
         providerService.flowRemoved(fe1);
-        validateEvents(RULE_ADDED, RULE_ADDED, RULE_REMOVED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADDED,
+                       RULE_ADDED, RULE_REMOVE_REQUESTED, RULE_REMOVED);
 
         providerService.flowRemoved(fe1);
         validateEvents();
@@ -253,7 +261,7 @@ public class FlowRuleManagerTest {
         FlowEntry fe3 = new DefaultFlowEntry(f3);
         service.applyFlowRules(f3);
         providerService.pushFlowMetrics(DID, Collections.singletonList(fe3));
-        validateEvents(RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADDED);
 
         providerService.flowRemoved(fe3);
         validateEvents();
@@ -282,7 +290,8 @@ public class FlowRuleManagerTest {
                         f2, FlowEntryState.ADDED,
                         f3, FlowEntryState.PENDING_ADD)));
 
-        validateEvents(RULE_ADDED, RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
+                       RULE_ADDED, RULE_ADDED);
     }
 
     @Test
@@ -302,7 +311,7 @@ public class FlowRuleManagerTest {
 
         providerService.pushFlowMetrics(DID, Lists.newArrayList(fe1, fe2, fe3));
 
-        validateEvents(RULE_ADDED, RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADDED, RULE_ADDED);
 
     }
 
@@ -327,7 +336,8 @@ public class FlowRuleManagerTest {
 
         providerService.pushFlowMetrics(DID, Lists.newArrayList(fe1, fe2));
 
-        validateEvents(RULE_ADDED, RULE_ADDED, RULE_REMOVED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
+                       RULE_REMOVE_REQUESTED, RULE_ADDED, RULE_ADDED, RULE_REMOVED);
 
     }
 

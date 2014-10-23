@@ -4,6 +4,8 @@ import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Port;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Describes infrastructure device event.
  */
@@ -109,4 +111,12 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
         return port;
     }
 
+    @Override
+    public String toString() {
+        if (port == null) {
+            return super.toString();
+        }
+        return toStringHelper(this).add("time", time()).add("type", type())
+            .add("subject", subject()).add("port", port).toString();
+     }
 }
