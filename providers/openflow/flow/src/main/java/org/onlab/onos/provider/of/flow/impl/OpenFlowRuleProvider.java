@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,9 +69,11 @@ import org.projectfloodlight.openflow.types.U32;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ExecutionList;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -97,6 +99,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private final InternalFlowProvider listener = new InternalFlowProvider();
 
+    // FIXME: This should be an expiring map to ensure futures that don't have
+    // a future eventually get garbage collected.
     private final Map<Long, InstallationFuture> pendingFutures =
             new ConcurrentHashMap<Long, InstallationFuture>();
 
@@ -159,7 +163,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     }
 
     @Override
-    public Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch) {
+    public ListenableFuture<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch) {
         final Set<Dpid> sws =
                 Collections.newSetFromMap(new ConcurrentHashMap<Dpid, Boolean>());
         final Map<Long, FlowRuleBatchEntry> fmXids = new HashMap<Long, FlowRuleBatchEntry>();
@@ -315,17 +319,19 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
     }
 
-    private class InstallationFuture implements Future<CompletedBatchOperation> {
+    private class InstallationFuture implements ListenableFuture<CompletedBatchOperation> {
 
         private final Set<Dpid> sws;
         private final AtomicBoolean ok = new AtomicBoolean(true);
         private final Map<Long, FlowRuleBatchEntry> fms;
 
-        private final List<FlowEntry> offendingFlowMods = Lists.newLinkedList();
+        private final Set<FlowEntry> offendingFlowMods = Sets.newHashSet();
 
         private final CountDownLatch countDownLatch;
         private Long pendingXid;
         private BatchState state;
+
+        private final ExecutionList executionList = new ExecutionList();
 
         public InstallationFuture(Set<Dpid> sws, Map<Long, FlowRuleBatchEntry> fmXids) {
             this.state = BatchState.STARTED;
@@ -335,6 +341,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         public void fail(OFErrorMsg msg, Dpid dpid) {
+
             ok.set(false);
             removeRequirement(dpid);
             FlowEntry fe = null;
@@ -407,6 +414,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
+            if (isDone()) {
+                return false;
+            }
             ok.set(false);
             this.state = BatchState.CANCELLED;
             cleanUp();
@@ -419,7 +429,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 }
 
             }
-            return isCancelled();
+            invokeCallbacks();
+            return true;
         }
 
         @Override
@@ -429,14 +440,15 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public boolean isDone() {
-            return this.state == BatchState.FINISHED;
+            return this.state == BatchState.FINISHED || isCancelled();
         }
 
         @Override
         public CompletedBatchOperation get() throws InterruptedException, ExecutionException {
             countDownLatch.await();
             this.state = BatchState.FINISHED;
-            return new CompletedBatchOperation(ok.get(), offendingFlowMods);
+            CompletedBatchOperation result = new CompletedBatchOperation(ok.get(), offendingFlowMods);
+            return result;
         }
 
         @Override
@@ -445,7 +457,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 TimeoutException {
             if (countDownLatch.await(timeout, unit)) {
                 this.state = BatchState.FINISHED;
-                return new CompletedBatchOperation(ok.get(), offendingFlowMods);
+                CompletedBatchOperation result = new CompletedBatchOperation(ok.get(), offendingFlowMods);
+                return result;
             }
             throw new TimeoutException();
         }
@@ -463,10 +476,21 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         private void removeRequirement(Dpid dpid) {
             countDownLatch.countDown();
+            if (countDownLatch.getCount() == 0) {
+                invokeCallbacks();
+            }
             sws.remove(dpid);
             cleanUp();
         }
 
+        @Override
+        public void addListener(Runnable runnable, Executor executor) {
+            executionList.add(runnable, executor);
+        }
+
+        private void invokeCallbacks() {
+            executionList.execute();
+        }
     }
 
 }

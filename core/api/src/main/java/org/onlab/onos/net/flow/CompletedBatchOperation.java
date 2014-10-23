@@ -1,18 +1,18 @@
 package org.onlab.onos.net.flow;
 
-import java.util.List;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 public class CompletedBatchOperation implements BatchOperationResult<FlowEntry> {
 
 
     private final boolean success;
-    private final List<FlowEntry> failures;
+    private final Set<FlowEntry> failures;
 
-    public CompletedBatchOperation(boolean success, List<FlowEntry> failures) {
+    public CompletedBatchOperation(boolean success, Set<FlowEntry> failures) {
         this.success = success;
-        this.failures = ImmutableList.copyOf(failures);
+        this.failures = ImmutableSet.copyOf(failures);
     }
 
     @Override
@@ -21,7 +21,7 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowEntry> 
     }
 
     @Override
-    public List<FlowEntry> failedItems() {
+    public Set<FlowEntry> failedItems() {
         return failures;
     }
 

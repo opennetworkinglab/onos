@@ -1,5 +1,7 @@
 package org.onlab.onos.net.flow;
 
+import java.util.concurrent.Future;
+
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.Store;
@@ -7,7 +9,7 @@ import org.onlab.onos.store.Store;
 /**
  * Manages inventory of flow rules; not intended for direct use.
  */
-public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegate> {
+public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDelegate> {
 
     /**
      * Returns the number of flow rule in the store.
@@ -41,12 +43,26 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
     Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId);
 
     /**
+     // TODO: Better description of method behavior.
      * Stores a new flow rule without generating events.
      *
      * @param rule the flow rule to add
-     * @return true if the rule should be handled locally
      */
-    boolean storeFlowRule(FlowRule rule);
+    void storeFlowRule(FlowRule rule);
+
+    /**
+     * Stores a batch of flow rules.
+     * @param batchOperation batch of flow rules.
+     * @return Future response indicating success/failure of the batch operation
+     *     all the way down to the device.
+     */
+    Future<CompletedBatchOperation> storeBatch(FlowRuleBatchOperation batchOperation);
+
+    /**
+     * Invoked on the completion of a storeBatch operation.
+     * @param result
+     */
+    void batchOperationComplete(FlowRuleBatchEvent event);
 
     /**
      * Marks a flow rule for deletion. Actual deletion will occur
@@ -55,7 +71,7 @@ public interface FlowRuleStore extends Store<FlowRuleEvent, FlowRuleStoreDelegat
      * @param rule the flow rule to delete
      * @return true if the rule should be handled locally
      */
-    boolean deleteFlowRule(FlowRule rule);
+    void deleteFlowRule(FlowRule rule);
 
     /**
      * Stores a new flow rule, or updates an existing entry.
