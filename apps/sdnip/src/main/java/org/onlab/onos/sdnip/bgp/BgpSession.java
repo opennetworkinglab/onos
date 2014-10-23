@@ -1594,7 +1594,7 @@ public class BgpSession extends SimpleChannelHandler {
         //
         // Parse the KEEPALIVE message: nothing to do
         //
-        log.debug("BGP RX KEEPALIVE message from {}", remoteAddress);
+        log.trace("BGP RX KEEPALIVE message from {}", remoteAddress);
 
         // Start the Session Timeout timer
         restartSessionTimeoutTimer(ctx);

@@ -77,6 +77,10 @@ public class SdnIp implements SdnIpService {
         router = new Router(appId, intentService, hostService, config, interfaceService);
         router.start();
 
+        // Manually set the router as the leader to allow testing
+        // TODO change this when we get a leader election
+        router.leaderChanged(true);
+
         bgpSessionManager = new BgpSessionManager(router);
         bgpSessionManager.startUp(2000); // TODO
 
@@ -97,6 +101,11 @@ public class SdnIp implements SdnIpService {
     @Override
     public Collection<RouteEntry> getRoutes() {
         return router.getRoutes();
+    }
+
+    @Override
+    public void modifyPrimary(boolean isPrimary) {
+        router.leaderChanged(isPrimary);
     }
 
     static String dpidToUri(String dpid) {

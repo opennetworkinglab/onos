@@ -8,6 +8,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.sdnip.config.Interface;
@@ -234,6 +236,10 @@ public class IntentSyncTest {
                 IpPrefix.valueOf("6.6.6.0/24"),
                 IpAddress.valueOf("192.168.10.1"));
 
+        RouteEntry routeEntry7 = new RouteEntry(
+                IpPrefix.valueOf("7.7.7.0/24"),
+                IpAddress.valueOf("192.168.10.1"));
+
         MultiPointToSinglePointIntent intent1 = intentBuilder(
                 routeEntry1.prefix(), "00:00:00:00:00:01", SW1_ETH1);
         MultiPointToSinglePointIntent intent2 = intentBuilder(
@@ -246,6 +252,8 @@ public class IntentSyncTest {
                 routeEntry4Update.prefix(), "00:00:00:00:00:02", SW2_ETH1);
         MultiPointToSinglePointIntent intent5 = intentBuilder(
                 routeEntry5.prefix(), "00:00:00:00:00:01",  SW1_ETH1);
+        MultiPointToSinglePointIntent intent7 = intentBuilder(
+                routeEntry7.prefix(), "00:00:00:00:00:01",  SW1_ETH1);
 
         // Compose a intent, which is equal to intent5 but the id is different.
         MultiPointToSinglePointIntent intent5New =
@@ -255,7 +263,7 @@ public class IntentSyncTest {
                 new Class<?>[] {MultiPointToSinglePointIntent.class,
                 MultiPointToSinglePointIntent.class},
                 intent5, intent5New).equals(true));
-        assertTrue(!intent5.equals(intent5New));
+        assertFalse(intent5.equals(intent5New));
 
         MultiPointToSinglePointIntent intent6 = intentBuilder(
                 routeEntry6.prefix(), "00:00:00:00:00:01",  SW1_ETH1);
@@ -274,6 +282,8 @@ public class IntentSyncTest {
                 routeEntry5);
         bgpRoutes.put(RouteEntry.createBinaryString(routeEntry6.prefix()),
                 routeEntry6);
+        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry7.prefix()),
+                routeEntry7);
         TestUtils.setField(router, "bgpRoutes", bgpRoutes);
 
         ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent>
@@ -283,15 +293,27 @@ public class IntentSyncTest {
         pushedRouteIntents.put(routeEntry4Update.prefix(), intent4Update);
         pushedRouteIntents.put(routeEntry5.prefix(), intent5New);
         pushedRouteIntents.put(routeEntry6.prefix(), intent6);
+        pushedRouteIntents.put(routeEntry7.prefix(), intent7);
         TestUtils.setField(router, "pushedRouteIntents", pushedRouteIntents);
 
         // Set up expectation
         reset(intentService);
         Set<Intent> intents = new HashSet<Intent>();
         intents.add(intent1);
+        expect(intentService.getIntentState(intent1.id()))
+                .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent2);
+        expect(intentService.getIntentState(intent2.id()))
+                .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent4);
+        expect(intentService.getIntentState(intent4.id()))
+                .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent5);
+        expect(intentService.getIntentState(intent5.id()))
+                .andReturn(IntentState.INSTALLED).anyTimes();
+        intents.add(intent7);
+        expect(intentService.getIntentState(intent7.id()))
+                .andReturn(IntentState.WITHDRAWING).anyTimes();
         expect(intentService.getIntents()).andReturn(intents).anyTimes();
 
         intentService.withdraw(intent2);
@@ -299,6 +321,7 @@ public class IntentSyncTest {
         intentService.withdraw(intent4);
         intentService.submit(intent4Update);
         intentService.submit(intent6);
+        intentService.submit(intent7);
         replay(intentService);
 
         // Start the test
@@ -306,14 +329,14 @@ public class IntentSyncTest {
         TestUtils.callMethod(router, "syncIntents", new Class<?>[] {});
 
         // Verify
-        assertEquals(router.getRoutes().size(), 5);
+        assertEquals(router.getRoutes().size(), 6);
         assertTrue(router.getRoutes().contains(routeEntry1));
         assertTrue(router.getRoutes().contains(routeEntry3));
         assertTrue(router.getRoutes().contains(routeEntry4Update));
         assertTrue(router.getRoutes().contains(routeEntry5));
         assertTrue(router.getRoutes().contains(routeEntry6));
 
-        assertEquals(router.getPushedRouteIntents().size(), 5);
+        assertEquals(router.getPushedRouteIntents().size(), 6);
         assertTrue(router.getPushedRouteIntents().contains(intent1));
         assertTrue(router.getPushedRouteIntents().contains(intent3));
         assertTrue(router.getPushedRouteIntents().contains(intent4Update));

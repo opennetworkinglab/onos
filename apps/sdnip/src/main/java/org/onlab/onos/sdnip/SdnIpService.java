@@ -36,4 +36,12 @@ public interface SdnIpService {
      * @return the SDN-IP routes
      */
     public Collection<RouteEntry> getRoutes();
+
+    /**
+     * Changes whether this SDN-IP instance is the primary or not based on the
+     * boolean parameter.
+     *
+     * @param isPrimary true if the instance is primary, false if it is not
+     */
+    public void modifyPrimary(boolean isPrimary);
 }

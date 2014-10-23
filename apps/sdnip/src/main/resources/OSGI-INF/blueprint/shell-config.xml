@@ -22,5 +22,8 @@
     <command>
       <action class="org.onlab.onos.sdnip.cli.RoutesListCommand"/>
     </command>
+    <command>
+      <action class="org.onlab.onos.sdnip.cli.PrimaryChangeCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
