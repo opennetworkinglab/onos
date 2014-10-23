@@ -3,7 +3,6 @@ package org.onlab.onos.net.intent.impl;
 import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
-
 import java.util.List;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -20,11 +19,11 @@ import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.FlowRuleBatchEntry;
+import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.OpticalPathIntent;
@@ -86,12 +85,12 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         LinkResourceAllocations allocations = assignWavelength(intent);
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchInport(intent.getSrcConnectPoint().port());
+        selectorBuilder.matchInport(intent.src().port());
 
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
 
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-        ConnectPoint prev = intent.getSrcConnectPoint();
+        ConnectPoint prev = intent.src();
 
         //TODO throw exception if the lambda was not assigned successfully
         for (Link link : intent.path().links()) {
@@ -127,8 +126,8 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
         // build the last T port rule
         TrafficTreatment treatmentLast = builder()
-                .setOutput(intent.getDst().port()).build();
-        FlowRule rule = new DefaultFlowRule(intent.getDst().deviceId(),
+                .setOutput(intent.dst().port()).build();
+        FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
                 selectorBuilder.build(),
                 treatmentLast,
                 100,
@@ -190,12 +189,12 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         LinkResourceAllocations allocations = resourceService.getAllocations(intent.id());
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchInport(intent.getSrcConnectPoint().port());
+        selectorBuilder.matchInport(intent.src().port());
 
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
 
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-        ConnectPoint prev = intent.getSrcConnectPoint();
+        ConnectPoint prev = intent.src();
 
         //TODO throw exception if the lambda was not retrieved successfully
         for (Link link : intent.path().links()) {
@@ -231,8 +230,8 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
         // build the last T port rule
         TrafficTreatment treatmentLast = builder()
-                .setOutput(intent.getDst().port()).build();
-        FlowRule rule = new DefaultFlowRule(intent.getDst().deviceId(),
+                .setOutput(intent.dst().port()).build();
+        FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
                 selectorBuilder.build(),
                 treatmentLast,
                 100,

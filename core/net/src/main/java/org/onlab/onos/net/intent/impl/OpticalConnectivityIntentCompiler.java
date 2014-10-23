@@ -14,16 +14,11 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.CoreService;
 import org.onlab.onos.net.ConnectPoint;
-
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
-
 import org.onlab.onos.net.intent.OpticalConnectivityIntent;
 import org.onlab.onos.net.intent.OpticalPathIntent;
 import org.onlab.onos.net.provider.ProviderId;
@@ -32,7 +27,6 @@ import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyEdge;
-
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 
@@ -88,15 +82,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         links.addAll(path.links());
         //links.add(DefaultEdgeLink.createEdgeLink(intent.getDst(), false));
 
-        TrafficSelector opticalSelector = null;
-        TrafficTreatment opticalTreatment = null;
-
         // create a new opticalPathIntent
         Intent newIntent = new OpticalPathIntent(intent.appId(),
                 path.src(),
                 path.dst(),
-                opticalSelector,
-                opticalTreatment,
                 path);
 
         retList.add(newIntent);
