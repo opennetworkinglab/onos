@@ -119,6 +119,14 @@
             </optional-completers>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.AddOpticalIntentCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.GetStatistics"/>
                 <completers>
                     <ref component-id="connectPointCompleter"/>

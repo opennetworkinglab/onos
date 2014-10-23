@@ -105,6 +105,13 @@ public interface TrafficTreatment {
         public Builder setIpDst(IpPrefix addr);
 
         /**
+         * Sets the optical channel ID or lambda.
+         * @param lambda optical channel ID
+         * @return a treatment builder
+         */
+        public Builder setLambda(short lambda);
+
+        /**
          * Builds an immutable traffic treatment descriptor.
          *
          * @return traffic treatment

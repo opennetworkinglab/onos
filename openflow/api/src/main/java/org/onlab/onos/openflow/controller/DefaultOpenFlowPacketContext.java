@@ -1,5 +1,9 @@
 package org.onlab.onos.openflow.controller;
 
+
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
@@ -8,9 +12,6 @@ import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
-
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext {
 

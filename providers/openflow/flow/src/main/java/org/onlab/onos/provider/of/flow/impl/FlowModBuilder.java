@@ -14,6 +14,7 @@ import org.onlab.onos.net.flow.criteria.Criteria.EthCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPProtocolCriterion;
+import org.onlab.onos.net.flow.criteria.Criteria.LambdaCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.PortCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
@@ -21,6 +22,8 @@ import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
+import org.onlab.onos.net.flow.instructions.L0ModificationInstruction;
+import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
@@ -35,6 +38,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IpProtocol;
@@ -137,6 +141,9 @@ public class FlowModBuilder {
             case DROP:
                 log.warn("Saw drop action; assigning drop action");
                 return new LinkedList<>();
+            case L0MODIFICATION:
+                acts.add(buildL0Modification(i));
+                break;
             case L2MODIFICATION:
                 acts.add(buildL2Modification(i));
                 break;
@@ -155,6 +162,20 @@ public class FlowModBuilder {
         }
 
         return acts;
+    }
+
+    private OFAction buildL0Modification(Instruction i) {
+        L0ModificationInstruction l0m = (L0ModificationInstruction) i;
+        switch (l0m.subtype()) {
+        case LAMBDA:
+            ModLambdaInstruction ml = (ModLambdaInstruction) i;
+            return factory.actions().circuit(factory.oxms().ochSigidBasic(
+                    new CircuitSignalID((byte) 1, (byte) 2, ml.lambda(), (short) 1)));
+        default:
+            log.warn("Unimplemented action type {}.", l0m.subtype());
+            break;
+        }
+        return null;
     }
 
     private OFAction buildL3Modification(Instruction i) {
@@ -260,6 +281,11 @@ public class FlowModBuilder {
             case TCP_SRC:
                 tp = (TcpPortCriterion) c;
                 mBuilder.setExact(MatchField.TCP_SRC, TransportPort.of(tp.tcpPort()));
+                break;
+            case OCH_SIGID:
+                LambdaCriterion lc = (LambdaCriterion) c;
+                mBuilder.setExact(MatchField.OCH_SIGID,
+                        new CircuitSignalID((byte) 1, (byte) 2, lc.lambda(), (short) 1));
                 break;
             case ARP_OP:
             case ARP_SHA:
