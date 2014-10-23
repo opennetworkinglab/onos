@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -30,7 +29,7 @@ import org.slf4j.Logger;
 /**
  * Sample reactive forwarding application.
  */
-@Component(immediate = true)
+//:@Component(immediate = true)
 public class LambdaForwarding {
 
     private final Logger log = getLogger(getClass());
