@@ -35,10 +35,10 @@ public class RoleValueSerializer extends Serializer<RoleValue> {
 
     @Override
     public void write(Kryo kryo, Output output, RoleValue type) {
-        output.writeInt(type.value().size());
+        final Map<MastershipRole, List<NodeId>> map = type.value();
+        output.writeInt(map.size());
 
-        for (Map.Entry<MastershipRole, List<NodeId>> el :
-                type.value().entrySet()) {
+        for (Map.Entry<MastershipRole, List<NodeId>> el : map.entrySet()) {
             output.writeInt(el.getKey().ordinal());
 
             List<NodeId> nodes = el.getValue();
