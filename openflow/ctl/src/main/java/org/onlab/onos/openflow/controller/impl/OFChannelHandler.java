@@ -41,7 +41,6 @@ import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFHelloElem;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
-import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
@@ -661,10 +660,9 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * However, we could be more forgiving
          * @param h the channel handler that received the message
          * @param m the message
-         * @throws SwitchStateException
-         * @throws SwitchStateExeption we always through the execption
+         * @throws SwitchStateException we always throw the exception
          */
-        // needs to be protected because enum members are acutally subclasses
+        // needs to be protected because enum members are actually subclasses
         protected void illegalMessageReceived(OFChannelHandler h, OFMessage m)
                 throws SwitchStateException {
             String msg = getSwitchStateMessage(h, m,
@@ -1025,7 +1023,9 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 // all state for the original switch (with the same dpid),
                 // which we obviously don't want.
                 log.info("{}:removal called", getSwitchInfoString());
-                sw.removeConnectedSwitch();
+                if (sw != null) {
+                    sw.removeConnectedSwitch();
+                }
             } else {
                 // A duplicate was disconnected on this ChannelHandler,
                 // this is the same switch reconnecting, but the original state was
