@@ -3,7 +3,8 @@ package org.onlab.onos.net.resource;
 /**
  * Representation of allocated lambda resource.
  */
-public class LambdaResourceAllocation extends LambdaResourceRequest {
+public class LambdaResourceAllocation extends LambdaResourceRequest
+        implements ResourceAllocation {
     private final Lambda lambda;
 
     /**
