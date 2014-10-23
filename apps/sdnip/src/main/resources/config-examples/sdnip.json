@@ -14,6 +14,16 @@
             "attachmentDpid" : "00:00:00:00:00:00:00:a2",
 	    "attachmentPort" : "1",
             "ipAddress" : "192.168.30.1"
+        },
+	{
+            "attachmentDpid" : "00:00:00:00:00:00:00:a6",
+	    "attachmentPort" : "1",
+            "ipAddress" : "192.168.40.1"
+        },
+	{
+            "attachmentDpid" : "00:00:00:00:00:00:00:a4",
+	    "attachmentPort" : "4",
+            "ipAddress" : "192.168.60.1"
         }
     ],
     "bgpSpeakers" : [
