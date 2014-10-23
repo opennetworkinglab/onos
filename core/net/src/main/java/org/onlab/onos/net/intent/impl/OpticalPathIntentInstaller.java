@@ -187,7 +187,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(OpticalPathIntent intent) {
-        LinkResourceAllocations allocations = resourceService.getAllocation(intent.id());
+        LinkResourceAllocations allocations = resourceService.getAllocations(intent.id());
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         selectorBuilder.matchInport(intent.getSrcConnectPoint().port());
