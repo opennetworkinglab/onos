@@ -103,7 +103,7 @@ public class ClusterCommunicationManager
         final ControllerNode localNode = clusterService.getLocalNode();
         for (NodeId nodeId : nodes) {
             if (!nodeId.equals(localNode.id())) {
-                ok = unicast(message, nodeId) && ok;
+                ok = unicastUnchecked(message, nodeId) && ok;
             }
         }
         return ok;
@@ -121,6 +121,14 @@ public class ClusterCommunicationManager
         } catch (IOException e) {
             log.trace("Failed to send cluster message to nodeId: " + toNodeId, e);
             throw e;
+        }
+    }
+
+    private boolean unicastUnchecked(ClusterMessage message, NodeId toNodeId) throws IOException {
+        try {
+            return unicast(message, toNodeId);
+        } catch (IOException e) {
+            return false;
         }
     }
 

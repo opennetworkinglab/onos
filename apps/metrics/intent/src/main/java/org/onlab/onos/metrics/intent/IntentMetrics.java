@@ -5,8 +5,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Meter;
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -14,8 +12,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.metrics.MetricsComponent;
-import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.EventMetric;
 import org.onlab.metrics.MetricsService;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
@@ -33,14 +30,14 @@ public class IntentMetrics implements IntentMetricsService,
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MetricsService metricsService;
+
     private LinkedList<IntentEvent> lastEvents = new LinkedList<>();
     private static final int LAST_EVENTS_MAX_N = 100;
 
     //
     // Metrics
-    //
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MetricsService metricsService;
     //
     private static final String COMPONENT_NAME = "Intent";
     private static final String FEATURE_SUBMITTED_NAME = "Submitted";
@@ -48,41 +45,17 @@ public class IntentMetrics implements IntentMetricsService,
     private static final String FEATURE_WITHDRAW_REQUESTED_NAME =
         "WithdrawRequested";
     private static final String FEATURE_WITHDRAWN_NAME = "Withdrawn";
-    private static final String GAUGE_TIMESTAMP_NAME = "Timestamp.EpochMs";
-    private static final String METER_RATE_NAME = "Rate";
     //
-    private MetricsComponent metricsComponent;
-    private MetricsFeature metricsFeatureSubmitted;
-    private MetricsFeature metricsFeatureInstalled;
-    private MetricsFeature metricsFeatureWithdrawRequested;
-    private MetricsFeature metricsFeatureWithdrawn;
+    // Event metrics:
+    //  - Intent Submitted API operation
+    //  - Intent Installed operation completion
+    //  - Intent Withdraw Requested API operation
+    //  - Intent Withdrawn operation completion
     //
-    // Timestamps:
-    //  - Intent Submitted API operation (ms from the Epoch)
-    //  - Intent Installed operation completion (ms from the Epoch)
-    //  - Intent Withdraw Requested API operation (ms from the Epoch)
-    //  - Intent Withdrawn operation completion (ms from the Epoch)
-    //
-    private volatile long intentSubmittedTimestampEpochMs = 0;
-    private volatile long intentInstalledTimestampEpochMs = 0;
-    private volatile long intentWithdrawRequestedTimestampEpochMs = 0;
-    private volatile long intentWithdrawnTimestampEpochMs = 0;
-    //
-    private Gauge<Long> intentSubmittedTimestampEpochMsGauge;
-    private Gauge<Long> intentInstalledTimestampEpochMsGauge;
-    private Gauge<Long> intentWithdrawRequestedTimestampEpochMsGauge;
-    private Gauge<Long> intentWithdrawnTimestampEpochMsGauge;
-    //
-    // Rate meters:
-    //  - Rate of the Submitted Intent API operations
-    //  - Rate of the Installed Intent operations
-    //  - Rate of the Withdrawn Requested Intent API operations
-    //  - Rate of the Withdrawn Intent operations
-    //
-    private Meter intentSubmittedRateMeter;
-    private Meter intentInstalledRateMeter;
-    private Meter intentWithdrawRequestedRateMeter;
-    private Meter intentWithdrawnRateMeter;
+    private EventMetric intentSubmittedEventMetric;
+    private EventMetric intentInstalledEventMetric;
+    private EventMetric intentWithdrawRequestedEventMetric;
+    private EventMetric intentWithdrawnEventMetric;
 
     @Activate
     protected void activate() {
@@ -108,43 +81,23 @@ public class IntentMetrics implements IntentMetricsService,
     }
 
     @Override
-    public Gauge<Long> intentSubmittedTimestampEpochMsGauge() {
-        return intentSubmittedTimestampEpochMsGauge;
+    public EventMetric intentSubmittedEventMetric() {
+        return intentSubmittedEventMetric;
     }
 
     @Override
-    public Gauge<Long> intentInstalledTimestampEpochMsGauge() {
-        return intentInstalledTimestampEpochMsGauge;
+    public EventMetric intentInstalledEventMetric() {
+        return intentInstalledEventMetric;
     }
 
     @Override
-    public Gauge<Long> intentWithdrawRequestedTimestampEpochMsGauge() {
-        return intentWithdrawRequestedTimestampEpochMsGauge;
+    public EventMetric intentWithdrawRequestedEventMetric() {
+        return intentWithdrawRequestedEventMetric;
     }
 
     @Override
-    public Gauge<Long> intentWithdrawnTimestampEpochMsGauge() {
-        return intentWithdrawnTimestampEpochMsGauge;
-    }
-
-    @Override
-    public Meter intentSubmittedRateMeter() {
-        return intentSubmittedRateMeter;
-    }
-
-    @Override
-    public Meter intentInstalledRateMeter() {
-        return intentInstalledRateMeter;
-    }
-
-    @Override
-    public Meter intentWithdrawRequestedRateMeter() {
-        return intentWithdrawRequestedRateMeter;
-    }
-
-    @Override
-    public Meter intentWithdrawnRateMeter() {
-        return intentWithdrawnRateMeter;
+    public EventMetric intentWithdrawnEventMetric() {
+        return intentWithdrawnEventMetric;
     }
 
     @Override
@@ -156,26 +109,21 @@ public class IntentMetrics implements IntentMetricsService,
             //
             switch (event.type()) {
             case SUBMITTED:
-                intentSubmittedTimestampEpochMs = System.currentTimeMillis();
-                intentSubmittedRateMeter.mark(1);
+                intentSubmittedEventMetric.eventReceived();
                 break;
             case INSTALLED:
-                intentInstalledTimestampEpochMs = System.currentTimeMillis();
-                intentInstalledRateMeter.mark(1);
+                intentInstalledEventMetric.eventReceived();
                 break;
             case FAILED:
                 // TODO: Just ignore?
                 break;
                 /*
             case WITHDRAW_REQUESTED:
-                intentWithdrawRequestedTimestampEpochMs =
-                    System.currentTimeMillis();
-                    intentWithdrawRequestedRateMeter.mark(1);
+                intentWithdrawRequestedEventMetric.eventReceived();
                 break;
                 */
             case WITHDRAWN:
-                intentWithdrawnTimestampEpochMs = System.currentTimeMillis();
-                intentWithdrawnRateMeter.mark(1);
+                intentWithdrawnEventMetric.eventReceived();
                 break;
             default:
                 break;
@@ -199,10 +147,6 @@ public class IntentMetrics implements IntentMetricsService,
      */
     private void clear() {
         synchronized (lastEvents) {
-            intentSubmittedTimestampEpochMs = 0;
-            intentInstalledTimestampEpochMs = 0;
-            intentWithdrawRequestedTimestampEpochMs = 0;
-            intentWithdrawnTimestampEpochMs = 0;
             lastEvents.clear();
         }
     }
@@ -211,109 +155,32 @@ public class IntentMetrics implements IntentMetricsService,
      * Registers the metrics.
      */
     private void registerMetrics() {
-        metricsComponent = metricsService.registerComponent(COMPONENT_NAME);
-        //
-        metricsFeatureSubmitted =
-            metricsComponent.registerFeature(FEATURE_SUBMITTED_NAME);
-        metricsFeatureInstalled =
-            metricsComponent.registerFeature(FEATURE_INSTALLED_NAME);
-        metricsFeatureWithdrawRequested =
-            metricsComponent.registerFeature(FEATURE_WITHDRAW_REQUESTED_NAME);
-        metricsFeatureWithdrawn =
-            metricsComponent.registerFeature(FEATURE_WITHDRAWN_NAME);
-        //
-        intentSubmittedTimestampEpochMsGauge =
-            metricsService.registerMetric(metricsComponent,
-                                          metricsFeatureSubmitted,
-                                          GAUGE_TIMESTAMP_NAME,
-                                          new Gauge<Long>() {
-                                              @Override
-                                              public Long getValue() {
-                                                  return intentSubmittedTimestampEpochMs;
-                                              }
-                                          });
-        //
-        intentInstalledTimestampEpochMsGauge =
-            metricsService.registerMetric(metricsComponent,
-                                          metricsFeatureInstalled,
-                                          GAUGE_TIMESTAMP_NAME,
-                                          new Gauge<Long>() {
-                                              @Override
-                                              public Long getValue() {
-                                                  return intentInstalledTimestampEpochMs;
-                                              }
-                                          });
-        //
-        intentWithdrawRequestedTimestampEpochMsGauge =
-            metricsService.registerMetric(metricsComponent,
-                                          metricsFeatureWithdrawRequested,
-                                          GAUGE_TIMESTAMP_NAME,
-                                          new Gauge<Long>() {
-                                              @Override
-                                              public Long getValue() {
-                                                  return intentWithdrawRequestedTimestampEpochMs;
-                                              }
-                                          });
-        //
-        intentWithdrawnTimestampEpochMsGauge =
-            metricsService.registerMetric(metricsComponent,
-                                          metricsFeatureWithdrawn,
-                                          GAUGE_TIMESTAMP_NAME,
-                                          new Gauge<Long>() {
-                                              @Override
-                                              public Long getValue() {
-                                                  return intentWithdrawnTimestampEpochMs;
-                                              }
-                                          });
-        //
-        intentSubmittedRateMeter =
-            metricsService.createMeter(metricsComponent,
-                                       metricsFeatureSubmitted,
-                                       METER_RATE_NAME);
-        //
-        intentInstalledRateMeter =
-            metricsService.createMeter(metricsComponent,
-                                       metricsFeatureInstalled,
-                                       METER_RATE_NAME);
-        //
-        intentWithdrawRequestedRateMeter =
-            metricsService.createMeter(metricsComponent,
-                                       metricsFeatureWithdrawRequested,
-                                       METER_RATE_NAME);
-        //
-        intentWithdrawnRateMeter =
-            metricsService.createMeter(metricsComponent,
-                                       metricsFeatureWithdrawn,
-                                       METER_RATE_NAME);
+        intentSubmittedEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_SUBMITTED_NAME);
+        intentInstalledEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_INSTALLED_NAME);
+        intentWithdrawRequestedEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_WITHDRAW_REQUESTED_NAME);
+        intentWithdrawnEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_WITHDRAWN_NAME);
+
+        intentSubmittedEventMetric.registerMetrics();
+        intentInstalledEventMetric.registerMetrics();
+        intentWithdrawRequestedEventMetric.registerMetrics();
+        intentWithdrawnEventMetric.registerMetrics();
     }
 
     /**
      * Removes the metrics.
      */
     private void removeMetrics() {
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureSubmitted,
-                                    GAUGE_TIMESTAMP_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureInstalled,
-                                    GAUGE_TIMESTAMP_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureWithdrawRequested,
-                                    GAUGE_TIMESTAMP_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureWithdrawn,
-                                    GAUGE_TIMESTAMP_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureSubmitted,
-                                    METER_RATE_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureInstalled,
-                                    METER_RATE_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureWithdrawRequested,
-                                    METER_RATE_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureWithdrawn,
-                                    METER_RATE_NAME);
+        intentSubmittedEventMetric.removeMetrics();
+        intentInstalledEventMetric.removeMetrics();
+        intentWithdrawRequestedEventMetric.removeMetrics();
+        intentWithdrawnEventMetric.removeMetrics();
     }
 }

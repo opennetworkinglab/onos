@@ -43,6 +43,11 @@ public interface Instruction {
         GROUP,
 
         /**
+         * Signifies that the traffic should be modified in L0 way.
+         */
+        L0MODIFICATION,
+
+        /**
          * Signifies that the traffic should be modified in L2 way.
          */
         L2MODIFICATION,

@@ -55,6 +55,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
     }
 
     @Override
+    public Criterion getCriterion(Criterion.Type type) {
+        for (Criterion c : criteria) {
+            if (c.type() == type) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(criteria);
     }
@@ -173,6 +183,17 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchTcpDst(Short tcpPort) {
             return add(Criteria.matchTcpDst(tcpPort));
+        }
+
+        @Override
+        public Builder matchLambda(Short lambda) {
+            return add(Criteria.matchLambda(lambda));
+        }
+
+        @Override
+        public Builder matchOpticalSignalType(Byte signalType) {
+            return add(Criteria.matchOpticalSignalType(signalType));
+
         }
 
         @Override

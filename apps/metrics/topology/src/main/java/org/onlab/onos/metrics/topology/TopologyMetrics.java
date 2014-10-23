@@ -5,8 +5,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Meter;
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -14,8 +12,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.metrics.MetricsComponent;
-import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.EventMetric;
 import org.onlab.metrics.MetricsService;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.device.DeviceEvent;
@@ -48,6 +45,8 @@ public class TopologyMetrics implements TopologyMetricsService {
     protected LinkService linkService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MetricsService metricsService;
 
     private LinkedList<Event> lastEvents = new LinkedList<>();
     private static final int LAST_EVENTS_MAX_N = 100;
@@ -61,22 +60,22 @@ public class TopologyMetrics implements TopologyMetricsService {
     //
     // Metrics
     //
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MetricsService metricsService;
-    //
     private static final String COMPONENT_NAME = "Topology";
-    private static final String FEATURE_NAME = "EventNotification";
-    private static final String GAUGE_NAME = "LastEventTimestamp.EpochMs";
-    private static final String METER_NAME = "EventRate";
+    private static final String FEATURE_DEVICE_NAME = "DeviceEvent";
+    private static final String FEATURE_HOST_NAME = "HostEvent";
+    private static final String FEATURE_LINK_NAME = "LinkEvent";
+    private static final String FEATURE_GRAPH_NAME = "GraphEvent";
     //
-    private MetricsComponent metricsComponent;
-    private MetricsFeature metricsFeatureEventNotification;
+    // Event metrics:
+    //  - Device events
+    //  - Host events
+    //  - Link events
+    //  - Topology Graph events
     //
-    // Timestamp of the last Topology event (ms from the Epoch)
-    private volatile long lastEventTimestampEpochMs = 0;
-    private Gauge<Long> lastEventTimestampEpochMsGauge;
-    // Rate of the Topology events published to the Topology listeners
-    private Meter eventRateMeter;
+    private EventMetric topologyDeviceEventMetric;
+    private EventMetric topologyHostEventMetric;
+    private EventMetric topologyLinkEventMetric;
+    private EventMetric topologyGraphEventMetric;
 
     @Activate
     protected void activate() {
@@ -113,27 +112,34 @@ public class TopologyMetrics implements TopologyMetricsService {
     }
 
     @Override
-    public Gauge<Long> lastEventTimestampEpochMsGauge() {
-        return lastEventTimestampEpochMsGauge;
+    public EventMetric topologyDeviceEventMetric() {
+        return topologyDeviceEventMetric;
     }
 
     @Override
-    public Meter eventRateMeter() {
-        return eventRateMeter;
+    public EventMetric topologyHostEventMetric() {
+        return topologyHostEventMetric;
+    }
+
+    @Override
+    public EventMetric topologyLinkEventMetric() {
+        return topologyLinkEventMetric;
+    }
+
+    @Override
+    public EventMetric topologyGraphEventMetric() {
+        return topologyGraphEventMetric;
     }
 
     /**
      * Records an event.
      *
      * @param event the event to record
-     * @param updateEventRateMeter if true, update the Event Rate Meter
+     * @param eventMetric the Event Metric to use
      */
-    private void recordEvent(Event event, boolean updateEventRateMeter) {
+    private void recordEvent(Event event, EventMetric eventMetric) {
         synchronized (lastEvents) {
-            lastEventTimestampEpochMs = System.currentTimeMillis();
-            if (updateEventRateMeter) {
-                eventRateMeter.mark(1);
-            }
+            eventMetric.eventReceived();
 
             //
             // Keep only the last N events, where N = LAST_EVENTS_MAX_N
@@ -151,7 +157,7 @@ public class TopologyMetrics implements TopologyMetricsService {
     private class InnerDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            recordEvent(event, true);
+            recordEvent(event, topologyDeviceEventMetric);
             log.debug("Device Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
         }
@@ -163,7 +169,7 @@ public class TopologyMetrics implements TopologyMetricsService {
     private class InnerHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            recordEvent(event, true);
+            recordEvent(event, topologyHostEventMetric);
             log.debug("Host Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
         }
@@ -175,7 +181,7 @@ public class TopologyMetrics implements TopologyMetricsService {
     private class InnerLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            recordEvent(event, true);
+            recordEvent(event, topologyLinkEventMetric);
             log.debug("Link Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
         }
@@ -187,11 +193,7 @@ public class TopologyMetrics implements TopologyMetricsService {
     private class InnerTopologyListener implements TopologyListener {
         @Override
         public void event(TopologyEvent event) {
-            //
-            // NOTE: Don't update the eventRateMeter, because the real
-            // events are already captured/counted.
-            //
-            recordEvent(event, false);
+            recordEvent(event, topologyGraphEventMetric);
             log.debug("Topology Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
             for (Event reason : event.reasons()) {
@@ -206,7 +208,6 @@ public class TopologyMetrics implements TopologyMetricsService {
      */
     private void clear() {
         synchronized (lastEvents) {
-            lastEventTimestampEpochMs = 0;
             lastEvents.clear();
         }
     }
@@ -215,35 +216,32 @@ public class TopologyMetrics implements TopologyMetricsService {
      * Registers the metrics.
      */
     private void registerMetrics() {
-        metricsComponent = metricsService.registerComponent(COMPONENT_NAME);
-        metricsFeatureEventNotification =
-            metricsComponent.registerFeature(FEATURE_NAME);
-        lastEventTimestampEpochMsGauge =
-            metricsService.registerMetric(metricsComponent,
-                                          metricsFeatureEventNotification,
-                                          GAUGE_NAME,
-                                          new Gauge<Long>() {
-                                              @Override
-                                              public Long getValue() {
-                                                  return lastEventTimestampEpochMs;
-                                              }
-                                          });
-        eventRateMeter =
-            metricsService.createMeter(metricsComponent,
-                                       metricsFeatureEventNotification,
-                                       METER_NAME);
+        topologyDeviceEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_DEVICE_NAME);
+        topologyHostEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_HOST_NAME);
+        topologyLinkEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_LINK_NAME);
+        topologyGraphEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_GRAPH_NAME);
 
+        topologyDeviceEventMetric.registerMetrics();
+        topologyHostEventMetric.registerMetrics();
+        topologyLinkEventMetric.registerMetrics();
+        topologyGraphEventMetric.registerMetrics();
     }
 
     /**
      * Removes the metrics.
      */
     private void removeMetrics() {
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureEventNotification,
-                                    GAUGE_NAME);
-        metricsService.removeMetric(metricsComponent,
-                                    metricsFeatureEventNotification,
-                                    METER_NAME);
+        topologyDeviceEventMetric.removeMetrics();
+        topologyHostEventMetric.removeMetrics();
+        topologyLinkEventMetric.removeMetrics();
+        topologyGraphEventMetric.removeMetrics();
     }
 }

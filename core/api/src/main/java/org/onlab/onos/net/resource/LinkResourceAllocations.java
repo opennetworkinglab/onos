@@ -1,5 +1,7 @@
 package org.onlab.onos.net.resource;
 
+import java.util.Set;
+
 import org.onlab.onos.net.Link;
 
 /**
@@ -12,5 +14,5 @@ public interface LinkResourceAllocations extends LinkResourceRequest {
      * @param link the target link
      * @return allocated resource for the link
      */
-    ResourceAllocation getResourceAllocation(Link link);
+    Set<ResourceAllocation> getResourceAllocation(Link link);
 }

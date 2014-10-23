@@ -1,27 +1,25 @@
 package org.onlab.onos.store.trivial.impl;
 
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
 import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.flow.FlowRuleBatchEntry;
+import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import org.onlab.onos.net.flow.FlowRuleBatchEvent;
+import org.onlab.onos.net.flow.FlowRuleBatchOperation;
+import org.onlab.onos.net.flow.FlowRuleBatchRequest;
 import org.onlab.onos.net.flow.FlowRuleEvent;
 import org.onlab.onos.net.flow.FlowRuleEvent.Type;
 import org.onlab.onos.net.flow.FlowRuleStore;
@@ -31,8 +29,19 @@ import org.onlab.onos.store.AbstractStore;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+
+import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of flow rules using trivial in-memory implementation.
@@ -40,7 +49,7 @@ import com.google.common.collect.FluentIterable;
 @Component(immediate = true)
 @Service
 public class SimpleFlowRuleStore
-        extends AbstractStore<FlowRuleEvent, FlowRuleStoreDelegate>
+        extends AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
         implements FlowRuleStore {
 
     private final Logger log = getLogger(getClass());
@@ -122,15 +131,15 @@ public class SimpleFlowRuleStore
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
         return FluentIterable.from(getFlowTable(deviceId).values())
-            .transformAndConcat(
-                    new Function<List<StoredFlowEntry>, Iterable<? extends FlowEntry>>() {
+                .transformAndConcat(
+                        new Function<List<StoredFlowEntry>, Iterable<? extends FlowEntry>>() {
 
-                @Override
-                public Iterable<? extends FlowEntry> apply(
-                        List<StoredFlowEntry> input) {
-                    return Collections.unmodifiableList(input);
-                }
-            });
+                            @Override
+                            public Iterable<? extends FlowEntry> apply(
+                                    List<StoredFlowEntry> input) {
+                                return Collections.unmodifiableList(input);
+                            }
+                        });
     }
 
     @Override
@@ -148,12 +157,11 @@ public class SimpleFlowRuleStore
     }
 
     @Override
-    public boolean storeFlowRule(FlowRule rule) {
-        final boolean added = storeFlowRuleInternal(rule);
-        return added;
+    public void storeFlowRule(FlowRule rule) {
+        storeFlowRuleInternal(rule);
     }
 
-    private boolean storeFlowRuleInternal(FlowRule rule) {
+    private void storeFlowRuleInternal(FlowRule rule) {
         StoredFlowEntry f = new DefaultFlowEntry(rule);
         final DeviceId did = f.deviceId();
         final FlowId fid = f.id();
@@ -162,19 +170,20 @@ public class SimpleFlowRuleStore
             for (StoredFlowEntry fe : existing) {
                 if (fe.equals(rule)) {
                     // was already there? ignore
-                    return false;
+                    return;
                 }
             }
             // new flow rule added
             existing.add(f);
-            // TODO: Should we notify only if it's "remote" event?
-            //notifyDelegate(new FlowRuleEvent(Type.RULE_ADD_REQUESTED, rule));
-            return true;
+            notifyDelegate(FlowRuleBatchEvent.requested(
+                    new FlowRuleBatchRequest(1, /* FIXME generate something */
+                                             Arrays.<FlowEntry>asList(f),
+                                             Collections.<FlowEntry>emptyList())));
         }
     }
 
     @Override
-    public boolean deleteFlowRule(FlowRule rule) {
+    public void deleteFlowRule(FlowRule rule) {
 
         List<StoredFlowEntry> entries = getFlowEntries(rule.deviceId(), rule.id());
 
@@ -184,14 +193,17 @@ public class SimpleFlowRuleStore
                     synchronized (entry) {
                         entry.setState(FlowEntryState.PENDING_REMOVE);
                         // TODO: Should we notify only if it's "remote" event?
-                        //notifyDelegate(new FlowRuleEvent(Type.RULE_REMOVE_REQUESTED, rule));
-                        return true;
+                        notifyDelegate(FlowRuleBatchEvent.requested(
+                                new FlowRuleBatchRequest(1, /* FIXME generate something */
+                                                         Collections.<FlowEntry>emptyList(),
+                                                         Arrays.<FlowEntry>asList(entry))));
                     }
                 }
             }
         }
+
+
         //log.warn("Cannot find rule {}", rule);
-        return false;
     }
 
     @Override
@@ -236,5 +248,25 @@ public class SimpleFlowRuleStore
             }
         }
         return null;
+    }
+
+    @Override
+    public Future<CompletedBatchOperation> storeBatch(
+            FlowRuleBatchOperation batchOperation) {
+        for (FlowRuleBatchEntry entry : batchOperation.getOperations()) {
+            if (entry.getOperator().equals(FlowRuleOperation.ADD)) {
+                storeFlowRule(entry.getTarget());
+            } else if (entry.getOperator().equals(FlowRuleOperation.REMOVE)) {
+                deleteFlowRule(entry.getTarget());
+            } else {
+                throw new UnsupportedOperationException("Unsupported operation type");
+            }
+        }
+        return Futures.immediateFuture(new CompletedBatchOperation(true, Collections.<FlowEntry>emptySet()));
+    }
+
+    @Override
+    public void batchOperationComplete(FlowRuleBatchEvent event) {
+        notifyDelegate(event);
     }
 }

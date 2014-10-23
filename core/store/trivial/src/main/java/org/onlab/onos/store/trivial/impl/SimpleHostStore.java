@@ -269,7 +269,7 @@ public class SimpleHostStore
     }
 
     // Auxiliary extension to allow location to mutate.
-    private class StoredHost extends DefaultHost {
+    private static final class StoredHost extends DefaultHost {
         private HostLocation location;
 
         /**

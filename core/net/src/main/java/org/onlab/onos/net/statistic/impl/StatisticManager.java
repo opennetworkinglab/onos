@@ -157,16 +157,12 @@ public class StatisticManager implements StatisticService {
                 case RULE_UPDATED:
                     if (rule instanceof FlowEntry) {
                         statisticStore.addOrUpdateStatistic((FlowEntry) rule);
-                    } else {
-                        log.warn("IT AIN'T A FLOWENTRY");
                     }
                     break;
                 case RULE_ADD_REQUESTED:
-                    log.info("Preparing for stats");
                     statisticStore.prepareForStatistics(rule);
                     break;
                 case RULE_REMOVE_REQUESTED:
-                    log.info("Removing stats");
                     statisticStore.removeFromStatistics(rule);
                     break;
                 case RULE_REMOVED:

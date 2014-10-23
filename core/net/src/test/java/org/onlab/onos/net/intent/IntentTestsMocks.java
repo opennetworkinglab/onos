@@ -1,5 +1,7 @@
 package org.onlab.onos.net.intent;
 
+import static org.onlab.onos.net.NetTestTools.createPath;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,11 +14,10 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onlab.onos.net.flow.criteria.Criterion.Type;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
-
-import static org.onlab.onos.net.NetTestTools.createPath;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -29,6 +30,11 @@ public class IntentTestsMocks {
         @Override
         public Set<Criterion> criteria() {
             return new HashSet<>();
+        }
+
+        @Override
+        public Criterion getCriterion(Type type) {
+            return null;
         }
     }
 

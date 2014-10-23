@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.metrics.EventMetric;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.metrics.intent.IntentMetricsService;
 
@@ -29,8 +30,6 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         IntentMetricsService service = get(IntentMetricsService.class);
-        Gauge<Long> gauge;
-        Meter meter;
 
         if (outputJson()) {
             ObjectMapper mapper = new ObjectMapper()
@@ -38,46 +37,46 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
                                                   TimeUnit.MILLISECONDS,
                                                   false));
             ObjectNode result = mapper.createObjectNode();
-            //
-            gauge = service.intentSubmittedTimestampEpochMsGauge();
-            result.put("intentSubmittedTimestamp", json(mapper, gauge));
-            gauge = service.intentInstalledTimestampEpochMsGauge();
-            result.put("intentInstalledTimestamp", json(mapper, gauge));
-            gauge = service.intentWithdrawRequestedTimestampEpochMsGauge();
-            result.put("intentWithdrawRequestedTimestamp",
-                       json(mapper, gauge));
-            gauge = service.intentWithdrawnTimestampEpochMsGauge();
-            result.put("intentWithdrawnTimestamp", json(mapper, gauge));
-            //
-            meter = service.intentSubmittedRateMeter();
-            result.put("intentSubmittedRate", json(mapper, meter));
-            meter = service.intentInstalledRateMeter();
-            result.put("intentInstalledRate", json(mapper, meter));
-            meter = service.intentWithdrawRequestedRateMeter();
-            result.put("intentWithdrawRequestedRate", json(mapper, meter));
-            meter = service.intentWithdrawnRateMeter();
-            result.put("intentWithdrawnRate", json(mapper, meter));
-            //
+            result = json(mapper, result, "intentSubmitted",
+                          service.intentSubmittedEventMetric());
+            result = json(mapper, result, "intentInstalled",
+                          service.intentInstalledEventMetric());
+            result = json(mapper, result, "intentWithdrawRequested",
+                          service.intentWithdrawRequestedEventMetric());
+            result = json(mapper, result, "intentWithdrawn",
+                          service.intentWithdrawnEventMetric());
             print("%s", result);
         } else {
-            gauge = service.intentSubmittedTimestampEpochMsGauge();
-            printGauge("Submitted", gauge);
-            gauge = service.intentInstalledTimestampEpochMsGauge();
-            printGauge("Installed", gauge);
-            gauge = service.intentWithdrawRequestedTimestampEpochMsGauge();
-            printGauge("Withdraw Requested", gauge);
-            gauge = service.intentWithdrawnTimestampEpochMsGauge();
-            printGauge("Withdrawn", gauge);
-            //
-            meter = service.intentSubmittedRateMeter();
-            printMeter("Submitted", meter);
-            meter = service.intentInstalledRateMeter();
-            printMeter("Installed", meter);
-            meter = service.intentWithdrawRequestedRateMeter();
-            printMeter("Withdraw Requested", meter);
-            meter = service.intentWithdrawnRateMeter();
-            printMeter("Withdrawn", meter);
+            printEventMetric("Submitted",
+                             service.intentSubmittedEventMetric());
+            printEventMetric("Installed",
+                             service.intentInstalledEventMetric());
+            printEventMetric("Withdraw Requested",
+                             service.intentWithdrawRequestedEventMetric());
+            printEventMetric("Withdrawn",
+                             service.intentWithdrawnEventMetric());
         }
+    }
+
+    /**
+     * Produces JSON node for an Event Metric.
+     *
+     * @param mapper the JSON object mapper to use
+     * @param objectNode the JSON object node to use
+     * @param propertyPrefix the property prefix to use
+     * @param eventMetric the Event Metric with the data
+     * @return JSON object node for the Event Metric
+     */
+    private ObjectNode json(ObjectMapper mapper, ObjectNode objectNode,
+                            String propertyPrefix, EventMetric eventMetric) {
+        String gaugeName = propertyPrefix + "Timestamp";
+        String meterName = propertyPrefix + "Rate";
+        Gauge<Long> gauge = eventMetric.lastEventTimestampGauge();
+        Meter meter = eventMetric.eventRateMeter();
+
+        objectNode.put(gaugeName, json(mapper, gauge));
+        objectNode.put(meterName, json(mapper, meter));
+        return objectNode;
     }
 
     /**
@@ -94,8 +93,8 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
         //
         try {
             final String objectJson = mapper.writeValueAsString(object);
-            JsonNode objectNode = mapper.readTree(objectJson);
-            return objectNode;
+            JsonNode jsonNode = mapper.readTree(objectJson);
+            return jsonNode;
         } catch (JsonProcessingException e) {
             log.error("Error writing value as JSON string", e);
         } catch (IOException e) {
@@ -105,28 +104,26 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
     }
 
     /**
-     * Prints a Gauge.
+     * Prints an Event Metric.
      *
      * @param operationStr the string with the intent operation to print
-     * @param gauge the Gauge to print
+     * @param eventMetric the Event Metric to print
      */
-    private void printGauge(String operationStr, Gauge<Long> gauge) {
-        print(FORMAT_GAUGE, operationStr, gauge.getValue());
-    }
+    private void printEventMetric(String operationStr,
+                                  EventMetric eventMetric) {
+        Gauge<Long> gauge = eventMetric.lastEventTimestampGauge();
+        Meter meter = eventMetric.eventRateMeter();
+        TimeUnit rateUnit = TimeUnit.SECONDS;
+        double rateFactor = rateUnit.toSeconds(1);
 
-    /**
-     * Prints a Meter.
-     *
-     * @param operationStr the string with the intent operation to print
-     * @param meter the Meter to print
-     */
-    private void printMeter(String operationStr, Meter meter) {
-            TimeUnit rateUnit = TimeUnit.SECONDS;
-            double rateFactor = rateUnit.toSeconds(1);
-            print(FORMAT_METER, operationStr, meter.getCount(),
-                  meter.getMeanRate() * rateFactor,
-                  meter.getOneMinuteRate() * rateFactor,
-                  meter.getFiveMinuteRate() * rateFactor,
-                  meter.getFifteenMinuteRate() * rateFactor);
+        // Print the Gauge
+        print(FORMAT_GAUGE, operationStr, gauge.getValue());
+
+        // Print the Meter
+        print(FORMAT_METER, operationStr, meter.getCount(),
+              meter.getMeanRate() * rateFactor,
+              meter.getOneMinuteRate() * rateFactor,
+              meter.getFiveMinuteRate() * rateFactor,
+              meter.getFifteenMinuteRate() * rateFactor);
     }
 }

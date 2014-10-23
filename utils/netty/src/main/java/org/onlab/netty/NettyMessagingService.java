@@ -163,6 +163,7 @@ public class NettyMessagingService implements MessagingService {
         handlers.putIfAbsent(type, handler);
     }
 
+    @Override
     public void unregisterHandler(String type) {
         handlers.remove(type);
     }
@@ -242,7 +243,7 @@ public class NettyMessagingService implements MessagingService {
         }
     }
 
-    private class WriteTask implements Runnable {
+    private static class WriteTask implements Runnable {
 
         private final InternalMessage message;
         private final Channel channel;

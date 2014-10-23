@@ -23,6 +23,8 @@ import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
+import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
@@ -34,6 +36,7 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.slf4j.Logger;
@@ -166,6 +169,15 @@ public class FlowEntryBuilder {
                     builder.setIpSrc(IpPrefix.valueOf(si.getInt()));
                 }
                 break;
+            case EXPERIMENTER:
+                OFActionExperimenter exp = (OFActionExperimenter) act;
+                if (exp.getExperimenter() == 0x80005A06) {
+                    OFActionCircuit ct = (OFActionCircuit) exp;
+                    builder.setLambda(((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber());
+                } else {
+                    log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
+                }
+                break;
             case SET_TP_DST:
             case SET_TP_SRC:
             case POP_MPLS:
@@ -188,7 +200,7 @@ public class FlowEntryBuilder {
             case DEC_MPLS_TTL:
             case DEC_NW_TTL:
             case ENQUEUE:
-            case EXPERIMENTER:
+
             case GROUP:
             default:
                 log.warn("Action type {} not yet implemented.", act.getType());
@@ -268,6 +280,10 @@ public class FlowEntryBuilder {
             case TCP_SRC:
                 builder.matchTcpSrc((short) match.get(MatchField.TCP_SRC).getPort());
                 break;
+            case OCH_SIGID:
+                builder.matchLambda(match.get(MatchField.OCH_SIGID).getChannelNumber());
+                break;
+            case OCH_SIGTYPE_BASIC:
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:

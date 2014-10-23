@@ -31,4 +31,31 @@ public interface LinkResourceRequest extends ResourceRequest {
      * @return the set of resource requests
      */
     Set<ResourceRequest> resources();
+
+    /**
+     * Builder of link resource request.
+     */
+    interface Builder {
+         /**
+         * Adds lambda request.
+         *
+         * @return self
+         */
+        public Builder addLambdaRequest();
+
+        /**
+         * Adds bandwidth request with bandwidth value.
+         *
+         * @param bandwidth bandwidth value to be requested
+         * @return self
+         */
+        public Builder addBandwidthRequest(double bandwidth);
+
+        /**
+         * Returns link resource request.
+         *
+         * @return link resource request
+         */
+        public LinkResourceRequest build();
+    }
 }

@@ -39,6 +39,15 @@ public interface TrafficSelector {
     Set<Criterion> criteria();
 
     /**
+     * Returns the selection criterion for a particular type, if it exists in
+     * this traffic selector.
+     *
+     * @param type criterion type to look up
+     * @return the criterion of the specified type if one exists, otherwise null
+     */
+    Criterion getCriterion(Criterion.Type type);
+
+    /**
      * Builder of traffic selector entities.
      */
     public interface Builder {
@@ -128,6 +137,20 @@ public interface TrafficSelector {
          * @return a selection builder
          */
         public Builder matchTcpDst(Short tcpPort);
+
+        /**
+         * Matches an optical signal ID or lambda.
+         * @param lambda
+         * @return a selection builder
+         */
+        public Builder matchLambda(Short lambda);
+
+        /**
+         * Matches an optical Signal Type.
+         * @param signalType
+         * @return a selection builder
+         */
+        public Builder matchOpticalSignalType(Byte signalType);
 
         /**
          * Builds an immutable traffic selector.

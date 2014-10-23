@@ -1,9 +1,15 @@
 package org.onlab.onos.net.flow.impl;
 
-
-
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -31,6 +38,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
@@ -50,7 +58,6 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
@@ -59,16 +66,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import static java.util.Collections.EMPTY_LIST;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
@@ -182,7 +180,6 @@ public class FlowRuleManagerTest {
 
     // TODO: If preserving iteration order is a requirement, redo FlowRuleStore.
     //backing store is sensitive to the order of additions/removals
-    @SuppressWarnings("unchecked")
     private boolean validateState(Map<FlowRule, FlowEntryState> expected) {
         Map<FlowRule, FlowEntryState> expectedToCheck = new HashMap<>(expected);
         Iterable<FlowEntry> rules = service.getFlowEntries(DID);
@@ -526,13 +523,13 @@ public class FlowRuleManagerTest {
         }
 
         @Override
-        public Future<CompletedBatchOperation> executeBatch(
+        public ListenableFuture<CompletedBatchOperation> executeBatch(
                 BatchOperation<FlowRuleBatchEntry> batch) {
             return new TestInstallationFuture();
         }
 
         private class TestInstallationFuture
-                implements Future<CompletedBatchOperation> {
+                implements ListenableFuture<CompletedBatchOperation> {
 
             @Override
             public boolean cancel(boolean mayInterruptIfRunning) {
@@ -550,10 +547,9 @@ public class FlowRuleManagerTest {
             }
 
             @Override
-            @SuppressWarnings("unchecked")
             public CompletedBatchOperation get()
                     throws InterruptedException, ExecutionException {
-                return new CompletedBatchOperation(true, EMPTY_LIST);
+                return new CompletedBatchOperation(true, Collections.<FlowEntry>emptySet());
             }
 
             @Override
@@ -561,6 +557,11 @@ public class FlowRuleManagerTest {
                     throws InterruptedException,
                     ExecutionException, TimeoutException {
                 return null;
+            }
+
+            @Override
+            public void addListener(Runnable task, Executor executor) {
+                // TODO: add stuff.
             }
         }
 
@@ -581,6 +582,12 @@ public class FlowRuleManagerTest {
         }
 
         @Override
+        public Criterion getCriterion(
+                org.onlab.onos.net.flow.criteria.Criterion.Type type) {
+            return null;
+        }
+
+        @Override
         public int hashCode() {
             return testval;
         }
@@ -592,6 +599,7 @@ public class FlowRuleManagerTest {
             }
             return false;
         }
+
     }
 
     private class TestTreatment implements TrafficTreatment {

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <prerequisites>
+        <maven>3.0.0</maven>
+    </prerequisites>
+
+    <parent>
+        <groupId>org.onlab.onos</groupId>
+        <artifactId>onos</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>onos-docs</artifactId>
+    <packaging>pom</packaging>
+
+    <description>ONOS Java API documentation</description>
+
+    <modules>
+        <module>..</module>
+    </modules>
+
+    <url>http://onlab.us/</url>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.1</version>
+                <configuration>
+                    <show>package</show>
+                    <docfilessubdirs>true</docfilessubdirs>
+                    <doctitle>ONOS Java API</doctitle>
+                    <groups>
+                        <group>
+                            <title>Network Model &amp; Services</title>
+                            <packages>
+                                org.onlab.onos:org.onlab.onos.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Core Subsystems</title>
+                            <packages>
+                                org.onlab.onos.impl:org.onlab.onos.cluster.impl:org.onlab.onos.net.device.impl:org.onlab.onos.net.link.impl:org.onlab.onos.net.host.impl:org.onlab.onos.net.topology.impl:org.onlab.onos.net.packet.impl:org.onlab.onos.net.flow.impl:org.onlab.onos.store.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.event.impl:org.onlab.onos.store.*:org.onlab.onos.net.intent.impl:org.onlab.onos.net.proxyarp.impl:org.onlab.onos.mastership.impl:org.onlab.onos.json:org.onlab.onos.json.*:org.onlab.onos.provider.host.impl:org.onlab.onos.provider.lldp.impl:org.onlab.onos.net.statistic.impl
+                            </packages>
+                        </group>
+                        <group>
+                            <title>OpenFlow Providers &amp; Controller
+                            </title>
+                            <packages>
+                                org.onlab.onos.provider.of.*:org.onlab.onos.openflow.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Utilities</title>
+                            <packages>
+                                org.onlab.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>GUI, REST &amp; Command-Line</title>
+                            <packages>
+                                org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli:org.onlab.onos.gui.*:org.onlab.onos.rest.*:org.onlab.onos.cli.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Sample Applications</title>
+                            <packages>
+                                org.onlab.onos.tvue:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.foo:org.onlab.onos.calendar:org.onlab.onos.sdnip:org.onlab.onos.sdnip.*:org.onlab.onos.optical:org.onlab.onos.optical.*:org.onlab.onos.metrics.*:org.onlab.onos.config
+                            </packages>
+                        </group>
+                    </groups>
+                    <excludePackageNames>org.onlab.thirdparty
+                    </excludePackageNames>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
