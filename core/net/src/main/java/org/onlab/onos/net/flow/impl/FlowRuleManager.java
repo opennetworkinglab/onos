@@ -76,7 +76,8 @@ public class FlowRuleManager
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 
-    private final ExecutorService futureListeners = Executors.newCachedThreadPool(namedThreads("provider-future-listeners"));
+    private final ExecutorService futureListeners =
+            Executors.newCachedThreadPool(namedThreads("provider-future-listeners"));
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
@@ -404,7 +405,8 @@ public class FlowRuleManager
                 result.addListener(new Runnable() {
                     @Override
                     public void run() {
-                        store.batchOperationComplete(FlowRuleBatchEvent.completed(request, Futures.getUnchecked(result)));
+                        store.batchOperationComplete(FlowRuleBatchEvent.completed(request,
+                                                                                  Futures.getUnchecked(result)));
                     }
                 }, futureListeners);
 

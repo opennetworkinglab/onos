@@ -1,19 +1,8 @@
 package org.onlab.onos.store.trivial.impl;
 
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
-
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,9 +29,19 @@ import org.onlab.onos.store.AbstractStore;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.util.concurrent.Futures;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+
+import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of flow rules using trivial in-memory implementation.
@@ -132,15 +131,15 @@ public class SimpleFlowRuleStore
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
         return FluentIterable.from(getFlowTable(deviceId).values())
-            .transformAndConcat(
-                    new Function<List<StoredFlowEntry>, Iterable<? extends FlowEntry>>() {
+                .transformAndConcat(
+                        new Function<List<StoredFlowEntry>, Iterable<? extends FlowEntry>>() {
 
-                @Override
-                public Iterable<? extends FlowEntry> apply(
-                        List<StoredFlowEntry> input) {
-                    return Collections.unmodifiableList(input);
-                }
-            });
+                            @Override
+                            public Iterable<? extends FlowEntry> apply(
+                                    List<StoredFlowEntry> input) {
+                                return Collections.unmodifiableList(input);
+                            }
+                        });
     }
 
     @Override
@@ -177,9 +176,9 @@ public class SimpleFlowRuleStore
             // new flow rule added
             existing.add(f);
             notifyDelegate(FlowRuleBatchEvent.requested(
-                    new FlowRuleBatchRequest( 1, /* FIXME generate something */
-                            Arrays.<FlowEntry>asList(f),
-                            Collections.<FlowEntry>emptyList())));
+                    new FlowRuleBatchRequest(1, /* FIXME generate something */
+                                             Arrays.<FlowEntry>asList(f),
+                                             Collections.<FlowEntry>emptyList())));
         }
     }
 
@@ -196,8 +195,8 @@ public class SimpleFlowRuleStore
                         // TODO: Should we notify only if it's "remote" event?
                         notifyDelegate(FlowRuleBatchEvent.requested(
                                 new FlowRuleBatchRequest(1, /* FIXME generate something */
-                                        Collections.<FlowEntry>emptyList(),
-                                        Arrays.<FlowEntry>asList(entry))));
+                                                         Collections.<FlowEntry>emptyList(),
+                                                         Arrays.<FlowEntry>asList(entry))));
                     }
                 }
             }
