@@ -2,6 +2,10 @@ package org.onlab.onos.net.resource;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -9,6 +13,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Sets;
 
 /**
  * Provides basic implementation of link resources allocation.
@@ -31,8 +37,30 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO implement it using a resource data store.
+
+        ResourceAllocation alloc = null;
+        for (ResourceRequest r: req.resources()) {
+            switch (r.type()) {
+            case BANDWIDTH:
+                log.info("requestResources() always returns requested bandwidth");
+                BandwidthResourceRequest br = (BandwidthResourceRequest) r;
+                alloc = new BandwidthResourceAllocation(br.bandwidth());
+                break;
+            case LAMBDA:
+                log.info("requestResources() always returns lambda 7");
+                alloc = new LambdaResourceAllocation(Lambda.valueOf(7));
+                break;
+            default:
+                break;
+            }
+        }
+
+        Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
+        for (Link link: req.links()) {
+            allocations.put(link, Sets.newHashSet(alloc));
+        }
+        return new DefaultLinkResourceAllocations(req, allocations);
     }
 
     @Override
