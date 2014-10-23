@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
-import org.onlab.onos.net.topology.TopologyEvent;
+import org.onlab.onos.event.Event;
 
 /**
  * Service interface exported by TopologyMetrics.
@@ -15,7 +15,7 @@ public interface TopologyMetricsService {
      *
      * @return the last saved topology events.
      */
-    public List<TopologyEvent> getEvents();
+    public List<Event> getEvents();
 
     /**
      * Gets the Metrics' Gauge for the last topology event timestamp
