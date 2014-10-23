@@ -4,9 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -181,10 +181,13 @@ public class ClusterCommunicationManager
         }
     }
 
-    private static final class InternalClusterMessageResponse implements ClusterMessageResponse {
+    private static final class InternalClusterMessageResponse
+        implements ClusterMessageResponse {
 
         private final NodeId sender;
         private final Response responseFuture;
+        private volatile boolean isCancelled = false;
+        private volatile boolean isDone = false;
 
         public InternalClusterMessageResponse(NodeId sender, Response responseFuture) {
             this.sender = sender;
@@ -198,12 +201,39 @@ public class ClusterCommunicationManager
         @Override
         public byte[] get(long timeout, TimeUnit timeunit)
                 throws TimeoutException {
-            return responseFuture.get(timeout, timeunit);
+            final byte[] result = responseFuture.get(timeout, timeunit);
+            isDone = true;
+            return result;
         }
 
         @Override
-        public byte[] get(long timeout) throws InterruptedException {
-            return responseFuture.get();
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            if (isDone()) {
+                return false;
+            }
+            // doing nothing for now
+            // when onlab.netty Response support cancel, call them.
+            isCancelled = true;
+            return true;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return isCancelled;
+        }
+
+        @Override
+        public boolean isDone() {
+            return this.isDone || isCancelled();
+        }
+
+        @Override
+        public byte[] get() throws InterruptedException, ExecutionException {
+            // TODO: consider forbidding this call and force the use of timed get
+            //       to enforce handling of remote peer failure scenario
+            final byte[] result = responseFuture.get();
+            isDone = true;
+            return result;
         }
     }
 }

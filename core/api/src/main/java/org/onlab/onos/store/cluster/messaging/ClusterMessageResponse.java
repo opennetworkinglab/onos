@@ -1,12 +1,18 @@
 package org.onlab.onos.store.cluster.messaging;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.onlab.onos.cluster.NodeId;
 
-public interface ClusterMessageResponse {
+public interface ClusterMessageResponse extends Future<byte[]> {
+
     public NodeId sender();
-    public byte[] get(long timeout, TimeUnit timeunit) throws TimeoutException;
-    public byte[] get(long timeout) throws InterruptedException;
+
+    // TODO InterruptedException, ExecutionException removed from original
+    // Future declaration. Revisit if we ever need those.
+    @Override
+    public byte[] get(long timeout, TimeUnit unit) throws TimeoutException;
+
 }
