@@ -1,8 +1,8 @@
 package org.onlab.onos.net.intent;
 
 import java.util.Collection;
-import java.util.Objects;
 
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
@@ -11,15 +11,18 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 
 import com.google.common.base.MoreObjects;
 
-public class OpticalPathIntent extends OpticalConnectivityIntent implements InstallableIntent {
-
+public class OpticalPathIntent extends OpticalConnectivityIntent {
     private final Path path;
     private final TrafficSelector opticalMatch;
     private final TrafficTreatment opticalAction;
 
-    public OpticalPathIntent(IntentId id, TrafficSelector match, TrafficTreatment action,
-                      ConnectPoint ingressPort, ConnectPoint egressPort,
-                      Path path) {
+    public OpticalPathIntent(ApplicationId appId,
+            ConnectPoint src,
+            ConnectPoint dst,
+            TrafficSelector match,
+            TrafficTreatment action,
+            Path path) {
+        super(appId, src, dst);
         this.opticalMatch = match;
         this.opticalAction = action;
         this.path = path;
@@ -44,29 +47,8 @@ public class OpticalPathIntent extends OpticalConnectivityIntent implements Inst
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        OpticalPathIntent that = (OpticalPathIntent) o;
-
-        if (!path.equals(that.path)) {
-            return false;
-        }
-
+    public boolean isInstallable() {
         return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), path);
     }
 
     @Override
@@ -81,7 +63,6 @@ public class OpticalPathIntent extends OpticalConnectivityIntent implements Inst
                 .toString();
     }
 
-    @Override
     public Collection<Link> requiredLinks() {
         return path.links();
     }

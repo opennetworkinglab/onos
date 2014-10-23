@@ -1,13 +1,14 @@
 package org.onlab.onos.net.intent;
 
+import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 
 /**
- * An optical layer Intent for a connectivity from a Transponder port to another
+ * An optical layer Intent for a connectivity from one Transponder port to another
  * Transponder port. No trafficSelector as well as trafficTreament are needed.
  *
  */
-public class OpticalConnectivityIntent extends AbstractIntent {
+public class OpticalConnectivityIntent extends Intent {
     protected ConnectPoint src;
     protected ConnectPoint dst;
 
@@ -18,8 +19,9 @@ public class OpticalConnectivityIntent extends AbstractIntent {
      * @param src The source transponder port.
      * @param dst The destination transponder port.
      */
-    public OpticalConnectivityIntent(IntentId id, ConnectPoint src, ConnectPoint dst) {
-        super(id);
+    public OpticalConnectivityIntent(ApplicationId appId, ConnectPoint src, ConnectPoint dst) {
+        super(id(OpticalConnectivityIntent.class, src, dst),
+                appId, null);
         this.src = src;
         this.dst = dst;
     }
