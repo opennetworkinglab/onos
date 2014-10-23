@@ -1,5 +1,6 @@
 package org.onlab.onos.net.statistic;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 
 /**
@@ -52,5 +53,12 @@ public class DefaultLoad implements Load {
     @Override
     public long time() {
         return time;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper("Load").add("rate", rate())
+                .add("latest", latest()).toString();
+
     }
 }
