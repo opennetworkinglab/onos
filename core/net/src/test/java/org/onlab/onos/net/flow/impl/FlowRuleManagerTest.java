@@ -6,11 +6,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADDED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
-
-
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +38,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
 import org.onlab.onos.net.flow.DefaultFlowRule;
@@ -58,7 +58,6 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
@@ -583,6 +582,12 @@ public class FlowRuleManagerTest {
         }
 
         @Override
+        public Criterion getCriterion(
+                org.onlab.onos.net.flow.criteria.Criterion.Type type) {
+            return null;
+        }
+
+        @Override
         public int hashCode() {
             return testval;
         }
@@ -594,6 +599,7 @@ public class FlowRuleManagerTest {
             }
             return false;
         }
+
     }
 
     private class TestTreatment implements TrafficTreatment {

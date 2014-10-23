@@ -55,6 +55,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
     }
 
     @Override
+    public Criterion getCriterion(Criterion.Type type) {
+        for (Criterion c : criteria) {
+            if (c.type() == type) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(criteria);
     }

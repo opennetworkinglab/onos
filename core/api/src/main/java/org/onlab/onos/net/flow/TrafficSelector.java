@@ -39,6 +39,15 @@ public interface TrafficSelector {
     Set<Criterion> criteria();
 
     /**
+     * Returns the selection criterion for a particular type, if it exists in
+     * this traffic selector.
+     *
+     * @param type criterion type to look up
+     * @return the criterion of the specified type if one exists, otherwise null
+     */
+    Criterion getCriterion(Criterion.Type type);
+
+    /**
      * Builder of traffic selector entities.
      */
     public interface Builder {
