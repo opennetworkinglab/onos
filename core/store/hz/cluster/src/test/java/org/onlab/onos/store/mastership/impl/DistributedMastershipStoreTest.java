@@ -97,6 +97,7 @@ public class DistributedMastershipStoreTest {
         assertEquals("wrong role:", NONE, dms.getRole(N1, DID1));
         testStore.put(DID1, N1, true, false, true);
         assertEquals("wrong role:", MASTER, dms.getRole(N1, DID1));
+        testStore.put(DID1, N2, false, true, false);
         assertEquals("wrong role:", STANDBY, dms.getRole(N2, DID1));
     }
 
@@ -155,6 +156,7 @@ public class DistributedMastershipStoreTest {
 
         //switch over to N2
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID1).type());
+        System.out.println(dms.getTermFor(DID1).master() + ":" + dms.getTermFor(DID1).termNumber());
         assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID1));
 
         //orphan switch - should be rare case
@@ -182,14 +184,9 @@ public class DistributedMastershipStoreTest {
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.relinquishRole(N1, DID1).type());
         assertEquals("wrong master", N2, dms.getMaster(DID1));
 
-        //STANDBY - nothing here, either
-        assertNull("wrong event:", dms.relinquishRole(N1, DID1));
-        assertEquals("wrong role for node:", STANDBY, dms.getRole(N1, DID1));
-
         //all nodes "give up" on device, which goes back to NONE.
         assertNull("wrong event:", dms.relinquishRole(N2, DID1));
         assertEquals("wrong role for node:", NONE, dms.getRole(N2, DID1));
-        assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID1));
 
         assertEquals("wrong number of retired nodes", 2,
                 dms.roleMap.get(DID1).nodesOfRole(NONE).size());
@@ -200,6 +197,10 @@ public class DistributedMastershipStoreTest {
         assertEquals("wrong role for NONE:", STANDBY, dms.requestRole(DID1));
         assertEquals("wrong number of backup nodes", 1,
                 dms.roleMap.get(DID1).nodesOfRole(STANDBY).size());
+
+        //If STANDBY, should drop to NONE
+        assertNull("wrong event:", dms.relinquishRole(N1, DID1));
+        assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID1));
 
         //NONE - nothing happens
         assertNull("wrong event:", dms.relinquishRole(N1, DID2));
@@ -218,7 +219,7 @@ public class DistributedMastershipStoreTest {
             public void notify(MastershipEvent event) {
                 assertEquals("wrong event:", Type.MASTER_CHANGED, event.type());
                 assertEquals("wrong subject", DID1, event.subject());
-                assertEquals("wrong subject", N1, event.node());
+                assertEquals("wrong subject", N1, event.roleInfo().master());
                 addLatch.countDown();
             }
         };

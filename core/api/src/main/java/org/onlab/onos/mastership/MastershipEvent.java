@@ -1,6 +1,5 @@
 package org.onlab.onos.mastership;
 
-import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.DeviceId;
@@ -53,19 +52,6 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
     public MastershipEvent(Type type, DeviceId device, RoleInfo info, long time) {
         super(type, device, time);
         this.roleInfo = info;
-    }
-
-    /**
-     * Returns the NodeID of the node associated with the event.
-     * For MASTER_CHANGED this is the newly elected master, and for
-     * BACKUPS_CHANGED, this is the node that was newly added, removed, or
-     * whose position was changed in the list.
-     *
-     * @return node ID as a subject
-     */
-    //XXX to-be removed - or keep for convenience?
-    public NodeId node() {
-        return roleInfo.master();
     }
 
     /**

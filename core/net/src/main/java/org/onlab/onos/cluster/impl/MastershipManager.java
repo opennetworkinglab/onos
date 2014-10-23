@@ -227,10 +227,14 @@ implements MastershipService, MastershipAdminService {
             if (clusterService.getNodes().size() > (clusterSize.intValue() / 2)) {
                 return true;
             }
-            //else {
+//            else {
                 //FIXME: break tie for equal-sized clusters, by number of
                 //       connected switches, then masters, then nodeId hash
-            // }
+                //       problem is, how do we get at channel info cleanly here?
+                //       Also, what's the time hit for a distributed store look-up
+                //       versus channel re-negotiation? bet on the latter being worse.
+
+//            }
             return false;
         }
 
