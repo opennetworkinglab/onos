@@ -11,18 +11,17 @@
 
     var config = {
             options: {
-                layering: false,
+                layering: true,
                 collisionPrevention: true
             },
             jsonUrl: 'network.json',
             iconUrl: {
-                logo: 'img/onos-logo.tiff',
                 device: 'img/device.png',
                 host: 'img/host.png',
                 pkt: 'img/pkt.png',
                 opt: 'img/opt.png'
             },
-            mastHeight: 32,
+            mastHeight: 36,
             force: {
                 note: 'node.class or link.class is used to differentiate',
                 linkDistance: {
@@ -47,7 +46,7 @@
                 }
             },
             labels: {
-                imgPad: 22,
+                imgPad: 16,
                 padLR: 8,
                 padTB: 6,
                 marginLR: 3,
@@ -57,7 +56,7 @@
                 w: 32,
                 h: 32,
                 xoff: -12,
-                yoff: -10
+                yoff: -8
             },
             constraints: {
                 ypos: {
@@ -376,6 +375,7 @@
                 rect = node.select('rect'),
                 icon = iconUrl(d),
                 text = node.append('text')
+                    // TODO: add label cycle behavior
                     .text(d.id)
                     .attr('dy', '1.1em');
 

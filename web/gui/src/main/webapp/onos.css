@@ -13,13 +13,15 @@ body, html {
  */
 
 span.title {
-    color: darkblue;
-    font-size: 16pt;
+    color: #37b;
+    font-size: 14pt;
     font-style: italic;
+    vertical-align: 10px;
 }
 
 span.radio {
     color: darkslateblue;
+    font-size: 10pt;
 }
 
 span.right {
@@ -127,8 +129,8 @@ svg .legend .category text {
 }
 
 #mast {
-    height: 32px;
-    padding: 6px;
+    height: 36px;
+    padding: 4px;
     background-color: #ccc;
     vertical-align: baseline;
 }
