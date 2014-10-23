@@ -284,7 +284,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             DefaultLinkDescription linkDescription =
                     new DefaultLinkDescription(srcPoint,
                                                  snkPoint,
-                                                 Link.Type.DIRECT,
+                                                 Link.Type.OPTICAL,
                                                  extendedAttributes);
 
             linkProviderService.linkDetected(linkDescription);
@@ -315,7 +315,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             DefaultLinkDescription linkDescription =
                     new DefaultLinkDescription(srcPoint,
                                                  snkPoint,
-                                                 Link.Type.DIRECT,
+                                                 Link.Type.OPTICAL,
                                                  extendedAttributes);
 
             linkProviderService.linkDetected(linkDescription);
