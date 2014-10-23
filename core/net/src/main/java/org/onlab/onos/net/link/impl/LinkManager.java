@@ -197,14 +197,7 @@ public class LinkManager
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
 
-            ConnectPoint src = linkDescription.src();
-            ConnectPoint dst = linkDescription.dst();
-            // if we aren't master for the device associated with the ConnectPoint
-            // we probably shouldn't be doing this.
 
-//            if (deviceService.getRole(dst.deviceId()) != MastershipRole.MASTER) {
-//                return;
-//            }
             LinkEvent event = store.createOrUpdateLink(provider().id(),
                                                        linkDescription);
             if (event != null) {
@@ -232,11 +225,7 @@ public class LinkManager
         public void linksVanished(ConnectPoint connectPoint) {
             checkNotNull(connectPoint, "Connect point cannot be null");
             checkValidity();
-            // if we aren't master for the device associated with the ConnectPoint
-            // we probably shouldn't be doing this.
-            if (deviceService.getRole(connectPoint.deviceId()) != MastershipRole.MASTER) {
-                return;
-            }
+
             log.info("Links for connection point {} vanished", connectPoint);
             // FIXME: This will remove links registered by other providers
             removeLinks(getLinks(connectPoint));
@@ -246,11 +235,7 @@ public class LinkManager
         public void linksVanished(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
-            // if we aren't master for the device associated with the ConnectPoint
-            // we probably shouldn't be doing this.
-            if (deviceService.getRole(deviceId) != MastershipRole.MASTER) {
-                return;
-            }
+
             log.info("Links for device {} vanished", deviceId);
             removeLinks(getDeviceLinks(deviceId));
         }
