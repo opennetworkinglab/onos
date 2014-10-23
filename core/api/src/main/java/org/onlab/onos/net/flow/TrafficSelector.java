@@ -130,6 +130,13 @@ public interface TrafficSelector {
         public Builder matchTcpDst(Short tcpPort);
 
         /**
+         * Matches an optical signal ID or lambda.
+         * @param lambda
+         * @return a selection builder
+         */
+        public Builder matchLambda(short lambda);
+
+        /**
          * Builds an immutable traffic selector.
          *
          * @return traffic selector

@@ -24,6 +24,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.L0SubType;
+import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
@@ -59,6 +61,16 @@ public final class Instructions {
      */
     public static DropInstruction createDrop() {
         return new DropInstruction();
+    }
+
+    /**
+     * Creates a l0 modification.
+     * @param lambda the lambda to modify to.
+     * @return a l0 modification
+     */
+    public static L0ModificationInstruction modL0Lambda(short lambda) {
+        checkNotNull(lambda, "L0 lambda cannot be null");
+        return new ModLambdaInstruction(L0SubType.LAMBDA, lambda);
     }
 
     /**

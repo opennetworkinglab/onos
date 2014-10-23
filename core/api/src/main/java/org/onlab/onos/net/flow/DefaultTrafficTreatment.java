@@ -137,6 +137,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case OUTPUT:
                     outputs.add(instruction);
                     break;
+                case L0MODIFICATION:
                 case L2MODIFICATION:
                 case L3MODIFICATION:
                     // TODO: enforce modification order if any
@@ -190,6 +191,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public Builder setIpDst(IpPrefix addr) {
             return add(Instructions.modL3Dst(addr));
+        }
+
+        @Override
+        public Builder setLambda(short lambda) {
+            return add(Instructions.modL0Lambda(lambda));
         }
 
         @Override

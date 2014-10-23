@@ -151,10 +151,19 @@ public final class Criteria {
         return new TcpPortCriterion(tcpPort, Type.TCP_DST);
     }
 
-    /*
+    /**
+     * Creates a match on lambda field using the specified value.
+     *
+     * @param lambda
+     * @return match criterion
+     */
+    public static Criterion matchLambda(Short lambda) {
+        return new LambdaCriterion(lambda, Type.OCH_SIGID);
+    }
+
+    /**
      * Implementations of criteria.
      */
-
     public static final class PortCriterion implements Criterion {
         private final PortNumber port;
 
@@ -523,4 +532,49 @@ public final class Criteria {
             return false;
         }
     }
+
+    public static final class LambdaCriterion implements Criterion {
+
+        private final short lambda;
+        private final Type type;
+
+        public LambdaCriterion(short lambda, Type type) {
+            this.lambda = lambda;
+            this.type = type;
+        }
+
+        @Override
+        public Type type() {
+            return this.type;
+        }
+
+        public Short lambda() {
+            return this.lambda;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("lambda", lambda).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(lambda, type);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof LambdaCriterion) {
+                LambdaCriterion that = (LambdaCriterion) obj;
+                return Objects.equals(lambda, that.lambda) &&
+                        Objects.equals(type, that.type);
+            }
+            return false;
+        }
+    }
+
 }

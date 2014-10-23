@@ -176,6 +176,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchLambda(short lambda) {
+            return add(Criteria.matchLambda(lambda));
+        }
+
+        @Override
         public TrafficSelector build() {
             return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
         }

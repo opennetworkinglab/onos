@@ -108,7 +108,11 @@ public interface Criterion {
         /** Logical Port Metadata. */
         TUNNEL_ID,
         /** IPv6 Extension Header pseudo-field. */
-        IPV6_EXTHDR
+        IPV6_EXTHDR,
+        /** Optical channel signal ID (lambda). */
+        OCH_SIGID,
+        /** Optical channel signal type (fixed or flexible). */
+        OCH_SIGTYPE
     }
 
     /**
