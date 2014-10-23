@@ -33,4 +33,9 @@ public class BandwidthResourceRequest implements ResourceRequest {
     public Bandwidth bandwidth() {
         return bandwidth;
     }
+
+    @Override
+    public ResourceType type() {
+        return ResourceType.BANDWIDTH;
+    }
 }

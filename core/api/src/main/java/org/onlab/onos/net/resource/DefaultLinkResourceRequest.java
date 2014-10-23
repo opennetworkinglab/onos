@@ -34,6 +34,12 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
         this.resources = ImmutableSet.copyOf(resources);
     }
 
+
+    @Override
+    public ResourceType type() {
+        return null;
+    }
+
     @Override
     public IntentId intendId() {
         return intentId;

@@ -5,4 +5,9 @@ package org.onlab.onos.net.resource;
  */
 public class LambdaResourceRequest implements ResourceRequest {
 
+    @Override
+    public ResourceType type() {
+        return ResourceType.LAMBDA;
+    }
+
 }
