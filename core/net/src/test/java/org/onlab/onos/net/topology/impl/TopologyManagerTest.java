@@ -195,6 +195,10 @@ public class TopologyManagerTest {
         public TestProvider() {
             super(PID);
         }
+
+        @Override
+        public void triggerRecompute() {
+        }
     }
 
     private static class TestListener implements TopologyListener {

@@ -208,7 +208,7 @@ public class LinkManager
             LinkEvent event = store.createOrUpdateLink(provider().id(),
                                                        linkDescription);
             if (event != null) {
-                log.debug("Link {} detected", linkDescription);
+                log.info("Link {} detected", linkDescription);
                 post(event);
             }
         }

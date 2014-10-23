@@ -1,0 +1,45 @@
+{
+    "devices" : [
+        {
+            "uri": "of:0000ffffffffff01", "mac": "ffffffffffff01", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "latitude": 37.6, "longitude": 122.3, "optical.regens": 0 }
+        },
+        {
+            "uri": "of:0000ffffffffff02", "mac": "ffffffffffff02", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "latitude": 37.3, "longitude": 121.9, "optical.regens": 0 }
+        },
+        {
+            "uri": "of:0000ffffffffff03", "mac": "ffffffffffff03", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "latitude": 33.9, "longitude": 118.4, "optical.regens": 2 }
+        },
+
+        {
+            "uri": "of:0000ffffffff0001", "mac": "ffffffffff0003", "type": "SWITCH",
+            "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?",
+            "annotations": { "latitude": 37.6, "longitude": 122.3 }
+        },
+        {
+            "uri": "of:0000ffffffff0002", "mac": "ffffffffff0002", "type": "SWITCH",
+            "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?",
+            "annotations": { "latitude": 37.3, "longitude": 121.9 }
+        }
+    ],
+
+    "links" : [
+        { "src": "of:0000ffffffffff01/10", "dst": "of:0000ffffffffff03/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM" } },
+        { "src": "of:0000ffffffffff02/20", "dst": "of:0000ffffffffff03/31", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM" } },
+
+        { "src": "of:0000ffffffff0001/10", "dst": "of:0000ffffffffff01/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect" } },
+        { "src": "of:0000ffffffff0002/10", "dst": "of:0000ffffffffff02/21", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect" } }
+    ],
+
+    "hosts" : [
+        { "mac": "a0:00:00:00:00:11", "vlan": -1, "location": "of:0000ffffffff0001/11", "ip": "1.2.3.4" },
+        { "mac": "a0:00:00:00:00:12", "vlan": -1, "location": "of:0000ffffffff0001/12", "ip": "1.2.3.5" },
+        { "mac": "a0:00:00:00:00:21", "vlan": -1, "location": "of:0000ffffffff0002/11", "ip": "2.2.3.4" },
+        { "mac": "a0:00:00:00:00:22", "vlan": -1, "location": "of:0000ffffffff0002/12", "ip": "2.2.3.5" }
+    ]
+}
