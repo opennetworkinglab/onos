@@ -3,7 +3,7 @@ package org.onlab.onos.net.resource;
 /**
  * Representation of a request for bandwidth resource.
  */
-public final class BandwidthResourceRequest implements ResourceRequest {
+public class BandwidthResourceRequest implements ResourceRequest {
     private final Bandwidth bandwidth;
 
     /**
