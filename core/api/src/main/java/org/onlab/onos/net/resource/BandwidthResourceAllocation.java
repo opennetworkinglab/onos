@@ -5,6 +5,12 @@ package org.onlab.onos.net.resource;
  */
 public class BandwidthResourceAllocation extends BandwidthResourceRequest
         implements ResourceAllocation {
+
+    @Override
+    public ResourceType type() {
+        return ResourceType.BANDWIDTH;
+    }
+
     /**
      * Creates a new {@link BandwidthResourceAllocation} with {@link Bandwidth}
      * object.
@@ -13,10 +19,5 @@ public class BandwidthResourceAllocation extends BandwidthResourceRequest
      */
     public BandwidthResourceAllocation(Bandwidth bandwidth) {
         super(bandwidth);
-    }
-
-    @Override
-    public ResourceType type() {
-        return ResourceType.BANDWIDTH;
     }
 }
