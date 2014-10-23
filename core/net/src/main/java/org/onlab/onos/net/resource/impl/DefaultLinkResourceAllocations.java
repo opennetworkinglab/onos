@@ -1,4 +1,4 @@
-package org.onlab.onos.net.resource;
+package org.onlab.onos.net.resource.impl;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -7,6 +7,11 @@ import java.util.Set;
 
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceRequest;
+import org.onlab.onos.net.resource.ResourceAllocation;
+import org.onlab.onos.net.resource.ResourceRequest;
+import org.onlab.onos.net.resource.ResourceType;
 
 /**
  * Implementation of {@link LinkResourceAllocations}.

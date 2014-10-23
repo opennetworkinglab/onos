@@ -36,7 +36,7 @@ public interface LinkResourceService {
      * @param intentId the target Intent's id
      * @return allocated resources for Intent
      */
-    LinkResourceAllocations getAllocation(IntentId intentId);
+    LinkResourceAllocations getAllocations(IntentId intentId);
 
     /**
      * Returns all allocated resources to given link.
