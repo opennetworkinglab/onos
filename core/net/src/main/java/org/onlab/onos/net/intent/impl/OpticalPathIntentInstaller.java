@@ -109,7 +109,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             }
 
             treatmentBuilder.setOutput(link.src().port());
-            //treatmentBuilder.setLambda(la.toInt());
+            treatmentBuilder.setLambda((short) la.toInt());
 
             FlowRule rule = new DefaultFlowRule(prev.deviceId(),
                     selectorBuilder.build(),
@@ -122,7 +122,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
             prev = link.dst();
             selectorBuilder.matchInport(link.dst().port());
-            //selectorBuilder.setLambda(la.toInt());
+            selectorBuilder.matchLambda((short) la.toInt());
         }
 
         // build the last T port rule
@@ -213,7 +213,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             }
 
             treatmentBuilder.setOutput(link.src().port());
-            //treatmentBuilder.setLambda(la.toInt());
+            treatmentBuilder.setLambda((short) la.toInt());
 
             FlowRule rule = new DefaultFlowRule(prev.deviceId(),
                     selectorBuilder.build(),
@@ -226,7 +226,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
             prev = link.dst();
             selectorBuilder.matchInport(link.dst().port());
-            //selectorBuilder.setLambda(la.toInt());
+            selectorBuilder.matchLambda((short) la.toInt());
         }
 
         // build the last T port rule
