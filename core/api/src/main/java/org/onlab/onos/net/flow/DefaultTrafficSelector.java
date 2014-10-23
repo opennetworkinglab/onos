@@ -176,8 +176,14 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
-        public Builder matchLambda(short lambda) {
+        public Builder matchLambda(Short lambda) {
             return add(Criteria.matchLambda(lambda));
+        }
+
+        @Override
+        public Builder matchOpticalSignalType(Byte signalType) {
+            return add(Criteria.matchOpticalSignalType(signalType));
+
         }
 
         @Override

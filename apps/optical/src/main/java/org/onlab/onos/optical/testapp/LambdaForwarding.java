@@ -83,8 +83,12 @@ public class LambdaForwarding {
         int inport;
         int outport;
         short lambda = 10;
+        byte sigType = 1;
+        Integer switchNumber = uglyMap.get(device.id());
+        if (switchNumber == null) {
+            return;
+        }
 
-        int switchNumber = uglyMap.get(device.id());
         switch (switchNumber) {
         case 1:
             inport = 10;
@@ -95,13 +99,15 @@ public class LambdaForwarding {
         case 2:
             inport = 21;
             outport = 11;
-            sbuilder.matchLambda(lambda).matchInport(PortNumber.portNumber(inport)); // match sigtype
+            sbuilder.matchLambda(lambda).
+                    matchInport(PortNumber.portNumber(inport)); // match sigtype
             tbuilder.setOutput(PortNumber.portNumber(outport));
             break;
         case 3:
             inport = 30;
             outport = 31;
-            sbuilder.matchLambda(lambda).matchInport(PortNumber.portNumber(inport));
+            sbuilder.matchLambda(lambda).
+                    matchInport(PortNumber.portNumber(inport));
             tbuilder.setOutput(PortNumber.portNumber(outport)).setLambda(lambda);
             break;
         default:

@@ -162,6 +162,17 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on lambda field using the specified value.
+     *
+     * @param lambda
+     * @return match criterion
+     */
+    public static Criterion matchOpticalSignalType(Byte lambda) {
+        return new OpticalSignalTypeCriterion(lambda, Type.OCH_SIGTYPE);
+    }
+
+
+    /**
      * Implementations of criteria.
      */
     public static final class PortCriterion implements Criterion {
@@ -571,6 +582,50 @@ public final class Criteria {
             if (obj instanceof LambdaCriterion) {
                 LambdaCriterion that = (LambdaCriterion) obj;
                 return Objects.equals(lambda, that.lambda) &&
+                        Objects.equals(type, that.type);
+            }
+            return false;
+        }
+    }
+
+    public static final class OpticalSignalTypeCriterion implements Criterion {
+
+        private final byte signalType;
+        private final Type type;
+
+        public OpticalSignalTypeCriterion(byte signalType, Type type) {
+            this.signalType = signalType;
+            this.type = type;
+        }
+
+        @Override
+        public Type type() {
+            return this.type;
+        }
+
+        public Byte signalType() {
+            return this.signalType;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("signalType", signalType).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(signalType, type);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof OpticalSignalTypeCriterion) {
+                OpticalSignalTypeCriterion that = (OpticalSignalTypeCriterion) obj;
+                return Objects.equals(signalType, that.signalType) &&
                         Objects.equals(type, that.type);
             }
             return false;

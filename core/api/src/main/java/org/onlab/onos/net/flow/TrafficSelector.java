@@ -134,7 +134,14 @@ public interface TrafficSelector {
          * @param lambda
          * @return a selection builder
          */
-        public Builder matchLambda(short lambda);
+        public Builder matchLambda(Short lambda);
+
+        /**
+         * Matches an optical Signal Type.
+         * @param signalType
+         * @return a selection builder
+         */
+        public Builder matchOpticalSignalType(Byte signalType);
 
         /**
          * Builds an immutable traffic selector.
