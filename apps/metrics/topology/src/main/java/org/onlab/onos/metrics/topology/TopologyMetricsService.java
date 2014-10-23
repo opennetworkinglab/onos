@@ -1,9 +1,7 @@
 package org.onlab.onos.metrics.topology;
 
 import java.util.List;
-
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Meter;
+import org.onlab.metrics.EventMetric;
 import org.onlab.onos.event.Event;
 
 /**
@@ -18,18 +16,30 @@ public interface TopologyMetricsService {
     public List<Event> getEvents();
 
     /**
-     * Gets the Metrics' Gauge for the last topology event timestamp
-     * (ms from the epoch).
+     * Gets the Event Metric for the Device Events.
      *
-     * @return the Metrics' Gauge for the last topology event timestamp
-     * (ms from the epoch)
+     * @return the Event Metric for the Device Events.
      */
-    public Gauge<Long> lastEventTimestampEpochMsGauge();
+    public EventMetric topologyDeviceEventMetric();
 
     /**
-     * Gets the Metrics' Meter for the topology events rate.
+     * Gets the Event Metric for the Host Events.
      *
-     * @return the Metrics' Meter for the topology events rate
+     * @return the Event Metric for the Host Events.
      */
-    public Meter eventRateMeter();
+    public EventMetric topologyHostEventMetric();
+
+    /**
+     * Gets the Event Metric for the Link Events.
+     *
+     * @return the Event Metric for the Link Events.
+     */
+    public EventMetric topologyLinkEventMetric();
+
+    /**
+     * Gets the Event Metric for the Topology Graph Events.
+     *
+     * @return the Event Metric for the Topology Graph Events.
+     */
+    public EventMetric topologyGraphEventMetric();
 }

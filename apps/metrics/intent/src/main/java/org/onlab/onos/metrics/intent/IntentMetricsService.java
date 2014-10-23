@@ -1,9 +1,7 @@
 package org.onlab.onos.metrics.intent;
 
 import java.util.List;
-
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Meter;
+import org.onlab.metrics.EventMetric;
 import org.onlab.onos.net.intent.IntentEvent;
 
 /**
@@ -18,68 +16,32 @@ public interface IntentMetricsService {
     public List<IntentEvent> getEvents();
 
     /**
-     * Gets the Metrics' Gauge for the intent SUBMITTED event timestamp
-     * (ms from the epoch).
+     * Gets the Event Metric for the intent SUBMITTED events.
      *
-     * @return the Metrics' Gauge for the intent SUBMITTED event timestamp
-     * (ms from the epoch)
+     * @return the Event Metric for the intent SUBMITTED events.
      */
-    public Gauge<Long> intentSubmittedTimestampEpochMsGauge();
+    public EventMetric intentSubmittedEventMetric();
 
     /**
-     * Gets the Metrics' Gauge for the intent INSTALLED event timestamp
-     * (ms from the epoch).
+     * Gets the Event Metric for the intent INSTALLED events.
      *
-     * @return the Metrics' Gauge for the intent INSTALLED event timestamp
-     * (ms from the epoch)
+     * @return the Event Metric for the intent INSTALLED events.
      */
-    public Gauge<Long> intentInstalledTimestampEpochMsGauge();
+    public EventMetric intentInstalledEventMetric();
 
     /**
-     * Gets the Metrics' Gauge for the intent WITHDRAW_REQUESTED event
-     * timestamp (ms from the epoch).
+     * Gets the Event Metric for the intent WITHDRAW_REQUESTED events.
      *
      * TODO: This intent event is not implemented yet.
      *
-     * @return the Metrics' Gauge for the intent WITHDRAW_REQUESTED event
-     * timestamp (ms from the epoch)
+     * @return the Event Metric for the intent WITHDRAW_REQUESTED events.
      */
-    public Gauge<Long> intentWithdrawRequestedTimestampEpochMsGauge();
+    public EventMetric intentWithdrawRequestedEventMetric();
 
     /**
-     * Gets the Metrics' Gauge for the intent WITHDRAWN event timestamp
-     * (ms from the epoch).
+     * Gets the Event Metric for the intent WITHDRAWN events.
      *
-     * @return the Metrics' Gauge for the intent WITHDRAWN event timestamp
-     * (ms from the epoch)
+     * @return the Event Metric for the intent WITHDRAWN events.
      */
-    public Gauge<Long> intentWithdrawnTimestampEpochMsGauge();
-
-    /**
-     * Gets the Metrics' Meter for the submitted intents event rate.
-     *
-     * @return the Metrics' Meter for the submitted intents event rate
-     */
-    public Meter intentSubmittedRateMeter();
-
-    /**
-     * Gets the Metrics' Meter for the installed intents event rate.
-     *
-     * @return the Metrics' Meter for the installed intent event rate
-     */
-    public Meter intentInstalledRateMeter();
-
-    /**
-     * Gets the Metrics' Meter for the withdraw requested intents event rate.
-     *
-     * @return the Metrics' Meter for the withdraw requested intents event rate
-     */
-    public Meter intentWithdrawRequestedRateMeter();
-
-    /**
-     * Gets the Metrics' Meter for the withdraw completed intents event rate.
-     *
-     * @return the Metrics' Meter for the withdraw completed intents event rate
-     */
-    public Meter intentWithdrawnRateMeter();
+    public EventMetric intentWithdrawnEventMetric();
 }
