@@ -5,11 +5,13 @@ import java.util.Collection;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.Path;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
-public class OpticalPathIntent extends ConnectivityIntent {
+public class OpticalPathIntent extends Intent {
 
     private final ConnectPoint src;
     private final ConnectPoint dst;
@@ -21,7 +23,8 @@ public class OpticalPathIntent extends ConnectivityIntent {
             ConnectPoint dst,
             Path path) {
         super(id(OpticalPathIntent.class, src, dst),
-              appId, resources(path.links()), null, null);
+              appId,
+              ImmutableSet.<NetworkResource>copyOf(path.links()));
         this.src = src;
         this.dst = dst;
         this.path = path;
