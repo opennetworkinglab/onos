@@ -23,7 +23,9 @@ import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.RoleState;
+import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.packet.ChassisId;
+import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortState;
@@ -89,6 +91,28 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Override
     public void triggerProbe(Device device) {
         LOG.info("Triggering probe on device {}", device.id());
+
+        // 1. check device liveness
+        // FIXME if possible, we might want this to be part of
+        // OpenFlowSwitch interface so the driver interface isn't misused.
+        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
+        if (!((OpenFlowSwitchDriver) sw).isConnected()) {
+            providerService.deviceDisconnected(device.id());
+            return;
+        }
+
+        // 2. Prompt an update of port information. Do we have an XID for this?
+        OFFactory fact = sw.factory();
+        switch (fact.getVersion()) {
+            case OF_10:
+                sw.sendMsg(fact.buildFeaturesRequest().setXid(0).build());
+                break;
+            case OF_13:
+                sw.sendMsg(fact.buildPortDescStatsRequest().setXid(0).build());
+                break;
+            default:
+                LOG.warn("Unhandled protocol version");
+        }
     }
 
     @Override
@@ -139,6 +163,17 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 return;
             }
             providerService.deviceDisconnected(deviceId(uri(dpid)));
+        }
+
+
+        @Override
+        public void switchChanged(Dpid dpid) {
+            if (providerService == null) {
+                return;
+            }
+            DeviceId did = deviceId(uri(dpid));
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
+            providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
         }
 
         @Override

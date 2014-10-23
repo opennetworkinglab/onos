@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Fake implementation of the intent service to assist in developing tests of
@@ -171,8 +172,14 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public void execute(IntentOperations operations) {
+    public void replace(IntentId oldIntentId, Intent newIntent) {
         // TODO: implement later
+    }
+
+    @Override
+    public Future<IntentOperations> execute(IntentOperations operations) {
+        // TODO: implement later
+        return null;
     }
 
     @Override

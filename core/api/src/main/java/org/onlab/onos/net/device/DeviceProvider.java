@@ -13,7 +13,7 @@ public interface DeviceProvider extends Provider {
 
     /**
      * Triggers an asynchronous probe of the specified device, intended to
-     * determine whether the host is present or not. An indirect result of this
+     * determine whether the device is present or not. An indirect result of this
      * should be invocation of
      * {@link org.onlab.onos.net.device.DeviceProviderService#deviceConnected} )} or
      * {@link org.onlab.onos.net.device.DeviceProviderService#deviceDisconnected}

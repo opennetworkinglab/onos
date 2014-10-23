@@ -290,12 +290,17 @@ public class GossipDeviceStore
     private DeviceEvent updateDevice(ProviderId providerId,
                                      Device oldDevice,
                                      Device newDevice, Timestamp newTimestamp) {
-
         // We allow only certain attributes to trigger update
-        if (!Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
-            !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
-            !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations())) {
+        boolean propertiesChanged =
+                !Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
+                        !Objects.equals(oldDevice.swVersion(), newDevice.swVersion());
+        boolean annotationsChanged =
+                !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations());
 
+        // Primary providers can respond to all changes, but ancillary ones
+        // should respond only to annotation changes.
+        if ((providerId.isAncillary() && annotationsChanged) ||
+                (!providerId.isAncillary() && (propertiesChanged || annotationsChanged))) {
             boolean replaced = devices.replace(newDevice.id(), oldDevice, newDevice);
             if (!replaced) {
                 verify(replaced,

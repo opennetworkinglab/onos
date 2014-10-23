@@ -565,6 +565,9 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             @Override
             void processOFStatisticsReply(OFChannelHandler h,
                     OFStatsReply m) {
+                if (m.getStatsType().equals(OFStatsType.PORT_DESC)) {
+                    h.sw.setPortDescReply((OFPortDescStatsReply) m);
+                }
                 h.dispatchMessage(m);
             }
 
@@ -605,6 +608,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
             @Override
             void processOFBarrierReply(OFChannelHandler h, OFBarrierReply m) {
+                h.dispatchMessage(m);
+            }
+
+            @Override
+            void processOFFeaturesReply(OFChannelHandler h, OFFeaturesReply  m) {
+                h.sw.setFeaturesReply(m);
                 h.dispatchMessage(m);
             }
 

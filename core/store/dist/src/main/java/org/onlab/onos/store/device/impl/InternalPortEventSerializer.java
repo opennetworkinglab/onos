@@ -37,6 +37,8 @@ public class InternalPortEventSerializer extends Serializer<InternalPortEvent> {
                                Class<InternalPortEvent> type) {
         ProviderId providerId = (ProviderId) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
+
+        @SuppressWarnings("unchecked")
         Timestamped<List<PortDescription>> portDescriptions
             = (Timestamped<List<PortDescription>>) kryo.readClassAndObject(input);
 

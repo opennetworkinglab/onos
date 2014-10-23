@@ -31,7 +31,7 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
 import org.onlab.onos.net.flow.FlowRuleProviderService;
-import org.onlab.onos.net.intent.BatchOperation;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.TopologyService;
@@ -243,6 +243,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         @Override
+        public void switchChanged(Dpid dpid) {
+        }
+
+        @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
             //TODO: Decide whether to evict flows internal store.
         }
@@ -323,6 +327,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
             return false;
         }
+
     }
 
     private class InstallationFuture implements Future<CompletedBatchOperation> {
