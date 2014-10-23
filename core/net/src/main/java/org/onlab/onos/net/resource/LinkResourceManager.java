@@ -48,6 +48,12 @@ public class LinkResourceManager implements LinkResourceService {
     }
 
     @Override
+    public LinkResourceAllocations getAllocation(IntentId intentId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public Iterable<LinkResourceAllocations> getAllocations(Link link) {
         // TODO Auto-generated method stub
         return null;
