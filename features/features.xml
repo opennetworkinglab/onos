@@ -199,7 +199,14 @@
 
     <feature name="onos-app-metrics" version="1.0.0"
              description="ONOS metrics applications">
+        <feature>onos-app-metrics-intent</feature>
         <feature>onos-app-metrics-topology</feature>
+    </feature>
+
+    <feature name="onos-app-metrics-intent" version="1.0.0"
+             description="ONOS intent metrics application">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-metrics-intent/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-app-metrics-topology" version="1.0.0"
