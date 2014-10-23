@@ -93,9 +93,9 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
         log.info("Starting optical network configuration process...");
         log.info("Optical config file set to {}", configFileName);
 
-        loadOpticalConfig();
-        parseOpticalConfig();
-        publishOpticalConfig();
+//        loadOpticalConfig();
+//        parseOpticalConfig();
+//        publishOpticalConfig();
     }
 
     @Deactivate

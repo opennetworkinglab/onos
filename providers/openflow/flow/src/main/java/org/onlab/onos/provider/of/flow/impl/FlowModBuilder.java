@@ -143,6 +143,7 @@ public class FlowModBuilder {
                 return new LinkedList<>();
             case L0MODIFICATION:
                 acts.add(buildL0Modification(i));
+                break;
             case L2MODIFICATION:
                 acts.add(buildL2Modification(i));
                 break;

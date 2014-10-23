@@ -54,11 +54,16 @@ public class LambdaForwarding {
     public void activate() {
         appId = coreService.registerApplication("org.onlab.onos.fwd");
 
-        deviceService.addListener(listener);
-
         uglyMap.put(DeviceId.deviceId("of:0000ffffffffff01"), 1);
         uglyMap.put(DeviceId.deviceId("of:0000ffffffffff02"), 2);
         uglyMap.put(DeviceId.deviceId("of:0000ffffffffff03"), 3);
+
+        deviceService.addListener(listener);
+
+        for (Device d : deviceService.getDevices()) {
+            pushRules(d);
+        }
+
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -101,9 +106,6 @@ public class LambdaForwarding {
             break;
         default:
         }
-        sbuilder.matchLambda((short) 25).matchInport(PortNumber.portNumber(5));
-
-        tbuilder.setOutput(PortNumber.portNumber(5));
 
         TrafficTreatment treatement = tbuilder.build();
         TrafficSelector selector = sbuilder.build();
