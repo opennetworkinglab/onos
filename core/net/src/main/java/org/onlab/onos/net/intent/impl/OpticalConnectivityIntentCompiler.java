@@ -84,8 +84,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         // create a new opticalPathIntent
         Intent newIntent = new OpticalPathIntent(intent.appId(),
-                path.src(),
-                path.dst(),
+                intent.getSrcConnectPoint(),
+                intent.getDst(),
                 path);
 
         retList.add(newIntent);
@@ -100,8 +100,11 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             @Override
             public double weight(TopologyEdge edge) {
                 boolean isOptical = false;
-                String t = edge.link().annotations().value("linkType");
-                if (t.equals("WDM")) {
+
+                Link.Type lt = edge.link().type();
+
+                //String t = edge.link().annotations().value("linkType");
+                if (lt == Link.Type.OPTICAL) {
                    isOptical = true;
                 }
                 if (isOptical) {

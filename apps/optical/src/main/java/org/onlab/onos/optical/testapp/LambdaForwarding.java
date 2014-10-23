@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 /**
  * Sample reactive forwarding application.
  */
-//:@Component(immediate = true)
+//@Component(immediate = true)
 public class LambdaForwarding {
 
     private final Logger log = getLogger(getClass());

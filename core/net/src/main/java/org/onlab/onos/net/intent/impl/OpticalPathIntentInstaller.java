@@ -87,8 +87,6 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         selectorBuilder.matchInport(intent.src().port());
 
-        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
         ConnectPoint prev = intent.src();
 
@@ -107,6 +105,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
                 return null;
             }
 
+            TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
             treatmentBuilder.setOutput(link.src().port());
             treatmentBuilder.setLambda((short) la.toInt());
 
