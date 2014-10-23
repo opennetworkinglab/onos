@@ -3,8 +3,7 @@ package org.onlab.onos.store.statistic.impl;
 import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.google.common.collect.ImmutableSet;
-
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -130,7 +129,7 @@ public class DistributedStatisticStore implements StatisticStore {
     }
 
     @Override
-    public void removeFromStatistics(FlowRule rule) {
+    public synchronized void removeFromStatistics(FlowRule rule) {
         ConnectPoint cp = buildConnectPoint(rule);
         if (cp == null) {
             return;
@@ -139,6 +138,15 @@ public class DistributedStatisticStore implements StatisticStore {
         if (rep != null) {
             rep.remove(rule);
         }
+        Set<FlowEntry> values = current.get(cp);
+        if (values != null) {
+            values.remove(rule);
+        }
+        values = previous.get(cp);
+        if (values != null) {
+            values.remove(rule);
+        }
+
     }
 
     @Override
@@ -181,7 +189,7 @@ public class DistributedStatisticStore implements StatisticStore {
                 return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
                                                       TimeUnit.MILLISECONDS));
             } catch (IOException | TimeoutException e) {
-                // FIXME: throw a FlowStoreException
+                // FIXME: throw a StatsStoreException
                 throw new RuntimeException(e);
             }
         }
@@ -200,7 +208,7 @@ public class DistributedStatisticStore implements StatisticStore {
         } else {
             ClusterMessage message = new ClusterMessage(
                     clusterService.getLocalNode().id(),
-                    GET_CURRENT,
+                    GET_PREVIOUS,
                     SERIALIZER.encode(connectPoint));
 
             try {
@@ -209,7 +217,7 @@ public class DistributedStatisticStore implements StatisticStore {
                 return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
                                                       TimeUnit.MILLISECONDS));
             } catch (IOException | TimeoutException e) {
-                // FIXME: throw a FlowStoreException
+                // FIXME: throw a StatsStoreException
                 throw new RuntimeException(e);
             }
         }
@@ -283,7 +291,7 @@ public class DistributedStatisticStore implements StatisticStore {
 
         public synchronized Set<FlowEntry> get() {
             counter.set(rules.size());
-            return ImmutableSet.copyOf(rules);
+            return Sets.newHashSet(rules);
         }
 
 
