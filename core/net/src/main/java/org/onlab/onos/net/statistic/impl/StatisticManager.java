@@ -20,7 +20,6 @@ import org.onlab.onos.net.statistic.Load;
 import org.onlab.onos.net.statistic.StatisticService;
 import org.onlab.onos.net.statistic.StatisticStore;
 import org.slf4j.Logger;
-
 import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -68,17 +67,52 @@ public class StatisticManager implements StatisticService {
 
     @Override
     public Link max(Path path) {
-        return null;
+        if (path.links().isEmpty()) {
+            return null;
+        }
+        Load maxLoad = new DefaultLoad();
+        Link maxLink = null;
+        for (Link link : path.links()) {
+            Load load = loadInternal(link.src());
+            if (load.rate() > maxLoad.rate()) {
+                maxLoad = load;
+                maxLink = link;
+            }
+        }
+        return maxLink;
     }
 
     @Override
     public Link min(Path path) {
-        return null;
+        if (path.links().isEmpty()) {
+            return null;
+        }
+        Load minLoad = new DefaultLoad();
+        Link minLink = null;
+        for (Link link : path.links()) {
+            Load load = loadInternal(link.src());
+            if (load.rate() < minLoad.rate()) {
+                minLoad = load;
+                minLink = link;
+            }
+        }
+        return minLink;
     }
 
     @Override
     public FlowRule highestHitter(ConnectPoint connectPoint) {
-        return null;
+        Set<FlowEntry> hitters = statisticStore.getCurrentStatistic(connectPoint);
+        if (hitters.isEmpty()) {
+            return null;
+        }
+
+        FlowEntry max = hitters.iterator().next();
+        for (FlowEntry entry : hitters) {
+            if (entry.bytes() > max.bytes()) {
+                max = entry;
+            }
+        }
+        return max;
     }
 
     private Load loadInternal(ConnectPoint connectPoint) {
