@@ -30,6 +30,8 @@ public interface LinkResourceService {
      */
     Iterable<LinkResourceAllocations> getAllocations();
 
+    LinkResourceAllocations getAllocation(IntentId intentId);
+
     /**
      * Returns all allocated resources to given link.
      *
