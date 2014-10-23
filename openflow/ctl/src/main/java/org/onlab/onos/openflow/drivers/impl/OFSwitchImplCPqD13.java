@@ -1188,7 +1188,8 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setHardTimeout(0)
                 .setXid(getNextTransactionId())
                 .build();
-        sendMsg(tableMissEntry);
+
+        write(tableMissEntry);
     }
 
     private void sendBarrier(boolean finalBarrier) {
@@ -1200,7 +1201,8 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .buildBarrierRequest()
                 .setXid(xid)
                 .build();
-        sendMsg(br);
+
+        write(br);
     }
 
     @Override
@@ -1210,7 +1212,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void write(OFMessage msg) {
-        this.channel.write(msg);
+        this.channel.write(Collections.singletonList(msg));
 
     }
 

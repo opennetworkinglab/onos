@@ -14,7 +14,7 @@ public final class HexString {
      */
     public static String toHexString(final byte[] bytes) {
         int i;
-        StringBuilder ret = new StringBuilder();
+        StringBuilder ret = new StringBuilder(bytes.length * 3 - 1);
         String tmp;
         for (i = 0; i < bytes.length; i++) {
             if (i > 0) {
@@ -31,22 +31,22 @@ public final class HexString {
 
     public static String toHexString(final long val, final int padTo) {
         char[] arr = Long.toHexString(val).toCharArray();
-        String ret = "";
+        StringBuilder ret = new StringBuilder(padTo * 3 - 1);
         // prepend the right number of leading zeros
         int i = 0;
         for (; i < (padTo * 2 - arr.length); i++) {
-            ret += "0";
+            ret.append('0');
             if ((i % 2) != 0) {
-                ret += ":";
+                ret.append(':');
             }
         }
         for (int j = 0; j < arr.length; j++) {
-            ret += arr[j];
+            ret.append(arr[j]);
             if ((((i + j) % 2) != 0) && (j < (arr.length - 1))) {
-                ret += ":";
+                ret.append(':');
             }
         }
-        return ret;
+        return ret.toString();
     }
 
     public static String toHexString(final long val) {

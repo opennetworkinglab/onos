@@ -18,7 +18,7 @@
  */
 package org.onlab.onos.net.flow;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Interface capturing the result of a batch operation.
@@ -33,9 +33,9 @@ public interface BatchOperationResult<T> {
     boolean isSuccess();
 
     /**
-     * Obtains a list of items which failed.
-     * @return a list of failures
+     * Obtains a set of items which failed.
+     * @return a set of failures
      */
-    List<T> failedItems();
+    Set<T> failedItems();
 
 }

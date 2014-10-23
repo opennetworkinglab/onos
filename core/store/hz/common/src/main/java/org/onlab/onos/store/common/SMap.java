@@ -492,7 +492,10 @@ public class SMap<K, V> implements IMap<K, V> {
     }
 
     private V deserializeVal(byte[] val) {
-        return serializer.decode(val);
+        if (val == null) {
+            return null;
+        }
+        return serializer.decode(val.clone());
     }
 
     private Set<byte[]> serializeKeySet(Set<K> keys) {

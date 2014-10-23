@@ -1,7 +1,7 @@
 package org.onlab.onos.store.mastership.impl;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +17,9 @@ import com.google.common.base.MoreObjects.ToStringHelper;
  * A structure that holds node mastership roles associated with a
  * {@link DeviceId}. This structure needs to be locked through IMap.
  */
-public class RoleValue {
+final class RoleValue {
 
-    protected Map<MastershipRole, List<NodeId>> value = new HashMap<>();
+    protected final Map<MastershipRole, List<NodeId>> value = new EnumMap<>(MastershipRole.class);
 
     public RoleValue() {
         value.put(MastershipRole.MASTER, new LinkedList<NodeId>());
@@ -27,7 +27,8 @@ public class RoleValue {
         value.put(MastershipRole.NONE, new LinkedList<NodeId>());
     }
 
-    public Map<MastershipRole, List<NodeId>> value() {
+    // exposing internals for serialization purpose only
+    Map<MastershipRole, List<NodeId>> value() {
         return Collections.unmodifiableMap(value);
     }
 

@@ -12,4 +12,5 @@ public final class FlowStoreMessageSubjects {
     public static final MessageSubject ADD_OR_UPDATE_FLOW_RULE =
         new MessageSubject("peer-forward-add-or-update-flow-rule");
     public static final MessageSubject REMOVE_FLOW_RULE = new MessageSubject("peer-forward-remove-flow-rule");
+    public static final MessageSubject GET_FLOW_ENTRY = new MessageSubject("peer-forward-get-flow-entry");
 }

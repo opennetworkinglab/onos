@@ -90,7 +90,7 @@ public class LinkDiscovery implements TimerTask {
      * Instantiates discovery manager for the given physical switch. Creates a
      * generic LLDP packet that will be customized for the port it is sent out on.
      * Starts the the timer for the discovery process.
-     *  @param device the physical switch
+     * @param device the physical switch
      * @param masterService
      * @param useBDDP flag to also use BDDP for discovery
      */
@@ -217,7 +217,7 @@ public class LinkDiscovery implements TimerTask {
             final PortNumber srcPort = PortNumber.portNumber(onoslldp.getPort());
             final DeviceId srcDeviceId = DeviceId.deviceId(onoslldp.getDeviceString());
             final DeviceId dstDeviceId = context.inPacket().receivedFrom().deviceId();
-            this.ackProbe(srcPort.toLong());
+            this.ackProbe(dstPort.toLong());
             ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
             ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
 
@@ -245,7 +245,7 @@ public class LinkDiscovery implements TimerTask {
      */
     @Override
     public void run(final Timeout t) {
-        this.log.debug("sending probes");
+        this.log.trace("sending probes");
         synchronized (this) {
             final Iterator<Long> fastIterator = this.fastPorts.iterator();
             Long portNumber;
@@ -256,7 +256,7 @@ public class LinkDiscovery implements TimerTask {
                         .getAndIncrement();
 
                 if (probeCount < LinkDiscovery.MAX_PROBE_COUNT) {
-                    this.log.debug("sending fast probe to port");
+                    this.log.trace("sending fast probe to port");
                     sendProbes(portNumber);
                 } else {
                     // Update fast and slow ports
@@ -278,7 +278,7 @@ public class LinkDiscovery implements TimerTask {
                 Iterator<Long> slowIterator = this.slowPorts.iterator();
                 while (slowIterator.hasNext()) {
                     portNumber = slowIterator.next();
-                    this.log.debug("sending slow probe to port {}", portNumber);
+                    this.log.trace("sending slow probe to port {}", portNumber);
 
                     sendProbes(portNumber);
 

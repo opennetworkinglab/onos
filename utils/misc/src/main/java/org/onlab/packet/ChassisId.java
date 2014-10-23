@@ -32,7 +32,7 @@ public final class ChassisId {
      * @param value the value to use.
      */
     public ChassisId(String value) {
-        this.value = Long.valueOf(value, 16);
+        this.value = Long.parseLong(value, 16);
     }
 
     /**

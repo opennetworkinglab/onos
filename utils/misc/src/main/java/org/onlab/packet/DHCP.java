@@ -379,7 +379,7 @@ public class DHCP extends BasePacket {
         // 300
         int optionsLength = 0;
         for (final DHCPOption option : this.options) {
-            if (option.getCode() == 0 || option.getCode() == 255) {
+            if (option.getCode() == 0 || option.getCode() == ((byte) 255)) {
                 optionsLength += 1;
             } else {
                 optionsLength += 2 + (0xff & option.getLength());
