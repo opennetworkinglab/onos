@@ -118,6 +118,12 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
                     DeviceId.deviceId("of:" + Long.toHexString(dpid.value())));
         }
 
+
+        @Override
+        public void switchChanged(Dpid dpid) {
+            //might not need to do anything since DeviceManager is notified
+        }
+
         @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
             LinkDiscovery ld = discoverers.get(dpid);

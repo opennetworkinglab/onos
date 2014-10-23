@@ -7,4 +7,9 @@ import org.onlab.onos.net.provider.Provider;
  */
 public interface TopologyProvider extends Provider {
 
+    /**
+     * Triggers topology recomputation.
+     */
+    void triggerRecompute();
+
 }

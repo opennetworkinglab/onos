@@ -5,6 +5,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.AbstractEventAccumulator;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.EventAccumulator;
@@ -39,6 +40,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * new topology snapshots.
  */
 @Component(immediate = true)
+@Service
 public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
@@ -89,7 +91,7 @@ public class DefaultTopologyProvider extends AbstractProvider
         linkService.addListener(linkListener);
 
         isStarted = true;
-        triggerTopologyBuild(Collections.<Event>emptyList());
+        triggerRecompute();
         log.info("Started");
     }
 
@@ -106,6 +108,11 @@ public class DefaultTopologyProvider extends AbstractProvider
         executor = null;
 
         log.info("Stopped");
+    }
+
+    @Override
+    public void triggerRecompute() {
+        triggerTopologyBuild(Collections.<Event>emptyList());
     }
 
     /**
@@ -177,7 +184,11 @@ public class DefaultTopologyProvider extends AbstractProvider
 
         @Override
         public void run() {
-            buildTopology(reasons);
+            try {
+                buildTopology(reasons);
+            } catch (Exception e) {
+                log.warn("Unable to compute topology due to: {}", e.getMessage());
+            }
         }
     }
 

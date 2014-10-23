@@ -20,8 +20,10 @@ package org.onlab.onos.cli.net;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.topology.Topology;
+import org.onlab.onos.net.topology.TopologyProvider;
 import org.onlab.onos.net.topology.TopologyService;
 
 /**
@@ -34,6 +36,10 @@ public class TopologyCommand extends AbstractShellCommand {
     // TODO: format the time-stamp
     private static final String FMT =
             "time=%s, devices=%d, links=%d, clusters=%d, paths=%d";
+
+    @Option(name = "-r", aliases = "--recompute", description = "Trigger topology re-computation",
+            required = false, multiValued = false)
+    private boolean recompute = false;
 
     protected TopologyService service;
     protected Topology topology;
@@ -49,7 +55,10 @@ public class TopologyCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         init();
-        if (outputJson()) {
+        if (recompute) {
+            get(TopologyProvider.class).triggerRecompute();
+
+        } else if (outputJson()) {
             print("%s", new ObjectMapper().createObjectNode()
                     .put("time", topology.time())
                     .put("deviceCount", topology.deviceCount())

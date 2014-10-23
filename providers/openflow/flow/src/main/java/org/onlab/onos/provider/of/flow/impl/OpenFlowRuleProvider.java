@@ -31,7 +31,7 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleProvider;
 import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
 import org.onlab.onos.net.flow.FlowRuleProviderService;
-import org.onlab.onos.net.intent.BatchOperation;
+import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.TopologyService;
@@ -107,6 +107,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     private final Map<Long, InstallationFuture> pendingFMs =
             new ConcurrentHashMap<Long, InstallationFuture>();
 
+    private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -119,6 +121,14 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addEventListener(listener);
+
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            FlowStatsCollector fsc = new FlowStatsCollector(sw, POLL_INTERVAL);
+            fsc.start();
+            collectors.put(new Dpid(sw.getId()), fsc);
+        }
+
+
         log.info("Started");
     }
 
@@ -217,7 +227,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     private class InternalFlowProvider
     implements OpenFlowSwitchListener, OpenFlowEventListener {
 
-        private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
+
         private final Multimap<DeviceId, FlowEntry> completeEntries =
                 ArrayListMultimap.create();
 
@@ -234,6 +244,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             if (collector != null) {
                 collector.stop();
             }
+        }
+
+        @Override
+        public void switchChanged(Dpid dpid) {
         }
 
         @Override
@@ -317,6 +331,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
             return false;
         }
+
     }
 
     private class InstallationFuture implements ListenableFuture<CompletedBatchOperation> {

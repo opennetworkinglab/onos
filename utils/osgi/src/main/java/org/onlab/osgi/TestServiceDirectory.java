@@ -6,6 +6,7 @@ import com.google.common.collect.MutableClassToInstanceMap;
 /**
  * Service directory implementation suitable for testing.
  */
+@SuppressWarnings("unchecked")
 public class TestServiceDirectory implements ServiceDirectory {
 
     private ClassToInstanceMap<Object> services = MutableClassToInstanceMap.create();

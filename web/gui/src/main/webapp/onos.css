@@ -13,7 +13,7 @@ body, html {
  */
 
 span.title {
-    color: red;
+    color: darkblue;
     font-size: 16pt;
     font-style: italic;
 }
@@ -30,7 +30,7 @@ span.right {
  * === DEBUGGING ======
  */
 svg {
-    border: 1px dashed red;
+    /*border: 1px dashed red;*/
 }
 
 
@@ -64,36 +64,47 @@ marker#end {
     -moz-transition: opacity 250ms;
 }
 
-.node text {
-    fill: #000;
+/*differentiate between packet and optical nodes*/
+svg .node.pkt rect {
+    fill: #77a;
+}
+
+svg .node.opt rect {
+    fill: #7a7;
+}
+
+svg .node text {
+    fill: white;
     font: 10px sans-serif;
     pointer-events: none;
 }
 
-.node.selected rect {
+svg .node.selected rect {
     filter: url(#blue-glow);
 }
 
-.link.inactive,
-.node.inactive rect,
-.node.inactive text {
+svg .link.inactive,
+svg .node.inactive rect,
+svg .node.inactive text,
+svg .node.inactive image {
     opacity: .2;
 }
 
-.node.inactive.selected rect,
-.node.inactive.selected text {
+svg .node.inactive.selected rect,
+svg .node.inactive.selected text,
+svg .node.inactive.selected image {
     opacity: .6;
 }
 
-.legend {
+svg .legend {
     position: fixed;
 }
 
-.legend .category rect {
+svg .legend .category rect {
     stroke-width: 1px;
 }
 
-.legend .category text {
+svg .legend .category text {
     fill: #000;
     font: 10px sans-serif;
     pointer-events: none;
@@ -110,15 +121,15 @@ marker#end {
 #frame {
     width: 100%;
     height: 100%;
-    background-color: #ffd;
+    background-color: #cdf;
 }
 
 #mast {
     height: 32px;
-    background-color: #dda;
+    background-color: #abe;
     vertical-align: baseline;
 }
 
 #main {
-    background-color: #99b;
+    background-color: #99c;
 }

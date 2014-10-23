@@ -42,7 +42,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class HostsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, mac=%s, location=%s/%s, vlan=%s, ip(s)=%s";
+            "id=%s, mac=%s, location=%s/%s, vlan=%s, ip(s)=%s%s";
 
     @Override
     protected void execute() {
@@ -80,6 +80,7 @@ public class HostsListCommand extends AbstractShellCommand {
                 .put("vlan", host.vlan().toString());
         result.set("location", loc);
         result.set("ips", ips);
+        result.set("annotations", annotations(mapper, host.annotations()));
         return result;
     }
 
@@ -105,7 +106,8 @@ public class HostsListCommand extends AbstractShellCommand {
             print(FMT, host.id(), host.mac(),
                   host.location().deviceId(),
                   host.location().port(),
-                  host.vlan(), host.ipAddresses());
+                  host.vlan(), host.ipAddresses(),
+                  annotations(host.annotations()));
         }
     }
 }

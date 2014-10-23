@@ -18,6 +18,15 @@ import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
 import org.onlab.onos.event.Event;
+import org.onlab.onos.net.device.DeviceEvent;
+import org.onlab.onos.net.device.DeviceListener;
+import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.host.HostEvent;
+import org.onlab.onos.net.host.HostListener;
+import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.link.LinkEvent;
+import org.onlab.onos.net.link.LinkListener;
+import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.topology.TopologyEvent;
 import org.onlab.onos.net.topology.TopologyListener;
 import org.onlab.onos.net.topology.TopologyService;
@@ -28,14 +37,26 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class TopologyMetrics implements TopologyMetricsService,
-                                        TopologyListener {
+public class TopologyMetrics implements TopologyMetricsService {
     private static final Logger log = getLogger(TopologyMetrics.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
-    private LinkedList<TopologyEvent> lastEvents = new LinkedList<>();
-    private static final int LAST_EVENTS_MAX_N = 10;
+
+    private LinkedList<Event> lastEvents = new LinkedList<>();
+    private static final int LAST_EVENTS_MAX_N = 100;
+
+    private final DeviceListener deviceListener = new InnerDeviceListener();
+    private final HostListener hostListener = new InnerHostListener();
+    private final LinkListener linkListener = new InnerLinkListener();
+    private final TopologyListener topologyListener =
+        new InnerTopologyListener();
 
     //
     // Metrics
@@ -61,22 +82,33 @@ public class TopologyMetrics implements TopologyMetricsService,
     protected void activate() {
         clear();
         registerMetrics();
-        topologyService.addListener(this);
+
+        // Register for all topology-related events
+        deviceService.addListener(deviceListener);
+        hostService.addListener(hostListener);
+        linkService.addListener(linkListener);
+        topologyService.addListener(topologyListener);
+
         log.info("ONOS Topology Metrics started.");
     }
 
     @Deactivate
     public void deactivate() {
-        topologyService.removeListener(this);
+        // De-register from all topology-related events
+        deviceService.removeListener(deviceListener);
+        hostService.removeListener(hostListener);
+        linkService.removeListener(linkListener);
+        topologyService.removeListener(topologyListener);
+
         removeMetrics();
         clear();
         log.info("ONOS Topology Metrics stopped.");
     }
 
     @Override
-    public List<TopologyEvent> getEvents() {
+    public List<Event> getEvents() {
         synchronized (lastEvents) {
-            return ImmutableList.<TopologyEvent>copyOf(lastEvents);
+            return ImmutableList.<Event>copyOf(lastEvents);
         }
     }
 
@@ -90,27 +122,22 @@ public class TopologyMetrics implements TopologyMetricsService,
         return eventRateMeter;
     }
 
-    @Override
-    public void event(TopologyEvent event) {
-        lastEventTimestampEpochMs = System.currentTimeMillis();
-        //
-        // NOTE: If we want to count each "reason" as a separate event,
-        // then we should use 'event.reason().size()' instead of '1' to
-        // mark the meter below.
-        //
-        eventRateMeter.mark(1);
-
-        log.debug("Topology Event: time = {} type = {} subject = {}",
-                  event.time(), event.type(), event.subject());
-        for (Event reason : event.reasons()) {
-            log.debug("Topology Event Reason: time = {} type = {} subject = {}",
-                      reason.time(), reason.type(), reason.subject());
-        }
-
-        //
-        // Keep only the last N events, where N = LAST_EVENTS_MAX_N
-        //
+    /**
+     * Records an event.
+     *
+     * @param event the event to record
+     * @param updateEventRateMeter if true, update the Event Rate Meter
+     */
+    private void recordEvent(Event event, boolean updateEventRateMeter) {
         synchronized (lastEvents) {
+            lastEventTimestampEpochMs = System.currentTimeMillis();
+            if (updateEventRateMeter) {
+                eventRateMeter.mark(1);
+            }
+
+            //
+            // Keep only the last N events, where N = LAST_EVENTS_MAX_N
+            //
             while (lastEvents.size() >= LAST_EVENTS_MAX_N) {
                 lastEvents.remove();
             }
@@ -119,11 +146,67 @@ public class TopologyMetrics implements TopologyMetricsService,
     }
 
     /**
+     * Inner Device Event Listener class.
+     */
+    private class InnerDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            recordEvent(event, true);
+            log.debug("Device Event: time = {} type = {} event = {}",
+                      event.time(), event.type(), event);
+        }
+    }
+
+    /**
+     * Inner Host Event Listener class.
+     */
+    private class InnerHostListener implements HostListener {
+        @Override
+        public void event(HostEvent event) {
+            recordEvent(event, true);
+            log.debug("Host Event: time = {} type = {} event = {}",
+                      event.time(), event.type(), event);
+        }
+    }
+
+    /**
+     * Inner Link Event Listener class.
+     */
+    private class InnerLinkListener implements LinkListener {
+        @Override
+        public void event(LinkEvent event) {
+            recordEvent(event, true);
+            log.debug("Link Event: time = {} type = {} event = {}",
+                      event.time(), event.type(), event);
+        }
+    }
+
+    /**
+     * Inner Topology Event Listener class.
+     */
+    private class InnerTopologyListener implements TopologyListener {
+        @Override
+        public void event(TopologyEvent event) {
+            //
+            // NOTE: Don't update the eventRateMeter, because the real
+            // events are already captured/counted.
+            //
+            recordEvent(event, false);
+            log.debug("Topology Event: time = {} type = {} event = {}",
+                      event.time(), event.type(), event);
+            for (Event reason : event.reasons()) {
+                log.debug("Topology Event Reason: time = {} type = {} event = {}",
+                          reason.time(), reason.type(), reason);
+            }
+        }
+    }
+
+    /**
      * Clears the internal state.
      */
     private void clear() {
-        lastEventTimestampEpochMs = 0;
         synchronized (lastEvents) {
+            lastEventTimestampEpochMs = 0;
             lastEvents.clear();
         }
     }

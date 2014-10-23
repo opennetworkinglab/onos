@@ -187,17 +187,23 @@ public class SimpleFlowRuleStore
     public void deleteFlowRule(FlowRule rule) {
 
         List<StoredFlowEntry> entries = getFlowEntries(rule.deviceId(), rule.id());
+
         synchronized (entries) {
             for (StoredFlowEntry entry : entries) {
                 if (entry.equals(rule)) {
                     synchronized (entry) {
                         entry.setState(FlowEntryState.PENDING_REMOVE);
                         // TODO: Should we notify only if it's "remote" event?
-                        //notifyDelegate(new FlowRuleEvent(Type.RULE_REMOVE_REQUESTED, rule));
+                        notifyDelegate(FlowRuleBatchEvent.create(
+                                new FlowRuleBatchRequest(
+                                        Collections.<FlowEntry>emptyList(),
+                                        Arrays.<FlowEntry>asList(entry))));
                     }
                 }
             }
         }
+
+
         //log.warn("Cannot find rule {}", rule);
     }
 

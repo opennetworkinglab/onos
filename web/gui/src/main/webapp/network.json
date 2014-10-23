@@ -7,50 +7,50 @@
     },
     "nodes": [
         {
-            "id": "switch-1",
+            "id": "sample1",
             "type": "opt",
             "status": "good"
         },
         {
-            "id": "switch-2",
+            "id": "00:00:00:00:00:00:00:02",
             "type": "opt",
             "status": "good"
         },
         {
-            "id": "switch-3",
+            "id": "00:00:00:00:00:00:00:03",
             "type": "opt",
             "status": "good"
         },
         {
-            "id": "switch-4",
+            "id": "00:00:00:00:00:00:00:04",
             "type": "opt",
             "status": "good"
         },
         {
-            "id": "switch-11",
+            "id": "00:00:00:00:00:00:00:11",
             "type": "pkt",
             "status": "good"
         },
         {
-            "id": "switch-12",
+            "id": "00:00:00:00:00:00:00:12",
             "type": "pkt",
             "status": "good"
         },
         {
-            "id": "switch-13",
+            "id": "00:00:00:00:00:00:00:13",
             "type": "pkt",
             "status": "good"
         }
     ],
     "links": [
-        { "src": "switch-1", "dst": "switch-2" },
-        { "src": "switch-1", "dst": "switch-3" },
-        { "src": "switch-1", "dst": "switch-4" },
-        { "src": "switch-2", "dst": "switch-3" },
-        { "src": "switch-2", "dst": "switch-4" },
-        { "src": "switch-3", "dst": "switch-4" },
-        { "src": "switch-13", "dst": "switch-3" },
-        { "src": "switch-12", "dst": "switch-2" },
-        { "src": "switch-11", "dst": "switch-1" }
+        { "src": "sample1", "dst": "00:00:00:00:00:00:00:02" },
+        { "src": "sample1", "dst": "00:00:00:00:00:00:00:03" },
+        { "src": "sample1", "dst": "00:00:00:00:00:00:00:04" },
+        { "src": "00:00:00:00:00:00:00:02", "dst": "00:00:00:00:00:00:00:03" },
+        { "src": "00:00:00:00:00:00:00:02", "dst": "00:00:00:00:00:00:00:04" },
+        { "src": "00:00:00:00:00:00:00:03", "dst": "00:00:00:00:00:00:00:04" },
+        { "src": "00:00:00:00:00:00:00:13", "dst": "00:00:00:00:00:00:00:03" },
+        { "src": "00:00:00:00:00:00:00:12", "dst": "00:00:00:00:00:00:00:02" },
+        { "src": "00:00:00:00:00:00:00:11", "dst": "sample1" }
     ]
 }

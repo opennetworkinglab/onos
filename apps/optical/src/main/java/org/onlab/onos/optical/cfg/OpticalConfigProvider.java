@@ -83,7 +83,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
     protected OpticalNetworkConfig opticalNetworkConfig;
 
     public OpticalConfigProvider() {
-        super(new ProviderId("of", "org.onlab.onos.provider.opticalConfig", true));
+        super(new ProviderId("optical", "org.onlab.onos.provider.opticalConfig", true));
     }
 
     @Activate
@@ -238,7 +238,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
         while (iterWdmNode.hasNext()) {
             Roadm value = iterWdmNode.next();
             DeviceId did = deviceId("of:" + value.getNodeId().replace(":", ""));
-            ChassisId cid = new ChassisId(value.getNodeId());
+            ChassisId cid = new ChassisId();
             DefaultAnnotations extendedAttributes = DefaultAnnotations.builder()
                     .set(OPTICAL_ANNOTATION + "switchType", "ROADM")
                     .set(OPTICAL_ANNOTATION + "switchName", value.getName())
@@ -284,7 +284,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             DefaultLinkDescription linkDescription =
                     new DefaultLinkDescription(srcPoint,
                                                  snkPoint,
-                                                 Link.Type.DIRECT,
+                                                 Link.Type.OPTICAL,
                                                  extendedAttributes);
 
             linkProviderService.linkDetected(linkDescription);
@@ -315,7 +315,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             DefaultLinkDescription linkDescription =
                     new DefaultLinkDescription(srcPoint,
                                                  snkPoint,
-                                                 Link.Type.DIRECT,
+                                                 Link.Type.OPTICAL,
                                                  extendedAttributes);
 
             linkProviderService.linkDetected(linkDescription);

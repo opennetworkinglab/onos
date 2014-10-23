@@ -16,6 +16,7 @@
 package org.onlab.onos.provider.lldp.impl;
 
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
@@ -95,11 +96,13 @@ public class LinkDiscovery implements TimerTask {
      */
     public LinkDiscovery(Device device, PacketService pktService,
                          MastershipService masterService, LinkProviderService providerService, Boolean... useBDDP) {
+
         this.device = device;
         this.probeRate = 3000;
         this.linkProvider = providerService;
         this.pktService = pktService;
-        this.mastershipService = masterService;
+
+        this.mastershipService = checkNotNull(masterService, "WTF!");
         this.slowPorts = Collections.synchronizedSet(new HashSet<Long>());
         this.fastPorts = Collections.synchronizedSet(new HashSet<Long>());
         this.portProbeCount = new HashMap<>();
@@ -344,7 +347,14 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private void sendProbes(Long portNumber) {
-       if (mastershipService.getLocalRole(this.device.id()) ==
+       if (device == null) {
+           log.warn("CRAZY SHIT");
+       }
+       if (mastershipService == null) {
+           log.warn("INSANE");
+       }
+       if (device.type() != Device.Type.ROADM &&
+               mastershipService.getLocalRole(this.device.id()) ==
                MastershipRole.MASTER) {
            OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
            pktService.emit(pkt);

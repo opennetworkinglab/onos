@@ -20,6 +20,12 @@ public interface OpenFlowSwitchListener {
     public void switchRemoved(Dpid dpid);
 
     /**
+     * Notify that the switch has changed in some way.
+     * @param dpid the switch that changed
+     */
+    public void switchChanged(Dpid dpid);
+
+    /**
      * Notify that a port has changed.
      * @param dpid the switch on which the change happened.
      * @param status the new state of the port.

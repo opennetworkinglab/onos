@@ -286,7 +286,8 @@ public class FlowRuleManager
         private void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
-            removeFlowRules(flowRule);
+            FlowRuleProvider frp = getProvider(flowRule.deviceId());
+            frp.removeFlowRule(flowRule);
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
@@ -380,14 +381,14 @@ public class FlowRuleManager
             final FlowRuleBatchRequest request = event.subject();
             switch (event.type()) {
             case BATCH_OPERATION_REQUESTED:
-//                for (FlowEntry entry : request.toAdd()) {
-//                    //eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADD_REQUESTED, entry));
-//                }
-//                for (FlowEntry entry : request.toRemove()) {
-//                    //eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_REMOVE_REQUESTED, entry));
-//                }
-//                // FIXME: what about op.equals(FlowRuleOperation.MODIFY) ?
-//
+                for (FlowEntry entry : request.toAdd()) {
+                    eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADD_REQUESTED, entry));
+                }
+                for (FlowEntry entry : request.toRemove()) {
+                    eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_REMOVE_REQUESTED, entry));
+                }
+                // FIXME: what about op.equals(FlowRuleOperation.MODIFY) ?
+
                 FlowRuleBatchOperation batchOperation = request.asBatchOperation();
 
                 FlowRuleProvider flowRuleProvider =

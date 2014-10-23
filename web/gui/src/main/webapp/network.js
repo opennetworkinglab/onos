@@ -10,11 +10,16 @@
     var api = onos.api;
 
     var config = {
+            layering: false,
             jsonUrl: 'network.json',
+            iconUrl: {
+                pkt: 'pkt.png',
+                opt: 'opt.png'
+            },
             mastHeight: 32,
             force: {
-                linkDistance: 150,
-                linkStrength: 0.9,
+                linkDistance: 240,
+                linkStrength: 0.8,
                 charge: -400,
                 ticksWithoutCollisions: 50,
                 marginLR: 20,
@@ -26,8 +31,9 @@
                 }
             },
             labels: {
-                padLR: 3,
-                padTB: 2,
+                imgPad: 22,
+                padLR: 8,
+                padTB: 6,
                 marginLR: 3,
                 marginTB: 2
             },
@@ -53,7 +59,7 @@
         d3.json(config.jsonUrl, function (err, data) {
             if (err) {
                 alert('Oops! Error reading JSON...\n\n' +
-                    'URL: ' + jsonUrl + '\n\n' +
+                    'URL: ' + config.jsonUrl + '\n\n' +
                     'Error: ' + err.message);
                 return;
             }
@@ -100,7 +106,7 @@
 
         network.data.nodes.forEach(function(n) {
             var ypc = yPosConstraintForNode(n),
-                ix = Math.random() * 0.8 * nw + 0.1 * nw,
+                ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
                     id: n.id,
@@ -153,10 +159,48 @@
             .attr('height', view.height)
             .append('g')
             .attr('transform', config.force.translate());
+//            .attr('id', 'zoomable')
+//            .call(d3.behavior.zoom().on("zoom", zoomRedraw));
 
-        // TODO: svg.append('defs')
-        // TODO: glow/blur stuff
+//        function zoomRedraw() {
+//            d3.select("#zoomable").attr("transform",
+//                    "translate(" + d3.event.translate + ")"
+//                    + " scale(" + d3.event.scale + ")");
+//        }
+
+        // TODO: svg.append('defs') for markers?
+
+        // TODO: move glow/blur stuff to util script
+        var glow = network.svg.append('filter')
+            .attr('x', '-50%')
+            .attr('y', '-50%')
+            .attr('width', '200%')
+            .attr('height', '200%')
+            .attr('id', 'blue-glow');
+
+        glow.append('feColorMatrix')
+            .attr('type', 'matrix')
+            .attr('values', '0 0 0 0  0 ' +
+                '0 0 0 0  0 ' +
+                '0 0 0 0  .7 ' +
+                '0 0 0 1  0 ');
+
+        glow.append('feGaussianBlur')
+            .attr('stdDeviation', 3)
+            .attr('result', 'coloredBlur');
+
+        glow.append('feMerge').selectAll('feMergeNode')
+            .data(['coloredBlur', 'SourceGraphic'])
+            .enter().append('feMergeNode')
+            .attr('in', String);
+
         // TODO: legend (and auto adjust on scroll)
+//        $('#view').on('scroll', function() {
+//
+//        });
+
+
+
 
         network.link = network.svg.append('g').selectAll('.link')
             .data(network.force.links(), function(d) {return d.id})
@@ -164,37 +208,103 @@
             .attr('class', 'link');
 
         // TODO: drag behavior
-        // TODO: closest node deselect
+        network.draggedThreshold = d3.scale.linear()
+            .domain([0, 0.1])
+            .range([5, 20])
+            .clamp(true);
 
-        // TODO: add drag, mouseover, mouseout behaviors
+        function dragged(d) {
+            var threshold = network.draggedThreshold(network.force.alpha()),
+                dx = d.oldX - d.px,
+                dy = d.oldY - d.py;
+            if (Math.abs(dx) >= threshold || Math.abs(dy) >= threshold) {
+                d.dragged = true;
+            }
+            return d.dragged;
+        }
+
+        network.drag = d3.behavior.drag()
+            .origin(function(d) { return d; })
+            .on('dragstart', function(d) {
+                d.oldX = d.x;
+                d.oldY = d.y;
+                d.dragged = false;
+                d.fixed |= 2;
+            })
+            .on('drag', function(d) {
+                d.px = d3.event.x;
+                d.py = d3.event.y;
+                if (dragged(d)) {
+                    if (!network.force.alpha()) {
+                        network.force.alpha(.025);
+                    }
+                }
+            })
+            .on('dragend', function(d) {
+                if (!dragged(d)) {
+                    selectObject(d, this);
+                }
+                d.fixed &= ~6;
+            });
+
+        $('#view').on('click', function(e) {
+            if (!$(e.target).closest('.node').length) {
+                deselectObject();
+            }
+        });
+
+
         network.node = network.svg.selectAll('.node')
             .data(network.force.nodes(), function(d) {return d.id})
             .enter().append('g')
-            .attr('class', 'node')
+            .attr('class', function(d) {
+                return 'node ' + d.type;
+            })
             .attr('transform', function(d) {
                 return translate(d.x, d.y);
             })
-        //        .call(network.drag)
-            .on('mouseover', function(d) {})
-            .on('mouseout', function(d) {});
+            .call(network.drag)
+            .on('mouseover', function(d) {
+                if (!selected.obj) {
+                    if (network.mouseoutTimeout) {
+                        clearTimeout(network.mouseoutTimeout);
+                        network.mouseoutTimeout = null;
+                    }
+                    highlightObject(d);
+                }
+            })
+            .on('mouseout', function(d) {
+                if (!selected.obj) {
+                    if (network.mouseoutTimeout) {
+                        clearTimeout(network.mouseoutTimeout);
+                        network.mouseoutTimeout = null;
+                    }
+                    network.mouseoutTimeout = setTimeout(function() {
+                        highlightObject(null);
+                    }, 160);
+                }
+            });
 
-        // TODO: augment stroke and fill functions
         network.nodeRect = network.node.append('rect')
-            // TODO: css for node rects
             .attr('rx', 5)
             .attr('ry', 5)
-            .attr('stroke', function(d) { return '#000'})
-            .attr('fill', function(d) { return '#ddf'})
-            .attr('width', 60)
-            .attr('height', 24);
+            .attr('width', 126)
+            .attr('height', 40);
 
         network.node.each(function(d) {
             var node = d3.select(this),
-                rect = node.select('rect');
-            var text = node.append('text')
-                .text(d.id)
-                .attr('dx', '1em')
-                .attr('dy', '2.1em');
+                rect = node.select('rect'),
+                img = node.append('svg:image')
+                    .attr('x', -16)
+                    .attr('y', -16)
+                    .attr('width', 32)
+                    .attr('height', 32)
+                    .attr('xlink:href', iconUrl(d)),
+                text = node.append('text')
+                    .text(d.id)
+                    .attr('dy', '1.1em'),
+                dummy;
+
         });
 
         // this function is scheduled to happen soon after the given thread ends
@@ -207,12 +317,64 @@
                     first = true;
 
                 // NOTE: probably unnecessary code if we only have one line.
+                text.each(function() {
+                    var box = this.getBBox();
+                    if (first || box.x < bounds.x1) {
+                        bounds.x1 = box.x;
+                    }
+                    if (first || box.y < bounds.y1) {
+                        bounds.y1 = box.y;
+                    }
+                    if (first || box.x + box.width < bounds.x2) {
+                        bounds.x2 = box.x + box.width;
+                    }
+                    if (first || box.y + box.height < bounds.y2) {
+                        bounds.y2 = box.y + box.height;
+                    }
+                    first = false;
+                }).attr('text-anchor', 'middle');
+
+                var lab = config.labels,
+                    oldWidth = bounds.x2 - bounds.x1;
+
+                bounds.x1 -= oldWidth / 2;
+                bounds.x2 -= oldWidth / 2;
+
+                bounds.x1 -= (lab.padLR + lab.imgPad);
+                bounds.y1 -= lab.padTB;
+                bounds.x2 += lab.padLR;
+                bounds.y2 += lab.padTB;
+
+                node.select('rect')
+                    .attr('x', bounds.x1)
+                    .attr('y', bounds.y1)
+                    .attr('width', bounds.x2 - bounds.x1)
+                    .attr('height', bounds.y2 - bounds.y1);
+
+                node.select('image')
+                    .attr('x', bounds.x1);
+
+                d.extent = {
+                    left: bounds.x1 - lab.marginLR,
+                    right: bounds.x2 + lab.marginLR,
+                    top: bounds.y1 - lab.marginTB,
+                    bottom: bounds.y2 + lab.marginTB
+                };
+
+                d.edge = {
+                    left   : new geo.LineSegment(bounds.x1, bounds.y1, bounds.x1, bounds.y2),
+                    right  : new geo.LineSegment(bounds.x2, bounds.y1, bounds.x2, bounds.y2),
+                    top    : new geo.LineSegment(bounds.x1, bounds.y1, bounds.x2, bounds.y1),
+                    bottom : new geo.LineSegment(bounds.x1, bounds.y2, bounds.x2, bounds.y2)
+                };
+
+                // ====
             });
 
             network.numTicks = 0;
             network.preventCollisions = false;
             network.force.start();
-            for (var i = 0; i < config.ticksWithoutCollisions; i++) {
+            for (var i = 0; i < config.force.ticksWithoutCollisions; i++) {
                 network.force.tick();
             }
             network.preventCollisions = true;
@@ -221,22 +383,78 @@
 
     }
 
+    function iconUrl(d) {
+        return config.iconUrl[d.type];
+    }
+
     function translate(x, y) {
         return 'translate(' + x + ',' + y + ')';
     }
 
+    function preventCollisions() {
+        var quadtree = d3.geom.quadtree(network.nodes);
+
+        network.nodes.forEach(function(n) {
+            var nx1 = n.x + n.extent.left,
+                nx2 = n.x + n.extent.right,
+                ny1 = n.y + n.extent.top,
+                ny2 = n.y + n.extent.bottom;
+
+            quadtree.visit(function(quad, x1, y1, x2, y2) {
+                if (quad.point && quad.point !== n) {
+                    // check if the rectangles intersect
+                    var p = quad.point,
+                        px1 = p.x + p.extent.left,
+                        px2 = p.x + p.extent.right,
+                        py1 = p.y + p.extent.top,
+                        py2 = p.y + p.extent.bottom,
+                        ix = (px1 <= nx2 && nx1 <= px2 && py1 <= ny2 && ny1 <= py2);
+                    if (ix) {
+                        var xa1 = nx2 - px1, // shift n left , p right
+                            xa2 = px2 - nx1, // shift n right, p left
+                            ya1 = ny2 - py1, // shift n up   , p down
+                            ya2 = py2 - ny1, // shift n down , p up
+                            adj = Math.min(xa1, xa2, ya1, ya2);
+
+                        if (adj == xa1) {
+                            n.x -= adj / 2;
+                            p.x += adj / 2;
+                        } else if (adj == xa2) {
+                            n.x += adj / 2;
+                            p.x -= adj / 2;
+                        } else if (adj == ya1) {
+                            n.y -= adj / 2;
+                            p.y += adj / 2;
+                        } else if (adj == ya2) {
+                            n.y += adj / 2;
+                            p.y -= adj / 2;
+                        }
+                    }
+                    return ix;
+                }
+            });
+
+        });
+    }
 
     function tick(e) {
         network.numTicks++;
 
-        // adjust the y-coord of each node, based on y-pos constraints
-//        network.nodes.forEach(function (n) {
-//            var z = e.alpha * n.constraint.weight;
-//            if (!isNaN(n.constraint.y)) {
-//                n.y = (n.constraint.y * z + n.y * (1 - z));
-//            }
-//        });
+        if (config.layering) {
+            // adjust the y-coord of each node, based on y-pos constraints
+            network.nodes.forEach(function (n) {
+                var z = e.alpha * n.constraint.weight;
+                if (!isNaN(n.constraint.y)) {
+                    n.y = (n.constraint.y * z + n.y * (1 - z));
+                }
+            });
+        }
 
+        if (network.preventCollisions) {
+            preventCollisions();
+        }
+
+        // TODO: use intersection technique for source end of link also
         network.link
             .attr('x1', function(d) {
                 return d.source.x;
@@ -244,11 +462,24 @@
             .attr('y1', function(d) {
                 return d.source.y;
             })
-            .attr('x2', function(d) {
-                return d.target.x;
-            })
-            .attr('y2', function(d) {
-                return d.target.y;
+            .each(function(d) {
+                var x = d.target.x,
+                    y = d.target.y,
+                    line = new geo.LineSegment(d.source.x, d.source.y, x, y);
+
+                for (var e in d.target.edge) {
+                    var ix = line.intersect(d.target.edge[e].offset(x,y));
+                    if (ix.in1 && ix.in2) {
+                        x = ix.x;
+                        y = ix.y;
+                        break;
+                    }
+                }
+
+                d3.select(this)
+                    .attr('x2', x)
+                    .attr('y2', y);
+
             });
 
         network.node
