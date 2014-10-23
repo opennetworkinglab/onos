@@ -1,56 +1,163 @@
 {
-    "id": "network-v1",
     "meta": {
-        "__comment_1__": "This is sample data for developing the ONOS UI",
-        "foo": "bar",
-        "zoo": "goo"
+        "comments": [
+            "This is sample data for developing the ONOS UI (network view)",
+            " in a standalone mode (no server required).",
+            " Eventually, we will wire this up to live data",
+            " from the server, via a websocket.",
+            "",
+            "Note that this is just a first-draft of the data --",
+            " additional fields will be added when they are needed."
+        ],
+        "otherMetaData": "can go here..."
     },
-    "nodes": [
+    "devices": [
         {
-            "id": "sample1",
-            "type": "opt",
-            "status": "good"
+            "id": "of:0000000000000001",
+            "labels": ["00:00:00:00:00:00:00:01", "of/::01", "opt-1"],
+            "type": "roadm"
         },
         {
-            "id": "00:00:00:00:00:00:00:02",
-            "type": "opt",
-            "status": "good"
+            "id": "of:0000000000000002",
+            "labels": ["00:00:00:00:00:00:00:02", "of/::02", "opt-2"],
+            "type": "roadm"
         },
         {
-            "id": "00:00:00:00:00:00:00:03",
-            "type": "opt",
-            "status": "good"
+            "id": "of:0000000000000003",
+            "labels": ["00:00:00:00:00:00:00:03", "of/::03", "opt-3"],
+            "type": "roadm"
         },
         {
-            "id": "00:00:00:00:00:00:00:04",
-            "type": "opt",
-            "status": "good"
+            "id": "of:0000000000000004",
+            "labels": ["00:00:00:00:00:00:00:04", "of/::04", "opt-4"],
+            "type": "roadm"
         },
         {
-            "id": "00:00:00:00:00:00:00:11",
-            "type": "pkt",
-            "status": "good"
+            "id": "of:0000000000000011",
+            "labels": ["00:00:00:00:00:00:00:11", "of/::11", "pkt-11"],
+            "type": "switch"
         },
         {
-            "id": "00:00:00:00:00:00:00:12",
-            "type": "pkt",
-            "status": "good"
+            "id": "of:0000000000000012",
+            "labels": ["00:00:00:00:00:00:00:12", "of/::12", "pkt-12"],
+            "type": "switch"
         },
         {
-            "id": "00:00:00:00:00:00:00:13",
-            "type": "pkt",
-            "status": "good"
+            "id": "of:0000000000000013",
+            "labels": ["00:00:00:00:00:00:00:13", "of/::13", "pkt-13"],
+            "type": "switch"
         }
     ],
+    "linkNotes": [
+        "even though we have 'directionality' (src/dst), each link is",
+        " considered to be bi-directional. Note that links between hosts",
+        " and edge switches are inferred from host information, and not",
+        " explicitly represented here."
+    ],
     "links": [
-        { "src": "sample1", "dst": "00:00:00:00:00:00:00:02" },
-        { "src": "sample1", "dst": "00:00:00:00:00:00:00:03" },
-        { "src": "sample1", "dst": "00:00:00:00:00:00:00:04" },
-        { "src": "00:00:00:00:00:00:00:02", "dst": "00:00:00:00:00:00:00:03" },
-        { "src": "00:00:00:00:00:00:00:02", "dst": "00:00:00:00:00:00:00:04" },
-        { "src": "00:00:00:00:00:00:00:03", "dst": "00:00:00:00:00:00:00:04" },
-        { "src": "00:00:00:00:00:00:00:13", "dst": "00:00:00:00:00:00:00:03" },
-        { "src": "00:00:00:00:00:00:00:12", "dst": "00:00:00:00:00:00:00:02" },
-        { "src": "00:00:00:00:00:00:00:11", "dst": "sample1" }
+        {
+            "src": "of:0000000000000001",
+            "dst": "of:0000000000000002",
+            "type": "optical",
+            "linkWidth": 1.5
+        },
+        {
+            "src": "of:0000000000000001",
+            "dst": "of:0000000000000003",
+            "type": "optical",
+            "linkWidth": 1.5
+        },
+        {
+            "src": "of:0000000000000001",
+            "dst": "of:0000000000000004",
+            "type": "optical",
+            "linkWidth": 1.5
+        },
+        {
+            "src": "of:0000000000000002",
+            "dst": "of:0000000000000003",
+            "type": "optical",
+            "linkWidth": 1.5
+        },
+        {
+            "src": "of:0000000000000002",
+            "dst": "of:0000000000000004",
+            "type": "optical",
+            "linkWidth": 1.5
+        },
+        {
+            "src": "of:0000000000000003",
+            "dst": "of:0000000000000004",
+            "type": "optical",
+            "linkWidth": 1.5
+        },
+        {
+            "src": "of:0000000000000013",
+            "dst": "of:0000000000000003",
+            "type": "direct",
+            "linkWidth": 1.0
+        },
+        {
+            "src": "of:0000000000000012",
+            "dst": "of:0000000000000002",
+            "type": "direct",
+            "linkWidth": 1.0
+        },
+        {
+            "src": "of:0000000000000011",
+            "dst": "of:0000000000000001",
+            "type": "direct",
+            "linkWidth": 1.0
+        }
+    ],
+    "hosts": [
+        {
+            "id": "00:60:d3:00:11:01/7",
+            "labels": ["00:60:d3:00:11:01/7", "Host-11-A"],
+            "cp" : {
+                "device": "of:0000000000000011",
+                "port": 6
+            }
+        },
+        {
+            "id": "00:60:d3:00:11:02/7",
+            "labels": ["00:60:d3:00:11:02/7", "Host-11-B"],
+            "cp" : {
+                "device": "of:0000000000000011",
+                "port": 8
+            }
+        },
+        {
+            "id": "00:60:d3:00:12:01/4",
+            "labels": ["00:60:d3:00:12:01/4", "Host-12-C"],
+            "cp" : {
+                "device": "of:0000000000000012",
+                "port": 12
+            }
+        },
+        {
+            "id": "00:60:d3:00:12:02/4",
+            "labels": ["00:60:d3:00:12:02/4", "Host-12-D"],
+            "cp" : {
+                "device": "of:0000000000000012",
+                "port": 13
+            }
+        },
+        {
+            "id": "00:60:d3:00:13:01/19",
+            "labels": ["00:60:d3:00:13:01/19", "Host-13-E"],
+            "cp" : {
+                "device": "of:0000000000000013",
+                "port": 7
+            }
+        },
+        {
+            "id": "00:60:d3:00:13:02/19",
+            "labels": ["00:60:d3:00:13:02/19", "Host-13-F"],
+            "cp" : {
+                "device": "of:0000000000000013",
+                "port": 8
+            }
+        }
     ]
 }

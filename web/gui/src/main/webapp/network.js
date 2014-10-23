@@ -10,17 +10,33 @@
     var api = onos.api;
 
     var config = {
-            layering: false,
+            options: {
+                layering: false,
+                collisionPrevention: true
+            },
             jsonUrl: 'network.json',
             iconUrl: {
-                pkt: 'pkt.png',
-                opt: 'opt.png'
+                logo: 'img/onos-logo.tiff',
+                device: 'img/device.png',
+                host: 'img/host.png',
+                pkt: 'img/pkt.png',
+                opt: 'img/opt.png'
             },
             mastHeight: 32,
             force: {
-                linkDistance: 240,
-                linkStrength: 0.8,
-                charge: -400,
+                note: 'node.class or link.class is used to differentiate',
+                linkDistance: {
+                    infra: 240,
+                    host: 100
+                },
+                linkStrength: {
+                    infra: 1.0,
+                    host: 0.4
+                },
+                charge: {
+                    device: -800,
+                    host: -400
+                },
                 ticksWithoutCollisions: 50,
                 marginLR: 20,
                 marginTB: 20,
@@ -37,12 +53,21 @@
                 marginLR: 3,
                 marginTB: 2
             },
+            icons: {
+                w: 32,
+                h: 32,
+                xoff: -12,
+                yoff: -10
+            },
             constraints: {
                 ypos: {
-                    pkt: 0.3,
-                    opt: 0.7
+                    host: 0.15,
+                    switch: 0.3,
+                    roadm: 0.7
                 }
-            }
+            },
+            hostLinkWidth: 1.0,
+            mouseOutTimerDelayMs: 120
         },
         view = {},
         network = {},
@@ -104,14 +129,23 @@
         var nw = network.forceWidth,
             nh = network.forceHeight;
 
-        network.data.nodes.forEach(function(n) {
+        function yPosConstraintForNode(n) {
+            return config.constraints.ypos[n.type || 'host'];
+        }
+
+        // Note that both 'devices' and 'hosts' get mapped into the nodes array
+
+        // first, the devices...
+        network.data.devices.forEach(function(n) {
             var ypc = yPosConstraintForNode(n),
                 ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
                     id: n.id,
+                    labels: n.labels,
+                    class: 'device',
+                    icon: 'device',
                     type: n.type,
-                    status: n.status,
                     x: ix,
                     y: iy,
                     constraint: {
@@ -123,21 +157,61 @@
             network.nodes.push(node);
         });
 
-        function yPosConstraintForNode(n) {
-            return config.constraints.ypos[n.type] || 0.5;
-        }
+        // then, the hosts...
+        network.data.hosts.forEach(function(n) {
+            var ypc = yPosConstraintForNode(n),
+                ix = Math.random() * 0.6 * nw + 0.2 * nw,
+                iy = ypc * nh,
+                node = {
+                    id: n.id,
+                    labels: n.labels,
+                    class: 'host',
+                    icon: 'host',
+                    type: n.type,
+                    x: ix,
+                    y: iy,
+                    constraint: {
+                        weight: 0.7,
+                        y: iy
+                    }
+                };
+            network.lookup[n.id] = node;
+            network.nodes.push(node);
+        });
 
 
+        // now, process the explicit links...
         network.data.links.forEach(function(n) {
             var src = network.lookup[n.src],
                 dst = network.lookup[n.dst],
                 id = src.id + "~" + dst.id;
 
             var link = {
+                class: 'infra',
                 id: id,
+                type: n.type,
+                width: n.linkWidth,
                 source: src,
                 target: dst,
-                strength: config.force.linkStrength
+                strength: config.force.linkStrength.infra
+            };
+            network.links.push(link);
+        });
+
+        // finally, infer host links...
+        network.data.hosts.forEach(function(n) {
+            var src = network.lookup[n.id],
+                dst = network.lookup[n.cp.device],
+                id = src.id + "~" + dst.id;
+
+            var link = {
+                class: 'host',
+                id: id,
+                type: 'hostLink',
+                width: config.hostLinkWidth,
+                source: src,
+                target: dst,
+                strength: config.force.linkStrength.host
             };
             network.links.push(link);
         });
@@ -145,13 +219,15 @@
 
     function createLayout() {
 
+        var cfg = config.force;
+
         network.force = d3.layout.force()
+            .size([network.forceWidth, network.forceHeight])
             .nodes(network.nodes)
             .links(network.links)
-            .linkStrength(function(d) { return d.strength; })
-            .size([network.forceWidth, network.forceHeight])
-            .linkDistance(config.force.linkDistance)
-            .charge(config.force.charge)
+            .linkStrength(function(d) { return cfg.linkStrength[d.class]; })
+            .linkDistance(function(d) { return cfg.linkDistance[d.class]; })
+            .charge(function(d) { return cfg.charge[d.class]; })
             .on('tick', tick);
 
         network.svg = d3.select('#view').append('svg')
@@ -205,9 +281,10 @@
         network.link = network.svg.append('g').selectAll('.link')
             .data(network.force.links(), function(d) {return d.id})
             .enter().append('line')
-            .attr('class', 'link');
+            .attr('class', function(d) {return 'link ' + d.class});
 
-        // TODO: drag behavior
+
+        // == define node drag behavior...
         network.draggedThreshold = d3.scale.linear()
             .domain([0, 0.1])
             .range([5, 20])
@@ -258,7 +335,11 @@
             .data(network.force.nodes(), function(d) {return d.id})
             .enter().append('g')
             .attr('class', function(d) {
-                return 'node ' + d.type;
+                var cls = 'node ' + d.class;
+                if (d.type) {
+                    cls += ' ' + d.type;
+                }
+                return cls;
             })
             .attr('transform', function(d) {
                 return translate(d.x, d.y);
@@ -281,29 +362,32 @@
                     }
                     network.mouseoutTimeout = setTimeout(function() {
                         highlightObject(null);
-                    }, 160);
+                    }, config.mouseOutTimerDelayMs);
                 }
             });
 
         network.nodeRect = network.node.append('rect')
             .attr('rx', 5)
-            .attr('ry', 5)
-            .attr('width', 126)
-            .attr('height', 40);
+            .attr('ry', 5);
+        // note that width/height are adjusted to fit the label text
 
         network.node.each(function(d) {
             var node = d3.select(this),
                 rect = node.select('rect'),
-                img = node.append('svg:image')
-                    .attr('x', -16)
-                    .attr('y', -16)
-                    .attr('width', 32)
-                    .attr('height', 32)
-                    .attr('xlink:href', iconUrl(d)),
+                icon = iconUrl(d),
                 text = node.append('text')
                     .text(d.id)
-                    .attr('dy', '1.1em'),
-                dummy;
+                    .attr('dy', '1.1em');
+
+            if (icon) {
+                var cfg = config.icons;
+                node.append('svg:image')
+                    .attr('width', cfg.w)
+                    .attr('height', cfg.h)
+                    .attr('xlink:href', icon);
+                // note, icon relative positioning (x,y) is done after we have
+                // adjusted the bounds of the rectangle...
+            }
 
         });
 
@@ -352,7 +436,8 @@
                     .attr('height', bounds.y2 - bounds.y1);
 
                 node.select('image')
-                    .attr('x', bounds.x1);
+                    .attr('x', bounds.x1 + config.icons.xoff)
+                    .attr('y', bounds.y1 + config.icons.yoff);
 
                 d.extent = {
                     left: bounds.x1 - lab.marginLR,
@@ -384,7 +469,7 @@
     }
 
     function iconUrl(d) {
-        return config.iconUrl[d.type];
+        return config.iconUrl[d.icon];
     }
 
     function translate(x, y) {
@@ -440,7 +525,7 @@
     function tick(e) {
         network.numTicks++;
 
-        if (config.layering) {
+        if (config.options.layering) {
             // adjust the y-coord of each node, based on y-pos constraints
             network.nodes.forEach(function (n) {
                 var z = e.alpha * n.constraint.weight;
@@ -450,7 +535,7 @@
             });
         }
 
-        if (network.preventCollisions) {
+        if (config.options.collisionPrevention && network.preventCollisions) {
             preventCollisions();
         }
 

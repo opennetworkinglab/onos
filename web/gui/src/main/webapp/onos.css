@@ -38,7 +38,7 @@ svg {
  * Network Graph elements ======================================
  */
 
-.link {
+svg .link {
     fill: none;
     stroke: #666;
     stroke-width: 1.5px;
@@ -56,7 +56,7 @@ marker#end {
     stroke-width: 1.5px;
 }
 
-.node rect {
+svg .node rect {
     stroke-width: 1.5px;
 
     transition: opacity 250ms;
@@ -64,13 +64,15 @@ marker#end {
     -moz-transition: opacity 250ms;
 }
 
-/*differentiate between packet and optical nodes*/
-svg .node.pkt rect {
-    fill: #77a;
+svg .node.device.roadm rect {
+    fill: #229;
+}
+svg .node.device.switch rect {
+    fill: #55f;
 }
 
-svg .node.opt rect {
-    fill: #7a7;
+svg .node.host rect {
+    fill: #787;
 }
 
 svg .node text {
@@ -121,15 +123,13 @@ svg .legend .category text {
 #frame {
     width: 100%;
     height: 100%;
-    background-color: #cdf;
+    background-color: #fff;
 }
 
 #mast {
     height: 32px;
-    background-color: #abe;
+    padding: 6px;
+    background-color: #ccc;
     vertical-align: baseline;
 }
 
-#main {
-    background-color: #99c;
-}
