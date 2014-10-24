@@ -13,4 +13,7 @@ public final class FlowStoreMessageSubjects {
 
     public static final MessageSubject GET_FLOW_ENTRY
         = new MessageSubject("peer-forward-get-flow-entry");
+
+    public static final MessageSubject GET_DEVICE_FLOW_ENTRIES
+        = new MessageSubject("peer-forward-get-device-flow-entries");
 }
