@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test for the default host description.
  */
-public class DefualtHostDecriptionTest {
+public class DefaultHostDecriptionTest {
 
     private static final MacAddress MAC = MacAddress.valueOf("00:00:11:00:00:01");
     private static final VlanId VLAN = VlanId.vlanId((short) 10);
