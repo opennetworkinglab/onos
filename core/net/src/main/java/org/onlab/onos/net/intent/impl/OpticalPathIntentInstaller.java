@@ -116,6 +116,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
                     appId,
                     100,
                     true);
+
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
 
             prev = link.dst();

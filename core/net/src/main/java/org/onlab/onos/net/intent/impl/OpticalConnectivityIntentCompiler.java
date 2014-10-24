@@ -70,6 +70,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     public List<Intent> compile(OpticalConnectivityIntent intent) {
         // TODO: compute multiple paths using the K-shortest path algorithm
         List<Intent> retList = new ArrayList<>();
+        log.info("The system is comipling the OpticalConnectivityIntent:" + intent.toString());
         Path path = calculatePath(intent.getSrcConnectPoint(), intent.getDst());
         if (path == null) {
             return retList;
@@ -87,6 +88,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 intent.getSrcConnectPoint(),
                 intent.getDst(),
                 path);
+
+        log.info("a new OpticalPathIntent was created: " + newIntent.toString());
 
         retList.add(newIntent);
 
@@ -123,6 +126,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Iterator<Path> itr = paths.iterator();
         while (itr.hasNext()) {
             Path path = itr.next();
+            // log.info(String.format("total link number.:%d", path.links().size()));
             if (path.cost() >= 10000) {
                 itr.remove();
             }
