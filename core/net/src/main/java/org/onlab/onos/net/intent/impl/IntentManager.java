@@ -1,8 +1,30 @@
 package org.onlab.onos.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.onos.net.intent.IntentState.COMPILING;
+import static org.onlab.onos.net.intent.IntentState.FAILED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLING;
+import static org.onlab.onos.net.intent.IntentState.RECOMPILING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,24 +51,9 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.onos.net.intent.IntentState.*;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * An implementation of Intent Manager.
@@ -258,7 +265,7 @@ public class IntentManager
             log.warn("Unable to compile intent {} due to:", intent.id(), e);
 
             // If compilation failed, mark the intent as failed.
-            store.setState(intent, FAILED);
+            eventDispatcher.post(store.setState(intent, FAILED));
         }
     }
 
