@@ -5,7 +5,6 @@ import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeComplet
 import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
-import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
@@ -180,18 +179,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
             portEntries.addAll(wPorts.getEntries());
         }
         return Collections.unmodifiableList(portEntries);
-    }
-
-    private void sendBarrier(boolean finalBarrier) throws IOException {
-        int xid = getNextTransactionId();
-        if (finalBarrier) {
-            barrierXidToWaitFor = xid;
-        }
-        OFBarrierRequest br = factory()
-                .buildBarrierRequest()
-                .setXid(xid)
-                .build();
-        sendMsg(br);
     }
 
     @Override
