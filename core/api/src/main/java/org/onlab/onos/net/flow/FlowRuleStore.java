@@ -20,7 +20,6 @@ package org.onlab.onos.net.flow;
 
 import java.util.concurrent.Future;
 
-import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.Store;
 
@@ -51,14 +50,6 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * @return the flow entries
      */
     Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
-
-    /**
-     * Returns the flow entries associated with an application.
-     *
-     * @param appId the application id
-     * @return the flow entries
-     */
-    Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId);
 
     /**
      // TODO: Better description of method behavior.

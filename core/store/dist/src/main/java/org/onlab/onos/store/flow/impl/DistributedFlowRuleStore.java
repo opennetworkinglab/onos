@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.ApplicationId;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -260,15 +259,6 @@ public class DistributedFlowRuleStore
         Collection<? extends FlowEntry> rules = flowEntries.get(deviceId);
         if (rules == null) {
             return Collections.emptySet();
-        }
-        return ImmutableSet.copyOf(rules);
-    }
-
-    @Override
-    public synchronized Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId) {
-        Collection<FlowRule> rules = flowEntriesById.get(appId.id());
-        if (rules == null) {
-            return Collections.emptyList();
         }
         return ImmutableSet.copyOf(rules);
     }

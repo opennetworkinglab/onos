@@ -7,7 +7,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
@@ -31,9 +30,7 @@ import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -140,20 +137,6 @@ public class SimpleFlowRuleStore
                                 return Collections.unmodifiableList(input);
                             }
                         });
-    }
-
-    @Override
-    public Iterable<FlowRule> getFlowRulesByAppId(ApplicationId appId) {
-
-        Set<FlowRule> rules = new HashSet<>();
-        for (DeviceId did : flowEntries.keySet()) {
-            for (FlowEntry fe : getFlowEntries(did)) {
-                if (fe.appId() == appId.id()) {
-                    rules.add(fe);
-                }
-            }
-        }
-        return rules;
     }
 
     @Override
