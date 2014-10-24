@@ -50,6 +50,7 @@ import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -116,71 +117,38 @@ public class FlowRuleManager
 
     @Override
     public void applyFlowRules(FlowRule... flowRules) {
+        Set<FlowRuleBatchEntry> toAddBatchEntries = Sets.newHashSet();
         for (int i = 0; i < flowRules.length; i++) {
-            FlowRule f = flowRules[i];
-            store.storeFlowRule(f);
+            toAddBatchEntries.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, flowRules[i]));
         }
-    }
-
-    private void applyFlowRulesToProviders(FlowRule... flowRules) {
-        DeviceId did = null;
-        FlowRuleProvider frp = null;
-        for (FlowRule f : flowRules) {
-            if (!f.deviceId().equals(did)) {
-                did = f.deviceId();
-                final Device device = deviceService.getDevice(did);
-                frp = getProvider(device.providerId());
-            }
-            if (frp != null) {
-                frp.applyFlowRule(f);
-            }
-        }
+        applyBatch(new FlowRuleBatchOperation(toAddBatchEntries));
     }
 
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
-        FlowRule f;
+        Set<FlowRuleBatchEntry> toRemoveBatchEntries = Sets.newHashSet();
         for (int i = 0; i < flowRules.length; i++) {
-            f = flowRules[i];
-            store.deleteFlowRule(f);
+            toRemoveBatchEntries.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, flowRules[i]));
         }
-    }
-
-    private void removeFlowRulesFromProviders(FlowRule... flowRules) {
-        DeviceId did = null;
-        FlowRuleProvider frp = null;
-        for (FlowRule f : flowRules) {
-            if (!f.deviceId().equals(did)) {
-                did = f.deviceId();
-                final Device device = deviceService.getDevice(did);
-                frp = getProvider(device.providerId());
-            }
-            if (frp != null) {
-                frp.removeFlowRule(f);
-            }
-        }
+        applyBatch(new FlowRuleBatchOperation(toRemoveBatchEntries));
     }
 
     @Override
     public void removeFlowRulesById(ApplicationId id) {
-        Iterable<FlowRule> rules = getFlowRulesById(id);
-        FlowRuleProvider frp;
-        Device device;
-
-        for (FlowRule f : rules) {
-            store.deleteFlowRule(f);
-            // FIXME: only accept request and push to provider on internal event
-            device = deviceService.getDevice(f.deviceId());
-            frp = getProvider(device.providerId());
-            // FIXME: flows removed from store and flows removed from might diverge
-            //        get rid of #removeRulesById?
-            frp.removeRulesById(id, f);
-        }
+        removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
     }
 
     @Override
     public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        return store.getFlowRulesByAppId(id);
+        Set<FlowRule> flowEntries = Sets.newHashSet();
+        for (Device d : deviceService.getDevices()) {
+            for (FlowEntry flowEntry : store.getFlowEntries(d.id())) {
+                if (flowEntry.appId() == id.id()) {
+                    flowEntries.add(flowEntry);
+                }
+            }
+        }
+        return flowEntries;
     }
 
     @Override

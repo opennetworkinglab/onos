@@ -12,6 +12,7 @@ import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -461,12 +462,12 @@ public class FlowRuleManagerTest {
 
         @Override
         public int getDeviceCount() {
-            return 0;
+            return 1;
         }
 
         @Override
         public Iterable<Device> getDevices() {
-            return null;
+            return Arrays.asList(DEV);
         }
 
         @Override
