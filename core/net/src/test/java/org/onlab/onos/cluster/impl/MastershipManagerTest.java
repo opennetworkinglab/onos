@@ -68,15 +68,15 @@ public class MastershipManagerTest {
 
     @Test
     public void relinquishMastership() {
-        //no backups - should turn to standby and no master for device
+        //no backups - should just turn to NONE for device.
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
         assertEquals("wrong role:", MASTER, mgr.getLocalRole(DEV_MASTER));
         mgr.relinquishMastership(DEV_MASTER);
         assertNull("wrong master:", mgr.getMasterFor(DEV_OTHER));
-        assertEquals("wrong role:", STANDBY, mgr.getLocalRole(DEV_MASTER));
+        assertEquals("wrong role:", NONE, mgr.getLocalRole(DEV_MASTER));
 
         //not master, nothing should happen
-        mgr.setRole(NID_LOCAL, DEV_OTHER, STANDBY);
+        mgr.setRole(NID_LOCAL, DEV_OTHER, NONE);
         mgr.relinquishMastership(DEV_OTHER);
         assertNull("wrong role:", mgr.getMasterFor(DEV_OTHER));
 

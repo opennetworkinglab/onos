@@ -226,12 +226,34 @@ public class SimpleMastershipStore
                 break;
             }
         }
+        backups.remove(backup);
         return backup;
     }
 
     @Override
     public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
-        return setStandby(nodeId, deviceId);
+        MastershipRole role = getRole(nodeId, deviceId);
+        synchronized (this) {
+            switch (role) {
+                case MASTER:
+                    NodeId backup = reelect(nodeId);
+                    backups.remove(nodeId);
+                    if (backup == null) {
+                        masterMap.remove(deviceId);
+                    } else {
+                        masterMap.put(deviceId, backup);
+                        termMap.get(deviceId).incrementAndGet();
+                        return new MastershipEvent(MASTER_CHANGED, deviceId,
+                                new RoleInfo(backup, Lists.newLinkedList(backups)));
+                    }
+                case STANDBY:
+                    backups.remove(nodeId);
+                case NONE:
+                default:
+                    log.warn("unknown Mastership Role {}", role);
+            }
+        }
+        return null;
     }
 
 }
