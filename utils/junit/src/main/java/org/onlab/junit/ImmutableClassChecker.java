@@ -1,5 +1,4 @@
-package org.onlab.onos.net.intent;
-//TODO is this the right package?
+package org.onlab.junit;
 
 import org.hamcrest.Description;
 import org.hamcrest.StringDescription;

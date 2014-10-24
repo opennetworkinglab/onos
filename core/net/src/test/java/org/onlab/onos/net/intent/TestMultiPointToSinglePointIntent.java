@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.onos.net.NetTestTools.connectPoint;
 
 /**
@@ -135,7 +136,6 @@ public class TestMultiPointToSinglePointIntent {
      */
     @Test
     public void checkImmutability() {
-        ImmutableClassChecker.
-                assertThatClassIsImmutable(MultiPointToSinglePointIntent.class);
+        assertThatClassIsImmutable(MultiPointToSinglePointIntent.class);
     }
 }

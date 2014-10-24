@@ -24,6 +24,7 @@
         <dependency>
             <groupId>org.onlab.onos</groupId>
             <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>

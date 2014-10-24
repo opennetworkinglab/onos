@@ -1,7 +1,9 @@
 package org.onlab.onos.sdnip;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -15,6 +17,8 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
+import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
@@ -27,6 +31,7 @@ import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
@@ -39,8 +44,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.TestUtils;
-import org.onlab.util.TestUtils.TestUtilsException;
 
 import com.google.common.collect.Sets;
 
@@ -55,10 +58,17 @@ public class RouterTest {
     private IntentService intentService;
     private HostService hostService;
 
-    private Map<IpAddress, BgpPeer> bgpPeers;
-    private Map<IpAddress, BgpPeer> configuredPeers;
-    private Set<Interface> interfaces;
-    private Set<Interface> configuredInterfaces;
+    private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000001"),
+            PortNumber.portNumber(1));
+
+    private static final ConnectPoint SW2_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000002"),
+            PortNumber.portNumber(1));
+
+    private static final ConnectPoint SW3_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000003"),
+            PortNumber.portNumber(1));
 
     private static final ApplicationId APPID = new ApplicationId() {
         @Override
@@ -76,55 +86,12 @@ public class RouterTest {
 
     @Before
     public void setUp() throws Exception {
-        bgpPeers = setUpBgpPeers();
-        interfaces = setUpInterfaces();
-        initRouter();
-    }
+        setUpBgpPeers();
 
-    /**
-     * Initializes Router class.
-     */
-    private void initRouter() {
+        setUpInterfaceService();
+        setUpHostService();
 
         intentService = createMock(IntentService.class);
-        hostService = createMock(HostService.class);
-
-        interfaceService = createMock(InterfaceService.class);
-        expect(interfaceService.getInterfaces()).andReturn(
-                interfaces).anyTimes();
-
-        Set<IpPrefix> ipAddressesOnSw1Eth1 = new HashSet<IpPrefix>();
-        ipAddressesOnSw1Eth1.add(IpPrefix.valueOf("192.168.10.0/24"));
-        Interface expectedInterface =
-                new Interface(new ConnectPoint(
-                        DeviceId.deviceId("of:0000000000000001"),
-                        PortNumber.portNumber("1")),
-                        ipAddressesOnSw1Eth1,
-                        MacAddress.valueOf("00:00:00:00:00:01"));
-        ConnectPoint egressPoint = new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000001"),
-                PortNumber.portNumber(1));
-        expect(interfaceService.getInterface(egressPoint)).andReturn(
-                expectedInterface).anyTimes();
-
-        Set<IpPrefix> ipAddressesOnSw2Eth1 = new HashSet<IpPrefix>();
-        ipAddressesOnSw2Eth1.add(IpPrefix.valueOf("192.168.20.0/24"));
-        Interface expectedInterfaceNew =
-                new Interface(new ConnectPoint(
-                        DeviceId.deviceId("of:0000000000000002"),
-                        PortNumber.portNumber("1")),
-                        ipAddressesOnSw2Eth1,
-                        MacAddress.valueOf("00:00:00:00:00:02"));
-        ConnectPoint egressPointNew = new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000002"),
-                PortNumber.portNumber(1));
-        expect(interfaceService.getInterface(egressPointNew)).andReturn(
-                expectedInterfaceNew).anyTimes();
-        replay(interfaceService);
-
-        sdnIpConfigService = createMock(SdnIpConfigService.class);
-        expect(sdnIpConfigService.getBgpPeers()).andReturn(bgpPeers).anyTimes();
-        replay(sdnIpConfigService);
 
         router = new Router(APPID, intentService,
                 hostService, sdnIpConfigService, interfaceService);
@@ -132,67 +99,99 @@ public class RouterTest {
 
     /**
      * Sets up BGP peers in external networks.
-     *
-     * @return configured BGP peers as a Map from peer IP address to BgpPeer
      */
-    private Map<IpAddress, BgpPeer> setUpBgpPeers() {
+    private void setUpBgpPeers() {
 
-        configuredPeers = new HashMap<>();
+        Map<IpAddress, BgpPeer> peers = new HashMap<>();
 
         String peerSw1Eth1 = "192.168.10.1";
-        configuredPeers.put(IpAddress.valueOf(peerSw1Eth1),
+        peers.put(IpAddress.valueOf(peerSw1Eth1),
                 new BgpPeer("00:00:00:00:00:00:00:01", 1, peerSw1Eth1));
 
         // Two BGP peers are connected to switch 2 port 1.
         String peer1Sw2Eth1 = "192.168.20.1";
-        configuredPeers.put(IpAddress.valueOf(peer1Sw2Eth1),
+        peers.put(IpAddress.valueOf(peer1Sw2Eth1),
                 new BgpPeer("00:00:00:00:00:00:00:02", 1, peer1Sw2Eth1));
 
         String peer2Sw2Eth1 = "192.168.20.2";
-        configuredPeers.put(IpAddress.valueOf(peer2Sw2Eth1),
+        peers.put(IpAddress.valueOf(peer2Sw2Eth1),
                 new BgpPeer("00:00:00:00:00:00:00:02", 1, peer2Sw2Eth1));
 
-        return configuredPeers;
+        sdnIpConfigService = createMock(SdnIpConfigService.class);
+        expect(sdnIpConfigService.getBgpPeers()).andReturn(peers).anyTimes();
+        replay(sdnIpConfigService);
+
     }
 
     /**
      * Sets up logical interfaces, which emulate the configured interfaces
      * in SDN-IP application.
-     *
-     * @return configured interfaces as a Set
      */
-    private Set<Interface> setUpInterfaces() {
+    private void setUpInterfaceService() {
+        interfaceService = createMock(InterfaceService.class);
 
-        configuredInterfaces = Sets.newHashSet();
+        Set<Interface> interfaces = Sets.newHashSet();
 
-        Set<IpPrefix> ipAddressesOnSw1Eth1 = new HashSet<IpPrefix>();
-        ipAddressesOnSw1Eth1.add(IpPrefix.valueOf("192.168.10.0/24"));
-        configuredInterfaces.add(
-                new Interface(new ConnectPoint(
-                        DeviceId.deviceId("of:0000000000000001"),
-                        PortNumber.portNumber(1)),
-                        ipAddressesOnSw1Eth1,
-                        MacAddress.valueOf("00:00:00:00:00:01")));
+        Interface sw1Eth1 = new Interface(SW1_ETH1,
+                Sets.newHashSet(IpPrefix.valueOf("192.168.10.101/24")),
+                MacAddress.valueOf("00:00:00:00:00:01"));
 
-        Set<IpPrefix> ipAddressesOnSw2Eth1 = new HashSet<IpPrefix>();
-        ipAddressesOnSw2Eth1.add(IpPrefix.valueOf("192.168.20.0/24"));
-        configuredInterfaces.add(
-                new Interface(new ConnectPoint(
-                        DeviceId.deviceId("of:0000000000000002"),
-                        PortNumber.portNumber(1)),
-                        ipAddressesOnSw2Eth1,
-                        MacAddress.valueOf("00:00:00:00:00:02")));
+        expect(interfaceService.getInterface(SW1_ETH1)).andReturn(sw1Eth1).anyTimes();
+        interfaces.add(sw1Eth1);
 
-        Set<IpPrefix> ipAddressesOnSw3Eth1 = new HashSet<IpPrefix>();
-        ipAddressesOnSw3Eth1.add(IpPrefix.valueOf("192.168.30.0/24"));
-        configuredInterfaces.add(
-                new Interface(new ConnectPoint(
-                        DeviceId.deviceId("of:0000000000000003"),
-                        PortNumber.portNumber(1)),
-                        ipAddressesOnSw3Eth1,
-                        MacAddress.valueOf("00:00:00:00:00:03")));
+        Interface sw2Eth1 = new Interface(SW2_ETH1,
+                Sets.newHashSet(IpPrefix.valueOf("192.168.20.101/24")),
+                MacAddress.valueOf("00:00:00:00:00:02"));
 
-        return configuredInterfaces;
+        expect(interfaceService.getInterface(SW2_ETH1)).andReturn(sw2Eth1).anyTimes();
+        interfaces.add(sw2Eth1);
+
+        Interface sw3Eth1 = new Interface(SW3_ETH1,
+                Sets.newHashSet(IpPrefix.valueOf("192.168.30.101/24")),
+                MacAddress.valueOf("00:00:00:00:00:03"));
+
+        expect(interfaceService.getInterface(SW3_ETH1)).andReturn(sw3Eth1).anyTimes();
+        interfaces.add(sw3Eth1);
+
+        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
+
+        replay(interfaceService);
+    }
+
+    /**
+     * Sets up the host service with details of some hosts.
+     */
+    private void setUpHostService() {
+        hostService = createMock(HostService.class);
+
+        hostService.addListener(anyObject(HostListener.class));
+        expectLastCall().anyTimes();
+
+        IpPrefix host1Address = IpPrefix.valueOf("192.168.10.1/32");
+        Host host1 = new DefaultHost(ProviderId.NONE, HostId.NONE,
+                MacAddress.valueOf("00:00:00:00:00:01"), VlanId.NONE,
+                new HostLocation(SW1_ETH1, 1),
+                        Sets.newHashSet(host1Address));
+
+        expect(hostService.getHostsByIp(host1Address))
+                .andReturn(Sets.newHashSet(host1)).anyTimes();
+        hostService.startMonitoringIp(host1Address.toIpAddress());
+        expectLastCall().anyTimes();
+
+
+        IpPrefix host2Address = IpPrefix.valueOf("192.168.20.1/32");
+        Host host2 = new DefaultHost(ProviderId.NONE, HostId.NONE,
+                MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE,
+                new HostLocation(SW2_ETH1, 1),
+                        Sets.newHashSet(host2Address));
+
+        expect(hostService.getHostsByIp(host2Address))
+                .andReturn(Sets.newHashSet(host2)).anyTimes();
+        hostService.startMonitoringIp(host2Address.toIpAddress());
+        expectLastCall().anyTimes();
+
+
+        replay(hostService);
     }
 
     /**
@@ -200,7 +199,6 @@ public class RouterTest {
      */
     @Test
     public void testProcessRouteAdd() throws TestUtilsException {
-
         // Construct a route entry
         RouteEntry routeEntry = new RouteEntry(
                 IpPrefix.valueOf("1.1.1.0/24"),
@@ -217,36 +215,13 @@ public class RouterTest {
         treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
 
         Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        ingressPoints.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000002"),
-                PortNumber.portNumber("1")));
-        ingressPoints.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000003"),
-                PortNumber.portNumber("1")));
-
-        ConnectPoint egressPoint = new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000001"),
-                PortNumber.portNumber("1"));
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 new MultiPointToSinglePointIntent(APPID,
                         selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, egressPoint);
-
-        // Reset host service
-        reset(hostService);
-        Set<Host> hosts = new HashSet<Host>(1);
-        Set<IpPrefix> ipPrefixes = new HashSet<IpPrefix>();
-        ipPrefixes.add(IpPrefix.valueOf("192.168.10.1/32"));
-        hosts.add(new DefaultHost(ProviderId.NONE, HostId.NONE,
-                MacAddress.valueOf("00:00:00:00:00:01"), VlanId.NONE,
-                new HostLocation(
-                        DeviceId.deviceId("of:0000000000000001"),
-                        PortNumber.portNumber(1), 1),
-                        ipPrefixes));
-        expect(hostService.getHostsByIp(
-                IpPrefix.valueOf("192.168.10.1/32"))).andReturn(hosts);
-        replay(hostService);
+                        ingressPoints, SW1_ETH1);
 
         // Set up test expectation
         reset(intentService);
@@ -274,7 +249,6 @@ public class RouterTest {
      */
     @Test
     public void testRouteUpdate() throws TestUtilsException {
-
         // Firstly add a route
         testProcessRouteAdd();
 
@@ -293,22 +267,14 @@ public class RouterTest {
                 DefaultTrafficTreatment.builder();
         treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
 
-        ConnectPoint egressPoint = new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000001"),
-                PortNumber.portNumber("1"));
-
         Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        ingressPoints.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000002"),
-                PortNumber.portNumber("1")));
-        ingressPoints.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000003"),
-                PortNumber.portNumber("1")));
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 new MultiPointToSinglePointIntent(APPID,
                         selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, egressPoint);
+                        ingressPoints, SW1_ETH1);
 
         // Start to construct a new route entry and new intent
         RouteEntry routeEntryUpdate = new RouteEntry(
@@ -325,38 +291,16 @@ public class RouterTest {
                 DefaultTrafficTreatment.builder();
         treatmentBuilderNew.setEthDst(MacAddress.valueOf("00:00:00:00:00:02"));
 
-        ConnectPoint egressPointNew = new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000002"),
-                PortNumber.portNumber("1"));
 
         Set<ConnectPoint> ingressPointsNew = new HashSet<ConnectPoint>();
-        ingressPointsNew.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000001"),
-                PortNumber.portNumber("1")));
-        ingressPointsNew.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000003"),
-                PortNumber.portNumber("1")));
+        ingressPointsNew.add(SW1_ETH1);
+        ingressPointsNew.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent intentNew =
                 new MultiPointToSinglePointIntent(APPID,
                         selectorBuilderNew.build(),
                         treatmentBuilderNew.build(),
-                        ingressPointsNew, egressPointNew);
-
-        // Reset host service
-        reset(hostService);
-        Set<Host> hosts = new HashSet<Host>(1);
-        Set<IpPrefix> ipPrefixes = new HashSet<IpPrefix>();
-        ipPrefixes.add(IpPrefix.valueOf("192.168.20.1/32"));
-        hosts.add(new DefaultHost(ProviderId.NONE, HostId.NONE,
-                MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE,
-                new HostLocation(
-                        DeviceId.deviceId("of:0000000000000002"),
-                        PortNumber.portNumber(1), 1),
-                        ipPrefixes));
-        expect(hostService.getHostsByIp(
-                IpPrefix.valueOf("192.168.20.1/32"))).andReturn(hosts);
-        replay(hostService);
+                        ingressPointsNew, SW2_ETH1);
 
         // Set up test expectation
         reset(intentService);
@@ -383,7 +327,6 @@ public class RouterTest {
      */
     @Test
     public void testProcessRouteDelete() throws TestUtilsException {
-
         // Firstly add a route
         testProcessRouteAdd();
 
@@ -402,22 +345,14 @@ public class RouterTest {
                 DefaultTrafficTreatment.builder();
         treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
 
-        ConnectPoint egressPoint = new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000001"),
-                PortNumber.portNumber("1"));
-
         Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        ingressPoints.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000002"),
-                PortNumber.portNumber("1")));
-        ingressPoints.add(new ConnectPoint(
-                DeviceId.deviceId("of:0000000000000003"),
-                PortNumber.portNumber("1")));
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 new MultiPointToSinglePointIntent(APPID,
                         selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, egressPoint);
+                        ingressPoints, SW1_ETH1);
 
         // Set up expectation
         reset(intentService);
@@ -442,7 +377,6 @@ public class RouterTest {
      */
     @Test
     public void testLocalRouteAdd() throws TestUtilsException {
-
         // Construct a route entry, the next hop is the local BGP speaker
         RouteEntry routeEntry = new RouteEntry(
                 IpPrefix.valueOf("1.1.1.0/24"), IpAddress.valueOf("0.0.0.0"));

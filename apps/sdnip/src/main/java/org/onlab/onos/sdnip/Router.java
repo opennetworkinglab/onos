@@ -55,8 +55,6 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 /**
  * This class processes BGP route update, translates each update into a intent
  * and submits the intent.
- * <p/>
- * TODO: Make it thread-safe.
  */
 public class Router implements RouteListener {
 
@@ -69,14 +67,13 @@ public class Router implements RouteListener {
     // Stores all incoming route updates in a queue.
     private BlockingQueue<RouteUpdate> routeUpdates;
 
-    // The Ip4Address is the next hop address of each route update.
+    // The IpAddress is the next hop address of each route update.
     private SetMultimap<IpAddress, RouteEntry> routesWaitingOnArp;
     private ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent> pushedRouteIntents;
 
     private IntentService intentService;
-    //private IProxyArpService proxyArp;
     private HostService hostService;
-    private SdnIpConfigService configInfoService;
+    private SdnIpConfigService configService;
     private InterfaceService interfaceService;
 
     private ExecutorService bgpUpdatesExecutor;
@@ -98,18 +95,19 @@ public class Router implements RouteListener {
     /**
      * Class constructor.
      *
+     * @param appId             the application ID
      * @param intentService     the intent service
      * @param hostService       the host service
-     * @param configInfoService the configuration service
+     * @param configService     the configuration service
      * @param interfaceService  the interface service
      */
     public Router(ApplicationId appId, IntentService intentService,
-                  HostService hostService, SdnIpConfigService configInfoService,
+                  HostService hostService, SdnIpConfigService configService,
                   InterfaceService interfaceService) {
         this.appId = appId;
         this.intentService = intentService;
         this.hostService = hostService;
-        this.configInfoService = configInfoService;
+        this.configService = configService;
         this.interfaceService = interfaceService;
 
         bgpRoutes = new ConcurrentInvertedRadixTree<>(
@@ -172,7 +170,7 @@ public class Router implements RouteListener {
 
     @Override
     public void update(RouteUpdate routeUpdate) {
-        log.debug("Received new route Update: {}", routeUpdate);
+        log.debug("Received new route update: {}", routeUpdate);
 
         try {
             routeUpdates.put(routeUpdate);
@@ -498,9 +496,11 @@ public class Router implements RouteListener {
     private void executeRouteAdd(RouteEntry routeEntry) {
         log.debug("Executing route add: {}", routeEntry);
 
+        // Monitor the IP address so we'll get notified of updates to the MAC
+        // address.
+        hostService.startMonitoringIp(routeEntry.nextHop());
+
         // See if we know the MAC address of the next hop
-        //MacAddress nextHopMacAddress =
-        //proxyArp.getMacAddress(routeEntry.getNextHop());
         MacAddress nextHopMacAddress = null;
         Set<Host> hosts = hostService.getHostsByIp(
                 routeEntry.nextHop().toPrefix());
@@ -511,9 +511,6 @@ public class Router implements RouteListener {
 
         if (nextHopMacAddress == null) {
             routesWaitingOnArp.put(routeEntry.nextHop(), routeEntry);
-            //proxyArp.sendArpRequest(routeEntry.getNextHop(), this, true);
-            // TODO maybe just do this for every prefix anyway
-            hostService.startMonitoringIp(routeEntry.nextHop());
             return;
         }
 
@@ -536,11 +533,11 @@ public class Router implements RouteListener {
 
         // Find the attachment point (egress interface) of the next hop
         Interface egressInterface;
-        if (configInfoService.getBgpPeers().containsKey(nextHopIpAddress)) {
+        if (configService.getBgpPeers().containsKey(nextHopIpAddress)) {
             // Route to a peer
             log.debug("Route to peer {}", nextHopIpAddress);
             BgpPeer peer =
-                    configInfoService.getBgpPeers().get(nextHopIpAddress);
+                    configService.getBgpPeers().get(nextHopIpAddress);
             egressInterface =
                     interfaceService.getInterface(peer.connectPoint());
         } else {
@@ -593,17 +590,12 @@ public class Router implements RouteListener {
         }
 
         // Match the destination IP prefix at the first hop
-        //PacketMatchBuilder builder = new PacketMatchBuilder();
-        //builder.setEtherType(Ethernet.TYPE_IPV4).setDstIpNet(prefix);
-        //PacketMatch packetMatch = builder.build();
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(prefix)
                 .build();
 
         // Rewrite the destination MAC address
-        //ModifyDstMacAction modifyDstMacAction =
-        //new ModifyDstMacAction(nextHopMacAddress);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthDst(nextHopMacAddress)
                 .build();
@@ -634,10 +626,6 @@ public class Router implements RouteListener {
         synchronized (this) {
             log.debug("Processing route delete: {}", routeEntry);
             IpPrefix prefix = routeEntry.prefix();
-
-            // TODO check the change of logic here - remove doesn't check that
-            // the route entry was what we expected (and we can't do this
-            // concurrently)
 
             if (bgpRoutes.remove(RouteEntry.createBinaryString(prefix))) {
                 //
@@ -680,17 +668,19 @@ public class Router implements RouteListener {
     }
 
     /**
-     * This method handles the prefixes which are waiting for ARP replies for
-     * MAC addresses of next hops.
+     * Signals the Router that the MAC to IP mapping has potentially been
+     * updated. This has the effect of updating the MAC address for any
+     * installed prefixes if it has changed, as well as installing any pending
+     * prefixes that were waiting for MAC resolution.
      *
-     * @param ipAddress  next hop router IP address, for which we sent ARP
-     *                   request out
-     * @param macAddress MAC address which is relative to the ipAddress
+     * @param ipAddress the IP address that an event was received for
+     * @param macAddress the most recently known MAC address for the IP address
      */
-    //@Override
-    // TODO change name
-    public void arpResponse(IpAddress ipAddress, MacAddress macAddress) {
-        log.debug("Received ARP response: {} => {}", ipAddress, macAddress);
+    private void updateMac(IpAddress ipAddress, MacAddress macAddress) {
+        log.debug("Received updated MAC info: {} => {}", ipAddress, macAddress);
+
+        // TODO here we should check whether the next hop for any of our
+        // installed prefixes has changed, not just prefixes pending installation.
 
         // We synchronize on this to prevent changes to the radix tree
         // while we're pushing intents. If the tree changes, the
@@ -708,8 +698,6 @@ public class Router implements RouteListener {
                         bgpRoutes.getValueForExactKey(binaryString);
                 if (foundRouteEntry != null &&
                         foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
-                    log.debug("Pushing prefix {} next hop {}",
-                              routeEntry.prefix(), routeEntry.nextHop());
                     // We only push prefix flows if the prefix is still in the
                     // radix tree and the next hop is the same as our
                     // update.
@@ -717,9 +705,8 @@ public class Router implements RouteListener {
                     // for the ARP, or the next hop could have changed.
                     addRouteIntentToNextHop(prefix, ipAddress, macAddress);
                 } else {
-                    log.debug("Received ARP response, but {}/{} is no longer in"
-                                      + " the radix tree", routeEntry.prefix(),
-                              routeEntry.nextHop());
+                    log.debug("{} has been revoked before the MAC was resolved",
+                            routeEntry);
                 }
             }
         }
@@ -769,7 +756,7 @@ public class Router implements RouteListener {
                     event.type() == HostEvent.Type.HOST_UPDATED) {
                 Host host = event.subject();
                 for (IpPrefix ip : host.ipAddresses()) {
-                    arpResponse(ip.toIpAddress(), host.mac());
+                    updateMac(ip.toIpAddress(), host.mac());
                 }
             }
         }

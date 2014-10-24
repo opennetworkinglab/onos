@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 @Service
 public class SdnIp implements SdnIpService {
 
-    private static final String SDN_ID_APP = "org.onlab.onos.sdnip";
+    private static final String SDN_IP_APP = "org.onlab.onos.sdnip";
 
     private final Logger log = getLogger(getClass());
 
@@ -53,8 +53,10 @@ public class SdnIp implements SdnIpService {
 
         InterfaceService interfaceService = new HostToInterfaceAdaptor(hostService);
 
-        ApplicationId appId = coreService.registerApplication(SDN_ID_APP);
-        peerConnectivity = new PeerConnectivityManager(appId, config, interfaceService, intentService);
+        ApplicationId appId = coreService.registerApplication(SDN_IP_APP);
+
+        peerConnectivity = new PeerConnectivityManager(appId, config,
+                interfaceService, intentService);
         peerConnectivity.start();
 
         router = new Router(appId, intentService, hostService, config, interfaceService);
