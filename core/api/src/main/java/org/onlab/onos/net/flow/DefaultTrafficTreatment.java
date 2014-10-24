@@ -201,7 +201,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public TrafficTreatment build() {
 
-            //If we are dropping should we just return an emptry list?
+            //If we are dropping should we just return an empty list?
             List<Instruction> instructions = new LinkedList<Instruction>();
             instructions.addAll(modifications);
             instructions.addAll(groups);

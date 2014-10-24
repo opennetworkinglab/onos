@@ -2,14 +2,8 @@ package org.onlab.onos.provider.of.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criteria.EthCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
@@ -20,22 +14,10 @@ import org.onlab.onos.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
-import org.onlab.onos.net.flow.instructions.L0ModificationInstruction;
-import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
-import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
-import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
@@ -44,181 +26,82 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IpProtocol;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.Masked;
-import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TransportPort;
-import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 
-
-public class FlowModBuilder {
+/**
+ * Builder for OpenFlow flow mods based on FlowRules.
+ */
+public abstract class FlowModBuilder {
 
     private final Logger log = getLogger(getClass());
 
     private final OFFactory factory;
-    private final TrafficTreatment treatment;
+    private final FlowRule flowRule;
     private final TrafficSelector selector;
 
-    private final int priority;
+    /**
+     * Creates a new flow mod builder.
+     *
+     * @param flowRule the flow rule to transform into a flow mod
+     * @param factory the OpenFlow factory to use to build the flow mod
+     * @return the new flow mod builder
+     */
+    public static FlowModBuilder builder(FlowRule flowRule, OFFactory factory) {
+        switch (factory.getVersion()) {
+        case OF_10:
+            return new FlowModBuilderVer10(flowRule, factory);
+        case OF_13:
+            return new FlowModBuilderVer13(flowRule, factory);
+        default:
+            throw new UnsupportedOperationException(
+                    "No flow mod builder for protocol version " + factory.getVersion());
+        }
+    }
 
-    private final FlowId cookie;
-
-
-
-    public FlowModBuilder(FlowRule flowRule, OFFactory factory) {
+    /**
+     * Constructs a flow mod builder.
+     *
+     * @param flowRule the flow rule to transform into a flow mod
+     * @param factory the OpenFlow factory to use to build the flow mod
+     */
+    protected FlowModBuilder(FlowRule flowRule, OFFactory factory) {
         this.factory = factory;
-        this.treatment = flowRule.treatment();
+        this.flowRule = flowRule;
         this.selector = flowRule.selector();
-        this.priority = flowRule.priority();
-        this.cookie = flowRule.id();
     }
 
-    public OFFlowAdd buildFlowAdd() {
-        Match match = buildMatch();
-        List<OFAction> actions = buildActions();
+    /**
+     * Builds an ADD flow mod.
+     *
+     * @return the flow mod
+     */
+    public abstract OFFlowAdd buildFlowAdd();
 
-        //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
-        OFFlowAdd fm = factory.buildFlowAdd()
-                .setXid(cookie.value())
-                .setCookie(U64.of(cookie.value()))
-                .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
-                .setMatch(match)
-                .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
-                .setPriority(priority)
-                .build();
+    /**
+     * Builds a MODIFY flow mod.
+     *
+     * @return the flow mod
+     */
+    public abstract OFFlowMod buildFlowMod();
 
-        return fm;
+    /**
+     * Builds a DELETE flow mod.
+     *
+     * @return the flow mod
+     */
+    public abstract OFFlowDelete buildFlowDel();
 
-    }
-
-    public OFFlowMod buildFlowMod() {
-        Match match = buildMatch();
-        List<OFAction> actions = buildActions();
-
-        //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
-        OFFlowMod fm = factory.buildFlowModify()
-                .setXid(cookie.value())
-                .setCookie(U64.of(cookie.value()))
-                .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
-                .setMatch(match)
-                .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
-                .setPriority(priority)
-                .build();
-
-        return fm;
-
-    }
-
-    public OFFlowDelete buildFlowDel() {
-        Match match = buildMatch();
-        List<OFAction> actions = buildActions();
-
-        OFFlowDelete fm = factory.buildFlowDelete()
-                .setXid(cookie.value())
-                .setCookie(U64.of(cookie.value()))
-                .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
-                .setMatch(match)
-                .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
-                .setPriority(priority)
-                .build();
-
-        return fm;
-    }
-
-    private List<OFAction> buildActions() {
-        List<OFAction> acts = new LinkedList<>();
-        if (treatment == null) {
-            return acts;
-        }
-        for (Instruction i : treatment.instructions()) {
-            switch (i.type()) {
-            case DROP:
-                log.warn("Saw drop action; assigning drop action");
-                return new LinkedList<>();
-            case L0MODIFICATION:
-                acts.add(buildL0Modification(i));
-                break;
-            case L2MODIFICATION:
-                acts.add(buildL2Modification(i));
-                break;
-            case L3MODIFICATION:
-                acts.add(buildL3Modification(i));
-                break;
-            case OUTPUT:
-                OutputInstruction out = (OutputInstruction) i;
-                acts.add(factory.actions().buildOutput().setPort(
-                        OFPort.of((int) out.port().toLong())).build());
-                break;
-            case GROUP:
-            default:
-                log.warn("Instruction type {} not yet implemented.", i.type());
-            }
-        }
-
-        return acts;
-    }
-
-    private OFAction buildL0Modification(Instruction i) {
-        L0ModificationInstruction l0m = (L0ModificationInstruction) i;
-        switch (l0m.subtype()) {
-        case LAMBDA:
-            ModLambdaInstruction ml = (ModLambdaInstruction) i;
-            return factory.actions().circuit(factory.oxms().ochSigidBasic(
-                    new CircuitSignalID((byte) 1, (byte) 2, ml.lambda(), (short) 1)));
-        default:
-            log.warn("Unimplemented action type {}.", l0m.subtype());
-            break;
-        }
-        return null;
-    }
-
-    private OFAction buildL3Modification(Instruction i) {
-        L3ModificationInstruction l3m = (L3ModificationInstruction) i;
-        ModIPInstruction ip;
-        switch (l3m.subtype()) {
-        case IP_DST:
-            ip = (ModIPInstruction) i;
-            return factory.actions().setNwDst(IPv4Address.of(ip.ip().toInt()));
-        case IP_SRC:
-            ip = (ModIPInstruction) i;
-            return factory.actions().setNwSrc(IPv4Address.of(ip.ip().toInt()));
-        default:
-            log.warn("Unimplemented action type {}.", l3m.subtype());
-            break;
-        }
-        return null;
-    }
-
-    private OFAction buildL2Modification(Instruction i) {
-        L2ModificationInstruction l2m = (L2ModificationInstruction) i;
-        ModEtherInstruction eth;
-        switch (l2m.subtype()) {
-        case ETH_DST:
-            eth = (ModEtherInstruction) l2m;
-            return factory.actions().setDlDst(MacAddress.of(eth.mac().toLong()));
-        case ETH_SRC:
-            eth = (ModEtherInstruction) l2m;
-            return factory.actions().setDlSrc(MacAddress.of(eth.mac().toLong()));
-        case VLAN_ID:
-            ModVlanIdInstruction vlanId = (ModVlanIdInstruction) l2m;
-            return factory.actions().setVlanVid(VlanVid.ofVlan(vlanId.vlanId.toShort()));
-        case VLAN_PCP:
-            ModVlanPcpInstruction vlanPcp = (ModVlanPcpInstruction) l2m;
-            return factory.actions().setVlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
-        default:
-            log.warn("Unimplemented action type {}.", l2m.subtype());
-            break;
-        }
-        return null;
-    }
-
-    private Match buildMatch() {
+    /**
+     * Builds the match for the flow mod.
+     *
+     * @return the match
+     */
+    protected Match buildMatch() {
         Match.Builder mBuilder = factory.buildMatch();
         EthCriterion eth;
         IPCriterion ip;
@@ -323,6 +206,22 @@ public class FlowModBuilder {
         return mBuilder.build();
     }
 
+    /**
+     * Returns the flow rule for this builder.
+     *
+     * @return the flow rule
+     */
+    protected FlowRule flowRule() {
+        return flowRule;
+    }
 
+    /**
+     * Returns the factory used for building OpenFlow constructs.
+     *
+     * @return the factory
+     */
+    protected OFFactory factory() {
+        return factory;
+    }
 
 }
