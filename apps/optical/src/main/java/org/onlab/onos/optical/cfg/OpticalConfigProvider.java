@@ -291,6 +291,17 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             linkProviderService.linkDetected(linkDescription);
             log.info(String.format("WDM link: %s : %s",
                     linkDescription.src().toString(), linkDescription.dst().toString()));
+
+
+            DefaultLinkDescription linkDescriptionReverse =
+                    new DefaultLinkDescription(snkPoint,
+                                                 srcPoint,
+                                                 Link.Type.OPTICAL,
+                                                 extendedAttributes);
+
+            linkProviderService.linkDetected(linkDescriptionReverse);
+            log.info(String.format("WDM link: %s : %s",
+                    linkDescriptionReverse.src().toString(), linkDescriptionReverse.dst().toString()));
         }
 
         // Discover the packet optical link objects
@@ -322,6 +333,16 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             linkProviderService.linkDetected(linkDescription);
             log.info(String.format("Packet-optical link: %s : %s",
                     linkDescription.src().toString(), linkDescription.dst().toString()));
+
+            DefaultLinkDescription linkDescriptionReverse =
+                    new DefaultLinkDescription(snkPoint,
+                                                 srcPoint,
+                                                 Link.Type.OPTICAL,
+                                                 extendedAttributes);
+
+            linkProviderService.linkDetected(linkDescriptionReverse);
+            log.info(String.format("Packet-optical link: %s : %s",
+                    linkDescriptionReverse.src().toString(), linkDescriptionReverse.dst().toString()));
         }
 
     }
