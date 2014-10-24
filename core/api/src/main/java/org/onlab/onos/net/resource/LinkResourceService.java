@@ -24,6 +24,16 @@ public interface LinkResourceService {
     void releaseResources(LinkResourceAllocations allocations);
 
     /**
+     * Updates previously made allocations with a new resource request.
+     *
+     * @param req            updated resource request
+     * @param oldAllocations old resource allocations
+     * @return new resource allocations
+     */
+    LinkResourceAllocations updateResources(LinkResourceRequest req,
+                                            LinkResourceAllocations oldAllocations);
+
+    /**
      * Returns all allocated resources.
      *
      * @return allocated resources
@@ -61,4 +71,15 @@ public interface LinkResourceService {
      * @return available resources for the target link
      */
     ResourceRequest getAvailableResources(Link link);
+
+    /**
+     * Returns available resources for given link.
+     *
+     * @param link        a target link
+     * @param allocations allocations to be included as available
+     * @return available resources for the target link
+     */
+    ResourceRequest getAvailableResources(Link link,
+                                          LinkResourceAllocations allocations);
+
 }

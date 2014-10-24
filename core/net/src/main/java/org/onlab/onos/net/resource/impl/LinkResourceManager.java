@@ -79,6 +79,12 @@ public class LinkResourceManager implements LinkResourceService {
     }
 
     @Override
+    public LinkResourceAllocations updateResources(LinkResourceRequest req,
+                                                   LinkResourceAllocations oldAllocations) {
+        return null;
+    }
+
+    @Override
     public Iterable<LinkResourceAllocations> getAllocations() {
         // TODO Auto-generated method stub
         return null;
@@ -105,6 +111,12 @@ public class LinkResourceManager implements LinkResourceService {
     @Override
     public ResourceRequest getAvailableResources(Link link) {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public ResourceRequest getAvailableResources(Link link,
+                                                 LinkResourceAllocations allocations) {
         return null;
     }
 
