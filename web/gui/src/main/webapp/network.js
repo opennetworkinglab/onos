@@ -14,6 +14,7 @@
                 layering: true,
                 collisionPrevention: true
             },
+            XjsonUrl: 'rs/topology/graph',
             jsonUrl: 'network.json',
             iconUrl: {
                 device: 'img/device.png',
