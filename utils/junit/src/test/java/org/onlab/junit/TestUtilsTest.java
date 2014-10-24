@@ -1,4 +1,4 @@
-package org.onlab.util;
+package org.onlab.junit;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.util.TestUtils.TestUtilsException;
+import org.onlab.junit.TestUtils.TestUtilsException;
 
 /**
  * Test and usage examples for TestUtils.

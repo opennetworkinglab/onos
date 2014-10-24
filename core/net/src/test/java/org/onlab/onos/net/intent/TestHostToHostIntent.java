@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.onos.net.NetTestTools.hid;
 
 /**
@@ -104,6 +105,6 @@ public class TestHostToHostIntent {
      */
     @Test
     public void checkImmutability() {
-        ImmutableClassChecker.assertThatClassIsImmutable(HostToHostIntent.class);
+        assertThatClassIsImmutable(HostToHostIntent.class);
     }
 }

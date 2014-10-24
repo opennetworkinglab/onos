@@ -1,4 +1,4 @@
-package org.onlab.util;
+package org.onlab.junit;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

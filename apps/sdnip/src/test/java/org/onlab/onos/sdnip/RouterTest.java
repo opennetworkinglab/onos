@@ -17,6 +17,8 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
+import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.onos.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
@@ -42,8 +44,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.TestUtils;
-import org.onlab.util.TestUtils.TestUtilsException;
 
 import com.google.common.collect.Sets;
 

@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * This class tests the immutability, equality, and non-equality of
@@ -17,7 +18,7 @@ public class IntentIdTest {
      */
     @Test
     public void intentIdFollowsGuidelineForImmutableObject() {
-        ImmutableClassChecker.assertThatClassIsImmutable(IntentId.class);
+        assertThatClassIsImmutable(IntentId.class);
     }
 
     /**

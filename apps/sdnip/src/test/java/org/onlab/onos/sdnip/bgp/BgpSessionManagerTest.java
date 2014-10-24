@@ -26,12 +26,12 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
+import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.onos.sdnip.RouteListener;
 import org.onlab.onos.sdnip.RouteUpdate;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.util.TestUtils;
-import org.onlab.util.TestUtils.TestUtilsException;
 
 import com.google.common.net.InetAddresses;
 

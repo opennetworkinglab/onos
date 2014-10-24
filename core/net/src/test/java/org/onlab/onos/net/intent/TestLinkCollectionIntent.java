@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.onos.net.NetTestTools.link;
 
 import java.util.HashSet;
@@ -154,6 +155,6 @@ public class TestLinkCollectionIntent {
      */
     @Test
     public void checkImmutability() {
-        ImmutableClassChecker.assertThatClassIsImmutable(LinkCollectionIntent.class);
+        assertThatClassIsImmutable(LinkCollectionIntent.class);
     }
 }
