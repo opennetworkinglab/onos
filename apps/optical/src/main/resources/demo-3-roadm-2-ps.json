@@ -47,40 +47,12 @@
                 "nodeName1": "ROADM1",
                 "nodeName2": "ROADM3",
                 "numWaves": 80,
-                "port1": 10,
+                "port1": 20,
                 "port2": 30
             },
             "type": "wdmLink"
         },
-        {
-            "allowed": true,
-            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:03",
-            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:01",
-            "params": {
-                "distKms": 1000,
-                "nodeName1": "ROADM3",
-                "nodeName2": "ROADM1",
-                "numWaves": 80,
-                "port1": 30,
-                "port2": 10
-            },
-            "type": "wdmLink"
-        },
 
-        {
-            "allowed": true,
-            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:02",
-            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:03",
-            "params": {
-                "distKms": 2000,
-                "nodeName1": "ROADM2",
-                "nodeName2": "ROADM3",
-                "numWaves": 80,
-                "port1": 20,
-                "port2": 31
-            },
-            "type": "wdmLink"
-        },
         {
             "allowed": true,
             "nodeDpid1": "00:00:ff:ff:ff:ff:ff:03",
@@ -91,7 +63,7 @@
                 "nodeName2": "ROADM2",
                 "numWaves": 80,
                 "port1": 31,
-                "port2": 20
+                "port2": 21
             },
             "type": "wdmLink"
         },
@@ -104,20 +76,7 @@
                 "nodeName1": "ROUTER1",
                 "nodeName2": "ROADM1",
                 "bandWidth": 100000,
-                "port1": 10,
-                "port2": 11
-            },
-            "type": "pktOptLink"
-        },
-        {
-            "allowed": true,
-            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:01",
-            "nodeDpid2": "00:00:ff:ff:ff:ff:00:01",
-            "params": {
-                "nodeName1": "ROADM1",
-                "nodeName2": "ROUTER1",
-                "bandWidth": 100000,
-                "port1": 11,
+                "port1": 1,
                 "port2": 10
             },
             "type": "pktOptLink"
@@ -131,24 +90,11 @@
                 "nodeName1": "ROUTER2",
                 "nodeName2": "ROADM2",
                 "bandWidth": 100000,
-                "port1": 10,
-                "port2": 21
+                "port1": 1,
+                "port2": 11
             },
             "type": "pktOptLink"
         },
-        {
-            "allowed": true,
-            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:02",
-            "nodeDpid2": "00:00:ff:ff:ff:ff:00:02",
-            "params": {
-                "nodeName1": "ROADM2",
-                "nodeName2": "ROUTER2",
-                "bandWidth": 100000,
-                "port1": 21,
-                "port2": 10
-            },
-            "type": "pktOptLink"
-        }
 
     ]
 }
