@@ -41,14 +41,6 @@ public interface LinkResourceService {
     Iterable<LinkResourceAllocations> getAllocations();
 
     /**
-     * Returns the resources allocated for an Intent.
-     *
-     * @param intentId the target Intent's id
-     * @return allocated resources for Intent
-     */
-    LinkResourceAllocations getAllocations(IntentId intentId);
-
-    /**
      * Returns all allocated resources to given link.
      *
      * @param link a target link
@@ -57,12 +49,12 @@ public interface LinkResourceService {
     Iterable<LinkResourceAllocations> getAllocations(Link link);
 
     /**
-     * Returns all IDs of intents using the given link.
+     * Returns the resources allocated for an Intent.
      *
-     * @param link a target link
-     * @return IDs of intents using the link
+     * @param intentId the target Intent's id
+     * @return allocated resources for Intent
      */
-    Iterable<IntentId> getIntents(Link link);
+    LinkResourceAllocations getAllocations(IntentId intentId);
 
     /**
      * Returns available resources for given link.
@@ -70,7 +62,7 @@ public interface LinkResourceService {
      * @param link a target link
      * @return available resources for the target link
      */
-    ResourceRequest getAvailableResources(Link link);
+    Iterable<ResourceRequest> getAvailableResources(Link link);
 
     /**
      * Returns available resources for given link.

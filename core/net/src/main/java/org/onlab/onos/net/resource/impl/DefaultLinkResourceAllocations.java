@@ -26,7 +26,7 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
      * @param request requested resources
      * @param allocations allocated resources
      */
-    protected DefaultLinkResourceAllocations(LinkResourceRequest request,
+    DefaultLinkResourceAllocations(LinkResourceRequest request,
             Map<Link, Set<ResourceAllocation>> allocations) {
         this.request = request;
         this.allocations = allocations;
