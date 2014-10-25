@@ -31,7 +31,6 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.MapEvent;
-
 import static org.onlab.onos.net.MastershipRole.*;
 
 /**
@@ -351,12 +350,7 @@ implements MastershipStore {
 
         @Override
         public void entryUpdated(EntryEvent<DeviceId, RoleValue> event) {
-            NodeId myId = clusterService.getLocalNode().id();
-            NodeId node = event.getValue().get(MASTER);
-            if (myId.equals(node)) {
-                // XXX or do we just let it get sent and caught by ourself?
-                return;
-            }
+
             notifyDelegate(new MastershipEvent(
                     MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
         }
