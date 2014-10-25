@@ -21,8 +21,6 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.TableId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Nicira, Inc. Make
@@ -30,9 +28,6 @@ import org.slf4j.LoggerFactory;
  * 2.1.0 (or whatever version + build) Serial : None
  */
 public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
-
-    private static Logger log =
-            LoggerFactory.getLogger(OFSwitchImplOVS13.class);
 
     private final AtomicBoolean driverHandshakeComplete;
     private OFFactory factory;

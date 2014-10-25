@@ -49,8 +49,6 @@ import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.util.HexString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Stanford University,
@@ -59,9 +57,6 @@ import org.slf4j.LoggerFactory;
  * None
  */
 public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
-
-    private final Logger log =
-            LoggerFactory.getLogger(OFSwitchImplCPqD13.class);
 
     private static final int VLAN_ID_OFFSET = 16;
     private final AtomicBoolean driverHandshakeComplete;

@@ -9,16 +9,12 @@ import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,9 +31,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     private long barrierXidToWaitFor = -1;
 
     private OFPortDescStatsReply wPorts;
-
-    private final Logger log =
-            LoggerFactory.getLogger(OFOpticalSwitchImplLINC13.class);
 
     OFOpticalSwitchImplLINC13(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
@@ -92,7 +85,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                 }
                 break;
             case ERROR:
-                log.error("Switch {} Error {}", getStringId(), (OFErrorMsg) m);
+                log.error("Switch {} Error {}", getStringId(), m);
                 break;
             case FEATURES_REPLY:
                 break;

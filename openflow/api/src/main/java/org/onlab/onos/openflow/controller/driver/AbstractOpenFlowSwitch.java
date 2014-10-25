@@ -45,8 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
-    private static Logger log =
-            LoggerFactory.getLogger(AbstractOpenFlowSwitch.class);
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected Channel channel;
 
