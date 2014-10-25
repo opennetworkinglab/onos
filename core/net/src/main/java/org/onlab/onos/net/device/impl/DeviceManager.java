@@ -386,6 +386,10 @@ public class DeviceManager
 
                 if (!myNodeId.equals(term.master())) {
                     // something went wrong in consistency, let go
+                    log.warn("Mastership has changed after this event."
+                            + "Term Service suggests {} for {}", term, did);
+                    // FIXME: Is it possible to let go of MASTER role
+                    //        but remain on STANDBY list?
                     mastershipService.relinquishMastership(did);
                     applyRole(did, MastershipRole.STANDBY);
                     return;
