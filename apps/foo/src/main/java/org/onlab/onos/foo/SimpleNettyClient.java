@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -12,7 +13,6 @@ import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsManager;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.NettyMessagingService;
-import org.onlab.netty.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +74,10 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
 
         for (int i = 0; i < warmup; i++) {
             messaging.sendAsync(endpoint, "simple", "Hello World".getBytes());
-            Response response = messaging
+            Future<byte[]> responseFuture = messaging
                     .sendAndReceive(endpoint, "echo",
                             "Hello World".getBytes());
-            response.get(100000, TimeUnit.MILLISECONDS);
+            responseFuture.get(100000, TimeUnit.MILLISECONDS);
         }
 
         log.info("measuring round-trip send & receive");
@@ -85,13 +85,13 @@ private static Logger log = LoggerFactory.getLogger(SimpleNettyClient.class);
         int timeouts = 0;
 
         for (int i = 0; i < iterations; i++) {
-            Response response;
+            Future<byte[]> responseFuture;
             Timer.Context context = sendAndReceiveTimer.time();
             try {
-                response = messaging
+                responseFuture = messaging
                         .sendAndReceive(endpoint, "echo",
                                 "Hello World".getBytes());
-                response.get(10000, TimeUnit.MILLISECONDS);
+                responseFuture.get(10000, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 timeouts++;
                 log.info("timeout:" + timeouts + " at iteration:" + i);

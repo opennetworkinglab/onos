@@ -1,9 +1,12 @@
 package org.onlab.netty;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.RandomUtils;
+
 import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 /**
@@ -20,8 +23,8 @@ public class PingPongTest {
             ponger.activate();
             ponger.registerHandler("echo", new EchoHandler());
             byte[] payload = RandomUtils.nextBytes(100);
-            Response response = pinger.sendAndReceive(new Endpoint("localhost", 9086), "echo", payload);
-            assertArrayEquals(payload, response.get(10000, TimeUnit.MILLISECONDS));
+            Future<byte[]> responseFuture = pinger.sendAndReceive(new Endpoint("localhost", 9086), "echo", payload);
+            assertArrayEquals(payload, responseFuture.get(10000, TimeUnit.MILLISECONDS));
         } finally {
             pinger.deactivate();
             ponger.deactivate();

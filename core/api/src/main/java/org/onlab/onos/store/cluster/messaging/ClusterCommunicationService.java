@@ -5,6 +5,8 @@ import java.util.Set;
 
 import org.onlab.onos.cluster.NodeId;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 // TODO: remove IOExceptions?
 /**
  * Service for assisting communications between controller cluster nodes.
@@ -40,10 +42,10 @@ public interface ClusterCommunicationService {
      * Sends a message synchronously.
      * @param message message to send
      * @param toNodeId recipient node identifier
-     * @return ClusterMessageResponse which is reply future.
+     * @return reply future.
      * @throws IOException
      */
-    ClusterMessageResponse sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException;
+    ListenableFuture<byte[]> sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException;
 
     /**
      * Adds a new subscriber for the specified message subject.

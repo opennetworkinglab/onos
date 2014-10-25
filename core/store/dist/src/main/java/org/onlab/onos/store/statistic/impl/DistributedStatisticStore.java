@@ -4,6 +4,7 @@ import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -21,7 +22,6 @@ import org.onlab.onos.net.statistic.StatisticStore;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageResponse;
 import org.onlab.onos.store.flow.ReplicaInfo;
 import org.onlab.onos.store.flow.ReplicaInfoService;
 import org.onlab.onos.store.serializers.KryoNamespaces;
@@ -34,6 +34,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -184,11 +186,11 @@ public class DistributedStatisticStore implements StatisticStore {
                     SERIALIZER.encode(connectPoint));
 
             try {
-                ClusterMessageResponse response =
+                Future<byte[]> response =
                         clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
                 return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
                                                       TimeUnit.MILLISECONDS));
-            } catch (IOException | TimeoutException e) {
+            } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
                 // FIXME: throw a StatsStoreException
                 throw new RuntimeException(e);
             }
@@ -212,11 +214,11 @@ public class DistributedStatisticStore implements StatisticStore {
                     SERIALIZER.encode(connectPoint));
 
             try {
-                ClusterMessageResponse response =
+                Future<byte[]> response =
                         clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
                 return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
                                                       TimeUnit.MILLISECONDS));
-            } catch (IOException | TimeoutException e) {
+            } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
                 // FIXME: throw a StatsStoreException
                 throw new RuntimeException(e);
             }

@@ -2,6 +2,8 @@ package org.onlab.netty;
 
 import java.io.IOException;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 /**
  * Interface for low level messaging primitives.
  */
@@ -24,7 +26,7 @@ public interface MessagingService {
      * @return a response future
      * @throws IOException
      */
-    public Response sendAndReceive(Endpoint ep, String type, byte[] payload) throws IOException;
+    public ListenableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) throws IOException;
 
     /**
      * Registers a new message handler for message type.
