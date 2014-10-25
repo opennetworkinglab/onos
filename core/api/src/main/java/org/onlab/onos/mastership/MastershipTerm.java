@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import org.onlab.onos.cluster.NodeId;
 
+import com.google.common.base.MoreObjects;
+
 public final class MastershipTerm {
 
     private final NodeId master;
@@ -47,5 +49,13 @@ public final class MastershipTerm {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("master", this.master)
+                .add("termNumber", this.termNumber)
+                .toString();
     }
 }
