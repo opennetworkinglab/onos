@@ -77,7 +77,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                               providerService, useBDDP);
             discoverers.put(device.id(), ld);
             for (Port p : deviceService.getPorts(device.id())) {
-                ld.addPort(p);
+                if (!p.number().isLogical()) {
+                    ld.addPort(p);
+                }
             }
         }
 
@@ -122,7 +124,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                         if (ld == null) {
                             return;
                         }
-                        ld.addPort(port);
+                        if (!port.number().isLogical()) {
+                            ld.addPort(port);
+                        }
                     } else {
                         ConnectPoint point = new ConnectPoint(device.id(),
                                                               port.number());
