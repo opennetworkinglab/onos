@@ -17,10 +17,19 @@ import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.topology.LinkWeight;
+//import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
+import org.onlab.onos.net.topology.Topology;
+import org.onlab.onos.net.topology.TopologyEdge;
+//import org.onlab.onos.net.topology.Topology;
+//import org.onlab.onos.net.topology.TopologyEdge;
+import org.onlab.onos.net.topology.TopologyService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+//import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -40,6 +49,9 @@ public class PointToPointIntentCompiler
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
 
     @Activate
     public void activate() {
@@ -87,11 +99,39 @@ public class PointToPointIntentCompiler
      * @throws PathNotFoundException if a path cannot be found
      */
     private Path getPath(ConnectPoint one, ConnectPoint two) {
-        Set<Path> paths = pathService.getPaths(one.deviceId(), two.deviceId());
-        if (paths.isEmpty()) {
-            throw new PathNotFoundException("No path from " + one + " to " + two);
+        // Set<Path> paths = pathService.getPaths(one.deviceId(), two.deviceId());
+       Topology topology = topologyService.currentTopology();
+        LinkWeight weight = new LinkWeight() {
+            @Override
+            public double weight(TopologyEdge edge) {
+                Link.Type lt = edge.link().type();
+                if (lt == Link.Type.OPTICAL) {
+                    return 1000.0;
+                } else {
+                    return 1.0;
+                }
+            }
+        };
+
+        Set<Path> paths = topologyService.getPaths(topology,
+                one.deviceId(),
+                two.deviceId(),
+                weight);
+
+        ArrayList<Path> localPaths = new ArrayList<>();
+        Iterator<Path> itr = paths.iterator();
+        while (itr.hasNext()) {
+            Path path = itr.next();
+            if (path.cost() >= 1000) {
+                continue;
+            }
+            localPaths.add(path);
+        }
+
+        if (localPaths.isEmpty()) {
+            throw new PathNotFoundException("No packet path from " + one + " to " + two);
         }
         // TODO: let's be more intelligent about this eventually
-        return paths.iterator().next();
+        return localPaths.iterator().next();
     }
 }

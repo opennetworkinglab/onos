@@ -71,7 +71,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // TODO: compute multiple paths using the K-shortest path algorithm
         List<Intent> retList = new ArrayList<>();
         log.info("The system is comipling the OpticalConnectivityIntent:" + intent.toString());
-        Path path = calculatePath(intent.getSrcConnectPoint(), intent.getDst());
+        Path path = calculateOpticalPath(intent.getSrcConnectPoint(), intent.getDst());
         if (path == null) {
             return retList;
         } else {
@@ -96,24 +96,17 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         return retList;
     }
 
-    private Path calculatePath(ConnectPoint start, ConnectPoint end) {
+    private Path calculateOpticalPath(ConnectPoint start, ConnectPoint end) {
         // TODO: support user policies
         Topology topology = topologyService.currentTopology();
         LinkWeight weight = new LinkWeight() {
             @Override
             public double weight(TopologyEdge edge) {
-                boolean isOptical = false;
-
                 Link.Type lt = edge.link().type();
-
-                //String t = edge.link().annotations().value("linkType");
                 if (lt == Link.Type.OPTICAL) {
-                   isOptical = true;
-                }
-                if (isOptical) {
-                    return 1; // optical links
+                    return 1.0;
                 } else {
-                    return 10000; // packet links
+                    return 1000.0;
                 }
             }
         };
@@ -123,20 +116,20 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 end.deviceId(),
                 weight);
 
+        ArrayList<Path> localPaths = new ArrayList<>();
         Iterator<Path> itr = paths.iterator();
         while (itr.hasNext()) {
             Path path = itr.next();
-            // log.info(String.format("total link number.:%d", path.links().size()));
-            if (path.cost() >= 10000) {
-                itr.remove();
+            if (path.cost() >= 1000) {
+                continue;
             }
+            localPaths.add(path);
         }
 
-        if (paths.isEmpty()) {
-            log.info("No optical path found from " + start + " to " + end);
-            return null;
+        if (localPaths.isEmpty()) {
+            throw new PathNotFoundException("No fiber path from " + start + " to " + end);
         } else {
-            return paths.iterator().next();
+            return localPaths.iterator().next();
         }
 
     }
