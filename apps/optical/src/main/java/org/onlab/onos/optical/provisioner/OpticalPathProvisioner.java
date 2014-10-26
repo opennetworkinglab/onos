@@ -96,7 +96,7 @@ public class OpticalPathProvisioner {
                 case INSTALLED:
                     break;
                 case FAILED:
-                    log.info("intent {} failed, calling optical path provisioning APP.", event.subject());
+                    log.info("packet intent {} failed, calling optical path provisioning APP.", event.subject());
                     setuplightpath(event.subject());
                     break;
                 case WITHDRAWN:
@@ -109,8 +109,8 @@ public class OpticalPathProvisioner {
         }
 
         private void setuplightpath(Intent intent) {
-           // TODO: considering user policies and optical reach
-           if (!intent.equals(PointToPointIntent.class)) {
+           // TODO support more packet intent types
+           if (!intent.getClass().equals(PointToPointIntent.class)) {
                return;
            }
 
@@ -124,15 +124,10 @@ public class OpticalPathProvisioner {
            LinkWeight weight = new LinkWeight() {
                @Override
                public double weight(TopologyEdge edge) {
-                   boolean isOptical = false;
-                   String t = edge.link().annotations().value("linkType");
-                   if (t.equals("WDM")) {
-                      isOptical = true;
-                   }
-                   if (isOptical) {
-                       return 1000;  // optical links
+                   if (isOpticalLink(edge.link())) {
+                       return 1000.0;  // optical links
                    } else {
-                       return 10; // packet links
+                       return 1.0;   // packet links
                    }
                }
            };
@@ -165,14 +160,12 @@ public class OpticalPathProvisioner {
                }
 
                while (true) {
-
                    if (itrLink.hasNext()) {
                        Link link2 = itrLink.next();
                        dstWdmPoint = link2.src();
                    } else {
                        break;
                    }
-
                    if (itrLink.hasNext()) {
                        Link link3 = itrLink.next();
                        if (!isOpticalLink(link3)) {
@@ -210,9 +203,9 @@ public class OpticalPathProvisioner {
 
         private boolean isOpticalLink(Link link) {
             boolean isOptical = false;
-            String t = link.annotations().value("linkType");
-            if (t.equals("WDM") || t.equals("PktOptLink")) {
-               isOptical = true;
+            Link.Type lt = link.type();
+            if (lt == Link.Type.OPTICAL) {
+                isOptical = true;
             }
             return isOptical;
           }

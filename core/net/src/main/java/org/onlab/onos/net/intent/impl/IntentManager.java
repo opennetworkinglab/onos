@@ -265,7 +265,10 @@ public class IntentManager
             log.warn("Unable to compile intent {} due to:", intent.id(), e);
 
             // If compilation failed, mark the intent as failed.
-            eventDispatcher.post(store.setState(intent, FAILED));
+            IntentEvent event = store.setState(intent, FAILED);
+            if (event != null) {
+                eventDispatcher.post(event);
+            }
         }
     }
 
