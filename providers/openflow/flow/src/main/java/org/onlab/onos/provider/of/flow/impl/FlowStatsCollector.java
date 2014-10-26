@@ -8,6 +8,7 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
+import org.onlab.onos.openflow.controller.RoleState;
 import org.onlab.util.Timer;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsRequest;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -48,6 +49,13 @@ public class FlowStatsCollector implements TimerTask {
     }
 
     private void sendFlowStatistics() {
+        if (log.isTraceEnabled()) {
+            log.trace("sendFlowStatistics {}:{}", sw.getStringId(), sw.getRole());
+        }
+        if (sw.getRole() != RoleState.MASTER) {
+            // Switch not master.
+            return;
+        }
         OFFlowStatsRequest request = sw.factory().buildFlowStatsRequest()
                 .setMatch(sw.factory().matchWildcardAll())
                 .setTableId(TableId.ALL)
