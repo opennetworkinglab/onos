@@ -4,6 +4,8 @@ import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.DeviceId;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Describes a device mastership event.
  */
@@ -61,5 +63,15 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      */
     public RoleInfo roleInfo() {
         return roleInfo;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("time", time())
+                .add("type", type())
+                .add("subject", subject())
+                .add("roleInfo", roleInfo)
+                .toString();
     }
 }
