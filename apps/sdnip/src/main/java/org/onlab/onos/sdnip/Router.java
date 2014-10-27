@@ -447,7 +447,8 @@ public class Router implements RouteListener {
             Objects.equal(action1, action2) &&
             Objects.equal(egressPort1, egressPort2) &&
             Objects.equal(ingressPorts1, ingressPorts2);*/
-        return Objects.equal(intent1.selector(), intent2.selector()) &&
+        return Objects.equal(intent1.appId(), intent2.appId()) &&
+                Objects.equal(intent1.selector(), intent2.selector()) &&
                 Objects.equal(intent1.treatment(), intent2.treatment()) &&
                 Objects.equal(intent1.ingressPoints(), intent2.ingressPoints()) &&
                 Objects.equal(intent1.egressPoint(), intent2.egressPoint());
