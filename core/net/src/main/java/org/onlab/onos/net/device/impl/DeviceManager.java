@@ -221,9 +221,15 @@ public class DeviceManager
             log.info("Device {} connected", deviceId);
             // check my Role
             MastershipRole role = mastershipService.requestRoleFor(deviceId);
+            log.info("requestedRole, became {} for {}", role, deviceId);
             if (role != MastershipRole.MASTER) {
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is no longer the MASTER? probably not
+//                Device device = getDevice(deviceId);
+//                if (device != null) {
+//                    // FIXME roleChanged should take DeviceId instead of Device
+//                    provider().roleChanged(device, role);
+//                }
                 return;
             }
             MastershipTerm term = mastershipService.requestTermService()
@@ -231,6 +237,7 @@ public class DeviceManager
 
             if (!term.master().equals(clusterService.getLocalNode().id())) {
                 // lost mastership after requestRole told this instance was MASTER.
+                log.info("lost mastership before getting term info.");
                 return;
             }
 
@@ -251,17 +258,13 @@ public class DeviceManager
                 //       instance is the new Master, but
                 //       event returned from the store is null?
 
-                // TODO: Confirm: Mastership could be lost after requestRole
-                //       and createOrUpdateDevice call.
-                //       In that case STANDBY node can
-                //       claim itself to be master against the Device.
-                //       Will the Node, chosen by the MastershipService, retry
-                //       to get the MASTER role when that happen?
-
                 // FIXME: 1st argument should be deviceId, to allow setting
                 //        certain roles even if the store returned null.
+                log.info("event: {} {}", event.type(), event);
                 provider().roleChanged(event.subject(), role);
                 post(event);
+            } else {
+                log.info("No event to publish");
             }
         }
 
@@ -270,32 +273,34 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
 
-            // FIXME: only the MASTER should be marking off-line in normal cases,
-            // but if I was the last STANDBY connection, etc. and no one else
-            // was there to mark the device offline, this instance may need to
-            // temporarily request for Master Role and mark offline.
-            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
-                log.debug("Device {} disconnected, but I am not the master", deviceId);
-                //let go of ability to be backup
-                mastershipService.relinquishMastership(deviceId);
-                return;
-            }
 
             DeviceEvent event = null;
             try {
                 event = store.markOffline(deviceId);
             } catch (IllegalStateException e) {
+                log.warn("Failed to mark {} offline", deviceId);
+                // only the MASTER should be marking off-line in normal cases,
+                // but if I was the last STANDBY connection, etc. and no one else
+                // was there to mark the device offline, this instance may need to
+                // temporarily request for Master Role and mark offline.
+
                 //there are times when this node will correctly have mastership, BUT
                 //that isn't reflected in the ClockManager before the device disconnects.
                 //we want to let go of the device anyways, so make sure this happens.
 
-                // FIXME: Come up with workaround for above scenario.
+                // FIXME: Store semantics leaking out as IllegalStateException.
+                //  Consider revising store API to handle this scenario.
+
+                MastershipRole role = mastershipService.requestRoleFor(deviceId);
                 MastershipTerm term = termService.getMastershipTerm(deviceId);
                 final NodeId myNodeId = clusterService.getLocalNode().id();
                 // TODO: Move this type of check inside device clock manager, etc.
                 if (myNodeId.equals(term.master())) {
+                    log.info("Marking {} offline", deviceId);
                     deviceClockProviderService.setMastershipTerm(deviceId, term);
                     event = store.markOffline(deviceId);
+                } else {
+                    log.error("Failed again marking {} offline. {}", deviceId, role);
                 }
             } finally {
                 //relinquish master role and ability to be backup.
@@ -315,14 +320,6 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                     "Port descriptions list cannot be null");
             checkValidity();
-            //XXX what's this doing here?
-            this.provider().id();
-
-            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
-                // TODO If we become master, then we'll trigger something to update this
-                //      info to fix any inconsistencies that may result during the handoff.
-                return;
-            }
 
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                     deviceId, portDescriptions);
@@ -338,13 +335,8 @@ public class DeviceManager
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
 
-            if (!mastershipService.getLocalRole(deviceId).equals(MastershipRole.MASTER)) {
-                // TODO If we become master, then we'll trigger something to update this
-                //      info to fix any inconsistencies that may result during the handoff.
-                return;
-            }
-            DeviceEvent event = store.updatePortStatus(this.provider().id(),
-                    deviceId, portDescription);
+            final DeviceEvent event = store.updatePortStatus(this.provider().id(),
+                        deviceId, portDescription);
             if (event != null) {
                 log.info("Device {} port {} status changed", deviceId, event
                         .port().number());
@@ -407,15 +399,16 @@ public class DeviceManager
                 Device device = getDevice(did);
                 if ((device != null) && !isAvailable(did)) {
                     //flag the device as online. Is there a better way to do this?
-                    store.createOrUpdateDevice(device.providerId(), did,
+                    DeviceEvent devEvent = store.createOrUpdateDevice(device.providerId(), did,
                             new DefaultDeviceDescription(
                                     did.uri(), device.type(), device.manufacturer(),
                                     device.hwVersion(), device.swVersion(),
                                     device.serialNumber(), device.chassisId()));
+                    post(devEvent);
                 }
-                //TODO re-collect device information to fix potential staleness
-                queryPortInfo(did);
                 applyRole(did, MastershipRole.MASTER);
+                // re-collect device information to fix potential staleness
+                queryPortInfo(did);
             } else if (event.roleInfo().backups().contains(myNodeId)) {
                 applyRole(did, MastershipRole.STANDBY);
             }

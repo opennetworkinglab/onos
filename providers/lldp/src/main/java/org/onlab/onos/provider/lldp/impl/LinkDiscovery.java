@@ -139,8 +139,8 @@ public class LinkDiscovery implements TimerTask {
      * @param port the port
      */
     public void addPort(final Port port) {
-        this.log.debug("sending init probe to port {}",
-                           port.number().toLong());
+        this.log.debug("sending init probe to port {}@{}",
+                           port.number().toLong(), device.id());
 
         sendProbes(port.number().toLong());
 
@@ -245,7 +245,7 @@ public class LinkDiscovery implements TimerTask {
      */
     @Override
     public void run(final Timeout t) {
-        this.log.trace("sending probes");
+        this.log.trace("sending probes from {}", device.id());
         synchronized (this) {
             final Iterator<Long> fastIterator = this.fastPorts.iterator();
             Long portNumber;
@@ -256,7 +256,7 @@ public class LinkDiscovery implements TimerTask {
                         .getAndIncrement();
 
                 if (probeCount < LinkDiscovery.MAX_PROBE_COUNT) {
-                    this.log.trace("sending fast probe to port");
+                    this.log.trace("sending fast probe to port {}", portNumber);
                     sendProbes(portNumber);
                 } else {
                     // Update fast and slow ports
@@ -356,6 +356,7 @@ public class LinkDiscovery implements TimerTask {
        if (device.type() != Device.Type.ROADM &&
                mastershipService.getLocalRole(this.device.id()) ==
                MastershipRole.MASTER) {
+           log.debug("sending probes out to {}@{}", portNumber, device.id());
            OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
            pktService.emit(pkt);
            if (useBDDP) {

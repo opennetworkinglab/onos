@@ -328,8 +328,8 @@ public class GossipDeviceStore
         final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         final DeviceEvent event = markOfflineInternal(deviceId, timestamp);
         if (event != null) {
-            log.info("Notifying peers of a device offline topology event for deviceId: {}",
-                    deviceId);
+            log.info("Notifying peers of a device offline topology event for deviceId: {} {}",
+                    deviceId, timestamp);
             try {
                 notifyPeers(new InternalDeviceOfflineEvent(deviceId, timestamp));
             } catch (IOException e) {
@@ -399,7 +399,24 @@ public class GossipDeviceStore
                                        DeviceId deviceId,
                                        List<PortDescription> portDescriptions) {
 
-        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
+        final Timestamp newTimestamp;
+        try {
+            newTimestamp = deviceClockService.getTimestamp(deviceId);
+        } catch (IllegalStateException e) {
+            log.info("Timestamp was not available for device {}", deviceId);
+            log.debug("  discarding {}", portDescriptions);
+            // Failed to generate timestamp.
+
+            // Possible situation:
+            //  Device connected and became master for short period of time,
+            // but lost mastership before this instance had the chance to
+            // retrieve term information.
+
+            // Information dropped here is expected to be recoverable by
+            // device probing after mastership change
+
+            return Collections.emptyList();
+        }
         log.info("timestamp for {} {}", deviceId, newTimestamp);
 
         final Timestamped<List<PortDescription>> timestampedInput
@@ -580,7 +597,16 @@ public class GossipDeviceStore
                                                      DeviceId deviceId,
                                                      PortDescription portDescription) {
 
-        final Timestamp newTimestamp = deviceClockService.getTimestamp(deviceId);
+        final Timestamp newTimestamp;
+        try {
+            newTimestamp = deviceClockService.getTimestamp(deviceId);
+        } catch (IllegalStateException e) {
+            log.info("Timestamp was not available for device {}", deviceId);
+            log.debug("  discarding {}", portDescription);
+            // Failed to generate timestamp. Ignoring.
+            // See updatePorts comment
+            return null;
+        }
         final Timestamped<PortDescription> deltaDesc
             = new Timestamped<>(portDescription, newTimestamp);
         final DeviceEvent event;

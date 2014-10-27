@@ -96,7 +96,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         // FIXME if possible, we might want this to be part of
         // OpenFlowSwitch interface so the driver interface isn't misused.
         OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        if (!((OpenFlowSwitchDriver) sw).isConnected()) {
+        if (sw == null ||
+            !((OpenFlowSwitchDriver) sw).isConnected()) {
+            LOG.error("Failed to probe device {} on sw={}", device, sw);
             providerService.deviceDisconnected(device.id());
             return;
         }
