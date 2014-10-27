@@ -74,6 +74,7 @@ import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.DefaultLinkDescription;
+import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.ChassisId;
@@ -115,6 +116,7 @@ public final class KryoNamespaces {
                     HashMap.class,
                     HashSet.class,
                     LinkedList.class,
+                    byte[].class,
                     //
                     //
                     ControllerNode.State.class,
@@ -194,6 +196,7 @@ public final class KryoNamespaces {
             .register(DefaultLink.class, new DefaultLinkSerializer())
             .register(MastershipTerm.class, new MastershipTermSerializer())
             .register(HostLocation.class, new HostLocationSerializer())
+            .register(DefaultOutboundPacket.class, new DefaultOutboundPacketSerializer())
 
             .build();
 

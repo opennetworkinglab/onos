@@ -15,8 +15,9 @@
  */
 package org.onlab.onos.store.serializers;
 
-import org.onlab.util.KryoNamespace;
 import java.nio.ByteBuffer;
+
+import org.onlab.util.KryoNamespace;
 
 /**
  * StoreSerializer implementation using Kryo.
@@ -30,7 +31,7 @@ public class KryoSerializer implements StoreSerializer {
     }
 
     /**
-     * Sets up the common serialzers pool.
+     * Sets up the common serializers pool.
      */
     protected void setupKryoPool() {
         serializerPool = KryoNamespace.newBuilder()

@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -31,11 +31,14 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.packet.OutboundPacket;
 import org.onlab.onos.net.packet.PacketContext;
+import org.onlab.onos.net.packet.PacketEvent;
 import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketProvider;
 import org.onlab.onos.net.packet.PacketProviderRegistry;
 import org.onlab.onos.net.packet.PacketProviderService;
 import org.onlab.onos.net.packet.PacketService;
+import org.onlab.onos.net.packet.PacketStore;
+import org.onlab.onos.net.packet.PacketStoreDelegate;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -51,18 +54,25 @@ implements PacketService, PacketProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
+    private final PacketStoreDelegate delegate = new InternalStoreDelegate();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DeviceService deviceService;
 
-    private final Map<Integer, PacketProcessor> processors = new TreeMap<>();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private PacketStore store;
+
+    private final Map<Integer, PacketProcessor> processors = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
+        store.setDelegate(delegate);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 
@@ -81,6 +91,11 @@ implements PacketService, PacketProviderRegistry {
     @Override
     public void emit(OutboundPacket packet) {
         checkNotNull(packet, "Packet cannot be null");
+
+        store.emit(packet);
+    }
+
+    private void localEmit(OutboundPacket packet) {
         final Device device = deviceService.getDevice(packet.sendThrough());
         final PacketProvider packetProvider = getProvider(device.providerId());
         if (packetProvider != null) {
@@ -110,4 +125,16 @@ implements PacketService, PacketProviderRegistry {
         }
 
     }
+
+    /**
+     * Internal callback from the packet store.
+     */
+    private class InternalStoreDelegate
+    implements PacketStoreDelegate {
+        @Override
+        public void notify(PacketEvent event) {
+            localEmit(event.subject());
+        }
+    }
+
 }

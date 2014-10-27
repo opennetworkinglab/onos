@@ -115,10 +115,10 @@ public final class KryoNamespace implements KryoFactory {
     /**
      * Creates a Kryo instance pool.
      *
-     * @param registerdTypes types to register
+     * @param registeredTypes types to register
      */
-    private KryoNamespace(final List<Pair<Class<?>, Serializer<?>>> registerdTypes) {
-        this.registeredTypes = ImmutableList.copyOf(registerdTypes);
+    private KryoNamespace(final List<Pair<Class<?>, Serializer<?>>> registeredTypes) {
+        this.registeredTypes = ImmutableList.copyOf(registeredTypes);
         // always true for now
         this.registrationRequired = true;
     }
