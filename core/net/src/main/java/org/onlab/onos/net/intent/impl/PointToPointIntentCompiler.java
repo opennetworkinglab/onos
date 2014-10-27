@@ -108,7 +108,7 @@ public class PointToPointIntentCompiler
                 if (lt == Link.Type.OPTICAL) {
                     return 1000.0;
                 } else {
-                    return 1.0;
+                    return Double.MIN_VALUE;
                 }
             }
         };

@@ -36,7 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V>>
         implements GraphPathSearch<V, E> {
 
-    private double samenessThreshold = 0.000000001;
+    private double samenessThreshold = Double.MIN_VALUE;
 
     /**
      * Sets a new sameness threshold for comparing cost values; default is
@@ -183,7 +183,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
 
             double newCost = cost + hopCost;
             boolean relaxed = newCost < oldCost;
-            boolean same = Math.abs(newCost - oldCost) < samenessThreshold;
+            boolean same = Math.abs(newCost - oldCost) <= samenessThreshold;
             if (same || relaxed) {
                 updateVertex(v, e, newCost, !same);
             }
