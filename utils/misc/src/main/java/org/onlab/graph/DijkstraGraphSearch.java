@@ -40,7 +40,7 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
             if (cost < Double.MAX_VALUE) {
                 // If the vertex is reachable, relax all its egress edges.
                 for (E e : graph.getEdgesFrom(nearest)) {
-                    result.relaxEdge(e, cost, weight);
+                    result.relaxEdge(e, cost, weight, true);
                 }
             }
 

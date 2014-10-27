@@ -91,4 +91,21 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
         executeSearch(graphSearch(), graph, A, E, weight, 3, 3.0);
     }
 
+    @Test
+    public void negativeWeights() {
+        graph = new AdjacencyListsGraph<>(of(A, B, C, D, E, F, G),
+                                          of(new TestEdge(A, B, 1),
+                                             new TestEdge(A, C, -1),
+                                             new TestEdge(B, D, 1),
+                                             new TestEdge(D, A, -2),
+                                             new TestEdge(C, D, 1),
+                                             new TestEdge(D, E, 1),
+                                             new TestEdge(D, F, 1),
+                                             new TestEdge(E, G, 1),
+                                             new TestEdge(F, G, 1),
+                                             new TestEdge(G, A, -5),
+                                             new TestEdge(A, G, 4)));
+        executeSearch(graphSearch(), graph, A, G, weight, 3, 4.0);
+    }
+
 }
