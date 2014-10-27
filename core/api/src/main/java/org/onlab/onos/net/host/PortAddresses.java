@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.onos.net.ConnectPoint;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
 import com.google.common.base.MoreObjects;
@@ -17,24 +16,25 @@ import com.google.common.base.MoreObjects;
 public class PortAddresses {
 
     private final ConnectPoint connectPoint;
-    // TODO: Should this be IpAddress or IpPrefix?
-    private final Set<IpPrefix> ipAddresses;
+    private final Set<InterfaceIpAddress> ipAddresses;
     private final MacAddress macAddress;
 
     /**
-     * Constructs a PortAddress object for the given connection point, with a
+     * Constructs a PortAddresses object for the given connection point, with a
      * set of IP addresses and a MAC address.
      * <p/>
      * Both address parameters are optional and can be set to null.
      *
      * @param connectPoint the connection point these addresses are for
-     * @param ips a set of IP addresses
+     * @param ipAddresses a set of interface IP addresses
      * @param mac a MAC address
      */
     public PortAddresses(ConnectPoint connectPoint,
-            Set<IpPrefix> ips, MacAddress mac) {
+            Set<InterfaceIpAddress> ipAddresses, MacAddress mac) {
         this.connectPoint = connectPoint;
-        this.ipAddresses = (ips == null) ? Collections.<IpPrefix>emptySet() : new HashSet<>(ips);
+        this.ipAddresses = (ipAddresses == null) ?
+            Collections.<InterfaceIpAddress>emptySet()
+            : new HashSet<>(ipAddresses);
         this.macAddress = mac;
     }
 
@@ -48,11 +48,11 @@ public class PortAddresses {
     }
 
     /**
-     * Returns the set of IP addresses.
+     * Returns the set of interface IP addresses.
      *
-     * @return the IP addresses
+     * @return the interface IP addresses
      */
-    public Set<IpPrefix> ips() {
+    public Set<InterfaceIpAddress> ipAddresses() {
         return ipAddresses;
     }
 

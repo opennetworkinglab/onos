@@ -30,6 +30,7 @@ import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostStore;
 import org.onlab.onos.net.host.HostStoreDelegate;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
@@ -332,8 +333,9 @@ public class GossipHostStore
             if (existing == null) {
                 portAddresses.put(addresses.connectPoint(), addresses);
             } else {
-                Set<IpPrefix> union = Sets.union(existing.ips(), addresses.ips())
-                        .immutableCopy();
+                Set<InterfaceIpAddress> union =
+                    Sets.union(existing.ipAddresses(),
+                               addresses.ipAddresses()).immutableCopy();
 
                 MacAddress newMac = (addresses.mac() == null) ? existing.mac()
                         : addresses.mac();
@@ -351,8 +353,9 @@ public class GossipHostStore
         synchronized (portAddresses) {
             PortAddresses existing = portAddresses.get(addresses.connectPoint());
             if (existing != null) {
-                Set<IpPrefix> difference =
-                        Sets.difference(existing.ips(), addresses.ips()).immutableCopy();
+                Set<InterfaceIpAddress> difference =
+                    Sets.difference(existing.ipAddresses(),
+                                    addresses.ipAddresses()).immutableCopy();
 
                 // If they removed the existing mac, set the new mac to null.
                 // Otherwise, keep the existing mac.

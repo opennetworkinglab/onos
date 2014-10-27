@@ -32,6 +32,7 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
@@ -41,6 +42,7 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -186,10 +188,15 @@ public class ProxyArpManagerTest {
 
         for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
-            IpPrefix prefix1 = IpPrefix.valueOf("10.0." + (2 * i - 1) + ".1/24");
-            IpPrefix prefix2 = IpPrefix.valueOf("10.0." + (2 * i) + ".1/24");
-            PortAddresses pa = new PortAddresses(cp,
-                    Sets.newHashSet(prefix1, prefix2), MacAddress.valueOf(i));
+            IpPrefix prefix1 = IpPrefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
+            IpAddress addr1 = IpAddress.valueOf("10.0." + (2 * i - 1) + ".1");
+            IpPrefix prefix2 = IpPrefix.valueOf("10.0." + (2 * i) + ".0/24");
+            IpAddress addr2 = IpAddress.valueOf("10.0." + (2 * i) + ".1");
+            InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
+            InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
+            PortAddresses pa =
+                new PortAddresses(cp, Sets.newHashSet(ia1, ia2),
+                                  MacAddress.valueOf(i));
             addresses.add(pa);
 
             expect(hostService.getAddressBindingsForPort(cp))

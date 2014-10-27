@@ -35,8 +35,11 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.host.HostAdminService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 
@@ -72,12 +75,25 @@ public class NetworkConfigReader {
                         DeviceId.deviceId(dpidToUri(entry.getDpid())),
                         PortNumber.portNumber(entry.getPortNumber()));
 
-                Set<IpPrefix> ipAddresses = new HashSet<IpPrefix>();
+                Set<InterfaceIpAddress> interfaceIpAddresses = new HashSet<>();
 
                 for (String strIp : entry.getIpAddresses()) {
+                    // Get the IP address and the subnet mask length
                     try {
-                        IpPrefix address = IpPrefix.valueOf(strIp);
-                        ipAddresses.add(address);
+                        String[] splits = strIp.split("/");
+                        if (splits.length != 2) {
+                            throw new IllegalArgumentException("Invalid IP address and prefix length format");
+                        }
+                        //
+                        // TODO: For now we need Ip4Prefix to mask-out the
+                        // subnet address.
+                        //
+                        Ip4Prefix subnet4 = new Ip4Prefix(strIp);
+                        IpPrefix subnet = IpPrefix.valueOf(subnet4.toString());
+                        IpAddress addr = IpAddress.valueOf(splits[0]);
+                        InterfaceIpAddress ia =
+                            new InterfaceIpAddress(addr, subnet);
+                        interfaceIpAddresses.add(ia);
                     } catch (IllegalArgumentException e) {
                         log.warn("Bad format for IP address in config: {}", strIp);
                     }
@@ -94,7 +110,7 @@ public class NetworkConfigReader {
                 }
 
                 PortAddresses addresses = new PortAddresses(cp,
-                        ipAddresses, macAddress);
+                        interfaceIpAddresses, macAddress);
 
                 hostAdminService.bindAddressesToPort(addresses);
             }

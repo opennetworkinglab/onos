@@ -35,6 +35,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.IpAddress;
@@ -76,20 +77,33 @@ public class HostToInterfaceAdaptorTest {
         portAddresses = Sets.newHashSet();
         interfaces = Maps.newHashMap();
 
+        InterfaceIpAddress ia11 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.1.1"),
+                                   IpPrefix.valueOf("192.168.1.0/24"));
         createPortAddressesAndInterface(CP1,
-                Sets.newHashSet(IpPrefix.valueOf("192.168.1.1/24")),
+                Sets.newHashSet(ia11),
                 MacAddress.valueOf("00:00:00:00:00:01"));
 
         // Two addresses in the same subnet
+        InterfaceIpAddress ia21 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.2.1"),
+                                   IpPrefix.valueOf("192.168.2.0/24"));
+        InterfaceIpAddress ia22 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.2.2"),
+                                   IpPrefix.valueOf("192.168.2.0/24"));
         createPortAddressesAndInterface(CP2,
-                Sets.newHashSet(IpPrefix.valueOf("192.168.2.1/24"),
-                        IpPrefix.valueOf("192.168.2.2/24")),
+                Sets.newHashSet(ia21, ia22),
                 MacAddress.valueOf("00:00:00:00:00:02"));
 
         // Two addresses in different subnets
+        InterfaceIpAddress ia31 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.3.1"),
+                                   IpPrefix.valueOf("192.168.3.0/24"));
+        InterfaceIpAddress ia41 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.4.1"),
+                                   IpPrefix.valueOf("192.168.4.0/24"));
         createPortAddressesAndInterface(CP3,
-                Sets.newHashSet(IpPrefix.valueOf("192.168.3.1/24"),
-                        IpPrefix.valueOf("192.168.4.1/24")),
+                Sets.newHashSet(ia31, ia41),
                 MacAddress.valueOf("00:00:00:00:00:03"));
 
         expect(hostService.getAddressBindings()).andReturn(portAddresses).anyTimes();
@@ -104,16 +118,17 @@ public class HostToInterfaceAdaptorTest {
      * places them in the correct global data stores.
      *
      * @param cp the connect point
-     * @param ips the set of IP addresses
+     * @param ipAddresses the set of interface IP addresses
      * @param mac the MAC address
      */
     private void createPortAddressesAndInterface(
-            ConnectPoint cp, Set<IpPrefix> ips, MacAddress mac) {
-        PortAddresses pa = new PortAddresses(cp, ips, mac);
+            ConnectPoint cp, Set<InterfaceIpAddress> ipAddresses,
+            MacAddress mac) {
+        PortAddresses pa = new PortAddresses(cp, ipAddresses, mac);
         portAddresses.add(pa);
         expect(hostService.getAddressBindingsForPort(cp)).andReturn(pa).anyTimes();
 
-        Interface intf = new Interface(cp, ips, mac);
+        Interface intf = new Interface(cp, ipAddresses, mac);
         interfaces.put(cp, intf);
     }
 

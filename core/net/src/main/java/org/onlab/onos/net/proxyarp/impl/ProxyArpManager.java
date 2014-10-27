@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -29,6 +28,7 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
@@ -114,35 +114,37 @@ public class ProxyArpManager implements ProxyArpService {
         checkArgument(arp.getOpCode() == ARP.OP_REQUEST, NOT_ARP_REQUEST);
         checkNotNull(inPort);
 
-        // If the source address matches one of our external addresses
-        // it could be a request from an internal host to an external
-        // address. Forward it over to the correct port.
-        IpAddress source = IpAddress.valueOf(arp.getSenderProtocolAddress());
-        PortAddresses sourceAddresses = findOutsidePortInSubnet(source);
-        if (sourceAddresses != null && !isOutsidePort(inPort)) {
-            for (IpPrefix subnet : sourceAddresses.ips()) {
-                if (subnet.toIpAddress().equals(source)) {
-                    sendTo(eth, sourceAddresses.connectPoint());
-                    return;
-                }
-            }
-        }
-
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
         if (isOutsidePort(inPort)) {
-            IpAddress target = IpAddress.valueOf(arp.getTargetProtocolAddress());
-            PortAddresses addresses = hostService.getAddressBindingsForPort(inPort);
+            IpAddress target =
+                IpAddress.valueOf(arp.getTargetProtocolAddress());
+            PortAddresses addresses =
+                hostService.getAddressBindingsForPort(inPort);
 
-            for (IpPrefix interfaceAddress : addresses.ips()) {
-                if (interfaceAddress.toIpAddress().equals(target)) {
-                    Ethernet arpReply = buildArpReply(interfaceAddress,
-                            addresses.mac(), eth);
+            for (InterfaceIpAddress ia : addresses.ipAddresses()) {
+                if (ia.ipAddress().equals(target)) {
+                    Ethernet arpReply =
+                        buildArpReply(ia.ipAddress(), addresses.mac(), eth);
                     sendTo(arpReply, inPort);
                 }
             }
-
             return;
+        } else {
+            // If the source address matches one of our external addresses
+            // it could be a request from an internal host to an external
+            // address. Forward it over to the correct port.
+            IpAddress source =
+                IpAddress.valueOf(arp.getSenderProtocolAddress());
+            PortAddresses sourceAddresses = findPortInSubnet(source);
+            if (sourceAddresses != null) {
+                for (InterfaceIpAddress ia : sourceAddresses.ipAddresses()) {
+                    if (ia.ipAddress().equals(source)) {
+                        sendTo(eth, sourceAddresses.connectPoint());
+                        return;
+                    }
+                }
+            }
         }
 
         // Continue with normal proxy ARP case
@@ -168,8 +170,9 @@ public class ProxyArpManager implements ProxyArpService {
         }
 
         // TODO find the correct IP address
-        Ethernet arpReply = buildArpReply(dst.ipAddresses().iterator().next(),
-                dst.mac(), eth);
+        IpAddress ipAddress =
+            dst.ipAddresses().iterator().next().toIpAddress();
+        Ethernet arpReply = buildArpReply(ipAddress, dst.mac(), eth);
         // TODO: check send status with host service.
         sendTo(arpReply, src.location());
     }
@@ -199,16 +202,14 @@ public class ProxyArpManager implements ProxyArpService {
      * Finds the port with an address in the subnet of the target address, if
      * one exists.
      *
-     * @param target the target address to find a matching external port for
-     * @return a PortAddresses object containing the external addresses if one
-     * was found, otherwise null.
+     * @param target the target address to find a matching port for
+     * @return a PortAddresses object if one was found, otherwise null
      */
-    private PortAddresses findOutsidePortInSubnet(IpAddress target) {
+    private PortAddresses findPortInSubnet(IpAddress target) {
         for (PortAddresses addresses : hostService.getAddressBindings()) {
-            for (IpPrefix prefix : addresses.ips()) {
-                if (prefix.contains(target)) {
-                    return new PortAddresses(addresses.connectPoint(),
-                            Collections.singleton(prefix), addresses.mac());
+            for (InterfaceIpAddress ia : addresses.ipAddresses()) {
+                if (ia.subnetAddress().contains(target)) {
+                    return addresses;
                 }
             }
         }
@@ -223,7 +224,11 @@ public class ProxyArpManager implements ProxyArpService {
      * @return true if the port is an outside-facing port, otherwise false
      */
     private boolean isOutsidePort(ConnectPoint port) {
-        return !hostService.getAddressBindingsForPort(port).ips().isEmpty();
+        //
+        // TODO: Is this sufficient to identify outside-facing ports: just
+        // having IP addresses on a port?
+        //
+        return !hostService.getAddressBindingsForPort(port).ipAddresses().isEmpty();
     }
 
     @Override
@@ -335,7 +340,7 @@ public class ProxyArpManager implements ProxyArpService {
      * @param request the ARP request we got
      * @return an Ethernet frame containing the ARP reply
      */
-    private Ethernet buildArpReply(IpPrefix srcIp, MacAddress srcMac,
+    private Ethernet buildArpReply(IpAddress srcIp, MacAddress srcMac,
             Ethernet request) {
 
         Ethernet eth = new Ethernet();

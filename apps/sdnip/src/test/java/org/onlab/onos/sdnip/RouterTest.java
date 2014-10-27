@@ -51,6 +51,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.provider.ProviderId;
@@ -150,22 +151,31 @@ public class RouterTest {
 
         Set<Interface> interfaces = Sets.newHashSet();
 
+        InterfaceIpAddress ia1 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.10.101"),
+                                   IpPrefix.valueOf("192.168.10.0/24"));
         Interface sw1Eth1 = new Interface(SW1_ETH1,
-                Sets.newHashSet(IpPrefix.valueOf("192.168.10.101/24")),
+                Sets.newHashSet(ia1),
                 MacAddress.valueOf("00:00:00:00:00:01"));
 
         expect(interfaceService.getInterface(SW1_ETH1)).andReturn(sw1Eth1).anyTimes();
         interfaces.add(sw1Eth1);
 
+        InterfaceIpAddress ia2 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
+                                   IpPrefix.valueOf("192.168.20.0/24"));
         Interface sw2Eth1 = new Interface(SW2_ETH1,
-                Sets.newHashSet(IpPrefix.valueOf("192.168.20.101/24")),
+                Sets.newHashSet(ia2),
                 MacAddress.valueOf("00:00:00:00:00:02"));
 
         expect(interfaceService.getInterface(SW2_ETH1)).andReturn(sw2Eth1).anyTimes();
         interfaces.add(sw2Eth1);
 
+        InterfaceIpAddress ia3 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
+                                   IpPrefix.valueOf("192.168.30.0/24"));
         Interface sw3Eth1 = new Interface(SW3_ETH1,
-                Sets.newHashSet(IpPrefix.valueOf("192.168.30.101/24")),
+                Sets.newHashSet(ia3),
                 MacAddress.valueOf("00:00:00:00:00:03"));
 
         expect(interfaceService.getInterface(SW3_ETH1)).andReturn(sw3Eth1).anyTimes();

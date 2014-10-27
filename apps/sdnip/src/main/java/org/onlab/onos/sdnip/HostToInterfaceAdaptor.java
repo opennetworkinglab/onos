@@ -24,10 +24,10 @@ import java.util.Set;
 
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 
 import com.google.common.collect.Sets;
 
@@ -59,7 +59,7 @@ public class HostToInterfaceAdaptor implements InterfaceService {
         PortAddresses portAddresses =
                 hostService.getAddressBindingsForPort(connectPoint);
 
-        if (!portAddresses.ips().isEmpty()) {
+        if (!portAddresses.ipAddresses().isEmpty()) {
             return new Interface(portAddresses);
         }
 
@@ -71,8 +71,8 @@ public class HostToInterfaceAdaptor implements InterfaceService {
         checkNotNull(ipAddress);
 
         for (PortAddresses portAddresses : hostService.getAddressBindings()) {
-            for (IpPrefix p : portAddresses.ips()) {
-                if (p.contains(ipAddress)) {
+            for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
+                if (ia.subnetAddress().contains(ipAddress)) {
                     return new Interface(portAddresses);
                 }
             }

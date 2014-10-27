@@ -28,6 +28,7 @@ import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.host.HostProvider;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.packet.OutboundPacket;
 import org.onlab.onos.net.packet.PacketProcessor;
@@ -48,7 +49,10 @@ public class HostMonitorTest {
     private IpAddress targetIpAddress = IpAddress.valueOf("10.0.0.1");
     private IpPrefix targetIpPrefix = IpPrefix.valueOf(targetIpAddress.toOctets());
 
-    private IpPrefix sourcePrefix = IpPrefix.valueOf("10.0.0.99/24");
+    private static final IpAddress SOURCE_ADDR =
+        IpAddress.valueOf("10.0.0.99");
+    private static final InterfaceIpAddress IA1 =
+        new InterfaceIpAddress(SOURCE_ADDR, IpPrefix.valueOf("10.0.0.0/24"));
     private MacAddress sourceMac = MacAddress.valueOf(1L);
 
     private HostMonitor hostMonitor;
@@ -108,8 +112,8 @@ public class HostMonitorTest {
         deviceService.addDevice(device, Collections.singleton(port));
 
         ConnectPoint cp = new ConnectPoint(devId, portNum);
-        PortAddresses pa = new PortAddresses(cp, Collections.singleton(sourcePrefix),
-                sourceMac);
+        PortAddresses pa =
+            new PortAddresses(cp, Collections.singleton(IA1), sourceMac);
 
         expect(hostManager.getHostsByIp(targetIpPrefix))
                 .andReturn(Collections.<Host>emptySet()).anyTimes();
@@ -143,7 +147,8 @@ public class HostMonitorTest {
         Ethernet eth = new Ethernet();
         eth.deserialize(packet.data().array(), 0, packet.data().array().length);
         ARP arp = (ARP) eth.getPayload();
-        assertTrue(Arrays.equals(arp.getSenderProtocolAddress(), sourcePrefix.toOctets()));
+        assertTrue(Arrays.equals(arp.getSenderProtocolAddress(),
+                                 SOURCE_ADDR.toOctets()));
         assertTrue(Arrays.equals(arp.getSenderHardwareAddress(), sourceMac.toBytes()));
         assertTrue(Arrays.equals(arp.getTargetProtocolAddress(), targetIpPrefix.toOctets()));
     }

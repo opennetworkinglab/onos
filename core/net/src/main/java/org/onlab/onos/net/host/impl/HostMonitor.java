@@ -22,6 +22,7 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.HostProvider;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.packet.OutboundPacket;
@@ -161,12 +162,13 @@ public class HostMonitor implements TimerTask {
         for (Device device : deviceService.getDevices()) {
             for (Port port : deviceService.getPorts(device.id())) {
                 ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-                PortAddresses addresses = hostManager.getAddressBindingsForPort(cp);
+                PortAddresses portAddresses =
+                    hostManager.getAddressBindingsForPort(cp);
 
-                for (IpPrefix prefix : addresses.ips()) {
-                    if (prefix.contains(targetIp)) {
+                for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
+                    if (ia.subnetAddress().contains(targetIp)) {
                         sendProbe(device.id(), port, targetIp,
-                                prefix.toIpAddress(), addresses.mac());
+                                  ia.ipAddress(), portAddresses.mac());
                     }
                 }
             }

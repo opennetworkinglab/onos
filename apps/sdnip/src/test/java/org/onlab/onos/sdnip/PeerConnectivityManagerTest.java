@@ -31,6 +31,7 @@ import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.sdnip.bgp.BgpConstants;
@@ -175,14 +176,20 @@ public class PeerConnectivityManagerTest {
         configuredInterfaces = new HashMap<>();
 
         String interfaceSw1Eth1 = "s1-eth1";
+        InterfaceIpAddress ia1 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.10.1"),
+                                   IpPrefix.valueOf("192.168.10.0/24"));
         Interface intfsw1eth1 = new Interface(s1Eth1,
-                Collections.singleton(IpPrefix.valueOf("192.168.10.0/24")),
+                Collections.singleton(ia1),
                 MacAddress.valueOf("00:00:00:00:00:01"));
 
         configuredInterfaces.put(interfaceSw1Eth1, intfsw1eth1);
         String interfaceSw2Eth1 = "s2-eth1";
+        InterfaceIpAddress ia2 =
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.20.2"),
+                                   IpPrefix.valueOf("192.168.20.0/24"));
         Interface intfsw2eth1 = new Interface(s2Eth1,
-                Collections.singleton(IpPrefix.valueOf("192.168.20.0/24")),
+                Collections.singleton(ia2),
                 MacAddress.valueOf("00:00:00:00:00:02"));
         configuredInterfaces.put(interfaceSw2Eth1, intfsw2eth1);
 

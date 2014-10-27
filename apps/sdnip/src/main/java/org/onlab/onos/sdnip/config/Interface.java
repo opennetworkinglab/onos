@@ -22,8 +22,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
 import com.google.common.base.MoreObjects;
@@ -35,21 +35,22 @@ import com.google.common.collect.Sets;
  */
 public class Interface {
     private final ConnectPoint connectPoint;
-    private final Set<IpPrefix> ipAddresses;
+    private final Set<InterfaceIpAddress> ipAddresses;
     private final MacAddress macAddress;
 
     /**
-     * Creates an Interface based on a connection point, a set of IP addresses
-     * and a MAC address.
+     * Creates an Interface based on a connection point, a set of interface
+     * IP addresses, and a MAC address.
      *
      * @param connectPoint the connect point this interface is mapped to
-     * @param prefixAddress the IP addresses for the interface
+     * @param ipAddresses the IP addresses for the interface
      * @param macAddress the MAC address of the interface
      */
-    public Interface(ConnectPoint connectPoint, Set<IpPrefix> prefixAddress,
+    public Interface(ConnectPoint connectPoint,
+                     Set<InterfaceIpAddress> ipAddresses,
                      MacAddress macAddress) {
         this.connectPoint = connectPoint;
-        this.ipAddresses = Sets.newHashSet(prefixAddress);
+        this.ipAddresses = Sets.newHashSet(ipAddresses);
         this.macAddress = macAddress;
     }
 
@@ -60,7 +61,7 @@ public class Interface {
      */
     public Interface(PortAddresses portAddresses) {
         connectPoint = portAddresses.connectPoint();
-        ipAddresses = Sets.newHashSet(portAddresses.ips());
+        ipAddresses = Sets.newHashSet(portAddresses.ipAddresses());
         macAddress = portAddresses.mac();
     }
 
@@ -76,9 +77,9 @@ public class Interface {
     /**
      * Retrieves the set of IP addresses that are assigned to the interface.
      *
-     * @return the set of IP addresses
+     * @return the set of interface IP addresses
      */
-   public Set<IpPrefix> ips() {
+   public Set<InterfaceIpAddress> ipAddresses() {
         return ipAddresses;
     }
 

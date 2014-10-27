@@ -31,10 +31,12 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
+import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleHostStore;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -68,9 +70,15 @@ public class HostManagerTest {
     private static final ConnectPoint CP1 = new ConnectPoint(DID1, P1);
     private static final ConnectPoint CP2 = new ConnectPoint(DID2, P2);
 
-    private static final IpPrefix PREFIX1 = IpPrefix.valueOf("10.0.1.0/24");
-    private static final IpPrefix PREFIX2 = IpPrefix.valueOf("10.1.0.0/16");
-    private static final IpPrefix PREFIX3 = IpPrefix.valueOf("5.8.2.0/23");
+    private static final InterfaceIpAddress IA1 =
+        new InterfaceIpAddress(IpAddress.valueOf("10.1.1.1"),
+                               IpPrefix.valueOf("10.1.1.0/24"));
+    private static final InterfaceIpAddress IA2 =
+        new InterfaceIpAddress(IpAddress.valueOf("10.2.2.2"),
+                               IpPrefix.valueOf("10.2.0.0/16"));
+    private static final InterfaceIpAddress IA3 =
+        new InterfaceIpAddress(IpAddress.valueOf("10.3.3.3"),
+                               IpPrefix.valueOf("10.3.3.0/24"));
 
     private HostManager mgr;
 
@@ -207,23 +215,24 @@ public class HostManagerTest {
 
     @Test
     public void bindAddressesToPort() {
-        PortAddresses add1 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+        PortAddresses add1 =
+            new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(add1.ips().equals(storedAddresses.ips()));
+        assertTrue(add1.ipAddresses().equals(storedAddresses.ipAddresses()));
         assertTrue(add1.mac().equals(storedAddresses.mac()));
 
         // Add some more addresses and check that they're added correctly
-        PortAddresses add2 = new PortAddresses(CP1, Sets.newHashSet(PREFIX3), null);
+        PortAddresses add2 =
+            new PortAddresses(CP1, Sets.newHashSet(IA3),  null);
 
         mgr.bindAddressesToPort(add2);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().equals(
-                Sets.newHashSet(PREFIX1, PREFIX2, PREFIX3)));
+        assertTrue(storedAddresses.ipAddresses().equals(
+                Sets.newHashSet(IA1, IA2, IA3)));
         assertTrue(storedAddresses.mac().equals(MAC1));
 
         PortAddresses add3 = new PortAddresses(CP1, null, MAC2);
@@ -231,29 +240,29 @@ public class HostManagerTest {
         mgr.bindAddressesToPort(add3);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().equals(
-                Sets.newHashSet(PREFIX1, PREFIX2, PREFIX3)));
+        assertTrue(storedAddresses.ipAddresses().equals(
+                Sets.newHashSet(IA1, IA2, IA3)));
         assertTrue(storedAddresses.mac().equals(MAC2));
     }
 
     @Test
     public void unbindAddressesFromPort() {
-        PortAddresses add1 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+        PortAddresses add1 =
+            new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().size() == 2);
+        assertTrue(storedAddresses.ipAddresses().size() == 2);
         assertNotNull(storedAddresses.mac());
 
-        PortAddresses rem1 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX1), null);
+        PortAddresses rem1 =
+            new PortAddresses(CP1, Sets.newHashSet(IA1), null);
 
         mgr.unbindAddressesFromPort(rem1);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().equals(Sets.newHashSet(PREFIX2)));
+        assertTrue(storedAddresses.ipAddresses().equals(Sets.newHashSet(IA2)));
         assertTrue(storedAddresses.mac().equals(MAC1));
 
         PortAddresses rem2 = new PortAddresses(CP1, null, MAC1);
@@ -261,47 +270,48 @@ public class HostManagerTest {
         mgr.unbindAddressesFromPort(rem2);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().equals(Sets.newHashSet(PREFIX2)));
+        assertTrue(storedAddresses.ipAddresses().equals(Sets.newHashSet(IA2)));
         assertNull(storedAddresses.mac());
 
-        PortAddresses rem3 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX2), MAC1);
+        PortAddresses rem3 =
+            new PortAddresses(CP1, Sets.newHashSet(IA2), MAC1);
 
         mgr.unbindAddressesFromPort(rem3);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().isEmpty());
+        assertTrue(storedAddresses.ipAddresses().isEmpty());
         assertNull(storedAddresses.mac());
     }
 
     @Test
     public void clearAddresses() {
-        PortAddresses add1 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+        PortAddresses add1 =
+            new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().size() == 2);
+        assertTrue(storedAddresses.ipAddresses().size() == 2);
         assertNotNull(storedAddresses.mac());
 
         mgr.clearAddresses(CP1);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ips().isEmpty());
+        assertTrue(storedAddresses.ipAddresses().isEmpty());
         assertNull(storedAddresses.mac());
     }
 
     @Test
     public void getAddressBindingsForPort() {
-        PortAddresses add1 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+        PortAddresses add1 =
+            new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
         PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
         assertTrue(storedAddresses.connectPoint().equals(CP1));
-        assertTrue(storedAddresses.ips().equals(Sets.newHashSet(PREFIX1, PREFIX2)));
+        assertTrue(storedAddresses.ipAddresses().equals(
+                        Sets.newHashSet(IA1, IA2)));
         assertTrue(storedAddresses.mac().equals(MAC1));
     }
 
@@ -311,8 +321,8 @@ public class HostManagerTest {
 
         assertTrue(storedAddresses.isEmpty());
 
-        PortAddresses add1 = new PortAddresses(CP1,
-                                               Sets.newHashSet(PREFIX1, PREFIX2), MAC1);
+        PortAddresses add1 =
+            new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
 
@@ -320,8 +330,8 @@ public class HostManagerTest {
 
         assertTrue(storedAddresses.size() == 1);
 
-        PortAddresses add2 = new PortAddresses(CP2,
-                                               Sets.newHashSet(PREFIX3), MAC2);
+        PortAddresses add2 =
+            new PortAddresses(CP2, Sets.newHashSet(IA3), MAC2);
 
         mgr.bindAddressesToPort(add2);
 
