@@ -51,7 +51,7 @@ alias ll='less $KARAF_LOG'
 alias pp='python -m json.tool'
 
 # Short-hand to launch API docs and sample topology viewer GUI
-alias docs='open $ONOS_ROOT/target/site/apidocs/index.html'
+alias docs='open $ONOS_ROOT/docs/target/site/apidocs/index.html'
 alias gui='onos-gui'
 
 
