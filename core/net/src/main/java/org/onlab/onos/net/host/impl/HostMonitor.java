@@ -73,8 +73,6 @@ public class HostMonitor implements TimerTask {
         monitoredAddresses = Collections.newSetFromMap(
                 new ConcurrentHashMap<IpAddress, Boolean>());
         hostProviders = new ConcurrentHashMap<>();
-
-        timeout = Timer.getTimer().newTimeout(this, 0, TimeUnit.MILLISECONDS);
     }
 
     /**

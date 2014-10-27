@@ -5,6 +5,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Ignore;
+import org.junit.After;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
@@ -52,8 +53,12 @@ public class HostMonitorTest {
 
     private HostMonitor hostMonitor;
 
+    @After
+    public void shutdown() {
+        hostMonitor.shutdown();
+    }
+
     @Test
-    @Ignore
     public void testMonitorHostExists() throws Exception {
         ProviderId id = new ProviderId("fake://", "id");
 
@@ -83,8 +88,8 @@ public class HostMonitorTest {
     }
 
     @Test
-    @Ignore
     public void testMonitorHostDoesNotExist() throws Exception {
+
         HostManager hostManager = createMock(HostManager.class);
 
         DeviceId devId = DeviceId.deviceId("fake");
@@ -124,11 +129,11 @@ public class HostMonitorTest {
 
         // Check that a packet was sent to our PacketService and that it has
         // the properties we expect
-        assertTrue(packetService.packets.size() == 1);
+        assertEquals(1, packetService.packets.size());
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
-        assertTrue(packet.treatment().instructions().size() == 1);
+        assertEquals(1, packet.treatment().instructions().size());
         Instruction instruction = packet.treatment().instructions().get(0);
         assertTrue(instruction instanceof OutputInstruction);
         OutputInstruction oi = (OutputInstruction) instruction;
