@@ -25,9 +25,11 @@
   -->
 <html>
 <head>
+    <meta charset="utf-8">
     <title>ONOS GUI</title>
 
-    <script src="libs/d3.min.js"></script>
+    <!--TODO: use the minified version of d3, once debugging is complete -->
+    <script src="libs/d3.js"></script>
     <script src="libs/jquery-2.1.1.min.js"></script>
 
     <link rel="stylesheet" href="base.css">
@@ -42,10 +44,10 @@
         <div id="mast">
             <img id="logo" src="img/onos-logo.png" width="60" height="38">
             <span class="title">Open Network Operating System</span>
-            <span class="right">
-                <span class="radio">[All Layers]</span>
-                <span class="radio">[Packet Only]</span>
-                <span class="radio">[Optical Only]</span>
+            <span id="displayModes" class="right">
+                <span id="showAll" class="radio active">All Layers</span>
+                <span id="showPkt" class="radio">Packet Only</span>
+                <span id="showOpt" class="radio">Optical Only</span>
             </span>
         </div>
         <div id="view"></div>

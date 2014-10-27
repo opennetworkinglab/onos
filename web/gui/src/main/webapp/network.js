@@ -31,7 +31,8 @@
     var config = {
             options: {
                 layering: true,
-                collisionPrevention: true
+                collisionPrevention: true,
+                showNodeXY: true
             },
             XjsonUrl: 'rs/topology/graph',
             jsonUrl: 'network.json',
@@ -91,7 +92,8 @@
         view = {},
         network = {},
         selected = {},
-        highlighted = null;
+        highlighted = null,
+        viewMode = 'showAll';
 
 
     function loadNetworkView() {
@@ -126,6 +128,21 @@
         });
 
         $(window).on('resize', resize);
+
+        // set up radio button behavior
+        d3.selectAll("#displayModes .radio").on('click', function() {
+            var id = d3.select(this).attr("id");
+            if (id !== viewMode) {
+                radioButton('displayModes', id);
+                viewMode = id;
+                alert("action: " + id);
+            }
+        });
+    }
+
+    function radioButton(group, id) {
+        d3.selectAll("#" + group + " .radio").classed("active", false);
+        d3.select("#" + group + " #" + id).classed("active", true);
     }
 
 
@@ -263,8 +280,6 @@
 //                    + " scale(" + d3.event.scale + ")");
 //        }
 
-        // TODO: svg.append('defs') for markers?
-
         // TODO: move glow/blur stuff to util script
         var glow = network.svg.append('filter')
             .attr('x', '-50%')
@@ -295,8 +310,7 @@
 //        });
 
 
-
-
+        // add links to the display
         network.link = network.svg.append('g').selectAll('.link')
             .data(network.force.links(), function(d) {return d.id})
             .enter().append('line')
@@ -350,6 +364,7 @@
         });
 
 
+        // add nodes to the display
         network.node = network.svg.selectAll('.node')
             .data(network.force.nodes(), function(d) {return d.id})
             .enter().append('g')
@@ -386,79 +401,105 @@
             });
 
         network.nodeRect = network.node.append('rect')
-            .attr('rx', 5)
-            .attr('ry', 5);
-        // note that width/height are adjusted to fit the label text
+            .attr({
+                rx: 5,
+                ry: 5,
+                width: 100,
+                height: 12
+            });
+            // note that width/height are adjusted to fit the label text
 
         network.node.each(function(d) {
             var node = d3.select(this),
-                rect = node.select('rect'),
-                icon = iconUrl(d),
-                text = node.append('text')
-                    // TODO: add label cycle behavior
-                    .text(d.id)
-                    .attr('dy', '1.1em');
+                icon = iconUrl(d);
+
+            node.append('text')
+            // TODO: add label cycle behavior
+                .text(d.id)
+                .attr('dy', '1.1em');
 
             if (icon) {
                 var cfg = config.icons;
                 node.append('svg:image')
-                    .attr('width', cfg.w)
-                    .attr('height', cfg.h)
-                    .attr('xlink:href', icon);
+                    .attr({
+                        width: cfg.w,
+                        height: cfg.h,
+                        'xlink:href': icon
+                    });
                 // note, icon relative positioning (x,y) is done after we have
                 // adjusted the bounds of the rectangle...
             }
 
+            // for debugging...
+            if (config.options.showNodeXY) {
+                node.append('circle')
+                    .attr({
+                        class: 'debug',
+                        cx: 0,
+                        cy: 0,
+                        r: '3px'
+                    });
+            }
         });
+
+
+        // returns the newly computed bounding box
+        function adjustRectToFitText(n) {
+            var text = n.select('text'),
+                box = text.node().getBBox(),
+                lab = config.labels;
+
+            text.attr('text-anchor', 'middle')
+                .attr('y', '-0.8em')
+                .attr('x', lab.imgPad/2)
+            ;
+
+            // TODO: figure out how to access the data on selection
+            console.log("\nadjust rect for " + n.data().id);
+            console.log(box);
+
+            // translate the bbox so that it is centered on [x,y]
+            box.x = -box.width / 2;
+            box.y = -box.height / 2;
+
+            // add padding
+            box.x -= (lab.padLR + lab.imgPad/2);
+            box.width += lab.padLR * 2 + lab.imgPad;
+            box.y -= lab.padTB;
+            box.height += lab.padTB * 2;
+
+            return box;
+        }
+
+        function boundsFromBox(box) {
+            return {
+                x1: box.x,
+                y1: box.y,
+                x2: box.x + box.width,
+                y2: box.y + box.height
+            };
+        }
 
         // this function is scheduled to happen soon after the given thread ends
         setTimeout(function() {
             network.node.each(function(d) {
                 // for every node, recompute size, padding, etc. so text fits
                 var node = d3.select(this),
-                    text = node.selectAll('text'),
-                    bounds = {},
-                    first = true;
+                    text = node.select('text'),
+                    box = adjustRectToFitText(node),
+                    lab = config.labels;
 
-                // NOTE: probably unnecessary code if we only have one line.
-                text.each(function() {
-                    var box = this.getBBox();
-                    if (first || box.x < bounds.x1) {
-                        bounds.x1 = box.x;
-                    }
-                    if (first || box.y < bounds.y1) {
-                        bounds.y1 = box.y;
-                    }
-                    if (first || box.x + box.width < bounds.x2) {
-                        bounds.x2 = box.x + box.width;
-                    }
-                    if (first || box.y + box.height < bounds.y2) {
-                        bounds.y2 = box.y + box.height;
-                    }
-                    first = false;
-                }).attr('text-anchor', 'middle');
-
-                var lab = config.labels,
-                    oldWidth = bounds.x2 - bounds.x1;
-
-                bounds.x1 -= oldWidth / 2;
-                bounds.x2 -= oldWidth / 2;
-
-                bounds.x1 -= (lab.padLR + lab.imgPad);
-                bounds.y1 -= lab.padTB;
-                bounds.x2 += lab.padLR;
-                bounds.y2 += lab.padTB;
-
+                // now make the computed adjustment
                 node.select('rect')
-                    .attr('x', bounds.x1)
-                    .attr('y', bounds.y1)
-                    .attr('width', bounds.x2 - bounds.x1)
-                    .attr('height', bounds.y2 - bounds.y1);
+                    .attr(box);
 
                 node.select('image')
-                    .attr('x', bounds.x1 + config.icons.xoff)
-                    .attr('y', bounds.y1 + config.icons.yoff);
+                    .attr('x', box.x + config.icons.xoff)
+                    .attr('y', box.y + config.icons.yoff);
 
+                var bounds = boundsFromBox(box);
+
+                // todo: clean up extent and edge work..
                 d.extent = {
                     left: bounds.x1 - lab.marginLR,
                     right: bounds.x2 + lab.marginLR,
@@ -473,7 +514,6 @@
                     bottom : new geo.LineSegment(bounds.x1, bounds.y2, bounds.x2, bounds.y2)
                 };
 
-                // ====
             });
 
             network.numTicks = 0;

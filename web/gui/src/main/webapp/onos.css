@@ -48,6 +48,26 @@ span.right {
 }
 
 /*
+ * Radio Buttons
+ */
+
+span.radio {
+    margin: 4px 0;
+    border: 1px dotted #222;
+    padding: 1px 6px;
+    color: #eee;
+    cursor: pointer;
+}
+
+span.radio.active {
+    background-color: #bbb;
+    border: 1px solid #eee;
+    padding: 1px 6px;
+    color: #666;
+    font-weight: bold;
+}
+
+/*
  * === DEBUGGING ======
  */
 svg {
@@ -71,12 +91,6 @@ svg .link {
     -moz-transition: opacity 250ms;
 }
 
-marker#end {
-    fill: #666;
-    stroke: #666;
-    stroke-width: 1.5px;
-}
-
 svg .node rect {
     stroke-width: 1.5px;
 
@@ -88,6 +102,7 @@ svg .node rect {
 svg .node.device.roadm rect {
     fill: #229;
 }
+
 svg .node.device.switch rect {
     fill: #55f;
 }
@@ -101,6 +116,18 @@ svg .node text {
     font: 10px sans-serif;
     pointer-events: none;
 }
+
+/* for debugging */
+svg .node circle.debug {
+    fill: white;
+    stroke: red;
+}
+svg .node rect.debug {
+    fill: yellow;
+    stroke: red;
+    opacity: 0.35;
+}
+
 
 svg .node.selected rect {
     filter: url(#blue-glow);
@@ -117,6 +144,16 @@ svg .node.inactive.selected rect,
 svg .node.inactive.selected text,
 svg .node.inactive.selected image {
     opacity: .6;
+}
+
+/*
+ * === currently unused ===============================================
+ */
+
+svg marker#end {
+    fill: #666;
+    stroke: #666;
+    stroke-width: 1.5px;
 }
 
 svg .legend {
