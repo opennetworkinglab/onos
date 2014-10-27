@@ -20,8 +20,8 @@ import org.onlab.onos.mastership.MastershipStoreDelegate;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.common.AbstractHazelcastStore;
-import org.onlab.onos.store.common.SMap;
+import org.onlab.onos.store.hz.AbstractHazelcastStore;
+import org.onlab.onos.store.hz.SMap;
 import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
@@ -31,6 +31,7 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.MapEvent;
+
 import static org.onlab.onos.net.MastershipRole.*;
 
 /**

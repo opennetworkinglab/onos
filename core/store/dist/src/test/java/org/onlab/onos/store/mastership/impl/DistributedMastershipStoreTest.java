@@ -28,9 +28,9 @@ import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.mastership.MastershipEvent.Type;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.common.StoreManager;
-import org.onlab.onos.store.common.StoreService;
-import org.onlab.onos.store.common.TestStoreManager;
+import org.onlab.onos.store.hz.StoreManager;
+import org.onlab.onos.store.hz.StoreService;
+import org.onlab.onos.store.hz.TestStoreManager;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.packet.IpPrefix;
 

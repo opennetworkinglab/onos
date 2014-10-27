@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+//Not used right now
 /**
  * Allows for reading and writing cluster definition as a JSON file.
  */

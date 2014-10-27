@@ -1,4 +1,4 @@
-package org.onlab.onos.store.common;
+package org.onlab.onos.store.hz;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

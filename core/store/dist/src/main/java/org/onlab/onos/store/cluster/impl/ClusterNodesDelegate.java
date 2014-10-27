@@ -4,6 +4,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.packet.IpPrefix;
 
+// Not used right now
 /**
  * Simple back interface through which connection manager can interact with
  * the cluster store.

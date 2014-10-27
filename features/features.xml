@@ -87,9 +87,6 @@
         <bundle>mvn:org.onlab.onos/onos-core-dist/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-core-serializers/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onlab-netty/1.0.0-SNAPSHOT</bundle>
-
-        <bundle>mvn:org.onlab.onos/onos-core-hz-common/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onlab.onos/onos-core-hz-cluster/1.0.0-SNAPSHOT</bundle>
     </feature>
 
     <feature name="onos-core-trivial" version="1.0.0"

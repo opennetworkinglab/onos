@@ -1,4 +1,4 @@
-package org.onlab.onos.store.common;
+package org.onlab.onos.store.hz;
 
 import com.hazelcast.core.HazelcastInstance;
 

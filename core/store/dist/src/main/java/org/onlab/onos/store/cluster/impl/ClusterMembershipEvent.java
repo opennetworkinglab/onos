@@ -2,6 +2,7 @@ package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.onos.cluster.ControllerNode;
 
+//Not used right now
 /**
  * Contains information that will be published when a cluster membership event occurs.
  */

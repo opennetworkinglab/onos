@@ -19,9 +19,9 @@ import org.onlab.onos.cluster.ClusterStoreDelegate;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.common.AbsentInvalidatingLoadingCache;
-import org.onlab.onos.store.common.AbstractHazelcastStore;
-import org.onlab.onos.store.common.OptionalCacheLoader;
+import org.onlab.onos.store.hz.AbsentInvalidatingLoadingCache;
+import org.onlab.onos.store.hz.AbstractHazelcastStore;
+import org.onlab.onos.store.hz.OptionalCacheLoader;
 import org.onlab.packet.IpPrefix;
 
 import java.util.Map;

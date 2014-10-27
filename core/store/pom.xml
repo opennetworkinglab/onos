@@ -19,7 +19,6 @@
     <modules>
         <module>trivial</module>
         <module>dist</module>
-        <module>hz</module>
         <module>serializers</module>
     </modules>
 
