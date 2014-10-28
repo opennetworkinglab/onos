@@ -132,7 +132,8 @@ svg .node rect.debug {
 }
 
 
-svg .node.selected rect {
+svg .node.selected rect,
+svg .node.selected circle {
     filter: url(#blue-glow);
 }
 

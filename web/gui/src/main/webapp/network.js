@@ -30,8 +30,8 @@
     var config = {
             debugOn: false,
             debug: {
-                showNodeXY: true,
-                showKeyHandler: false
+                showNodeXY: false,
+                showKeyHandler: true
             },
             options: {
                 layering: true,
@@ -50,7 +50,7 @@
                 note: 'node.class or link.class is used to differentiate',
                 linkDistance: {
                     infra: 200,
-                    host: 20
+                    host: 40
                 },
                 linkStrength: {
                     infra: 1.0,
@@ -58,7 +58,7 @@
                 },
                 charge: {
                     device: -800,
-                    host: -400
+                    host: -1000
                 },
                 ticksWithoutCollisions: 50,
                 marginLR: 20,
@@ -84,7 +84,7 @@
             },
             constraints: {
                 ypos: {
-                    host: 0.15,
+                    host: 0.05,
                     switch: 0.3,
                     roadm: 0.7
                 }
@@ -99,6 +99,7 @@
         network = {},
         selected = {},
         highlighted = null,
+        hovered = null,
         viewMode = 'showAll';
 
 
@@ -179,13 +180,13 @@
             });
     }
 
+    function contextLabel() {
+        return hovered === null ? "(nothing)" : hovered.id;
+    }
+
     function radioButton(group, id) {
         d3.selectAll("#" + group + " .radio").classed("active", false);
         d3.select("#" + group + " #" + id).classed("active", true);
-    }
-
-    function contextLabel() {
-        return highlighted === null ? "(nothing)" : highlighted.id;
     }
 
     function processKeyEvent() {
@@ -196,16 +197,28 @@
                 break;
             case 80:    // P
                 togglePorts();
+                break;
+            case 85:    // U
+                unpin();
+                break;
         }
 
     }
 
     function cycleLabels() {
-        alert('Cycle Labels - context = ' + contextLabel());
+        console.log('Cycle Labels - context = ' + contextLabel());
     }
 
     function togglePorts() {
-        alert('Toggle Ports - context = ' + contextLabel());
+        console.log('Toggle Ports - context = ' + contextLabel());
+    }
+
+    function unpin() {
+        if (hovered) {
+            hovered.fixed = false;
+            network.force.resume();
+        }
+        console.log('Unpin - context = ' + contextLabel());
     }
 
 
@@ -217,7 +230,7 @@
         prepareNodesAndLinks();
         createLayout();
         console.log("\n\nHere is the augmented network object...");
-        console.warn(network);
+        console.log(network);
     }
 
     function prepareNodesAndLinks() {
@@ -419,6 +432,12 @@
                     selectObject(d, this);
                 }
                 d.fixed &= ~6;
+
+                // once we've finished moving, pin the node in position,
+                // if it is a device
+                if (d.class === 'device') {
+                    d.fixed = true;
+                }
             });
 
         $('#view').on('click', function(e) {
@@ -445,29 +464,21 @@
             .call(network.drag)
             .on('mouseover', function(d) {
                 // TODO: show tooltip
-/*
-                if (!selected.obj) {
-                    if (network.mouseoutTimeout) {
-                        clearTimeout(network.mouseoutTimeout);
-                        network.mouseoutTimeout = null;
-                    }
-                    highlightObject(d);
+                if (network.mouseoutTimeout) {
+                    clearTimeout(network.mouseoutTimeout);
+                    network.mouseoutTimeout = null;
                 }
-*/
+                hoverObject(d);
             })
             .on('mouseout', function(d) {
                 // TODO: hide tooltip
-/*
-                if (!selected.obj) {
-                    if (network.mouseoutTimeout) {
-                        clearTimeout(network.mouseoutTimeout);
-                        network.mouseoutTimeout = null;
-                    }
-                    network.mouseoutTimeout = setTimeout(function() {
-                        highlightObject(null);
-                    }, config.mouseOutTimerDelayMs);
+                if (network.mouseoutTimeout) {
+                    clearTimeout(network.mouseoutTimeout);
+                    network.mouseoutTimeout = null;
                 }
-*/
+                network.mouseoutTimeout = setTimeout(function() {
+                    hoverObject(null);
+                }, config.mouseOutTimerDelayMs);
             });
 
 
@@ -596,14 +607,13 @@
                 box = text.node().getBBox(),
                 lab = config.labels;
 
+            // not sure why n.data() returns an array of 1 element...
+            var data = n.data()[0];
+
             text.attr('text-anchor', 'middle')
                 .attr('y', '-0.8em')
                 .attr('x', lab.imgPad/2)
             ;
-
-            // TODO: figure out how to access the data on selection
-            console.log("\nadjust rect for " + n.data().id);
-            console.log(box);
 
             // translate the bbox so that it is centered on [x,y]
             box.x = -box.width / 2;
@@ -813,7 +823,7 @@
             el  : el
         };
 
-        highlightObject(obj);
+//        highlightObject(obj);
 
         node.classed('selected', true);
 
@@ -827,10 +837,11 @@
         if (doResize || typeof doResize == 'undefined') {
             resize(false);
         }
+
         // deselect all nodes in the network...
         network.node.classed('selected', false);
         selected = {};
-        highlightObject(null);
+//        highlightObject(null);
     }
 
     function highlightObject(obj) {
@@ -858,6 +869,17 @@
 
         }
     }
+
+    function hoverObject(obj) {
+        if (obj) {
+            hovered = obj;
+        } else {
+            if (hovered) {
+                hovered = null;
+            }
+        }
+    }
+
 
     function resize(showDetails) {
         console.log("resize() called...");
