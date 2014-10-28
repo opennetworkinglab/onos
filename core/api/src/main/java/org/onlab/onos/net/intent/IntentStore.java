@@ -86,13 +86,13 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     IntentEvent setState(Intent intent, IntentState newState);
 
     /**
-     * Adds the installable intents which resulted from compilation of the
+     * Sets the installable intents which resulted from compilation of the
      * specified original intent.
      *
      * @param intentId           original intent identifier
      * @param installableIntents compiled installable intents
      */
-    void addInstallableIntents(IntentId intentId, List<Intent> installableIntents);
+    void setInstallableIntents(IntentId intentId, List<Intent> installableIntents);
 
     /**
      * Returns the list of the installable events associated with the specified

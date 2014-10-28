@@ -68,6 +68,10 @@ public class SimpleIntentStore
     public IntentEvent removeIntent(IntentId intentId) {
         Intent intent = intents.remove(intentId);
         installable.remove(intentId);
+        if (intent == null) {
+            // was already removed
+            return null;
+        }
         IntentEvent event = this.setState(intent, WITHDRAWN);
         states.remove(intentId);
         return event;
@@ -122,7 +126,7 @@ public class SimpleIntentStore
     }
 
     @Override
-    public void addInstallableIntents(IntentId intentId, List<Intent> result) {
+    public void setInstallableIntents(IntentId intentId, List<Intent> result) {
         installable.put(intentId, result);
     }
 

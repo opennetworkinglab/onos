@@ -16,6 +16,8 @@
 package org.onlab.onos.store.intent.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.hazelcast.core.IMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,30 +28,54 @@ import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
-import org.onlab.onos.store.AbstractStore;
+import org.onlab.onos.store.hz.AbstractHazelcastStore;
+import org.onlab.onos.store.hz.SMap;
 import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Verify.verify;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-//FIXME: I LIE I AM NOT DISTRIBUTED
 @Component(immediate = true)
 @Service
 public class DistributedIntentStore
-        extends AbstractStore<IntentEvent, IntentStoreDelegate>
+        extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>
         implements IntentStore {
 
     private final Logger log = getLogger(getClass());
-    private final Map<IntentId, Intent> intents = new ConcurrentHashMap<>();
-    private final Map<IntentId, IntentState> states = new ConcurrentHashMap<>();
-    private final Map<IntentId, List<Intent>> installable = new ConcurrentHashMap<>();
 
+    // Assumption: IntentId will not have synonyms
+    private SMap<IntentId, Intent> intents;
+    private SMap<IntentId, IntentState> states;
+
+    // Map to store instance local intermediate state transition
+    private transient Map<IntentId, IntentState> transientStates = new ConcurrentHashMap<>();
+
+    private SMap<IntentId, List<Intent>> installable;
+
+    @Override
     @Activate
     public void activate() {
+        super.activate();
+
+        // TODO: enable near cache, allow read from backup for this IMap
+        IMap<byte[], byte[]> rawIntents = super.theInstance.getMap("intents");
+        intents = new SMap<>(rawIntents , super.serializer);
+
+        // TODO: disable near cache, disable read from backup for this IMap
+        IMap<byte[], byte[]> rawStates = super.theInstance.getMap("intent-states");
+        states = new SMap<>(rawStates , super.serializer);
+
+        transientStates.clear();
+
+        // TODO: disable near cache, disable read from backup for this IMap
+        IMap<byte[], byte[]> rawInstallables = super.theInstance.getMap("installable-intents");
+        installable = new SMap<>(rawInstallables , super.serializer);
+
         log.info("Started");
     }
 
@@ -60,16 +86,27 @@ public class DistributedIntentStore
 
     @Override
     public IntentEvent createIntent(Intent intent) {
-        intents.put(intent.id(), intent);
-        return this.setState(intent, IntentState.SUBMITTED);
+        Intent existing = intents.putIfAbsent(intent.id(), intent);
+        if (existing != null) {
+            // duplicate, ignore
+            return null;
+        } else {
+            return this.setState(intent, IntentState.SUBMITTED);
+        }
     }
 
     @Override
     public IntentEvent removeIntent(IntentId intentId) {
         Intent intent = intents.remove(intentId);
         installable.remove(intentId);
+        if (intent == null) {
+            // was already removed
+            return null;
+        }
         IntentEvent event = this.setState(intent, WITHDRAWN);
         states.remove(intentId);
+        transientStates.remove(intentId);
+        // TODO: Should we callremoveInstalledIntents if this Intent was
         return event;
     }
 
@@ -90,31 +127,53 @@ public class DistributedIntentStore
 
     @Override
     public IntentState getIntentState(IntentId id) {
+        final IntentState localState = transientStates.get(id);
+        if (localState != null) {
+            return localState;
+        }
         return states.get(id);
     }
 
     @Override
     public IntentEvent setState(Intent intent, IntentState state) {
-        IntentId id = intent.id();
-        states.put(id, state);
+        final IntentId id = intent.id();
         IntentEvent.Type type = null;
+        IntentState prev = null;
+        boolean transientStateChangeOnly = false;
 
+        // TODO: enable sanity checking if Debug enabled, etc.
         switch (state) {
         case SUBMITTED:
+            prev = states.putIfAbsent(id, SUBMITTED);
+            verify(prev == null, "Illegal state transition attempted from %s to SUBMITTED", prev);
             type = IntentEvent.Type.SUBMITTED;
             break;
         case INSTALLED:
+            // parking state transition
+            prev = states.replace(id, INSTALLED);
+            verify(prev != null, "Illegal state transition attempted from non-SUBMITTED to INSTALLED");
             type = IntentEvent.Type.INSTALLED;
             break;
         case FAILED:
+            prev = states.replace(id, FAILED);
             type = IntentEvent.Type.FAILED;
             break;
         case WITHDRAWN:
+            prev = states.replace(id, WITHDRAWN);
+            verify(prev != null, "Illegal state transition attempted from non-WITHDRAWING to WITHDRAWN");
             type = IntentEvent.Type.WITHDRAWN;
             break;
         default:
+            transientStateChangeOnly = true;
             break;
         }
+        if (!transientStateChangeOnly) {
+            log.debug("Parking State change: {} {}=>{}",  id, prev, state);
+        }
+        // Update instance local state, which includes non-parking state transition
+        prev = transientStates.put(id, state);
+        log.debug("Transient State change: {} {}=>{}", id, prev, state);
+
         if (type == null) {
             return null;
         }
@@ -122,7 +181,7 @@ public class DistributedIntentStore
     }
 
     @Override
-    public void addInstallableIntents(IntentId intentId, List<Intent> result) {
+    public void setInstallableIntents(IntentId intentId, List<Intent> result) {
         installable.put(intentId, result);
     }
 
@@ -136,4 +195,5 @@ public class DistributedIntentStore
         installable.remove(intentId);
     }
 
+    // FIXME add handler to react to remote event
 }
