@@ -1,0 +1,12 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# ONOS OE-Linc config generator.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+APP=onos-app-oecfg
+JAR=$M2_REPO/org/onlab/onos/$APP/$ONOS_POM_VERSION/$APP-$ONOS_POM_VERSION.jar
+
+java -jar $JAR < $1 | python -mjson.tool
