@@ -13,7 +13,7 @@ public class FlowRuleBatchRequest {
     private final List<FlowEntry> toAdd;
     private final List<FlowEntry> toRemove;
 
-    public FlowRuleBatchRequest(int batchId, List<FlowEntry> toAdd, List<FlowEntry> toRemove) {
+    public FlowRuleBatchRequest(int batchId, List<? extends FlowEntry> toAdd, List<? extends FlowEntry> toRemove) {
         this.batchId = batchId;
         this.toAdd = Collections.unmodifiableList(toAdd);
         this.toRemove = Collections.unmodifiableList(toRemove);
