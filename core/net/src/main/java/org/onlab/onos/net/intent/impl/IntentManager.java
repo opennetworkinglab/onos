@@ -273,7 +273,7 @@ public class IntentManager
 
             // If all went well, associate the resulting list of installable
             // intents with the top-level intent and proceed to install.
-            store.addInstallableIntents(intent.id(), installable);
+            store.setInstallableIntents(intent.id(), installable);
             executeInstallingPhase(intent);
 
         } catch (Exception e) {
@@ -366,7 +366,7 @@ public class IntentManager
             } else {
                 // Otherwise, re-associate the newly compiled installable intents
                 // with the top-level intent and kick off installing phase.
-                store.addInstallableIntents(intent.id(), installable);
+                store.setInstallableIntents(intent.id(), installable);
                 executeInstallingPhase(intent);
             }
         } catch (Exception e) {
