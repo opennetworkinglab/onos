@@ -26,13 +26,19 @@
 (function (onos) {
     'use strict';
 
+    // reference to the framework api
     var api = onos.api;
 
+    // configuration data
     var config = {
+            debugOn: false,
+            debug: {
+                showNodeXY: true,
+                showKeyHandler: false
+            },
             options: {
                 layering: true,
-                collisionPrevention: true,
-                showNodeXY: true
+                collisionPrevention: true
             },
             XjsonUrl: 'rs/topology/graph',
             jsonUrl: 'network.json',
@@ -88,20 +94,28 @@
             },
             hostLinkWidth: 1.0,
             mouseOutTimerDelayMs: 120
-        },
-        view = {},
+        };
+
+    // state variables
+    var view = {},
         network = {},
         selected = {},
         highlighted = null,
         viewMode = 'showAll';
 
 
+    function debug(what) {
+        return config.debugOn && config.debug[what];
+    }
+
+    // load the topology view of the network
     function loadNetworkView() {
         // Hey, here I am, calling something on the ONOS api:
         api.printTime();
 
         resize();
 
+        // go get our network data from the server...
         d3.json(config.jsonUrl, function (err, data) {
             if (err) {
                 alert('Oops! Error reading JSON...\n\n' +
@@ -109,14 +123,23 @@
                     'Error: ' + err.message);
                 return;
             }
-            console.log("here is the JSON data...");
-            console.log(data);
+//            console.log("here is the JSON data...");
+//            console.log(data);
 
             network.data = data;
             drawNetwork();
         });
 
-        $(document).on('click', '.select-object', function() {
+        // while we wait for the data, set up the handlers...
+        setUpClickHandler();
+        setUpRadioButtonHandler();
+        setUpKeyHandler();
+        $(window).on('resize', resize);
+    }
+
+    function setUpClickHandler() {
+        // click handler for "selectable" objects
+        $(document).on('click', '.select-object', function () {
             // when any object of class "select-object" is clicked...
             // TODO: get a reference to the object via lookup...
             var obj = network.lookup[$(this).data('id')];
@@ -126,23 +149,65 @@
             // stop propagation of event (I think) ...
             return false;
         });
+    }
 
-        $(window).on('resize', resize);
-
-        // set up radio button behavior
-        d3.selectAll("#displayModes .radio").on('click', function() {
-            var id = d3.select(this).attr("id");
+    function setUpRadioButtonHandler() {
+        d3.selectAll('#displayModes .radio').on('click', function () {
+            var id = d3.select(this).attr('id');
             if (id !== viewMode) {
                 radioButton('displayModes', id);
                 viewMode = id;
-                alert("action: " + id);
+                alert('action: ' + id);
             }
         });
+    }
+
+    function setUpKeyHandler() {
+        d3.select('body')
+            .on('keydown', function () {
+                processKeyEvent();
+                if (debug('showKeyHandler')) {
+                    network.svg.append('text')
+                        .attr('x', 5)
+                        .attr('y', 15)
+                        .style('font-size', '20pt')
+                        .text('keyCode: ' + d3.event.keyCode +
+                            ' applied to : ' + contextLabel())
+                        .transition().duration(2000)
+                        .style('font-size', '2pt')
+                        .style('fill-opacity', 0.01)
+                        .remove();
+                }
+            });
     }
 
     function radioButton(group, id) {
         d3.selectAll("#" + group + " .radio").classed("active", false);
         d3.select("#" + group + " #" + id).classed("active", true);
+    }
+
+    function contextLabel() {
+        return highlighted === null ? "(nothing)" : highlighted.id;
+    }
+
+    function processKeyEvent() {
+        var code = d3.event.keyCode;
+        switch (code) {
+            case 76:    // L
+                cycleLabels();
+                break;
+            case 80:    // P
+                togglePorts();
+        }
+
+    }
+
+    function cycleLabels() {
+        alert('Cycle Labels - context = ' + contextLabel());
+    }
+
+    function togglePorts() {
+        alert('Toggle Ports - context = ' + contextLabel());
     }
 
 
@@ -430,8 +495,9 @@
                 // adjusted the bounds of the rectangle...
             }
 
-            // for debugging...
-            if (config.options.showNodeXY) {
+            // debug function to show the modelled x,y coordinates of nodes...
+            if (debug('showNodeXY')) {
+                node.select('rect').attr('fill-opacity', 0.5);
                 node.append('circle')
                     .attr({
                         class: 'debug',
@@ -599,34 +665,41 @@
             preventCollisions();
         }
 
-        // TODO: use intersection technique for source end of link also
-        network.link
-            .attr('x1', function(d) {
-                return d.source.x;
-            })
-            .attr('y1', function(d) {
-                return d.source.y;
-            })
-            .each(function(d) {
-                var x = d.target.x,
-                    y = d.target.y,
-                    line = new geo.LineSegment(d.source.x, d.source.y, x, y);
+        // clip visualization of links at bounds of nodes...
+        network.link.each(function(d) {
+                var xs = d.source.x,
+                    ys = d.source.y,
+                    xt = d.target.x,
+                    yt = d.target.y,
+                    line = new geo.LineSegment(xs, ys, xt, yt),
+                    e, ix;
 
-                for (var e in d.target.edge) {
-                    var ix = line.intersect(d.target.edge[e].offset(x,y));
+                for (e in d.source.edge) {
+                    ix = line.intersect(d.source.edge[e].offset(xs, ys));
                     if (ix.in1 && ix.in2) {
-                        x = ix.x;
-                        y = ix.y;
+                        xs = ix.x;
+                        ys = ix.y;
+                        break;
+                    }
+                }
+
+                for (e in d.target.edge) {
+                    ix = line.intersect(d.target.edge[e].offset(xt, yt));
+                    if (ix.in1 && ix.in2) {
+                        xt = ix.x;
+                        yt = ix.y;
                         break;
                     }
                 }
 
                 d3.select(this)
-                    .attr('x2', x)
-                    .attr('y2', y);
-
+                    .attr('x1', xs)
+                    .attr('y1', ys)
+                    .attr('x2', xt)
+                    .attr('y2', yt);
             });
 
+        // position each node by translating the node (group) by x,y
         network.node
             .attr('transform', function(d) {
                 return translate(d.x, d.y);
