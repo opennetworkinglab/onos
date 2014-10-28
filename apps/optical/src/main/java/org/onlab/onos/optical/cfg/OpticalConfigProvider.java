@@ -73,7 +73,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
 
     // TODO: fix hard coded file path later.
     private static final String DEFAULT_CONFIG_FILE =
-            "/opt/onos/config/demo-3-roadm-2-ps.json";
+            "config/demo-3-roadm-2-ps.json";
     private String configFileName = DEFAULT_CONFIG_FILE;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

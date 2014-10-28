@@ -39,8 +39,11 @@ import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.PacketListener;
 import org.onlab.onos.openflow.controller.RoleState;
 import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
+import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
+import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
@@ -183,10 +186,31 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     l.switchChanged(dpid);
                 }
             }
+            break;
         case FLOW_REMOVED:
         case ERROR:
         case BARRIER_REPLY:
             executor.submit(new OFMessageHandler(dpid, msg));
+            break;
+        case EXPERIMENTER:
+            // Handle optical port stats
+            if (((OFExperimenter) msg).getExperimenter() == 0x748771) {
+                OFCircuitPortStatus circuitPortStatus = (OFCircuitPortStatus) msg;
+                OFPortStatus.Builder portStatus = this.getSwitch(dpid).factory().buildPortStatus();
+                OFPortDesc.Builder portDesc = this.getSwitch(dpid).factory().buildPortDesc();
+                portDesc.setPortNo(circuitPortStatus.getPortNo())
+                        .setHwAddr(circuitPortStatus.getHwAddr())
+                        .setName(circuitPortStatus.getName())
+                        .setConfig(circuitPortStatus.getConfig())
+                        .setState(circuitPortStatus.getState());
+                portStatus.setReason(circuitPortStatus.getReason()).setDesc(portDesc.build());
+                for (OpenFlowSwitchListener l : ofSwitchListener) {
+                    l.portChanged(dpid, portStatus.build());
+                }
+            } else {
+                log.warn("Handling experimenter type {} not yet implemented",
+                        ((OFExperimenter) msg).getExperimenter(), msg);
+            }
             break;
         default:
             log.warn("Handling message type {} not yet implemented {}",
