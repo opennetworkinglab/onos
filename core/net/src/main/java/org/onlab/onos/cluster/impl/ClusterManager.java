@@ -16,7 +16,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -83,7 +83,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     }
 
     @Override
-    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+    public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         checkNotNull(ip, "IP address cannot be null");
         checkArgument(tcpPort > 5000, "TCP port must be > 5000");

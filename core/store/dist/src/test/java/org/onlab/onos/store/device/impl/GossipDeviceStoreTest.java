@@ -55,7 +55,7 @@ import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -102,12 +102,12 @@ public class GossipDeviceStoreTest {
     // local node
     private static final NodeId NID1 = new NodeId("local");
     private static final ControllerNode ONOS1 =
-            new DefaultControllerNode(NID1, IpPrefix.valueOf("127.0.0.1"));
+            new DefaultControllerNode(NID1, IpAddress.valueOf("127.0.0.1"));
 
     // remote node
     private static final NodeId NID2 = new NodeId("remote");
     private static final ControllerNode ONOS2 =
-            new DefaultControllerNode(NID2, IpPrefix.valueOf("127.0.0.2"));
+            new DefaultControllerNode(NID2, IpAddress.valueOf("127.0.0.2"));
     private static final List<SparseAnnotations> NO_ANNOTATION = Collections.<SparseAnnotations>emptyList();
 
 

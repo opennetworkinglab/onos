@@ -22,7 +22,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cluster.ClusterAdminService;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 /**
  * Adds a new controller cluster node.
@@ -46,7 +46,7 @@ public class NodeAddCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         ClusterAdminService service = get(ClusterAdminService.class);
-        service.addNode(new NodeId(nodeId), IpPrefix.valueOf(ip), tcpPort);
+        service.addNode(new NodeId(nodeId), IpAddress.valueOf(ip), tcpPort);
     }
 
 }

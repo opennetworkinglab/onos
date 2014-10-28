@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +46,7 @@ public class ClusterDefinitionStore {
         while (it.hasNext()) {
             ObjectNode nodeDef = (ObjectNode) it.next();
             nodes.add(new DefaultControllerNode(new NodeId(nodeDef.get("id").asText()),
-                                                IpPrefix.valueOf(nodeDef.get("ip").asText()),
+                                                IpAddress.valueOf(nodeDef.get("ip").asText()),
                                                 nodeDef.get("tcpPort").asInt(9876)));
         }
         return nodes;

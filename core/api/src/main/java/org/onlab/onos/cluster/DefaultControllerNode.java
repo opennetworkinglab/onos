@@ -1,6 +1,6 @@
 package org.onlab.onos.cluster;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.Objects;
 
@@ -14,7 +14,7 @@ public class DefaultControllerNode implements ControllerNode {
     private static final int DEFAULT_PORT = 9876;
 
     private final NodeId id;
-    private final IpPrefix ip;
+    private final IpAddress ip;
     private final int tcpPort;
 
     // For serialization
@@ -30,7 +30,7 @@ public class DefaultControllerNode implements ControllerNode {
      * @param id instance identifier
      * @param ip instance IP address
      */
-    public DefaultControllerNode(NodeId id, IpPrefix ip) {
+    public DefaultControllerNode(NodeId id, IpAddress ip) {
         this(id, ip, DEFAULT_PORT);
     }
 
@@ -40,7 +40,7 @@ public class DefaultControllerNode implements ControllerNode {
      * @param id instance identifier
      * @param ip instance IP address
      */
-    public DefaultControllerNode(NodeId id, IpPrefix ip, int tcpPort) {
+    public DefaultControllerNode(NodeId id, IpAddress ip, int tcpPort) {
         this.id = id;
         this.ip = ip;
         this.tcpPort = tcpPort;
@@ -52,7 +52,7 @@ public class DefaultControllerNode implements ControllerNode {
     }
 
     @Override
-    public IpPrefix ip() {
+    public IpAddress ip() {
         return ip;
     }
 

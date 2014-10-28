@@ -1,7 +1,7 @@
 package org.onlab.onos.cluster;
 
 import org.onlab.onos.store.Store;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.Set;
 
@@ -48,7 +48,7 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
      * @param tcpPort tcp listen port
      * @return newly added node
      */
-    ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort);
+    ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort);
 
     /**
      * Removes the specified node from the inventory of cluster nodes.

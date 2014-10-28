@@ -38,7 +38,7 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -69,7 +69,7 @@ public class DeviceManagerTest {
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
     private static final NodeId NID_LOCAL = new NodeId("local");
-    private static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
     private DeviceManager mgr;
 

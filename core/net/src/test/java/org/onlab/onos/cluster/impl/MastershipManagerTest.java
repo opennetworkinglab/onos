@@ -16,7 +16,7 @@ import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
 
@@ -31,7 +31,7 @@ public class MastershipManagerTest {
 
     private static final NodeId NID_LOCAL = new NodeId("local");
     private static final NodeId NID_OTHER = new NodeId("foo");
-    private static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
     private static final DeviceId DEV_MASTER = DeviceId.deviceId("of:1");
     private static final DeviceId DEV_OTHER = DeviceId.deviceId("of:2");
 

@@ -32,7 +32,7 @@ import org.onlab.onos.store.hz.StoreManager;
 import org.onlab.onos.store.hz.StoreService;
 import org.onlab.onos.store.hz.TestStoreManager;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
@@ -47,7 +47,7 @@ public class DistributedMastershipStoreTest {
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
     private static final DeviceId DID3 = DeviceId.deviceId("of:03");
 
-    private static final IpPrefix IP = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress IP = IpAddress.valueOf("127.0.0.1");
 
     private static final NodeId N1 = new NodeId("node1");
     private static final NodeId N2 = new NodeId("node2");

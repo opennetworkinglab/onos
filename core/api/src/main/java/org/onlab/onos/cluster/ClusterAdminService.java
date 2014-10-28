@@ -1,6 +1,6 @@
 package org.onlab.onos.cluster;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 /**
  * Service for administering the cluster node membership.
@@ -15,7 +15,7 @@ public interface ClusterAdminService {
      * @param tcpPort tcp listen port
      * @return newly added node
      */
-    ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort);
+    ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort);
 
     /**
      * Removes the specified node from the cluster node list.

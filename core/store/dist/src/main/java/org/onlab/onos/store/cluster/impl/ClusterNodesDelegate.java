@@ -2,7 +2,7 @@ package org.onlab.onos.store.cluster.impl;
 
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 // Not used right now
 /**
@@ -19,7 +19,8 @@ public interface ClusterNodesDelegate {
      * @param tcpPort node TCP listen port
      * @return the controller node
      */
-    DefaultControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort);
+    DefaultControllerNode nodeDetected(NodeId nodeId, IpAddress ip,
+                                       int tcpPort);
 
     /**
      * Notifies about cluster node going offline.

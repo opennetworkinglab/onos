@@ -8,7 +8,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.impl.ClusterNodesDelegate;
 import org.onlab.netty.NettyMessagingService;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,7 @@ public class ClusterCommunicationManagerTest {
     private static final int P1 = 9881;
     private static final int P2 = 9882;
 
-    private static final IpPrefix IP = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress IP = IpAddress.valueOf("127.0.0.1");
 
     private ClusterCommunicationManager ccm1;
     private ClusterCommunicationManager ccm2;
@@ -104,7 +104,7 @@ public class ClusterCommunicationManagerTest {
         NodeId nodeId;
 
         @Override
-        public DefaultControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort) {
+        public DefaultControllerNode nodeDetected(NodeId nodeId, IpAddress ip, int tcpPort) {
             latch(nodeId, Op.DETECTED);
             return new DefaultControllerNode(nodeId, ip, tcpPort);
         }

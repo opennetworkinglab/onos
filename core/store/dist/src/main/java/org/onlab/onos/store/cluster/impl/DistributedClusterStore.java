@@ -22,7 +22,7 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.hz.AbsentInvalidatingLoadingCache;
 import org.onlab.onos.store.hz.AbstractHazelcastStore;
 import org.onlab.onos.store.hz.OptionalCacheLoader;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.Map;
 import java.util.Set;
@@ -105,7 +105,7 @@ public class DistributedClusterStore
     }
 
     @Override
-    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+    public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return addNode(new DefaultControllerNode(nodeId, ip, tcpPort));
     }
 
@@ -127,13 +127,13 @@ public class DistributedClusterStore
 
     // Creates a controller node descriptor from the Hazelcast member.
     private DefaultControllerNode node(Member member) {
-        IpPrefix ip = memberAddress(member);
+        IpAddress ip = memberAddress(member);
         return new DefaultControllerNode(new NodeId(ip.toString()), ip);
     }
 
-    private IpPrefix memberAddress(Member member) {
+    private IpAddress memberAddress(Member member) {
         byte[] address = member.getSocketAddress().getAddress().getAddress();
-        return IpPrefix.valueOf(address);
+        return IpAddress.valueOf(address);
     }
 
     // Interceptor for membership events.

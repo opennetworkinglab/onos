@@ -12,7 +12,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -29,7 +29,7 @@ public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
         implements ClusterStore {
 
-    public static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
+    public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
     private final Logger log = getLogger(getClass());
 
@@ -68,7 +68,7 @@ public class SimpleClusterStore
     }
 
     @Override
-    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+    public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return null;
     }
 

@@ -1,6 +1,6 @@
 package org.onlab.onos.cluster;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 /**
  * Represents a controller instance as a member in a cluster.
@@ -33,7 +33,7 @@ public interface ControllerNode {
      *
      * @return IP address
      */
-    IpPrefix ip();
+    IpAddress ip();
 
 
     /**

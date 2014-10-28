@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.FluentIterable;
 
@@ -19,9 +19,9 @@ public class ControllerNodeToNodeIdTest {
     private static final NodeId NID2 = new NodeId("bar");
     private static final NodeId NID3 = new NodeId("buz");
 
-    private static final IpPrefix IP1 = IpPrefix.valueOf("127.0.0.1");
-    private static final IpPrefix IP2 = IpPrefix.valueOf("127.0.0.2");
-    private static final IpPrefix IP3 = IpPrefix.valueOf("127.0.0.3");
+    private static final IpAddress IP1 = IpAddress.valueOf("127.0.0.1");
+    private static final IpAddress IP2 = IpAddress.valueOf("127.0.0.2");
+    private static final IpAddress IP3 = IpAddress.valueOf("127.0.0.3");
 
     private static final ControllerNode CN1 = new DefaultControllerNode(NID1, IP1);
     private static final ControllerNode CN2 = new DefaultControllerNode(NID2, IP2);
