@@ -3,7 +3,7 @@ package org.onlab.onos.net.intent.impl;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;

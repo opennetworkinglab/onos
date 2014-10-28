@@ -38,7 +38,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.flow.CompletedBatchOperation;

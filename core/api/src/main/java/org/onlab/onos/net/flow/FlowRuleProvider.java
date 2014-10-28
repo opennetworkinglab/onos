@@ -18,7 +18,7 @@
  */
 package org.onlab.onos.net.flow;
 
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.provider.Provider;
 
 import com.google.common.util.concurrent.ListenableFuture;

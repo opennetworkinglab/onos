@@ -20,7 +20,7 @@ package org.onlab.onos.sdnip;
 
 import java.util.List;
 
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;

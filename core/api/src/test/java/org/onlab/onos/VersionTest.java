@@ -2,9 +2,10 @@ package org.onlab.onos;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onlab.onos.core.Version;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.Version.version;
+import static org.onlab.onos.core.Version.version;
 
 /**
  * Tests of the version descriptor.

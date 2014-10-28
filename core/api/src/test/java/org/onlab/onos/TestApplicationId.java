@@ -1,5 +1,7 @@
 package org.onlab.onos;
 
+import org.onlab.onos.core.ApplicationId;
+
 import java.util.Objects;
 
 /**

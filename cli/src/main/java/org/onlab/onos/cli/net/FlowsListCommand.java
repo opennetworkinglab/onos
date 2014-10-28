@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.CoreService;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Device;

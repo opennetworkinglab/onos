@@ -12,7 +12,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;

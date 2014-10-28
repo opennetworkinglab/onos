@@ -12,7 +12,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.CoreService;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;

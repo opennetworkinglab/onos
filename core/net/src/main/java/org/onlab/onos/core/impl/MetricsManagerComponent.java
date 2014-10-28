@@ -1,4 +1,4 @@
-package org.onlab.onos.impl;
+package org.onlab.onos.core.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;

@@ -20,7 +20,7 @@ package org.onlab.onos.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;

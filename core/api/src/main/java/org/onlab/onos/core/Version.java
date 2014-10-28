@@ -1,4 +1,4 @@
-package org.onlab.onos;
+package org.onlab.onos.core;
 
 import java.util.Objects;
 

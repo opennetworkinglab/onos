@@ -20,7 +20,7 @@ package org.onlab.onos.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.CoreService;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowRuleService;

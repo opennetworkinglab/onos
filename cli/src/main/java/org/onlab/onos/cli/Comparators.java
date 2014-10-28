@@ -18,6 +18,7 @@
  */
 package org.onlab.onos.cli;
 
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.net.Element;
 import org.onlab.onos.net.ElementId;
@@ -35,6 +36,13 @@ public final class Comparators {
     // Ban construction
     private Comparators() {
     }
+
+    public static final Comparator<ApplicationId> APP_ID_COMPARATOR = new Comparator<ApplicationId>() {
+        @Override
+        public int compare(ApplicationId id1, ApplicationId id2) {
+            return id1.id() - id2.id();
+        }
+    };
 
     public static final Comparator<ElementId> ELEMENT_ID_COMPARATOR = new Comparator<ElementId>() {
         @Override

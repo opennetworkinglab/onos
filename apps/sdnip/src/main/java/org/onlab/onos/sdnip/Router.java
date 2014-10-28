@@ -34,7 +34,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;

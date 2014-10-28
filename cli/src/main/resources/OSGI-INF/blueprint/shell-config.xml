@@ -37,9 +37,9 @@
         </command>
         <command>
             <action class="org.onlab.onos.cli.MastersListCommand"/>
-            <completers>
-                <ref component-id="clusterIdCompleter"/>
-            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.ApplicationIdListCommand"/>
         </command>
 
         <command>

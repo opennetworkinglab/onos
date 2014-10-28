@@ -23,7 +23,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Objects;
 
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.slf4j.Logger;
 

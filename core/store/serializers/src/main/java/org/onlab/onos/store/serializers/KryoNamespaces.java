@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import org.onlab.onos.core.DefaultApplicationId;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
@@ -129,6 +130,7 @@ public final class KryoNamespaces {
                     FlowRuleBatchEntry.class,
                     FlowRuleBatchEntry.FlowRuleOperation.class
                     )
+            .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
             .register(URI.class, new URISerializer())
             .register(NodeId.class, new NodeIdSerializer())
             .register(ProviderId.class, new ProviderIdSerializer())

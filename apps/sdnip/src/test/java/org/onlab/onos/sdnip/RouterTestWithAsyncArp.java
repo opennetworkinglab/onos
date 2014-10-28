@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;

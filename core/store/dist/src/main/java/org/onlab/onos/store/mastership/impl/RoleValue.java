@@ -15,7 +15,7 @@ import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * A structure that holds node mastership roles associated with a
- * {@link DeviceId}. This structure needs to be locked through IMap.
+ * {@link org.onlab.onos.net.DeviceId}. This structure needs to be locked through IMap.
  */
 final class RoleValue {
 

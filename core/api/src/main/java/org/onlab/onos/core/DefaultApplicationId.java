@@ -1,23 +1,32 @@
-package org.onlab.onos.impl;
-
-import org.onlab.onos.ApplicationId;
+package org.onlab.onos.core;
 
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Application id generator class.
+ * Application identifier.
  */
 public class DefaultApplicationId implements ApplicationId {
 
     private final short id;
     private final String name;
 
-    // Ban public construction
-    protected DefaultApplicationId(Short id, String identifier) {
+    /**
+     * Creates a new application ID.
+     *
+     * @param id   application identifier
+     * @param name application name
+     */
+    public DefaultApplicationId(Short id, String name) {
         this.id = id;
-        this.name = identifier;
+        this.name = name;
+    }
+
+    // Constructor for serializers.
+    private DefaultApplicationId() {
+        this.id = 0;
+        this.name = null;
     }
 
     @Override

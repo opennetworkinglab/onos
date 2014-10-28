@@ -23,7 +23,7 @@ import org.easymock.IArgumentMatcher;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;

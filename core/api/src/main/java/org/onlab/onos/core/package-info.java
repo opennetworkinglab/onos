@@ -1,4 +1,4 @@
 /**
  * ONOS Core API definitions.
  */
-package org.onlab.onos;
+package org.onlab.onos.core;

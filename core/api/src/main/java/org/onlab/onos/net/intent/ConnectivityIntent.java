@@ -19,7 +19,7 @@
 package org.onlab.onos.net.intent;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.ApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.flow.TrafficSelector;

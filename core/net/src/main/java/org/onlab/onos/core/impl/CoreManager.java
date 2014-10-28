@@ -1,18 +1,21 @@
-package org.onlab.onos.impl;
+package org.onlab.onos.core.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.ApplicationId;
-import org.onlab.onos.CoreService;
-import org.onlab.onos.Version;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.ApplicationIdStore;
+import org.onlab.onos.core.CoreService;
+import org.onlab.onos.core.Version;
 import org.onlab.util.Tools;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Core service implementation.
@@ -21,15 +24,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class CoreManager implements CoreService {
 
-    private static final AtomicInteger ID_DISPENSER = new AtomicInteger(1);
-
     private static final File VERSION_FILE = new File("../VERSION");
     private static Version version = Version.version("1.0.0-SNAPSHOT");
 
-    private final Map<Short, DefaultApplicationId> appIds = new ConcurrentHashMap<>();
-    private final Map<String, DefaultApplicationId> appIdsByName = new ConcurrentHashMap<>();
-
-    // TODO: work in progress
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ApplicationIdStore applicationIdStore;
 
     @Activate
     public void activate() {
@@ -45,20 +44,19 @@ public class CoreManager implements CoreService {
     }
 
     @Override
+    public Set<ApplicationId> getAppIds() {
+        return applicationIdStore.getAppIds();
+    }
+
+    @Override
     public ApplicationId getAppId(Short id) {
-        return appIds.get(id);
+        return applicationIdStore.getAppId(id);
     }
 
     @Override
     public ApplicationId registerApplication(String name) {
-        DefaultApplicationId appId = appIdsByName.get(name);
-        if (appId == null) {
-            short id = (short) ID_DISPENSER.getAndIncrement();
-            appId = new DefaultApplicationId(id, name);
-            appIds.put(id, appId);
-            appIdsByName.put(name, appId);
-        }
-        return appId;
+        checkNotNull(name, "Application ID cannot be null");
+        return applicationIdStore.registerApplication(name);
     }
 
 }
