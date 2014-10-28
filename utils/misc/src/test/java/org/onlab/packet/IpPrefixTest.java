@@ -118,9 +118,9 @@ public class IpPrefixTest {
     @Test
     public void testContainsIpAddress() {
         IpPrefix slash31 = IpPrefix.valueOf(BYTES1, 31);
-        IpAddress slash32 = IpAddress.valueOf(BYTES1, 32);
+        IpAddress addr32 = IpAddress.valueOf(BYTES1);
 
-        assertTrue(slash31.contains(slash32));
+        assertTrue(slash31.contains(addr32));
 
         IpPrefix intf = IpPrefix.valueOf("192.168.10.101/24");
         IpAddress addr = IpAddress.valueOf("192.168.10.1");
