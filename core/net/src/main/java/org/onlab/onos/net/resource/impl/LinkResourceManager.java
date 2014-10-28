@@ -15,10 +15,13 @@
  */
 package org.onlab.onos.net.resource.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +29,8 @@ import java.util.Set;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
@@ -33,14 +38,15 @@ import org.onlab.onos.net.resource.BandwidthResourceAllocation;
 import org.onlab.onos.net.resource.BandwidthResourceRequest;
 import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LambdaResourceAllocation;
+import org.onlab.onos.net.resource.LambdaResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceService;
+import org.onlab.onos.net.resource.LinkResourceStore;
 import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.onos.net.resource.ResourceRequest;
+import org.onlab.onos.net.resource.ResourceType;
 import org.slf4j.Logger;
-
-import com.google.common.collect.Sets;
 
 /**
  * Provides basic implementation of link resources allocation.
@@ -51,7 +57,8 @@ public class LinkResourceManager implements LinkResourceService {
 
     private final Logger log = getLogger(getClass());
 
-    LinkResourceAllocations savedAllocations;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private LinkResourceStore store;
 
     @Activate
     public void activate() {
@@ -63,30 +70,65 @@ public class LinkResourceManager implements LinkResourceService {
         log.info("Stopped");
     }
 
-    private Iterable<Lambda> getAvailableLambdas(Iterable<Link> links) {
-        return Sets.newHashSet(Lambda.valueOf(7));
+    /**
+     * Returns available lambdas on specified link.
+     *
+     * @param link the link
+     * @return available lambdas on specified link
+     */
+    private Set<Lambda> getAvailableLambdas(Link link) {
+        checkNotNull(link);
+        Set<ResourceAllocation> resAllocs = store.getFreeResources(link);
+        if (resAllocs == null) {
+            return Collections.emptySet();
+        }
+        Set<Lambda> lambdas = new HashSet<>();
+        for (ResourceAllocation res : resAllocs) {
+            if (res.type() == ResourceType.LAMBDA) {
+                lambdas.add(((LambdaResourceAllocation) res).lambda());
+            }
+        }
+        return lambdas;
     }
 
-    double usedBandwidth = 0.0;
+    /**
+     * Returns available lambdas on specified links.
+     *
+     * @param links the links
+     * @return available lambdas on specified links
+     */
+    private Iterable<Lambda> getAvailableLambdas(Iterable<Link> links) {
+        checkNotNull(links);
+        Iterator<Link> i = links.iterator();
+        checkArgument(i.hasNext());
+        Set<Lambda> lambdas = new HashSet<>(getAvailableLambdas(i.next()));
+        while (i.hasNext()) {
+            lambdas.retainAll(getAvailableLambdas(i.next()));
+        }
+        return lambdas;
+    }
 
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
-        // TODO implement it using a resource data store.
+        // TODO Concatenate multiple bandwidth requests.
+        // TODO Support multiple lambda resource requests.
+        // TODO Throw appropriate exception.
 
-        ResourceAllocation alloc = null;
+        Set<ResourceAllocation> allocs = new HashSet<>();
         for (ResourceRequest r : req.resources()) {
             switch (r.type()) {
             case BANDWIDTH:
-                log.info("requestResources() always returns requested bandwidth");
                 BandwidthResourceRequest br = (BandwidthResourceRequest) r;
-                alloc = new BandwidthResourceAllocation(br.bandwidth());
-                usedBandwidth += br.bandwidth().toDouble();
+                allocs.add(new BandwidthResourceAllocation(br.bandwidth()));
                 break;
             case LAMBDA:
-                log.info("requestResources() always returns lambda 7");
-                Iterator<Lambda> lambdaIterator = getAvailableLambdas(req.links()).iterator();
+                Iterator<Lambda> lambdaIterator =
+                        getAvailableLambdas(req.links()).iterator();
                 if (lambdaIterator.hasNext()) {
-                    alloc = new LambdaResourceAllocation(lambdaIterator.next());
+                    allocs.add(new LambdaResourceAllocation(lambdaIterator.next()));
+                } else {
+                    log.info("Failed to allocate lambda resource.");
+                    return null;
                 }
                 break;
             default:
@@ -96,56 +138,66 @@ public class LinkResourceManager implements LinkResourceService {
 
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         for (Link link : req.links()) {
-            allocations.put(link, Sets.newHashSet(alloc));
+            allocations.put(link, allocs);
         }
-        savedAllocations = new DefaultLinkResourceAllocations(req, allocations);
-        return savedAllocations;
+        LinkResourceAllocations result =
+                new DefaultLinkResourceAllocations(req, allocations);
+        store.allocateResources(result);
+        return result;
+
     }
 
     @Override
     public void releaseResources(LinkResourceAllocations allocations) {
-        // TODO Auto-generated method stub
-
+        store.releaseResources(allocations);
     }
 
     @Override
     public LinkResourceAllocations updateResources(LinkResourceRequest req,
-                                                   LinkResourceAllocations oldAllocations) {
+            LinkResourceAllocations oldAllocations) {
+        // TODO
         return null;
     }
 
     @Override
     public Iterable<LinkResourceAllocations> getAllocations() {
-        // TODO Auto-generated method stub
-        return null;
+        return store.getAllocations();
     }
 
     @Override
     public Iterable<LinkResourceAllocations> getAllocations(Link link) {
-        ArrayList<LinkResourceAllocations> retval = new ArrayList<>(0);
-        if (savedAllocations != null) {
-            retval.add(savedAllocations);
-        }
-        return retval;
+        return store.getAllocations(link);
     }
 
     @Override
     public LinkResourceAllocations getAllocations(IntentId intentId) {
-        // TODO Auto-generated method stub
-        return null;
+        return store.getAllocations(intentId);
     }
 
     @Override
     public Iterable<ResourceRequest> getAvailableResources(Link link) {
-        BandwidthResourceRequest bw = new BandwidthResourceRequest(usedBandwidth);
-        ArrayList<ResourceRequest> result = new ArrayList<>();
-        result.add(bw);
+        Set<ResourceAllocation> freeRes = store.getFreeResources(link);
+        Set<ResourceRequest> result = new HashSet<>();
+        for (ResourceAllocation alloc : freeRes) {
+            switch (alloc.type()) {
+            case BANDWIDTH:
+                result.add(new BandwidthResourceRequest(
+                        ((BandwidthResourceAllocation) alloc).bandwidth()));
+                break;
+            case LAMBDA:
+                result.add(new LambdaResourceRequest());
+                break;
+            default:
+                break;
+            }
+        }
         return result;
     }
 
     @Override
     public ResourceRequest getAvailableResources(Link link,
-                                                 LinkResourceAllocations allocations) {
+            LinkResourceAllocations allocations) {
+        // TODO
         return null;
     }
 
