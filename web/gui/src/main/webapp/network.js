@@ -49,12 +49,12 @@
             force: {
                 note: 'node.class or link.class is used to differentiate',
                 linkDistance: {
-                    infra: 240,
-                    host: 100
+                    infra: 200,
+                    host: 20
                 },
                 linkStrength: {
                     infra: 1.0,
-                    host: 0.4
+                    host: 1.0
                 },
                 charge: {
                     device: -800,
@@ -90,6 +90,7 @@
                 }
             },
             hostLinkWidth: 1.0,
+            hostRadius: 7,
             mouseOutTimerDelayMs: 120
         };
 
@@ -279,16 +280,16 @@
 
 
         // now, process the explicit links...
-        network.data.links.forEach(function(n) {
-            var src = network.lookup[n.src],
-                dst = network.lookup[n.dst],
+        network.data.links.forEach(function(lnk) {
+            var src = network.lookup[lnk.src],
+                dst = network.lookup[lnk.dst],
                 id = src.id + "~" + dst.id;
 
             var link = {
                 class: 'infra',
                 id: id,
-                type: n.type,
-                width: n.linkWidth,
+                type: lnk.type,
+                width: lnk.linkWidth,
                 source: src,
                 target: dst,
                 strength: config.force.linkStrength.infra
@@ -379,6 +380,7 @@
             .attr('class', function(d) {return 'link ' + d.class});
 
 
+        // TODO: move drag behavior into separate method.
         // == define node drag behavior...
         network.draggedThreshold = d3.scale.linear()
             .domain([0, 0.1])
@@ -442,6 +444,8 @@
             })
             .call(network.drag)
             .on('mouseover', function(d) {
+                // TODO: show tooltip
+/*
                 if (!selected.obj) {
                     if (network.mouseoutTimeout) {
                         clearTimeout(network.mouseoutTimeout);
@@ -449,8 +453,11 @@
                     }
                     highlightObject(d);
                 }
+*/
             })
             .on('mouseout', function(d) {
+                // TODO: hide tooltip
+/*
                 if (!selected.obj) {
                     if (network.mouseoutTimeout) {
                         clearTimeout(network.mouseoutTimeout);
@@ -460,9 +467,13 @@
                         highlightObject(null);
                     }, config.mouseOutTimerDelayMs);
                 }
+*/
             });
 
-        network.nodeRect = network.node.append('rect')
+
+        // deal with device nodes first
+        network.nodeRect = network.node.filter('.device')
+            .append('rect')
             .attr({
                 rx: 5,
                 ry: 5,
@@ -470,8 +481,9 @@
                 height: 12
             });
             // note that width/height are adjusted to fit the label text
+            // then padded, and space made for the icon.
 
-        network.node.each(function(d) {
+        network.node.filter('.device').each(function(d) {
             var node = d3.select(this),
                 icon = iconUrl(d);
 
@@ -505,47 +517,35 @@
             }
         });
 
+        // now process host nodes
+        network.nodeCircle = network.node.filter('.host')
+            .append('circle')
+            .attr({
+                r: config.hostRadius
+            });
 
-        // returns the newly computed bounding box
-        function adjustRectToFitText(n) {
-            var text = n.select('text'),
-                box = text.node().getBBox(),
-                lab = config.labels;
+        network.node.filter('.host').each(function(d) {
+            var node = d3.select(this),
+                icon = iconUrl(d);
 
-            text.attr('text-anchor', 'middle')
-                .attr('y', '-0.8em')
-                .attr('x', lab.imgPad/2)
-            ;
-
-            // TODO: figure out how to access the data on selection
-            console.log("\nadjust rect for " + n.data().id);
-            console.log(box);
-
-            // translate the bbox so that it is centered on [x,y]
-            box.x = -box.width / 2;
-            box.y = -box.height / 2;
-
-            // add padding
-            box.x -= (lab.padLR + lab.imgPad/2);
-            box.width += lab.padLR * 2 + lab.imgPad;
-            box.y -= lab.padTB;
-            box.height += lab.padTB * 2;
-
-            return box;
-        }
-
-        function boundsFromBox(box) {
-            return {
-                x1: box.x,
-                y1: box.y,
-                x2: box.x + box.width,
-                y2: box.y + box.height
-            };
-        }
+            // debug function to show the modelled x,y coordinates of nodes...
+            if (debug('showNodeXY')) {
+                node.select('circle').attr('fill-opacity', 0.5);
+                node.append('circle')
+                    .attr({
+                        class: 'debug',
+                        cx: 0,
+                        cy: 0,
+                        r: '3px'
+                    });
+            }
+        });
 
         // this function is scheduled to happen soon after the given thread ends
         setTimeout(function() {
-            network.node.each(function(d) {
+            // post process the device nodes, to pad their size to fit the
+            // label text and attach the icon to the right location.
+            network.node.filter('.device').each(function(d) {
                 // for every node, recompute size, padding, etc. so text fits
                 var node = d3.select(this),
                     text = node.select('text'),
@@ -589,6 +589,44 @@
             $('#view').css('visibility', 'visible');
         });
 
+
+        // returns the newly computed bounding box of the rectangle
+        function adjustRectToFitText(n) {
+            var text = n.select('text'),
+                box = text.node().getBBox(),
+                lab = config.labels;
+
+            text.attr('text-anchor', 'middle')
+                .attr('y', '-0.8em')
+                .attr('x', lab.imgPad/2)
+            ;
+
+            // TODO: figure out how to access the data on selection
+            console.log("\nadjust rect for " + n.data().id);
+            console.log(box);
+
+            // translate the bbox so that it is centered on [x,y]
+            box.x = -box.width / 2;
+            box.y = -box.height / 2;
+
+            // add padding
+            box.x -= (lab.padLR + lab.imgPad/2);
+            box.width += lab.padLR * 2 + lab.imgPad;
+            box.y -= lab.padTB;
+            box.height += lab.padTB * 2;
+
+            return box;
+        }
+
+        function boundsFromBox(box) {
+            return {
+                x1: box.x,
+                y1: box.y,
+                x2: box.x + box.width,
+                y2: box.y + box.height
+            };
+        }
+
     }
 
     function iconUrl(d) {
@@ -599,24 +637,48 @@
         return 'translate(' + x + ',' + y + ')';
     }
 
+    // prevents collisions amongst device nodes
     function preventCollisions() {
-        var quadtree = d3.geom.quadtree(network.nodes);
+        var quadtree = d3.geom.quadtree(network.nodes),
+            hrad = config.hostRadius;
 
         network.nodes.forEach(function(n) {
-            var nx1 = n.x + n.extent.left,
-                nx2 = n.x + n.extent.right,
-                ny1 = n.y + n.extent.top,
+            var nx1, nx2, ny1, ny2;
+
+            if (n.class === 'device') {
+                nx1 = n.x + n.extent.left;
+                nx2 = n.x + n.extent.right;
+                ny1 = n.y + n.extent.top;
                 ny2 = n.y + n.extent.bottom;
+
+            } else {
+                nx1 = n.x - hrad;
+                nx2 = n.x + hrad;
+                ny1 = n.y - hrad;
+                ny2 = n.y + hrad;
+            }
 
             quadtree.visit(function(quad, x1, y1, x2, y2) {
                 if (quad.point && quad.point !== n) {
-                    // check if the rectangles intersect
+                    // check if the rectangles/circles intersect
                     var p = quad.point,
-                        px1 = p.x + p.extent.left,
-                        px2 = p.x + p.extent.right,
-                        py1 = p.y + p.extent.top,
-                        py2 = p.y + p.extent.bottom,
-                        ix = (px1 <= nx2 && nx1 <= px2 && py1 <= ny2 && ny1 <= py2);
+                        px1, px2, py1, py2, ix;
+
+                    if (p.class === 'device') {
+                        px1 = p.x + p.extent.left;
+                        px2 = p.x + p.extent.right;
+                        py1 = p.y + p.extent.top;
+                        py2 = p.y + p.extent.bottom;
+
+                    } else {
+                        px1 = p.x - hrad;
+                        px2 = p.x + hrad;
+                        py1 = p.y - hrad;
+                        py2 = p.y + hrad;
+                    }
+
+                    ix = (px1 <= nx2 && nx1 <= px2 && py1 <= ny2 && ny1 <= py2);
+
                     if (ix) {
                         var xa1 = nx2 - px1, // shift n left , p right
                             xa2 = px2 - nx1, // shift n right, p left
@@ -716,6 +778,16 @@
     //        }
     //        return false;
     //    });
+
+    function findNodeFromData(d) {
+        var el = null;
+        network.node.filter('.' + d.class).each(function(n) {
+            if (n.id === d.id) {
+                el = d3.select(this);
+            }
+        });
+        return el;
+    }
 
     function selectObject(obj, el) {
         var node;
