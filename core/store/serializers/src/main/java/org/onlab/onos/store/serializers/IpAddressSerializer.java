@@ -24,7 +24,6 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
         byte[] octs = object.toOctets();
         output.writeInt(octs.length);
         output.writeBytes(octs);
-        output.writeInt(object.prefixLength());
     }
 
     @Override
@@ -32,8 +31,7 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
         final int octLen = input.readInt();
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
-        int prefLen = input.readInt();
-        return IpAddress.valueOf(octs, prefLen);
+        return IpAddress.valueOf(octs);
     }
 
 }
