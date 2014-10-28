@@ -40,7 +40,6 @@ import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
-import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
@@ -78,8 +77,15 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     @Override
     public OFFlowAdd buildFlowAdd() {
         Match match = buildMatch();
-        OFInstruction writeActions =
-                factory().instructions().writeActions(buildActions());
+        List<OFAction> actions = buildActions();
+
+        // FIXME had to revert back to using apply-actions instead of
+        // write-actions because LINC-OE apparently doesn't support
+        // write-actions. I would prefer to change this back in the future
+        // because apply-actions is an optional instruction in OF 1.3.
+
+        //OFInstruction writeActions =
+                //factory().instructions().writeActions(actions);
 
         long cookie = flowRule().id().value();
 
@@ -88,7 +94,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setXid(cookie)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setInstructions(Collections.singletonList(writeActions))
+                .setActions(actions)
+                //.setInstructions(Collections.singletonList(writeActions))
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
@@ -100,8 +107,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     @Override
     public OFFlowMod buildFlowMod() {
         Match match = buildMatch();
-        OFInstruction writeActions =
-                factory().instructions().writeActions(buildActions());
+        List<OFAction> actions = buildActions();
+        //OFInstruction writeActions =
+                //factory().instructions().writeActions(actions);
 
         long cookie = flowRule().id().value();
 
@@ -110,7 +118,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setXid(cookie)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setInstructions(Collections.singletonList(writeActions))
+                .setActions(actions)
+                //.setInstructions(Collections.singletonList(writeActions))
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
@@ -122,8 +131,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     @Override
     public OFFlowDelete buildFlowDel() {
         Match match = buildMatch();
-        OFInstruction writeActions =
-                factory().instructions().writeActions(buildActions());
+        List<OFAction> actions = buildActions();
+        //OFInstruction writeActions =
+                //factory().instructions().writeActions(actions);
 
         long cookie = flowRule().id().value();
 
@@ -131,7 +141,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setXid(cookie)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setInstructions(Collections.singletonList(writeActions))
+                .setActions(actions)
+                //.setInstructions(Collections.singletonList(writeActions))
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
