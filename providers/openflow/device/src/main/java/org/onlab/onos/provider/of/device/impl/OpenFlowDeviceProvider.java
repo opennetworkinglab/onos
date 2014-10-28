@@ -103,22 +103,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.info("Stopped");
     }
 
+
+    @Override
+    public boolean isReachable(Device device) {
+        // FIXME if possible, we might want this to be part of
+        // OpenFlowSwitch interface so the driver interface isn't misused.
+        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
+        if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
+            return false;
+        }
+        return true;
+        //return checkChannel(device, sw);
+    }
+
     @Override
     public void triggerProbe(Device device) {
         LOG.info("Triggering probe on device {}", device.id());
 
-        // 1. check device liveness
-        // FIXME if possible, we might want this to be part of
-        // OpenFlowSwitch interface so the driver interface isn't misused.
         OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        if (sw == null ||
-            !((OpenFlowSwitchDriver) sw).isConnected()) {
-            LOG.error("Failed to probe device {} on sw={}", device, sw);
-            providerService.deviceDisconnected(device.id());
-            return;
-        }
+        //if (!checkChannel(device, sw)) {
+          //  LOG.error("Failed to probe device {} on sw={}", device, sw);
+        //  providerService.deviceDisconnected(device.id());
+            //return;
+        //}
 
-        // 2. Prompt an update of port information. Do we have an XID for this?
+        // Prompt an update of port information. We can use any XID for this.
         OFFactory fact = sw.factory();
         switch (fact.getVersion()) {
             case OF_10:
@@ -131,6 +140,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 LOG.warn("Unhandled protocol version");
         }
     }
+
+    // Checks if the OF channel is connected.
+    //private boolean checkChannel(Device device, OpenFlowSwitch sw) {
+        // FIXME if possible, we might want this to be part of
+        // OpenFlowSwitch interface so the driver interface isn't misused.
+    //    if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
+      //      return false;
+  //      }
+    //    return true;
+   // }
 
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {

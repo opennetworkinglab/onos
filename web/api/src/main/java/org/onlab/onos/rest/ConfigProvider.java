@@ -226,4 +226,9 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     public ProviderId id() {
         return PID;
     }
+
+    @Override
+    public boolean isReachable(Device device) {
+        return false;
+    }
 }

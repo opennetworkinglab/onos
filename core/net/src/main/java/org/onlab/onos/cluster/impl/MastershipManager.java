@@ -97,10 +97,20 @@ implements MastershipService, MastershipAdminService {
         checkNotNull(role, ROLE_NULL);
 
         MastershipEvent event = null;
-        if (role.equals(MastershipRole.MASTER)) {
-            event = store.setMaster(nodeId, deviceId);
-        } else {
-            event = store.setStandby(nodeId, deviceId);
+
+        switch (role) {
+            case MASTER:
+                event = store.setMaster(nodeId, deviceId);
+                break;
+            case STANDBY:
+                event = store.setStandby(nodeId, deviceId);
+                break;
+            case NONE:
+                event = store.relinquishRole(nodeId, deviceId);
+                break;
+            default:
+                log.info("Unknown role; ignoring");
+                return;
         }
 
         if (event != null) {
@@ -259,6 +269,10 @@ implements MastershipService, MastershipAdminService {
 
         @Override
         public void notify(MastershipEvent event) {
+            if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
+                log.info("ignoring locally-generated event {}", event);
+               // return;
+            }
             log.info("dispatching mastership event {}", event);
             eventDispatcher.post(event);
         }
