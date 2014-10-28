@@ -46,6 +46,7 @@
         <module>calendar</module>
         <module>optical</module>
         <module>metrics</module>
+        <module>oecfg</module>
     </modules>
 
     <properties>

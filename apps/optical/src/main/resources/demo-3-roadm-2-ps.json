@@ -94,7 +94,7 @@
                 "port2": 11
             },
             "type": "pktOptLink"
-        },
+        }
 
     ]
 }

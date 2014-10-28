@@ -2,28 +2,28 @@
     "devices" : [
         {
             "uri": "of:0000ffffffffff01", "mac": "ffffffffffff01", "type": "ROADM",
-            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM1",
             "annotations": { "latitude": 37.6, "longitude": 122.3, "optical.regens": 0 }
         },
         {
             "uri": "of:0000ffffffffff02", "mac": "ffffffffffff02", "type": "ROADM",
-            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM2",
             "annotations": { "latitude": 37.3, "longitude": 121.9, "optical.regens": 0 }
         },
         {
             "uri": "of:0000ffffffffff03", "mac": "ffffffffffff03", "type": "ROADM",
-            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM3",
             "annotations": { "latitude": 33.9, "longitude": 118.4, "optical.regens": 2 }
         },
 
         {
             "uri": "of:0000ffffffff0001", "mac": "ffffffffff0003", "type": "SWITCH",
-            "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?",
+            "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?", "name": "ROUTER1",
             "annotations": { "latitude": 37.6, "longitude": 122.3 }
         },
         {
             "uri": "of:0000ffffffff0002", "mac": "ffffffffff0002", "type": "SWITCH",
-            "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?",
+            "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?", "name": "ROUTER2",
             "annotations": { "latitude": 37.3, "longitude": 121.9 }
         }
     ],
