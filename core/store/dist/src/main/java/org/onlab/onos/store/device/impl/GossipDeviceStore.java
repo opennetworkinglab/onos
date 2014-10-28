@@ -701,7 +701,7 @@ public class GossipDeviceStore
     public synchronized DeviceEvent removeDevice(DeviceId deviceId) {
         final NodeId master = mastershipService.getMasterFor(deviceId);
         if (!clusterService.getLocalNode().id().equals(master)) {
-            log.info("remove Device {} requested on non master node", deviceId);
+            log.info("Removal of device {} requested on non master node", deviceId);
             // FIXME silently ignoring. Should be forwarding or broadcasting to
             // master.
             return null;
@@ -778,7 +778,7 @@ public class GossipDeviceStore
     private Device composeDevice(DeviceId deviceId,
             Map<ProviderId, DeviceDescriptions> providerDescs) {
 
-        checkArgument(!providerDescs.isEmpty(), "No Device descriptions supplied");
+        checkArgument(!providerDescs.isEmpty(), "No device descriptions supplied");
 
         ProviderId primary = pickPrimaryPID(providerDescs);
 

@@ -18,11 +18,10 @@
  */
 package org.onlab.onos.cli;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collections;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
@@ -31,12 +30,15 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceService;
 
+import java.util.List;
+
+import static org.onlab.onos.cli.net.DevicesListCommand.getSortedDevices;
 
 /**
  * Lists mastership roles of nodes for each device.
  */
 @Command(scope = "onos", name = "roles",
-        description = "Lists mastership roles of nodes for each device.")
+         description = "Lists mastership roles of nodes for each device.")
 public class RolesCommand extends AbstractShellCommand {
 
     private static final String FMT_HDR = "%s: master=%s, standbys=[ %s]";
@@ -46,29 +48,47 @@ public class RolesCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class);
         MastershipService roleService = get(MastershipService.class);
 
-        for (Device d : getSortedDevices(deviceService)) {
-            DeviceId did = d.id();
-            printRoles(roleService, did);
+        if (outputJson()) {
+            print("%s", json(roleService, getSortedDevices(deviceService)));
+        } else {
+            for (Device d : getSortedDevices(deviceService)) {
+                DeviceId did = d.id();
+                printRoles(roleService, did);
+            }
         }
     }
 
-    /**
-     * Returns the list of devices sorted using the device ID URIs.
-     *
-     * @param service device service
-     * @return sorted device list
-     */
-    protected static List<Device> getSortedDevices(DeviceService service) {
-        List<Device> devices = newArrayList(service.getDevices());
-        Collections.sort(devices, Comparators.ELEMENT_COMPARATOR);
-        return devices;
+    // Produces JSON structure with role information for the given devices.
+    private JsonNode json(MastershipService service, List<Device> sortedDevices) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode results = mapper.createArrayNode();
+        for (Device device : sortedDevices) {
+            results.add(json(service, mapper, device));
+        }
+        return results;
+    }
+
+    // Produces JSON structure with role information for the given device.
+    private JsonNode json(MastershipService service, ObjectMapper mapper,
+                          Device device) {
+        NodeId master = service.getMasterFor(device.id());
+        ObjectNode result = mapper.createObjectNode()
+                .put("id", device.id().toString())
+                .put("master", master != null ? master.toString() : "none");
+        RoleInfo nodes = service.getNodesFor(device.id());
+        ArrayNode standbys = mapper.createArrayNode();
+        for (NodeId nid : nodes.backups()) {
+            standbys.add(nid.toString());
+        }
+        result.set("standbys", standbys);
+        return result;
     }
 
     /**
      * Prints the role information for a device.
      *
+     * @param service  mastership service
      * @param deviceId the ID of the device
-     * @param master the current master
      */
     protected void printRoles(MastershipService service, DeviceId deviceId) {
         RoleInfo nodes = service.getNodesFor(deviceId);
@@ -78,7 +98,7 @@ public class RolesCommand extends AbstractShellCommand {
         }
 
         print(FMT_HDR, deviceId,
-                nodes.master() == null ? "NONE" : nodes.master(),
-                builder.toString());
+              nodes.master() == null ? "NONE" : nodes.master(),
+              builder.toString());
     }
 }
