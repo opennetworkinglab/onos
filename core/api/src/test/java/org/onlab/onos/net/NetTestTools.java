@@ -2,7 +2,7 @@ package org.onlab.onos.net;
 
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,7 +45,7 @@ public final class NetTestTools {
     public static Host host(String id, String did) {
         return new DefaultHost(PID, hid(id), valueOf(1234), vlanId((short) 2),
                                new HostLocation(did(did), portNumber(1), 321),
-                               new HashSet<IpPrefix>());
+                               new HashSet<IpAddress>());
     }
 
     // Short-hand for creating a connection point.

@@ -59,8 +59,8 @@ public class ProxyArpManagerTest {
     private static final int NUM_ADDRESS_PORTS = NUM_DEVICES / 2;
     private static final int NUM_FLOOD_PORTS = 3;
 
-    private static final IpPrefix IP1 = IpPrefix.valueOf("192.168.1.1/24");
-    private static final IpPrefix IP2 = IpPrefix.valueOf("192.168.1.2/24");
+    private static final IpAddress IP1 = IpAddress.valueOf("192.168.1.1");
+    private static final IpAddress IP2 = IpAddress.valueOf("192.168.1.2");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
@@ -214,7 +214,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#known(IpPrefix)} in the case where the
+     * Tests {@link ProxyArpManager#known(IpAddress)} in the case where the
      * IP address is not known.
      * Verifies the method returns false.
      */
@@ -227,7 +227,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#known(IpPrefix)} in the case where the
+     * Tests {@link ProxyArpManager#known(IpAddress)} in the case where the
      * IP address is known.
      * Verifies the method returns true.
      */
@@ -256,8 +256,8 @@ public class ProxyArpManagerTest {
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
                 Collections.singleton(IP2));
 
-        expect(hostService.getHostsByIp(IpPrefix.valueOf(IP1.toOctets())))
-                .andReturn(Collections.singleton(replyer));
+        expect(hostService.getHostsByIp(IP1))
+            .andReturn(Collections.singleton(replyer));
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
         replay(hostService);
@@ -281,7 +281,7 @@ public class ProxyArpManagerTest {
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
                 Collections.singleton(IP2));
 
-        expect(hostService.getHostsByIp(IpPrefix.valueOf(IP1.toOctets())))
+        expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.<Host>emptySet());
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
@@ -308,7 +308,7 @@ public class ProxyArpManagerTest {
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
                 Collections.singleton(IP2));
 
-        expect(hostService.getHostsByIp(IpPrefix.valueOf(IP1.toOctets())))
+        expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.singleton(replyer));
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
@@ -323,9 +323,9 @@ public class ProxyArpManagerTest {
 
     @Test
     public void testReplyToRequestForUs() {
-        IpPrefix theirIp = IpPrefix.valueOf("10.0.1.254/24");
-        IpPrefix ourFirstIp = IpPrefix.valueOf("10.0.1.1/24");
-        IpPrefix ourSecondIp = IpPrefix.valueOf("10.0.2.1/24");
+        IpAddress theirIp = IpAddress.valueOf("10.0.1.254");
+        IpAddress ourFirstIp = IpAddress.valueOf("10.0.1.1");
+        IpAddress ourSecondIp = IpAddress.valueOf("10.0.2.1");
         MacAddress ourMac = MacAddress.valueOf(1L);
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
@@ -357,11 +357,11 @@ public class ProxyArpManagerTest {
     public void testReplyExternalPortBadRequest() {
         replay(hostService); // no further host service expectations
 
-        IpPrefix theirIp = IpPrefix.valueOf("10.0.1.254/24");
+        IpAddress theirIp = IpAddress.valueOf("10.0.1.254");
 
         // Request for a valid external IP address but coming in the wrong port
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp,
-                IpPrefix.valueOf("10.0.3.1"));
+                IpAddress.valueOf("10.0.3.1"));
         proxyArp.reply(arpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
@@ -376,9 +376,9 @@ public class ProxyArpManagerTest {
     public void testReplyToRequestFromUs() {
         replay(hostService); // no further host service expectations
 
-        IpPrefix ourIp = IpPrefix.valueOf("10.0.1.1/24");
+        IpAddress ourIp = IpAddress.valueOf("10.0.1.1");
         MacAddress ourMac = MacAddress.valueOf(1L);
-        IpPrefix theirIp = IpPrefix.valueOf("10.0.1.100/24");
+        IpAddress theirIp = IpAddress.valueOf("10.0.1.100");
 
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
@@ -501,7 +501,7 @@ public class ProxyArpManagerTest {
      * @return the ARP packet
      */
     private Ethernet buildArp(short opcode, MacAddress srcMac, MacAddress dstMac,
-            IpPrefix srcIp, IpPrefix dstIp) {
+            IpAddress srcIp, IpAddress dstIp) {
         Ethernet eth = new Ethernet();
 
         if (dstMac == null) {

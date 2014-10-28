@@ -129,10 +129,7 @@ public class HostMonitor implements TimerTask {
     @Override
     public void run(Timeout timeout) throws Exception {
         for (IpAddress ip : monitoredAddresses) {
-            // TODO have to convert right now because the HostService API uses IpPrefix
-            IpPrefix prefix = IpPrefix.valueOf(ip.toOctets());
-
-            Set<Host> hosts = hostManager.getHostsByIp(prefix);
+            Set<Host> hosts = hostManager.getHostsByIp(ip);
 
             if (hosts.isEmpty()) {
                 sendArpRequest(ip);

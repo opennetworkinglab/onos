@@ -46,9 +46,8 @@ import com.google.common.collect.Multimap;
 
 public class HostMonitorTest {
 
-    private IpAddress targetIpAddress = IpAddress.valueOf("10.0.0.1");
-    private IpPrefix targetIpPrefix = IpPrefix.valueOf(targetIpAddress.toOctets());
-
+    private static final IpAddress TARGET_IP_ADDR =
+        IpAddress.valueOf("10.0.0.1");
     private static final IpAddress SOURCE_ADDR =
         IpAddress.valueOf("10.0.0.99");
     private static final InterfaceIpAddress IA1 =
@@ -71,7 +70,7 @@ public class HostMonitorTest {
         replay(host);
 
         HostManager hostManager = createMock(HostManager.class);
-        expect(hostManager.getHostsByIp(targetIpPrefix))
+        expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.singleton(host));
         replay(hostManager);
 
@@ -84,7 +83,7 @@ public class HostMonitorTest {
         hostMonitor = new HostMonitor(null, null, hostManager);
 
         hostMonitor.registerHostProvider(hostProvider);
-        hostMonitor.addMonitoringFor(targetIpAddress);
+        hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
 
         hostMonitor.run(null);
 
@@ -115,7 +114,7 @@ public class HostMonitorTest {
         PortAddresses pa =
             new PortAddresses(cp, Collections.singleton(IA1), sourceMac);
 
-        expect(hostManager.getHostsByIp(targetIpPrefix))
+        expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.<Host>emptySet()).anyTimes();
         expect(hostManager.getAddressBindingsForPort(cp))
                 .andReturn(pa).anyTimes();
@@ -127,7 +126,7 @@ public class HostMonitorTest {
         // Run the test
         hostMonitor = new HostMonitor(deviceService, packetService, hostManager);
 
-        hostMonitor.addMonitoringFor(targetIpAddress);
+        hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
         hostMonitor.run(null);
 
 
@@ -150,7 +149,8 @@ public class HostMonitorTest {
         assertTrue(Arrays.equals(arp.getSenderProtocolAddress(),
                                  SOURCE_ADDR.toOctets()));
         assertTrue(Arrays.equals(arp.getSenderHardwareAddress(), sourceMac.toBytes()));
-        assertTrue(Arrays.equals(arp.getTargetProtocolAddress(), targetIpPrefix.toOctets()));
+        assertTrue(Arrays.equals(arp.getTargetProtocolAddress(),
+                                 TARGET_IP_ADDR.toOctets()));
     }
 
     class TestPacketService implements PacketService {

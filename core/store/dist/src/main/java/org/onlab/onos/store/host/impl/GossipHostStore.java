@@ -42,7 +42,7 @@ import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -221,7 +221,7 @@ public class GossipHostStore
             return null;
         }
 
-        Set<IpPrefix> addresses = new HashSet<>(host.ipAddresses());
+        Set<IpAddress> addresses = new HashSet<>(host.ipAddresses());
         addresses.addAll(descr.ipAddress());
         StoredHost updated = new StoredHost(providerId, host.id(),
                                             host.mac(), host.vlan(),
@@ -300,7 +300,7 @@ public class GossipHostStore
     }
 
     @Override
-    public Set<Host> getHosts(IpPrefix ip) {
+    public Set<Host> getHosts(IpAddress ip) {
         Set<Host> ipset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.ipAddresses().contains(ip)) {
@@ -418,7 +418,7 @@ public class GossipHostStore
          */
         public StoredHost(ProviderId providerId, HostId id,
                           MacAddress mac, VlanId vlan, Timestamped<HostLocation> location,
-                          Set<IpPrefix> ips, Annotations... annotations) {
+                          Set<IpAddress> ips, Annotations... annotations) {
             super(providerId, id, mac, vlan, location.value(), ips, annotations);
             this.location = location;
         }

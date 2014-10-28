@@ -6,7 +6,7 @@ import java.util.Set;
 import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -23,7 +23,7 @@ public class DefaultHostDescription extends AbstractDescription
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
-    private final Set<IpPrefix> ip;
+    private final Set<IpAddress> ip;
 
     /**
      * Creates a host description using the supplied information.
@@ -36,7 +36,8 @@ public class DefaultHostDescription extends AbstractDescription
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location,
                                   SparseAnnotations... annotations) {
-        this(mac, vlan, location, Collections.<IpPrefix>emptySet(), annotations);
+        this(mac, vlan, location, Collections.<IpAddress>emptySet(),
+             annotations);
     }
 
     /**
@@ -49,7 +50,7 @@ public class DefaultHostDescription extends AbstractDescription
      * @param annotations optional key/value annotations map
      */
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
-                                  HostLocation location, IpPrefix ip,
+                                  HostLocation location, IpAddress ip,
                                   SparseAnnotations... annotations) {
         this(mac, vlan, location, ImmutableSet.of(ip), annotations);
     }
@@ -64,7 +65,7 @@ public class DefaultHostDescription extends AbstractDescription
      * @param annotations optional key/value annotations map
      */
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
-                                  HostLocation location, Set<IpPrefix> ip,
+                                  HostLocation location, Set<IpAddress> ip,
                                   SparseAnnotations... annotations) {
         super(annotations);
         this.mac = mac;
@@ -89,7 +90,7 @@ public class DefaultHostDescription extends AbstractDescription
     }
 
     @Override
-    public Set<IpPrefix> ipAddress() {
+    public Set<IpAddress> ipAddress() {
         return ip;
     }
 

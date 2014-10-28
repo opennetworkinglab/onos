@@ -43,7 +43,7 @@ import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
@@ -122,8 +122,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress(),
-                        IpPrefix.MAX_INET_MASK);
+                IpAddress ip =
+                    IpAddress.valueOf(arp.getSenderProtocolAddress());
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);

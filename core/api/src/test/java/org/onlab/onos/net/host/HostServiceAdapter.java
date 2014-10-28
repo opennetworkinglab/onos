@@ -7,7 +7,6 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -41,7 +40,7 @@ public class HostServiceAdapter implements HostService {
     }
 
     @Override
-    public Set<Host> getHostsByIp(IpPrefix ip) {
+    public Set<Host> getHostsByIp(IpAddress ip) {
         return null;
     }
 

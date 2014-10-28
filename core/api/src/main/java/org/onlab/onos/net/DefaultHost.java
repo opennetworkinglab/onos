@@ -1,7 +1,7 @@
 package org.onlab.onos.net;
 
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -20,8 +20,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final MacAddress mac;
     private final VlanId vlan;
     private final HostLocation location;
-    // FIXME: should be IpAddress
-    private final Set<IpPrefix> ips;
+    private final Set<IpAddress> ips;
 
     /**
      * Creates an end-station host using the supplied information.
@@ -35,13 +34,13 @@ public class DefaultHost extends AbstractElement implements Host {
      * @param annotations optional key/value annotations
      */
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
-                       VlanId vlan, HostLocation location, Set<IpPrefix> ips,
+                       VlanId vlan, HostLocation location, Set<IpAddress> ips,
                        Annotations... annotations) {
         super(providerId, id, annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.location = location;
-        this.ips = new HashSet<IpPrefix>(ips);
+        this.ips = new HashSet<>(ips);
     }
 
     @Override
@@ -55,7 +54,7 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
-    public Set<IpPrefix> ipAddresses() {
+    public Set<IpAddress> ipAddresses() {
         return Collections.unmodifiableSet(ips);
     }
 

@@ -33,7 +33,7 @@ import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyGraph;
 import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.onos.net.topology.TopologyVertex;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.rest.BaseResource;
 
@@ -102,8 +102,8 @@ public class TopologyResource extends BaseResource {
     private ArrayNode getHosts(ObjectMapper mapper, HostService hostService) {
         ArrayNode hosts = mapper.createArrayNode();
         for (Host host : hostService.getHosts()) {
-            Set<IpPrefix> ipAddresses = host.ipAddresses();
-            IpPrefix ipAddress = ipAddresses.isEmpty() ? null : ipAddresses.iterator().next();
+            Set<IpAddress> ipAddresses = host.ipAddresses();
+            IpAddress ipAddress = ipAddresses.isEmpty() ? null : ipAddresses.iterator().next();
             String label = ipAddress != null ? ipAddress.toString() : host.mac().toString();
             hosts.add(json(mapper, host));
         }
@@ -160,8 +160,8 @@ public class TopologyResource extends BaseResource {
         return json;
     }
 
-    private String ip(Set<IpPrefix> ipPrefixes) {
-        Iterator<IpPrefix> it = ipPrefixes.iterator();
+    private String ip(Set<IpAddress> ipAddresses) {
+        Iterator<IpAddress> it = ipAddresses.iterator();
         return it.hasNext() ? it.next().toString() : "unknown";
     }
 

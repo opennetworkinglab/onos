@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -20,7 +20,7 @@ public class DefaultHostDecriptionTest {
 
     private static final MacAddress MAC = MacAddress.valueOf("00:00:11:00:00:01");
     private static final VlanId VLAN = VlanId.vlanId((short) 10);
-    private static final IpPrefix IP = IpPrefix.valueOf("10.0.0.1");
+    private static final IpAddress IP = IpAddress.valueOf("10.0.0.1");
 
     private static final HostLocation LOC = new HostLocation(
             DeviceId.deviceId("of:foo"),

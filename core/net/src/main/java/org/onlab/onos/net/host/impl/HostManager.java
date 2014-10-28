@@ -33,7 +33,6 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
@@ -121,7 +120,7 @@ public class HostManager
     }
 
     @Override
-    public Set<Host> getHostsByIp(IpPrefix ip) {
+    public Set<Host> getHostsByIp(IpAddress ip) {
         checkNotNull(ip, "IP address cannot be null");
         return store.getHosts(ip);
     }

@@ -7,7 +7,6 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -60,7 +59,7 @@ public interface HostService {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
-    Set<Host> getHostsByIp(IpPrefix ip);
+    Set<Host> getHostsByIp(IpAddress ip);
 
     // TODO: consider adding Host getHostByIp(IpAddress ip, VlanId vlan);
 
