@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class InternalMessage implements Message {
 
-    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGIG_REQUEST_REPLY";
+    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGING_REQUEST_REPLY";
 
     private long id;
     private Endpoint sender;

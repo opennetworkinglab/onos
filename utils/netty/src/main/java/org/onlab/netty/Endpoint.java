@@ -55,8 +55,8 @@ public class Endpoint {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("port", port)
                 .add("host", host)
+                .add("port", port)
                 .toString();
     }
 

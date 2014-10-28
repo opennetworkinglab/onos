@@ -67,7 +67,6 @@ public class NettyMessagingService implements MessagingService {
     private final AtomicLong messageIdGenerator = new AtomicLong(0);
     private final Cache<Long, SettableFuture<byte[]>> responseFutures = CacheBuilder.newBuilder()
             .maximumSize(100000)
-            .weakValues()
             // TODO: Once the entry expires, notify blocking threads (if any).
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .build();
@@ -174,7 +173,12 @@ public class NettyMessagingService implements MessagingService {
             .withType(type)
             .withPayload(payload)
             .build();
-        sendAsync(ep, message);
+        try {
+            sendAsync(ep, message);
+        } catch (IOException e) {
+            responseFutures.invalidate(messageId);
+            throw e;
+        }
         return futureResponse;
     }
 
@@ -293,7 +297,8 @@ public class NettyMessagingService implements MessagingService {
                     if (futureResponse != null) {
                         futureResponse.set(message.payload());
                     } else {
-                        log.warn("Received a reply. But was unable to locate the request handle");
+                        log.warn("Received a reply for message id:[{}]. "
+                                + "But was unable to locate the request handle", message.id());
                     }
                 } finally {
                     NettyMessagingService.this.responseFutures.invalidate(message.id());
