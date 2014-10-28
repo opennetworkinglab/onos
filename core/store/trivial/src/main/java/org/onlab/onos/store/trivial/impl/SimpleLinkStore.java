@@ -216,12 +216,6 @@ public class SimpleLinkStore
     // Updates, if necessary the specified link and returns the appropriate event.
     // Guarded by linkDescs value (=locking each Link)
     private LinkEvent updateLink(LinkKey key, Link oldLink, Link newLink) {
-        if (newLink.providerId().isAncillary()) {
-            // TODO: revisit ancillary only Link handling
-            // currently treating ancillary only as down (not visible outside)
-            return null;
-        }
-
         if ((oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
             !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
 

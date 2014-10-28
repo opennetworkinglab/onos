@@ -29,14 +29,14 @@
     ],
 
     "links" : [
-        { "src": "of:0000ffffffffff01/10", "dst": "of:0000ffffffffff03/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM" } },
-        { "src": "of:0000ffffffffff02/20", "dst": "of:0000ffffffffff03/31", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM" } },
+        { "src": "of:0000ffffffffff01/20", "dst": "of:0000ffffffffff03/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM" } },
+        { "src": "of:0000ffffffffff02/21", "dst": "of:0000ffffffffff03/31", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM" } },
 
-        { "src": "of:0000ffffffff0001/10", "dst": "of:0000ffffffffff01/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect" } },
-        { "src": "of:0000ffffffff0002/10", "dst": "of:0000ffffffffff02/21", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect" } }
+        { "src": "of:0000ffffffff0001/2", "dst": "of:0000ffffffffff01/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect" } },
+        { "src": "of:0000ffffffff0002/2", "dst": "of:0000ffffffffff02/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect" } }
     ],
 
-    "hosts" : [
+    "Xhosts" : [
         { "mac": "a0:00:00:00:00:11", "vlan": -1, "location": "of:0000ffffffff0001/11", "ip": "1.2.3.4" },
         { "mac": "a0:00:00:00:00:12", "vlan": -1, "location": "of:0000ffffffff0001/12", "ip": "1.2.3.5" },
         { "mac": "a0:00:00:00:00:21", "vlan": -1, "location": "of:0000ffffffff0002/11", "ip": "2.2.3.4" },
