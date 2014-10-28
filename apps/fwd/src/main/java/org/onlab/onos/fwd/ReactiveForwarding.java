@@ -137,6 +137,11 @@ public class ReactiveForwarding {
 
             HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
+            // Do not process link-local addresses in any way.
+            if (id.mac().isLinkLocal()) {
+                return;
+            }
+
             // Do we know who this is for? If not, flood and bail.
             Host dst = hostService.getHost(id);
             if (dst == null) {

@@ -18,20 +18,6 @@
  */
 package org.onlab.onos.provider.lldp.impl;
 
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.onos.mastership.MastershipService;
@@ -39,10 +25,8 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkProviderService;
@@ -55,7 +39,21 @@ import org.onlab.packet.ONOSLLDP;
 import org.onlab.util.Timer;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.onlab.onos.net.MastershipRole.MASTER;
+import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Run discovery process from a physical switch. Ports are initially labeled as
@@ -63,7 +61,7 @@ import org.slf4j.Logger;
  * fast. Every probeRate milliseconds, loop over all fast ports and send an
  * LLDP, send an LLDP for a single slow port. Based on FlowVisor topology
  * discovery implementation.
- *
+ * <p/>
  * TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen
  * for flow_removed messages
  */
@@ -93,13 +91,14 @@ public class LinkDiscovery implements TimerTask {
      * Instantiates discovery manager for the given physical switch. Creates a
      * generic LLDP packet that will be customized for the port it is sent out on.
      * Starts the the timer for the discovery process.
-     * @param device the physical switch
-     * @param masterService
-     * @param useBDDP flag to also use BDDP for discovery
+     *
+     * @param device        the physical switch
+     * @param masterService mastership service
+     * @param useBDDP       flag to also use BDDP for discovery
      */
     public LinkDiscovery(Device device, PacketService pktService,
-                         MastershipService masterService, LinkProviderService providerService, Boolean... useBDDP) {
-
+                         MastershipService masterService,
+                         LinkProviderService providerService, Boolean... useBDDP) {
         this.device = device;
         this.probeRate = 3000;
         this.linkProvider = providerService;
@@ -142,16 +141,12 @@ public class LinkDiscovery implements TimerTask {
      * @param port the port
      */
     public void addPort(final Port port) {
-        this.log.debug("sending init probe to port {}@{}",
-                           port.number().toLong(), device.id());
-
+        this.log.debug("Sending init probe to port {}@{}",
+                       port.number().toLong(), device.id());
         sendProbes(port.number().toLong());
-
         synchronized (this) {
             this.slowPorts.add(port.number().toLong());
         }
-
-
     }
 
     /**
@@ -172,9 +167,8 @@ public class LinkDiscovery implements TimerTask {
                 this.portProbeCount.remove(portnum);
                 // no iterator to update
             } else {
-                this.log.warn(
-                        "tried to dynamically remove non-existing port {}",
-                        portnum);
+                this.log.warn("Tried to dynamically remove non-existing port {}",
+                              portnum);
             }
         }
     }
@@ -187,21 +181,17 @@ public class LinkDiscovery implements TimerTask {
      * @param portNumber the port
      */
     public void ackProbe(final Long portNumber) {
-
         synchronized (this) {
             if (this.slowPorts.contains(portNumber)) {
                 this.log.debug("Setting slow port to fast: {}:{}",
-                        this.device.id(), portNumber);
+                               this.device.id(), portNumber);
                 this.slowPorts.remove(portNumber);
                 this.fastPorts.add(portNumber);
                 this.portProbeCount.put(portNumber, new AtomicInteger(0));
             } else if (this.fastPorts.contains(portNumber)) {
-                    this.portProbeCount.get(portNumber).set(0);
+                this.portProbeCount.get(portNumber).set(0);
             } else {
-                    this.log.debug(
-                            "Got ackProbe for non-existing port: {}",
-                            portNumber);
-
+                this.log.debug("Got ackProbe for non-existing port: {}", portNumber);
             }
         }
     }
@@ -217,7 +207,7 @@ public class LinkDiscovery implements TimerTask {
         if (onoslldp != null) {
             final PortNumber dstPort =
                     context.inPacket().receivedFrom().port();
-            final PortNumber srcPort = PortNumber.portNumber(onoslldp.getPort());
+            final PortNumber srcPort = portNumber(onoslldp.getPort());
             final DeviceId srcDeviceId = DeviceId.deviceId(onoslldp.getDeviceString());
             final DeviceId dstDeviceId = context.inPacket().receivedFrom().deviceId();
             this.ackProbe(dstPort.toLong());
@@ -237,61 +227,48 @@ public class LinkDiscovery implements TimerTask {
     }
 
 
-
     /**
      * Execute this method every t milliseconds. Loops over all ports
      * labeled as fast and sends out an LLDP. Send out an LLDP on a single slow
      * port.
      *
      * @param t timeout
-     * @throws Exception
      */
     @Override
     public void run(final Timeout t) {
-        this.log.trace("sending probes from {}", device.id());
+        this.log.trace("Sending probes from {}", device.id());
         synchronized (this) {
             final Iterator<Long> fastIterator = this.fastPorts.iterator();
-            Long portNumber;
-            Integer probeCount;
             while (fastIterator.hasNext()) {
-                portNumber = fastIterator.next();
-                probeCount = this.portProbeCount.get(portNumber)
-                        .getAndIncrement();
+                long portNumber = fastIterator.next();
+                int probeCount = portProbeCount.get(portNumber).getAndIncrement();
 
                 if (probeCount < LinkDiscovery.MAX_PROBE_COUNT) {
-                    this.log.trace("sending fast probe to port {}", portNumber);
+                    this.log.trace("Sending fast probe to port {}", portNumber);
                     sendProbes(portNumber);
+
                 } else {
                     // Update fast and slow ports
                     fastIterator.remove();
                     this.slowPorts.add(portNumber);
                     this.portProbeCount.remove(portNumber);
 
-
-                    ConnectPoint cp = new ConnectPoint(
-                            device.id(),
-                            PortNumber.portNumber(portNumber));
+                    ConnectPoint cp = new ConnectPoint(device.id(),
+                                                       portNumber(portNumber));
                     log.debug("Link down -> {}", cp);
                     linkProvider.linksVanished(cp);
                 }
             }
 
             // send a probe for the next slow port
-            if (!this.slowPorts.isEmpty()) {
-                Iterator<Long> slowIterator = this.slowPorts.iterator();
-                while (slowIterator.hasNext()) {
-                    portNumber = slowIterator.next();
-                    this.log.trace("sending slow probe to port {}", portNumber);
-
-                    sendProbes(portNumber);
-
-                }
+            for (long portNumber : slowPorts) {
+                this.log.trace("Sending slow probe to port {}", portNumber);
+                sendProbes(portNumber);
             }
         }
 
         // reschedule timer
-        timeout = Timer.getTimer().newTimeout(this, this.probeRate,
-                TimeUnit.MILLISECONDS);
+        timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);
     }
 
     public void stop() {
@@ -300,8 +277,7 @@ public class LinkDiscovery implements TimerTask {
     }
 
     public void start() {
-        timeout = Timer.getTimer().newTimeout(this, 0,
-                                              TimeUnit.MILLISECONDS);
+        timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
         isStopped = false;
     }
 
@@ -319,12 +295,9 @@ public class LinkDiscovery implements TimerTask {
         this.ethPacket.setSourceMACAddress("DE:AD:BE:EF:BA:11");
 
         final byte[] lldp = this.ethPacket.serialize();
-        OutboundPacket outboundPacket = new DefaultOutboundPacket(
-                this.device.id(),
-                DefaultTrafficTreatment.builder().setOutput(
-                        PortNumber.portNumber(port)).build(),
-                ByteBuffer.wrap(lldp));
-        return outboundPacket;
+        return new DefaultOutboundPacket(this.device.id(),
+                                         builder().setOutput(portNumber(port)).build(),
+                                         ByteBuffer.wrap(lldp));
     }
 
     /**
@@ -341,39 +314,26 @@ public class LinkDiscovery implements TimerTask {
         this.bddpEth.setSourceMACAddress("DE:AD:BE:EF:BA:11");
 
         final byte[] bddp = this.bddpEth.serialize();
-        OutboundPacket outboundPacket = new DefaultOutboundPacket(
-                this.device.id(),
-                DefaultTrafficTreatment.builder()
-                        .setOutput(PortNumber.portNumber(port)).build(),
-                ByteBuffer.wrap(bddp));
-        return outboundPacket;
+        return new DefaultOutboundPacket(this.device.id(),
+                                         builder().setOutput(portNumber(port)).build(),
+                                         ByteBuffer.wrap(bddp));
     }
 
     private void sendProbes(Long portNumber) {
-       if (device == null) {
-           log.warn("CRAZY SHIT");
-       }
-       if (mastershipService == null) {
-           log.warn("INSANE");
-       }
-       if (device.type() != Device.Type.ROADM &&
-               mastershipService.getLocalRole(this.device.id()) ==
-               MastershipRole.MASTER) {
-           log.debug("sending probes out to {}@{}", portNumber, device.id());
-           OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
-           pktService.emit(pkt);
-           if (useBDDP) {
-               OutboundPacket bpkt = this.createOutBoundBDDP(portNumber);
-               pktService.emit(bpkt);
-           }
-       }
+        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
+        if (isMaster && device.type() != Device.Type.ROADM) {
+            log.debug("Sending probes out to {}@{}", portNumber, device.id());
+            OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
+            pktService.emit(pkt);
+            if (useBDDP) {
+                OutboundPacket bpkt = this.createOutBoundBDDP(portNumber);
+                pktService.emit(bpkt);
+            }
+        }
     }
 
     public boolean containsPort(Long portNumber) {
-        if (slowPorts.contains(portNumber) || fastPorts.contains(portNumber)) {
-            return true;
-        }
-        return false;
+        return slowPorts.contains(portNumber) || fastPorts.contains(portNumber);
     }
 
     public boolean isStopped() {

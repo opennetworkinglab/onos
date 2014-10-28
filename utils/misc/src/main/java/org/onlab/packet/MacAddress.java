@@ -22,7 +22,6 @@ import java.util.Arrays;
 
 /**
  * The class representing MAC address.
- *
  */
 public class MacAddress {
 
@@ -31,6 +30,11 @@ public class MacAddress {
 
     public static final byte[] ZERO_MAC_ADDRESS = ZERO.getAddress();
     public static final byte[] BROADCAST_MAC = BROADCAST.getAddress();
+
+    private static final byte[] LL = new byte[]{
+            0x01, (byte) 0x80, (byte) 0xc2, 0x00, 0x00,
+            0x00, 0x0e, 0x03
+    };
 
     public static final int MAC_ADDRESS_LENGTH = 6;
     private byte[] address = new byte[MacAddress.MAC_ADDRESS_LENGTH];
@@ -43,12 +47,10 @@ public class MacAddress {
      * Returns a MAC address instance representing the value of the specified
      * {@code String}.
      *
-     * @param address
-     *            the String representation of the MAC Address to be parsed.
+     * @param address the String representation of the MAC Address to be parsed.
      * @return a MAC Address instance representing the value of the specified
-     *         {@code String}.
-     * @throws IllegalArgumentException
-     *             if the string cannot be parsed as a MAC address.
+     * {@code String}.
+     * @throws IllegalArgumentException if the string cannot be parsed as a MAC address.
      */
     public static MacAddress valueOf(final String address) {
         final String[] elements = address.split(":");
@@ -71,17 +73,15 @@ public class MacAddress {
      * Returns a MAC address instance representing the specified {@code byte}
      * array.
      *
-     * @param address
-     *            the byte array to be parsed.
+     * @param address the byte array to be parsed.
      * @return a MAC address instance representing the specified {@code byte}
-     *         array.
-     * @throws IllegalArgumentException
-     *             if the byte array cannot be parsed as a MAC address.
+     * array.
+     * @throws IllegalArgumentException if the byte array cannot be parsed as a MAC address.
      */
     public static MacAddress valueOf(final byte[] address) {
         if (address.length != MacAddress.MAC_ADDRESS_LENGTH) {
             throw new IllegalArgumentException("the length is not "
-                    + MacAddress.MAC_ADDRESS_LENGTH);
+                                                       + MacAddress.MAC_ADDRESS_LENGTH);
         }
 
         return new MacAddress(address);
@@ -92,19 +92,17 @@ public class MacAddress {
      * value. The lower 48 bits of the long value are used to parse as a MAC
      * address.
      *
-     * @param address
-     *            the long value to be parsed. The lower 48 bits are used for a
-     *            MAC address.
+     * @param address the long value to be parsed. The lower 48 bits are used for a
+     *                MAC address.
      * @return a MAC address instance representing the specified {@code long}
-     *         value.
-     * @throws IllegalArgumentException
-     *             if the long value cannot be parsed as a MAC address.
+     * value.
+     * @throws IllegalArgumentException if the long value cannot be parsed as a MAC address.
      */
     public static MacAddress valueOf(final long address) {
-        final byte[] addressInBytes = new byte[] {
+        final byte[] addressInBytes = new byte[]{
                 (byte) (address >> 40 & 0xff), (byte) (address >> 32 & 0xff),
                 (byte) (address >> 24 & 0xff), (byte) (address >> 16 & 0xff),
-                (byte) (address >> 8 & 0xff), (byte) (address >> 0 & 0xff) };
+                (byte) (address >> 8 & 0xff), (byte) (address >> 0 & 0xff)};
 
         return new MacAddress(addressInBytes);
     }
@@ -122,7 +120,7 @@ public class MacAddress {
      * Returns the value of the {@code MACAddress} as a {@code byte} array.
      *
      * @return the numeric value represented by this object after conversion to
-     *         type {@code byte} array.
+     * type {@code byte} array.
      */
     public byte[] toBytes() {
         return Arrays.copyOf(this.address, this.address.length);
@@ -132,7 +130,7 @@ public class MacAddress {
      * Returns the value of the {@code MACAddress} as a {@code long}.
      *
      * @return the numeric value represented by this object after conversion to
-     *         type {@code long}.
+     * type {@code long}.
      */
     public long toLong() {
         long mac = 0;
@@ -169,6 +167,17 @@ public class MacAddress {
         return (this.address[0] & 0x01) != 0;
     }
 
+    /**
+     * Returns true if this MAC address is link local.
+     *
+     * @return true if link local
+     */
+    public boolean isLinkLocal() {
+        return LL[0] == address[0] && LL[1] == address[1] && LL[2] == address[2] &&
+                LL[3] == address[3] && LL[4] == address[4] &&
+                (LL[5] == address[5] || LL[6] == address[5] || LL[7] == address[5]);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (o == this) {
@@ -202,7 +211,7 @@ public class MacAddress {
 
     /**
      * @return MAC address in string representation without colons (useful for
-     *         radix tree storage)
+     * radix tree storage)
      */
     public String toStringNoColon() {
         final StringBuilder builder = new StringBuilder();
