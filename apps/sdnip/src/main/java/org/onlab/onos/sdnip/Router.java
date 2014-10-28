@@ -520,8 +520,7 @@ public class Router implements RouteListener {
 
         // See if we know the MAC address of the next hop
         MacAddress nextHopMacAddress = null;
-        Set<Host> hosts = hostService.getHostsByIp(
-                routeEntry.nextHop().toPrefix());
+        Set<Host> hosts = hostService.getHostsByIp(routeEntry.nextHop());
         if (!hosts.isEmpty()) {
             // TODO how to handle if multiple hosts are returned?
             nextHopMacAddress = hosts.iterator().next().mac();
@@ -773,8 +772,8 @@ public class Router implements RouteListener {
             if (event.type() == HostEvent.Type.HOST_ADDED ||
                     event.type() == HostEvent.Type.HOST_UPDATED) {
                 Host host = event.subject();
-                for (IpPrefix ip : host.ipAddresses()) {
-                    updateMac(ip.toIpAddress(), host.mac());
+                for (IpAddress ip : host.ipAddresses()) {
+                    updateMac(ip, host.mac());
                 }
             }
         }

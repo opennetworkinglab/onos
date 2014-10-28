@@ -11,7 +11,7 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -27,9 +27,9 @@ public class HostEventTest extends AbstractEventTest {
                     PortNumber.portNumber(100),
                     123L
                 );
-        Set<IpPrefix> ipset = Sets.newHashSet(
-                    IpPrefix.valueOf("10.0.0.1"),
-                    IpPrefix.valueOf("10.0.0.2")
+        Set<IpAddress> ipset = Sets.newHashSet(
+                    IpAddress.valueOf("10.0.0.1"),
+                    IpAddress.valueOf("10.0.0.2")
                 );
         HostId hid = HostId.hostId(mac, vlan);
 

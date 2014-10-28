@@ -58,8 +58,8 @@ public class HostManagerTest {
     private static final HostId HID1 = HostId.hostId(MAC1, VLAN1);
     private static final HostId HID2 = HostId.hostId(MAC2, VLAN1);
 
-    private static final IpPrefix IP1 = IpPrefix.valueOf("10.0.0.1");
-    private static final IpPrefix IP2 = IpPrefix.valueOf("10.0.0.2");
+    private static final IpAddress IP1 = IpAddress.valueOf("10.0.0.1");
+    private static final IpAddress IP2 = IpAddress.valueOf("10.0.0.2");
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:001");
     private static final DeviceId DID2 = DeviceId.deviceId("of:002");
@@ -115,7 +115,7 @@ public class HostManagerTest {
     }
 
     private void detect(HostId hid, MacAddress mac, VlanId vlan,
-                        HostLocation loc, IpPrefix ip) {
+                        HostLocation loc, IpAddress ip) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ip);
         providerService.hostDetected(hid, descr);
         assertNotNull("host should be found", mgr.getHost(hid));

@@ -197,27 +197,27 @@ public class RouterTest {
         hostService.addListener(anyObject(HostListener.class));
         expectLastCall().anyTimes();
 
-        IpPrefix host1Address = IpPrefix.valueOf("192.168.10.1/32");
+        IpAddress host1Address = IpAddress.valueOf("192.168.10.1");
         Host host1 = new DefaultHost(ProviderId.NONE, HostId.NONE,
                 MacAddress.valueOf("00:00:00:00:00:01"), VlanId.NONE,
                 new HostLocation(SW1_ETH1, 1),
-                        Sets.newHashSet(host1Address));
+                Sets.newHashSet(host1Address));
 
         expect(hostService.getHostsByIp(host1Address))
                 .andReturn(Sets.newHashSet(host1)).anyTimes();
-        hostService.startMonitoringIp(host1Address.toIpAddress());
+        hostService.startMonitoringIp(host1Address);
         expectLastCall().anyTimes();
 
 
-        IpPrefix host2Address = IpPrefix.valueOf("192.168.20.1/32");
+        IpAddress host2Address = IpAddress.valueOf("192.168.20.1");
         Host host2 = new DefaultHost(ProviderId.NONE, HostId.NONE,
                 MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE,
                 new HostLocation(SW2_ETH1, 1),
-                        Sets.newHashSet(host2Address));
+                Sets.newHashSet(host2Address));
 
         expect(hostService.getHostsByIp(host2Address))
                 .andReturn(Sets.newHashSet(host2)).anyTimes();
-        hostService.startMonitoringIp(host2Address.toIpAddress());
+        hostService.startMonitoringIp(host2Address);
         expectLastCall().anyTimes();
 
 

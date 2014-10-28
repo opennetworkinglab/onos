@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.HostLocation;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -39,7 +39,5 @@ public interface HostDescription extends Description {
      *
      * @return host IP address
      */
-    // FIXME: Switch to IpAddress
-    Set<IpPrefix> ipAddress();
-
+    Set<IpAddress> ipAddress();
 }

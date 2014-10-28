@@ -27,7 +27,7 @@ import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.host.HostService;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +71,7 @@ public class HostsListCommand extends AbstractShellCommand {
         ObjectNode loc = LinksListCommand.json(mapper, host.location())
                 .put("time", host.location().time());
         ArrayNode ips = mapper.createArrayNode();
-        for (IpPrefix ip : host.ipAddresses()) {
+        for (IpAddress ip : host.ipAddresses()) {
             ips.add(ip.toString());
         }
         ObjectNode result = mapper.createObjectNode()

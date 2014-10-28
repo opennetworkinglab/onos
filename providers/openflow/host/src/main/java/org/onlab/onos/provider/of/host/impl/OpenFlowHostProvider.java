@@ -47,7 +47,7 @@ import org.onlab.onos.openflow.controller.PacketListener;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
@@ -128,16 +128,16 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
             // Potentially a new or moved host
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(arp.getSenderProtocolAddress(),
-                        IpPrefix.MAX_INET_MASK);
+                IpAddress ip =
+                    IpAddress.valueOf(arp.getSenderProtocolAddress());
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
             } else if (ipLearn && eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 pip = (IPv4) eth.getPayload();
-                IpPrefix ip = IpPrefix.valueOf(pip.getSourceAddress(),
-                        IpPrefix.MAX_INET_MASK);
+                IpAddress ip =
+                    IpAddress.valueOf(pip.getSourceAddress());
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);

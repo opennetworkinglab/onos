@@ -23,7 +23,7 @@ import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
@@ -106,7 +106,7 @@ public class SimpleHostStore
             return null;
         }
 
-        Set<IpPrefix> addresses = new HashSet<>(host.ipAddresses());
+        Set<IpAddress> addresses = new HashSet<>(host.ipAddresses());
         addresses.addAll(descr.ipAddress());
         StoredHost updated = new StoredHost(providerId, host.id(),
                                             host.mac(), host.vlan(),
@@ -170,7 +170,7 @@ public class SimpleHostStore
     }
 
     @Override
-    public Set<Host> getHosts(IpPrefix ip) {
+    public Set<Host> getHosts(IpAddress ip) {
         Set<Host> ipset = new HashSet<>();
         for (Host h : hosts.values()) {
             if (h.ipAddresses().contains(ip)) {
@@ -288,7 +288,7 @@ public class SimpleHostStore
          */
         public StoredHost(ProviderId providerId, HostId id,
                           MacAddress mac, VlanId vlan, HostLocation location,
-                          Set<IpPrefix> ips, Annotations... annotations) {
+                          Set<IpAddress> ips, Annotations... annotations) {
             super(providerId, id, mac, vlan, location, ips, annotations);
             this.location = location;
         }

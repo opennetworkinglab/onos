@@ -99,7 +99,7 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     @Override
-    public boolean known(IpPrefix addr) {
+    public boolean known(IpAddress addr) {
         checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
@@ -150,7 +150,7 @@ public class ProxyArpManager implements ProxyArpService {
         // Continue with normal proxy ARP case
 
         VlanId vlan = VlanId.vlanId(eth.getVlanID());
-        Set<Host> hosts = hostService.getHostsByIp(IpPrefix.valueOf(arp
+        Set<Host> hosts = hostService.getHostsByIp(IpAddress.valueOf(arp
                 .getTargetProtocolAddress()));
 
         Host dst = null;
@@ -170,8 +170,7 @@ public class ProxyArpManager implements ProxyArpService {
         }
 
         // TODO find the correct IP address
-        IpAddress ipAddress =
-            dst.ipAddresses().iterator().next().toIpAddress();
+        IpAddress ipAddress = dst.ipAddresses().iterator().next();
         Ethernet arpReply = buildArpReply(ipAddress, dst.mac(), eth);
         // TODO: check send status with host service.
         sendTo(arpReply, src.location());

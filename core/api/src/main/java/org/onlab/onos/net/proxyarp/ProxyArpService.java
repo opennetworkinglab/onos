@@ -3,7 +3,7 @@ package org.onlab.onos.net.proxyarp;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 /**
  * Service for processing arp requests on behalf of applications.
@@ -17,7 +17,7 @@ public interface ProxyArpService {
      * @param addr a ip address
      * @return true if know, false otherwise
      */
-    boolean known(IpPrefix addr);
+    boolean known(IpAddress addr);
 
     /**
      * Sends a reply for a given request. If the host is not known then the arp

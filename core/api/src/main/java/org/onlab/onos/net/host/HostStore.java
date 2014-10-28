@@ -6,7 +6,7 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.Store;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -82,8 +82,7 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @param ip ip address
      * @return set of hosts with the given IP
      */
-    // FIXME: Switch to IpAddress
-    Set<Host> getHosts(IpPrefix ip);
+    Set<Host> getHosts(IpAddress ip);
 
     /**
      * Returns the set of hosts whose location falls on the given connection point.

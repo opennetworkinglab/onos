@@ -184,7 +184,7 @@ public class RouterTestWithAsyncArp {
 
         // Set up test expectation
         reset(hostService);
-        expect(hostService.getHostsByIp(anyObject(IpPrefix.class))).andReturn(
+        expect(hostService.getHostsByIp(anyObject(IpAddress.class))).andReturn(
                 new HashSet<Host>()).anyTimes();
         hostService.startMonitoringIp(IpAddress.valueOf("192.168.10.1"));
         replay(hostService);
@@ -203,7 +203,7 @@ public class RouterTestWithAsyncArp {
                 new HostLocation(
                         SW1_ETH1.deviceId(),
                         SW1_ETH1.port(), 1),
-                        Sets.newHashSet(IpPrefix.valueOf("192.168.10.1/32")));
+                        Sets.newHashSet(IpAddress.valueOf("192.168.10.1")));
         internalHostListener.event(
                 new HostEvent(HostEvent.Type.HOST_ADDED, host));
 
@@ -266,7 +266,7 @@ public class RouterTestWithAsyncArp {
 
         // Set up test expectation
         reset(hostService);
-        expect(hostService.getHostsByIp(anyObject(IpPrefix.class))).andReturn(
+        expect(hostService.getHostsByIp(anyObject(IpAddress.class))).andReturn(
                 new HashSet<Host>()).anyTimes();
         hostService.startMonitoringIp(IpAddress.valueOf("192.168.20.1"));
         replay(hostService);
@@ -286,7 +286,7 @@ public class RouterTestWithAsyncArp {
                 new HostLocation(
                         SW2_ETH1.deviceId(),
                         SW2_ETH1.port(), 1),
-                        Sets.newHashSet(IpPrefix.valueOf("192.168.20.1/32")));
+                        Sets.newHashSet(IpAddress.valueOf("192.168.20.1")));
         internalHostListener.event(
                 new HostEvent(HostEvent.Type.HOST_ADDED, host));
 

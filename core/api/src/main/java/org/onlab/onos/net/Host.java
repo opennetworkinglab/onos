@@ -1,6 +1,6 @@
 package org.onlab.onos.net;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -38,8 +38,7 @@ public interface Host extends Element {
      *
      * @return set of IP addresses; empty if no IP address is bound
      */
-    // FIXME: Switch to IpAddress
-    Set<IpPrefix> ipAddresses();
+    Set<IpAddress> ipAddresses();
 
     /**
      * Returns the most recent host location where the host attaches to the

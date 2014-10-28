@@ -43,7 +43,7 @@ import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -179,7 +179,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         HostId hostId = HostId.hostId(mac, vlanId);
         SparseAnnotations annotations = annotations(node.get("annotations"));
         HostLocation location = new HostLocation(connectPoint(get(node, "location")), 0);
-        IpPrefix ip = IpPrefix.valueOf(get(node, "ip"));
+        IpAddress ip = IpAddress.valueOf(get(node, "ip"));
 
         DefaultHostDescription desc =
                 new DefaultHostDescription(mac, vlanId, location, ip, annotations);
