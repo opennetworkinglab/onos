@@ -269,10 +269,6 @@ implements MastershipService, MastershipAdminService {
 
         @Override
         public void notify(MastershipEvent event) {
-            if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
-                log.info("ignoring locally-generated event {}", event);
-               // return;
-            }
             log.info("dispatching mastership event {}", event);
             eventDispatcher.post(event);
         }

@@ -432,7 +432,6 @@ public class DeviceManager
                     if (!isReachable(device)) {
                         log.warn("Device {} has disconnected after this event", did);
                         mastershipService.relinquishMastership(did);
-                        applyRole(did, MastershipRole.STANDBY);
                         return;
                     }
                     //flag the device as online. Is there a better way to do this?
@@ -448,6 +447,7 @@ public class DeviceManager
                 if (!isReachable(getDevice(did))) {
                     log.warn("Device {} has disconnected after this event", did);
                     mastershipService.relinquishMastership(did);
+                    return;
                 }
                 applyRole(did, MastershipRole.STANDBY);
             }
@@ -455,19 +455,21 @@ public class DeviceManager
 
         // checks for duplicate event, returning true if one is found.
         private boolean checkDuplicate(RoleInfo roleInfo, int term) {
-            synchronized (eventCache) {
-                if (eventCache.get(term).contains(roleInfo)) {
-                    log.info("duplicate event detected; ignoring");
-                    return true;
-                } else {
-                    eventCache.put(term, roleInfo);
-                    // purge by-term oldest entries to keep the cache size under limit
-                    if (eventCache.size() > cacheSize) {
-                        eventCache.removeAll(term - cacheSize);
-                    }
-                    return false;
-                }
-            }
+            // turning off duplicate check
+            return false;
+//            synchronized (eventCache) {
+//                if (eventCache.get(term).contains(roleInfo)) {
+//                    log.info("duplicate event detected; ignoring");
+//                    return true;
+//                } else {
+//                    eventCache.put(term, roleInfo);
+//                    // purge by-term oldest entries to keep the cache size under limit
+//                    if (eventCache.size() > cacheSize) {
+//                        eventCache.removeAll(term - cacheSize);
+//                    }
+//                    return false;
+//                }
+//            }
         }
 
     }

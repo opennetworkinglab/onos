@@ -358,6 +358,7 @@ implements MastershipStore {
 
         @Override
         public void entryAdded(EntryEvent<DeviceId, RoleValue> event) {
+            entryUpdated(event);
         }
 
         @Override
@@ -366,7 +367,6 @@ implements MastershipStore {
 
         @Override
         public void entryUpdated(EntryEvent<DeviceId, RoleValue> event) {
-            // this subsumes entryAdded event
             notifyDelegate(new MastershipEvent(
                     MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
         }
