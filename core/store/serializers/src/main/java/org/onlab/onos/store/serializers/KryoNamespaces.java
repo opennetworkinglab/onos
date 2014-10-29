@@ -31,7 +31,9 @@ import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
+import org.onlab.onos.net.DefaultEdgeLink;
 import org.onlab.onos.net.DefaultLink;
+import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -59,6 +61,14 @@ import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
+import org.onlab.onos.net.intent.ConnectivityIntent;
+import org.onlab.onos.net.intent.HostToHostIntent;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentState;
+import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.Timestamp;
@@ -143,7 +153,17 @@ public final class KryoNamespaces {
                     FlowRuleBatchOperation.class,
                     CompletedBatchOperation.class,
                     FlowRuleBatchEntry.class,
-                    FlowRuleBatchEntry.FlowRuleOperation.class
+                    FlowRuleBatchEntry.FlowRuleOperation.class,
+                    IntentId.class,
+                    IntentState.class,
+                    Intent.class,
+                    ConnectivityIntent.class,
+                    PathIntent.class,
+                    DefaultPath.class,
+                    DefaultEdgeLink.class,
+                    HostToHostIntent.class,
+                    PointToPointIntent.class,
+                    MultiPointToSinglePointIntent.class
                     )
             .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
             .register(URI.class, new URISerializer())
