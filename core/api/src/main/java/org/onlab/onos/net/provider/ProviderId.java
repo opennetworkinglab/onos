@@ -38,7 +38,7 @@ public class ProviderId {
     /**
      * Represents no provider ID.
      */
-    public static final ProviderId NONE = new ProviderId();
+    public static final ProviderId NONE = new ProviderId("none", "none");
 
     private final String scheme;
     private final String id;
