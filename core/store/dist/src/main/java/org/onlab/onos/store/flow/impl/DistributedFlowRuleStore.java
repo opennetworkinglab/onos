@@ -74,12 +74,13 @@ import org.onlab.onos.store.flow.ReplicaInfoEventListener;
 import org.onlab.onos.store.flow.ReplicaInfoService;
 import org.onlab.onos.store.hz.AbstractHazelcastStore;
 import org.onlab.onos.store.hz.SMap;
+import org.onlab.onos.store.serializers.DecodeTo;
 import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.serializers.StoreSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -146,7 +147,7 @@ public class DistributedFlowRuleStore
     // TODO make this configurable
     private boolean syncBackup = false;
 
-    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
+    protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
@@ -175,50 +176,7 @@ public class DistributedFlowRuleStore
 
         final NodeId local = clusterService.getLocalNode().id();
 
-        clusterCommunicator.addSubscriber(APPLY_BATCH_FLOWS, new ClusterMessageHandler() {
-
-            @Override
-            public void handle(final ClusterMessage message) {
-                FlowRuleBatchOperation operation = SERIALIZER.decode(message.payload());
-                log.info("received batch request {}", operation);
-
-                final DeviceId deviceId = operation.getOperations().get(0).getTarget().deviceId();
-                ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-                if (!local.equals(replicaInfo.master().orNull())) {
-
-                    Set<FlowRule> failures = new HashSet<>(operation.size());
-                    for (FlowRuleBatchEntry op : operation.getOperations()) {
-                        failures.add(op.getTarget());
-                    }
-                    CompletedBatchOperation allFailed = new CompletedBatchOperation(false, failures);
-                    // This node is no longer the master, respond as all failed.
-                    // TODO: we might want to wrap response in envelope
-                    // to distinguish sw programming failure and hand over
-                    // it make sense in the latter case to retry immediately.
-                    try {
-                        message.respond(SERIALIZER.encode(allFailed));
-                    } catch (IOException e) {
-                        log.error("Failed to respond back", e);
-                    }
-                    return;
-                }
-
-                final ListenableFuture<CompletedBatchOperation> f = storeBatchInternal(operation);
-
-                f.addListener(new Runnable() {
-
-                    @Override
-                    public void run() {
-                         CompletedBatchOperation result = Futures.getUnchecked(f);
-                        try {
-                            message.respond(SERIALIZER.encode(result));
-                        } catch (IOException e) {
-                            log.error("Failed to respond back", e);
-                        }
-                    }
-                }, futureListeners);
-            }
-        });
+        clusterCommunicator.addSubscriber(APPLY_BATCH_FLOWS, new OnStoreBatch(local));
 
         clusterCommunicator.addSubscriber(GET_FLOW_ENTRY, new ClusterMessageHandler() {
 
@@ -400,12 +358,7 @@ public class DistributedFlowRuleStore
         try {
             ListenableFuture<byte[]> responseFuture =
                     clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
-            return Futures.transform(responseFuture, new Function<byte[], CompletedBatchOperation>() {
-                @Override
-                public CompletedBatchOperation apply(byte[] input) {
-                    return SERIALIZER.decode(input);
-                }
-            });
+            return Futures.transform(responseFuture, new DecodeTo<CompletedBatchOperation>(SERIALIZER));
         } catch (IOException e) {
             return Futures.immediateFailedFuture(e);
         }
@@ -581,6 +534,56 @@ public class DistributedFlowRuleStore
     private synchronized void removeFromPrimary(final DeviceId did) {
         Collection<StoredFlowEntry> removed = flowEntries.removeAll(did);
         log.debug("removedFromPrimary {}", removed);
+    }
+
+    private final class OnStoreBatch implements ClusterMessageHandler {
+        private final NodeId local;
+
+        private OnStoreBatch(NodeId local) {
+            this.local = local;
+        }
+
+        @Override
+        public void handle(final ClusterMessage message) {
+            FlowRuleBatchOperation operation = SERIALIZER.decode(message.payload());
+            log.info("received batch request {}", operation);
+
+            final DeviceId deviceId = operation.getOperations().get(0).getTarget().deviceId();
+            ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
+            if (!local.equals(replicaInfo.master().orNull())) {
+
+                Set<FlowRule> failures = new HashSet<>(operation.size());
+                for (FlowRuleBatchEntry op : operation.getOperations()) {
+                    failures.add(op.getTarget());
+                }
+                CompletedBatchOperation allFailed = new CompletedBatchOperation(false, failures);
+                // This node is no longer the master, respond as all failed.
+                // TODO: we might want to wrap response in envelope
+                // to distinguish sw programming failure and hand over
+                // it make sense in the latter case to retry immediately.
+                try {
+                    message.respond(SERIALIZER.encode(allFailed));
+                } catch (IOException e) {
+                    log.error("Failed to respond back", e);
+                }
+                return;
+            }
+
+            final ListenableFuture<CompletedBatchOperation> f = storeBatchInternal(operation);
+
+            f.addListener(new Runnable() {
+
+                @Override
+                public void run() {
+                     CompletedBatchOperation result = Futures.getUnchecked(f);
+                    try {
+                        message.respond(SERIALIZER.encode(result));
+                    } catch (IOException e) {
+                        log.error("Failed to respond back", e);
+                    }
+                }
+            }, futureListeners);
+        }
     }
 
     private final class SMapLoader
