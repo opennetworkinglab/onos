@@ -60,6 +60,9 @@ public class DistributedIntentStore
     @Override
     @Activate
     public void activate() {
+        // FIXME: We need a way to add serializer for intents which has been plugged-in.
+        // TODO: As a short term workaround, relax Kryo config to
+        //       registrationRequired=false?
         super.activate();
 
         // TODO: enable near cache, allow read from backup for this IMap
