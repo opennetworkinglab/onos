@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.store.core.impl;
 
+import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
+
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -97,20 +99,19 @@ public class DistributedApplicationIdStore
         return appId;
     }
 
-    private synchronized void primeAppIds() {
+    private void primeAppIds() {
         for (DefaultApplicationId appId : appIdsByName.values()) {
             appIds.put(appId.id(), appId);
         }
     }
 
     @Override
-    public synchronized ApplicationId registerApplication(String name) {
+    public ApplicationId registerApplication(String name) {
         DefaultApplicationId appId = appIdsByName.get(name);
         if (appId == null) {
             short id = (short) lastAppId.getAndIncrement();
-            appId = new DefaultApplicationId(id, name);
-            appIds.put(id, appId);
-            appIdsByName.put(name, appId);
+            appId = putIfAbsent(appIdsByName, name,
+                                new DefaultApplicationId(id, name));
         }
         return appId;
     }
