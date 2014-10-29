@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.device;
 
+import org.joda.time.LocalDateTime;
 import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Port;
@@ -131,7 +132,11 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
         if (port == null) {
             return super.toString();
         }
-        return toStringHelper(this).add("time", time()).add("type", type())
-            .add("subject", subject()).add("port", port).toString();
+        return toStringHelper(this)
+                .add("time", new LocalDateTime(time()))
+                .add("type", type())
+                .add("subject", subject())
+                .add("port", port)
+                .toString();
      }
 }

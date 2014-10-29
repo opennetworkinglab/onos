@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.mastership;
 
+import org.joda.time.LocalDateTime;
 import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractEvent;
 import org.onlab.onos.net.DeviceId;
@@ -83,7 +84,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("time", time())
+                .add("time", new LocalDateTime(time()))
                 .add("type", type())
                 .add("subject", subject())
                 .add("roleInfo", roleInfo)
