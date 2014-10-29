@@ -17,6 +17,7 @@ package org.onlab.onos.store.topology.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -26,11 +27,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.ClusterId;
+import org.onlab.onos.net.topology.DefaultGraphDescription;
 import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
@@ -55,7 +58,11 @@ implements TopologyStore {
 
     private final Logger log = getLogger(getClass());
 
-    private volatile DefaultTopology current;
+    private volatile DefaultTopology current =
+            new DefaultTopology(ProviderId.NONE,
+                    new DefaultGraphDescription(0L,
+                            Collections.<Device>emptyList(),
+                            Collections.<Link>emptyList()));
 
     @Activate
     public void activate() {

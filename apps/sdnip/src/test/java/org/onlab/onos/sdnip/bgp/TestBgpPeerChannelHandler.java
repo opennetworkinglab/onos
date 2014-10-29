@@ -190,12 +190,12 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
 
             IpAddress address = prefix.toIpAddress();
             long value = address.toInt() & 0xffffffffL;
-            for (int i = 0; i < IpAddress.INET_LEN; i++) {
+            for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
                 if (prefixBytelen-- == 0) {
                     break;
                 }
                 long nextByte =
-                    (value >> ((IpAddress.INET_LEN - i - 1) * 8)) & 0xff;
+                    (value >> ((IpAddress.INET_BYTE_LENGTH - i - 1) * 8)) & 0xff;
                 message.writeByte((int) nextByte);
             }
         }

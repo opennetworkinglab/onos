@@ -15,147 +15,76 @@
  */
 package org.onlab.packet;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
-
-
 
 /**
  * A class representing an IPv4 address.
- * <p/>
- * TODO this class is a clone of IpPrefix and still needs to be modified to
- * look more like an IpAddress.
  */
 public final class IpAddress implements Comparable<IpAddress> {
-
-    // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
-
-    //IP Versions
+    // IP Versions
     public enum Version { INET, INET6 };
 
-    //lengths of address, in bytes
-    public static final int INET_LEN = 4;
-    public static final int INET6_LEN = 16;
+    // lengths of address, in bytes
+    public static final int INET_BYTE_LENGTH = 4;
+    public static final int INET_BIT_LENGTH = INET_BYTE_LENGTH * Byte.SIZE;
+    public static final int INET6_BYTE_LENGTH = 16;
+    public static final int INET6_BIT_LENGTH = INET6_BYTE_LENGTH * Byte.SIZE;
 
-    //maximum CIDR value
-    public static final int MAX_INET_MASK = 32;
-    //no mask (no network), e.g. a simple address
-    public static final int DEFAULT_MASK = 0;
+    private final Version version;
+    private final byte[] octets;
 
     /**
-     * Default value indicating an unspecified address.
+     * Constructor for given IP address version and address octets.
+     *
+     * @param ver the IP address version
+     * @param octets the IP address octets
      */
-    static final byte[] ANY = new byte [] {0, 0, 0, 0};
-
-    protected Version version;
-
-    protected byte[] octets;
-    protected int netmask;
-
-    private IpAddress(Version ver, byte[] octets, int netmask) {
-        this.version = ver;
-        this.octets = Arrays.copyOf(octets, INET_LEN);
-        this.netmask = netmask;
-    }
-
     private IpAddress(Version ver, byte[] octets) {
         this.version = ver;
-        this.octets = Arrays.copyOf(octets, INET_LEN);
-        this.netmask = DEFAULT_MASK;
+        this.octets = Arrays.copyOf(octets, INET_BYTE_LENGTH);
     }
 
     /**
      * Converts a byte array into an IP address.
      *
-     * @param address a byte array
+     * @param address the IP address value stored in network byte order
+     * (i.e., the most significant byte first)
      * @return an IP address
      */
-    public static IpAddress valueOf(byte [] address) {
+    public static IpAddress valueOf(byte[] address) {
         return new IpAddress(Version.INET, address);
     }
 
     /**
-     * Converts a byte array into an IP address.
-     *
-     * @param address a byte array
-     * @param netmask the CIDR value subnet mask
-     * @return an IP address
-     */
-    public static IpAddress valueOf(byte [] address, int netmask) {
-        return new IpAddress(Version.INET, address, netmask);
-    }
-
-    /**
-     * Helper to convert an integer into a byte array.
-     *
-     * @param address the integer to convert
-     * @return a byte array
-     */
-    private static byte [] bytes(int address) {
-        byte [] bytes = new byte [INET_LEN];
-        for (int i = 0; i < INET_LEN; i++) {
-            bytes[i] = (byte) ((address >> (INET_LEN - (i + 1)) * 8) & 0xff);
-        }
-
-        return bytes;
-    }
-
-    /**
      * Converts an integer into an IPv4 address.
      *
-     * @param address an integer representing an IP value
+     * @param address an integer representing an IPv4 value
      * @return an IP address
      */
     public static IpAddress valueOf(int address) {
-        return new IpAddress(Version.INET, bytes(address));
+        byte[] bytes =
+            ByteBuffer.allocate(INET_BYTE_LENGTH).putInt(address).array();
+        return new IpAddress(Version.INET, bytes);
     }
 
     /**
-     * Converts an integer into an IPv4 address.
+     * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address.
      *
-     * @param address an integer representing an IP value
-     * @param netmask the CIDR value subnet mask
-     * @return an IP address
-     */
-    public static IpAddress valueOf(int address, int netmask) {
-        return new IpAddress(Version.INET, bytes(address), netmask);
-    }
-
-    /**
-     * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address. The
-     * string can also be in CIDR (slash) notation. If the netmask is omitted,
-     * it will be set to DEFAULT_MASK (0).
-     *
-     * @param address a IP address in string form, e.g. "10.0.0.1", "10.0.0.1/24"
+     * @param address a IP address in string form, e.g. "10.0.0.1".
      * @return an IP address
      */
     public static IpAddress valueOf(String address) {
-
-        final String [] parts = address.split("\\/");
-        if (parts.length > 2) {
-            throw new IllegalArgumentException("Malformed IP address string; "
-                    + "Address must take form \"x.x.x.x\" or \"x.x.x.x/y\"");
-        }
-
-        int mask = DEFAULT_MASK;
-        if (parts.length == 2) {
-            mask = Integer.parseInt(parts[1]);
-            if (mask > MAX_INET_MASK) {
-                throw new IllegalArgumentException(
-                        "Value of subnet mask cannot exceed "
-                                + MAX_INET_MASK);
-            }
-        }
-
-        final String [] net = parts[0].split("\\.");
-        if (net.length != INET_LEN) {
+        final String[] net = address.split("\\.");
+        if (net.length != INET_BYTE_LENGTH) {
             throw new IllegalArgumentException("Malformed IP address string; "
                     + "Address must have four decimal values separated by dots (.)");
         }
-        final byte [] bytes = new byte[INET_LEN];
-        for (int i = 0; i < INET_LEN; i++) {
+        final byte[] bytes = new byte[INET_BYTE_LENGTH];
+        for (int i = 0; i < INET_BYTE_LENGTH; i++) {
             bytes[i] = (byte) Short.parseShort(net[i], 10);
         }
-        return new IpAddress(Version.INET, bytes, mask);
+        return new IpAddress(Version.INET, bytes);
     }
 
     /**
@@ -173,16 +102,7 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @return a byte array
      */
     public byte[] toOctets() {
-        return Arrays.copyOf(this.octets, INET_LEN);
-    }
-
-    /**
-     * Returns the IP address prefix length.
-     *
-     * @return prefix length
-     */
-    public int prefixLength() {
-        return netmask;
+        return Arrays.copyOf(this.octets, INET_BYTE_LENGTH);
     }
 
     /**
@@ -191,110 +111,8 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @return the IP address's value as an integer
      */
     public int toInt() {
-        int val = 0;
-        for (int i = 0; i < octets.length; i++) {
-          val <<= 8;
-          val |= octets[i] & 0xff;
-        }
-        return val;
-    }
-
-    /**
-     * Converts the IP address to a /32 IP prefix.
-     *
-     * @return the new IP prefix
-     */
-    public IpPrefix toPrefix() {
-        return IpPrefix.valueOf(octets, MAX_INET_MASK);
-    }
-
-    /**
-     * Helper for computing the mask value from CIDR.
-     *
-     * @return an integer bitmask
-     */
-    private int mask() {
-        int shift = MAX_INET_MASK - this.netmask;
-        return ((Integer.MAX_VALUE >>> (shift - 1)) << shift);
-    }
-
-    /**
-     * Returns the subnet mask in IpAddress form. The netmask value for
-     * the returned IpAddress is 0, as the address itself is a mask.
-     *
-     * @return the subnet mask
-     */
-    public IpAddress netmask() {
-        return new IpAddress(Version.INET, bytes(mask()));
-    }
-
-    /**
-     * Returns the network portion of this address as an IpAddress.
-     * The netmask of the returned IpAddress is the current mask. If this
-     * address doesn't have a mask, this returns an all-0 IpAddress.
-     *
-     * @return the network address or null
-     */
-    public IpAddress network() {
-        if (netmask == DEFAULT_MASK) {
-            return new IpAddress(version, ANY, DEFAULT_MASK);
-        }
-
-        byte [] net = new byte [4];
-        byte [] mask = bytes(mask());
-        for (int i = 0; i < INET_LEN; i++) {
-            net[i] = (byte) (octets[i] & mask[i]);
-        }
-        return new IpAddress(version, net, netmask);
-    }
-
-    /**
-     * Returns the host portion of the IPAddress, as an IPAddress.
-     * The netmask of the returned IpAddress is the current mask. If this
-     * address doesn't have a mask, this returns a copy of the current
-     * address.
-     *
-     * @return the host address
-     */
-    public IpAddress host() {
-        if (netmask == DEFAULT_MASK) {
-            new IpAddress(version, octets, netmask);
-        }
-
-        byte [] host = new byte [INET_LEN];
-        byte [] mask = bytes(mask());
-        for (int i = 0; i < INET_LEN; i++) {
-            host[i] = (byte) (octets[i] & ~mask[i]);
-        }
-        return new IpAddress(version, host, netmask);
-    }
-
-    public boolean isMasked() {
-        return mask() != 0;
-    }
-
-    /**
-     * Determines whether a given address is contained within this IpAddress'
-     * network.
-     *
-     * @param other another IP address that could be contained in this network
-     * @return true if the other IP address is contained in this address'
-     * network, otherwise false
-     */
-    public boolean contains(IpAddress other) {
-        if (this.netmask <= other.netmask) {
-            // Special case where they're both /32 addresses
-            if (this.netmask == MAX_INET_MASK) {
-                return Arrays.equals(octets, other.octets);
-            }
-
-            // Mask the other address with our network mask
-            IpAddress otherMasked =
-                    IpAddress.valueOf(other.octets, netmask).network();
-
-            return network().equals(otherMasked);
-        }
-        return false;
+        ByteBuffer bb = ByteBuffer.wrap(octets);
+        return bb.getInt();
     }
 
     @Override
@@ -308,7 +126,6 @@ public final class IpAddress implements Comparable<IpAddress> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + netmask;
         result = prime * result + Arrays.hashCode(octets);
         result = prime * result + ((version == null) ? 0 : version.hashCode());
         return result;
@@ -326,9 +143,6 @@ public final class IpAddress implements Comparable<IpAddress> {
             return false;
         }
         IpAddress other = (IpAddress) obj;
-        if (netmask != other.netmask) {
-            return false;
-        }
         if (!Arrays.equals(octets, other.octets)) {
             return false;
         }
@@ -341,8 +155,7 @@ public final class IpAddress implements Comparable<IpAddress> {
     @Override
     /*
      * (non-Javadoc)
-     * format is "x.x.x.x" for non-masked (netmask 0) addresses,
-     * and "x.x.x.x/y" for masked addresses.
+     * format is "x.x.x.x" for IPv4 addresses.
      *
      * @see java.lang.Object#toString()
      */
@@ -354,11 +167,6 @@ public final class IpAddress implements Comparable<IpAddress> {
             }
             builder.append(String.format("%d", b & 0xff));
         }
-        if (netmask != DEFAULT_MASK) {
-            builder.append("/");
-            builder.append(String.format("%d", netmask));
-        }
         return builder.toString();
     }
-
 }
