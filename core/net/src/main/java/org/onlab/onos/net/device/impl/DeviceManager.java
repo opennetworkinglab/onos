@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.mastership.MastershipEvent;
@@ -57,6 +58,8 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
+
+import com.google.common.collect.HashMultimap;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -387,6 +390,12 @@ public class DeviceManager
     // Intercepts mastership events
     private class InternalMastershipListener implements MastershipListener {
 
+        // random cache size
+        private final int cacheSize = 5;
+        // temporarily stores term number + events to check for duplicates. A hack.
+        private HashMultimap<Integer, RoleInfo>  eventCache =
+                HashMultimap.create();
+
         @Override
         public void event(MastershipEvent event) {
             final DeviceId did = event.subject();
@@ -394,6 +403,13 @@ public class DeviceManager
 
             if (myNodeId.equals(event.roleInfo().master())) {
                 MastershipTerm term = termService.getMastershipTerm(did);
+
+                // TODO duplicate suppression should probably occur in the MastershipManager
+                // itself, so listeners that can't deal with duplicates don't have to
+                // so this check themselves.
+                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
+                    return;
+                }
 
                 if (!myNodeId.equals(term.master())) {
                     // something went wrong in consistency, let go
@@ -436,6 +452,24 @@ public class DeviceManager
                 applyRole(did, MastershipRole.STANDBY);
             }
         }
+
+        // checks for duplicate event, returning true if one is found.
+        private boolean checkDuplicate(RoleInfo roleInfo, int term) {
+            synchronized (eventCache) {
+                if (eventCache.get(term).contains(roleInfo)) {
+                    log.info("duplicate event detected; ignoring");
+                    return true;
+                } else {
+                    eventCache.put(term, roleInfo);
+                    // purge by-term oldest entries to keep the cache size under limit
+                    if (eventCache.size() > cacheSize) {
+                        eventCache.removeAll(term - cacheSize);
+                    }
+                    return false;
+                }
+            }
+        }
+
     }
 
     // Store delegate to re-post events emitted from the store.
