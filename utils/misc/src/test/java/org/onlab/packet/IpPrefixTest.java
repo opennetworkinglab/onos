@@ -32,15 +32,15 @@ public class IpPrefixTest {
     private static final byte [] BYTES2 = new byte [] {0xa, 0x0, 0x0, 0xb};
     private static final int INTVAL1 = 167772170;
     private static final int INTVAL2 = 167772171;
-    private static final String STRVAL = "10.0.0.12";
-    private static final int MASK = 16;
+    private static final String STRVAL = "10.0.0.12/16";
+    private static final int MASK_LENGTH = 16;
 
     @Test
     public void testEquality() {
-        IpPrefix ip1 = IpPrefix.valueOf(BYTES1);
-        IpPrefix ip2 = IpPrefix.valueOf(INTVAL1);
-        IpPrefix ip3 = IpPrefix.valueOf(BYTES2);
-        IpPrefix ip4 = IpPrefix.valueOf(INTVAL2);
+        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, IpPrefix.MAX_INET_MASK_LENGTH);
+        IpPrefix ip2 = IpPrefix.valueOf(INTVAL1, IpPrefix.MAX_INET_MASK_LENGTH);
+        IpPrefix ip3 = IpPrefix.valueOf(BYTES2, IpPrefix.MAX_INET_MASK_LENGTH);
+        IpPrefix ip4 = IpPrefix.valueOf(INTVAL2, IpPrefix.MAX_INET_MASK_LENGTH);
         IpPrefix ip5 = IpPrefix.valueOf(STRVAL);
 
         new EqualsTester().addEqualityGroup(ip1, ip2)
@@ -49,21 +49,21 @@ public class IpPrefixTest {
         .testEquals();
 
         // string conversions
-        IpPrefix ip6 = IpPrefix.valueOf(BYTES1, MASK);
+        IpPrefix ip6 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
         IpPrefix ip7 = IpPrefix.valueOf("10.0.0.10/16");
-        IpPrefix ip8 = IpPrefix.valueOf(new byte [] {0xa, 0x0, 0x0, 0xc});
+        IpPrefix ip8 = IpPrefix.valueOf(new byte [] {0xa, 0x0, 0x0, 0xc}, 16);
         assertEquals("incorrect address conversion", ip6, ip7);
         assertEquals("incorrect address conversion", ip5, ip8);
     }
 
     @Test
     public void basics() {
-        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK);
+        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
         final byte [] bytes = new byte [] {0xa, 0x0, 0x0, 0xa};
 
         //check fields
         assertEquals("incorrect IP Version", Version.INET, ip1.version());
-        assertEquals("incorrect netmask", 16, ip1.netmask);
+        assertEquals("incorrect netmask", 16, ip1.prefixLength());
         assertTrue("faulty toOctets()", Arrays.equals(bytes, ip1.toOctets()));
         assertEquals("faulty toInt()", INTVAL1, ip1.toInt());
         assertEquals("faulty toString()", "10.0.0.10/16", ip1.toString());
@@ -72,7 +72,7 @@ public class IpPrefixTest {
     @Test
     public void netmasks() {
         // masked
-        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK);
+        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
 
         IpPrefix host = IpPrefix.valueOf("0.0.0.10/16");
         IpPrefix network = IpPrefix.valueOf("10.0.0.0/16");
@@ -80,14 +80,6 @@ public class IpPrefixTest {
         assertEquals("incorrect network address", network, ip1.network());
         assertEquals("incorrect netmask", "255.255.0.0", ip1.netmask().toString());
 
-        //unmasked
-        IpPrefix ip2 = IpPrefix.valueOf(BYTES1);
-        IpPrefix umhost = IpPrefix.valueOf("10.0.0.10/0");
-        IpPrefix umnet = IpPrefix.valueOf("0.0.0.0/0");
-        assertEquals("incorrect host address", umhost, ip2.host());
-        assertEquals("incorrect host address", umnet, ip2.network());
-        assertTrue("incorrect netmask",
-                Arrays.equals(IpPrefix.ANY, ip2.netmask().toOctets()));
     }
 
     @Test

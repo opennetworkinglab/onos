@@ -171,7 +171,8 @@ public class FlowEntryBuilder {
                     builder.setIpDst(IpPrefix.valueOf(di.getInt(),
                             di.asCidrMaskLength()));
                 } else {
-                    builder.setIpDst(IpPrefix.valueOf(di.getInt()));
+                    builder.setIpDst(IpPrefix.valueOf(di.getInt(),
+                                        IpPrefix.MAX_INET_MASK_LENGTH));
                 }
                 break;
             case SET_NW_SRC:
@@ -181,7 +182,8 @@ public class FlowEntryBuilder {
                     builder.setIpSrc(IpPrefix.valueOf(si.getInt(),
                             si.asCidrMaskLength()));
                 } else {
-                    builder.setIpSrc(IpPrefix.valueOf(si.getInt()));
+                    builder.setIpSrc(IpPrefix.valueOf(si.getInt(),
+                                        IpPrefix.MAX_INET_MASK_LENGTH));
                 }
                 break;
             case EXPERIMENTER:
@@ -256,7 +258,7 @@ public class FlowEntryBuilder {
                 } else {
                     dip = IpPrefix.valueOf(
                             match.get(MatchField.IPV4_DST).getInt(),
-                            IpPrefix.MAX_INET_MASK);
+                            IpPrefix.MAX_INET_MASK_LENGTH);
                 }
 
                 builder.matchIPDst(dip);
@@ -272,7 +274,7 @@ public class FlowEntryBuilder {
                 } else {
                     sip = IpPrefix.valueOf(
                             match.get(MatchField.IPV4_SRC).getInt(),
-                            IpPrefix.MAX_INET_MASK);
+                            IpPrefix.MAX_INET_MASK_LENGTH);
                 }
 
                 builder.matchIPSrc(sip);

@@ -56,7 +56,6 @@ import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
@@ -368,7 +367,7 @@ public class ProxyArpManager implements ProxyArpService {
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
 
-        arp.setProtocolAddressLength((byte) IpPrefix.INET_LEN);
+        arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
         arp.setSenderHardwareAddress(srcMac.getAddress());
         arp.setTargetHardwareAddress(request.getSourceMACAddress());

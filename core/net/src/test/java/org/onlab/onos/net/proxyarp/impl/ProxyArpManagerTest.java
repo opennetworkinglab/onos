@@ -534,7 +534,7 @@ public class ProxyArpManagerTest {
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
 
-        arp.setProtocolAddressLength((byte) IpPrefix.INET_LEN);
+        arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
         arp.setSenderHardwareAddress(srcMac.getAddress());
 

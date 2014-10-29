@@ -148,9 +148,9 @@ public class PeerConnectivityManager {
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpDst((short) BgpConstants.BGP_PORT)
                         .build();
 
@@ -171,9 +171,9 @@ public class PeerConnectivityManager {
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpSrc((short) BgpConstants.BGP_PORT)
                         .build();
 
@@ -191,9 +191,9 @@ public class PeerConnectivityManager {
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpDst((short) BgpConstants.BGP_PORT)
                         .build();
 
@@ -211,9 +211,9 @@ public class PeerConnectivityManager {
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpSrc((short) BgpConstants.BGP_PORT)
                         .build();
 
@@ -281,9 +281,9 @@ public class PeerConnectivityManager {
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .build();
 
                 TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -301,9 +301,9 @@ public class PeerConnectivityManager {
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                         .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(),
-                                IpAddress.MAX_INET_MASK))
+                                IpPrefix.MAX_INET_MASK_LENGTH))
                         .build();
 
                 PointToPointIntent reversedIntent =
