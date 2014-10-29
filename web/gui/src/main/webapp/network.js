@@ -140,7 +140,6 @@
         // click handler for "selectable" objects
         $(document).on('click', '.select-object', function () {
             // when any object of class "select-object" is clicked...
-            // TODO: get a reference to the object via lookup...
             var obj = network.lookup[$(this).data('id')];
             if (obj) {
                 selectObject(obj);
@@ -862,6 +861,7 @@
 
         if (node.classed('selected')) {
             deselectObject();
+            flyinPane(null);
             return;
         }
         deselectObject(false);
@@ -871,9 +871,8 @@
             el  : el
         };
 
-//        highlightObject(obj);
-
         node.classed('selected', true);
+        flyinPane(obj);
 
         // TODO animate incoming info pane
         // resize(true);
@@ -889,7 +888,26 @@
         // deselect all nodes in the network...
         network.node.classed('selected', false);
         selected = {};
-//        highlightObject(null);
+        flyinPane(null);
+    }
+
+    function flyinPane(obj) {
+        var pane = d3.select('#flyout'),
+            right = (obj ? '20px' : '-320px'),    // TODO: parameterize
+            opac = (obj ? 1.0 : 0.0);
+
+        if (obj) {
+            $('#flyout').empty();
+            pane.append('h2').text(obj.id);
+            pane.append('p').text('class: ' + obj.class);
+            if (obj.type) {
+                pane.append('p').text('type: ' + obj.type);
+            }
+        }
+
+        pane.transition().duration(750)
+            .style('right', right)
+            .style('opacity', opac);
     }
 
     function highlightObject(obj) {
@@ -929,17 +947,7 @@
     }
 
 
-    function resize(showDetails) {
-        console.log("resize() called...");
-
-        var $details = $('#details');
-
-        if (typeof showDetails == 'boolean') {
-            var showingDetails = showDetails;
-            // TODO: invoke $details.show() or $details.hide()...
-            //        $details[showingDetails ? 'show' : 'hide']();
-        }
-
+    function resize() {
         view.height = window.innerHeight - config.mastHeight;
         view.width = window.innerWidth;
         $('#view')

@@ -203,14 +203,25 @@ svg .legend .category text {
 }
 
 #flyout {
-    width: 300px;
-    height: 80%;
-    top: 10%;
-    right: 2%;
-    background-color: rgba(0,0,0,0.5);
-
     position: absolute;
     z-index: 100;
-    display: none;
+    display: block;
+    top: 10%;
+    width: 300px;
+    height: 80%;
+    right: -320px;
+    opacity: 0;
+    background-color: rgba(0,0,0,0.5);
+    padding: 10px;
+    color: white;
+}
+
+#flyout h2 {
+    margin: 8px 4px;
+    color: yellow;
+}
+
+#flyout p {
+    margin: 4px 4px;
 }
 
