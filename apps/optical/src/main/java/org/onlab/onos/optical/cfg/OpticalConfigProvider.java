@@ -372,4 +372,8 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
         // TODO Auto-generated method stub.
     }
 
+    @Override
+    public boolean isReachable(Device device) {
+        return false;
+    }
 }

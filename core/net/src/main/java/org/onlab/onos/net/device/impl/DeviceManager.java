@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.mastership.MastershipEvent;
@@ -57,6 +58,8 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
+
+import com.google.common.collect.HashMultimap;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -159,32 +162,37 @@ public class DeviceManager
 
     // Applies the specified role to the device; ignores NONE
     private void applyRole(DeviceId deviceId, MastershipRole newRole) {
-        if (!newRole.equals(MastershipRole.NONE)) {
-            Device device = store.getDevice(deviceId);
-            // FIXME: Device might not be there yet. (eventual consistent)
-            if (device == null) {
-                return;
-            }
-            DeviceProvider provider = getProvider(device.providerId());
-            if (provider != null) {
-                provider.roleChanged(device, newRole);
-
-                // only trigger event when request was sent to provider
-                // TODO: consider removing this from Device event type?
-                post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
-            }
+        if (newRole.equals(MastershipRole.NONE)) {
+            return;
         }
-    }
 
-    // Queries a device for port information.
-    private void queryPortInfo(DeviceId deviceId) {
         Device device = store.getDevice(deviceId);
         // FIXME: Device might not be there yet. (eventual consistent)
         if (device == null) {
             return;
         }
+
         DeviceProvider provider = getProvider(device.providerId());
-        provider.triggerProbe(device);
+        if (provider != null) {
+            provider.roleChanged(device, newRole);
+            // only trigger event when request was sent to provider
+            // TODO: consider removing this from Device event type?
+            post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
+
+            if (newRole.equals(MastershipRole.MASTER)) {
+                provider.triggerProbe(device);
+            }
+        }
+    }
+
+    // Check a device for control channel connectivity.
+    private boolean isReachable(Device device) {
+        // FIXME: Device might not be there yet. (eventual consistent)
+        if (device == null) {
+            return false;
+        }
+        DeviceProvider provider = getProvider(device.providerId());
+        return provider.isReachable(device);
     }
 
     @Override
@@ -236,7 +244,6 @@ public class DeviceManager
             log.info("Device {} connected", deviceId);
             // check my Role
             MastershipRole role = mastershipService.requestRoleFor(deviceId);
-            log.info("requestedRole, became {} for {}", role, deviceId);
             if (role != MastershipRole.MASTER) {
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is no longer the MASTER? probably not
@@ -383,6 +390,12 @@ public class DeviceManager
     // Intercepts mastership events
     private class InternalMastershipListener implements MastershipListener {
 
+        // random cache size
+        private final int cacheSize = 5;
+        // temporarily stores term number + events to check for duplicates. A hack.
+        private HashMultimap<Integer, RoleInfo>  eventCache =
+                HashMultimap.create();
+
         @Override
         public void event(MastershipEvent event) {
             final DeviceId did = event.subject();
@@ -390,6 +403,13 @@ public class DeviceManager
 
             if (myNodeId.equals(event.roleInfo().master())) {
                 MastershipTerm term = termService.getMastershipTerm(did);
+
+                // TODO duplicate suppression should probably occur in the MastershipManager
+                // itself, so listeners that can't deal with duplicates don't have to
+                // so this check themselves.
+                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
+                    return;
+                }
 
                 if (!myNodeId.equals(term.master())) {
                     // something went wrong in consistency, let go
@@ -405,14 +425,16 @@ public class DeviceManager
                 // only set the new term if I am the master
                 deviceClockProviderService.setMastershipTerm(did, term);
 
-                // FIXME: we should check that the device is connected on our end.
-                // currently, this is not straight forward as the actual switch
-                // implementation is hidden from the registry. Maybe we can ask the
-                // provider.
                 // if the device is null here, we are the first master to claim the
                 // device. No worries, the DeviceManager will create one soon.
                 Device device = getDevice(did);
                 if ((device != null) && !isAvailable(did)) {
+                    if (!isReachable(device)) {
+                        log.warn("Device {} has disconnected after this event", did);
+                        mastershipService.relinquishMastership(did);
+                        applyRole(did, MastershipRole.STANDBY);
+                        return;
+                    }
                     //flag the device as online. Is there a better way to do this?
                     DeviceEvent devEvent = store.createOrUpdateDevice(device.providerId(), did,
                             new DefaultDeviceDescription(
@@ -422,12 +444,32 @@ public class DeviceManager
                     post(devEvent);
                 }
                 applyRole(did, MastershipRole.MASTER);
-                // re-collect device information to fix potential staleness
-                queryPortInfo(did);
             } else if (event.roleInfo().backups().contains(myNodeId)) {
+                if (!isReachable(getDevice(did))) {
+                    log.warn("Device {} has disconnected after this event", did);
+                    mastershipService.relinquishMastership(did);
+                }
                 applyRole(did, MastershipRole.STANDBY);
             }
         }
+
+        // checks for duplicate event, returning true if one is found.
+        private boolean checkDuplicate(RoleInfo roleInfo, int term) {
+            synchronized (eventCache) {
+                if (eventCache.get(term).contains(roleInfo)) {
+                    log.info("duplicate event detected; ignoring");
+                    return true;
+                } else {
+                    eventCache.put(term, roleInfo);
+                    // purge by-term oldest entries to keep the cache size under limit
+                    if (eventCache.size() > cacheSize) {
+                        eventCache.removeAll(term - cacheSize);
+                    }
+                    return false;
+                }
+            }
+        }
+
     }
 
     // Store delegate to re-post events emitted from the store.

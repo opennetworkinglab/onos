@@ -278,6 +278,11 @@ public class DeviceManagerTest {
             deviceReceived = device;
             roleReceived = newRole;
         }
+
+        @Override
+        public boolean isReachable(Device device) {
+            return false;
+        }
     }
 
     private static class TestListener implements DeviceListener {

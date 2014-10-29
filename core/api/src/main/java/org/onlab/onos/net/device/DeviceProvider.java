@@ -47,4 +47,11 @@ public interface DeviceProvider extends Provider {
      */
     void roleChanged(Device device, MastershipRole newRole);
 
+    /**
+     * Checks the reachability (connectivity) of a device from this provider.
+     *
+     * @param device device to check
+     * @return true if reachable, false otherwise
+     */
+    boolean isReachable(Device device);
 }
