@@ -19,13 +19,13 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
-public class CompletedBatchOperation implements BatchOperationResult<FlowEntry> {
+public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
 
 
     private final boolean success;
-    private final Set<FlowEntry> failures;
+    private final Set<FlowRule> failures;
 
-    public CompletedBatchOperation(boolean success, Set<FlowEntry> failures) {
+    public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures) {
         this.success = success;
         this.failures = ImmutableSet.copyOf(failures);
     }
@@ -36,7 +36,7 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowEntry> 
     }
 
     @Override
-    public Set<FlowEntry> failedItems() {
+    public Set<FlowRule> failedItems() {
         return failures;
     }
 

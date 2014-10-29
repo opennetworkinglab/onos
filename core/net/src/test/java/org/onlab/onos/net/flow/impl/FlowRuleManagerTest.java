@@ -555,7 +555,7 @@ public class FlowRuleManagerTest {
             @Override
             public CompletedBatchOperation get()
                     throws InterruptedException, ExecutionException {
-                return new CompletedBatchOperation(true, Collections.<FlowEntry>emptySet());
+                return new CompletedBatchOperation(true, Collections.<FlowRule>emptySet());
             }
 
             @Override

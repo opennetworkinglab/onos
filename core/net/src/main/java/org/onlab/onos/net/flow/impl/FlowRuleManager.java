@@ -395,7 +395,7 @@ public class FlowRuleManager
 
                 break;
             case BATCH_OPERATION_COMPLETED:
-                Set<FlowEntry> failedItems = event.result().failedItems();
+                Set<FlowRule> failedItems = event.result().failedItems();
                 for (FlowEntry entry : request.toAdd()) {
                     if (!failedItems.contains(entry)) {
                         eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADDED, entry));
@@ -463,7 +463,7 @@ public class FlowRuleManager
             }
 
             boolean success = true;
-            Set<FlowEntry> failed = Sets.newHashSet();
+            Set<FlowRule> failed = Sets.newHashSet();
             CompletedBatchOperation completed;
             for (Future<CompletedBatchOperation> future : futures) {
                 completed = future.get();
@@ -483,7 +483,7 @@ public class FlowRuleManager
                 return overall;
             }
             boolean success = true;
-            Set<FlowEntry> failed = Sets.newHashSet();
+            Set<FlowRule> failed = Sets.newHashSet();
             CompletedBatchOperation completed;
             long start = System.nanoTime();
             long end = start + unit.toNanos(timeout);
@@ -497,7 +497,7 @@ public class FlowRuleManager
             return finalizeBatchOperation(success, failed);
         }
 
-        private boolean validateBatchOperation(Set<FlowEntry> failed,
+        private boolean validateBatchOperation(Set<FlowRule> failed,
                 CompletedBatchOperation completed) {
 
             if (isCancelled()) {
@@ -519,7 +519,7 @@ public class FlowRuleManager
         }
 
         private CompletedBatchOperation finalizeBatchOperation(boolean success,
-                Set<FlowEntry> failed) {
+                Set<FlowRule> failed) {
             synchronized (this) {
                 if (!state.compareAndSet(BatchState.STARTED, BatchState.FINISHED)) {
                     if (state.get() == BatchState.FINISHED) {

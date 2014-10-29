@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
@@ -191,7 +192,14 @@ public class DistributedStatisticStore implements StatisticStore {
 
     @Override
     public Set<FlowEntry> getCurrentStatistic(ConnectPoint connectPoint) {
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(connectPoint.deviceId());
+        final DeviceId deviceId = connectPoint.deviceId();
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
+        if (!replicaInfo.master().isPresent()) {
+            log.warn("No master for {}", deviceId);
+            // TODO: revisit if this should be returning empty collection.
+            // FIXME: throw a StatsStoreException
+            throw new RuntimeException("No master for " + deviceId);
+        }
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getCurrentStatisticInternal(connectPoint);
         } else {
@@ -219,7 +227,14 @@ public class DistributedStatisticStore implements StatisticStore {
 
     @Override
     public Set<FlowEntry> getPreviousStatistic(ConnectPoint connectPoint) {
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(connectPoint.deviceId());
+        final DeviceId deviceId = connectPoint.deviceId();
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
+        if (!replicaInfo.master().isPresent()) {
+            log.warn("No master for {}", deviceId);
+            // TODO: revisit if this should be returning empty collection.
+            // FIXME: throw a StatsStoreException
+            throw new RuntimeException("No master for " + deviceId);
+        }
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getPreviousStatisticInternal(connectPoint);
         } else {
