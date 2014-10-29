@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.cluster.messaging.impl;
 
 import org.junit.After;
@@ -8,7 +23,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.impl.ClusterNodesDelegate;
 import org.onlab.netty.NettyMessagingService;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +42,7 @@ public class ClusterCommunicationManagerTest {
     private static final int P1 = 9881;
     private static final int P2 = 9882;
 
-    private static final IpPrefix IP = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress IP = IpAddress.valueOf("127.0.0.1");
 
     private ClusterCommunicationManager ccm1;
     private ClusterCommunicationManager ccm2;
@@ -104,7 +119,7 @@ public class ClusterCommunicationManagerTest {
         NodeId nodeId;
 
         @Override
-        public DefaultControllerNode nodeDetected(NodeId nodeId, IpPrefix ip, int tcpPort) {
+        public DefaultControllerNode nodeDetected(NodeId nodeId, IpAddress ip, int tcpPort) {
             latch(nodeId, Op.DETECTED);
             return new DefaultControllerNode(nodeId, ip, tcpPort);
         }

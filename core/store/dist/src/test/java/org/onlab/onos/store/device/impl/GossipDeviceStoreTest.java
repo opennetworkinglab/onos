@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.device.impl;
 
 import static org.easymock.EasyMock.*;
@@ -55,7 +70,7 @@ import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -102,12 +117,12 @@ public class GossipDeviceStoreTest {
     // local node
     private static final NodeId NID1 = new NodeId("local");
     private static final ControllerNode ONOS1 =
-            new DefaultControllerNode(NID1, IpPrefix.valueOf("127.0.0.1"));
+            new DefaultControllerNode(NID1, IpAddress.valueOf("127.0.0.1"));
 
     // remote node
     private static final NodeId NID2 = new NodeId("remote");
     private static final ControllerNode ONOS2 =
-            new DefaultControllerNode(NID2, IpPrefix.valueOf("127.0.0.2"));
+            new DefaultControllerNode(NID2, IpAddress.valueOf("127.0.0.2"));
     private static final List<SparseAnnotations> NO_ANNOTATION = Collections.<SparseAnnotations>emptyList();
 
 

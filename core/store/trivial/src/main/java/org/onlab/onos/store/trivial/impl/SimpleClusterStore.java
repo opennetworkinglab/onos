@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.trivial.impl;
 
 import com.google.common.collect.ImmutableSet;
@@ -12,7 +27,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.AbstractStore;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -29,7 +44,7 @@ public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
         implements ClusterStore {
 
-    public static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
+    public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
     private final Logger log = getLogger(getClass());
 
@@ -68,7 +83,7 @@ public class SimpleClusterStore
     }
 
     @Override
-    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+    public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return null;
     }
 

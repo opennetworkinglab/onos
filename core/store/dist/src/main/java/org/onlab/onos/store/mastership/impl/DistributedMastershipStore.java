@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.mastership.impl;
 
 import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
@@ -257,6 +272,10 @@ implements MastershipStore {
             switch (role) {
                 case MASTER:
                     event = reelect(nodeId, deviceId, rv);
+                    if (event != null) {
+                        Integer term = terms.get(deviceId);
+                        terms.put(deviceId, ++term);
+                    }
                     //fall through to reinforce relinquishment
                 case STANDBY:
                     //fall through to reinforce relinquishment
@@ -289,15 +308,11 @@ implements MastershipStore {
         if (backup == null) {
             log.info("{} giving up and going to NONE for {}", current, deviceId);
             rv.remove(MASTER, current);
-            roleMap.put(deviceId, rv);
             return null;
         } else {
             log.info("{} trying to pass mastership for {} to {}", current, deviceId, backup);
             rv.replace(current, backup, MASTER);
             rv.reassign(backup, STANDBY, NONE);
-            roleMap.put(deviceId, rv);
-            Integer term = terms.get(deviceId);
-            terms.put(deviceId, ++term);
             return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
         }
     }
@@ -351,7 +366,7 @@ implements MastershipStore {
 
         @Override
         public void entryUpdated(EntryEvent<DeviceId, RoleValue> event) {
-
+            // this subsumes entryAdded event
             notifyDelegate(new MastershipEvent(
                     MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
         }

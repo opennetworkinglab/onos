@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.cluster.impl;
 
 import com.google.common.base.Optional;
@@ -22,7 +37,7 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.hz.AbsentInvalidatingLoadingCache;
 import org.onlab.onos.store.hz.AbstractHazelcastStore;
 import org.onlab.onos.store.hz.OptionalCacheLoader;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.Map;
 import java.util.Set;
@@ -105,7 +120,7 @@ public class DistributedClusterStore
     }
 
     @Override
-    public ControllerNode addNode(NodeId nodeId, IpPrefix ip, int tcpPort) {
+    public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return addNode(new DefaultControllerNode(nodeId, ip, tcpPort));
     }
 
@@ -127,13 +142,13 @@ public class DistributedClusterStore
 
     // Creates a controller node descriptor from the Hazelcast member.
     private DefaultControllerNode node(Member member) {
-        IpPrefix ip = memberAddress(member);
+        IpAddress ip = memberAddress(member);
         return new DefaultControllerNode(new NodeId(ip.toString()), ip);
     }
 
-    private IpPrefix memberAddress(Member member) {
+    private IpAddress memberAddress(Member member) {
         byte[] address = member.getSocketAddress().getAddress().getAddress();
-        return IpPrefix.valueOf(address);
+        return IpAddress.valueOf(address);
     }
 
     // Interceptor for membership events.

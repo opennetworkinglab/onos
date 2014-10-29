@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.cluster.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -82,10 +97,20 @@ implements MastershipService, MastershipAdminService {
         checkNotNull(role, ROLE_NULL);
 
         MastershipEvent event = null;
-        if (role.equals(MastershipRole.MASTER)) {
-            event = store.setMaster(nodeId, deviceId);
-        } else {
-            event = store.setStandby(nodeId, deviceId);
+
+        switch (role) {
+            case MASTER:
+                event = store.setMaster(nodeId, deviceId);
+                break;
+            case STANDBY:
+                event = store.setStandby(nodeId, deviceId);
+                break;
+            case NONE:
+                event = store.relinquishRole(nodeId, deviceId);
+                break;
+            default:
+                log.info("Unknown role; ignoring");
+                return;
         }
 
         if (event != null) {
@@ -244,6 +269,10 @@ implements MastershipService, MastershipAdminService {
 
         @Override
         public void notify(MastershipEvent event) {
+            if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
+                log.info("ignoring locally-generated event {}", event);
+               // return;
+            }
             log.info("dispatching mastership event {}", event);
             eventDispatcher.post(event);
         }

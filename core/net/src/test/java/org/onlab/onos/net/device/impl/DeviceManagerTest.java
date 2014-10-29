@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.net.device.impl;
 
 import com.google.common.collect.Sets;
@@ -38,7 +53,7 @@ import org.onlab.onos.net.provider.AbstractProvider;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -69,7 +84,7 @@ public class DeviceManagerTest {
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
     private static final NodeId NID_LOCAL = new NodeId("local");
-    private static final IpPrefix LOCALHOST = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
     private DeviceManager mgr;
 
@@ -262,6 +277,11 @@ public class DeviceManagerTest {
         public void roleChanged(Device device, MastershipRole newRole) {
             deviceReceived = device;
             roleReceived = newRole;
+        }
+
+        @Override
+        public boolean isReachable(Device device) {
+            return false;
         }
     }
 

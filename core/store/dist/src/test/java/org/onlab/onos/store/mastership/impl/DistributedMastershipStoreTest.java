@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.mastership.impl;
 
 import static org.junit.Assert.assertEquals;
@@ -32,7 +47,7 @@ import org.onlab.onos.store.hz.StoreManager;
 import org.onlab.onos.store.hz.StoreService;
 import org.onlab.onos.store.hz.TestStoreManager;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
@@ -47,7 +62,7 @@ public class DistributedMastershipStoreTest {
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
     private static final DeviceId DID3 = DeviceId.deviceId("of:03");
 
-    private static final IpPrefix IP = IpPrefix.valueOf("127.0.0.1");
+    private static final IpAddress IP = IpAddress.valueOf("127.0.0.1");
 
     private static final NodeId N1 = new NodeId("node1");
     private static final NodeId N2 = new NodeId("node2");

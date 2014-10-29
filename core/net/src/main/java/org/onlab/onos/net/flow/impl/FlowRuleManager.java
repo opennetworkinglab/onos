@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.net.flow.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -380,7 +395,7 @@ public class FlowRuleManager
 
                 break;
             case BATCH_OPERATION_COMPLETED:
-                Set<FlowEntry> failedItems = event.result().failedItems();
+                Set<FlowRule> failedItems = event.result().failedItems();
                 for (FlowEntry entry : request.toAdd()) {
                     if (!failedItems.contains(entry)) {
                         eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADDED, entry));
@@ -448,7 +463,7 @@ public class FlowRuleManager
             }
 
             boolean success = true;
-            Set<FlowEntry> failed = Sets.newHashSet();
+            Set<FlowRule> failed = Sets.newHashSet();
             CompletedBatchOperation completed;
             for (Future<CompletedBatchOperation> future : futures) {
                 completed = future.get();
@@ -468,7 +483,7 @@ public class FlowRuleManager
                 return overall;
             }
             boolean success = true;
-            Set<FlowEntry> failed = Sets.newHashSet();
+            Set<FlowRule> failed = Sets.newHashSet();
             CompletedBatchOperation completed;
             long start = System.nanoTime();
             long end = start + unit.toNanos(timeout);
@@ -482,7 +497,7 @@ public class FlowRuleManager
             return finalizeBatchOperation(success, failed);
         }
 
-        private boolean validateBatchOperation(Set<FlowEntry> failed,
+        private boolean validateBatchOperation(Set<FlowRule> failed,
                 CompletedBatchOperation completed) {
 
             if (isCancelled()) {
@@ -504,7 +519,7 @@ public class FlowRuleManager
         }
 
         private CompletedBatchOperation finalizeBatchOperation(boolean success,
-                Set<FlowEntry> failed) {
+                Set<FlowRule> failed) {
             synchronized (this) {
                 if (!state.compareAndSet(BatchState.STARTED, BatchState.FINISHED)) {
                     if (state.get() == BatchState.FINISHED) {

@@ -1,20 +1,17 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Copyright 2014 Open Networking Laboratory
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.onlab.onos.sdnip;
 
@@ -49,6 +46,7 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
@@ -148,11 +146,6 @@ public class Router implements RouteListener {
      * Starts the Router.
      */
     public void start() {
-
-        // TODO hack to enable SDN-IP now for testing
-        isElectedLeader = true;
-        isActivatedLeader = true;
-
         bgpUpdatesExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -280,30 +273,21 @@ public class Router implements RouteListener {
             // based on the matching prefix.
             //
             for (Intent intent : intentService.getIntents()) {
-                //
-                // TODO: Ignore all intents that are not installed by
-                // the SDN-IP application.
-                //
-                if (!(intent instanceof MultiPointToSinglePointIntent)) {
+
+                if (!(intent instanceof MultiPointToSinglePointIntent)
+                        || !intent.appId().equals(appId)) {
                     continue;
                 }
                 MultiPointToSinglePointIntent mp2pIntent =
                         (MultiPointToSinglePointIntent) intent;
-                /*Match match = mp2pIntent.getMatch();
-                if (!(match instanceof PacketMatch)) {
-                    continue;
-                }
-                PacketMatch packetMatch = (PacketMatch) match;
-                Ip4Prefix prefix = packetMatch.getDstIpAddress();
-                if (prefix == null) {
-                    continue;
-                }
-                fetchedIntents.put(prefix, mp2pIntent);*/
-                for (Criterion criterion : mp2pIntent.selector().criteria()) {
-                    if (criterion.type() == Type.IPV4_DST) {
-                        IPCriterion ipCriterion = (IPCriterion) criterion;
-                        fetchedIntents.put(ipCriterion.ip(), mp2pIntent);
-                    }
+
+                Criterion c = mp2pIntent.selector().getCriterion(Type.IPV4_DST);
+                if (c != null && c instanceof IPCriterion) {
+                    IPCriterion ipCriterion = (IPCriterion) c;
+                    fetchedIntents.put(ipCriterion.ip(), mp2pIntent);
+                } else {
+                    log.warn("No IPV4_DST criterion found for intent {}",
+                            mp2pIntent.id());
                 }
 
             }
@@ -345,6 +329,14 @@ public class Router implements RouteListener {
                     //
                     addIntents.add(Pair.of(prefix, inMemoryIntent));
                     continue;
+                }
+
+                IntentState state = intentService.getIntentState(fetchedIntent.id());
+                if (state == IntentState.WITHDRAWING ||
+                        state == IntentState.WITHDRAWN) {
+                    // The intent has been withdrawn but according to our route
+                    // table it should be installed. We'll reinstall it.
+                    addIntents.add(Pair.of(prefix, inMemoryIntent));
                 }
 
                 //
@@ -437,20 +429,9 @@ public class Router implements RouteListener {
     private boolean compareMultiPointToSinglePointIntents(
             MultiPointToSinglePointIntent intent1,
             MultiPointToSinglePointIntent intent2) {
-        /*Match match1 = intent1.getMatch();
-        Match match2 = intent2.getMatch();
-        Action action1 = intent1.getAction();
-        Action action2 = intent2.getAction();
-        Set<SwitchPort> ingressPorts1 = intent1.getIngressPorts();
-        Set<SwitchPort> ingressPorts2 = intent2.getIngressPorts();
-        SwitchPort egressPort1 = intent1.getEgressPort();
-        SwitchPort egressPort2 = intent2.getEgressPort();
 
-        return Objects.equal(match1, match2) &&
-            Objects.equal(action1, action2) &&
-            Objects.equal(egressPort1, egressPort2) &&
-            Objects.equal(ingressPorts1, ingressPorts2);*/
-        return Objects.equal(intent1.selector(), intent2.selector()) &&
+        return Objects.equal(intent1.appId(), intent2.appId()) &&
+                Objects.equal(intent1.selector(), intent2.selector()) &&
                 Objects.equal(intent1.treatment(), intent2.treatment()) &&
                 Objects.equal(intent1.ingressPoints(), intent2.ingressPoints()) &&
                 Objects.equal(intent1.egressPoint(), intent2.egressPoint());

@@ -1,20 +1,17 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Copyright 2014 Open Networking Laboratory
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /*
@@ -91,12 +88,23 @@ svg .link {
     -moz-transition: opacity 250ms;
 }
 
-svg .node rect {
-    stroke-width: 1.5px;
+svg .link.host {
+    stroke: #6a6;
+    stroke-dasharray: 3,3;
+}
+
+svg .node.device rect {
+    stroke-width: 3.0px;
+    stroke: white;
+    stroke-dasharray: 2,2;
 
     transition: opacity 250ms;
     -webkit-transition: opacity 250ms;
     -moz-transition: opacity 250ms;
+}
+
+svg .node.device.fixed rect {
+    stroke-width: 0;
 }
 
 svg .node.device.roadm rect {
@@ -107,8 +115,9 @@ svg .node.device.switch rect {
     fill: #55f;
 }
 
-svg .node.host rect {
-    fill: #787;
+svg .node.host circle {
+    fill: #898;
+    stroke: #000;
 }
 
 svg .node text {
@@ -129,15 +138,17 @@ svg .node rect.debug {
 }
 
 
-svg .node.selected rect {
+svg .node.selected rect,
+svg .node.selected circle {
     filter: url(#blue-glow);
 }
 
 svg .link.inactive,
 svg .node.inactive rect,
+svg .node.inactive circle,
 svg .node.inactive text,
 svg .node.inactive image {
-    opacity: .2;
+    opacity: .05;
 }
 
 svg .node.inactive.selected rect,
@@ -178,10 +189,11 @@ svg .legend .category text {
  * Specific structural elements
  */
 
-#frame {
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
+/* This is to ensure that the body does not expand to account for the
+   flyout details pane, that is positioned "off screen".
+ */
+body {
+    overflow: hidden;
 }
 
 #mast {
@@ -189,5 +201,45 @@ svg .legend .category text {
     padding: 4px;
     background-color: #ccc;
     vertical-align: baseline;
+}
+
+#frame {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+}
+
+#flyout {
+    position: absolute;
+    z-index: 100;
+    display: block;
+    top: 10%;
+    width: 300px;
+    height: 80%;
+    right: -320px;
+    opacity: 0;
+    background-color: rgba(0,0,0,0.5);
+    padding: 10px;
+    color: white;
+    font-size: 10pt;
+}
+
+#flyout h2 {
+    margin: 8px 4px;
+    color: yellow;
+}
+
+#flyout p, table {
+    margin: 4px 4px;
+}
+
+#flyout td.label {
+    font-style: italic;
+    color: #ccf;
+    padding-right: 12px;
+}
+
+#flyout td.value {
+
 }
 

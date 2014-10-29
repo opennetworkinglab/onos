@@ -1,8 +1,24 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.net.resource.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,12 +60,16 @@ public class LinkResourceManager implements LinkResourceService {
         log.info("Stopped");
     }
 
+    private Iterable<Lambda> getAvailableLambdas(Iterable<Link> links) {
+        return Sets.newHashSet(Lambda.valueOf(7));
+    }
+
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
         // TODO implement it using a resource data store.
 
         ResourceAllocation alloc = null;
-        for (ResourceRequest r: req.resources()) {
+        for (ResourceRequest r : req.resources()) {
             switch (r.type()) {
             case BANDWIDTH:
                 log.info("requestResources() always returns requested bandwidth");
@@ -58,7 +78,10 @@ public class LinkResourceManager implements LinkResourceService {
                 break;
             case LAMBDA:
                 log.info("requestResources() always returns lambda 7");
-                alloc = new LambdaResourceAllocation(Lambda.valueOf(7));
+                Iterator<Lambda> lambdaIterator = getAvailableLambdas(req.links()).iterator();
+                if (lambdaIterator.hasNext()) {
+                    alloc = new LambdaResourceAllocation(lambdaIterator.next());
+                }
                 break;
             default:
                 break;
@@ -66,7 +89,7 @@ public class LinkResourceManager implements LinkResourceService {
         }
 
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
-        for (Link link: req.links()) {
+        for (Link link : req.links()) {
             allocations.put(link, Sets.newHashSet(alloc));
         }
         return new DefaultLinkResourceAllocations(req, allocations);
@@ -91,25 +114,19 @@ public class LinkResourceManager implements LinkResourceService {
     }
 
     @Override
-    public LinkResourceAllocations getAllocations(IntentId intentId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public Iterable<LinkResourceAllocations> getAllocations(Link link) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Iterable<IntentId> getIntents(Link link) {
+    public LinkResourceAllocations getAllocations(IntentId intentId) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public ResourceRequest getAvailableResources(Link link) {
+    public Iterable<ResourceRequest> getAvailableResources(Link link) {
         // TODO Auto-generated method stub
         return null;
     }

@@ -1,20 +1,17 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Copyright 2014 Open Networking Laboratory
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.onlab.onos.provider.of.device.impl;
 
@@ -106,22 +103,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.info("Stopped");
     }
 
+
+    @Override
+    public boolean isReachable(Device device) {
+        // FIXME if possible, we might want this to be part of
+        // OpenFlowSwitch interface so the driver interface isn't misused.
+        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
+        if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
+            return false;
+        }
+        return true;
+        //return checkChannel(device, sw);
+    }
+
     @Override
     public void triggerProbe(Device device) {
         LOG.info("Triggering probe on device {}", device.id());
 
-        // 1. check device liveness
-        // FIXME if possible, we might want this to be part of
-        // OpenFlowSwitch interface so the driver interface isn't misused.
         OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        if (sw == null ||
-            !((OpenFlowSwitchDriver) sw).isConnected()) {
-            LOG.error("Failed to probe device {} on sw={}", device, sw);
-            providerService.deviceDisconnected(device.id());
-            return;
-        }
+        //if (!checkChannel(device, sw)) {
+          //  LOG.error("Failed to probe device {} on sw={}", device, sw);
+        //  providerService.deviceDisconnected(device.id());
+            //return;
+        //}
 
-        // 2. Prompt an update of port information. Do we have an XID for this?
+        // Prompt an update of port information. We can use any XID for this.
         OFFactory fact = sw.factory();
         switch (fact.getVersion()) {
             case OF_10:
@@ -134,6 +140,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 LOG.warn("Unhandled protocol version");
         }
     }
+
+    // Checks if the OF channel is connected.
+    //private boolean checkChannel(Device device, OpenFlowSwitch sw) {
+        // FIXME if possible, we might want this to be part of
+        // OpenFlowSwitch interface so the driver interface isn't misused.
+    //    if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
+      //      return false;
+  //      }
+    //    return true;
+   // }
 
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.serializers;
 
 import java.net.URI;
@@ -16,7 +31,9 @@ import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
+import org.onlab.onos.net.DefaultEdgeLink;
 import org.onlab.onos.net.DefaultLink;
+import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -44,6 +61,14 @@ import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
+import org.onlab.onos.net.intent.ConnectivityIntent;
+import org.onlab.onos.net.intent.HostToHostIntent;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentState;
+import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.store.Timestamp;
@@ -128,7 +153,17 @@ public final class KryoNamespaces {
                     FlowRuleBatchOperation.class,
                     CompletedBatchOperation.class,
                     FlowRuleBatchEntry.class,
-                    FlowRuleBatchEntry.FlowRuleOperation.class
+                    FlowRuleBatchEntry.FlowRuleOperation.class,
+                    IntentId.class,
+                    IntentState.class,
+                    Intent.class,
+                    ConnectivityIntent.class,
+                    PathIntent.class,
+                    DefaultPath.class,
+                    DefaultEdgeLink.class,
+                    HostToHostIntent.class,
+                    PointToPointIntent.class,
+                    MultiPointToSinglePointIntent.class
                     )
             .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
             .register(URI.class, new URISerializer())

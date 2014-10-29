@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.net.resource;
 
 import org.onlab.onos.net.Link;
@@ -41,14 +56,6 @@ public interface LinkResourceService {
     Iterable<LinkResourceAllocations> getAllocations();
 
     /**
-     * Returns the resources allocated for an Intent.
-     *
-     * @param intentId the target Intent's id
-     * @return allocated resources for Intent
-     */
-    LinkResourceAllocations getAllocations(IntentId intentId);
-
-    /**
      * Returns all allocated resources to given link.
      *
      * @param link a target link
@@ -57,12 +64,12 @@ public interface LinkResourceService {
     Iterable<LinkResourceAllocations> getAllocations(Link link);
 
     /**
-     * Returns all IDs of intents using the given link.
+     * Returns the resources allocated for an Intent.
      *
-     * @param link a target link
-     * @return IDs of intents using the link
+     * @param intentId the target Intent's id
+     * @return allocated resources for Intent
      */
-    Iterable<IntentId> getIntents(Link link);
+    LinkResourceAllocations getAllocations(IntentId intentId);
 
     /**
      * Returns available resources for given link.
@@ -70,7 +77,7 @@ public interface LinkResourceService {
      * @param link a target link
      * @return available resources for the target link
      */
-    ResourceRequest getAvailableResources(Link link);
+    Iterable<ResourceRequest> getAvailableResources(Link link);
 
     /**
      * Returns available resources for given link.

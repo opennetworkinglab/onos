@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.store.statistic.impl;
 
 import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.*;
@@ -13,6 +28,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRule;
@@ -176,7 +192,14 @@ public class DistributedStatisticStore implements StatisticStore {
 
     @Override
     public Set<FlowEntry> getCurrentStatistic(ConnectPoint connectPoint) {
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(connectPoint.deviceId());
+        final DeviceId deviceId = connectPoint.deviceId();
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
+        if (!replicaInfo.master().isPresent()) {
+            log.warn("No master for {}", deviceId);
+            // TODO: revisit if this should be returning empty collection.
+            // FIXME: throw a StatsStoreException
+            throw new RuntimeException("No master for " + deviceId);
+        }
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getCurrentStatisticInternal(connectPoint);
         } else {
@@ -204,7 +227,14 @@ public class DistributedStatisticStore implements StatisticStore {
 
     @Override
     public Set<FlowEntry> getPreviousStatistic(ConnectPoint connectPoint) {
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(connectPoint.deviceId());
+        final DeviceId deviceId = connectPoint.deviceId();
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
+        if (!replicaInfo.master().isPresent()) {
+            log.warn("No master for {}", deviceId);
+            // TODO: revisit if this should be returning empty collection.
+            // FIXME: throw a StatsStoreException
+            throw new RuntimeException("No master for " + deviceId);
+        }
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getPreviousStatisticInternal(connectPoint);
         } else {

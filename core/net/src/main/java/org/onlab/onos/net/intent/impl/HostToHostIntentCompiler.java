@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onlab.onos.net.intent.impl;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -7,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.host.HostService;
@@ -15,7 +31,9 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
+import org.onlab.onos.net.topology.TopologyEdge;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +89,13 @@ public class HostToHostIntentCompiler
     }
 
     private Path getPath(HostId one, HostId two) {
-        Set<Path> paths = pathService.getPaths(one, two);
+        Set<Path> paths = pathService.getPaths(one, two, new LinkWeight() {
+            @Override
+            public double weight(TopologyEdge edge) {
+                return edge.link().type() == Link.Type.OPTICAL ? -1 : +1;
+            }
+        });
+
         if (paths.isEmpty()) {
             throw new PathNotFoundException("No path from host " + one + " to " + two);
         }

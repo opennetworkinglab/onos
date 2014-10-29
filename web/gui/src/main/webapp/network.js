@@ -1,20 +1,17 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Copyright 2014 Open Networking Laboratory
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /*
@@ -33,15 +30,16 @@
     var config = {
             debugOn: false,
             debug: {
-                showNodeXY: true,
-                showKeyHandler: false
+                showNodeXY: false,
+                showKeyHandler: true
             },
             options: {
                 layering: true,
                 collisionPrevention: true
             },
             XjsonUrl: 'rs/topology/graph',
-            jsonUrl: 'network.json',
+            jsonUrl: 'json/network.json',
+            jsonPrefix: 'json/',
             iconUrl: {
                 device: 'img/device.png',
                 host: 'img/host.png',
@@ -52,16 +50,16 @@
             force: {
                 note: 'node.class or link.class is used to differentiate',
                 linkDistance: {
-                    infra: 240,
-                    host: 100
+                    infra: 200,
+                    host: 40
                 },
                 linkStrength: {
                     infra: 1.0,
-                    host: 0.4
+                    host: 1.0
                 },
                 charge: {
                     device: -800,
-                    host: -400
+                    host: -1000
                 },
                 ticksWithoutCollisions: 50,
                 marginLR: 20,
@@ -87,12 +85,13 @@
             },
             constraints: {
                 ypos: {
-                    host: 0.15,
+                    host: 0.05,
                     switch: 0.3,
                     roadm: 0.7
                 }
             },
             hostLinkWidth: 1.0,
+            hostRadius: 7,
             mouseOutTimerDelayMs: 120
         };
 
@@ -101,6 +100,7 @@
         network = {},
         selected = {},
         highlighted = null,
+        hovered = null,
         viewMode = 'showAll';
 
 
@@ -141,7 +141,6 @@
         // click handler for "selectable" objects
         $(document).on('click', '.select-object', function () {
             // when any object of class "select-object" is clicked...
-            // TODO: get a reference to the object via lookup...
             var obj = network.lookup[$(this).data('id')];
             if (obj) {
                 selectObject(obj);
@@ -157,7 +156,53 @@
             if (id !== viewMode) {
                 radioButton('displayModes', id);
                 viewMode = id;
-                alert('action: ' + id);
+                doRadioAction(id);
+            }
+        });
+    }
+
+    function doRadioAction(id) {
+        showAllLayers();
+        if (id === 'showPkt') {
+            showPacketLayer();
+        } else if (id === 'showOpt') {
+            showOpticalLayer();
+        }
+    }
+
+    function showAllLayers() {
+        network.node.classed('inactive', false);
+        network.link.classed('inactive', false);
+    }
+
+    function showPacketLayer() {
+        network.node.each(function(d) {
+            // deactivate nodes that are not hosts or switches
+            if (d.class === 'device' && d.type !== 'switch') {
+                d3.select(this).classed('inactive', true);
+            }
+        });
+
+        network.link.each(function(lnk) {
+            // deactivate infrastructure links that have opt's as endpoints
+            if (lnk.source.type === 'roadm' || lnk.target.type === 'roadm') {
+                d3.select(this).classed('inactive', true);
+            }
+        });
+    }
+
+    function showOpticalLayer() {
+        network.node.each(function(d) {
+            // deactivate nodes that are not optical devices
+            if (d.type !== 'roadm') {
+                d3.select(this).classed('inactive', true);
+            }
+        });
+
+        network.link.each(function(lnk) {
+            // deactivate infrastructure links that have opt's as endpoints
+            if (lnk.source.type !== 'roadm' || lnk.target.type !== 'roadm') {
+                d3.select(this).classed('inactive', true);
             }
         });
     }
@@ -181,13 +226,13 @@
             });
     }
 
+    function contextLabel() {
+        return hovered === null ? "(nothing)" : hovered.id;
+    }
+
     function radioButton(group, id) {
         d3.selectAll("#" + group + " .radio").classed("active", false);
         d3.select("#" + group + " #" + id).classed("active", true);
-    }
-
-    function contextLabel() {
-        return highlighted === null ? "(nothing)" : highlighted.id;
     }
 
     function processKeyEvent() {
@@ -198,16 +243,29 @@
                 break;
             case 80:    // P
                 togglePorts();
+                break;
+            case 85:    // U
+                unpin();
+                break;
         }
 
     }
 
     function cycleLabels() {
-        alert('Cycle Labels - context = ' + contextLabel());
+        console.log('Cycle Labels - context = ' + contextLabel());
     }
 
     function togglePorts() {
-        alert('Toggle Ports - context = ' + contextLabel());
+        console.log('Toggle Ports - context = ' + contextLabel());
+    }
+
+    function unpin() {
+        if (hovered) {
+            hovered.fixed = false;
+            findNodeFromData(hovered).classed('fixed', false);
+            network.force.resume();
+        }
+        console.log('Unpin - context = ' + contextLabel());
     }
 
 
@@ -219,7 +277,7 @@
         prepareNodesAndLinks();
         createLayout();
         console.log("\n\nHere is the augmented network object...");
-        console.warn(network);
+        console.log(network);
     }
 
     function prepareNodesAndLinks() {
@@ -282,16 +340,16 @@
 
 
         // now, process the explicit links...
-        network.data.links.forEach(function(n) {
-            var src = network.lookup[n.src],
-                dst = network.lookup[n.dst],
+        network.data.links.forEach(function(lnk) {
+            var src = network.lookup[lnk.src],
+                dst = network.lookup[lnk.dst],
                 id = src.id + "~" + dst.id;
 
             var link = {
                 class: 'infra',
                 id: id,
-                type: n.type,
-                width: n.linkWidth,
+                type: lnk.type,
+                width: lnk.linkWidth,
                 source: src,
                 target: dst,
                 strength: config.force.linkStrength.infra
@@ -382,6 +440,7 @@
             .attr('class', function(d) {return 'link ' + d.class});
 
 
+        // TODO: move drag behavior into separate method.
         // == define node drag behavior...
         network.draggedThreshold = d3.scale.linear()
             .domain([0, 0.1])
@@ -420,6 +479,13 @@
                     selectObject(d, this);
                 }
                 d.fixed &= ~6;
+
+                // once we've finished moving, pin the node in position,
+                // if it is a device (not a host)
+                if (d.class === 'device') {
+                    d.fixed = true;
+                    d3.select(this).classed('fixed', true)
+                }
             });
 
         $('#view').on('click', function(e) {
@@ -445,27 +511,28 @@
             })
             .call(network.drag)
             .on('mouseover', function(d) {
-                if (!selected.obj) {
-                    if (network.mouseoutTimeout) {
-                        clearTimeout(network.mouseoutTimeout);
-                        network.mouseoutTimeout = null;
-                    }
-                    highlightObject(d);
+                // TODO: show tooltip
+                if (network.mouseoutTimeout) {
+                    clearTimeout(network.mouseoutTimeout);
+                    network.mouseoutTimeout = null;
                 }
+                hoverObject(d);
             })
             .on('mouseout', function(d) {
-                if (!selected.obj) {
-                    if (network.mouseoutTimeout) {
-                        clearTimeout(network.mouseoutTimeout);
-                        network.mouseoutTimeout = null;
-                    }
-                    network.mouseoutTimeout = setTimeout(function() {
-                        highlightObject(null);
-                    }, config.mouseOutTimerDelayMs);
+                // TODO: hide tooltip
+                if (network.mouseoutTimeout) {
+                    clearTimeout(network.mouseoutTimeout);
+                    network.mouseoutTimeout = null;
                 }
+                network.mouseoutTimeout = setTimeout(function() {
+                    hoverObject(null);
+                }, config.mouseOutTimerDelayMs);
             });
 
-        network.nodeRect = network.node.append('rect')
+
+        // deal with device nodes first
+        network.nodeRect = network.node.filter('.device')
+            .append('rect')
             .attr({
                 rx: 5,
                 ry: 5,
@@ -473,8 +540,9 @@
                 height: 12
             });
             // note that width/height are adjusted to fit the label text
+            // then padded, and space made for the icon.
 
-        network.node.each(function(d) {
+        network.node.filter('.device').each(function(d) {
             var node = d3.select(this),
                 icon = iconUrl(d);
 
@@ -508,47 +576,35 @@
             }
         });
 
+        // now process host nodes
+        network.nodeCircle = network.node.filter('.host')
+            .append('circle')
+            .attr({
+                r: config.hostRadius
+            });
 
-        // returns the newly computed bounding box
-        function adjustRectToFitText(n) {
-            var text = n.select('text'),
-                box = text.node().getBBox(),
-                lab = config.labels;
+        network.node.filter('.host').each(function(d) {
+            var node = d3.select(this),
+                icon = iconUrl(d);
 
-            text.attr('text-anchor', 'middle')
-                .attr('y', '-0.8em')
-                .attr('x', lab.imgPad/2)
-            ;
-
-            // TODO: figure out how to access the data on selection
-            console.log("\nadjust rect for " + n.data().id);
-            console.log(box);
-
-            // translate the bbox so that it is centered on [x,y]
-            box.x = -box.width / 2;
-            box.y = -box.height / 2;
-
-            // add padding
-            box.x -= (lab.padLR + lab.imgPad/2);
-            box.width += lab.padLR * 2 + lab.imgPad;
-            box.y -= lab.padTB;
-            box.height += lab.padTB * 2;
-
-            return box;
-        }
-
-        function boundsFromBox(box) {
-            return {
-                x1: box.x,
-                y1: box.y,
-                x2: box.x + box.width,
-                y2: box.y + box.height
-            };
-        }
+            // debug function to show the modelled x,y coordinates of nodes...
+            if (debug('showNodeXY')) {
+                node.select('circle').attr('fill-opacity', 0.5);
+                node.append('circle')
+                    .attr({
+                        class: 'debug',
+                        cx: 0,
+                        cy: 0,
+                        r: '3px'
+                    });
+            }
+        });
 
         // this function is scheduled to happen soon after the given thread ends
         setTimeout(function() {
-            network.node.each(function(d) {
+            // post process the device nodes, to pad their size to fit the
+            // label text and attach the icon to the right location.
+            network.node.filter('.device').each(function(d) {
                 // for every node, recompute size, padding, etc. so text fits
                 var node = d3.select(this),
                     text = node.select('text'),
@@ -592,6 +648,43 @@
             $('#view').css('visibility', 'visible');
         });
 
+
+        // returns the newly computed bounding box of the rectangle
+        function adjustRectToFitText(n) {
+            var text = n.select('text'),
+                box = text.node().getBBox(),
+                lab = config.labels;
+
+            // not sure why n.data() returns an array of 1 element...
+            var data = n.data()[0];
+
+            text.attr('text-anchor', 'middle')
+                .attr('y', '-0.8em')
+                .attr('x', lab.imgPad/2)
+            ;
+
+            // translate the bbox so that it is centered on [x,y]
+            box.x = -box.width / 2;
+            box.y = -box.height / 2;
+
+            // add padding
+            box.x -= (lab.padLR + lab.imgPad/2);
+            box.width += lab.padLR * 2 + lab.imgPad;
+            box.y -= lab.padTB;
+            box.height += lab.padTB * 2;
+
+            return box;
+        }
+
+        function boundsFromBox(box) {
+            return {
+                x1: box.x,
+                y1: box.y,
+                x2: box.x + box.width,
+                y2: box.y + box.height
+            };
+        }
+
     }
 
     function iconUrl(d) {
@@ -602,24 +695,48 @@
         return 'translate(' + x + ',' + y + ')';
     }
 
+    // prevents collisions amongst device nodes
     function preventCollisions() {
-        var quadtree = d3.geom.quadtree(network.nodes);
+        var quadtree = d3.geom.quadtree(network.nodes),
+            hrad = config.hostRadius;
 
         network.nodes.forEach(function(n) {
-            var nx1 = n.x + n.extent.left,
-                nx2 = n.x + n.extent.right,
-                ny1 = n.y + n.extent.top,
+            var nx1, nx2, ny1, ny2;
+
+            if (n.class === 'device') {
+                nx1 = n.x + n.extent.left;
+                nx2 = n.x + n.extent.right;
+                ny1 = n.y + n.extent.top;
                 ny2 = n.y + n.extent.bottom;
+
+            } else {
+                nx1 = n.x - hrad;
+                nx2 = n.x + hrad;
+                ny1 = n.y - hrad;
+                ny2 = n.y + hrad;
+            }
 
             quadtree.visit(function(quad, x1, y1, x2, y2) {
                 if (quad.point && quad.point !== n) {
-                    // check if the rectangles intersect
+                    // check if the rectangles/circles intersect
                     var p = quad.point,
-                        px1 = p.x + p.extent.left,
-                        px2 = p.x + p.extent.right,
-                        py1 = p.y + p.extent.top,
-                        py2 = p.y + p.extent.bottom,
-                        ix = (px1 <= nx2 && nx1 <= px2 && py1 <= ny2 && ny1 <= py2);
+                        px1, px2, py1, py2, ix;
+
+                    if (p.class === 'device') {
+                        px1 = p.x + p.extent.left;
+                        px2 = p.x + p.extent.right;
+                        py1 = p.y + p.extent.top;
+                        py2 = p.y + p.extent.bottom;
+
+                    } else {
+                        px1 = p.x - hrad;
+                        px2 = p.x + hrad;
+                        py1 = p.y - hrad;
+                        py2 = p.y + hrad;
+                    }
+
+                    ix = (px1 <= nx2 && nx1 <= px2 && py1 <= ny2 && ny1 <= py2);
+
                     if (ix) {
                         var xa1 = nx2 - px1, // shift n left , p right
                             xa2 = px2 - nx1, // shift n right, p left
@@ -720,6 +837,16 @@
     //        return false;
     //    });
 
+    function findNodeFromData(d) {
+        var el = null;
+        network.node.filter('.' + d.class).each(function(n) {
+            if (n.id === d.id) {
+                el = d3.select(this);
+            }
+        });
+        return el;
+    }
+
     function selectObject(obj, el) {
         var node;
         if (el) {
@@ -735,6 +862,7 @@
 
         if (node.classed('selected')) {
             deselectObject();
+            flyinPane(null);
             return;
         }
         deselectObject(false);
@@ -744,13 +872,8 @@
             el  : el
         };
 
-        highlightObject(obj);
-
         node.classed('selected', true);
-
-        // TODO animate incoming info pane
-        // resize(true);
-        // TODO: check bounds of selected node and scroll into view if needed
+        flyinPane(obj);
     }
 
     function deselectObject(doResize) {
@@ -758,10 +881,76 @@
         if (doResize || typeof doResize == 'undefined') {
             resize(false);
         }
+
         // deselect all nodes in the network...
         network.node.classed('selected', false);
         selected = {};
-        highlightObject(null);
+        flyinPane(null);
+    }
+
+    function detailUrl(id) {
+        var safeId = id.replace(/[^a-z0-9]/gi, '_');
+        return config.jsonPrefix + safeId + '.json';
+    }
+
+    function flyinPane(obj) {
+        var pane = d3.select('#flyout'),
+            url;
+
+        if (obj) {
+            // go get details of the selected object from the server...
+            url = detailUrl(obj.id);
+            d3.json(url, function (err, data) {
+                if (err) {
+                    alert('Oops! Error reading JSON...\n\n' +
+                        'URL: ' + url + '\n\n' +
+                        'Error: ' + err.message);
+                    return;
+                }
+//                console.log("JSON data... " + url);
+//                console.log(data);
+
+                displayDetails(data, pane);
+            });
+
+        } else {
+            // hide pane
+            pane.transition().duration(750)
+                .style('right', '-320px')
+                .style('opacity', 0.0);
+        }
+    }
+
+    function displayDetails(data, pane) {
+        $('#flyout').empty();
+
+        pane.append('h2').text(data.id);
+
+        var table = pane.append("table"),
+            tbody = table.append("tbody");
+
+        // TODO: consider using d3 data bind to TR/TD
+
+        data.propOrder.forEach(function(p) {
+            addProp(tbody, p, data.props[p]);
+        });
+
+        function addProp(tbody, label, value) {
+            var tr = tbody.append('tr');
+
+            tr.append('td')
+                .attr('class', 'label')
+                .text(label + ' :');
+
+            tr.append('td')
+                .attr('class', 'value')
+                .text(value);
+        }
+
+        // show pane
+        pane.transition().duration(750)
+            .style('right', '20px')
+            .style('opacity', 1.0);
     }
 
     function highlightObject(obj) {
@@ -790,17 +979,18 @@
         }
     }
 
-    function resize(showDetails) {
-        console.log("resize() called...");
-
-        var $details = $('#details');
-
-        if (typeof showDetails == 'boolean') {
-            var showingDetails = showDetails;
-            // TODO: invoke $details.show() or $details.hide()...
-            //        $details[showingDetails ? 'show' : 'hide']();
+    function hoverObject(obj) {
+        if (obj) {
+            hovered = obj;
+        } else {
+            if (hovered) {
+                hovered = null;
+            }
         }
+    }
 
+
+    function resize() {
         view.height = window.innerHeight - config.mastHeight;
         view.width = window.innerWidth;
         $('#view')

@@ -1,32 +1,31 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Copyright 2014 Open Networking Laboratory
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.onlab.onos.cli;
 
-import org.onlab.onos.core.ApplicationId;
+import java.util.Comparator;
+
 import org.onlab.onos.cluster.ControllerNode;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Element;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.flow.FlowRule;
+import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.onos.net.topology.TopologyCluster;
-
-import java.util.Comparator;
 
 /**
  * Various comparators.
@@ -84,6 +83,23 @@ public final class Comparators {
         @Override
         public int compare(ControllerNode ci1, ControllerNode ci2) {
             return ci1.id().toString().compareTo(ci2.id().toString());
+        }
+    };
+
+    public static final Comparator<ConnectPoint> CONNECT_POINT_COMPARATOR = new Comparator<ConnectPoint>() {
+        @Override
+        public int compare(ConnectPoint o1, ConnectPoint o2) {
+            int compareId = ELEMENT_ID_COMPARATOR.compare(o1.elementId(), o2.elementId());
+            return (compareId != 0) ?
+                compareId :
+                Long.signum(o1.port().toLong() - o2.port().toLong());
+        }
+    };
+
+    public static final Comparator<PortAddresses> ADDRESSES_COMPARATOR = new Comparator<PortAddresses>() {
+        @Override
+        public int compare(PortAddresses arg0, PortAddresses arg1) {
+            return CONNECT_POINT_COMPARATOR.compare(arg0.connectPoint(), arg1.connectPoint());
         }
     };
 
