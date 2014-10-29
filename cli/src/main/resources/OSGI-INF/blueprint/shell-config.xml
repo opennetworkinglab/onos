@@ -169,6 +169,9 @@
         <command>
             <action class="org.onlab.onos.cli.net.HostsListCommand"/>
         </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.AddressBindingsListCommand"/>
+        </command>
 
         <command>
             <action class="org.onlab.onos.cli.net.FlowsListCommand"/>
