@@ -148,7 +148,9 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
                         if (linkEvent.type() == LINK_REMOVED) {
-                            Set<IntentId> intentIds = intentsByLink.get(linkKey(linkEvent.subject()));
+                            final LinkKey linkKey = linkKey(linkEvent.subject());
+                            Set<IntentId> intentIds = intentsByLink.get(linkKey);
+                            log.debug("recompile triggered by LinkDown {} {}", linkKey, intentIds);
                             toBeRecompiled.addAll(intentIds);
                         }
                         recompileOnly = recompileOnly && linkEvent.type() == LINK_REMOVED;
