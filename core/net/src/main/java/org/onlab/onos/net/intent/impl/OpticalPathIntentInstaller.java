@@ -15,11 +15,7 @@
  */
 package org.onlab.onos.net.intent.impl;
 
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -53,14 +49,14 @@ import org.onlab.onos.net.resource.ResourceType;
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * OpticaliIntentInstaller for optical path intents.
- * It essentially generates optical FlowRules and
- * call the flowRule service to execute them.
+ * Installer for {@link org.onlab.onos.net.intent.OpticalPathIntent optical path connectivity intents}.
  */
-
 @Component(immediate = true)
 public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIntent> {
     private final Logger log = getLogger(getClass());
@@ -125,12 +121,12 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             treatmentBuilder.setLambda((short) la.toInt());
 
             FlowRule rule = new DefaultFlowRule(prev.deviceId(),
-                    selectorBuilder.build(),
-                    treatmentBuilder.build(),
-                    100,
-                    appId,
-                    100,
-                    true);
+                                                selectorBuilder.build(),
+                                                treatmentBuilder.build(),
+                                                100,
+                                                appId,
+                                                100,
+                                                true);
 
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
 
@@ -143,12 +139,12 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         TrafficTreatment treatmentLast = builder()
                 .setOutput(intent.dst().port()).build();
         FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
-                selectorBuilder.build(),
-                treatmentLast,
-                100,
-                appId,
-                100,
-                true);
+                                            selectorBuilder.build(),
+                                            treatmentLast,
+                                            100,
+                                            appId,
+                                            100,
+                                            true);
         rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
@@ -156,7 +152,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
     private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
         LinkResourceRequest.Builder request = DefaultLinkResourceRequest.builder(intent.id(),
-                intent.path().links())
+                                                                                 intent.path().links())
                 .addLambdaRequest();
         LinkResourceAllocations retLambda = resourceService.requestResources(request.build());
         return retLambda;
@@ -230,12 +226,12 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             treatmentBuilder.setLambda((short) la.toInt());
 
             FlowRule rule = new DefaultFlowRule(prev.deviceId(),
-                    selectorBuilder.build(),
-                    treatmentBuilder.build(),
-                    100,
-                    appId,
-                    100,
-                    true);
+                                                selectorBuilder.build(),
+                                                treatmentBuilder.build(),
+                                                100,
+                                                appId,
+                                                100,
+                                                true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
 
             prev = link.dst();
@@ -247,12 +243,12 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         TrafficTreatment treatmentLast = builder()
                 .setOutput(intent.dst().port()).build();
         FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
-                selectorBuilder.build(),
-                treatmentLast,
-                100,
-                appId,
-                100,
-                true);
+                                            selectorBuilder.build(),
+                                            treatmentLast,
+                                            100,
+                                            appId,
+                                            100,
+                                            true);
         rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));

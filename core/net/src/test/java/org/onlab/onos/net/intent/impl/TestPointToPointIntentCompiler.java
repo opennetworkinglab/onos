@@ -68,7 +68,7 @@ public class TestPointToPointIntentCompiler {
     private PointToPointIntentCompiler makeCompiler(String[] hops) {
         PointToPointIntentCompiler compiler =
                 new PointToPointIntentCompiler();
-        compiler.pathService = new IntentTestsMocks.MockPathService(hops);
+//        compiler.topologyService = new IntentTestsMocks.MockPathService(hops);
         return compiler;
     }
 

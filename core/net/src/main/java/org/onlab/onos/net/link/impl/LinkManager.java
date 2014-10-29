@@ -212,7 +212,6 @@ public class LinkManager
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
 
-
             LinkEvent event = store.createOrUpdateLink(provider().id(),
                                                        linkDescription);
             if (event != null) {

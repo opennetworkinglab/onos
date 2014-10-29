@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.host.HostService;
@@ -30,7 +31,9 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
+import org.onlab.onos.net.topology.TopologyEdge;
 
 import java.util.Arrays;
 import java.util.List;
@@ -86,7 +89,13 @@ public class HostToHostIntentCompiler
     }
 
     private Path getPath(HostId one, HostId two) {
-        Set<Path> paths = pathService.getPaths(one, two);
+        Set<Path> paths = pathService.getPaths(one, two, new LinkWeight() {
+            @Override
+            public double weight(TopologyEdge edge) {
+                return edge.link().type() == Link.Type.OPTICAL ? -1 : +1;
+            }
+        });
+
         if (paths.isEmpty()) {
             throw new PathNotFoundException("No path from host " + one + " to " + two);
         }

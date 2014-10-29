@@ -25,7 +25,6 @@ import org.onlab.onos.net.DefaultEdgeLink;
 import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
-import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
@@ -33,23 +32,18 @@ import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.LinkWeight;
-//import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyEdge;
-//import org.onlab.onos.net.topology.Topology;
-//import org.onlab.onos.net.topology.TopologyEdge;
 import org.onlab.onos.net.topology.TopologyService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-//import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+
 /**
- * A intent compiler for {@link org.onlab.onos.net.intent.HostToHostIntent}.
+ * An intent compiler for {@link org.onlab.onos.net.intent.PointToPointIntent}.
  */
 @Component(immediate = true)
 public class PointToPointIntentCompiler
@@ -58,12 +52,6 @@ public class PointToPointIntentCompiler
     private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PathService pathService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
@@ -87,9 +75,8 @@ public class PointToPointIntentCompiler
         links.addAll(path.links());
         links.add(DefaultEdgeLink.createEdgeLink(intent.egressPoint(), false));
 
-        return Arrays.asList(createPathIntent(new DefaultPath(PID, links, path.cost() + 2,
-                                                              path.annotations()),
-                                              intent));
+        return asList(createPathIntent(new DefaultPath(PID, links, path.cost() + 2,
+                                                       path.annotations()), intent));
     }
 
     /**
@@ -114,39 +101,21 @@ public class PointToPointIntentCompiler
      * @throws PathNotFoundException if a path cannot be found
      */
     private Path getPath(ConnectPoint one, ConnectPoint two) {
-        // Set<Path> paths = pathService.getPaths(one.deviceId(), two.deviceId());
-       Topology topology = topologyService.currentTopology();
+        Topology topology = topologyService.currentTopology();
         LinkWeight weight = new LinkWeight() {
             @Override
             public double weight(TopologyEdge edge) {
-                Link.Type lt = edge.link().type();
-                if (lt == Link.Type.OPTICAL) {
-                    return 1000.0;
-                } else {
-                    return Double.MIN_VALUE;
-                }
+                return edge.link().type() == Link.Type.OPTICAL ? -1 : +1;
             }
         };
 
-        Set<Path> paths = topologyService.getPaths(topology,
-                one.deviceId(),
-                two.deviceId(),
-                weight);
-
-        ArrayList<Path> localPaths = new ArrayList<>();
-        Iterator<Path> itr = paths.iterator();
-        while (itr.hasNext()) {
-            Path path = itr.next();
-            if (path.cost() >= 1000) {
-                continue;
-            }
-            localPaths.add(path);
-        }
-
-        if (localPaths.isEmpty()) {
+        Set<Path> paths = topologyService.getPaths(topology, one.deviceId(),
+                                                   two.deviceId(), weight);
+        if (paths.isEmpty()) {
             throw new PathNotFoundException("No packet path from " + one + " to " + two);
         }
+
         // TODO: let's be more intelligent about this eventually
-        return localPaths.iterator().next();
+        return paths.iterator().next();
     }
 }

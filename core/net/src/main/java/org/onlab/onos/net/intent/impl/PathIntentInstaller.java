@@ -46,7 +46,7 @@ import org.slf4j.Logger;
 import com.google.common.collect.Lists;
 
 /**
- * Installer for {@link PathIntent path connectivity intents}.
+ * Installer for {@link PathIntent packet path connectivity intents}.
  */
 @Component(immediate = true)
 public class PathIntentInstaller implements IntentInstaller<PathIntent> {
