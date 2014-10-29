@@ -1,0 +1,13 @@
+{
+    "comment": "sample device properties",
+    "id": "of:0000000000000002",
+    "propOrder": [ "name", "type", "dpid", "latitude", "longitude", "allowed" ],
+    "props": {
+        "allowed": true,
+        "latitude": 37.3,
+        "longitude": 121.9,
+        "name": "SJC-W10",
+        "dpid": "00:00:00:00:00:00:00:02",
+        "type": "Roadm"
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "comment": "sample device properties",
+    "id": "of:0000000000000012",
+    "propOrder": [ "name", "type", "dpid", "optLink" ],
+    "props": {
+        "name": "SJC-pkt",
+        "dpid": "00:00:00:00:00:00:00:12",
+        "type": "SwitchX",
+        "optLink": "SJC-W10"
+    }
+}

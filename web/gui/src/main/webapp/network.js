@@ -38,7 +38,8 @@
                 collisionPrevention: true
             },
             XjsonUrl: 'rs/topology/graph',
-            jsonUrl: 'network.json',
+            jsonUrl: 'json/network.json',
+            jsonPrefix: 'json/',
             iconUrl: {
                 device: 'img/device.png',
                 host: 'img/host.png',
@@ -873,10 +874,6 @@
 
         node.classed('selected', true);
         flyinPane(obj);
-
-        // TODO animate incoming info pane
-        // resize(true);
-        // TODO: check bounds of selected node and scroll into view if needed
     }
 
     function deselectObject(doResize) {
@@ -891,23 +888,69 @@
         flyinPane(null);
     }
 
+    function detailUrl(id) {
+        var safeId = id.replace(/[^a-z0-9]/gi, '_');
+        return config.jsonPrefix + safeId + '.json';
+    }
+
     function flyinPane(obj) {
         var pane = d3.select('#flyout'),
-            right = (obj ? '20px' : '-320px'),    // TODO: parameterize
-            opac = (obj ? 1.0 : 0.0);
+            url;
 
         if (obj) {
-            $('#flyout').empty();
-            pane.append('h2').text(obj.id);
-            pane.append('p').text('class: ' + obj.class);
-            if (obj.type) {
-                pane.append('p').text('type: ' + obj.type);
-            }
+            // go get details of the selected object from the server...
+            url = detailUrl(obj.id);
+            d3.json(url, function (err, data) {
+                if (err) {
+                    alert('Oops! Error reading JSON...\n\n' +
+                        'URL: ' + url + '\n\n' +
+                        'Error: ' + err.message);
+                    return;
+                }
+//                console.log("JSON data... " + url);
+//                console.log(data);
+
+                displayDetails(data, pane);
+            });
+
+        } else {
+            // hide pane
+            pane.transition().duration(750)
+                .style('right', '-320px')
+                .style('opacity', 0.0);
+        }
+    }
+
+    function displayDetails(data, pane) {
+        $('#flyout').empty();
+
+        pane.append('h2').text(data.id);
+
+        var table = pane.append("table"),
+            tbody = table.append("tbody");
+
+        // TODO: consider using d3 data bind to TR/TD
+
+        data.propOrder.forEach(function(p) {
+            addProp(tbody, p, data.props[p]);
+        });
+
+        function addProp(tbody, label, value) {
+            var tr = tbody.append('tr');
+
+            tr.append('td')
+                .attr('class', 'label')
+                .text(label + ' :');
+
+            tr.append('td')
+                .attr('class', 'value')
+                .text(value);
         }
 
+        // show pane
         pane.transition().duration(750)
-            .style('right', right)
-            .style('opacity', opac);
+            .style('right', '20px')
+            .style('opacity', 1.0);
     }
 
     function highlightObject(obj) {

@@ -189,6 +189,13 @@ svg .legend .category text {
  * Specific structural elements
  */
 
+/* This is to ensure that the body does not expand to account for the
+   flyout details pane, that is positioned "off screen".
+ */
+body {
+    overflow: hidden;
+}
+
 #mast {
     height: 36px;
     padding: 4px;
@@ -214,6 +221,7 @@ svg .legend .category text {
     background-color: rgba(0,0,0,0.5);
     padding: 10px;
     color: white;
+    font-size: 10pt;
 }
 
 #flyout h2 {
@@ -221,7 +229,17 @@ svg .legend .category text {
     color: yellow;
 }
 
-#flyout p {
+#flyout p, table {
     margin: 4px 4px;
+}
+
+#flyout td.label {
+    font-style: italic;
+    color: #ccf;
+    padding-right: 12px;
+}
+
+#flyout td.value {
+
 }
 
