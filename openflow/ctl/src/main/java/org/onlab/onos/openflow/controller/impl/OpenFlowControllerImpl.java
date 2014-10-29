@@ -186,7 +186,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     l.switchChanged(dpid);
                 }
             }
-            break;
+            // fall through to invoke handler
         case FLOW_REMOVED:
         case ERROR:
         case BARRIER_REPLY:
