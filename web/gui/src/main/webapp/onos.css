@@ -94,11 +94,17 @@ svg .link.host {
 }
 
 svg .node.device rect {
-    stroke-width: 1.5px;
+    stroke-width: 3.0px;
+    stroke: white;
+    stroke-dasharray: 2,2;
 
     transition: opacity 250ms;
     -webkit-transition: opacity 250ms;
     -moz-transition: opacity 250ms;
+}
+
+svg .node.device.fixed rect {
+    stroke-width: 0;
 }
 
 svg .node.device.roadm rect {
@@ -142,7 +148,7 @@ svg .node.inactive rect,
 svg .node.inactive circle,
 svg .node.inactive text,
 svg .node.inactive image {
-    opacity: .2;
+    opacity: .05;
 }
 
 svg .node.inactive.selected rect,

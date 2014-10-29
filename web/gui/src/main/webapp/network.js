@@ -156,7 +156,53 @@
             if (id !== viewMode) {
                 radioButton('displayModes', id);
                 viewMode = id;
-                alert('action: ' + id);
+                doRadioAction(id);
+            }
+        });
+    }
+
+    function doRadioAction(id) {
+        showAllLayers();
+        if (id === 'showPkt') {
+            showPacketLayer();
+        } else if (id === 'showOpt') {
+            showOpticalLayer();
+        }
+    }
+
+    function showAllLayers() {
+        network.node.classed('inactive', false);
+        network.link.classed('inactive', false);
+    }
+
+    function showPacketLayer() {
+        network.node.each(function(d) {
+            // deactivate nodes that are not hosts or switches
+            if (d.class === 'device' && d.type !== 'switch') {
+                d3.select(this).classed('inactive', true);
+            }
+        });
+
+        network.link.each(function(lnk) {
+            // deactivate infrastructure links that have opt's as endpoints
+            if (lnk.source.type === 'roadm' || lnk.target.type === 'roadm') {
+                d3.select(this).classed('inactive', true);
+            }
+        });
+    }
+
+    function showOpticalLayer() {
+        network.node.each(function(d) {
+            // deactivate nodes that are not optical devices
+            if (d.type !== 'roadm') {
+                d3.select(this).classed('inactive', true);
+            }
+        });
+
+        network.link.each(function(lnk) {
+            // deactivate infrastructure links that have opt's as endpoints
+            if (lnk.source.type !== 'roadm' || lnk.target.type !== 'roadm') {
+                d3.select(this).classed('inactive', true);
             }
         });
     }
@@ -216,6 +262,7 @@
     function unpin() {
         if (hovered) {
             hovered.fixed = false;
+            findNodeFromData(hovered).classed('fixed', false);
             network.force.resume();
         }
         console.log('Unpin - context = ' + contextLabel());
@@ -434,9 +481,10 @@
                 d.fixed &= ~6;
 
                 // once we've finished moving, pin the node in position,
-                // if it is a device
+                // if it is a device (not a host)
                 if (d.class === 'device') {
                     d.fixed = true;
+                    d3.select(this).classed('fixed', true)
                 }
             });
 
