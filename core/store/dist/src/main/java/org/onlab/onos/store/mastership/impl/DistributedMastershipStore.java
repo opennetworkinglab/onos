@@ -60,8 +60,10 @@ public class DistributedMastershipStore
 extends AbstractHazelcastStore<MastershipEvent, MastershipStoreDelegate>
 implements MastershipStore {
 
+    //term number representing that master has never been chosen yet
+    private static final Integer NOTHING = 0;
     //initial term/TTL value
-    private static final Integer INIT = 0;
+    private static final Integer INIT = 1;
 
     //device to node roles
     protected SMap<DeviceId, RoleValue> roleMap;
@@ -256,8 +258,8 @@ implements MastershipStore {
             RoleValue rv = getRoleValue(deviceId);
             final Integer term = terms.get(deviceId);
             final NodeId master = rv.get(MASTER);
-            if ((master == null) || (term == null)) {
-                return null;
+            if (term == null) {
+                return MastershipTerm.of(null, NOTHING);
             }
             return MastershipTerm.of(master, term);
         } finally {

@@ -149,7 +149,7 @@ public class DistributedMastershipStoreTest {
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
         assertTrue("wrong state for store:", !dms.terms.isEmpty());
         assertEquals("wrong term",
-                MastershipTerm.of(N1, 0), dms.getTermFor(DID1));
+                MastershipTerm.of(N1, 1), dms.getTermFor(DID1));
 
         //CN2 now local. DID2 has N1 as MASTER so N2 is STANDBY
         testStore.setCurrent(CN2);
@@ -172,15 +172,15 @@ public class DistributedMastershipStoreTest {
         //switch over to N2
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID1).type());
         System.out.println(dms.getTermFor(DID1).master() + ":" + dms.getTermFor(DID1).termNumber());
-        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID1));
+        assertEquals("wrong term", MastershipTerm.of(N2, 2), dms.getTermFor(DID1));
 
         //orphan switch - should be rare case
         assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID2).type());
-        assertEquals("wrong term", MastershipTerm.of(N2, 0), dms.getTermFor(DID2));
+        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID2));
         //disconnect and reconnect - sign of failing re-election or single-instance channel
         dms.roleMap.clear();
         dms.setMaster(N2, DID2);
-        assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID2));
+        assertEquals("wrong term", MastershipTerm.of(N2, 2), dms.getTermFor(DID2));
     }
 
     @Test

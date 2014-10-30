@@ -257,7 +257,8 @@ public class DeviceManager
             MastershipTerm term = mastershipService.requestTermService()
                     .getMastershipTerm(deviceId);
 
-            if (!term.master().equals(clusterService.getLocalNode().id())) {
+            final NodeId myNodeId = clusterService.getLocalNode().id();
+            if (!myNodeId.equals(term.master())) {
                 // lost mastership after requestRole told this instance was MASTER.
                 log.info("lost mastership before getting term info.");
                 return;
