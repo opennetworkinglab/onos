@@ -90,6 +90,9 @@ public class SdnIp implements SdnIpService {
 
     @Deactivate
     protected void deactivate() {
+        bgpSessionManager.shutDown();
+        router.shutdown();
+
         log.info("Stopped");
     }
 

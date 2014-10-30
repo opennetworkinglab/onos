@@ -143,7 +143,7 @@ public class Router implements RouteListener {
     }
 
     /**
-     * Starts the Router.
+     * Starts the router.
      */
     public void start() {
         bgpUpdatesExecutor.execute(new Runnable() {
@@ -159,6 +159,14 @@ public class Router implements RouteListener {
                 doIntentSynchronizationThread();
             }
         });
+    }
+
+    /**
+     * Shuts the router down.
+     */
+    public void shutdown() {
+        bgpUpdatesExecutor.shutdownNow();
+        bgpIntentsSynchronizerExecutor.shutdownNow();
     }
 
     //@Override TODO hook this up to something
