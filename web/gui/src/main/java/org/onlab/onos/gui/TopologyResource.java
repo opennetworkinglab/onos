@@ -209,9 +209,13 @@ public class TopologyResource extends BaseResource {
     // Produces JSON for a link.
     private ObjectNode json(ObjectMapper mapper, AggLink aggLink) {
         Link link = aggLink.link;
+        ConnectPoint src = link.src();
+        ConnectPoint dst = link.dst();
         return mapper.createObjectNode()
-                .put("src", link.src().deviceId().toString())
-                .put("dst", link.dst().deviceId().toString())
+                .put("src", src.deviceId().toString())
+                .put("srcPort", src.port().toString())
+                .put("dst", dst.deviceId().toString())
+                .put("dstPort", dst.port().toString())
                 .put("type", link.type().toString().toLowerCase())
                 .put("linkWidth", aggLink.links.size());
     }
