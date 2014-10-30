@@ -183,6 +183,10 @@
         </command>
 
         <command>
+            <action class="org.onlab.onos.cli.net.AddFlowsCommand"/>
+        </command>
+
+        <command>
             <action class="org.onlab.onos.cli.net.WipeOutCommand"/>
         </command>
     </command-bundle>
