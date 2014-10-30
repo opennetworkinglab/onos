@@ -22,7 +22,7 @@ import java.util.Objects;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -181,12 +181,12 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder setIpSrc(IpPrefix addr) {
+        public Builder setIpSrc(IpAddress addr) {
             return add(Instructions.modL3Src(addr));
         }
 
         @Override
-        public Builder setIpDst(IpPrefix addr) {
+        public Builder setIpDst(IpAddress addr) {
             return add(Instructions.modL3Dst(addr));
         }
 

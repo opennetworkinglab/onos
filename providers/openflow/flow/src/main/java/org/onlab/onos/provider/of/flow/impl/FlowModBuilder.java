@@ -29,6 +29,8 @@ import org.onlab.onos.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -141,22 +143,30 @@ public abstract class FlowModBuilder {
                 break;
             case IPV4_DST:
                 ip = (IPCriterion) c;
-                if (ip.ip().isMasked()) {
-                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toInt()),
-                            IPv4Address.of(ip.ip().netmask().toInt()));
+                if (ip.ip().prefixLength() != IpPrefix.MAX_INET_MASK_LENGTH) {
+                    IpAddress maskAddr =
+                        IpAddress.makeMaskPrefix(ip.ip().prefixLength());
+                    Masked<IPv4Address> maskedIp =
+                        Masked.of(IPv4Address.of(ip.ip().address().toInt()),
+                                  IPv4Address.of(maskAddr.toInt()));
                     mBuilder.setMasked(MatchField.IPV4_DST, maskedIp);
                 } else {
-                    mBuilder.setExact(MatchField.IPV4_DST, IPv4Address.of(ip.ip().toInt()));
+                    mBuilder.setExact(MatchField.IPV4_DST,
+                                IPv4Address.of(ip.ip().address().toInt()));
                 }
                 break;
             case IPV4_SRC:
                 ip = (IPCriterion) c;
-                if (ip.ip().isMasked()) {
-                    Masked<IPv4Address> maskedIp = Masked.of(IPv4Address.of(ip.ip().toInt()),
-                            IPv4Address.of(ip.ip().netmask().toInt()));
+                if (ip.ip().prefixLength() != IpPrefix.MAX_INET_MASK_LENGTH) {
+                    IpAddress maskAddr =
+                        IpAddress.makeMaskPrefix(ip.ip().prefixLength());
+                    Masked<IPv4Address> maskedIp =
+                        Masked.of(IPv4Address.of(ip.ip().address().toInt()),
+                                  IPv4Address.of(maskAddr.toInt()));
                     mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
                 } else {
-                    mBuilder.setExact(MatchField.IPV4_SRC, IPv4Address.of(ip.ip().toInt()));
+                    mBuilder.setExact(MatchField.IPV4_SRC,
+                                IPv4Address.of(ip.ip().address().toInt()));
                 }
                 break;
             case IP_PROTO:

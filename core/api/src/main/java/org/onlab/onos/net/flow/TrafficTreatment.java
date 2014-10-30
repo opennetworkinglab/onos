@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -92,14 +92,14 @@ public interface TrafficTreatment {
          * @param addr an ip
          * @return a treatment builder
          */
-        public Builder setIpSrc(IpPrefix addr);
+        public Builder setIpSrc(IpAddress addr);
 
         /**
          * Sets the dst l3 address.
          * @param addr an ip
          * @return a treatment builder
          */
-        public Builder setIpDst(IpPrefix addr);
+        public Builder setIpDst(IpAddress addr);
 
         /**
          * Sets the optical channel ID or lambda.

@@ -21,7 +21,8 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A class representing an IPv4 address.
+ * A class representing an IP address.
+ * TODO: Add support for IPv6 as well.
  */
 public final class IpAddress implements Comparable<IpAddress> {
     // IP Versions
@@ -44,8 +45,6 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @param value the IP address value
      */
     private IpAddress(Version version, byte[] value) {
-        checkNotNull(value);
-
         this.version = version;
         this.octets = Arrays.copyOf(value, INET_BYTE_LENGTH);
     }
@@ -53,7 +52,7 @@ public final class IpAddress implements Comparable<IpAddress> {
     /**
      * Converts an integer into an IPv4 address.
      *
-     * @param value an integer representing an IPv4 value
+     * @param value an integer representing an IPv4 address value
      * @return an IP address
      */
     public static IpAddress valueOf(int value) {
@@ -70,6 +69,7 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @return an IP address
      */
     public static IpAddress valueOf(byte[] value) {
+        checkNotNull(value);
         return new IpAddress(Version.INET, value);
     }
 
@@ -106,13 +106,13 @@ public final class IpAddress implements Comparable<IpAddress> {
     /**
      * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address.
      *
-     * @param address a IP address in string form, e.g. "10.0.0.1".
+     * @param address an IP address in string form, e.g. "10.0.0.1"
      * @return an IP address
      */
     public static IpAddress valueOf(String address) {
         final String[] net = address.split("\\.");
         if (net.length != INET_BYTE_LENGTH) {
-            String msg = "Malformed IPv4 address string; " +
+            String msg = "Malformed IPv4 address string: " + address + "." +
                 "Address must have four decimal values separated by dots (.)";
             throw new IllegalArgumentException(msg);
         }
@@ -154,20 +154,21 @@ public final class IpAddress implements Comparable<IpAddress> {
     /**
      * Creates an IP network mask prefix.
      *
-     * @param prefixLen the length of the mask prefix. Must be in the interval
-     * [0, 32] for IPv4
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 32] for IPv4
      * @return a new IP address that contains a mask prefix of the
      * specified length
      */
-    public static IpAddress makeMaskPrefix(int prefixLen) {
+    public static IpAddress makeMaskPrefix(int prefixLength) {
         // Verify the prefix length
-        if ((prefixLen < 0) || (prefixLen > INET_BIT_LENGTH)) {
-            final String msg = "Invalid IPv4 prefix length: " + prefixLen +
+        if ((prefixLength < 0) || (prefixLength > INET_BIT_LENGTH)) {
+            final String msg = "Invalid IPv4 prefix length: " + prefixLength +
                 ". Must be in the interval [0, 32].";
             throw new IllegalArgumentException(msg);
         }
 
-        long v = (0xffffffffL << (INET_BIT_LENGTH - prefixLen)) & 0xffffffffL;
+        long v =
+            (0xffffffffL << (INET_BIT_LENGTH - prefixLength)) & 0xffffffffL;
         return IpAddress.valueOf((int) v);
     }
 
@@ -176,14 +177,14 @@ public final class IpAddress implements Comparable<IpAddress> {
      * mask length.
      *
      * @param addr the address to mask
-     * @param prefixLen the length of the mask prefix. Must be in the interval
-     * [0, 32] for IPv4
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 32] for IPv4
      * @return a new IP address that is masked with a mask prefix of the
      * specified length
      */
     public static IpAddress makeMaskedAddress(final IpAddress addr,
-                                              int prefixLen) {
-        IpAddress mask = IpAddress.makeMaskPrefix(prefixLen);
+                                              int prefixLength) {
+        IpAddress mask = IpAddress.makeMaskPrefix(prefixLength);
         byte[] net = new byte[INET_BYTE_LENGTH];
 
         // Mask each byte
@@ -207,7 +208,7 @@ public final class IpAddress implements Comparable<IpAddress> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
+        if (this == obj) {
             return true;
         }
         if ((obj == null) || (getClass() != obj.getClass())) {
@@ -221,7 +222,7 @@ public final class IpAddress implements Comparable<IpAddress> {
     @Override
     /*
      * (non-Javadoc)
-     * format is "x.x.x.x" for IPv4 addresses.
+     * The format is "x.x.x.x" for IPv4 addresses.
      *
      * @see java.lang.Object#toString()
      */
