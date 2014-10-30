@@ -254,8 +254,7 @@ public class DeviceManager
 //                }
                 return;
             }
-            MastershipTerm term = mastershipService.requestTermService()
-                    .getMastershipTerm(deviceId);
+            MastershipTerm term = termService.getMastershipTerm(deviceId);
 
             final NodeId myNodeId = clusterService.getLocalNode().id();
             if (!myNodeId.equals(term.master())) {
