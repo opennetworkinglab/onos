@@ -48,6 +48,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.1</version>
                 <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                     <show>package</show>
                     <excludePackageNames>org.onlab.thirdparty:*.impl:*.impl.*:org.onlab.onos.provider.*:org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli*:org.onlab.onos.tvue:org.onlab.onos.foo:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.optical:org.onlab.onos.config:org.onlab.onos.calendar:org.onlab.onos.sdnip*:org.onlab.onos.metrics:org.onlab.onos.store.*:org.onlab.onos.openflow.*</excludePackageNames>
                     <docfilessubdirs>true</docfilessubdirs>

@@ -28,14 +28,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of an array-backed heap structure whose sense of order is
  * imposed by the provided comparator.
- * <p/>
+ * <p>
  * While this provides similar functionality to {@link java.util.PriorityQueue}
  * data structure, one key difference is that external entities can control
  * when to restore the heap property, which is done through invocation of the
  * {@link #heapify} method.
- * <p/>
+ * </p>
+ * <p>
  * This class is not thread-safe and care must be taken to prevent concurrent
  * modifications.
+ * </p>
  *
  * @param <T> type of the items on the heap
  */

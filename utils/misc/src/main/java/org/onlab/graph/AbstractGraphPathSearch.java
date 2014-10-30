@@ -116,6 +116,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
         /**
          * Returns the current cost to reach the specified vertex.
          *
+         * @param v vertex to reach
          * @return cost to reach the vertex
          */
         double cost(V v) {
@@ -127,7 +128,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
          * Updates the cost of the vertex using its existing cost plus the
          * cost to traverse the specified edge.
          *
-         * @param v       vertex
+         * @param vertex  vertex to update
          * @param edge    edge through which vertex is reached
          * @param cost    current cost to reach the vertex from the source
          * @param replace true to indicate that any accrued edges are to be
@@ -135,13 +136,13 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
          *                added to the previously accrued edges as they yield
          *                the same cost
          */
-        void updateVertex(V v, E edge, double cost, boolean replace) {
-            costs.put(v, cost);
+        void updateVertex(V vertex, E edge, double cost, boolean replace) {
+            costs.put(vertex, cost);
             if (edge != null) {
-                Set<E> edges = parents.get(v);
+                Set<E> edges = parents.get(vertex);
                 if (edges == null) {
                     edges = new HashSet<>();
-                    parents.put(v, edges);
+                    parents.put(vertex, edges);
                 }
                 if (replace) {
                     edges.clear();
@@ -163,17 +164,17 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
          * If possible, relax the specified edge using the supplied base cost
          * and edge-weight function.
          *
-         * @param e               edge to be relaxed
+         * @param edge            edge to be relaxed
          * @param cost            base cost to reach the edge destination vertex
          * @param ew              optional edge weight function
          * @param forbidNegatives if true negative values will forbid the link
          * @return true if the edge was relaxed; false otherwise
          */
-        boolean relaxEdge(E e, double cost, EdgeWeight<V, E> ew,
+        boolean relaxEdge(E edge, double cost, EdgeWeight<V, E> ew,
                           boolean... forbidNegatives) {
-            V v = e.dst();
+            V v = edge.dst();
             double oldCost = cost(v);
-            double hopCost = ew == null ? 1.0 : ew.weight(e);
+            double hopCost = ew == null ? 1.0 : ew.weight(edge);
             if (hopCost < 0 && forbidNegatives.length == 1 && forbidNegatives[0]) {
                 return false;
             }
@@ -182,7 +183,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
             boolean relaxed = newCost < oldCost;
             boolean same = Math.abs(newCost - oldCost) <= samenessThreshold;
             if (same || relaxed) {
-                updateVertex(v, e, newCost, !same);
+                updateVertex(v, edge, newCost, !same);
             }
             return relaxed;
         }

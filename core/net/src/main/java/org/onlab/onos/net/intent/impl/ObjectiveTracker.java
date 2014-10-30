@@ -135,6 +135,11 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
         @Override
         public void run() {
+            // If there is no delegate, why bother? Just bail.
+            if (delegate == null) {
+                return;
+            }
+
             if (event.reasons() == null) {
                 delegate.triggerCompile(new HashSet<IntentId>(), true);
 

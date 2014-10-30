@@ -32,12 +32,14 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
 
     /**
      * {@inheritDoc}
-     * <p/>
+     * <p>
      * This implementation produces results augmented with information on
      * SCCs within the graph.
-     * <p/>
+     * </p>
+     * <p>
      * To prevent traversal of an edge, the {@link EdgeWeight#weight} should
      * return a negative value as an edge weight.
+     * </p>
      */
     @Override
     public SCCResult<V, E> search(Graph<V, E> graph, EdgeWeight<V, E> weight) {

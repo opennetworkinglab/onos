@@ -49,8 +49,8 @@ import com.codahale.metrics.Timer;
  * this class, but are allocated by the caller and passed in for registration:
  * <pre>
  *   <code>
- *     private final Gauge<Long> gauge =
- *         new {@literal Gauge<Long>}() {
+ *     private final Gauge&lt;Long&gt; gauge =
+ *         new {@literal Gauge&lt;Long&gt}() {
  *             {@literal @}Override
  *             public Long getValue() {
  *                 return gaugeValue;

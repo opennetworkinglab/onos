@@ -135,7 +135,7 @@ public final class TestUtils {
     }
 
     /**
-     * Triggers an allocation of an object of type <T> and forces a call to
+     * Triggers an allocation of an object of type T and forces a call to
      * the private constructor.
      *
      * @param constructor Constructor to call
