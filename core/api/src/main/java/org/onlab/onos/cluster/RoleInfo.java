@@ -35,6 +35,11 @@ public class RoleInfo {
         this.backups = ImmutableList.copyOf(backups);
     }
 
+    public RoleInfo() {
+        this.master = null;
+        this.backups = ImmutableList.of();
+    }
+
     public NodeId master() {
         return master;
     }
@@ -63,7 +68,7 @@ public class RoleInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(master, backups.hashCode());
+        return Objects.hash(master, backups);
     }
 
     @Override
