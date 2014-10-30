@@ -79,11 +79,14 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
     @Override
     public List<FlowRuleBatchOperation> install(PathIntent intent) {
-        LinkResourceAllocations allocations = allocateBandwidth(intent);
-        if (allocations == null) {
-            log.debug("Insufficient bandwidth available to install path intent {}", intent);
-            return null;
+        if (intent.resourceRequests().length > 0) {
+            LinkResourceAllocations allocations = allocateBandwidth(intent);
+            if (allocations == null) {
+                log.debug("Insufficient bandwidth available to install path intent {}", intent);
+                return null;
+            }
         }
+
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
