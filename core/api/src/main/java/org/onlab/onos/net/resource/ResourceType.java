@@ -15,7 +15,17 @@
  */
 package org.onlab.onos.net.resource;
 
+/**
+ * Represents types for link resources.
+ */
 public enum ResourceType {
+    /**
+     * Lambda resource type.
+     */
     LAMBDA,
+
+    /**
+     * Bandwidth resource type.
+     */
     BANDWIDTH,
 }
