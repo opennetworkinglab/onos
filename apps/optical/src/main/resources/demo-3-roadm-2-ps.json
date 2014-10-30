@@ -76,7 +76,7 @@
                 "nodeName1": "ROUTER1",
                 "nodeName2": "ROADM1",
                 "bandWidth": 100000,
-                "port1": 1,
+                "port1": 2,
                 "port2": 10
             },
             "type": "pktOptLink"
@@ -90,7 +90,7 @@
                 "nodeName1": "ROUTER2",
                 "nodeName2": "ROADM2",
                 "bandWidth": 100000,
-                "port1": 1,
+                "port1": 2,
                 "port2": 11
             },
             "type": "pktOptLink"
