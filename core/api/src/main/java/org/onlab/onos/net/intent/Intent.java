@@ -19,6 +19,7 @@ import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.flow.BatchOperationTarget;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -93,9 +94,10 @@ public abstract class Intent implements BatchOperationTarget {
      * @param fields intent fields
      * @return intent identifier
      */
-    protected static IntentId id(Object... fields) {
+    protected static IntentId id(Class<?> intentClass, Object... fields) {
         // FIXME: spread the bits across the full long spectrum
-        return IntentId.valueOf(Objects.hash(fields));
+        return IntentId.valueOf(Objects.hash(intentClass.getName(),
+                                             Arrays.hashCode(fields)));
     }
 
     /**
