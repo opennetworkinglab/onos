@@ -28,73 +28,73 @@
 
     // configuration data
     var config = {
-            debugOn: false,
-            debug: {
-                showNodeXY: false,
-                showKeyHandler: true
+        debugOn: false,
+        debug: {
+            showNodeXY: false,
+            showKeyHandler: true
+        },
+        options: {
+            layering: true,
+            collisionPrevention: true
+        },
+        jsonUrl: 'rs/topology/graph',
+        jsonPrefix: '',
+        XjsonUrl: 'json/network.json',
+        XjsonPrefix: 'json/',
+        iconUrl: {
+            device: 'img/device.png',
+            host: 'img/host.png',
+            pkt: 'img/pkt.png',
+            opt: 'img/opt.png'
+        },
+        mastHeight: 36,
+        force: {
+            note: 'node.class or link.class is used to differentiate',
+            linkDistance: {
+                infra: 200,
+                host: 40
             },
-            options: {
-                layering: true,
-                collisionPrevention: true
+            linkStrength: {
+                infra: 1.0,
+                host: 1.0
             },
-            jsonUrl: 'rs/topology/graph',
-            jsonPrefix: '',
-            XjsonUrl: 'json/network.json',
-            XjsonPrefix: 'json/',
-            iconUrl: {
-                device: 'img/device.png',
-                host: 'img/host.png',
-                pkt: 'img/pkt.png',
-                opt: 'img/opt.png'
+            charge: {
+                device: -800,
+                host: -1000
             },
-            mastHeight: 36,
-            force: {
-                note: 'node.class or link.class is used to differentiate',
-                linkDistance: {
-                    infra: 200,
-                    host: 40
-                },
-                linkStrength: {
-                    infra: 1.0,
-                    host: 1.0
-                },
-                charge: {
-                    device: -800,
-                    host: -1000
-                },
-                ticksWithoutCollisions: 50,
-                marginLR: 20,
-                marginTB: 20,
-                translate: function() {
-                    return 'translate(' +
-                        config.force.marginLR + ',' +
-                        config.force.marginTB + ')';
-                }
-            },
-            labels: {
-                imgPad: 16,
-                padLR: 8,
-                padTB: 6,
-                marginLR: 3,
-                marginTB: 2
-            },
-            icons: {
-                w: 32,
-                h: 32,
-                xoff: -12,
-                yoff: -8
-            },
-            constraints: {
-                ypos: {
-                    host: 0.05,
-                    switch: 0.3,
-                    roadm: 0.7
-                }
-            },
-            hostLinkWidth: 1.0,
-            hostRadius: 7,
-            mouseOutTimerDelayMs: 120
-        };
+            ticksWithoutCollisions: 50,
+            marginLR: 20,
+            marginTB: 20,
+            translate: function() {
+                return 'translate(' +
+                    config.force.marginLR + ',' +
+                    config.force.marginTB + ')';
+            }
+        },
+        labels: {
+            imgPad: 16,
+            padLR: 8,
+            padTB: 6,
+            marginLR: 3,
+            marginTB: 2
+        },
+        icons: {
+            w: 32,
+            h: 32,
+            xoff: -12,
+            yoff: -8
+        },
+        constraints: {
+            ypos: {
+                host: 0.05,
+                switch: 0.3,
+                roadm: 0.7
+            }
+        },
+        hostLinkWidth: 1.0,
+        hostRadius: 7,
+        mouseOutTimerDelayMs: 120
+    };
 
     // state variables
     var view = {},
