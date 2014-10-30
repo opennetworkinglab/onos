@@ -28,6 +28,7 @@
 
     // configuration data
     var config = {
+        useLiveData: true,
         debugOn: false,
         debug: {
             showNodeXY: false,
@@ -37,10 +38,18 @@
             layering: true,
             collisionPrevention: true
         },
-        jsonUrl: 'rs/topology/graph',
-        jsonPrefix: '',
-        XjsonUrl: 'json/network.json',
-        XjsonPrefix: 'json/',
+        data: {
+            live: {
+                jsonUrl: 'rs/topology/graph',
+                detailPrefix: 'rs/topology/graph/',
+                detailSuffix: ''
+            },
+            fake: {
+                jsonUrl: 'json/network2.json',
+                detailPrefix: 'json/',
+                detailSuffix: '.json'
+            }
+        },
         iconUrl: {
             device: 'img/device.png',
             host: 'img/host.png',
@@ -109,6 +118,22 @@
         return config.debugOn && config.debug[what];
     }
 
+    function urlData() {
+        return config.data[config.useLiveData ? 'live' : 'fake'];
+    }
+
+    function networkJsonUrl() {
+        return urlData().jsonUrl;
+    }
+
+    function detailJsonUrl(id) {
+        var u = urlData(),
+            encId = config.useLiveData ? encodeURIComponent(id)
+                : id.replace(/[^a-z0-9]/gi, '_');
+        return u.detailPrefix + encId + u.detailSuffix;
+    }
+
+
     // load the topology view of the network
     function loadNetworkView() {
         // Hey, here I am, calling something on the ONOS api:
@@ -117,10 +142,11 @@
         resize();
 
         // go get our network data from the server...
-        d3.json(config.jsonUrl, function (err, data) {
+        var url = networkJsonUrl();
+        d3.json(url , function (err, data) {
             if (err) {
                 alert('Oops! Error reading JSON...\n\n' +
-                    'URL: ' + config.jsonUrl + '\n\n' +
+                    'URL: ' + url + '\n\n' +
                     'Error: ' + err.message);
                 return;
             }
@@ -898,21 +924,13 @@
         flyinPane(null);
     }
 
-    function detailUrl(id) {
-        if (config.jsonPrefix) {
-            var safeId = id.replace(/[^a-z0-9]/gi, '_');
-            return config.jsonPrefix + safeId + '.json';
-        }
-        return config.jsonUrl + '/' + encodeURIComponent(id);
-    }
-
     function flyinPane(obj) {
         var pane = d3.select('#flyout'),
             url;
 
         if (obj) {
             // go get details of the selected object from the server...
-            url = detailUrl(obj.id);
+            url = detailJsonUrl(obj.id);
             d3.json(url, function (err, data) {
                 if (err) {
                     alert('Oops! Error reading JSON...\n\n' +
