@@ -94,14 +94,18 @@ public class TopologyResource extends BaseResource {
         DeviceService deviceService = get(DeviceService.class);
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
+        int portCount = deviceService.getPorts(deviceId).size();
         ObjectNode r = json(deviceId.toString(),
+                            device.type().toString().toLowerCase(),
                             new Prop("Name", annot.value("name")),
                             new Prop("Vendor", device.manufacturer()),
                             new Prop("H/W Version", device.hwVersion()),
                             new Prop("S/W Version", device.swVersion()),
                             new Prop("S/W Version", device.serialNumber()),
+                            new Separator(),
                             new Prop("Latitude", annot.value("latitude")),
-                            new Prop("Longitude", annot.value("longitude")));
+                            new Prop("Longitude", annot.value("longitude")),
+                            new Prop("Ports", Integer.toString(portCount)));
         return Response.ok(r.toString()).build();
     }
 
@@ -110,18 +114,20 @@ public class TopologyResource extends BaseResource {
         HostService hostService = get(HostService.class);
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
-        ObjectNode r = json(hostId.toString(),
+        ObjectNode r = json(hostId.toString(), "host",
                             new Prop("MAC", host.mac().toString()),
                             new Prop("IP", host.ipAddresses().toString()),
+                            new Separator(),
                             new Prop("Latitude", annot.value("latitude")),
                             new Prop("Longitude", annot.value("longitude")));
         return Response.ok(r.toString()).build();
     }
 
     // Produces JSON property details.
-    private ObjectNode json(String id, Prop... props) {
+    private ObjectNode json(String id, String type, Prop... props) {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode result = mapper.createObjectNode().put("id", id);
+        ObjectNode result = mapper.createObjectNode()
+                .put("id", id).put("type", type);
         ObjectNode pnode = mapper.createObjectNode();
         ArrayNode porder = mapper.createArrayNode();
         for (Prop p : props) {
@@ -273,13 +279,19 @@ public class TopologyResource extends BaseResource {
     }
 
     // Auxiliary key/value carrier.
-    private final class Prop {
+    private class Prop {
         private final String key;
         private final String value;
 
-        private Prop(String key, String value) {
+        protected Prop(String key, String value) {
             this.key = key;
             this.value = value;
+        }
+    }
+
+    private class Separator extends Prop {
+        protected Separator() {
+            super("-", "");
         }
     }
 }
