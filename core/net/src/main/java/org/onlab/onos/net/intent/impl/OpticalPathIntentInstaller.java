@@ -104,6 +104,13 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         return generateRules(intent, allocations, FlowRuleOperation.REMOVE);
     }
 
+    @Override
+    public List<FlowRuleBatchOperation> replace(OpticalPathIntent intent,
+                                                OpticalPathIntent newIntent) {
+        // FIXME: implement this
+        return null;
+    }
+
     private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
         LinkResourceRequest.Builder request = DefaultLinkResourceRequest.builder(intent.id(),
                                                                                  intent.path().links())

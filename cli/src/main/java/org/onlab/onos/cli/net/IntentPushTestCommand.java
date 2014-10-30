@@ -29,6 +29,7 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentEvent.Type;
 import org.onlab.onos.net.intent.IntentListener;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
@@ -63,9 +64,6 @@ public class IntentPushTestCommand extends AbstractShellCommand
               required = true, multiValued = false)
     String countString = null;
 
-
-    private static long id = 0x7870001;
-
     private IntentService service;
     private CountDownLatch latch;
     private long start, end;
@@ -91,15 +89,18 @@ public class IntentPushTestCommand extends AbstractShellCommand
         service.addListener(this);
         latch = new CountDownLatch(count);
 
-        start = System.currentTimeMillis();
-        for (int i = 0; i < count; i++) {
+        IntentOperations.Builder ops = IntentOperations.builder();
+        for (int i = 1; i <= count; i++) {
             TrafficSelector s = selector
                     .matchEthSrc(MacAddress.valueOf(i))
                     .build();
             Intent intent = new PointToPointIntent(appId(), s, treatment,
                                                    ingress, egress);
-            service.submit(intent);
+            ops.addSubmitOperation(intent);
         }
+        IntentOperations operations = ops.build();
+        start = System.currentTimeMillis();
+        service.execute(operations);
         try {
             if (latch.await(10, TimeUnit.SECONDS)) {
                 printResults(count);

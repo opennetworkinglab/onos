@@ -29,6 +29,7 @@ import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.OpticalConnectivityIntent;
 import org.onlab.onos.net.intent.OpticalPathIntent;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyEdge;
@@ -60,7 +61,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     }
 
     @Override
-    public List<Intent> compile(OpticalConnectivityIntent intent) {
+    public List<Intent> compile(OpticalConnectivityIntent intent,
+                                List<Intent> installable,
+                                Set<LinkResourceAllocations> resources) {
         // TODO: compute multiple paths using the K-shortest path algorithm
         Path path = calculateOpticalPath(intent.getSrcConnectPoint(), intent.getDst());
         Intent newIntent = new OpticalPathIntent(intent.appId(),

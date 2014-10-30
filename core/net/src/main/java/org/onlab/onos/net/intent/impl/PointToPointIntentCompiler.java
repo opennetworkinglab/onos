@@ -28,9 +28,11 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.onlab.onos.net.Link.Type.DIRECT;
@@ -57,7 +59,9 @@ public class PointToPointIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(PointToPointIntent intent) {
+    public List<Intent> compile(PointToPointIntent intent, List<Intent> installable,
+                Set<LinkResourceAllocations> resources) {
+
         ConnectPoint ingressPoint = intent.ingressPoint();
         ConnectPoint egressPoint = intent.egressPoint();
 

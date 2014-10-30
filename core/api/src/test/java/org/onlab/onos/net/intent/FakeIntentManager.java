@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Fake implementation of the intent service to assist in developing tests of
@@ -104,7 +103,7 @@ public class FakeIntentManager implements TestableIntentService {
         try {
             // For the fake, we compile using a single level pass
             List<Intent> installable = new ArrayList<>();
-            for (Intent compiled : getCompiler(intent).compile(intent)) {
+            for (Intent compiled : getCompiler(intent).compile(intent, null, null)) {
                 installable.add((Intent) compiled);
             }
             executeInstallingPhase(intent, installable);
@@ -192,9 +191,8 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public Future<IntentOperations> execute(IntentOperations operations) {
+    public void execute(IntentOperations operations) {
         // TODO: implement later
-        return null;
     }
 
     @Override

@@ -1,0 +1,59 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onlab.onos.net.intent;
+
+import java.util.Set;
+
+/**
+ * Service for tracking and delegating batches of intent operations.
+ */
+public interface IntentBatchService {
+
+    /**
+     * Submits a batch of intent operations.
+     *
+     * @param operations batch of operations
+     */
+    void addIntentOperations(IntentOperations operations);
+
+    /**
+     * Removes the specified batch of intent operations after completion.
+     *
+     * @param operations batch of operations
+     */
+    void removeIntentOperations(IntentOperations operations);
+
+    /**
+     * Returns the set of intent batches currently being tracked.
+     * @return set of batches
+     */
+    Set<IntentOperations> getIntentOperations();
+
+    /**
+     * Sets the batch service delegate.
+     *
+     * @param delegate delegate to apply
+     */
+    void setDelegate(IntentBatchDelegate delegate);
+
+    /**
+     * Unsets the batch service delegate.
+     *
+     * @param delegate delegate to unset
+     */
+    void unsetDelegate(IntentBatchDelegate delegate);
+
+}

@@ -29,6 +29,7 @@ import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
 import org.onlab.onos.net.topology.PathService;
 
 import java.util.Arrays;
@@ -61,7 +62,8 @@ public class MultiPointToSinglePointIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(MultiPointToSinglePointIntent intent) {
+    public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable,
+                                Set<LinkResourceAllocations> resources) {
         Set<Link> links = new HashSet<>();
 
         for (ConnectPoint ingressPoint : intent.ingressPoints()) {

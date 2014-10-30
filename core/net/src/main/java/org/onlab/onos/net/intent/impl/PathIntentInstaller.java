@@ -131,6 +131,15 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
+    @Override
+    public List<FlowRuleBatchOperation> replace(PathIntent oldIntent, PathIntent newIntent) {
+        // FIXME: implement this
+        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
+        batches.addAll(uninstall(oldIntent));
+        batches.addAll(install(newIntent));
+        return batches;
+    }
+
     /**
      * Allocate resources required for an intent.
      *
@@ -147,7 +156,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         return request.resources().isEmpty() ? null : resourceService.requestResources(request);
     }
 
-    // TODO refactor below this line... ----------------------------
+    // FIXME refactor below this line... ----------------------------
 
     /**
      * Generates the series of MatchActionOperations from the

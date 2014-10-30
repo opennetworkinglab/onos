@@ -27,9 +27,11 @@ import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.onlab.onos.net.flow.DefaultTrafficSelector.builder;
 
@@ -54,7 +56,8 @@ public class HostToHostIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(HostToHostIntent intent) {
+    public List<Intent> compile(HostToHostIntent intent, List<Intent> installable,
+                                Set<LinkResourceAllocations> resources) {
         Path pathOne = getPath(intent, intent.one(), intent.two());
         Path pathTwo = getPath(intent, intent.two(), intent.one());
 

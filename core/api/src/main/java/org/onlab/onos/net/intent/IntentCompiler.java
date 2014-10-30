@@ -15,7 +15,10 @@
  */
 package org.onlab.onos.net.intent;
 
+import org.onlab.onos.net.resource.LinkResourceAllocations;
+
 import java.util.List;
+import java.util.Set;
 
 /**
  * Abstraction of a compiler which is capable of taking an intent
@@ -27,9 +30,13 @@ public interface IntentCompiler<T extends Intent> {
     /**
      * Compiles the specified intent into other intents.
      *
-     * @param intent intent to be compiled
+     * @param intent      intent to be compiled
+     * @param installable previously compilation result; optional
+     * @param resources   previously allocated resources; optional
      * @return list of resulting intents
      * @throws IntentException if issues are encountered while compiling the intent
      */
-    List<Intent> compile(T intent);
+    List<Intent> compile(T intent, List<Intent> installable,
+                         Set<LinkResourceAllocations> resources);
+
 }

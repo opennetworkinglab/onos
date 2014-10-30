@@ -121,7 +121,7 @@ public class TestHostToHostIntentCompiler {
         HostToHostIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent);
+        List<Intent> result = compiler.compile(intent, null, null);
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(2));
         Intent forwardResultIntent = result.get(0);

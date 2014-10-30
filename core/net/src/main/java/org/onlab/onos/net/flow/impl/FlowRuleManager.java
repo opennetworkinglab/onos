@@ -509,13 +509,8 @@ public class FlowRuleManager
             boolean success = true;
             Set<FlowRule> failed = Sets.newHashSet();
             CompletedBatchOperation completed;
-            long start = System.nanoTime();
-            long end = start + unit.toNanos(timeout);
-
             for (Future<CompletedBatchOperation> future : futures) {
-                long now = System.nanoTime();
-                long thisTimeout = end - now;
-                completed = future.get(thisTimeout, TimeUnit.NANOSECONDS);
+                completed = future.get(timeout, unit);
                 success = validateBatchOperation(failed, completed);
             }
             return finalizeBatchOperation(success, failed);

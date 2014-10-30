@@ -29,11 +29,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
+import org.onlab.onos.net.resource.LinkResourceAllocations;
 
 /**
  * Suite of tests for the intent service contract.
@@ -294,7 +296,8 @@ public class IntentServiceTest {
         }
 
         @Override
-        public List<Intent> compile(TestIntent intent) {
+        public List<Intent> compile(TestIntent intent, List<Intent> installable,
+                                    Set<LinkResourceAllocations> resources) {
             if (fail) {
                 throw new IntentException("compile failed by design");
             }
@@ -324,6 +327,12 @@ public class IntentServiceTest {
             if (fail) {
                 throw new IntentException("remove failed by design");
             }
+            return null;
+        }
+
+        @Override
+        public List<FlowRuleBatchOperation> replace(TestInstallableIntent intent,
+                                                    TestInstallableIntent newIntent) {
             return null;
         }
     }

@@ -18,11 +18,11 @@ package org.onlab.onos.net.intent;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.intent.IntentOperation.Type.REPLACE;
-import static org.onlab.onos.net.intent.IntentOperation.Type.SUBMIT;
-import static org.onlab.onos.net.intent.IntentOperation.Type.WITHDRAW;
+import static org.onlab.onos.net.intent.IntentOperation.Type.*;
 
 /**
  * Batch of intent submit/withdraw/replace operations.
@@ -56,6 +56,31 @@ public final class IntentOperations {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operations);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final IntentOperations other = (IntentOperations) obj;
+        return Objects.equals(this.operations, other.operations);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("operations", operations)
+                .toString();
     }
 
     /**
@@ -104,6 +129,18 @@ public final class IntentOperations {
         public Builder addWithdrawOperation(IntentId intentId) {
             checkNotNull(intentId, "Intent ID cannot be null");
             builder.add(new IntentOperation(WITHDRAW, intentId, null));
+            return this;
+        }
+
+        /**
+         * Adds an intent update operation.
+         *
+         * @param intentId identifier of the intent to be updated
+         * @return self
+         */
+        public Builder addUpdateOperation(IntentId intentId) {
+            checkNotNull(intentId, "Intent ID cannot be null");
+            builder.add(new IntentOperation(UPDATE, intentId, null));
             return this;
         }
 

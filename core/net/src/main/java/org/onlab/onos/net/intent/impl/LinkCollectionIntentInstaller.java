@@ -111,6 +111,13 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
+    @Override
+    public List<FlowRuleBatchOperation> replace(LinkCollectionIntent intent,
+                                                LinkCollectionIntent newIntent) {
+        // FIXME: implement
+        return null;
+    }
+
     /**
      * Creates a FlowRuleBatchEntry based on the provided parameters.
      *

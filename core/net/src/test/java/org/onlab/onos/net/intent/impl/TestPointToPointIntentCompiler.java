@@ -93,7 +93,7 @@ public class TestPointToPointIntentCompiler {
         PointToPointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent);
+        List<Intent> result = compiler.compile(intent, null, null);
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent forwardResultIntent = result.get(0);
@@ -126,7 +126,7 @@ public class TestPointToPointIntentCompiler {
         PointToPointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent);
+        List<Intent> result = compiler.compile(intent, null, null);
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent reverseResultIntent = result.get(0);
@@ -157,7 +157,7 @@ public class TestPointToPointIntentCompiler {
         String[] hops = {"1"};
         PointToPointIntentCompiler sut = makeCompiler(hops);
 
-        List<Intent> compiled = sut.compile(intent);
+        List<Intent> compiled = sut.compile(intent, null, null);
 
         assertThat(compiled, hasSize(1));
         assertThat(compiled.get(0), is(instanceOf(PathIntent.class)));

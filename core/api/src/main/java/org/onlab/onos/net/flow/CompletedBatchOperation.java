@@ -19,12 +19,20 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Representation of a completed flow rule batch operation.
+ */
 public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
-
 
     private final boolean success;
     private final Set<FlowRule> failures;
 
+    /**
+     * Creates a new batch completion result.
+     *
+     * @param success  indicates whether the completion is successful.
+     * @param failures set of any failures encountered
+     */
     public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures) {
         this.success = success;
         this.failures = ImmutableSet.copyOf(failures);
@@ -39,6 +47,5 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
     public Set<FlowRule> failedItems() {
         return failures;
     }
-
 
 }

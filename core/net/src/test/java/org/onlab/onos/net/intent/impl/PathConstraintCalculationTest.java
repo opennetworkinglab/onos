@@ -87,7 +87,7 @@ public class PathConstraintCalculationTest {
                                        constraints);
         final PointToPointIntentCompiler compiler = makeCompiler(resourceService);
 
-        return compiler.compile(intent);
+        return compiler.compile(intent, null, null);
     }
 
     /**

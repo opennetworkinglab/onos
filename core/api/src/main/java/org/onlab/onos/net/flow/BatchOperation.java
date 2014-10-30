@@ -15,12 +15,12 @@
  */
 package org.onlab.onos.net.flow;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A list of BatchOperationEntry.
@@ -86,6 +86,16 @@ public abstract class BatchOperation<T extends BatchOperationEntry<?, ?>> {
      */
     public BatchOperation<T> addOperation(T entry) {
         return ops.add(entry) ? this : null;
+    }
+
+    /**
+     * Add all operations from another batch to this batch.
+     *
+     * @param another another batch
+     * @return true if success
+     */
+    public boolean addAll(BatchOperation<T> another) {
+        return ops.addAll(another.getOperations());
     }
 
     @Override

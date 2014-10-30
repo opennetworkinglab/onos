@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.onlab.onos.net.intent.IntentState.*;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
@@ -45,8 +45,8 @@ public class SimpleIntentStore
     private final Logger log = getLogger(getClass());
     private final Map<IntentId, Intent> intents = new ConcurrentHashMap<>();
     private final Map<IntentId, IntentState> states = new ConcurrentHashMap<>();
-    private final Map<IntentId, List<Intent>> installable =
-            new ConcurrentHashMap<>();
+    private final Map<IntentId, List<Intent>> installable = new ConcurrentHashMap<>();
+
 
     @Activate
     public void activate() {
@@ -60,6 +60,9 @@ public class SimpleIntentStore
 
     @Override
     public IntentEvent createIntent(Intent intent) {
+        if (intents.containsKey(intent.id())) {
+            return null;
+        }
         intents.put(intent.id(), intent);
         return this.setState(intent, IntentState.SUBMITTED);
     }

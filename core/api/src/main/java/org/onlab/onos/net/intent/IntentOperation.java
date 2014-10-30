@@ -15,6 +15,11 @@
  */
 package org.onlab.onos.net.intent;
 
+
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Abstraction of an intent-related operation, e.g. add, remove, replace.
  */
@@ -27,7 +32,7 @@ public class IntentOperation {
     /**
      * Operation type.
      */
-    enum Type {
+    public enum Type {
         /**
          * Indicates that an intent should be added.
          */
@@ -41,15 +46,20 @@ public class IntentOperation {
         /**
          * Indicates that an intent should be replaced with another.
          */
-        REPLACE
+        REPLACE,
+
+        /**
+         * Indicates that an intent should be updated (i.e. recompiled/reinstalled).
+         */
+        UPDATE,
     }
 
     /**
      * Creates an intent operation.
      *
-     * @param type operation type
+     * @param type     operation type
      * @param intentId identifier of the intent subject to the operation
-     * @param intent intent subject
+     * @param intent   intent subject
      */
     IntentOperation(Type type, IntentId intentId, Intent intent) {
         this.type = type;
@@ -85,4 +95,32 @@ public class IntentOperation {
         return intent;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, intentId, intent);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final IntentOperation other = (IntentOperation) obj;
+        return Objects.equals(this.type, other.type) &&
+                Objects.equals(this.intentId, other.intentId) &&
+                Objects.equals(this.intent, other.intent);
+    }
+
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", type)
+                .add("intentId", intentId)
+                .add("intent", intent)
+                .toString();
+    }
 }
