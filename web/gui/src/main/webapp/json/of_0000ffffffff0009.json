@@ -1,0 +1,25 @@
+{
+    "id": "of:0000ffffffff0009",
+    "type": "switch",
+    "propOrder": [
+        "Name",
+        "Vendor",
+        "H/W Version",
+        "S/W Version",
+        "S/W Version",
+        "-",
+        "Latitude",
+        "Longitude",
+        "Ports"
+    ],
+    "props": {
+        "Name": null,
+        "Vendor": "Linc",
+        "H/W Version": "PK",
+        "S/W Version": "?",
+        "-": "",
+        "Latitude": "40.8",
+        "Longitude": "73.1",
+        "Ports": "2"
+    }
+}
