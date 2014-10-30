@@ -22,11 +22,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-import org.onlab.onos.core.DefaultApplicationId;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
+import org.onlab.onos.core.DefaultApplicationId;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -59,6 +59,9 @@ import org.onlab.onos.net.flow.StoredFlowEntry;
 import org.onlab.onos.net.flow.criteria.Criteria;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.flow.instructions.Instructions;
+import org.onlab.onos.net.flow.instructions.L0ModificationInstruction;
+import org.onlab.onos.net.flow.instructions.L2ModificationInstruction;
+import org.onlab.onos.net.flow.instructions.L3ModificationInstruction;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.intent.ConnectivityIntent;
@@ -66,6 +69,7 @@ import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentState;
+import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
@@ -150,6 +154,17 @@ public final class KryoNamespaces {
                     DefaultTrafficTreatment.class,
                     Instructions.DropInstruction.class,
                     Instructions.OutputInstruction.class,
+                    L0ModificationInstruction.class,
+                    L0ModificationInstruction.L0SubType.class,
+                    L0ModificationInstruction.ModLambdaInstruction.class,
+                    L2ModificationInstruction.class,
+                    L2ModificationInstruction.L2SubType.class,
+                    L2ModificationInstruction.ModEtherInstruction.class,
+                    L2ModificationInstruction.ModVlanIdInstruction.class,
+                    L2ModificationInstruction.ModVlanPcpInstruction.class,
+                    L3ModificationInstruction.class,
+                    L3ModificationInstruction.L3SubType.class,
+                    L3ModificationInstruction.ModIPInstruction.class,
                     RoleInfo.class,
                     FlowRuleBatchOperation.class,
                     CompletedBatchOperation.class,
@@ -164,7 +179,8 @@ public final class KryoNamespaces {
                     DefaultEdgeLink.class,
                     HostToHostIntent.class,
                     PointToPointIntent.class,
-                    MultiPointToSinglePointIntent.class
+                    MultiPointToSinglePointIntent.class,
+                    LinkCollectionIntent.class
                     )
             .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
             .register(URI.class, new URISerializer())
