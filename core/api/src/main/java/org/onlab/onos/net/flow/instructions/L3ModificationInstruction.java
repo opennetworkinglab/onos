@@ -19,7 +19,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 /**
  * Abstraction of a single traffic treatment step.
@@ -60,9 +60,9 @@ public abstract class L3ModificationInstruction implements Instruction {
     public static final class ModIPInstruction extends L3ModificationInstruction {
 
         private final L3SubType subtype;
-        private final IpPrefix ip;
+        private final IpAddress ip;
 
-        public ModIPInstruction(L3SubType subType, IpPrefix addr) {
+        public ModIPInstruction(L3SubType subType, IpAddress addr) {
 
             this.subtype = subType;
             this.ip = addr;
@@ -73,7 +73,7 @@ public abstract class L3ModificationInstruction implements Instruction {
             return this.subtype;
         }
 
-        public IpPrefix ip() {
+        public IpAddress ip() {
             return this.ip;
         }
 

@@ -31,6 +31,7 @@ import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -167,24 +168,12 @@ public class FlowEntryBuilder {
             case SET_NW_DST:
                 OFActionSetNwDst nwdst = (OFActionSetNwDst) act;
                 IPv4Address di = nwdst.getNwAddr();
-                if (di.isCidrMask()) {
-                    builder.setIpDst(IpPrefix.valueOf(di.getInt(),
-                            di.asCidrMaskLength()));
-                } else {
-                    builder.setIpDst(IpPrefix.valueOf(di.getInt(),
-                                        IpPrefix.MAX_INET_MASK_LENGTH));
-                }
+                builder.setIpDst(IpAddress.valueOf(di.getInt()));
                 break;
             case SET_NW_SRC:
                 OFActionSetNwSrc nwsrc = (OFActionSetNwSrc) act;
                 IPv4Address si = nwsrc.getNwAddr();
-                if (si.isCidrMask()) {
-                    builder.setIpSrc(IpPrefix.valueOf(si.getInt(),
-                            si.asCidrMaskLength()));
-                } else {
-                    builder.setIpSrc(IpPrefix.valueOf(si.getInt(),
-                                        IpPrefix.MAX_INET_MASK_LENGTH));
-                }
+                builder.setIpSrc(IpAddress.valueOf(si.getInt()));
                 break;
             case EXPERIMENTER:
                 OFActionExperimenter exp = (OFActionExperimenter) act;

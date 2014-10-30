@@ -36,7 +36,6 @@ import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.host.PortAddresses;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 
@@ -81,12 +80,8 @@ public class NetworkConfigReader {
                         if (splits.length != 2) {
                             throw new IllegalArgumentException("Invalid IP address and prefix length format");
                         }
-                        //
-                        // TODO: For now we need Ip4Prefix to mask-out the
-                        // subnet address.
-                        //
-                        Ip4Prefix subnet4 = new Ip4Prefix(strIp);
-                        IpPrefix subnet = IpPrefix.valueOf(subnet4.toString());
+                        // NOTE: IpPrefix will mask-out the bits after the prefix length.
+                        IpPrefix subnet = IpPrefix.valueOf(strIp);
                         IpAddress addr = IpAddress.valueOf(splits[0]);
                         InterfaceIpAddress ia =
                             new InterfaceIpAddress(addr, subnet);

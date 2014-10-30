@@ -38,7 +38,7 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
     @Override
     public void write(Kryo kryo, Output output,
             IpPrefix object) {
-        byte[] octs = object.toOctets();
+        byte[] octs = object.address().toOctets();
         output.writeInt(octs.length);
         output.writeBytes(octs);
         output.writeInt(object.prefixLength());

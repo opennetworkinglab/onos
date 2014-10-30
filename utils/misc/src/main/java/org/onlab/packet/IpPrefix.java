@@ -15,285 +15,174 @@
  */
 package org.onlab.packet;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 /**
- * A class representing an IPv4 prefix.
+ * A class representing an IP prefix.
+ * TODO: Add support for IPv6 as well.
  * <p/>
  * A prefix consists of an IP address and a subnet mask.
+ * NOTE: The stored IP address in the result IP prefix is masked to
+ * contain zeroes in all bits after the prefix length.
  */
 public final class IpPrefix {
-
-    // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
-
-    // IP Versions: IPv4 and IPv6
-    public enum Version { INET, INET6 };
-
     // Maximum network mask length
     public static final int MAX_INET_MASK_LENGTH = IpAddress.INET_BIT_LENGTH;
     public static final int MAX_INET6_MASK_LENGTH = IpAddress.INET6_BIT_LENGTH;
 
-    //no mask (no network), e.g. a simple address
-    private static final int DEFAULT_MASK = 0;
+    private final IpAddress address;
+    private final short prefixLength;
 
     /**
-     * Default value indicating an unspecified address.
-     */
-    private static final byte[] ANY = new byte[] {0, 0, 0, 0};
-
-    private final Version version;
-    private final byte[] octets;
-    private final int netmask;
-
-    /**
-     * Constructor for given IP address version, prefix address octets,
-     * and network mask length.
+     * Constructor for given IP address, and a prefix length.
      *
-     * @param ver the IP address version
-     * @param octets the IP prefix address octets
-     * @param netmask the network mask length
+     * @param address the IP address
+     * @param prefixLength the prefix length
      */
-    private IpPrefix(Version ver, byte[] octets, int netmask) {
-        this.version = ver;
-        this.octets = Arrays.copyOf(octets, IpAddress.INET_BYTE_LENGTH);
-        this.netmask = netmask;
+    private IpPrefix(IpAddress address, int prefixLength) {
+        checkPrefixLength(prefixLength);
+        this.address = IpAddress.makeMaskedAddress(address, prefixLength);
+        this.prefixLength = (short) prefixLength;
     }
 
     /**
-     * Converts a byte array into an IP address.
+     * Checks whether the prefix length is valid.
      *
-     * @param address a byte array
-     * @param netmask the CIDR value subnet mask
-     * @return an IP address
+     * @param prefixLength the prefix length value to check
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public static IpPrefix valueOf(byte[] address, int netmask) {
-        return new IpPrefix(Version.INET, address, netmask);
-    }
-
-    /**
-     * Helper to convert an integer into a byte array.
-     *
-     * @param address the integer to convert
-     * @return a byte array
-     */
-    private static byte[] bytes(int address) {
-        byte[] bytes = new byte [IpAddress.INET_BYTE_LENGTH];
-        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
-            bytes[i] = (byte) ((address >> (IpAddress.INET_BYTE_LENGTH
-                                            - (i + 1)) * 8) & 0xff);
+    private static void checkPrefixLength(int prefixLength) {
+        if ((prefixLength < 0) || (prefixLength > MAX_INET_MASK_LENGTH)) {
+            String msg = "Invalid prefix length " + prefixLength + ". " +
+                "The value must be in the interval [0, " +
+                MAX_INET_MASK_LENGTH + "]";
+            throw new IllegalArgumentException(msg);
         }
-
-        return bytes;
     }
 
     /**
-     * Converts an integer into an IPv4 address.
+     * Converts an integer and a prefix length into an IPv4 prefix.
      *
-     * @param address an integer representing an IP value
-     * @param netmask the CIDR value subnet mask
-     * @return an IP address
+     * @param address an integer representing the IPv4 address
+     * @param prefixLength the prefix length
+     * @return an IP prefix
      */
-    public static IpPrefix valueOf(int address, int netmask) {
-        return new IpPrefix(Version.INET, bytes(address), netmask);
+    public static IpPrefix valueOf(int address, int prefixLength) {
+        return new IpPrefix(IpAddress.valueOf(address), prefixLength);
     }
 
     /**
-     * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address. The
-     * string can also be in CIDR (slash) notation. If the netmask is omitted,
-     * it will be set to DEFAULT_MASK (0).
+     * Converts a byte array and a prefix length into an IP prefix.
      *
-     * @param address a IP address in string form, e.g. "10.0.0.1", "10.0.0.1/24"
-     * @return an IP address
+     * @param address the IP address value stored in network byte order
+     * @param prefixLength the prefix length
+     * @return an IP prefix
+     */
+    public static IpPrefix valueOf(byte[] address, int prefixLength) {
+        return new IpPrefix(IpAddress.valueOf(address), prefixLength);
+    }
+
+    /**
+     * Converts an IP address and a prefix length into IP prefix.
+     *
+     * @param address the IP address
+     * @param prefixLength the prefix length
+     * @return an IP prefix
+     */
+    public static IpPrefix valueOf(IpAddress address, int prefixLength) {
+        return new IpPrefix(address, prefixLength);
+    }
+
+    /**
+     * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16") into an
+     * IP prefix.
+     *
+     * @param value an IP prefix in string form, e.g. "10.1.0.0/16"
+     * @return an IP prefix
      */
     public static IpPrefix valueOf(String address) {
+        final String[] parts = address.split("/");
+        if (parts.length != 2) {
+            String msg = "Malformed IP prefix string: " + address + "." +
+                "Address must take form \"x.x.x.x/y\"";
+            throw new IllegalArgumentException(msg);
+        }
+        IpAddress ipAddress = IpAddress.valueOf(parts[0]);
+        int prefixLength = Integer.parseInt(parts[1]);
 
-        final String[] parts = address.split("\\/");
-        if (parts.length > 2) {
-            throw new IllegalArgumentException("Malformed IP address string; "
-                    + "Address must take form \"x.x.x.x\" or \"x.x.x.x/y\"");
-        }
-
-        int mask = DEFAULT_MASK;
-        if (parts.length == 2) {
-            mask = Integer.parseInt(parts[1]);
-            if (mask > MAX_INET_MASK_LENGTH) {
-                throw new IllegalArgumentException(
-                        "Value of subnet mask cannot exceed "
-                                + MAX_INET_MASK_LENGTH);
-            }
-        }
-
-        final String[] net = parts[0].split("\\.");
-        if (net.length != IpAddress.INET_BYTE_LENGTH) {
-            throw new IllegalArgumentException("Malformed IP address string; "
-                    + "Address must have four decimal values separated by dots (.)");
-        }
-        final byte[] bytes = new byte[IpAddress.INET_BYTE_LENGTH];
-        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
-            bytes[i] = (byte) Short.parseShort(net[i], 10);
-        }
-        return new IpPrefix(Version.INET, bytes, mask);
+        return new IpPrefix(ipAddress, prefixLength);
     }
 
     /**
-     * Returns the IP version of this address.
+     * Returns the IP version of the prefix.
      *
-     * @return the version
+     * @return the IP version of the prefix
      */
-    public Version version() {
-        return this.version;
+    public IpAddress.Version version() {
+        return address.version();
     }
 
     /**
-     * Returns the IP address as a byte array.
+     * Returns the IP address value of the prefix.
      *
-     * @return a byte array
+     * @return the IP address value of the prefix
      */
-    public byte[] toOctets() {
-        return Arrays.copyOf(this.octets, IpAddress.INET_BYTE_LENGTH);
+    public IpAddress address() {
+        return address;
     }
 
     /**
      * Returns the IP address prefix length.
      *
-     * @return prefix length
+     * @return the IP address prefix length
      */
     public int prefixLength() {
-        return netmask;
+        return prefixLength;
     }
 
     /**
-     * Returns the integral value of this IP address.
+     * Determines whether a given IP prefix is contained within this prefix.
      *
-     * @return the IP address's value as an integer
-     */
-    public int toInt() {
-        int val = 0;
-        for (int i = 0; i < octets.length; i++) {
-          val <<= 8;
-          val |= octets[i] & 0xff;
-        }
-        return val;
-    }
-
-    /**
-     * Helper for computing the mask value from CIDR.
-     *
-     * @return an integer bitmask
-     */
-    private int mask() {
-        int shift = MAX_INET_MASK_LENGTH - this.netmask;
-        return ((Integer.MAX_VALUE >>> (shift - 1)) << shift);
-    }
-
-    /**
-     * Returns the subnet mask in IpAddress form.
-     *
-     * @return the subnet mask as an IpAddress
-     */
-    public IpAddress netmask() {
-        return IpAddress.valueOf(mask());
-    }
-
-    /**
-     * Returns the network portion of this address as an IpAddress.
-     * The netmask of the returned IpAddress is the current mask. If this
-     * address doesn't have a mask, this returns an all-0 IpAddress.
-     *
-     * @return the network address or null
-     */
-    public IpPrefix network() {
-        if (netmask == DEFAULT_MASK) {
-            return new IpPrefix(version, ANY, DEFAULT_MASK);
-        }
-
-        byte[] net = new byte [4];
-        byte[] mask = bytes(mask());
-        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
-            net[i] = (byte) (octets[i] & mask[i]);
-        }
-        return new IpPrefix(version, net, netmask);
-    }
-
-    /**
-     * Returns the host portion of the IPAddress, as an IPAddress.
-     * The netmask of the returned IpAddress is the current mask. If this
-     * address doesn't have a mask, this returns a copy of the current
-     * address.
-     *
-     * @return the host address
-     */
-    public IpPrefix host() {
-        if (netmask == DEFAULT_MASK) {
-            new IpPrefix(version, octets, netmask);
-        }
-
-        byte[] host = new byte [IpAddress.INET_BYTE_LENGTH];
-        byte[] mask = bytes(mask());
-        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
-            host[i] = (byte) (octets[i] & ~mask[i]);
-        }
-        return new IpPrefix(version, host, netmask);
-    }
-
-    /**
-     * Returns an IpAddress of the bytes contained in this prefix.
-     * FIXME this is a hack for now and only works because IpPrefix doesn't
-     * mask the input bytes on creation.
-     *
-     * @return the IpAddress
-     */
-    public IpAddress toIpAddress() {
-        return IpAddress.valueOf(octets);
-    }
-
-    public boolean isMasked() {
-        return mask() != 0;
-    }
-
-    /**
-     * Determines whether a given address is contained within this IpAddress'
-     * network.
-     *
-     * @param other another IP address that could be contained in this network
-     * @return true if the other IP address is contained in this address'
-     * network, otherwise false
+     * @param other the IP prefix to test
+     * @return true if the other IP prefix is contained in this prefix,
+     * otherwise false
      */
     public boolean contains(IpPrefix other) {
-        if (this.netmask <= other.netmask) {
-            // Special case where they're both /32 addresses
-            if (this.netmask == MAX_INET_MASK_LENGTH) {
-                return Arrays.equals(octets, other.octets);
-            }
-
-            // Mask the other address with our network mask
-            IpPrefix otherMasked =
-                    IpPrefix.valueOf(other.octets, netmask).network();
-
-            return network().equals(otherMasked);
+        if (this.prefixLength > other.prefixLength) {
+            return false;               // This prefix has smaller prefix size
         }
-        return false;
+
+        //
+        // Mask the other address with my prefix length.
+        // If the other prefix is within this prefix, the masked address must
+        // be same as the address of this prefix.
+        //
+        IpAddress maskedAddr =
+            IpAddress.makeMaskedAddress(other.address, this.prefixLength);
+        return this.address.equals(maskedAddr);
     }
 
-    public boolean contains(IpAddress address) {
-        // Need to get the network address because prefixes aren't automatically
-        // masked on creation
-        IpPrefix meMasked = network();
-
-        IpPrefix otherMasked =
-            IpPrefix.valueOf(address.toOctets(), netmask).network();
-
-        return Arrays.equals(meMasked.octets, otherMasked.octets);
+    /**
+     * Determines whether a given IP address is contained within this prefix.
+     *
+     * @param other the IP address to test
+     * @return true if the IP address is contained in this prefix, otherwise
+     * false
+     */
+    public boolean contains(IpAddress other) {
+        //
+        // Mask the other address with my prefix length.
+        // If the other prefix is within this prefix, the masked address must
+        // be same as the address of this prefix.
+        //
+        IpAddress maskedAddr =
+            IpAddress.makeMaskedAddress(other, this.prefixLength);
+        return this.address.equals(maskedAddr);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + netmask;
-        result = prime * result + Arrays.hashCode(octets);
-        result = prime * result + ((version == null) ? 0 : version.hashCode());
-        return result;
+        return Objects.hash(address, prefixLength);
     }
 
     @Override
@@ -301,46 +190,26 @@ public final class IpPrefix {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if ((obj == null) || (getClass() != obj.getClass())) {
             return false;
         }
         IpPrefix other = (IpPrefix) obj;
-        if (netmask != other.netmask) {
-            return false;
-        }
-        // TODO not quite right until we mask the input
-        if (!Arrays.equals(octets, other.octets)) {
-            return false;
-        }
-        if (version != other.version) {
-            return false;
-        }
-        return true;
+        return ((prefixLength == other.prefixLength) &&
+                address.equals(other.address));
     }
 
     @Override
     /*
      * (non-Javadoc)
-     * format is "x.x.x.x" for non-masked (netmask 0) addresses,
-     * and "x.x.x.x/y" for masked addresses.
+     * The format is "x.x.x.x/y" for IPv4 prefixes.
      *
      * @see java.lang.Object#toString()
      */
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        for (final byte b : this.octets) {
-            if (builder.length() > 0) {
-                builder.append(".");
-            }
-            builder.append(String.format("%d", b & 0xff));
-        }
-        if (netmask != DEFAULT_MASK) {
-            builder.append("/");
-            builder.append(String.format("%d", netmask));
-        }
+        builder.append(address.toString());
+        builder.append("/");
+        builder.append(String.format("%d", prefixLength));
         return builder.toString();
     }
 }

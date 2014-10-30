@@ -188,7 +188,7 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
             int prefixBytelen = (prefixBitlen + 7) / 8;         // Round-up
             message.writeByte(prefixBitlen);
 
-            IpAddress address = prefix.toIpAddress();
+            IpAddress address = prefix.address();
             long value = address.toInt() & 0xffffffffL;
             for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
                 if (prefixBytelen-- == 0) {

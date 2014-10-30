@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 
 import org.junit.Test;
-import org.onlab.packet.IpPrefix.Version;
+import org.onlab.packet.IpAddress.Version;
 
 import com.google.common.testing.EqualsTester;
 
@@ -30,8 +30,9 @@ public class IpPrefixTest {
 
     private static final byte [] BYTES1 = new byte [] {0xa, 0x0, 0x0, 0xa};
     private static final byte [] BYTES2 = new byte [] {0xa, 0x0, 0x0, 0xb};
-    private static final int INTVAL1 = 167772170;
-    private static final int INTVAL2 = 167772171;
+    private static final int INTVAL0 = 0x0a000000;
+    private static final int INTVAL1 = 0x0a00000a;
+    private static final int INTVAL2 = 0x0a00000b;
     private static final String STRVAL = "10.0.0.12/16";
     private static final int MASK_LENGTH = 16;
 
@@ -59,27 +60,29 @@ public class IpPrefixTest {
     @Test
     public void basics() {
         IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
-        final byte [] bytes = new byte [] {0xa, 0x0, 0x0, 0xa};
+        final byte [] bytes = new byte [] {0xa, 0x0, 0x0, 0x0};
 
-        //check fields
+        // check fields
         assertEquals("incorrect IP Version", Version.INET, ip1.version());
         assertEquals("incorrect netmask", 16, ip1.prefixLength());
-        assertTrue("faulty toOctets()", Arrays.equals(bytes, ip1.toOctets()));
-        assertEquals("faulty toInt()", INTVAL1, ip1.toInt());
-        assertEquals("faulty toString()", "10.0.0.10/16", ip1.toString());
+        assertTrue("faulty toOctets()",
+                   Arrays.equals(bytes, ip1.address().toOctets()));
+        assertEquals("faulty toInt()", INTVAL0, ip1.address().toInt());
+        assertEquals("faulty toString()", "10.0.0.0/16", ip1.toString());
     }
 
     @Test
     public void netmasks() {
         // masked
         IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
-
-        IpPrefix host = IpPrefix.valueOf("0.0.0.10/16");
-        IpPrefix network = IpPrefix.valueOf("10.0.0.0/16");
-        assertEquals("incorrect host address", host, ip1.host());
-        assertEquals("incorrect network address", network, ip1.network());
-        assertEquals("incorrect netmask", "255.255.0.0", ip1.netmask().toString());
-
+        IpPrefix ip2 = IpPrefix.valueOf("10.0.0.10/16");
+        IpPrefix ip3 = IpPrefix.valueOf("10.0.0.0/16");
+        assertEquals("incorrect binary masked address",
+                     ip1.toString(), "10.0.0.0/16");
+        assertEquals("incorrect string masked address",
+                     ip2.toString(), "10.0.0.0/16");
+        assertEquals("incorrect network address",
+                     ip2.toString(), "10.0.0.0/16");
     }
 
     @Test
