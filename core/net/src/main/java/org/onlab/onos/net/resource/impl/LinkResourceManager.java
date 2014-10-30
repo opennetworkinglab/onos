@@ -17,6 +17,7 @@ package org.onlab.onos.net.resource.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -50,6 +51,8 @@ public class LinkResourceManager implements LinkResourceService {
 
     private final Logger log = getLogger(getClass());
 
+    LinkResourceAllocations savedAllocations;
+
     @Activate
     public void activate() {
         log.info("Started");
@@ -64,6 +67,8 @@ public class LinkResourceManager implements LinkResourceService {
         return Sets.newHashSet(Lambda.valueOf(7));
     }
 
+    double usedBandwidth = 0.0;
+
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
         // TODO implement it using a resource data store.
@@ -75,6 +80,7 @@ public class LinkResourceManager implements LinkResourceService {
                 log.info("requestResources() always returns requested bandwidth");
                 BandwidthResourceRequest br = (BandwidthResourceRequest) r;
                 alloc = new BandwidthResourceAllocation(br.bandwidth());
+                usedBandwidth += br.bandwidth().toDouble();
                 break;
             case LAMBDA:
                 log.info("requestResources() always returns lambda 7");
@@ -92,7 +98,8 @@ public class LinkResourceManager implements LinkResourceService {
         for (Link link : req.links()) {
             allocations.put(link, Sets.newHashSet(alloc));
         }
-        return new DefaultLinkResourceAllocations(req, allocations);
+        savedAllocations = new DefaultLinkResourceAllocations(req, allocations);
+        return savedAllocations;
     }
 
     @Override
@@ -115,8 +122,11 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public Iterable<LinkResourceAllocations> getAllocations(Link link) {
-        // TODO Auto-generated method stub
-        return null;
+        ArrayList<LinkResourceAllocations> retval = new ArrayList<>(0);
+        if (savedAllocations != null) {
+            retval.add(savedAllocations);
+        }
+        return retval;
     }
 
     @Override
@@ -127,8 +137,10 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public Iterable<ResourceRequest> getAvailableResources(Link link) {
-        // TODO Auto-generated method stub
-        return null;
+        BandwidthResourceRequest bw = new BandwidthResourceRequest(usedBandwidth);
+        ArrayList<ResourceRequest> result = new ArrayList<>();
+        result.add(bw);
+        return result;
     }
 
     @Override

@@ -15,6 +15,10 @@
  */
 package org.onlab.onos.net.intent.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,14 +35,11 @@ import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyEdge;
 import org.onlab.onos.net.topology.TopologyService;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -76,7 +77,7 @@ public class PointToPointIntentCompiler
         links.add(DefaultEdgeLink.createEdgeLink(intent.egressPoint(), false));
 
         return asList(createPathIntent(new DefaultPath(PID, links, path.cost() + 2,
-                                                       path.annotations()), intent));
+                path.annotations()), intent));
     }
 
     /**
@@ -89,7 +90,8 @@ public class PointToPointIntentCompiler
     private Intent createPathIntent(Path path,
                                     PointToPointIntent intent) {
         return new PathIntent(intent.appId(),
-                              intent.selector(), intent.treatment(), path);
+                              intent.selector(), intent.treatment(), path,
+                              new LinkResourceRequest[0]);
     }
 
     /**

@@ -47,8 +47,8 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      */
     protected TrafficSelector buildTrafficSelector() {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-
         Short ethType = Ethernet.TYPE_IPV4;
+
         if (!Strings.isNullOrEmpty(ethTypeString)) {
             EthType ethTypeParameter = EthType.valueOf(ethTypeString);
             ethType = ethTypeParameter.value();

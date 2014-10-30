@@ -15,18 +15,29 @@
  */
 package org.onlab.onos.calendar;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.rest.BaseResource;
+import java.net.URI;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
-import java.net.URI;
+
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.CoreService;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.flow.DefaultTrafficSelector;
+import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.PointToPointIntentWithBandwidthConstraint;
+import org.onlab.onos.net.resource.BandwidthResourceRequest;
+import org.onlab.packet.Ethernet;
+import org.onlab.rest.BaseResource;
 
 import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Web resource for triggering calendared intents.
@@ -47,12 +58,33 @@ public class BandwidthCalendarResource extends BaseResource {
         ConnectPoint srcPoint = new ConnectPoint(deviceId(src), portNumber(srcPort));
         ConnectPoint dstPoint = new ConnectPoint(deviceId(dst), portNumber(dstPort));
 
+        TrafficSelector selector = buildTrafficSelector();
+        TrafficTreatment treatment = builder().build();
+
+        Intent intent = new PointToPointIntentWithBandwidthConstraint(
+                appId(), selector, treatment,
+                srcPoint, dstPoint, new BandwidthResourceRequest(Double.parseDouble(bandwidth)));
+        service.submit(intent);
+
         return Response.ok("Yo! We got src=" + srcPoint + "; dst=" + dstPoint +
                                    "; bw=" + bandwidth + "; intent service " + service).build();
     }
 
+    private TrafficSelector buildTrafficSelector() {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        Short ethType = Ethernet.TYPE_IPV4;
+
+        selectorBuilder.matchEthType(ethType);
+
+        return selectorBuilder.build();
+    }
+
     private DeviceId deviceId(String dpid) {
         return DeviceId.deviceId(URI.create("of:" + dpid));
+    }
+
+    protected ApplicationId appId() {
+        return get(CoreService.class).registerApplication("org.onlab.onos.calendar");
     }
 
 }
