@@ -407,9 +407,9 @@ public class DeviceManager
                 // TODO duplicate suppression should probably occur in the MastershipManager
                 // itself, so listeners that can't deal with duplicates don't have to
                 // so this check themselves.
-                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
-                    return;
-                }
+//                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
+//                    return;
+//                }
 
                 if (!myNodeId.equals(term.master())) {
                     // something went wrong in consistency, let go
