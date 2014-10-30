@@ -283,7 +283,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             for (OFPortFeatures feat : port.getCurr()) {
                 portSpeed = PortSpeed.max(portSpeed, feat.getPortSpeed());
             }
-            return portSpeed.getSpeedBps();
+            return portSpeed.getSpeedBps() / MBPS;
         }
     }
 
