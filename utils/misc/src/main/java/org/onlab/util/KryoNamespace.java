@@ -56,6 +56,7 @@ public final class KryoNamespace implements KryoFactory {
     public static final class Builder {
 
         private final List<Pair<Class<?>, Serializer<?>>> types = new ArrayList<>();
+        private boolean registrationRequired = true;
 
         /**
          * Builds a {@link KryoNamespace} instance.
@@ -63,7 +64,7 @@ public final class KryoNamespace implements KryoFactory {
          * @return KryoNamespace
          */
         public KryoNamespace build() {
-            return new KryoNamespace(types);
+            return new KryoNamespace(types, registrationRequired);
         }
 
         /**
@@ -101,6 +102,11 @@ public final class KryoNamespace implements KryoFactory {
             types.addAll(pool.registeredTypes);
             return this;
         }
+
+        public Builder setRegistrationRequired(boolean registrationRequired) {
+            this.registrationRequired = registrationRequired;
+            return this;
+        }
     }
 
     /**
@@ -116,11 +122,11 @@ public final class KryoNamespace implements KryoFactory {
      * Creates a Kryo instance pool.
      *
      * @param registeredTypes types to register
+     * @param registrationRequired
      */
-    private KryoNamespace(final List<Pair<Class<?>, Serializer<?>>> registeredTypes) {
+    private KryoNamespace(final List<Pair<Class<?>, Serializer<?>>> registeredTypes, boolean registrationRequired) {
         this.registeredTypes = ImmutableList.copyOf(registeredTypes);
-        // always true for now
-        this.registrationRequired = true;
+        this.registrationRequired = registrationRequired;
     }
 
     /**

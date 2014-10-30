@@ -30,6 +30,9 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.onlab.onos.store.hz.AbstractHazelcastStore;
 import org.onlab.onos.store.hz.SMap;
+import org.onlab.onos.store.serializers.KryoNamespaces;
+import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -61,9 +64,21 @@ public class DistributedIntentStore
     @Activate
     public void activate() {
         // FIXME: We need a way to add serializer for intents which has been plugged-in.
-        // TODO: As a short term workaround, relax Kryo config to
-        //       registrationRequired=false?
+        // As a short term workaround, relax Kryo config to
+        // registrationRequired=false
         super.activate();
+        super.serializer = new KryoSerializer() {
+
+            @Override
+            protected void setupKryoPool() {
+                serializerPool = KryoNamespace.newBuilder()
+                        .setRegistrationRequired(false)
+                        .register(KryoNamespaces.API)
+                        .build()
+                        .populate(1);
+            }
+
+        };
 
         // TODO: enable near cache, allow read from backup for this IMap
         IMap<byte[], byte[]> rawIntents = super.theInstance.getMap("intents");
