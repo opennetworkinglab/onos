@@ -46,7 +46,6 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Timer;
 
@@ -212,7 +211,7 @@ public class HostMonitor implements TimerTask {
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
            .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
            .setProtocolType(ARP.PROTO_TYPE_IP)
-           .setProtocolAddressLength((byte) IpPrefix.INET_LEN)
+           .setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH)
            .setOpCode(ARP.OP_REQUEST);
 
         arp.setSenderHardwareAddress(sourceMac.getAddress())

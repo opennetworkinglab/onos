@@ -68,6 +68,7 @@ public class LinkDiscovery implements TimerTask {
     // send 1 probe every probeRate milliseconds
     private final long probeRate;
     private final Set<Long> slowPorts;
+    // ports, known to have incoming links
     private final Set<Long> fastPorts;
     // number of unacknowledged probes per port
     private final Map<Long, AtomicInteger> portProbeCount;
@@ -125,6 +126,7 @@ public class LinkDiscovery implements TimerTask {
             log.info("Using BDDP to discover network");
         }
 
+        this.isStopped = true;
         start();
         this.log.debug("Started discovery manager for switch {}",
                        device.id());
@@ -140,7 +142,10 @@ public class LinkDiscovery implements TimerTask {
     public void addPort(final Port port) {
         this.log.debug("Sending init probe to port {}@{}",
                        port.number().toLong(), device.id());
-        sendProbes(port.number().toLong());
+        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
+        if (isMaster) {
+            sendProbes(port.number().toLong());
+        }
         synchronized (this) {
             this.slowPorts.add(port.number().toLong());
         }
@@ -233,6 +238,13 @@ public class LinkDiscovery implements TimerTask {
      */
     @Override
     public void run(final Timeout t) {
+        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
+        if (!isMaster) {
+            // reschedule timer
+            timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);
+            return;
+        }
+
         this.log.trace("Sending probes from {}", device.id());
         synchronized (this) {
             final Iterator<Long> fastIterator = this.fastPorts.iterator();
@@ -245,6 +257,7 @@ public class LinkDiscovery implements TimerTask {
                     sendProbes(portNumber);
 
                 } else {
+                    // Link down, demote to slowPorts
                     // Update fast and slow ports
                     fastIterator.remove();
                     this.slowPorts.add(portNumber);
@@ -274,8 +287,12 @@ public class LinkDiscovery implements TimerTask {
     }
 
     public void start() {
-        timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
-        isStopped = false;
+        if (isStopped) {
+            timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
+            isStopped = false;
+        } else {
+            log.warn("LinkDiscovery started multiple times?");
+        }
     }
 
     /**
@@ -317,8 +334,8 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private void sendProbes(Long portNumber) {
-        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
-        if (isMaster && device.type() != Device.Type.ROADM) {
+        // TODO: should have suppression port configuration, not by type
+        if (device.type() != Device.Type.ROADM) {
             log.debug("Sending probes out to {}@{}", portNumber, device.id());
             OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
             pktService.emit(pkt);

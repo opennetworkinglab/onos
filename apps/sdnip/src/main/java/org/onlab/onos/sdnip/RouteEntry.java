@@ -75,7 +75,7 @@ public class RouteEntry {
         StringBuilder result = new StringBuilder(ip4Prefix.prefixLength());
         long value = ip4Prefix.toInt();
         for (int i = 0; i < ip4Prefix.prefixLength(); i++) {
-            long mask = 1 << (IpAddress.MAX_INET_MASK - 1 - i);
+            long mask = 1 << (IpPrefix.MAX_INET_MASK_LENGTH - 1 - i);
             result.append(((value & mask) == 0) ? "0" : "1");
         }
         return result.toString();

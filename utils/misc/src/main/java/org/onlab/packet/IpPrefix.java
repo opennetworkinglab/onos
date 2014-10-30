@@ -26,48 +26,37 @@ public final class IpPrefix {
 
     // TODO a comparator for netmasks? E.g. for sorting by prefix match order.
 
-    //IP Versions
+    // IP Versions: IPv4 and IPv6
     public enum Version { INET, INET6 };
 
-    //lengths of address, in bytes
-    public static final int INET_LEN = 4;
-    public static final int INET6_LEN = 16;
+    // Maximum network mask length
+    public static final int MAX_INET_MASK_LENGTH = IpAddress.INET_BIT_LENGTH;
+    public static final int MAX_INET6_MASK_LENGTH = IpAddress.INET6_BIT_LENGTH;
 
-    //maximum CIDR value
-    public static final int MAX_INET_MASK = 32;
     //no mask (no network), e.g. a simple address
-    public static final int DEFAULT_MASK = 0;
+    private static final int DEFAULT_MASK = 0;
 
     /**
      * Default value indicating an unspecified address.
      */
-    static final byte[] ANY = new byte [] {0, 0, 0, 0};
+    private static final byte[] ANY = new byte[] {0, 0, 0, 0};
 
-    protected Version version;
-
-    protected byte[] octets;
-    protected int netmask;
-
-    private IpPrefix(Version ver, byte[] octets, int netmask) {
-        this.version = ver;
-        this.octets = Arrays.copyOf(octets, INET_LEN);
-        this.netmask = netmask;
-    }
-
-    private IpPrefix(Version ver, byte[] octets) {
-        this.version = ver;
-        this.octets = Arrays.copyOf(octets, INET_LEN);
-        this.netmask = DEFAULT_MASK;
-    }
+    private final Version version;
+    private final byte[] octets;
+    private final int netmask;
 
     /**
-     * Converts a byte array into an IP address.
+     * Constructor for given IP address version, prefix address octets,
+     * and network mask length.
      *
-     * @param address a byte array
-     * @return an IP address
+     * @param ver the IP address version
+     * @param octets the IP prefix address octets
+     * @param netmask the network mask length
      */
-    public static IpPrefix valueOf(byte [] address) {
-        return new IpPrefix(Version.INET, address);
+    private IpPrefix(Version ver, byte[] octets, int netmask) {
+        this.version = ver;
+        this.octets = Arrays.copyOf(octets, IpAddress.INET_BYTE_LENGTH);
+        this.netmask = netmask;
     }
 
     /**
@@ -77,7 +66,7 @@ public final class IpPrefix {
      * @param netmask the CIDR value subnet mask
      * @return an IP address
      */
-    public static IpPrefix valueOf(byte [] address, int netmask) {
+    public static IpPrefix valueOf(byte[] address, int netmask) {
         return new IpPrefix(Version.INET, address, netmask);
     }
 
@@ -87,23 +76,14 @@ public final class IpPrefix {
      * @param address the integer to convert
      * @return a byte array
      */
-    private static byte [] bytes(int address) {
-        byte [] bytes = new byte [INET_LEN];
-        for (int i = 0; i < INET_LEN; i++) {
-            bytes[i] = (byte) ((address >> (INET_LEN - (i + 1)) * 8) & 0xff);
+    private static byte[] bytes(int address) {
+        byte[] bytes = new byte [IpAddress.INET_BYTE_LENGTH];
+        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
+            bytes[i] = (byte) ((address >> (IpAddress.INET_BYTE_LENGTH
+                                            - (i + 1)) * 8) & 0xff);
         }
 
         return bytes;
-    }
-
-    /**
-     * Converts an integer into an IPv4 address.
-     *
-     * @param address an integer representing an IP value
-     * @return an IP address
-     */
-    public static IpPrefix valueOf(int address) {
-        return new IpPrefix(Version.INET, bytes(address));
     }
 
     /**
@@ -127,7 +107,7 @@ public final class IpPrefix {
      */
     public static IpPrefix valueOf(String address) {
 
-        final String [] parts = address.split("\\/");
+        final String[] parts = address.split("\\/");
         if (parts.length > 2) {
             throw new IllegalArgumentException("Malformed IP address string; "
                     + "Address must take form \"x.x.x.x\" or \"x.x.x.x/y\"");
@@ -136,20 +116,20 @@ public final class IpPrefix {
         int mask = DEFAULT_MASK;
         if (parts.length == 2) {
             mask = Integer.parseInt(parts[1]);
-            if (mask > MAX_INET_MASK) {
+            if (mask > MAX_INET_MASK_LENGTH) {
                 throw new IllegalArgumentException(
                         "Value of subnet mask cannot exceed "
-                                + MAX_INET_MASK);
+                                + MAX_INET_MASK_LENGTH);
             }
         }
 
-        final String [] net = parts[0].split("\\.");
-        if (net.length != INET_LEN) {
+        final String[] net = parts[0].split("\\.");
+        if (net.length != IpAddress.INET_BYTE_LENGTH) {
             throw new IllegalArgumentException("Malformed IP address string; "
                     + "Address must have four decimal values separated by dots (.)");
         }
-        final byte [] bytes = new byte[INET_LEN];
-        for (int i = 0; i < INET_LEN; i++) {
+        final byte[] bytes = new byte[IpAddress.INET_BYTE_LENGTH];
+        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
             bytes[i] = (byte) Short.parseShort(net[i], 10);
         }
         return new IpPrefix(Version.INET, bytes, mask);
@@ -170,7 +150,7 @@ public final class IpPrefix {
      * @return a byte array
      */
     public byte[] toOctets() {
-        return Arrays.copyOf(this.octets, INET_LEN);
+        return Arrays.copyOf(this.octets, IpAddress.INET_BYTE_LENGTH);
     }
 
     /**
@@ -202,18 +182,17 @@ public final class IpPrefix {
      * @return an integer bitmask
      */
     private int mask() {
-        int shift = MAX_INET_MASK - this.netmask;
+        int shift = MAX_INET_MASK_LENGTH - this.netmask;
         return ((Integer.MAX_VALUE >>> (shift - 1)) << shift);
     }
 
     /**
-     * Returns the subnet mask in IpAddress form. The netmask value for
-     * the returned IpAddress is 0, as the address itself is a mask.
+     * Returns the subnet mask in IpAddress form.
      *
-     * @return the subnet mask
+     * @return the subnet mask as an IpAddress
      */
-    public IpPrefix netmask() {
-        return new IpPrefix(Version.INET, bytes(mask()));
+    public IpAddress netmask() {
+        return IpAddress.valueOf(mask());
     }
 
     /**
@@ -228,9 +207,9 @@ public final class IpPrefix {
             return new IpPrefix(version, ANY, DEFAULT_MASK);
         }
 
-        byte [] net = new byte [4];
-        byte [] mask = bytes(mask());
-        for (int i = 0; i < INET_LEN; i++) {
+        byte[] net = new byte [4];
+        byte[] mask = bytes(mask());
+        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
             net[i] = (byte) (octets[i] & mask[i]);
         }
         return new IpPrefix(version, net, netmask);
@@ -249,9 +228,9 @@ public final class IpPrefix {
             new IpPrefix(version, octets, netmask);
         }
 
-        byte [] host = new byte [INET_LEN];
-        byte [] mask = bytes(mask());
-        for (int i = 0; i < INET_LEN; i++) {
+        byte[] host = new byte [IpAddress.INET_BYTE_LENGTH];
+        byte[] mask = bytes(mask());
+        for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
             host[i] = (byte) (octets[i] & ~mask[i]);
         }
         return new IpPrefix(version, host, netmask);
@@ -283,7 +262,7 @@ public final class IpPrefix {
     public boolean contains(IpPrefix other) {
         if (this.netmask <= other.netmask) {
             // Special case where they're both /32 addresses
-            if (this.netmask == MAX_INET_MASK) {
+            if (this.netmask == MAX_INET_MASK_LENGTH) {
                 return Arrays.equals(octets, other.octets);
             }
 
@@ -302,7 +281,7 @@ public final class IpPrefix {
         IpPrefix meMasked = network();
 
         IpPrefix otherMasked =
-                IpPrefix.valueOf(address.octets, netmask).network();
+            IpPrefix.valueOf(address.toOctets(), netmask).network();
 
         return Arrays.equals(meMasked.octets, otherMasked.octets);
     }
@@ -364,5 +343,4 @@ public final class IpPrefix {
         }
         return builder.toString();
     }
-
 }

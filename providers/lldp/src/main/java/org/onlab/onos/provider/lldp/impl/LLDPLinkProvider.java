@@ -145,7 +145,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     break;
                 case PORT_ADDED:
                 case PORT_UPDATED:
-                    if (event.port().isEnabled()) {
+                    if (port.isEnabled()) {
                         ld = discoverers.get(device.id());
                         if (ld == null) {
                             return;
@@ -155,6 +155,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                             ld.addPort(port);
                         }
                     } else {
+                        log.debug("Port down {}", port);
                         ConnectPoint point = new ConnectPoint(device.id(),
                                                               port.number());
                         providerService.linksVanished(point);
