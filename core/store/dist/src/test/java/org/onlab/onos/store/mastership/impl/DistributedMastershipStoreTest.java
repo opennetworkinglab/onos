@@ -142,7 +142,7 @@ public class DistributedMastershipStoreTest {
         testStore.setCurrent(CN1);
 
         //if already MASTER, nothing should happen
-        testStore.put(DID2, N1, true, false, false);
+        testStore.put(DID2, N1, true, false, true);
         assertEquals("wrong role for MASTER:", MASTER, dms.requestRole(DID2));
 
         //populate maps with DID1, N1 thru NONE case

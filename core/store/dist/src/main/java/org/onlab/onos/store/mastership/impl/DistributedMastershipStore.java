@@ -18,6 +18,7 @@ package org.onlab.onos.store.mastership.impl;
 import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +43,6 @@ import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 
-import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IAtomicLong;
@@ -106,46 +106,50 @@ implements MastershipStore {
 
     @Override
     public MastershipRole getRole(NodeId nodeId, DeviceId deviceId) {
-        final RoleValue roleInfo = getRoleValue(deviceId);
-        if (roleInfo.contains(MASTER, nodeId)) {
-            return MASTER;
-        }
-        if (roleInfo.contains(STANDBY, nodeId)) {
-            return STANDBY;
+        final RoleValue roleInfo = roleMap.get(deviceId);
+        if (roleInfo != null) {
+            return roleInfo.getRole(nodeId);
         }
         return NONE;
     }
 
     @Override
-    public MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
+    public MastershipEvent setMaster(NodeId newMaster, DeviceId deviceId) {
 
-        MastershipRole role = getRole(nodeId, deviceId);
         roleMap.lock(deviceId);
         try {
-            RoleValue rv = getRoleValue(deviceId);
-            switch (role) {
+            final RoleValue rv = getRoleValue(deviceId);
+            final MastershipRole currentRole = rv.getRole(newMaster);
+            switch (currentRole) {
                 case MASTER:
                     //reinforce mastership
-                    rv.reassign(nodeId, STANDBY, NONE);
-                    roleMap.put(deviceId, rv);
+                    // RoleInfo integrity check
+                    boolean modified = rv.reassign(newMaster, STANDBY, NONE);
+                    if (modified) {
+                        roleMap.put(deviceId, rv);
+                        // should never reach here.
+                        log.warn("{} was in both MASTER and STANDBY for {}", newMaster, deviceId);
+                        // trigger BACKUPS_CHANGED?
+                    }
                     return null;
                 case STANDBY:
                 case NONE:
-                    NodeId current = rv.get(MASTER);
-                    if (current != null) {
-                        //backup and replace current master
-                        rv.reassign(current, NONE, STANDBY);
-                        rv.replace(current, nodeId, MASTER);
+                    final NodeId currentMaster = rv.get(MASTER);
+                    if (currentMaster != null) {
+                        // place current master in STANDBY
+                        rv.reassign(currentMaster, NONE, STANDBY);
+                        rv.replace(currentMaster, newMaster, MASTER);
                     } else {
                         //no master before so just add.
-                        rv.add(MASTER, nodeId);
+                        rv.add(MASTER, newMaster);
                     }
-                    rv.reassign(nodeId, STANDBY, NONE);
-                    roleMap.put(deviceId, rv);
+                    // remove newMaster from STANDBY
+                    rv.reassign(newMaster, STANDBY, NONE);
                     updateTerm(deviceId);
+                    roleMap.put(deviceId, rv);
                     return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                 default:
-                    log.warn("unknown Mastership Role {}", role);
+                    log.warn("unknown Mastership Role {}", currentRole);
                     return null;
             }
         } finally {
@@ -161,66 +165,83 @@ implements MastershipStore {
 
     @Override
     public RoleInfo getNodes(DeviceId deviceId) {
-        roleMap.lock(deviceId);
-        try {
-            RoleValue rv = getRoleValue(deviceId);
+        RoleValue rv = roleMap.get(deviceId);
+        if (rv != null) {
             return rv.roleInfo();
-        } finally {
-            roleMap.unlock(deviceId);
+        } else {
+            return new RoleInfo();
         }
     }
 
     @Override
     public Set<DeviceId> getDevices(NodeId nodeId) {
-        ImmutableSet.Builder<DeviceId> builder = ImmutableSet.builder();
+        Set<DeviceId> devices = new HashSet<>();
 
         for (Map.Entry<DeviceId, RoleValue> el : roleMap.entrySet()) {
             if (nodeId.equals(el.getValue().get(MASTER))) {
-                builder.add(el.getKey());
+                devices.add(el.getKey());
             }
         }
 
-        return builder.build();
+        return devices;
     }
 
     @Override
     public MastershipRole requestRole(DeviceId deviceId) {
-        NodeId local = clusterService.getLocalNode().id();
 
+        // if no master => become master
+        // if there already exists a master:
+        //     if I was the master return MASTER
+        //     else put myself in STANDBY and return STANDBY
+
+        final NodeId local = clusterService.getLocalNode().id();
+        boolean modified = false;
         roleMap.lock(deviceId);
         try {
-            RoleValue rv = getRoleValue(deviceId);
-            MastershipRole role = getRole(local, deviceId);
-            switch (role) {
+            final RoleValue rv = getRoleValue(deviceId);
+            if (rv.get(MASTER) == null) {
+                // there's no master become one
+                // move out from STANDBY
+                rv.reassign(local, STANDBY, NONE);
+                rv.add(MASTER, local);
+
+                updateTerm(deviceId);
+                roleMap.put(deviceId, rv);
+                return MASTER;
+            }
+            final MastershipRole currentRole = rv.getRole(local);
+            switch (currentRole) {
                 case MASTER:
-                    rv.reassign(local, STANDBY, NONE);
-                    terms.putIfAbsent(deviceId, INIT);
-                    roleMap.put(deviceId, rv);
-                    break;
+                    // RoleInfo integrity check
+                    modified = rv.reassign(local, STANDBY, NONE);
+                    if (modified) {
+                        log.warn("{} was in both MASTER and STANDBY for {}", local, deviceId);
+                        // should never reach here,
+                        // but heal if we happened to be there
+                        roleMap.put(deviceId, rv);
+                        // trigger BACKUPS_CHANGED?
+                    }
+                    return currentRole;
                 case STANDBY:
+                    // RoleInfo integrity check
+                    modified = rv.reassign(local, NONE, STANDBY);
+                    if (modified) {
+                        log.warn("{} was in both NONE and STANDBY for {}", local, deviceId);
+                        // should never reach here,
+                        // but heal if we happened to be there
+                        roleMap.put(deviceId, rv);
+                        // trigger BACKUPS_CHANGED?
+                    }
+                    return currentRole;
+                case NONE:
                     rv.reassign(local, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
-                    terms.putIfAbsent(deviceId, INIT);
-                    break;
-                case NONE:
-                    //either we're the first standby, or first to device.
-                    //for latter, claim mastership.
-                    if (rv.get(MASTER) == null) {
-                        rv.add(MASTER, local);
-                        rv.reassign(local, STANDBY, NONE);
-                        updateTerm(deviceId);
-                        role = MastershipRole.MASTER;
-                    } else {
-                        rv.add(STANDBY, local);
-                        rv.reassign(local, NONE, STANDBY);
-                        role = MastershipRole.STANDBY;
-                    }
-                    roleMap.put(deviceId, rv);
-                    break;
+                    // TODO: notifyDelegate BACKUPS_CHANGED
+                    return STANDBY;
                 default:
-                    log.warn("unknown Mastership Role {}", role);
+                    log.warn("unknown Mastership Role {}", currentRole);
             }
-            return role;
+            return currentRole;
         } finally {
             roleMap.unlock(deviceId);
         }
@@ -228,35 +249,58 @@ implements MastershipStore {
 
     @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
-        RoleValue rv = getRoleValue(deviceId);
-        if ((rv.get(MASTER) == null) || (terms.get(deviceId) == null)) {
-            return null;
+        // term information and role must be read atomically
+        // acquiring write lock for the device
+        roleMap.lock(deviceId);
+        try {
+            RoleValue rv = getRoleValue(deviceId);
+            final Integer term = terms.get(deviceId);
+            final NodeId master = rv.get(MASTER);
+            if ((master == null) || (term == null)) {
+                return null;
+            }
+            return MastershipTerm.of(master, term);
+        } finally {
+            roleMap.unlock(deviceId);
         }
-        return MastershipTerm.of(rv.get(MASTER), terms.get(deviceId));
     }
 
     @Override
     public MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
-        MastershipEvent event = null;
+        // if nodeId was MASTER, rotate STANDBY
+        // if nodeId was STANDBY no-op
+        // if nodeId was NONE, add to STANDBY
 
         roleMap.lock(deviceId);
         try {
-            RoleValue rv = getRoleValue(deviceId);
-            MastershipRole role = getRole(nodeId, deviceId);
-            switch (role) {
+            final RoleValue rv = getRoleValue(deviceId);
+            final MastershipRole currentRole = getRole(nodeId, deviceId);
+            switch (currentRole) {
                 case MASTER:
-                    event = reelect(nodeId, deviceId, rv);
-                    //fall through to reinforce role
+                    NodeId newMaster = reelect(nodeId, deviceId, rv);
+                    rv.reassign(nodeId, NONE, STANDBY);
+                    if (newMaster != null) {
+                        updateTerm(deviceId);
+                        roleMap.put(deviceId, rv);
+                        return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+                    } else {
+                        // no master candidate
+                        roleMap.put(deviceId, rv);
+                        // FIXME: Should there be new event type?
+                        // or should we issue null Master event?
+                        return null;
+                    }
                 case STANDBY:
-                    //fall through to reinforce role
+                    return null;
                 case NONE:
                     rv.reassign(nodeId, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
-                    break;
+                    // TODO: BACKUPS_CHANGED?
+                    return null;
                 default:
-                    log.warn("unknown Mastership Role {}", role);
+                    log.warn("unknown Mastership Role {}", currentRole);
             }
-            return event;
+            return null;
         } finally {
             roleMap.unlock(deviceId);
         }
@@ -264,56 +308,71 @@ implements MastershipStore {
 
     @Override
     public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
-        MastershipEvent event = null;
+        // relinquishRole is basically set to None
+
+        // If nodeId was master reelect next and remove nodeId
+        // else remove from STANDBY
 
         roleMap.lock(deviceId);
         try {
-            RoleValue rv = getRoleValue(deviceId);
-            MastershipRole role = getRole(nodeId, deviceId);
-            switch (role) {
+            final RoleValue rv = getRoleValue(deviceId);
+            final MastershipRole currentRole = rv.getRole(nodeId);
+            switch (currentRole) {
                 case MASTER:
-                    event = reelect(nodeId, deviceId, rv);
-                    if (event != null) {
+                    NodeId newMaster = reelect(nodeId, deviceId, rv);
+                    if (newMaster != null) {
                         updateTerm(deviceId);
+                        roleMap.put(deviceId, rv);
+                        return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+                    } else {
+                        // no master candidate
+                        roleMap.put(deviceId, rv);
+                        // Should there be new event type?
+                        return null;
                     }
-                    //fall through to reinforce relinquishment
                 case STANDBY:
                     //fall through to reinforce relinquishment
                 case NONE:
-                    rv.reassign(nodeId, STANDBY, NONE);
-                    roleMap.put(deviceId, rv);
-                    break;
+                    boolean modified = rv.reassign(nodeId, STANDBY, NONE);
+                    if (modified) {
+                        roleMap.put(deviceId, rv);
+                        // TODO: BACKUPS_CHANGED?
+                        return null;
+                    }
+                    return null;
                 default:
-                log.warn("unknown Mastership Role {}", role);
+                log.warn("unknown Mastership Role {}", currentRole);
             }
-            return event;
+            return null;
         } finally {
             roleMap.unlock(deviceId);
         }
     }
 
+    // TODO: Consider moving this to RoleValue method
     //helper to fetch a new master candidate for a given device.
-    private MastershipEvent reelect(
+    private NodeId reelect(
             NodeId current, DeviceId deviceId, RoleValue rv) {
 
         //if this is an queue it'd be neater.
-        NodeId backup = null;
+        NodeId candidate = null;
         for (NodeId n : rv.nodesOfRole(STANDBY)) {
             if (!current.equals(n)) {
-                backup = n;
+                candidate = n;
                 break;
             }
         }
 
-        if (backup == null) {
+        if (candidate == null) {
             log.info("{} giving up and going to NONE for {}", current, deviceId);
             rv.remove(MASTER, current);
+            // master did change, but there is no master candidate.
             return null;
         } else {
-            log.info("{} trying to pass mastership for {} to {}", current, deviceId, backup);
-            rv.replace(current, backup, MASTER);
-            rv.reassign(backup, STANDBY, NONE);
-            return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+            log.info("{} trying to pass mastership for {} to {}", current, deviceId, candidate);
+            rv.replace(current, candidate, MASTER);
+            rv.reassign(candidate, STANDBY, NONE);
+            return candidate;
         }
     }
 
@@ -340,6 +399,7 @@ implements MastershipStore {
     }
 
     //adds or updates term information.
+    // must be guarded by roleMap.lock(deviceId)
     private void updateTerm(DeviceId deviceId) {
         Integer term = terms.get(deviceId);
         if (term == null) {
