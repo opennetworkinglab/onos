@@ -29,7 +29,7 @@ if ( ! $?KARAF ) then
 endif
 setenv KARAF_LOG $KARAF/data/log/karaf.log
 
-alias onos-setup-cell ' ( $ONOS_ROOT/tools/test/bin/onos-show-cell \!^ ) && setenv ONOS_CELL \!^'
+alias onos-setup-cell ' ( env ONOS_CELL=\!^ $ONOS_ROOT/tools/test/bin/onos-show-cell \!^ ) && setenv ONOS_CELL \!^'
 
 set path=( $path $ONOS_ROOT/tools/dev/bin $ONOS_ROOT/tools/test/bin )
 set path=( $path $ONOS_ROOT/tools/build )
