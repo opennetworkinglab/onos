@@ -115,6 +115,7 @@ public final class KryoNamespaces {
                     //
                     ControllerNode.State.class,
                     Device.Type.class,
+                    Port.Type.class,
                     ChassisId.class,
                     DefaultAnnotations.class,
                     DefaultControllerNode.class,

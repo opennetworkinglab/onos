@@ -15,11 +15,12 @@
  */
 package org.onlab.onos.net.device;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 
-import com.google.common.base.MoreObjects;
+import static org.onlab.onos.net.Port.Type;
 
 /**
  * Default implementation of immutable port description.
@@ -27,32 +28,62 @@ import com.google.common.base.MoreObjects;
 public class DefaultPortDescription extends AbstractDescription
         implements PortDescription {
 
+    private static final long DEFAULT_SPEED = 1_000;
+
     private final PortNumber number;
     private final boolean isEnabled;
+    private final Type type;
+    private final long portSpeed;
 
     /**
      * Creates a port description using the supplied information.
      *
-     * @param number       port number
-     * @param isEnabled    port enabled state
-     * @param annotations  optional key/value annotations map
+     * @param number      port number
+     * @param isEnabled   port enabled state
+     * @param annotations optional key/value annotations map
      */
     public DefaultPortDescription(PortNumber number, boolean isEnabled,
-                SparseAnnotations... annotations) {
-        super(annotations);
-        this.number = number;
-        this.isEnabled = isEnabled;
+                                  SparseAnnotations... annotations) {
+        this(number, isEnabled, Type.COPPER, DEFAULT_SPEED, annotations);
     }
 
     /**
      * Creates a port description using the supplied information.
      *
-     * @param base         PortDescription to get basic information from
-     * @param annotations  optional key/value annotations map
+     * @param number      port number
+     * @param isEnabled   port enabled state
+     * @param type        port type
+     * @param portSpeed   port speed in Mbps
+     * @param annotations optional key/value annotations map
+     */
+    public DefaultPortDescription(PortNumber number, boolean isEnabled,
+                                  Type type, long portSpeed,
+                                  SparseAnnotations...annotations) {
+        super(annotations);
+        this.number = number;
+        this.isEnabled = isEnabled;
+        this.type = type;
+        this.portSpeed = portSpeed;
+    }
+
+    // Default constructor for serialization
+    private DefaultPortDescription() {
+        this.number = null;
+        this.isEnabled = false;
+        this.portSpeed = DEFAULT_SPEED;
+        this.type = Type.COPPER;
+    }
+
+    /**
+     * Creates a port description using the supplied information.
+     *
+     * @param base        PortDescription to get basic information from
+     * @param annotations optional key/value annotations map
      */
     public DefaultPortDescription(PortDescription base,
-            SparseAnnotations annotations) {
-        this(base.portNumber(), base.isEnabled(), annotations);
+                                  SparseAnnotations annotations) {
+        this(base.portNumber(), base.isEnabled(), base.type(), base.portSpeed(),
+             annotations);
     }
 
     @Override
@@ -66,17 +97,24 @@ public class DefaultPortDescription extends AbstractDescription
     }
 
     @Override
+    public Type type() {
+        return type;
+    }
+
+    @Override
+    public long portSpeed() {
+        return portSpeed;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("number", number)
                 .add("isEnabled", isEnabled)
+                .add("type", type)
+                .add("portSpeed", portSpeed)
                 .add("annotations", annotations())
                 .toString();
     }
 
-    // default constructor for serialization
-    private DefaultPortDescription() {
-        this.number = null;
-        this.isEnabled = false;
-    }
 }

@@ -202,7 +202,7 @@ public final class IpAddress implements Comparable<IpAddress> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, octets);
+        return Objects.hash(version, Arrays.hashCode(octets));
     }
 
     @Override

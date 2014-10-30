@@ -15,13 +15,10 @@
  */
 package org.onlab.onos.store.serializers;
 
-import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static java.util.Arrays.asList;
-
-import java.nio.ByteBuffer;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.testing.EqualsTester;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,10 +47,12 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.testing.EqualsTester;
+import java.nio.ByteBuffer;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
 
 public class KryoSerializerTest {
 
