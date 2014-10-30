@@ -140,7 +140,7 @@ public final class TestUtils {
      *
      * @param constructor Constructor to call
      * @param <T> type of the object to create
-     * @return created object of type <T>
+     * @return created object of type T
      * @throws TestUtilsException if there are reflection errors while calling
      * the constructor
      */

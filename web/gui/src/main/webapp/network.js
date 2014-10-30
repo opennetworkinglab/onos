@@ -432,6 +432,14 @@
 //            .attr('id', 'zoomable')
 //            .call(d3.behavior.zoom().on("zoom", zoomRedraw));
 
+        network.svg.append('svg:image')
+            .attr({
+                id: 'bg',
+                width: view.width,
+                height: view.height,
+                'xlink:href': 'img/us-map.png'
+            });
+
 //        function zoomRedraw() {
 //            d3.select("#zoomable").attr("transform",
 //                    "translate(" + d3.event.translate + ")"
