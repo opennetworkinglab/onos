@@ -36,8 +36,10 @@
         },
         options: {
             layering: true,
-            collisionPrevention: true
+            collisionPrevention: true,
+            loadBackground: true
         },
+        backgroundUrl: 'img/us-map.png',
         data: {
             live: {
                 jsonUrl: 'rs/topology/graph',
@@ -265,6 +267,9 @@
     function processKeyEvent() {
         var code = d3.event.keyCode;
         switch (code) {
+            case 66:    // B
+                toggleBackground();
+                break;
             case 71:    // G
                 cycleLayout();
                 break;
@@ -279,6 +284,13 @@
                 break;
         }
 
+    }
+
+    function toggleBackground() {
+        var bg = d3.select('#bg'),
+            vis = bg.style('visibility'),
+            newvis = (vis === 'hidden') ? 'visible' : 'hidden';
+        bg.style('visibility', newvis);
     }
 
     function cycleLayout() {
@@ -437,8 +449,10 @@
                 id: 'bg',
                 width: view.width,
                 height: view.height,
-                'xlink:href': 'img/us-map.png'
-            });
+                'xlink:href': config.backgroundUrl
+            })
+            .style('visibility',
+                    config.options.loadBackground ? 'visible' : 'hidden');
 
 //        function zoomRedraw() {
 //            d3.select("#zoomable").attr("transform",
