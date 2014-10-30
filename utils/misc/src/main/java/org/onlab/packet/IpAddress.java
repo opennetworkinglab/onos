@@ -17,6 +17,8 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A class representing an IPv4 address.
@@ -37,35 +39,68 @@ public final class IpAddress implements Comparable<IpAddress> {
     /**
      * Constructor for given IP address version and address octets.
      *
-     * @param ver the IP address version
-     * @param octets the IP address octets
-     */
-    private IpAddress(Version ver, byte[] octets) {
-        this.version = ver;
-        this.octets = Arrays.copyOf(octets, INET_BYTE_LENGTH);
-    }
-
-    /**
-     * Converts a byte array into an IP address.
-     *
-     * @param address the IP address value stored in network byte order
+     * @param value the IP address value stored in network byte order
      * (i.e., the most significant byte first)
-     * @return an IP address
+     * @param value the IP address value
      */
-    public static IpAddress valueOf(byte[] address) {
-        return new IpAddress(Version.INET, address);
+    private IpAddress(Version version, byte[] value) {
+        checkNotNull(value);
+
+        this.version = version;
+        this.octets = Arrays.copyOf(value, INET_BYTE_LENGTH);
     }
 
     /**
      * Converts an integer into an IPv4 address.
      *
-     * @param address an integer representing an IPv4 value
+     * @param value an integer representing an IPv4 value
      * @return an IP address
      */
-    public static IpAddress valueOf(int address) {
+    public static IpAddress valueOf(int value) {
         byte[] bytes =
-            ByteBuffer.allocate(INET_BYTE_LENGTH).putInt(address).array();
+            ByteBuffer.allocate(INET_BYTE_LENGTH).putInt(value).array();
         return new IpAddress(Version.INET, bytes);
+    }
+
+    /**
+     * Converts a byte array into an IP address.
+     *
+     * @param value the IP address value stored in network byte order
+     * (i.e., the most significant byte first)
+     * @return an IP address
+     */
+    public static IpAddress valueOf(byte[] value) {
+        return new IpAddress(Version.INET, value);
+    }
+
+    /**
+     * Converts a byte array and a given offset from the beginning of the
+     * array into an IP address.
+     * <p/>
+     * The IP address is stored in network byte order (i.e., the most
+     * significant byte first).
+     *
+     * @param value the value to use
+     * @param offset the offset in bytes from the beginning of the byte array
+     * @return an IP address
+     */
+    public static IpAddress valueOf(byte[] value, int offset) {
+        // Verify the arguments
+        if ((offset < 0) || (offset + INET_BYTE_LENGTH > value.length)) {
+            String msg;
+            if (value.length < INET_BYTE_LENGTH) {
+                msg = "Invalid IPv4 address array: array length: " +
+                    value.length + ". Must be at least " + INET_BYTE_LENGTH;
+            } else {
+                msg = "Invalid IPv4 address array: array offset: " +
+                    offset + ". Must be in the interval [0, " +
+                    (value.length - INET_BYTE_LENGTH) + "]";
+            }
+            throw new IllegalArgumentException(msg);
+        }
+
+        byte[] bc = Arrays.copyOfRange(value, offset, value.length);
+        return IpAddress.valueOf(bc);
     }
 
     /**
@@ -77,8 +112,9 @@ public final class IpAddress implements Comparable<IpAddress> {
     public static IpAddress valueOf(String address) {
         final String[] net = address.split("\\.");
         if (net.length != INET_BYTE_LENGTH) {
-            throw new IllegalArgumentException("Malformed IP address string; "
-                    + "Address must have four decimal values separated by dots (.)");
+            String msg = "Malformed IPv4 address string; " +
+                "Address must have four decimal values separated by dots (.)";
+            throw new IllegalArgumentException(msg);
         }
         final byte[] bytes = new byte[INET_BYTE_LENGTH];
         for (int i = 0; i < INET_BYTE_LENGTH; i++) {
@@ -115,6 +151,48 @@ public final class IpAddress implements Comparable<IpAddress> {
         return bb.getInt();
     }
 
+    /**
+     * Creates an IP network mask prefix.
+     *
+     * @param prefixLen the length of the mask prefix. Must be in the interval
+     * [0, 32] for IPv4
+     * @return a new IP address that contains a mask prefix of the
+     * specified length
+     */
+    public static IpAddress makeMaskPrefix(int prefixLen) {
+        // Verify the prefix length
+        if ((prefixLen < 0) || (prefixLen > INET_BIT_LENGTH)) {
+            final String msg = "Invalid IPv4 prefix length: " + prefixLen +
+                ". Must be in the interval [0, 32].";
+            throw new IllegalArgumentException(msg);
+        }
+
+        long v = (0xffffffffL << (INET_BIT_LENGTH - prefixLen)) & 0xffffffffL;
+        return IpAddress.valueOf((int) v);
+    }
+
+    /**
+     * Creates an IP address by masking it with a network mask of given
+     * mask length.
+     *
+     * @param addr the address to mask
+     * @param prefixLen the length of the mask prefix. Must be in the interval
+     * [0, 32] for IPv4
+     * @return a new IP address that is masked with a mask prefix of the
+     * specified length
+     */
+    public static IpAddress makeMaskedAddress(final IpAddress addr,
+                                              int prefixLen) {
+        IpAddress mask = IpAddress.makeMaskPrefix(prefixLen);
+        byte[] net = new byte[INET_BYTE_LENGTH];
+
+        // Mask each byte
+        for (int i = 0; i < INET_BYTE_LENGTH; i++) {
+            net[i] = (byte) (addr.octets[i] & mask.octets[i]);
+        }
+        return IpAddress.valueOf(net);
+    }
+
     @Override
     public int compareTo(IpAddress o) {
         Long lv = ((long) this.toInt()) & 0xffffffffL;
@@ -124,32 +202,20 @@ public final class IpAddress implements Comparable<IpAddress> {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Arrays.hashCode(octets);
-        result = prime * result + ((version == null) ? 0 : version.hashCode());
-        return result;
+        return Objects.hash(version, Arrays.hashCode(octets));
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (obj == this) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if ((obj == null) || (getClass() != obj.getClass())) {
             return false;
         }
         IpAddress other = (IpAddress) obj;
-        if (!Arrays.equals(octets, other.octets)) {
-            return false;
-        }
-        if (version != other.version) {
-            return false;
-        }
-        return true;
+        return (version == other.version) &&
+            Arrays.equals(octets, other.octets);
     }
 
     @Override

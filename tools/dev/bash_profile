@@ -34,6 +34,7 @@ alias mci='mvn clean install'
 
 # Short-hand for ONOS build, package and test.
 alias ob='onos-build'
+alias obi='onos-build -Dmaven.test.failure.ignore=true'
 alias obs='onos-build-selective'
 alias op='onos-package'
 alias ot='onos-test'

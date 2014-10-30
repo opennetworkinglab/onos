@@ -18,9 +18,12 @@ package org.onlab.onos.gui;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
+import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.device.DeviceService;
@@ -35,6 +38,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -43,11 +47,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.HostId.hostId;
+
 /**
  * Topology viewer resource.
  */
 @javax.ws.rs.Path("topology")
 public class TopologyResource extends BaseResource {
+
+    private static final String HOST_SEP = "/";
 
     @javax.ws.rs.Path("/graph")
     @GET
@@ -68,6 +77,66 @@ public class TopologyResource extends BaseResource {
         rootNode.set("links", getLinks(mapper, topo, graph));
         rootNode.set("hosts", getHosts(mapper, hostService));
         return Response.ok(rootNode.toString()).build();
+    }
+
+    @javax.ws.rs.Path("/graph/{id}")
+    @GET
+    @Produces("application/json")
+    public Response details(@PathParam("id") String id) {
+        if (id.contains(HOST_SEP)) {
+            return hostDetails(hostId(id));
+        }
+        return deviceDetails(deviceId(id));
+    }
+
+    // Returns device details response.
+    private Response deviceDetails(DeviceId deviceId) {
+        DeviceService deviceService = get(DeviceService.class);
+        Device device = deviceService.getDevice(deviceId);
+        Annotations annot = device.annotations();
+        int portCount = deviceService.getPorts(deviceId).size();
+        ObjectNode r = json(deviceId.toString(),
+                            device.type().toString().toLowerCase(),
+                            new Prop("Name", annot.value("name")),
+                            new Prop("Vendor", device.manufacturer()),
+                            new Prop("H/W Version", device.hwVersion()),
+                            new Prop("S/W Version", device.swVersion()),
+                            new Prop("S/W Version", device.serialNumber()),
+                            new Separator(),
+                            new Prop("Latitude", annot.value("latitude")),
+                            new Prop("Longitude", annot.value("longitude")),
+                            new Prop("Ports", Integer.toString(portCount)));
+        return Response.ok(r.toString()).build();
+    }
+
+    // Returns host details response.
+    private Response hostDetails(HostId hostId) {
+        HostService hostService = get(HostService.class);
+        Host host = hostService.getHost(hostId);
+        Annotations annot = host.annotations();
+        ObjectNode r = json(hostId.toString(), "host",
+                            new Prop("MAC", host.mac().toString()),
+                            new Prop("IP", host.ipAddresses().toString()),
+                            new Separator(),
+                            new Prop("Latitude", annot.value("latitude")),
+                            new Prop("Longitude", annot.value("longitude")));
+        return Response.ok(r.toString()).build();
+    }
+
+    // Produces JSON property details.
+    private ObjectNode json(String id, String type, Prop... props) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode result = mapper.createObjectNode()
+                .put("id", id).put("type", type);
+        ObjectNode pnode = mapper.createObjectNode();
+        ArrayNode porder = mapper.createArrayNode();
+        for (Prop p : props) {
+            porder.add(p.key);
+            pnode.put(p.key, p.value);
+        }
+        result.set("propOrder", porder);
+        result.set("props", pnode);
+        return result;
     }
 
     // Encodes all infrastructure devices.
@@ -209,4 +278,20 @@ public class TopologyResource extends BaseResource {
         return cp.elementId().toString();
     }
 
+    // Auxiliary key/value carrier.
+    private class Prop {
+        private final String key;
+        private final String value;
+
+        protected Prop(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    private class Separator extends Prop {
+        protected Separator() {
+            super("-", "");
+        }
+    }
 }

@@ -15,11 +15,12 @@
  */
 package org.onlab.onos.net.intent;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 import org.onlab.onos.net.NetTestTools;
 import org.onlab.onos.net.Path;
+import org.onlab.onos.net.resource.LinkResourceRequest;
+
+import static org.junit.Assert.assertEquals;
 
 public class PathIntentTest extends ConnectivityIntentTest {
     // 111:11 --> 222:22
@@ -39,11 +40,11 @@ public class PathIntentTest extends ConnectivityIntentTest {
 
     @Override
     protected PathIntent createOne() {
-        return new PathIntent(APPID, MATCH, NOP, PATH1);
+        return new PathIntent(APPID, MATCH, NOP, PATH1, new LinkResourceRequest[0]);
     }
 
     @Override
     protected PathIntent createAnother() {
-        return new PathIntent(APPID, MATCH, NOP, PATH2);
+        return new PathIntent(APPID, MATCH, NOP, PATH2, new LinkResourceRequest[0]);
     }
 }

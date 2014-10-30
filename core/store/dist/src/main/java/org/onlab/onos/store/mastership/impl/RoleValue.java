@@ -15,6 +15,10 @@
  */
 package org.onlab.onos.store.mastership.impl;
 
+import static org.onlab.onos.net.MastershipRole.MASTER;
+import static org.onlab.onos.net.MastershipRole.NONE;
+import static org.onlab.onos.net.MastershipRole.STANDBY;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -59,18 +63,30 @@ final class RoleValue {
         return value.get(type).contains(nodeId);
     }
 
+    public MastershipRole getRole(NodeId nodeId) {
+        if (contains(MASTER, nodeId)) {
+            return MASTER;
+        }
+        if (contains(STANDBY, nodeId)) {
+            return STANDBY;
+        }
+        return NONE;
+    }
+
     /**
      * Associates a node to a certain role.
      *
      * @param type the role
      * @param nodeId the node ID of the node to associate
+     * @return true if modified
      */
-    public void add(MastershipRole type, NodeId nodeId) {
+    public boolean add(MastershipRole type, NodeId nodeId) {
         List<NodeId> nodes = value.get(type);
 
         if (!nodes.contains(nodeId)) {
-            nodes.add(nodeId);
+            return nodes.add(nodeId);
         }
+        return false;
     }
 
     /**
@@ -78,7 +94,7 @@ final class RoleValue {
      *
      * @param type the role
      * @param nodeId the ID of the node to remove
-     * @return
+     * @return true if modified
      */
     public boolean remove(MastershipRole type, NodeId nodeId) {
         List<NodeId> nodes = value.get(type);
@@ -96,10 +112,12 @@ final class RoleValue {
      * @param nodeId the Node ID of node changing roles
      * @param from the old role
      * @param to the new role
+     * @return true if modified
      */
-    public void reassign(NodeId nodeId, MastershipRole from, MastershipRole to) {
-        remove(from, nodeId);
-        add(to, nodeId);
+    public boolean reassign(NodeId nodeId, MastershipRole from, MastershipRole to) {
+        boolean modified = remove(from, nodeId);
+        modified |= add(to, nodeId);
+        return modified;
     }
 
     /**
@@ -109,10 +127,12 @@ final class RoleValue {
      * @param from the old NodeId to replace
      * @param to the new NodeId
      * @param type the role associated with the old NodeId
+     * @return true if modified
      */
-    public void replace(NodeId from, NodeId to, MastershipRole type) {
-        remove(type, from);
-        add(type, to);
+    public boolean replace(NodeId from, NodeId to, MastershipRole type) {
+        boolean modified = remove(type, from);
+        modified |= add(type, to);
+        return modified;
     }
 
     /**

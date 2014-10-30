@@ -20,6 +20,7 @@ import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.resource.LinkResourceRequest;
 
 /**
  * Abstraction of explicitly path specified connectivity intent.
@@ -27,6 +28,7 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 public class PathIntent extends ConnectivityIntent {
 
     private final Path path;
+    private final LinkResourceRequest[] resourceRequests;
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
@@ -39,10 +41,11 @@ public class PathIntent extends ConnectivityIntent {
      * @throws NullPointerException {@code path} is null
      */
     public PathIntent(ApplicationId appId, TrafficSelector selector,
-                      TrafficTreatment treatment, Path path) {
+                      TrafficTreatment treatment, Path path, LinkResourceRequest[] resourceRequests) {
         super(id(PathIntent.class, selector, treatment, path), appId,
               resources(path.links()), selector, treatment);
         this.path = path;
+        this.resourceRequests = resourceRequests;
     }
 
     /**
@@ -51,6 +54,7 @@ public class PathIntent extends ConnectivityIntent {
     protected PathIntent() {
         super();
         this.path = null;
+        this.resourceRequests = new LinkResourceRequest[0];
     }
 
     /**
@@ -65,6 +69,10 @@ public class PathIntent extends ConnectivityIntent {
     @Override
     public boolean isInstallable() {
         return true;
+    }
+
+    public LinkResourceRequest[] resourceRequests() {
+        return resourceRequests;
     }
 
     @Override

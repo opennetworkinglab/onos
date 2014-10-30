@@ -24,9 +24,14 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultPort extends AbstractAnnotated implements Port {
 
+    /** Default port speed in Mbps. */
+    public static final long DEFAULT_SPEED = 1_000;
+
     private final Element element;
     private final PortNumber number;
     private final boolean isEnabled;
+    private final Type type;
+    private final long portSpeed;
 
     /**
      * Creates a network element attributed to the specified provider.
@@ -36,40 +41,35 @@ public class DefaultPort extends AbstractAnnotated implements Port {
      * @param isEnabled   indicator whether the port is up and active
      * @param annotations optional key/value annotations
      */
-    public DefaultPort(Element element, PortNumber number,
-                       boolean isEnabled, Annotations... annotations) {
+    public DefaultPort(Element element, PortNumber number, boolean isEnabled,
+                       Annotations... annotations) {
+        this(element, number, isEnabled, Type.COPPER, DEFAULT_SPEED, annotations);
+    }
+
+    /**
+     * Creates a network element attributed to the specified provider.
+     *
+     * @param element     parent network element
+     * @param number      port number
+     * @param isEnabled   indicator whether the port is up and active
+     * @param type        port type
+     * @param portSpeed   port speed in Mbs
+     * @param annotations optional key/value annotations
+     */
+    public DefaultPort(Element element, PortNumber number, boolean isEnabled,
+                       Type type, long portSpeed, Annotations... annotations) {
         super(annotations);
         this.element = element;
         this.number = number;
         this.isEnabled = isEnabled;
+        this.type = type;
+        this.portSpeed = portSpeed;
+
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(number, isEnabled);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof DefaultPort) {
-            final DefaultPort other = (DefaultPort) obj;
-            return Objects.equals(this.element.id(), other.element.id()) &&
-                    Objects.equals(this.number, other.number) &&
-                    Objects.equals(this.isEnabled, other.isEnabled);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this)
-                .add("element", element.id())
-                .add("number", number)
-                .add("isEnabled", isEnabled)
-                .toString();
+    public Element element() {
+        return element;
     }
 
     @Override
@@ -83,8 +83,45 @@ public class DefaultPort extends AbstractAnnotated implements Port {
     }
 
     @Override
-    public Element element() {
-        return element;
+    public Type type() {
+        return type;
+    }
+
+    @Override
+    public long portSpeed() {
+        return portSpeed;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(number, isEnabled, type, portSpeed);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultPort) {
+            final DefaultPort other = (DefaultPort) obj;
+            return Objects.equals(this.element.id(), other.element.id()) &&
+                    Objects.equals(this.number, other.number) &&
+                    Objects.equals(this.isEnabled, other.isEnabled) &&
+                    Objects.equals(this.type, other.type) &&
+                    Objects.equals(this.portSpeed, other.portSpeed);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("element", element.id())
+                .add("number", number)
+                .add("isEnabled", isEnabled)
+                .add("type", type)
+                .add("portSpeed", portSpeed)
+                .toString();
     }
 
 }

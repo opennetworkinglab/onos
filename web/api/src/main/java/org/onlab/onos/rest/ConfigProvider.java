@@ -19,17 +19,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.Port;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
+import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceDescription;
 import org.onlab.onos.net.device.DeviceProvider;
 import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.device.DeviceProviderService;
+import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
@@ -45,7 +49,9 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.onos.net.DeviceId.deviceId;
@@ -120,7 +126,30 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         DeviceDescription desc =
                 new DefaultDeviceDescription(uri, type, mfr, hw, sw, serial,
                                              cid, annotations);
-        dps.deviceConnected(deviceId(uri), desc);
+        DeviceId deviceId = deviceId(uri);
+        dps.deviceConnected(deviceId, desc);
+
+        JsonNode ports = node.get("ports");
+        if (ports != null) {
+            parsePorts(dps, deviceId, ports);
+        }
+    }
+
+    // Parses the given node with list of device ports.
+    private void parsePorts(DeviceProviderService dps, DeviceId deviceId, JsonNode nodes) {
+        List<PortDescription> ports = new ArrayList<>();
+        for (JsonNode node : nodes) {
+            ports.add(parsePort(node));
+        }
+        dps.updatePorts(deviceId, ports);
+    }
+
+    // Parses the given node with port information.
+    private PortDescription parsePort(JsonNode node) {
+        Port.Type type = Port.Type.valueOf(node.path("type").asText("COPPER"));
+        return new DefaultPortDescription(portNumber(node.path("port").asLong(0)),
+                                          node.path("enabled").asBoolean(true),
+                                          type, node.path("speed").asLong(1_000));
     }
 
     // Parses the given JSON and provides links as configured.

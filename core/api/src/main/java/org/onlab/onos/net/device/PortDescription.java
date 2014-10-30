@@ -18,12 +18,12 @@ package org.onlab.onos.net.device;
 import org.onlab.onos.net.Description;
 import org.onlab.onos.net.PortNumber;
 
+import static org.onlab.onos.net.Port.Type;
+
 /**
  * Information about a port.
  */
 public interface PortDescription extends Description {
-
-    // TODO: possibly relocate this to a common ground so that this can also used by host tracking if required
 
     /**
      * Returns the port number.
@@ -38,5 +38,19 @@ public interface PortDescription extends Description {
      * @return true if the port is active and has carrier signal
      */
     boolean isEnabled();
+
+    /**
+     * Returns the port type.
+     *
+     * @return port type
+     */
+    Type type();
+
+    /**
+     * Returns the current port speed in Mbps.
+     *
+     * @return current port speed
+     */
+    long portSpeed();
 
 }

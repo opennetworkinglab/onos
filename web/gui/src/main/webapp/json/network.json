@@ -59,54 +59,72 @@
             "src": "of:0000000000000001",
             "dst": "of:0000000000000002",
             "type": "optical",
+            "srcPort": 1,
+            "dstPort": 2,
             "linkWidth": 1.5
         },
         {
             "src": "of:0000000000000001",
             "dst": "of:0000000000000003",
             "type": "optical",
+            "srcPort": 2,
+            "dstPort": 5,
             "linkWidth": 1.5
         },
         {
             "src": "of:0000000000000001",
             "dst": "of:0000000000000004",
             "type": "optical",
+            "srcPort": 3,
+            "dstPort": 2,
             "linkWidth": 1.5
         },
         {
             "src": "of:0000000000000002",
             "dst": "of:0000000000000003",
             "type": "optical",
+            "srcPort": 3,
+            "dstPort": 4,
             "linkWidth": 1.5
         },
         {
             "src": "of:0000000000000002",
             "dst": "of:0000000000000004",
             "type": "optical",
+            "srcPort": 4,
+            "dstPort": 1,
             "linkWidth": 1.5
         },
         {
             "src": "of:0000000000000003",
             "dst": "of:0000000000000004",
             "type": "optical",
+            "srcPort": 3,
+            "dstPort": 3,
             "linkWidth": 1.5
         },
         {
             "src": "of:0000000000000013",
             "dst": "of:0000000000000003",
             "type": "direct",
+            "srcPort": 1,
+            "dstPort": 7,
             "linkWidth": 1.0
         },
         {
             "src": "of:0000000000000012",
             "dst": "of:0000000000000002",
             "type": "direct",
+            "srcPort": 1,
+            "dstPort": 9,
             "linkWidth": 1.0
         },
         {
             "src": "of:0000000000000011",
             "dst": "of:0000000000000001",
             "type": "direct",
+            "srcPort": 1,
+            "dstPort": 6,
             "linkWidth": 1.0
         }
     ],

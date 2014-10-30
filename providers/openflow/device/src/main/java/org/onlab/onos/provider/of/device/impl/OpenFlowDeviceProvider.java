@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
@@ -43,14 +44,19 @@ import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.Port.Type.COPPER;
+import static org.onlab.onos.net.Port.Type.FIBER;
 import static org.onlab.onos.openflow.controller.Dpid.dpid;
 import static org.onlab.onos.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -63,6 +69,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class OpenFlowDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private static final Logger LOG = getLogger(OpenFlowDeviceProvider.class);
+    private static final long MBPS = 1_000 * 1_000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
@@ -122,9 +129,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
         //if (!checkChannel(device, sw)) {
-          //  LOG.error("Failed to probe device {} on sw={}", device, sw);
+        //  LOG.error("Failed to probe device {} on sw={}", device, sw);
         //  providerService.deviceDisconnected(device.id());
-            //return;
+        //return;
         //}
 
         // Prompt an update of port information. We can use any XID for this.
@@ -143,13 +150,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     // Checks if the OF channel is connected.
     //private boolean checkChannel(Device device, OpenFlowSwitch sw) {
-        // FIXME if possible, we might want this to be part of
-        // OpenFlowSwitch interface so the driver interface isn't misused.
+    // FIXME if possible, we might want this to be part of
+    // OpenFlowSwitch interface so the driver interface isn't misused.
     //    if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
-      //      return false;
-  //      }
+    //      return false;
+    //      }
     //    return true;
-   // }
+    // }
 
     @Override
     public void roleChanged(Device device, MastershipRole newRole) {
@@ -188,7 +195,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                                                  sw.hardwareDescription(),
                                                  sw.softwareDescription(),
                                                  sw.serialNumber(),
-                                                cId);
+                                                 cId);
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
         }
@@ -244,8 +251,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @param ports the list of ports
          * @return list of portdescriptions
          */
-        private List<PortDescription> buildPortDescriptions(
-                List<OFPortDesc> ports) {
+        private List<PortDescription> buildPortDescriptions(List<OFPortDesc> ports) {
             final List<PortDescription> portDescs = new ArrayList<>(ports.size());
             for (OFPortDesc port : ports) {
                 portDescs.add(buildPortDescription(port));
@@ -260,12 +266,25 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @return portDescription for the port.
          */
         private PortDescription buildPortDescription(OFPortDesc port) {
-            final PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
-            final boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
-                    !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-            return new DefaultPortDescription(portNo, enabled);
+            PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+            boolean enabled =
+                    !port.getState().contains(OFPortState.LINK_DOWN) &&
+                            !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
+            return new DefaultPortDescription(portNo, enabled, type, portSpeed(port));
         }
 
+        private long portSpeed(OFPortDesc port) {
+            if (port.getVersion() == OFVersion.OF_13) {
+                return port.getCurrSpeed() / MBPS;
+            }
+
+            PortSpeed portSpeed = PortSpeed.SPEED_NONE;
+            for (OFPortFeatures feat : port.getCurr()) {
+                portSpeed = PortSpeed.max(portSpeed, feat.getPortSpeed());
+            }
+            return portSpeed.getSpeedBps() / MBPS;
+        }
     }
 
 }

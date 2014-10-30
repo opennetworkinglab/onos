@@ -21,6 +21,26 @@ package org.onlab.onos.net;
  */
 public interface Port extends Annotated {
 
+    /** Represents coarse port type classification. */
+    public enum Type {
+        /**
+         * Signifies copper-based connectivity.
+         */
+        COPPER,
+
+        /**
+         * Signifies optical fiber-based connectivity.
+         */
+        FIBER
+    }
+
+    /**
+     * Returns the parent network element to which this port belongs.
+     *
+     * @return parent network element
+     */
+    Element element();
+
     /**
      * Returns the port number.
      *
@@ -36,12 +56,18 @@ public interface Port extends Annotated {
     boolean isEnabled();
 
     /**
-     * Returns the parent network element to which this port belongs.
+     * Returns the port type.
      *
-     * @return parent network element
+     * @return port type
      */
-    Element element();
+    Type type();
 
-    // set of port attributes
+    /**
+     * Returns the current port speed in Mbps.
+     *
+     * @return current port speed
+     */
+    long portSpeed();
 
+    // TODO: more attributes?
 }

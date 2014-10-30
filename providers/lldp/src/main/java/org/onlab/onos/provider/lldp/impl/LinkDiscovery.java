@@ -15,6 +15,22 @@
  */
 package org.onlab.onos.provider.lldp.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.onlab.onos.net.MastershipRole.MASTER;
+import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.onos.mastership.MastershipService;
@@ -35,22 +51,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONOSLLDP;
 import org.onlab.util.Timer;
 import org.slf4j.Logger;
-
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.onlab.onos.net.MastershipRole.MASTER;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Run discovery process from a physical switch. Ports are initially labeled as
@@ -336,7 +336,7 @@ public class LinkDiscovery implements TimerTask {
     private void sendProbes(Long portNumber) {
         // TODO: should have suppression port configuration, not by type
         if (device.type() != Device.Type.ROADM) {
-            log.debug("Sending probes out to {}@{}", portNumber, device.id());
+            log.trace("Sending probes out to {}@{}", portNumber, device.id());
             OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
             pktService.emit(pkt);
             if (useBDDP) {

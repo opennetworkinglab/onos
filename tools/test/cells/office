@@ -1,7 +1,5 @@
 # ProxMox-based cell of ONOS instance; no mininet-box
 
-export ONOS_CELL="office"
-
 export ONOS_NIC="10.1.10.*"
 export OC1="10.1.10.223"
 export OCI="${OC1}"

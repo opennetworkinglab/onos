@@ -101,20 +101,6 @@ public final class Ip6Prefix {
         return this.address.toString() + "/" + this.prefixLen;
     }
 
-    /**
-     * Compares the value of two Ip6Prefix objects.
-     * <p/>
-     * Note the value of the IPv6 address is compared directly between the
-     * objects, and must match exactly for the objects to be considered equal.
-     * This may result in objects which represent the same IP prefix being
-     * classified as unequal, because the unsignificant bits of the address
-     * field don't match (the bits to the right of the prefix length).
-     * <p/>
-     * TODO Change this behavior so that objects that represent the same prefix
-     * are classified as equal according to this equals method.
-     *
-     * @see Object#equals(Object)
-     */
     @Override
     public boolean equals(Object other) {
         if (other == this) {

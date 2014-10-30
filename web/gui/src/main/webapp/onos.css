@@ -28,11 +28,17 @@ body, html {
  * Classes
  */
 
+img#logo {
+    height: 38px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
 span.title {
-    color: #37b;
+    color: #369;
     font-size: 14pt;
     font-style: italic;
-    vertical-align: 10px;
+    vertical-align: 12px;
 }
 
 span.radio {
@@ -41,6 +47,8 @@ span.radio {
 }
 
 span.right {
+    padding-top: 8px;
+    padding-right: 16px;
     float: right;
 }
 
@@ -89,14 +97,13 @@ svg .link {
 }
 
 svg .link.host {
-    stroke: #6a6;
-    stroke-dasharray: 3,3;
+    stroke: #666;
+    stroke-width: 1px;
+    Xstroke-dasharray: 3,3;
 }
 
 svg .node.device rect {
-    stroke-width: 3.0px;
-    stroke: white;
-    stroke-dasharray: 2,2;
+    stroke-width: 1.5px;
 
     transition: opacity 250ms;
     -webkit-transition: opacity 250ms;
@@ -104,19 +111,21 @@ svg .node.device rect {
 }
 
 svg .node.device.fixed rect {
-    stroke-width: 0;
+    stroke-width: 1.5;
+    stroke: #ccc;
+    Xstroke-dasharray: 4,2;
 }
 
 svg .node.device.roadm rect {
-    fill: #229;
+    fill: #03c;
 }
 
 svg .node.device.switch rect {
-    fill: #55f;
+    fill: #06f;
 }
 
 svg .node.host circle {
-    fill: #898;
+    fill: #c96;
     stroke: #000;
 }
 
@@ -148,7 +157,7 @@ svg .node.inactive rect,
 svg .node.inactive circle,
 svg .node.inactive text,
 svg .node.inactive image {
-    opacity: .05;
+    opacity: .1;
 }
 
 svg .node.inactive.selected rect,
@@ -199,8 +208,9 @@ body {
 #mast {
     height: 36px;
     padding: 4px;
-    background-color: #ccc;
+    background-color: #bbb;
     vertical-align: baseline;
+    box-shadow: 0px 2px 8px #777;
 }
 
 #frame {
@@ -214,19 +224,27 @@ body {
     z-index: 100;
     display: block;
     top: 10%;
-    width: 300px;
-    height: 80%;
-    right: -320px;
+    width: 280px;
+    right: -300px;
     opacity: 0;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(255,255,255,0.5);
+
     padding: 10px;
-    color: white;
+    color: black;
     font-size: 10pt;
+    box-shadow: 2px 2px 16px #777;
 }
 
 #flyout h2 {
     margin: 8px 4px;
-    color: yellow;
+    color: black;
+    vertical-align: middle;
+}
+
+#flyout h2 img {
+    height: 32px;
+    padding-right: 8px;
+    vertical-align: middle;
 }
 
 #flyout p, table {
@@ -235,11 +253,18 @@ body {
 
 #flyout td.label {
     font-style: italic;
-    color: #ccf;
+    color: #777;
     padding-right: 12px;
 }
 
 #flyout td.value {
 
+}
+
+#flyout hr {
+    height: 1px;
+    color: #ccc;
+    background-color: #ccc;
+    border: 0;
 }
 

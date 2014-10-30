@@ -291,8 +291,9 @@ public class SimpleDeviceStore
                                    Port newPort,
                                    Map<PortNumber, Port> ports) {
         if (oldPort.isEnabled() != newPort.isEnabled() ||
+                oldPort.type() != newPort.type() ||
+                oldPort.portSpeed() != newPort.portSpeed() ||
                 !AnnotationsUtil.isEqual(oldPort.annotations(), newPort.annotations())) {
-
             ports.put(oldPort.number(), newPort);
             return new DeviceEvent(PORT_UPDATED, device, newPort);
         }
@@ -510,7 +511,10 @@ public class SimpleDeviceStore
             }
         }
 
-        return new DefaultPort(device, number, isEnabled, annotations);
+        return portDesc == null ?
+                new DefaultPort(device, number, false, annotations) :
+                new DefaultPort(device, number, isEnabled, portDesc.type(),
+                                portDesc.portSpeed(), annotations);
     }
 
     /**

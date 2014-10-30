@@ -23,6 +23,8 @@ import org.onlab.packet.ChassisId;
 import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.Port.Type.COPPER;
+import static org.onlab.onos.net.Port.Type.FIBER;
 import static org.onlab.onos.net.PortNumber.portNumber;
 
 /**
@@ -35,15 +37,16 @@ public class DefaultPortTest {
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final PortNumber P1 = portNumber(1);
     private static final PortNumber P2 = portNumber(2);
+    private static final long SP1 = 1_000_000;
 
     @Test
     public void testEquality() {
         Device device = new DefaultDevice(PID, DID1, SWITCH, "m", "h", "s", "n",
                                           new ChassisId());
-        Port p1 = new DefaultPort(device, portNumber(1), true);
-        Port p2 = new DefaultPort(device, portNumber(1), true);
-        Port p3 = new DefaultPort(device, portNumber(2), true);
-        Port p4 = new DefaultPort(device, portNumber(2), true);
+        Port p1 = new DefaultPort(device, portNumber(1), true, COPPER, SP1);
+        Port p2 = new DefaultPort(device, portNumber(1), true, COPPER, SP1);
+        Port p3 = new DefaultPort(device, portNumber(2), true, FIBER, SP1);
+        Port p4 = new DefaultPort(device, portNumber(2), true, FIBER, SP1);
         Port p5 = new DefaultPort(device, portNumber(1), false);
 
         new EqualsTester().addEqualityGroup(p1, p2)
@@ -56,10 +59,12 @@ public class DefaultPortTest {
     public void basics() {
         Device device = new DefaultDevice(PID, DID1, SWITCH, "m", "h", "s", "n",
                                           new ChassisId());
-        Port port = new DefaultPort(device, portNumber(1), true);
+        Port port = new DefaultPort(device, portNumber(1), true, FIBER, SP1);
         assertEquals("incorrect element", device, port.element());
         assertEquals("incorrect number", portNumber(1), port.number());
         assertEquals("incorrect state", true, port.isEnabled());
+        assertEquals("incorrect speed", SP1, port.portSpeed());
+        assertEquals("incorrect type", FIBER, port.type());
     }
 
 }

@@ -543,8 +543,9 @@ public class GossipDeviceStore
                                    Port newPort,
                                    Map<PortNumber, Port> ports) {
         if (oldPort.isEnabled() != newPort.isEnabled() ||
-            !AnnotationsUtil.isEqual(oldPort.annotations(), newPort.annotations())) {
-
+                oldPort.type() != newPort.type() ||
+                oldPort.portSpeed() != newPort.portSpeed() ||
+                !AnnotationsUtil.isEqual(oldPort.annotations(), newPort.annotations())) {
             ports.put(oldPort.number(), newPort);
             return new DeviceEvent(PORT_UPDATED, device, newPort);
         }
@@ -867,7 +868,10 @@ public class GossipDeviceStore
             }
         }
 
-        return new DefaultPort(device, number, isEnabled, annotations);
+        return portDesc == null ?
+                new DefaultPort(device, number, false, annotations) :
+                new DefaultPort(device, number, isEnabled, portDesc.value().type(),
+                                portDesc.value().portSpeed(), annotations);
     }
 
     /**

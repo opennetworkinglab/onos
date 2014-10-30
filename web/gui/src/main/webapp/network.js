@@ -37,9 +37,10 @@
                 layering: true,
                 collisionPrevention: true
             },
-            XjsonUrl: 'rs/topology/graph',
-            jsonUrl: 'json/network.json',
-            jsonPrefix: 'json/',
+            jsonUrl: 'rs/topology/graph',
+            jsonPrefix: '',
+            XjsonUrl: 'json/network.json',
+            XjsonPrefix: 'json/',
             iconUrl: {
                 device: 'img/device.png',
                 host: 'img/host.png',
@@ -238,6 +239,9 @@
     function processKeyEvent() {
         var code = d3.event.keyCode;
         switch (code) {
+            case 71:    // G
+                cycleLayout();
+                break;
             case 76:    // L
                 cycleLabels();
                 break;
@@ -249,6 +253,11 @@
                 break;
         }
 
+    }
+
+    function cycleLayout() {
+        config.options.layering = !config.options.layering;
+        network.force.resume();
     }
 
     function cycleLabels() {
@@ -688,7 +697,8 @@
     }
 
     function iconUrl(d) {
-        return config.iconUrl[d.icon];
+        return 'img/' + d.type + '.png';
+//        return config.iconUrl[d.icon];
     }
 
     function translate(x, y) {
@@ -889,8 +899,11 @@
     }
 
     function detailUrl(id) {
-        var safeId = id.replace(/[^a-z0-9]/gi, '_');
-        return config.jsonPrefix + safeId + '.json';
+        if (config.jsonPrefix) {
+            var safeId = id.replace(/[^a-z0-9]/gi, '_');
+            return config.jsonPrefix + safeId + '.json';
+        }
+        return config.jsonUrl + '/' + encodeURIComponent(id);
     }
 
     function flyinPane(obj) {
@@ -924,16 +937,28 @@
     function displayDetails(data, pane) {
         $('#flyout').empty();
 
-        pane.append('h2').text(data.id);
-
-        var table = pane.append("table"),
+        var title = pane.append("h2"),
+            table = pane.append("table"),
             tbody = table.append("tbody");
+
+        $('<img src="img/' + data.type + '.png">').appendTo(title);
+        $('<span>').attr('class', 'icon').text(data.id).appendTo(title);
+
 
         // TODO: consider using d3 data bind to TR/TD
 
         data.propOrder.forEach(function(p) {
-            addProp(tbody, p, data.props[p]);
+            if (p === '-') {
+                addSep(tbody);
+            } else {
+                addProp(tbody, p, data.props[p]);
+            }
         });
+
+        function addSep(tbody) {
+            var tr = tbody.append('tr');
+            $('<hr>').appendTo(tr.append('td').attr('colspan', 2));
+        }
 
         function addProp(tbody, label, value) {
             var tr = tbody.append('tr');

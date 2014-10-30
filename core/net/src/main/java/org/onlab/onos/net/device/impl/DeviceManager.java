@@ -67,8 +67,8 @@ import com.google.common.collect.HashMultimap;
 @Component(immediate = true)
 @Service
 public class DeviceManager
-    extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
-    implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
+        extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
+        implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String PORT_NUMBER_NULL = "Port number cannot be null";
@@ -227,8 +227,8 @@ public class DeviceManager
 
     // Personalized device provider service issued to the supplied provider.
     private class InternalDeviceProviderService
-    extends AbstractProviderService<DeviceProvider>
-    implements DeviceProviderService {
+            extends AbstractProviderService<DeviceProvider>
+            implements DeviceProviderService {
 
         InternalDeviceProviderService(DeviceProvider provider) {
             super(provider);
@@ -236,7 +236,7 @@ public class DeviceManager
 
         @Override
         public void deviceConnected(DeviceId deviceId,
-                DeviceDescription deviceDescription) {
+                                    DeviceDescription deviceDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
@@ -267,7 +267,7 @@ public class DeviceManager
             deviceClockProviderService.setMastershipTerm(deviceId, term);
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
-                    deviceId, deviceDescription);
+                                                           deviceId, deviceDescription);
 
             // If there was a change of any kind, tell the provider
             // that this instance is the master.
@@ -337,14 +337,14 @@ public class DeviceManager
 
         @Override
         public void updatePorts(DeviceId deviceId,
-                List<PortDescription> portDescriptions) {
+                                List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescriptions,
-                    "Port descriptions list cannot be null");
+                         "Port descriptions list cannot be null");
             checkValidity();
 
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
-                    deviceId, portDescriptions);
+                                                         deviceId, portDescriptions);
             for (DeviceEvent event : events) {
                 post(event);
             }
@@ -352,13 +352,13 @@ public class DeviceManager
 
         @Override
         public void portStatusChanged(DeviceId deviceId,
-                PortDescription portDescription) {
+                                      PortDescription portDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
 
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
-                        deviceId, portDescription);
+                                                             deviceId, portDescription);
             if (event != null) {
                 log.info("Device {} port {} status changed", deviceId, event
                         .port().number());
@@ -370,7 +370,7 @@ public class DeviceManager
         public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
             // FIXME: implement response to this notification
             log.warn("Failed to assert role [{}] onto Device {}", role,
-                    deviceId);
+                     deviceId);
             if (role == MastershipRole.MASTER) {
                 mastershipService.relinquishMastership(deviceId);
                 // TODO: Shouldn't we be triggering event?
@@ -393,7 +393,7 @@ public class DeviceManager
         // random cache size
         private final int cacheSize = 5;
         // temporarily stores term number + events to check for duplicates. A hack.
-        private HashMultimap<Integer, RoleInfo>  eventCache =
+        private HashMultimap<Integer, RoleInfo> eventCache =
                 HashMultimap.create();
 
         @Override
@@ -407,14 +407,14 @@ public class DeviceManager
                 // TODO duplicate suppression should probably occur in the MastershipManager
                 // itself, so listeners that can't deal with duplicates don't have to
                 // so this check themselves.
-                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
-                    return;
-                }
+//                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
+//                    return;
+//                }
 
                 if (!myNodeId.equals(term.master())) {
                     // something went wrong in consistency, let go
                     log.warn("Mastership has changed after this event."
-                            + "Term Service suggests {} for {}", term, did);
+                                     + "Term Service suggests {} for {}", term, did);
                     // FIXME: Is it possible to let go of MASTER role
                     //        but remain on STANDBY list?
                     mastershipService.relinquishMastership(did);
@@ -435,11 +435,12 @@ public class DeviceManager
                         return;
                     }
                     //flag the device as online. Is there a better way to do this?
-                    DeviceEvent devEvent = store.createOrUpdateDevice(device.providerId(), did,
-                            new DefaultDeviceDescription(
-                                    did.uri(), device.type(), device.manufacturer(),
-                                    device.hwVersion(), device.swVersion(),
-                                    device.serialNumber(), device.chassisId()));
+                    DeviceEvent devEvent =
+                            store.createOrUpdateDevice(device.providerId(), did,
+                                                       new DefaultDeviceDescription(
+                                                               did.uri(), device.type(), device.manufacturer(),
+                                                               device.hwVersion(), device.swVersion(),
+                                                               device.serialNumber(), device.chassisId()));
                     post(devEvent);
                 }
                 applyRole(did, MastershipRole.MASTER);
@@ -476,7 +477,7 @@ public class DeviceManager
 
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate
-    implements DeviceStoreDelegate {
+            implements DeviceStoreDelegate {
         @Override
         public void notify(DeviceEvent event) {
             post(event);

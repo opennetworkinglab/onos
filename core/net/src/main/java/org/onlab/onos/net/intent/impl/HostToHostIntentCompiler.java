@@ -15,6 +15,10 @@
  */
 package org.onlab.onos.net.intent.impl;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,12 +36,9 @@ import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.topology.LinkWeight;
+import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.TopologyEdge;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 import static org.onlab.onos.net.flow.DefaultTrafficSelector.builder;
 
@@ -85,7 +86,7 @@ public class HostToHostIntentCompiler
         TrafficSelector selector = builder(intent.selector())
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
         return new PathIntent(intent.appId(), selector, intent.treatment(),
-                              path);
+                              path, new LinkResourceRequest[0]);
     }
 
     private Path getPath(HostId one, HostId two) {
