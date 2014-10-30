@@ -201,6 +201,7 @@ public class KryoSerializerTest {
     @Test
     public void testMastershipTerm() {
         testSerialized(MastershipTerm.of(new NodeId("foo"), 2));
+        testSerialized(MastershipTerm.of(null, 0));
     }
 
     @Test

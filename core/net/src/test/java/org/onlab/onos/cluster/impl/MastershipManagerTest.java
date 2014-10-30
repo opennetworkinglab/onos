@@ -139,14 +139,14 @@ public class MastershipManagerTest {
     public void termService() {
         MastershipTermService ts = mgr.requestTermService();
 
-        //term = 0 for both
+        //term = 1 for both
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
-        assertEquals("inconsistent term: ", 0, ts.getMastershipTerm(DEV_MASTER).termNumber());
+        assertEquals("inconsistent term: ", 1, ts.getMastershipTerm(DEV_MASTER).termNumber());
 
-        //hand devices to NID_LOCAL and back: term = 2
+        //hand devices to NID_LOCAL and back: term = 1 + 2
         mgr.setRole(NID_OTHER, DEV_MASTER, MASTER);
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
-        assertEquals("inconsistent terms: ", 2, ts.getMastershipTerm(DEV_MASTER).termNumber());
+        assertEquals("inconsistent terms: ", 3, ts.getMastershipTerm(DEV_MASTER).termNumber());
     }
 
     private final class TestClusterService implements ClusterService {

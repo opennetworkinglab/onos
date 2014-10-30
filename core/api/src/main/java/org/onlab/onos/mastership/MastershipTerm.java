@@ -55,13 +55,8 @@ public final class MastershipTerm {
         }
         if (other instanceof MastershipTerm) {
             MastershipTerm that = (MastershipTerm) other;
-            if (!this.master.equals(that.master)) {
-                return false;
-            }
-            if (this.termNumber != that.termNumber) {
-                return false;
-            }
-            return true;
+            return Objects.equals(this.master, that.master) &&
+                    Objects.equals(this.termNumber, that.termNumber);
         }
         return false;
     }

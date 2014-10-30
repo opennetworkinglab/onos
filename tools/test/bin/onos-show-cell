@@ -40,7 +40,6 @@ fi
 # Load the cell setup
 . $ONOS_ROOT/tools/test/cells/${cell}
 
-echo "ONOS_CELL=${ONOS_CELL}"
 echo "ONOS_NIC=${ONOS_NIC}"
 for n in {0..9}; do
     ocn="OC${n}"

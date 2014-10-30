@@ -257,7 +257,8 @@ public class DeviceManager
             MastershipTerm term = mastershipService.requestTermService()
                     .getMastershipTerm(deviceId);
 
-            if (!term.master().equals(clusterService.getLocalNode().id())) {
+            final NodeId myNodeId = clusterService.getLocalNode().id();
+            if (!myNodeId.equals(term.master())) {
                 // lost mastership after requestRole told this instance was MASTER.
                 log.info("lost mastership before getting term info.");
                 return;
@@ -451,6 +452,35 @@ public class DeviceManager
                     return;
                 }
                 applyRole(did, MastershipRole.STANDBY);
+            } else {
+                // Event suggests that this Node has no connection to this Device
+                // confirm.
+                final Device device = getDevice(did);
+                if (!isReachable(device)) {
+                    // not connection to device, as expected
+                    return;
+                }
+                // connection seems to exist
+                log.info("Detected mastership info mismatch, requesting Role");
+                mastershipService.requestRoleFor(did);
+                final MastershipTerm term = termService.getMastershipTerm(did);
+                if (myNodeId.equals(term.master())) {
+                    // became MASTER
+                    // TODO: consider slicing out method for applying MASTER role
+                    deviceClockProviderService.setMastershipTerm(did, term);
+
+                    //flag the device as online. Is there a better way to do this?
+                    DeviceEvent devEvent =
+                            store.createOrUpdateDevice(device.providerId(), did,
+                                                       new DefaultDeviceDescription(
+                                                               did.uri(), device.type(), device.manufacturer(),
+                                                               device.hwVersion(), device.swVersion(),
+                                                               device.serialNumber(), device.chassisId()));
+                    applyRole(did, MastershipRole.MASTER);
+                    post(devEvent);
+                } else {
+                    applyRole(did, MastershipRole.STANDBY);
+                }
             }
         }
 

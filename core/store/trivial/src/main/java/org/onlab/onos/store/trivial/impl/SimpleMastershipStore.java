@@ -62,6 +62,9 @@ public class SimpleMastershipStore
 
     public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
+    private static final int NOTHING = 0;
+    private static final int INIT = 1;
+
     private ControllerNode instance =
             new DefaultControllerNode(new NodeId("local"), LOCALHOST);
 
@@ -97,7 +100,7 @@ public class SimpleMastershipStore
                     break;
                 case NONE:
                     masterMap.put(deviceId, nodeId);
-                    termMap.put(deviceId, new AtomicInteger());
+                    termMap.put(deviceId, new AtomicInteger(INIT));
                     backups.add(nodeId);
                     break;
                 default:
@@ -149,7 +152,7 @@ public class SimpleMastershipStore
                     NodeId rel = reelect(node);
                     if (rel == null) {
                         masterMap.put(deviceId, node);
-                        termMap.put(deviceId, new AtomicInteger());
+                        termMap.put(deviceId, new AtomicInteger(INIT));
                         role = MastershipRole.MASTER;
                     }
                     backups.add(node);
@@ -159,7 +162,7 @@ public class SimpleMastershipStore
                 //first to get to it, say we are master
                 synchronized (this) {
                     masterMap.put(deviceId, node);
-                    termMap.put(deviceId, new AtomicInteger());
+                    termMap.put(deviceId, new AtomicInteger(INIT));
                     backups.add(node);
                     role = MastershipRole.MASTER;
                 }
@@ -194,9 +197,8 @@ public class SimpleMastershipStore
 
     @Override
     public MastershipTerm getTermFor(DeviceId deviceId) {
-        if ((masterMap.get(deviceId) == null) ||
-                (termMap.get(deviceId) == null)) {
-            return null;
+        if ((termMap.get(deviceId) == null)) {
+            return MastershipTerm.of(masterMap.get(deviceId), NOTHING);
         }
         return MastershipTerm.of(
                 masterMap.get(deviceId), termMap.get(deviceId).get());
@@ -220,7 +222,7 @@ public class SimpleMastershipStore
                 case STANDBY:
                 case NONE:
                     if (!termMap.containsKey(deviceId)) {
-                        termMap.put(deviceId, new AtomicInteger());
+                        termMap.put(deviceId, new AtomicInteger(INIT));
                     }
                     backups.add(nodeId);
                     break;
