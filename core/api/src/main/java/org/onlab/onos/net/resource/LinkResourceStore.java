@@ -20,20 +20,52 @@ import java.util.Set;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
 
-
 /**
  * Manages link resources.
  */
 public interface LinkResourceStore {
+    /**
+     * Returns free resources for given link.
+     *
+     * @param link a target link
+     * @return free resources for given link
+     */
     Set<ResourceAllocation> getFreeResources(Link link);
 
+    /**
+     * Allocates resources.
+     *
+     * @param allocations resources to be allocated
+     */
     void allocateResources(LinkResourceAllocations allocations);
 
+    /**
+     * Releases resources.
+     *
+     * @param allocations resources to be released
+     */
     void releaseResources(LinkResourceAllocations allocations);
 
+    /**
+     * Returns resources allocated for an Intent.
+     *
+     * @param intentId the target Intent's ID
+     * @return allocated resources
+     */
     LinkResourceAllocations getAllocations(IntentId intentId);
 
+    /**
+     * Returns resources allocated for a link.
+     *
+     * @param link the target link
+     * @return allocated resources
+     */
     Iterable<LinkResourceAllocations> getAllocations(Link link);
 
+    /**
+     * Returns all allocated resources.
+     *
+     * @return allocated resources
+     */
     Iterable<LinkResourceAllocations> getAllocations();
 }
