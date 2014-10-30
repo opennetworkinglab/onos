@@ -16,6 +16,7 @@
 package org.onlab.onos.store.mastership.impl;
 
 import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
+import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
 
 import java.util.Map;
 import java.util.Set;
@@ -273,8 +274,7 @@ implements MastershipStore {
                 case MASTER:
                     event = reelect(nodeId, deviceId, rv);
                     if (event != null) {
-                        Integer term = terms.get(deviceId);
-                        terms.put(deviceId, ++term);
+                        updateTerm(deviceId);
                     }
                     //fall through to reinforce relinquishment
                 case STANDBY:
@@ -341,16 +341,28 @@ implements MastershipStore {
 
     //adds or updates term information.
     private void updateTerm(DeviceId deviceId) {
-        terms.lock(deviceId);
-        try {
-            Integer term = terms.get(deviceId);
+        Integer term = terms.get(deviceId);
+        if (term == null) {
+            term = terms.putIfAbsent(deviceId, INIT);
             if (term == null) {
-                terms.put(deviceId, INIT);
-            } else {
-                terms.put(deviceId, ++term);
+                // initial term set successfully
+                return;
             }
-        } finally {
-            terms.unlock(deviceId);
+            // concurrent initialization detected,
+            // fall through to try incrementing
+        }
+        Integer nextTerm = term + 1;
+        boolean success = terms.replace(deviceId, term, nextTerm);
+        while (!success) {
+            term = terms.get(deviceId);
+            if (term == null) {
+                // something is very wrong, but write something to avoid
+                // infinite loop.
+                log.warn("Term info for {} disappeared.", deviceId);
+                term = putIfAbsent(terms, deviceId, nextTerm);
+            }
+            nextTerm = term + 1;
+            success = terms.replace(deviceId, term, nextTerm);
         }
     }
 
