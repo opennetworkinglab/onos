@@ -38,6 +38,7 @@
                 collisionPrevention: true
             },
             XjsonUrl: 'rs/topology/graph',
+            XjsonPrefix: '',
             jsonUrl: 'json/network.json',
             jsonPrefix: 'json/',
             iconUrl: {
@@ -889,8 +890,11 @@
     }
 
     function detailUrl(id) {
-        var safeId = id.replace(/[^a-z0-9]/gi, '_');
-        return config.jsonPrefix + safeId + '.json';
+        if (config.jsonPrefix) {
+            var safeId = id.replace(/[^a-z0-9]/gi, '_');
+            return config.jsonPrefix + safeId + '.json';
+        }
+        return config.jsonUrl + '/' + encodeURIComponent(id);
     }
 
     function flyinPane(obj) {
