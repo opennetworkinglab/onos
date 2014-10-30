@@ -9,4 +9,4 @@
 [ "$1" = "-w" ] && shift && onos-wait-for-start $1
 
 [ -n "$1" ] && OCI=$1 && shift
-client -h $OCI "$@" 2>/dev/null
+client -h $OCI -u karaf "$@" 2>/dev/null

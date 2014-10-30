@@ -97,7 +97,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
     /**
      * Builds a list of treatments following the following order.
-     * Modifications -> Group -> Output (including drop)
+     * Modifications -&gt; Group -&gt; Output (including drop)
      */
     public static final class Builder implements TrafficTreatment.Builder {
 

@@ -76,10 +76,10 @@ public final class IpAddress implements Comparable<IpAddress> {
     /**
      * Converts a byte array and a given offset from the beginning of the
      * array into an IP address.
-     * <p/>
+     * <p>
      * The IP address is stored in network byte order (i.e., the most
      * significant byte first).
-     *
+     * </p>
      * @param value the value to use
      * @param offset the offset in bytes from the beginning of the byte array
      * @return an IP address

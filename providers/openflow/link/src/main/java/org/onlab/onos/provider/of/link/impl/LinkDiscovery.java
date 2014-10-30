@@ -62,9 +62,6 @@ import org.slf4j.Logger;
  * fast. Every probeRate milliseconds, loop over all fast ports and send an
  * LLDP, send an LLDP for a single slow port. Based on FlowVisor topology
  * discovery implementation.
- *
- * TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen
- * for flow_removed messages
  */
 @Deprecated
 public class LinkDiscovery implements TimerTask {
@@ -331,7 +328,6 @@ public class LinkDiscovery implements TimerTask {
      * port.
      *
      * @param t timeout
-     * @throws Exception
      */
     @Override
     public void run(final Timeout t) {

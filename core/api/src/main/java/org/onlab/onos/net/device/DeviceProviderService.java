@@ -46,7 +46,6 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
     /**
      * Sends information about all ports of a device. It is up to the core to
      * determine what has changed.
-     * <p/>
      *
      * @param deviceId         identity of the device
      * @param portDescriptions list of device ports

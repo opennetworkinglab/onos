@@ -28,8 +28,9 @@ import com.google.common.base.MoreObjects;
 /**
  * Represents an address of a {@link BgpSpeaker} configured on an
  * {@link Interface}.
- * <p/>
+ * <p>
  * Each InterfaceAddress includes the interface name and an IP address.
+ * </p>
  */
 public class InterfaceAddress {
     private final ConnectPoint connectPoint;

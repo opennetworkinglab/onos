@@ -27,14 +27,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+// TODO: As a long term solution, a module providing general network configuration to ONOS nodes should be used.
+
 /**
- * SDN-IP Config Reader provides IConfigInfoService
- * by reading from an SDN-IP configuration file.
- * It must be enabled on the nodes within the cluster
+ * SDN-IP Config Reader provides IConfigInfoService by reading from an
+ * SDN-IP configuration file. It must be enabled on the nodes within the cluster
  * not running SDN-IP.
- * <p/>
- * TODO: As a long term solution, a module providing
- * general network configuration to ONOS nodes should be used.
  */
 public class SdnIpConfigReader implements SdnIpConfigService {
 
@@ -85,7 +83,7 @@ public class SdnIpConfigReader implements SdnIpConfigService {
         }*/
     }
 
-    /**
+    /*
      * To find the Interface which has longest matchable IP prefix (sub-network
      *  prefix) to next hop IP address.
      *

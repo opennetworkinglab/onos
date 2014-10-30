@@ -36,9 +36,8 @@ public class PortAddresses {
 
     /**
      * Constructs a PortAddresses object for the given connection point, with a
-     * set of IP addresses and a MAC address.
-     * <p/>
-     * Both address parameters are optional and can be set to null.
+     * set of IP addresses and a MAC address. Both address parameters are
+     * optional and can be set to null.
      *
      * @param connectPoint the connection point these addresses are for
      * @param ipAddresses a set of interface IP addresses

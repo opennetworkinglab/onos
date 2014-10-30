@@ -51,7 +51,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      *
      * @param type   device event type
      * @param device event device subject
-     * @param info mastership role information subject
+     * @param info   mastership role information subject
      */
     public MastershipEvent(Type type, DeviceId device, RoleInfo info) {
         super(type, device);
@@ -64,7 +64,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      *
      * @param type   mastership event type
      * @param device event device subject
-     * @param master master ID subject
+     * @param info   role information
      * @param time   occurrence time
      */
     public MastershipEvent(Type type, DeviceId device, RoleInfo info, long time) {

@@ -24,14 +24,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * External identity of a {@link org.onlab.onos.net.provider.Provider} family.
  * It also carriers two designations of external characteristics, the URI
  * scheme and primary/ancillary indicator.
- * <p/>
+ * <p>
  * The device URI scheme is used to determine applicability of a provider to
  * operations on a specific device. The ancillary indicator serves to designate
  * a provider as a primary or ancillary.
- *
+ * </p>
+ * <p>
  * A {@link org.onlab.onos.net.provider.ProviderRegistry} uses this designation
  * to permit only one primary provider per device URI scheme. Multiple
  * ancillary providers can register with the same device URI scheme however.
+ * </p>
  */
 public class ProviderId {
 
@@ -56,8 +58,8 @@ public class ProviderId {
      * The providers are expected to follow the reverse DNS convention, e.g.
      * {@code org.onlab.onos.provider.of.device}
      *
-     * @param scheme    device URI scheme to which this provider is bound, e.g. "of", "snmp"
-     * @param id        string identifier
+     * @param scheme device URI scheme to which this provider is bound, e.g. "of", "snmp"
+     * @param id     string identifier
      */
     public ProviderId(String scheme, String id) {
         this(scheme, id, false);
@@ -68,8 +70,8 @@ public class ProviderId {
      * The providers are expected to follow the reverse DNS convention, e.g.
      * {@code org.onlab.onos.provider.of.device}
      *
-     * @param scheme device URI scheme to which this provider is bound, e.g. "of", "snmp"
-     * @param id     string identifier
+     * @param scheme    device URI scheme to which this provider is bound, e.g. "of", "snmp"
+     * @param id        string identifier
      * @param ancillary ancillary provider indicator
      */
     public ProviderId(String scheme, String id, boolean ancillary) {

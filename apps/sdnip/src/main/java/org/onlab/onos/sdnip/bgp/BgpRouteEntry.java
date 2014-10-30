@@ -114,9 +114,10 @@ public class BgpRouteEntry extends RouteEntry {
 
     /**
      * Tests whether the route is originated from the local AS.
-     * <p/>
+     * <p>
      * The route is considered originated from the local AS if the AS Path
      * is empty or if it begins with an AS_SET.
+     * </p>
      *
      * @return true if the route is originated from the local AS, otherwise
      * false
@@ -134,9 +135,10 @@ public class BgpRouteEntry extends RouteEntry {
 
     /**
      * Gets the BGP Neighbor AS number the route was received from.
-     * <p/>
+     * <p>
      * If the router is originated from the local AS, the return value is
      * zero (BGP_AS_0).
+     * </p>
      *
      * @return the BGP Neighbor AS number the route was received from.
      */
@@ -154,9 +156,10 @@ public class BgpRouteEntry extends RouteEntry {
 
     /**
      * Tests whether the AS Path contains a loop.
-     * <p/>
+     * <p>
      * The test is done by comparing whether the AS Path contains the
      * local AS number.
+     * </p>
      *
      * @param localAsNumber the local AS number to compare against
      * @return true if the AS Path contains a loop, otherwise false
@@ -175,9 +178,10 @@ public class BgpRouteEntry extends RouteEntry {
     /**
      * Compares this BGP route against another BGP route by using the
      * BGP Decision Process.
-     * <p/>
+     * <p>
      * NOTE: The comparison needs to be performed only on routes that have
      * same IP Prefix.
+     * </p>
      *
      * @param other the BGP route to compare against
      * @return true if this BGP route is better than the other BGP route
@@ -389,8 +393,9 @@ public class BgpRouteEntry extends RouteEntry {
 
     /**
      * Compares whether two objects are equal.
-     * <p/>
+     * <p>
      * NOTE: The bgpSession field is excluded from the comparison.
+     * </p>
      *
      * @return true if the two objects are equal, otherwise false.
      */
@@ -422,8 +427,9 @@ public class BgpRouteEntry extends RouteEntry {
 
     /**
      * Computes the hash code.
-     * <p/>
+     * <p>
      * NOTE: We return the base class hash code to avoid expensive computation
+     * </p>
      *
      * @return the object hash code
      */

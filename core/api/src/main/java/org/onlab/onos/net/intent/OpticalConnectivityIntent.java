@@ -28,11 +28,12 @@ public class OpticalConnectivityIntent extends Intent {
     protected ConnectPoint dst;
 
     /**
-     * Constructor.
+     * Creates an optical connectivity intent between the specified
+     * connection points.
      *
-     * @param id  ID for this new Intent object.
-     * @param src The source transponder port.
-     * @param dst The destination transponder port.
+     * @param appId application identification
+     * @param src the source transponder port
+     * @param dst the destination transponder port
      */
     public OpticalConnectivityIntent(ApplicationId appId, ConnectPoint src, ConnectPoint dst) {
         super(id(OpticalConnectivityIntent.class, src, dst),
@@ -51,18 +52,18 @@ public class OpticalConnectivityIntent extends Intent {
     }
 
     /**
-     * Gets source transponder port.
+     * Returns the source transponder port.
      *
-     * @return The source transponder port.
+     * @return source transponder port
      */
     public ConnectPoint getSrcConnectPoint() {
         return src;
     }
 
     /**
-     * Gets destination transponder port.
+     * Returns the destination transponder port.
      *
-     * @return The source transponder port.
+     * @return source transponder port
      */
     public ConnectPoint getDst() {
         return dst;

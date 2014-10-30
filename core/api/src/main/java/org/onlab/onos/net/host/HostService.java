@@ -114,9 +114,7 @@ public interface HostService {
 
     /**
      * Requests the host service to resolve the MAC address for the given IP
-     * address.
-     * <p/>
-     * This will trigger a notification to the host listeners if the MAC
+     * address. This will trigger a notification to the host listeners if the MAC
      * address is found.
      *
      * @param ip IP address to find the MAC address for
@@ -134,8 +132,7 @@ public interface HostService {
      * Retrieves the addresses that have been bound to the given connection
      * point.
      *
-     * @param connectPoint the connection point to retrieve address bindings
-     * for
+     * @param connectPoint the connection point to retrieve address bindings for
      * @return addresses bound to the port
      */
     PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint);

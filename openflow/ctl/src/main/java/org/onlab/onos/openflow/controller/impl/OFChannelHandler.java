@@ -747,8 +747,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * the changes to ports will already be visible once the switch is
          * activated. As a result, no notifications are sent out for these
          * pending portStatus messages.
-         * @param h
-         * @throws SwitchStateException
+         *
+         * @param h the channel handler that received the message
          */
         protected void handlePendingPortStatusMessages(OFChannelHandler h) {
             try {

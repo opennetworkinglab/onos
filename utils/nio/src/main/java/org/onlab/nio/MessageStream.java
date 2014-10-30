@@ -318,10 +318,10 @@ public abstract class MessageStream<M extends Message> {
      * Attempts to flush data, internal stream state and channel availability
      * permitting. Invoked by the driver I/O loop during handling of writable
      * selection key.
-     * <p/>
+     * <p>
      * Resets the internal state flags {@code writeOccurred} and
      * {@code writePending}.
-     *
+     * </p>
      * @throws IOException if implicit flush failed
      */
     void flushIfPossible() throws IOException {

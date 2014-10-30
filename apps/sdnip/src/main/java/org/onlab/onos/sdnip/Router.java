@@ -439,11 +439,12 @@ public class Router implements RouteListener {
 
     /**
      * Processes adding a route entry.
-     * <p/>
+     * <p>
      * Put new route entry into the radix tree. If there was an existing
      * next hop for this prefix, but the next hop was different, then execute
      * deleting old route entry. If the next hop is the SDN domain, we do not
      * handle it at the moment. Otherwise, execute adding a route.
+     * </p>
      *
      * @param routeEntry the route entry to add
      */
@@ -484,11 +485,12 @@ public class Router implements RouteListener {
 
     /**
      * Executes adding a route entry.
-     * <p/>
+     * <p>
      * Find out the egress Interface and MAC address of next hop router for
      * this route entry. If the MAC address can not be found in ARP cache,
      * then this prefix will be put in routesWaitingOnArp queue. Otherwise,
      * new route intent will be created and installed.
+     * </p>
      *
      * @param routeEntry the route entry to add
      */
@@ -614,9 +616,10 @@ public class Router implements RouteListener {
 
     /**
      * Executes deleting a route entry.
-     * <p/>
+     * <p>
      * Removes prefix from radix tree, and if successful, then try to delete
      * the related intent.
+     * </p>
      *
      * @param routeEntry the route entry to delete
      */

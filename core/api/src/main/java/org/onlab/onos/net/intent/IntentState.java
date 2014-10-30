@@ -24,8 +24,9 @@ public enum IntentState {
      * Signifies that the intent has been submitted and will start compiling
      * shortly. However, this compilation may not necessarily occur on the
      * local controller instance.
-     * <p/>
+     * <p>
      * All intent in the runtime take this state first.
+     * </p>
      */
     SUBMITTED,
 
@@ -57,10 +58,11 @@ public enum IntentState {
      * as an attempt to adapt to an anomaly in the network environment.
      * This is a transitional state after which the intent will enter either
      * {@link #FAILED} state or {@link #INSTALLING} state.
-     * <p/>
+     * <p>
      * Exit to the {@link #FAILED} state may be caused by failure to compile
      * or by compiling into the same set of installable intents which have
      * previously failed to be installed.
+     * </p>
      */
     RECOMPILING,
 

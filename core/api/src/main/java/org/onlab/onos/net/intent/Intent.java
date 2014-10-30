@@ -26,8 +26,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of an application level intent.
- * <p/>
+ * <p>
  * Make sure that an Intent should be immutable when a new type is defined.
+ * </p>
  */
 public abstract class Intent implements BatchOperationTarget {
 

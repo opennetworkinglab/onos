@@ -51,10 +51,11 @@ import org.onlab.util.Timer;
 
 /**
  * Monitors hosts on the dataplane to detect changes in host data.
- * <p/>
+ * <p>
  * The HostMonitor can monitor hosts that have already been detected for
  * changes. At an application's request, it can also monitor and actively
  * probe for hosts that have not yet been detected (specified by IP address).
+ * </p>
  */
 public class HostMonitor implements TimerTask {
     private DeviceService deviceService;

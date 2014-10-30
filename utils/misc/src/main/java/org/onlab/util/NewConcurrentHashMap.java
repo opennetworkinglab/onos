@@ -24,8 +24,8 @@ import org.apache.commons.lang3.concurrent.ConcurrentInitializer;
  * Creates an instance of new ConcurrentHashMap on each {@link #get()} call.
  * <p>
  * To be used with
- * {@link org.apache.commons.lang3.concurrent.ConcurrentUtils#createIfAbsent()
- *  ConcurrentUtils#createIfAbsent}
+ * {@link org.apache.commons.lang3.concurrent.ConcurrentUtils#createIfAbsent}
+ * </p>
  *
  * @param <K> ConcurrentHashMap key type
  * @param <V> ConcurrentHashMap value type

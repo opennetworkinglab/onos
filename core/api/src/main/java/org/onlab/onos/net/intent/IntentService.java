@@ -25,20 +25,20 @@ import java.util.concurrent.Future;
 public interface IntentService {
     /**
      * Submits an intent into the system.
-     * <p/>
+     * <p>
      * This is an asynchronous request meaning that any compiling or
      * installation activities may be done at later time.
-     *
+     * </p>
      * @param intent intent to be submitted
      */
     void submit(Intent intent);
 
     /**
      * Withdraws an intent from the system.
-     * <p/>
+     * <p>
      * This is an asynchronous request meaning that the environment may be
      * affected at later time.
-     *
+     * </p>
      * @param intent intent to be withdrawn
      */
     void withdraw(Intent intent);
@@ -54,10 +54,10 @@ public interface IntentService {
     /**
      * Submits a batch of submit &amp; withdraw operations. Such a batch is
      * assumed to be processed together.
-     * <p/>
+     * <p>
      * This is an asynchronous request meaning that the environment may be
      * affected at later time.
-     *
+     * </p>
      * @param operations batch of intent operations
      */
     Future<IntentOperations> execute(IntentOperations operations);

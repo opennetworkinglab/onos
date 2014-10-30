@@ -29,15 +29,17 @@ import com.google.common.base.MoreObjects;
 
 /**
  * Represents a BGP daemon in SDN network.
- * <p/>
+ * <p>
  * Each BGP speaker has a attachment point, which includes a switch DPID and a
  * switch port. Each BGP speaker has one MAC address and several IP addresses,
  * which are used to peer with BGP peers outside the SDN network. For each
  * peer outside the SDN network, we configure a different IP address to BGP
  * speaker inside the SDN network.
- * <p/>
+ * </p>
+ * <p>
  * Each BGP speaker has a name, which is a unique identifying String that is
  * used to reference this speaker in the configuration.
+ * </p>
  */
 public class BgpSpeaker {
     private final String name;

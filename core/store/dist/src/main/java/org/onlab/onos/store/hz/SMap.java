@@ -49,8 +49,8 @@ import com.hazelcast.query.Predicate;
 
 // TODO: implement Predicate, etc. if we need them.
 /**
- * Wrapper around IMap<byte[], byte[]> which serializes/deserializes
- * Key and Value using StoreSerializer.
+ * Wrapper around IMap&lt;byte[], byte[]&gt; which serializes/deserializes
+ * key and value using StoreSerializer.
  *
  * @param <K> key type
  * @param <V> value type

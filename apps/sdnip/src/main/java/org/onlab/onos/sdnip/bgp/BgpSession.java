@@ -215,11 +215,11 @@ public class BgpSession extends SimpleChannelHandler {
 
     /**
      * Tests whether the session is closed.
-     * <p/>
+     * <p>
      * NOTE: We use this method to avoid the Netty's asynchronous closing
      * of a channel.
-     *
-     * @param return true if the session is closed
+     * </p>
+     * @return true if the session is closed
      */
     boolean isClosed() {
         return isClosed;
@@ -1641,7 +1641,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @param errorCode the BGP NOTIFICATION Error Code
      * @param errorSubcode the BGP NOTIFICATION Error Subcode if applicable,
      * otherwise BgpConstants.Notifications.ERROR_SUBCODE_UNSPECIFIC
-     * @param payload the BGP NOTIFICATION Data if applicable, otherwise null
+     * @param data the BGP NOTIFICATION Data if applicable, otherwise null
      * @return the message to transmit (BGP header included)
      */
     ChannelBuffer prepareBgpNotification(int errorCode, int errorSubcode,

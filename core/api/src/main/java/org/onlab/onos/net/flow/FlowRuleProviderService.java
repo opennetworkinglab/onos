@@ -27,7 +27,7 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
     /**
      * Signals that a flow rule that was previously installed has been removed.
      *
-     * @param flowRule information about the removed flow
+     * @param flowEntry removed flow entry
      */
     void flowRemoved(FlowEntry flowEntry);
 
@@ -35,10 +35,8 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      * Pushes the collection of flow entries currently applied on the given
      * device.
      *
-     * @param flowRules collection of flow rules
+     * @param flowEntries collection of flow rules
      */
     void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
-
-
 
 }

@@ -71,7 +71,7 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
     public void handleNiciraRole(OFMessage m) throws SwitchStateException;
 
     /**
-     * Handle OF 1.x (where x > 0) role messages.
+     * Handle OF 1.x (where x &gt; 0) role messages.
      * @param m the role message to handle
      * @throws SwitchStateException if the message received was
      *  not a nicira role or was malformed.

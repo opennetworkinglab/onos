@@ -25,8 +25,9 @@ public interface SparseAnnotations extends Annotations {
 
     /**
      * {@inheritDoc}
-     * <p/>
+     * <p>
      * Note that this set includes keys for any attributes tagged for removal.
+     * </p>
      */
     @Override
     public Set<String> keys();

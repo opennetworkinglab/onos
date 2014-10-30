@@ -52,15 +52,14 @@ import org.onlab.packet.ONOSLLDP;
 import org.onlab.util.Timer;
 import org.slf4j.Logger;
 
+// TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen for flow_removed messages
+
 /**
  * Run discovery process from a physical switch. Ports are initially labeled as
  * slow ports. When an LLDP is successfully received, label the remote port as
  * fast. Every probeRate milliseconds, loop over all fast ports and send an
  * LLDP, send an LLDP for a single slow port. Based on FlowVisor topology
  * discovery implementation.
- * <p/>
- * TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen
- * for flow_removed messages
  */
 public class LinkDiscovery implements TimerTask {
 

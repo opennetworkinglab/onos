@@ -19,8 +19,7 @@ import org.onlab.onos.net.flow.BatchOperationTarget;
 
 /**
  * Intent identifier suitable as an external key.
- * <p/>
- * This class is immutable.
+ * <p>This class is immutable.</p>
  */
 public final class IntentId implements BatchOperationTarget {
 

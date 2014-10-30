@@ -38,9 +38,10 @@ public interface ProviderRegistry<P extends Provider, S extends ProviderService<
      * Unregisters the supplied provider. As a result the previously issued
      * provider service will be invalidated and any subsequent invocations
      * of its methods may throw {@link java.lang.IllegalStateException}.
-     * <p/>
+     * <p>
      * Unregistering a provider that has not been previously registered results
      * in a no-op.
+     * </p>
      *
      * @param provider provider to be unregistered
      */

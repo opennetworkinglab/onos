@@ -17,13 +17,15 @@ package org.onlab.packet;
 
 import java.util.Objects;
 
+// TODO: Add support for IPv6 as well.
+
 /**
- * A class representing an IP prefix.
- * TODO: Add support for IPv6 as well.
- * <p/>
- * A prefix consists of an IP address and a subnet mask.
+ * A class representing an IP prefix. A prefix consists of an IP address and
+ * a subnet mask.
+ * <p>
  * NOTE: The stored IP address in the result IP prefix is masked to
  * contain zeroes in all bits after the prefix length.
+ * </p>
  */
 public final class IpPrefix {
     // Maximum network mask length
@@ -97,7 +99,7 @@ public final class IpPrefix {
      * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16") into an
      * IP prefix.
      *
-     * @param value an IP prefix in string form, e.g. "10.1.0.0/16"
+     * @param address an IP prefix in string form, e.g. "10.1.0.0/16"
      * @return an IP prefix
      */
     public static IpPrefix valueOf(String address) {

@@ -30,9 +30,10 @@ public class RouteUpdate {
 
     /**
      * Specifies the type of a route update.
-     * <p/>
+     * <p>
      * Route updates can either provide updated information for a route, or
      * withdraw a previously updated route.
+     * </p>
      */
     public enum Type {
         /**

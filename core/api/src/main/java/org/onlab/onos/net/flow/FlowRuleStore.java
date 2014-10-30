@@ -49,7 +49,7 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
     Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
     /**
-     // TODO: Better description of method behavior.
+     * // TODO: Better description of method behavior.
      * Stores a new flow rule without generating events.
      *
      * @param rule the flow rule to add
@@ -58,15 +58,17 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
 
     /**
      * Stores a batch of flow rules.
+     *
      * @param batchOperation batch of flow rules.
      * @return Future response indicating success/failure of the batch operation
-     *     all the way down to the device.
+     * all the way down to the device.
      */
     Future<CompletedBatchOperation> storeBatch(FlowRuleBatchOperation batchOperation);
 
     /**
      * Invoked on the completion of a storeBatch operation.
-     * @param result
+     *
+     * @param event flow rule batch event
      */
     void batchOperationComplete(FlowRuleBatchEvent event);
 
@@ -75,7 +77,6 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * when the provider indicates that the flow has been removed.
      *
      * @param rule the flow rule to delete
-     * @return true if the rule should be handled locally
      */
     void deleteFlowRule(FlowRule rule);
 
