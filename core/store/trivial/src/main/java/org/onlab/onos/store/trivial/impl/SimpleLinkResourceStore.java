@@ -15,7 +15,8 @@
  */
 package org.onlab.onos.store.trivial.impl;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -65,6 +66,13 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
         log.info("Stopped");
     }
 
+    /**
+     * Returns free resources for a given link obtaining from topology
+     * information.
+     *
+     * @param link the target link
+     * @return free resources
+     */
     private Set<ResourceAllocation> readOriginalFreeResources(Link link) {
         // TODO read capacity and lambda resources from topology
         Set<ResourceAllocation> allocations = new HashSet<>();
@@ -75,6 +83,15 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
         return allocations;
     }
 
+    /**
+     * Finds and returns {@link BandwidthResourceAllocation} object from a given
+     * set.
+     *
+     * @param freeRes a set of ResourceAllocation object.
+     * @return {@link BandwidthResourceAllocation} object if found, otherwise
+     *         {@link BandwidthResourceAllocation} object with 0 bandwidth
+     *
+     */
     private BandwidthResourceAllocation getBandwidth(Set<ResourceAllocation> freeRes) {
         for (ResourceAllocation res : freeRes) {
             if (res.type() == ResourceType.BANDWIDTH) {
@@ -84,12 +101,16 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
         return new BandwidthResourceAllocation(Bandwidth.valueOf(0));
     }
 
+    /**
+     * Subtracts given resources from free resources for given link.
+     *
+     * @param link the target link
+     * @param allocations the resources to be subtracted
+     */
     private void subtractFreeResources(Link link, LinkResourceAllocations allocations) {
         // TODO Use lock or version for updating freeResources.
         checkNotNull(link);
-        Set<ResourceAllocation> freeRes = freeResources.get(link);
-        checkNotNull(freeRes);
-        freeRes = new HashSet<>(freeRes);
+        Set<ResourceAllocation> freeRes = new HashSet<>(getFreeResources(link));
         Set<ResourceAllocation> subRes = allocations.getResourceAllocation(link);
         for (ResourceAllocation res : subRes) {
             switch (res.type()) {
@@ -114,11 +135,15 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
 
     }
 
+    /**
+     * Adds given resources to free resources for given link.
+     *
+     * @param link the target link
+     * @param allocations the resources to be added
+     */
     private void addFreeResources(Link link, LinkResourceAllocations allocations) {
         // TODO Use lock or version for updating freeResources.
-        Set<ResourceAllocation> freeRes = freeResources.get(link);
-        checkNotNull(freeRes);
-        freeRes = new HashSet<>(freeRes);
+        Set<ResourceAllocation> freeRes = new HashSet<>(getFreeResources(link));
         Set<ResourceAllocation> addRes = allocations.getResourceAllocation(link);
         for (ResourceAllocation res : addRes) {
             switch (res.type()) {
