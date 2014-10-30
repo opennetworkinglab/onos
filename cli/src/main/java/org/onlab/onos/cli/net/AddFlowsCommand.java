@@ -1,23 +1,10 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
+
 package org.onlab.onos.cli.net;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -36,6 +23,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.packet.MacAddress;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -51,6 +39,9 @@ public class AddFlowsCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String flows = null;
 
+    @Argument(index = 1, name = "numOfRuns", description = "Number of iterations",
+              required = true, multiValued = false)
+    String numOfRuns = null;
 
     @Override
     protected void execute() {
@@ -59,7 +50,9 @@ public class AddFlowsCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class);
 
         int flowsPerDevice = Integer.parseInt(flows);
+        int num = Integer.parseInt(numOfRuns);
 
+        ArrayList<Long> results = Lists.newArrayList();
         Iterable<Device> devices = deviceService.getDevices();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.portNumber(1)).build();
@@ -80,24 +73,49 @@ public class AddFlowsCommand extends AbstractShellCommand {
 
             }
         }
-        long startTime = System.currentTimeMillis();
-        Future<CompletedBatchOperation> op =  flowService.applyBatch(
-                new FlowRuleBatchOperation(rules));
-        CompletedBatchOperation completed = null;
-        try {
-            completed = op.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+        boolean isSuccess = true;
+        for (int i = 0; i < num; i++) {
+            long startTime = System.currentTimeMillis();
+            Future<CompletedBatchOperation> op = flowService.applyBatch(
+                    new FlowRuleBatchOperation(rules));
+            try {
+                isSuccess &= op.get().isSuccess();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            long endTime = System.currentTimeMillis();
+            results.add(endTime - startTime);
+            flowService.applyBatch(
+                    new FlowRuleBatchOperation(remove));
         }
-        long endTime = System.currentTimeMillis();
-        print("%s AFTER ELAPSED TIME %s", completed.isSuccess() ? "SUCCESS" : "FAILURE",
-              endTime - startTime);
+        if (outputJson()) {
+            print("%s", json(new ObjectMapper(), isSuccess, results));
+        } else {
+            printTime(isSuccess, results);
+        }
 
-        flowService.applyBatch(
-                new FlowRuleBatchOperation(remove));
+
 
     }
+
+    private Object json(ObjectMapper mapper, boolean isSuccess, ArrayList<Long> elapsed) {
+        ObjectNode result = mapper.createObjectNode();
+        result.put("Success", isSuccess);
+        ArrayNode node = result.putArray("elapsed-time");
+        for (Long v : elapsed) {
+            node.add(v);
+        }
+        return result;
+    }
+
+    private void printTime(boolean isSuccess, ArrayList<Long> elapsed) {
+        print("Run is %s.", isSuccess ? "success" : "failure");
+        for (int i = 0; i < elapsed.size(); i++) {
+            print("  Run %s : %s", i, elapsed.get(i));
+        }
+    }
+
 
 }
