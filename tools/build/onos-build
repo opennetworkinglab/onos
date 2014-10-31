@@ -6,4 +6,4 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-cd $ONOS_ROOT && mvn clean install "$@" && cd docs && mvn javadoc:aggregate
+cd $ONOS_ROOT && mvn clean install "$@"
