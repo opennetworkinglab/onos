@@ -93,7 +93,6 @@ svg .link {
     stroke: #666;
     stroke-width: 2.0px;
     opacity: .7;
-    /*marker-end: url(#end);*/
 
     transition: opacity 250ms;
     -webkit-transition: opacity 250ms;
@@ -110,7 +109,6 @@ svg g.portLayer rect.port {
 }
 
 svg g.portLayer text {
-    Xstroke: #fff;
     font: 8pt sans-serif;
     pointer-events: none;
 }
@@ -126,7 +124,6 @@ svg .node.device rect {
 svg .node.device.fixed rect {
     stroke-width: 1.5;
     stroke: #ccc;
-    Xstroke-dasharray: 4,2;
 }
 
 svg .node.device.roadm rect {
