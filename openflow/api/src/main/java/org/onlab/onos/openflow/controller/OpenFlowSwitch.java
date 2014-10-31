@@ -121,11 +121,12 @@ public interface OpenFlowSwitch {
     public void disconnectSwitch();
 
     /**
-     * Notifies the controller that role assertion has failed.
+     * Notifies the controller that the device has responded to a set-role request.
      *
-     * @param role the failed role
+     * @param requested the role requested by the controller
+     * @param response the role set at the device
      */
-    public void returnRoleAssertFailure(RoleState role);
+    public void returnRoleReply(RoleState requested, RoleState reponse);
 
     /**
      * Indicates if this switch is optical.

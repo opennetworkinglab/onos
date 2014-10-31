@@ -224,8 +224,8 @@ class RoleManager implements RoleHandler {
         }
 
         int xid = (int) rri.getXid();
-        RoleState role = rri.getRole();
-        // XXX S should check generation id meaningfully and other cases of expectations
+        RoleState receivedRole = rri.getRole();
+        // XXX Should check generation id meaningfully and other cases of expectations
 
         if (pendingXid != xid) {
             log.debug("Received older role reply from " +
@@ -236,10 +236,12 @@ class RoleManager implements RoleHandler {
             return RoleRecvStatus.OLD_REPLY;
         }
 
-        if (pendingRole == role) {
+        sw.returnRoleReply(pendingRole, receivedRole);
+
+        if (pendingRole == receivedRole) {
             log.debug("Received role reply message from {} that matched "
                     + "expected role-reply {} with expectations {}",
-                    new Object[] {sw.getStringId(), role, expectation});
+                    new Object[] {sw.getStringId(), receivedRole, expectation});
 
             if (expectation == RoleRecvStatus.MATCHED_CURRENT_ROLE ||
                     expectation == RoleRecvStatus.MATCHED_SET_ROLE) {
@@ -247,8 +249,6 @@ class RoleManager implements RoleHandler {
             } else {
                 return RoleRecvStatus.OTHER_EXPECTATION;
             }
-        } else {
-            sw.returnRoleAssertFailure(pendingRole);
         }
 
         // if xids match but role's don't, perhaps its a query (OF1.3)

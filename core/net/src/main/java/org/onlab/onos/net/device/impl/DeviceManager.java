@@ -367,16 +367,48 @@ public class DeviceManager
         }
 
         @Override
-        public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
+        public void receivedRoleReply(
+                DeviceId deviceId, MastershipRole requested, MastershipRole response) {
+            // Several things can happen here:
+            // 1. request and response match
+            // 2. request and response don't match
+            // 3. MastershipRole and requested match (and 1 or 2 are true)
+            // 4. MastershipRole and requested don't match (and 1 or 2 are true)
+            //
+            // 2, 4, and 3 with case 2 are failure modes.
+
             // FIXME: implement response to this notification
-            log.warn("Failed to assert role [{}] onto Device {}", role,
-                     deviceId);
-            if (role == MastershipRole.MASTER) {
+
+            log.info("got reply to a role request for {}: asked for {}, and got {}",
+                    deviceId, requested, response);
+
+            if (requested == null && response == null) {
+                // something was off with DeviceProvider, maybe check channel too?
+                log.warn("Failed to assert role [{}] onto Device {}", requested, deviceId);
                 mastershipService.relinquishMastership(deviceId);
-                // TODO: Shouldn't we be triggering event?
-                //final Device device = getDevice(deviceId);
-                //post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
+                return;
             }
+
+            if (requested.equals(response)) {
+                if (requested.equals(mastershipService.getLocalRole(deviceId))) {
+
+                    return;
+                } else {
+                    return;
+                    // FIXME roleManager got the device to comply, but doesn't agree with
+                    // the store; use the store's view, then try to reassert.
+                }
+            } else {
+                // we didn't get back what we asked for. Reelect someone else.
+                log.warn("Failed to assert role [{}] onto Device {}", response, deviceId);
+                if (response == MastershipRole.MASTER) {
+                    mastershipService.relinquishMastership(deviceId);
+                    // TODO: Shouldn't we be triggering event?
+                    //final Device device = getDevice(deviceId);
+                    //post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
+                }
+            }
+
         }
     }
 

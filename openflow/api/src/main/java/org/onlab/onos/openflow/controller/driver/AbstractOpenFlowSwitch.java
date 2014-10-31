@@ -217,8 +217,8 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     }
 
     @Override
-    public void returnRoleAssertFailure(RoleState role) {
-        this.agent.returnRoleAssertFailed(dpid, role);
+    public void returnRoleReply(RoleState requested, RoleState response) {
+        this.agent.returnRoleReply(dpid, requested, response);
     }
 
     @Override
@@ -300,6 +300,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
                 this.transitionToEqualSwitch();
             }
         } else {
+            log.warn(">>> mismatch with expected role - got {} - Disconnecting", r);
             this.disconnectSwitch();
         }
     }

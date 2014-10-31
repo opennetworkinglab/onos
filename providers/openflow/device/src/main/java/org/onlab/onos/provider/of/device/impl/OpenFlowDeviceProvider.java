@@ -226,23 +226,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         }
 
         @Override
-        public void roleAssertFailed(Dpid dpid, RoleState role) {
-            MastershipRole failed;
-            switch (role) {
+        public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response) {
+            MastershipRole request = roleOf(requested);
+            MastershipRole reply = roleOf(response);
+
+            providerService.receivedRoleReply(deviceId(uri(dpid)), request, reply);
+        }
+
+        /**
+         * Translates a RoleState to the corresponding MastershipRole.
+         *
+         * @param response
+         * @return a MastershipRole
+         */
+        private MastershipRole roleOf(RoleState response) {
+            switch (response) {
                 case MASTER:
-                    failed = MastershipRole.MASTER;
-                    break;
+                    return MastershipRole.MASTER;
                 case EQUAL:
-                    failed = MastershipRole.STANDBY;
-                    break;
+                    return MastershipRole.STANDBY;
                 case SLAVE:
-                    failed = MastershipRole.NONE;
-                    break;
+                    return MastershipRole.NONE;
                 default:
-                    LOG.warn("unknown role {}", role);
-                    return;
+                    LOG.warn("unknown role {}", response);
+                    return null;
             }
-            providerService.unableToAssertRole(deviceId(uri(dpid)), failed);
         }
 
         /**

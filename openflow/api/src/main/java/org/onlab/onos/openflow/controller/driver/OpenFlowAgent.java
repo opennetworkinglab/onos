@@ -97,5 +97,5 @@ public interface OpenFlowAgent {
      * @param dpid the switch that failed role assertion
      * @param role the failed role
      */
-    public void returnRoleAssertFailed(Dpid dpid, RoleState role);
+    public void returnRoleReply(Dpid dpid, RoleState requested, RoleState response);
 }

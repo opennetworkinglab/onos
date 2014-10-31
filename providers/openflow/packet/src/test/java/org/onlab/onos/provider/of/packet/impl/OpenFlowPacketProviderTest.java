@@ -410,12 +410,12 @@ public class OpenFlowPacketProviderTest {
         }
 
         @Override
-        public void returnRoleAssertFailure(RoleState role) {
+        public boolean isOptical() {
+            return false;
         }
 
         @Override
-        public boolean isOptical() {
-            return false;
+        public void returnRoleReply(RoleState requested, RoleState reponse) {
         }
 
     }
