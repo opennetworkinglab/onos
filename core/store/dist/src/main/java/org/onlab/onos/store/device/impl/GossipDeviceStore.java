@@ -1266,6 +1266,12 @@ public class GossipDeviceStore
             DeviceId deviceId = event.deviceId();
             Timestamped<List<PortDescription>> portDescriptions = event.portDescriptions();
 
+            if (getDevice(deviceId) == null) {
+                log.info("{} not found on this node yet, ignoring.", deviceId);
+                // Note: dropped information will be recovered by anti-entropy
+                return;
+            }
+
             notifyDelegate(updatePortsInternal(providerId, deviceId, portDescriptions));
         }
     }
@@ -1281,6 +1287,12 @@ public class GossipDeviceStore
             ProviderId providerId = event.providerId();
             DeviceId deviceId = event.deviceId();
             Timestamped<PortDescription> portDescription = event.portDescription();
+
+            if (getDevice(deviceId) == null) {
+                log.info("{} not found on this node yet, ignoring.", deviceId);
+                // Note: dropped information will be recovered by anti-entropy
+                return;
+            }
 
             notifyDelegateIfNotNull(updatePortStatusInternal(providerId, deviceId, portDescription));
         }
