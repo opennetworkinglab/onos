@@ -6,6 +6,10 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+less=0
+
+[ "$1" = "-l" ] && shift && less=1
+
 remote=$ONOS_USER@${1:-$OCI}
 instance=$2
 
@@ -15,10 +19,14 @@ instance=$2
 
 trap "ssh $remote 'ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | xargs kill'" EXIT
 
-ssh $remote "
+if [ $less -eq 1 ]; then
+    ssh -t $remote "less $LOG"
+else
+    ssh $remote "
     while true; do
         echo ==================================================================
         [ ! -f $LOG ] && sleep 2 && continue
         tail -n 512 --follow=name $LOG --sleep-interval 2
     done
-"
+    "
+fi
