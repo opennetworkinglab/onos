@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.resource;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 /**
@@ -63,5 +65,12 @@ public class LambdaResourceAllocation extends LambdaResourceRequest
         }
         final LambdaResourceAllocation other = (LambdaResourceAllocation) obj;
         return Objects.equals(this.lambda, other.lambda);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("lambda", lambda)
+                .toString();
     }
 }

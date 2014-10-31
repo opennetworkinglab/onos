@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.resource;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Representation of a request for lambda resource.
  */
@@ -25,4 +27,9 @@ public class LambdaResourceRequest implements ResourceRequest {
         return ResourceType.LAMBDA;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .toString();
+    }
 }

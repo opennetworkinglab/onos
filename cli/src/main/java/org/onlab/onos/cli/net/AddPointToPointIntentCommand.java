@@ -74,7 +74,7 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
      * @param deviceString string representing the device/port
      * @return port number as a string, empty string if the port is not found
      */
-    private String getPortNumber(String deviceString) {
+    public static String getPortNumber(String deviceString) {
         int slash = deviceString.indexOf('/');
         if (slash <= 0) {
             return "";
@@ -88,7 +88,7 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
      * @param deviceString string representing the device/port
      * @return device ID string
      */
-    private String getDeviceId(String deviceString) {
+    public static String getDeviceId(String deviceString) {
         int slash = deviceString.indexOf('/');
         if (slash <= 0) {
             return "";

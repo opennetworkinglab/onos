@@ -158,7 +158,22 @@
                 <null/>
             </completers>
         </command>
-
+        <command>
+            <action class="org.onlab.onos.cli.net.ResourceAllocationsCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.net.ResourceAvailableCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
+            </completers>
+        </command>
         <command>
             <action class="org.onlab.onos.cli.net.ClustersListCommand"/>
         </command>
