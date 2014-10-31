@@ -359,7 +359,7 @@
                 ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
-                    id: safeId(n.id),
+                    id: n.id,
                     labels: n.labels,
                     class: 'device',
                     icon: 'device',
@@ -381,7 +381,7 @@
                 ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
-                    id: safeId(n.id),
+                    id: n.id,
                     labels: n.labels,
                     class: 'host',
                     icon: 'host',
@@ -584,38 +584,40 @@
 
         network.link.filter('.infra').each(function(d, i) {
             network.linkSrcPort.append('rect').attr({
-                id: 'srcPort-' + d.id,
+                id: 'srcPort-' + safeId(d.id),
                 class: 'port',
                 width: pw,
                 height: ph,
-                x: i * 20,
-                y: 0
-            })
-            .style('visibility', portVis);
+                Xx: i * 20,
+                Xy: 0,
+                rx: 4,
+                ry: 4
+            }).style('visibility', portVis);
 
             network.linkTgtPort.append('rect').attr({
-                id: 'tgtPort-' + d.id,
+                id: 'tgtPort-' + safeId(d.id),
                 class: 'port',
                 width: pw,
                 height: ph,
-                x: i * 20,
-                y: 20
-            })
-            .style('visibility', portVis);
+                Xx: i * 20,
+                Xy: 20,
+                rx: 4,
+                ry: 4
+            }).style('visibility', portVis);
 
             network.linkSrcPort.append('text').attr({
-                id: 'srcText-' + d.id,
+                id: 'srcText-' + safeId(d.id),
                 class: 'portText',
-                x: i * 20,
-                y:0
+                Xx: i * 20,
+                Xy: 0
             }).text(d.srcPort)
                 .style('visibility', portVis);
 
             network.linkTgtPort.append('text').attr({
-                id: 'tgtText-' + d.id,
+                id: 'tgtText-' + safeId(d.id),
                 class: 'portText',
-                x: i * 20,
-                y:20
+                Xx: i * 20,
+                Xy: 20
             }).text(d.tgtPort)
                 .style('visibility', portVis);
         });
@@ -985,26 +987,27 @@
             }
 
             // adjust the endpoints of the link's line to match rectangles
+            var sid = safeId(d.id);
             d3.select(this)
                 .attr('x1', exs)
                 .attr('y1', eys)
                 .attr('x2', ext)
                 .attr('y2', eyt);
 
-            d3.select('#srcPort-' + d.id)
+            d3.select('#srcPort-' + sid)
                 .attr('x', pxs - portHalfW)
                 .attr('y', pys - portHalfH);
 
-            d3.select('#tgtPort-' + d.id)
+            d3.select('#tgtPort-' + sid)
                 .attr('x', pxt - portHalfW)
                 .attr('y', pyt - portHalfH);
 
             // TODO: fit label rect to size of port number.
-            d3.select('#srcText-' + d.id)
+            d3.select('#srcText-' + sid)
                 .attr('x', pxs - 5)
                 .attr('y', pys + 3);
 
-            d3.select('#tgtText-' + d.id)
+            d3.select('#tgtText-' + sid)
                 .attr('x', pxt - 5)
                 .attr('y', pyt + 3);
 

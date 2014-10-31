@@ -103,20 +103,15 @@ svg .link {
 svg .link.host {
     stroke: #666;
     stroke-width: 1px;
-    Xstroke-dasharray: 3,3;
 }
 
 svg g.portLayer rect.port {
-    stroke-width: 1;
-    stroke: black;
-    fill: white;
+    fill: #ccc;
 }
 
 svg g.portLayer text {
-    stroke: #888;
-    font-size: 8pt;
-    text-align: center;
-    font-weight: normal;
+    Xstroke: #fff;
+    font: 8pt sans-serif;
     pointer-events: none;
 }
 
@@ -149,7 +144,7 @@ svg .node.host circle {
 
 svg .node text {
     fill: white;
-    font: 10px sans-serif;
+    font: 10pt sans-serif;
     pointer-events: none;
 }
 

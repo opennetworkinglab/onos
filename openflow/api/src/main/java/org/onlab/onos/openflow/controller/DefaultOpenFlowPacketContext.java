@@ -60,7 +60,9 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         OFAction act = buildOutput(outPort.getPortNumber());
         pktout = builder.setXid(pktin.getXid())
                 .setInPort(inport())
-                .setBufferId(pktin.getBufferId())
+                .setBufferId(OFBufferId.NO_BUFFER)
+                .setData(pktin.getData())
+//                .setBufferId(pktin.getBufferId())
                 .setActions(Collections.singletonList(act))
                 .build();
     }
