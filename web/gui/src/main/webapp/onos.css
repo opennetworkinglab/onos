@@ -112,6 +112,14 @@ svg g.portLayer rect.port {
     fill: white;
 }
 
+svg g.portLayer text {
+    stroke: #888;
+    font-size: 8pt;
+    text-align: center;
+    font-weight: normal;
+    pointer-events: none;
+}
+
 svg .node.device rect {
     stroke-width: 1.5px;
 

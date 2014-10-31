@@ -89,9 +89,9 @@
             marginLR: 3,
             marginTB: 2,
             port: {
-                gap: 2,
-                width: 12,
-                height: 12
+                gap: 3,
+                width: 18,
+                height: 14
             }
         },
         icons: {
@@ -315,6 +315,7 @@
         portLabelsOn = !portLabelsOn;
         var portVis = portLabelsOn ? 'visible' : 'hidden';
         d3.selectAll('.port').style('visibility', portVis);
+        d3.selectAll('.portText').style('visibility', portVis);
     }
 
     function unpin() {
@@ -577,30 +578,46 @@
                 class: 'portLayer'
             });
 
-        var portVis = portLabelsOn ? 'visible' : 'hidden';
+        var portVis = portLabelsOn ? 'visible' : 'hidden',
+            pw = config.labels.port.width,
+            ph = config.labels.port.height;
 
         network.link.filter('.infra').each(function(d, i) {
             network.linkSrcPort.append('rect').attr({
                 id: 'srcPort-' + d.id,
                 class: 'port',
-                width: 12,
-                height: 12,
+                width: pw,
+                height: ph,
                 x: i * 20,
                 y: 0
             })
-            .style('visibility', portVis)
-                .append('text').text(d.srcPort);
+            .style('visibility', portVis);
 
             network.linkTgtPort.append('rect').attr({
                 id: 'tgtPort-' + d.id,
                 class: 'port',
-                width: 12,
-                height: 12,
+                width: pw,
+                height: ph,
                 x: i * 20,
                 y: 20
             })
             .style('visibility', portVis);
 
+            network.linkSrcPort.append('text').attr({
+                id: 'srcText-' + d.id,
+                class: 'portText',
+                x: i * 20,
+                y:0
+            }).text(d.srcPort)
+                .style('visibility', portVis);
+
+            network.linkTgtPort.append('text').attr({
+                id: 'tgtText-' + d.id,
+                class: 'portText',
+                x: i * 20,
+                y:20
+            }).text(d.tgtPort)
+                .style('visibility', portVis);
         });
 
         // ...............................................................
@@ -981,6 +998,15 @@
             d3.select('#tgtPort-' + d.id)
                 .attr('x', pxt - portHalfW)
                 .attr('y', pyt - portHalfH);
+
+            // TODO: fit label rect to size of port number.
+            d3.select('#srcText-' + d.id)
+                .attr('x', pxs - 5)
+                .attr('y', pys + 3);
+
+            d3.select('#tgtText-' + d.id)
+                .attr('x', pxt - 5)
+                .attr('y', pyt + 3);
 
         });
 
