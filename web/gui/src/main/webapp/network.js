@@ -211,6 +211,8 @@
     function showAllLayers() {
         network.node.classed('inactive', false);
         network.link.classed('inactive', false);
+        d3.selectAll('svg .port').classed('inactive', false)
+        d3.selectAll('svg .portText').classed('inactive', false)
     }
 
     function showPacketLayer() {
@@ -227,6 +229,9 @@
                 d3.select(this).classed('inactive', true);
             }
         });
+
+        // deactivate non-packet ports
+        d3.selectAll('svg .optPort').classed('inactive', true)
     }
 
     function showOpticalLayer() {
@@ -243,6 +248,9 @@
                 d3.select(this).classed('inactive', true);
             }
         });
+
+        // deactivate non-packet ports
+        d3.selectAll('svg .pktPort').classed('inactive', true)
     }
 
     function setUpKeyHandler() {
@@ -582,42 +590,39 @@
             pw = config.labels.port.width,
             ph = config.labels.port.height;
 
-        network.link.filter('.infra').each(function(d, i) {
+        network.link.filter('.infra').each(function(d) {
+            var srcType = d.source.type === 'roadm' ? 'optPort' : 'pktPort',
+                tgtType = d.target.type === 'roadm' ? 'optPort' : 'pktPort';
+
+            if (d.source.type)
+
             network.linkSrcPort.append('rect').attr({
                 id: 'srcPort-' + safeId(d.id),
-                class: 'port',
+                class: 'port ' + srcType,
                 width: pw,
                 height: ph,
-                Xx: i * 20,
-                Xy: 0,
                 rx: 4,
                 ry: 4
             }).style('visibility', portVis);
 
             network.linkTgtPort.append('rect').attr({
                 id: 'tgtPort-' + safeId(d.id),
-                class: 'port',
+                class: 'port ' + tgtType,
                 width: pw,
                 height: ph,
-                Xx: i * 20,
-                Xy: 20,
                 rx: 4,
                 ry: 4
             }).style('visibility', portVis);
 
             network.linkSrcPort.append('text').attr({
                 id: 'srcText-' + safeId(d.id),
-                class: 'portText',
-                Xx: i * 20,
-                Xy: 0
+                class: 'portText ' + srcType
             }).text(d.srcPort)
                 .style('visibility', portVis);
 
             network.linkTgtPort.append('text').attr({
                 id: 'tgtText-' + safeId(d.id),
-                class: 'portText',
-                Xx: i * 20,
-                Xy: 20
+                class: 'portText ' + tgtType
             }).text(d.tgtPort)
                 .style('visibility', portVis);
         });
