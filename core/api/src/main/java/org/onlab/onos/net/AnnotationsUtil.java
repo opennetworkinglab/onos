@@ -15,6 +15,9 @@
  */
 package org.onlab.onos.net;
 
+/**
+ * Utility for processing annotations.
+ */
 public final class AnnotationsUtil {
 
     public static boolean isEqual(Annotations lhs, Annotations rhs) {
