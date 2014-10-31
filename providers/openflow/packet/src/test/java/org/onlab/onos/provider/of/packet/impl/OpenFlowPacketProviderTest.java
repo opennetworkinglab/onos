@@ -406,6 +406,11 @@ public class OpenFlowPacketProviderTest {
         }
 
         @Override
+        public boolean isConnected() {
+            return true;
+        }
+
+        @Override
         public void disconnectSwitch() {
         }
 

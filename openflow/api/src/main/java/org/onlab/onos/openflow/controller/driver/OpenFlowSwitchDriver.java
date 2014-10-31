@@ -187,13 +187,6 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
     public void setConnected(boolean connected);
 
     /**
-     * Checks if the switch is still connected.
-     *
-     * @return whether the switch is still connected
-     */
-    public boolean isConnected();
-
-    /**
      * Writes the message to the output stream
      * in a driver specific manner.
      *

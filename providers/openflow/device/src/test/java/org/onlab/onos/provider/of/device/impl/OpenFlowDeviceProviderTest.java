@@ -370,6 +370,11 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
+        public boolean isConnected() {
+            return true;
+        }
+
+        @Override
         public void disconnectSwitch() {
         }
 

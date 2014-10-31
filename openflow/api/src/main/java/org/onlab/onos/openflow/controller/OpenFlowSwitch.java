@@ -115,6 +115,13 @@ public interface OpenFlowSwitch {
     public String serialNumber();
 
     /**
+     * Checks if the switch is still connected.
+     *
+     * @return whether the switch is still connected
+     */
+    public boolean isConnected();
+
+    /**
      * Disconnects the switch by closing the TCP connection. Results in a call
      * to the channel handler's channelDisconnected method for cleanup
      */

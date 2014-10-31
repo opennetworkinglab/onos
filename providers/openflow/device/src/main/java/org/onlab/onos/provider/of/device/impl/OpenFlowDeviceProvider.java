@@ -39,7 +39,6 @@ import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.RoleState;
-import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
@@ -113,14 +112,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Override
     public boolean isReachable(Device device) {
-        // FIXME if possible, we might want this to be part of
-        // OpenFlowSwitch interface so the driver interface isn't misused.
         OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
+        if (sw == null || !sw.isConnected()) {
             return false;
         }
         return true;
-        //return checkChannel(device, sw);
     }
 
     @Override
