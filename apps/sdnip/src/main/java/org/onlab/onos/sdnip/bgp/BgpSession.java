@@ -1241,8 +1241,8 @@ public class BgpSession extends SimpleChannelHandler {
             }
             address <<= extraShift;
             IpPrefix prefix =
-                IpPrefix.valueOf(IpAddress.valueOf((int) address).toInt(),
-                              (short) prefixBitlen);
+                IpPrefix.valueOf(IpAddress.valueOf((int) address),
+                                 prefixBitlen);
             result.add(prefix);
         }
 

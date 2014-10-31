@@ -147,9 +147,9 @@ public class PeerConnectivityManager {
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(),
+                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
+                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpDst((short) BgpConstants.BGP_PORT)
                         .build();
@@ -170,9 +170,9 @@ public class PeerConnectivityManager {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(),
+                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
+                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpSrc((short) BgpConstants.BGP_PORT)
                         .build();
@@ -190,9 +190,9 @@ public class PeerConnectivityManager {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
+                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(),
+                        .matchIPDst(IpPrefix.valueOf(bgpdAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpDst((short) BgpConstants.BGP_PORT)
                         .build();
@@ -210,9 +210,9 @@ public class PeerConnectivityManager {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
+                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(),
+                        .matchIPDst(IpPrefix.valueOf(bgpdAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
                         .matchTcpSrc((short) BgpConstants.BGP_PORT)
                         .build();
@@ -280,9 +280,9 @@ public class PeerConnectivityManager {
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress.toInt(),
+                        .matchIPSrc(IpPrefix.valueOf(bgpdAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
+                        .matchIPDst(IpPrefix.valueOf(bgpdPeerAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
                         .build();
 
@@ -300,9 +300,9 @@ public class PeerConnectivityManager {
                 selector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPProtocol(IPv4.PROTOCOL_ICMP)
-                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress.toInt(),
+                        .matchIPSrc(IpPrefix.valueOf(bgpdPeerAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
-                        .matchIPDst(IpPrefix.valueOf(bgpdAddress.toInt(),
+                        .matchIPDst(IpPrefix.valueOf(bgpdAddress,
                                 IpPrefix.MAX_INET_MASK_LENGTH))
                         .build();
 
