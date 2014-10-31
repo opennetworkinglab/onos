@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.resource;
 
+import java.util.Objects;
+
 /**
  * Representation of allocated lambda resource.
  */
@@ -44,5 +46,22 @@ public class LambdaResourceAllocation extends LambdaResourceRequest
      */
     public Lambda lambda() {
         return lambda;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(lambda);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final LambdaResourceAllocation other = (LambdaResourceAllocation) obj;
+        return Objects.equals(this.lambda, other.lambda);
     }
 }

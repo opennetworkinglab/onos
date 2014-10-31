@@ -71,11 +71,14 @@ import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.net.intent.OpticalConnectivityIntent;
+import org.onlab.onos.net.intent.OpticalPathIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
@@ -182,7 +185,10 @@ public final class KryoNamespaces {
                     HostToHostIntent.class,
                     PointToPointIntent.class,
                     MultiPointToSinglePointIntent.class,
-                    LinkCollectionIntent.class
+                    LinkCollectionIntent.class,
+                    OpticalConnectivityIntent.class,
+                    OpticalPathIntent.class,
+                    LinkResourceRequest.class
                     )
             .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
             .register(URI.class, new URISerializer())

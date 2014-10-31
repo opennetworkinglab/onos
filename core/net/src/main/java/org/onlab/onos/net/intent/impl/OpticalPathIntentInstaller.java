@@ -94,7 +94,26 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
     @Override
     public List<FlowRuleBatchOperation> install(OpticalPathIntent intent) {
         LinkResourceAllocations allocations = assignWavelength(intent);
+        return generateRules(intent, allocations, FlowRuleOperation.ADD);
+    }
 
+    @Override
+    public List<FlowRuleBatchOperation> uninstall(OpticalPathIntent intent) {
+        LinkResourceAllocations allocations = resourceService.getAllocations(intent.id());
+        return generateRules(intent, allocations, FlowRuleOperation.REMOVE);
+    }
+
+    private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
+        LinkResourceRequest.Builder request = DefaultLinkResourceRequest.builder(intent.id(),
+                                                                                 intent.path().links())
+                .addLambdaRequest();
+        LinkResourceAllocations retLambda = resourceService.requestResources(request.build());
+        return retLambda;
+    }
+
+    private List<FlowRuleBatchOperation> generateRules(OpticalPathIntent intent,
+                                                       LinkResourceAllocations allocations,
+                                                       FlowRuleOperation operation) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         selectorBuilder.matchInport(intent.src().port());
 
@@ -128,7 +147,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
                                                 100,
                                                 true);
 
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
+            rules.add(new FlowRuleBatchEntry(operation, rule));
 
             prev = link.dst();
             selectorBuilder.matchInport(link.dst().port());
@@ -136,26 +155,18 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         }
 
         // build the last T port rule
-        TrafficTreatment treatmentLast = builder()
-                .setOutput(intent.dst().port()).build();
+        TrafficTreatment.Builder treatmentLast = builder();
+        treatmentLast.setOutput(intent.dst().port());
         FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
                                             selectorBuilder.build(),
-                                            treatmentLast,
+                                            treatmentLast.build(),
                                             100,
                                             appId,
                                             100,
                                             true);
-        rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
+        rules.add(new FlowRuleBatchEntry(operation, rule));
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
-    }
-
-    private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
-        LinkResourceRequest.Builder request = DefaultLinkResourceRequest.builder(intent.id(),
-                                                                                 intent.path().links())
-                .addLambdaRequest();
-        LinkResourceAllocations retLambda = resourceService.requestResources(request.build());
-        return retLambda;
     }
 
     /*private Lambda assignWavelength(List<Link> links) {
@@ -194,64 +205,4 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         }
         return false;
     }*/
-
-    @Override
-    public List<FlowRuleBatchOperation> uninstall(OpticalPathIntent intent) {
-        LinkResourceAllocations allocations = resourceService.getAllocations(intent.id());
-
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchInport(intent.src().port());
-
-        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-
-        List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-        ConnectPoint prev = intent.src();
-
-        //TODO throw exception if the lambda was not retrieved successfully
-        for (Link link : intent.path().links()) {
-            Lambda la = null;
-            for (ResourceAllocation allocation : allocations.getResourceAllocation(link)) {
-                if (allocation.type() == ResourceType.LAMBDA) {
-                    la = ((LambdaResourceAllocation) allocation).lambda();
-                    break;
-                }
-            }
-
-            if (la == null) {
-                log.info("Lambda was not retrieved successfully");
-                return null;
-            }
-
-            treatmentBuilder.setOutput(link.src().port());
-            treatmentBuilder.setLambda((short) la.toInt());
-
-            FlowRule rule = new DefaultFlowRule(prev.deviceId(),
-                                                selectorBuilder.build(),
-                                                treatmentBuilder.build(),
-                                                100,
-                                                appId,
-                                                100,
-                                                true);
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
-
-            prev = link.dst();
-            selectorBuilder.matchInport(link.dst().port());
-            selectorBuilder.matchLambda((short) la.toInt());
-        }
-
-        // build the last T port rule
-        TrafficTreatment treatmentLast = builder()
-                .setOutput(intent.dst().port()).build();
-        FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
-                                            selectorBuilder.build(),
-                                            treatmentLast,
-                                            100,
-                                            appId,
-                                            100,
-                                            true);
-        rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
-
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
-    }
-
 }

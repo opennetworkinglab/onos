@@ -407,6 +407,8 @@ public class IntentManager
             List<Intent> installables = store.getInstallableIntents(intent.id());
             if (installables != null) {
                 for (Intent installable : installables) {
+                    trackerService.removeTrackedResources(intent.id(),
+                                                          installable.resources());
                     List<FlowRuleBatchOperation> batches = getInstaller(installable).uninstall(installable);
                     uninstallWork.addAll(batches);
                 }
