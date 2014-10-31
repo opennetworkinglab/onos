@@ -166,6 +166,8 @@ svg .node.selected circle {
 }
 
 svg .link.inactive,
+svg .port.inactive,
+svg .portText.inactive,
 svg .node.inactive rect,
 svg .node.inactive circle,
 svg .node.inactive text,
