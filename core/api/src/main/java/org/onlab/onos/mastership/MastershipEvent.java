@@ -49,9 +49,9 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      * Creates an event of a given type and for the specified device,
      * role information, and the current time.
      *
-     * @param type   device event type
+     * @param type   mastership event type
      * @param device event device subject
-     * @param info   mastership role information subject
+     * @param info   mastership role information
      */
     public MastershipEvent(Type type, DeviceId device, RoleInfo info) {
         super(type, device);
