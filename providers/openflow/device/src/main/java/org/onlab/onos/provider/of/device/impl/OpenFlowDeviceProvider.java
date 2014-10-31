@@ -121,14 +121,29 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Override
     public void triggerProbe(Device device) {
-        LOG.info("Triggering probe on device {}", device.id());
+        final DeviceId deviceId = device.id();
+        LOG.info("Triggering probe on device {}", deviceId);
 
-        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        //if (!checkChannel(device, sw)) {
-        //  LOG.error("Failed to probe device {} on sw={}", device, sw);
-        //  providerService.deviceDisconnected(device.id());
-        //return;
-        //}
+        final Dpid dpid = dpid(deviceId.uri());
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null || !sw.isConnected()) {
+            LOG.error("Failed to probe device {} on sw={}", device, sw);
+            providerService.deviceDisconnected(deviceId);
+        } else {
+            LOG.trace("Confirmed device {} connection", device);
+            // FIXME require something like below to match javadoc description
+            // but this starts infinite loop with current DeviceManager
+//            final ChassisId cId = new ChassisId(dpid.value());
+//            final Type deviceType = device.type();
+//            DeviceDescription description =
+//                    new DefaultDeviceDescription(deviceId.uri(), deviceType,
+//                                                 sw.manfacturerDescription(),
+//                                                 sw.hardwareDescription(),
+//                                                 sw.softwareDescription(),
+//                                                 sw.serialNumber(),
+//                                                 cId);
+//            providerService.deviceConnected(deviceId, description);
+        }
 
         // Prompt an update of port information. We can use any XID for this.
         OFFactory fact = sw.factory();
