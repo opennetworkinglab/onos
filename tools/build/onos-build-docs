@@ -1,0 +1,20 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Builds the ONOS from source.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+apidocs=onos-apidocs-${ONOS_VERSION%~*}
+
+set -e -x
+rm -fr $ONOS_ROOT/docs/target
+
+cd $ONOS_ROOT/docs
+mvn -f external.xml javadoc:aggregate
+cd target && mv site/apidocs $apidocs
+tar zcf $apidocs.tar.gz $apidocs && cp $apidocs.tar.gz /tmp
+
+cd $ONOS_ROOT/docs
+mvn -f pom.xml javadoc:aggregate
