@@ -259,9 +259,13 @@ public class DeviceManager
             final NodeId myNodeId = clusterService.getLocalNode().id();
             if (!myNodeId.equals(term.master())) {
                 // lost mastership after requestRole told this instance was MASTER.
-                log.info("lost mastership before getting term info.");
+                log.info("Role of this node is STANDBY for {}", deviceId);
+                // TODO: Do we need to explicitly tell the Provider that
+                // this instance is no longer the MASTER?
+                //applyRole(deviceId, MastershipRole.STANDBY);
                 return;
             }
+            log.info("Role of this node is MASTER for {}", deviceId);
 
             // tell clock provider if this instance is the master
             deviceClockProviderService.setMastershipTerm(deviceId, term);
@@ -295,6 +299,7 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
 
+            log.info("Device {} disconnected from this node", deviceId);
 
             DeviceEvent event = null;
             try {
@@ -318,18 +323,18 @@ public class DeviceManager
                 final NodeId myNodeId = clusterService.getLocalNode().id();
                 // TODO: Move this type of check inside device clock manager, etc.
                 if (myNodeId.equals(term.master())) {
-                    log.info("Marking {} offline", deviceId);
+                    log.info("Retry marking {} offline", deviceId);
                     deviceClockProviderService.setMastershipTerm(deviceId, term);
                     event = store.markOffline(deviceId);
                 } else {
-                    log.error("Failed again marking {} offline. {}", deviceId, role);
+                    log.info("Failed again marking {} offline. {}", deviceId, role);
                 }
             } finally {
                 //relinquish master role and ability to be backup.
                 mastershipService.relinquishMastership(deviceId);
 
                 if (event != null) {
-                    log.info("Device {} disconnected", deviceId);
+                    log.info("Device {} disconnected from cluster", deviceId);
                     post(event);
                 }
             }
