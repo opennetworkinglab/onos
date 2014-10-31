@@ -25,6 +25,14 @@ import org.onlab.onos.net.DeviceId;
 public interface DeviceClockProviderService {
 
     /**
+     * Checks if this service can issue Timestamp for specified device.
+     *
+     * @param deviceId device identifier.
+     * @return true if timestamp can be issued for specified device
+     */
+    public boolean isTimestampAvailable(DeviceId deviceId);
+
+    /**
      * Updates the mastership term for the specified deviceId.
      *
      * @param deviceId device identifier.

@@ -343,6 +343,13 @@ public class DeviceManager
                          "Port descriptions list cannot be null");
             checkValidity();
 
+            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+                // Never been a master for this device
+                // any update will be ignored.
+                log.trace("Ignoring {} port updates on standby node. {}", deviceId, portDescriptions);
+                return;
+            }
+
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                                                          deviceId, portDescriptions);
             for (DeviceEvent event : events) {
@@ -356,6 +363,13 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
+
+            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+                // Never been a master for this device
+                // any update will be ignored.
+                log.trace("Ignoring {} port update on standby node. {}", deviceId, portDescription);
+                return;
+            }
 
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
                                                              deviceId, portDescription);

@@ -24,7 +24,16 @@ import org.onlab.onos.store.Timestamp;
 public interface DeviceClockService {
 
     /**
+     * Checks if this service can issue Timestamp for specified device.
+     *
+     * @param deviceId device identifier.
+     * @return true if timestamp can be issued for specified device
+     */
+    public boolean isTimestampAvailable(DeviceId deviceId);
+
+    /**
      * Returns a new timestamp for the specified deviceId.
+     *
      * @param deviceId device identifier.
      * @return timestamp.
      */

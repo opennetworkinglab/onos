@@ -72,4 +72,9 @@ public class DeviceClockManager implements DeviceClockService, DeviceClockProvid
         log.info("adding term info {} {}", deviceId, term.master());
         deviceMastershipTerms.put(deviceId, term);
     }
+
+    @Override
+    public boolean isTimestampAvailable(DeviceId deviceId) {
+        return deviceMastershipTerms.containsKey(deviceId);
+    }
 }

@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
@@ -179,16 +178,6 @@ public class DeviceManagerTest {
     public void getRole() {
         connectDevice(DID1, SW1);
         assertEquals("incorrect role", MastershipRole.MASTER, service.getRole(DID1));
-    }
-
-    @Ignore("disabled until we settle the device-mastership wiring")
-    @Test
-    public void setRole() throws InterruptedException {
-        connectDevice(DID1, SW1);
-        validateEvents(DEVICE_ADDED, DEVICE_MASTERSHIP_CHANGED);
-        assertEquals("incorrect role", MastershipRole.STANDBY, service.getRole(DID1));
-        assertEquals("incorrect device", DID1, provider.deviceReceived.id());
-        assertEquals("incorrect role", MastershipRole.STANDBY, provider.roleReceived);
     }
 
     @Test
@@ -360,9 +349,16 @@ public class DeviceManagerTest {
     private final class TestClockProviderService implements
             DeviceClockProviderService {
 
+        private Set<DeviceId> registerdBefore = Sets.newConcurrentHashSet();
+
         @Override
         public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
-            // TODO Auto-generated method stub
+            registerdBefore.add(deviceId);
+        }
+
+        @Override
+        public boolean isTimestampAvailable(DeviceId deviceId) {
+            return registerdBefore.contains(deviceId);
         }
     }
 }
