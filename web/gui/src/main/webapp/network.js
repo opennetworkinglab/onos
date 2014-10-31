@@ -87,7 +87,12 @@
             padLR: 8,
             padTB: 6,
             marginLR: 3,
-            marginTB: 2
+            marginTB: 2,
+            port: {
+                gap: 2,
+                width: 12,
+                height: 12
+            }
         },
         icons: {
             w: 32,
@@ -113,7 +118,8 @@
         selected = {},
         highlighted = null,
         hovered = null,
-        viewMode = 'showAll';
+        viewMode = 'showAll',
+        portLabelsOn = false;
 
 
     function debug(what) {
@@ -128,10 +134,13 @@
         return urlData().jsonUrl;
     }
 
+    function safeId(id) {
+        return id.replace(/[^a-z0-9]/gi, '_');
+    }
+
     function detailJsonUrl(id) {
         var u = urlData(),
-            encId = config.useLiveData ? encodeURIComponent(id)
-                : id.replace(/[^a-z0-9]/gi, '_');
+            encId = config.useLiveData ? encodeURIComponent(id) : safeId(id);
         return u.detailPrefix + encId + u.detailSuffix;
     }
 
@@ -303,7 +312,9 @@
     }
 
     function togglePorts() {
-        console.log('Toggle Ports - context = ' + contextLabel());
+        portLabelsOn = !portLabelsOn;
+        var portVis = portLabelsOn ? 'visible' : 'hidden';
+        d3.selectAll('.port').style('visibility', portVis);
     }
 
     function unpin() {
@@ -347,7 +358,7 @@
                 ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
-                    id: n.id,
+                    id: safeId(n.id),
                     labels: n.labels,
                     class: 'device',
                     icon: 'device',
@@ -369,7 +380,7 @@
                 ix = Math.random() * 0.6 * nw + 0.2 * nw,
                 iy = ypc * nh,
                 node = {
-                    id: n.id,
+                    id: safeId(n.id),
                     labels: n.labels,
                     class: 'host',
                     icon: 'host',
@@ -390,7 +401,7 @@
         network.data.links.forEach(function(lnk) {
             var src = network.lookup[lnk.src],
                 dst = network.lookup[lnk.dst],
-                id = src.id + "~" + dst.id;
+                id = src.id + "-" + dst.id;
 
             var link = {
                 class: 'infra',
@@ -398,7 +409,9 @@
                 type: lnk.type,
                 width: lnk.linkWidth,
                 source: src,
+                srcPort: lnk.srcPort,
                 target: dst,
+                tgtPort: lnk.dstPort,
                 strength: config.force.linkStrength.infra
             };
             network.links.push(link);
@@ -408,7 +421,7 @@
         network.data.hosts.forEach(function(n) {
             var src = network.lookup[n.id],
                 dst = network.lookup[n.cp.device],
-                id = src.id + "~" + dst.id;
+                id = src.id + "-" + dst.id;
 
             var link = {
                 class: 'host',
@@ -490,13 +503,6 @@
 //        });
 
 
-        // add links to the display
-        network.link = network.svg.append('g').selectAll('.link')
-            .data(network.force.links(), function(d) {return d.id})
-            .enter().append('line')
-            .attr('class', function(d) {return 'link ' + d.class});
-
-
         // TODO: move drag behavior into separate method.
         // == define node drag behavior...
         network.draggedThreshold = d3.scale.linear()
@@ -551,6 +557,53 @@
             }
         });
 
+        // ...............................................................
+
+        // add links to the display
+        network.link = network.svg.append('g').attr('id', 'links')
+            .selectAll('.link')
+            .data(network.force.links(), function(d) {return d.id})
+            .enter().append('line')
+            .attr('class', function(d) {return 'link ' + d.class});
+
+        network.linkSrcPort = network.svg.append('g')
+            .attr({
+                id: 'srcPorts',
+                class: 'portLayer'
+            });
+        network.linkTgtPort = network.svg.append('g')
+            .attr({
+                id: 'tgtPorts',
+                class: 'portLayer'
+            });
+
+        var portVis = portLabelsOn ? 'visible' : 'hidden';
+
+        network.link.filter('.infra').each(function(d, i) {
+            network.linkSrcPort.append('rect').attr({
+                id: 'srcPort-' + d.id,
+                class: 'port',
+                width: 12,
+                height: 12,
+                x: i * 20,
+                y: 0
+            })
+            .style('visibility', portVis)
+                .append('text').text(d.srcPort);
+
+            network.linkTgtPort.append('rect').attr({
+                id: 'tgtPort-' + d.id,
+                class: 'port',
+                width: 12,
+                height: 12,
+                x: i * 20,
+                y: 20
+            })
+            .style('visibility', portVis);
+
+        });
+
+        // ...............................................................
 
         // add nodes to the display
         network.node = network.svg.selectAll('.node')
@@ -659,14 +712,18 @@
 
         // this function is scheduled to happen soon after the given thread ends
         setTimeout(function() {
+            var lab = config.labels,
+                portGap = lab.port.gap,
+                midW = portGap + lab.port.width/ 2,
+                midH = portGap + lab.port.height / 2;
+
             // post process the device nodes, to pad their size to fit the
             // label text and attach the icon to the right location.
             network.node.filter('.device').each(function(d) {
                 // for every node, recompute size, padding, etc. so text fits
                 var node = d3.select(this),
                     text = node.select('text'),
-                    box = adjustRectToFitText(node),
-                    lab = config.labels;
+                    box = adjustRectToFitText(node);
 
                 // now make the computed adjustment
                 node.select('rect')
@@ -676,7 +733,13 @@
                     .attr('x', box.x + config.icons.xoff)
                     .attr('y', box.y + config.icons.yoff);
 
-                var bounds = boundsFromBox(box);
+                var bounds = boundsFromBox(box),
+                    portBounds = {
+                        x1: bounds.x1 - midW,
+                        x2: bounds.x2 + midW,
+                        y1: bounds.y1 - midH,
+                        y2: bounds.y2 + midH
+                    };
 
                 // todo: clean up extent and edge work..
                 d.extent = {
@@ -691,6 +754,21 @@
                     right  : new geo.LineSegment(bounds.x2, bounds.y1, bounds.x2, bounds.y2),
                     top    : new geo.LineSegment(bounds.x1, bounds.y1, bounds.x2, bounds.y1),
                     bottom : new geo.LineSegment(bounds.x1, bounds.y2, bounds.x2, bounds.y2)
+                };
+
+                d.portEdge = {
+                    left   : new geo.LineSegment(
+                        portBounds.x1, portBounds.y1, portBounds.x1, portBounds.y2
+                    ),
+                    right  : new geo.LineSegment(
+                        portBounds.x2, portBounds.y1, portBounds.x2, portBounds.y2
+                    ),
+                    top    : new geo.LineSegment(
+                        portBounds.x1, portBounds.y1, portBounds.x2, portBounds.y1
+                    ),
+                    bottom : new geo.LineSegment(
+                        portBounds.x1, portBounds.y2, portBounds.x2, portBounds.y2
+                    )
                 };
 
             });
@@ -840,39 +918,71 @@
             preventCollisions();
         }
 
+        var portHalfW = config.labels.port.width / 2,
+            portHalfH = config.labels.port.height / 2;
+
         // clip visualization of links at bounds of nodes...
         network.link.each(function(d) {
-                var xs = d.source.x,
-                    ys = d.source.y,
-                    xt = d.target.x,
-                    yt = d.target.y,
-                    line = new geo.LineSegment(xs, ys, xt, yt),
-                    e, ix;
+            var xs = d.source.x,
+                ys = d.source.y,
+                xt = d.target.x,
+                yt = d.target.y,
+                line = new geo.LineSegment(xs, ys, xt, yt),
+                e, ix,
+                exs, eys, ext, eyt,
+                pxs, pys, pxt, pyt;
 
+            if (d.class === 'host') {
+                // no adjustment for source end of link, since hosts are dots
+                exs = xs;
+                eys = ys;
+
+            } else {
                 for (e in d.source.edge) {
                     ix = line.intersect(d.source.edge[e].offset(xs, ys));
                     if (ix.in1 && ix.in2) {
-                        xs = ix.x;
-                        ys = ix.y;
+                        exs = ix.x;
+                        eys = ix.y;
+
+                        // also pick off the port label intersection
+                        ix = line.intersect(d.source.portEdge[e].offset(xs, ys));
+                        pxs = ix.x;
+                        pys = ix.y;
                         break;
                     }
                 }
+            }
 
-                for (e in d.target.edge) {
-                    ix = line.intersect(d.target.edge[e].offset(xt, yt));
-                    if (ix.in1 && ix.in2) {
-                        xt = ix.x;
-                        yt = ix.y;
-                        break;
-                    }
+            for (e in d.target.edge) {
+                ix = line.intersect(d.target.edge[e].offset(xt, yt));
+                if (ix.in1 && ix.in2) {
+                    ext = ix.x;
+                    eyt = ix.y;
+
+                    // also pick off the port label intersection
+                    ix = line.intersect(d.target.portEdge[e].offset(xt, yt));
+                    pxt = ix.x;
+                    pyt = ix.y;
+                    break;
                 }
+            }
 
-                d3.select(this)
-                    .attr('x1', xs)
-                    .attr('y1', ys)
-                    .attr('x2', xt)
-                    .attr('y2', yt);
-            });
+            // adjust the endpoints of the link's line to match rectangles
+            d3.select(this)
+                .attr('x1', exs)
+                .attr('y1', eys)
+                .attr('x2', ext)
+                .attr('y2', eyt);
+
+            d3.select('#srcPort-' + d.id)
+                .attr('x', pxs - portHalfW)
+                .attr('y', pys - portHalfH);
+
+            d3.select('#tgtPort-' + d.id)
+                .attr('x', pxt - portHalfW)
+                .attr('y', pyt - portHalfH);
+
+        });
 
         // position each node by translating the node (group) by x,y
         network.node

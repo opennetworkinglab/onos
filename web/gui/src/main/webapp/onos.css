@@ -106,6 +106,12 @@ svg .link.host {
     Xstroke-dasharray: 3,3;
 }
 
+svg g.portLayer rect.port {
+    stroke-width: 1;
+    stroke: black;
+    fill: white;
+}
+
 svg .node.device rect {
     stroke-width: 1.5px;
 
