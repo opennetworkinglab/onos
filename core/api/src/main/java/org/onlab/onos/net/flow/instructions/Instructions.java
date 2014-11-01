@@ -200,7 +200,7 @@ public final class Instructions {
             }
             if (obj instanceof OutputInstruction) {
                 OutputInstruction that = (OutputInstruction) obj;
-                        Objects.equals(port, that.port);
+                return Objects.equals(port, that.port);
 
             }
             return false;
