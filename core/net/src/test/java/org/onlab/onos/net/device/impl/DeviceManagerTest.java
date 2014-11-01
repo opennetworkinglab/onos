@@ -251,7 +251,7 @@ public class DeviceManagerTest {
 
 
     private class TestProvider extends AbstractProvider implements DeviceProvider {
-        private Device deviceReceived;
+        private DeviceId deviceReceived;
         private MastershipRole roleReceived;
 
         public TestProvider() {
@@ -263,13 +263,13 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public void roleChanged(Device device, MastershipRole newRole) {
+        public void roleChanged(DeviceId device, MastershipRole newRole) {
             deviceReceived = device;
             roleReceived = newRole;
         }
 
         @Override
-        public boolean isReachable(Device device) {
+        public boolean isReachable(DeviceId device) {
             return false;
         }
     }

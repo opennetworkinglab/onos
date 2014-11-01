@@ -111,8 +111,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
 
     @Override
-    public boolean isReachable(Device device) {
-        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
+    public boolean isReachable(DeviceId deviceId) {
+        OpenFlowSwitch sw = controller.getSwitch(dpid(deviceId.uri()));
         if (sw == null || !sw.isConnected()) {
             return false;
         }
@@ -170,22 +170,22 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     // }
 
     @Override
-    public void roleChanged(Device device, MastershipRole newRole) {
+    public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
         switch (newRole) {
             case MASTER:
-                controller.setRole(dpid(device.id().uri()), RoleState.MASTER);
+                controller.setRole(dpid(deviceId.uri()), RoleState.MASTER);
                 break;
             case STANDBY:
-                controller.setRole(dpid(device.id().uri()), RoleState.EQUAL);
+                controller.setRole(dpid(deviceId.uri()), RoleState.EQUAL);
                 break;
             case NONE:
-                controller.setRole(dpid(device.id().uri()), RoleState.SLAVE);
+                controller.setRole(dpid(deviceId.uri()), RoleState.SLAVE);
                 break;
             default:
                 LOG.error("Unknown Mastership state : {}", newRole);
 
         }
-        LOG.info("Accepting mastership role change for device {}", device.id());
+        LOG.info("Accepting mastership role change for device {}", deviceId);
     }
 
     private class InternalDeviceProvider implements OpenFlowSwitchListener {

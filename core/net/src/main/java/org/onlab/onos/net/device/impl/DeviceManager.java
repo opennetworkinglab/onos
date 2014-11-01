@@ -159,13 +159,14 @@ public class DeviceManager
     }
 
     // Check a device for control channel connectivity.
-    private boolean isReachable(Device device) {
-        // FIXME: Device might not be there yet. (eventual consistent)
-        if (device == null) {
+    private boolean isReachable(DeviceId deviceId) {
+        DeviceProvider provider = getProvider(deviceId);
+        if (provider != null) {
+            return provider.isReachable(deviceId);
+        } else {
+            log.error("Provider not found for {}", deviceId);
             return false;
         }
-        DeviceProvider provider = getProvider(device.providerId());
-        return provider.isReachable(device);
     }
 
     @Override
@@ -226,15 +227,9 @@ public class DeviceManager
                 log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
                 return false;
             }
-            // FIXME roleChanged should take DeviceId instead of Device
-            Device device = store.getDevice(deviceId);
-            if (device == null) {
-                log.warn("{} was not there. Cannot apply role {}", deviceId, newRole);
-                return false;
-            }
-            provider.roleChanged(device, newRole);
+            provider.roleChanged(deviceId, newRole);
+            // not triggering probe when triggered by provider service event
 
-            // not triggering prove when triggered by provider service
             return true;
         }
 
@@ -442,6 +437,7 @@ public class DeviceManager
 
             Device device = store.getDevice(deviceId);
             // FIXME: Device might not be there yet. (eventual consistent)
+            // FIXME relinquish role
             if (device == null) {
                 log.warn("{} was not there. Cannot apply role {}", deviceId, newRole);
                 return false;
@@ -452,8 +448,7 @@ public class DeviceManager
                 log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
                 return false;
             }
-            // FIXME roleChanged should take DeviceId instead of Device
-            provider.roleChanged(device, newRole);
+            provider.roleChanged(deviceId, newRole);
 
             if (newRole.equals(MastershipRole.MASTER)) {
                 // only trigger event when request was sent to provider
@@ -495,8 +490,7 @@ public class DeviceManager
             }
 
 
-            final Device device = getDevice(did);
-            final boolean isReachable = isReachable(device);
+            final boolean isReachable = isReachable(did);
             if (!isReachable) {
                 // device is not connected to this node
                 if (myNextRole != NONE) {
@@ -505,6 +499,7 @@ public class DeviceManager
                             + "Relinquishing role.  ",
                              myNextRole, did);
                     mastershipService.relinquishMastership(did);
+                    // FIXME disconnect?
                 }
                 return;
             }
@@ -523,6 +518,7 @@ public class DeviceManager
 
             switch (myNextRole) {
             case MASTER:
+                final Device device = getDevice(did);
                 if ((device != null) && !isAvailable(did)) {
                     //flag the device as online. Is there a better way to do this?
                     DefaultDeviceDescription deviceDescription

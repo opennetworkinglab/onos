@@ -105,11 +105,11 @@ public class OpenFlowDeviceProviderTest {
 
     @Test
     public void roleChanged() {
-        provider.roleChanged(DEV1, MASTER);
+        provider.roleChanged(DID1, MASTER);
         assertEquals("Should be MASTER", RoleState.MASTER, controller.roleMap.get(DPID1));
-        provider.roleChanged(DEV1, STANDBY);
+        provider.roleChanged(DID1, STANDBY);
         assertEquals("Should be EQUAL", RoleState.EQUAL, controller.roleMap.get(DPID1));
-        provider.roleChanged(DEV1, NONE);
+        provider.roleChanged(DID1, NONE);
         assertEquals("Should be SLAVE", RoleState.SLAVE, controller.roleMap.get(DPID1));
     }
 
