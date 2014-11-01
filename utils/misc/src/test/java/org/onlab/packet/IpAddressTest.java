@@ -15,6 +15,9 @@
  */
 package org.onlab.packet;
 
+import java.net.InetAddress;
+
+import com.google.common.net.InetAddresses;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -364,6 +367,52 @@ public class IpAddressTest {
                                           (byte) 0x88, (byte) 0x88,
                                           44, 55};              // Extra bytes
         ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value1, 6);
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 InetAddress.
+     */
+    @Test
+    public void testValueOfInetAddressIPv4() {
+        IpAddress ipAddress;
+        InetAddress inetAddress;
+
+        inetAddress = InetAddresses.forString("1.2.3.4");
+        ipAddress = IpAddress.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
+
+        inetAddress = InetAddresses.forString("0.0.0.0");
+        ipAddress = IpAddress.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        inetAddress = InetAddresses.forString("255.255.255.255");
+        ipAddress = IpAddress.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv6 InetAddress.
+     */
+    @Test
+    public void testValueOfInetAddressIPv6() {
+        IpAddress ipAddress;
+        InetAddress inetAddress;
+
+        inetAddress =
+            InetAddresses.forString("1111:2222:3333:4444:5555:6666:7777:8888");
+        ipAddress = IpAddress.valueOf(inetAddress);
+        assertThat(ipAddress.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8888"));
+
+        inetAddress = InetAddresses.forString("::");
+        ipAddress = IpAddress.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("::"));
+
+        inetAddress =
+            InetAddresses.forString("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        ipAddress = IpAddress.valueOf(inetAddress);
+        assertThat(ipAddress.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
 
     /**

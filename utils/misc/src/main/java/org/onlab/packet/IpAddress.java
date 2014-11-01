@@ -164,6 +164,33 @@ public final class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
+     * Converts an InetAddress into an IP address.
+     *
+     * @param inetAddress the InetAddress value to use
+     * @return an IP address
+     * @throws IllegalArgumentException if the argument is invalid
+     */
+    public static IpAddress valueOf(InetAddress inetAddress) {
+        byte[] bytes = inetAddress.getAddress();
+        if (inetAddress instanceof Inet4Address) {
+            return new IpAddress(Version.INET, bytes);
+        }
+        if (inetAddress instanceof Inet6Address) {
+            return new IpAddress(Version.INET6, bytes);
+        }
+        // Use the number of bytes as a hint
+        if (bytes.length == INET_BYTE_LENGTH) {
+            return new IpAddress(Version.INET, bytes);
+        }
+        if (bytes.length == INET6_BYTE_LENGTH) {
+            return new IpAddress(Version.INET6, bytes);
+        }
+        final String msg = "Unrecognized IP version address string: " +
+            inetAddress.toString();
+        throw new IllegalArgumentException(msg);
+    }
+
+    /**
      * Converts an IPv4 or IPv6 string literal (e.g., "10.2.3.4" or
      * "1111:2222::8888") into an IP address.
      *
@@ -172,22 +199,14 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @throws IllegalArgumentException if the argument is invalid
      */
     public static IpAddress valueOf(String value) {
-        InetAddress addr = null;
+        InetAddress inetAddress = null;
         try {
-            addr = InetAddresses.forString(value);
+            inetAddress = InetAddresses.forString(value);
         } catch (IllegalArgumentException e) {
             final String msg = "Invalid IP address string: " + value;
             throw new IllegalArgumentException(msg);
         }
-        byte[] bytes = addr.getAddress();
-        if (addr instanceof Inet4Address) {
-            return new IpAddress(Version.INET, bytes);
-        }
-        if (addr instanceof Inet6Address) {
-            return new IpAddress(Version.INET6, bytes);
-        }
-        final String msg = "Unrecognized IP version address string: " + value;
-        throw new IllegalArgumentException(msg);
+        return valueOf(inetAddress);
     }
 
     /**
