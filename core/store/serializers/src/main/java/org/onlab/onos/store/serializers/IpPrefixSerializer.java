@@ -52,7 +52,13 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         int prefLen = input.readInt();
-        // TODO: Add support for reading/writing the IP version
-        return IpPrefix.valueOf(IpAddress.Version.INET, octs, prefLen);
+        // Use the address size to decide whether it is IPv4 or IPv6 address
+        if (octLen == IpAddress.INET_BYTE_LENGTH) {
+            return IpPrefix.valueOf(IpAddress.Version.INET, octs, prefLen);
+        }
+        if (octLen == IpAddress.INET6_BYTE_LENGTH) {
+            return IpPrefix.valueOf(IpAddress.Version.INET6, octs, prefLen);
+        }
+        return null;    // Shouldn't be reached
     }
 }
