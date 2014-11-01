@@ -105,7 +105,8 @@ public class BgpSessionManager {
         if (bgpSession.getLocalAddress() instanceof InetSocketAddress) {
             InetAddress inetAddr =
                 ((InetSocketAddress) bgpSession.getLocalAddress()).getAddress();
-            IpAddress ip4Address = IpAddress.valueOf(inetAddr.getAddress());
+            IpAddress ip4Address = IpAddress.valueOf(IpAddress.Version.INET,
+                                                     inetAddr.getAddress());
             updateMyBgpId(ip4Address);
         }
         return true;

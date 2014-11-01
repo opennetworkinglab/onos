@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.store.serializers;
 
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -51,6 +52,7 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         int prefLen = input.readInt();
-        return IpPrefix.valueOf(octs, prefLen);
+        // TODO: Add support for reading/writing the IP version
+        return IpPrefix.valueOf(IpAddress.Version.INET, octs, prefLen);
     }
 }

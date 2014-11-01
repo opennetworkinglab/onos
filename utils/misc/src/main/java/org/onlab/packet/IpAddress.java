@@ -15,10 +15,18 @@
  */
 package org.onlab.packet;
 
+import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
-import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.net.InetAddresses;
+import com.google.common.primitives.UnsignedBytes;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A class representing an IP address.
@@ -40,87 +48,26 @@ public final class IpAddress implements Comparable<IpAddress> {
     /**
      * Constructor for given IP address version and address octets.
      *
+     * @param version the IP address version
      * @param value the IP address value stored in network byte order
      * (i.e., the most significant byte first)
-     * @param value the IP address value
+     * @throws IllegalArgumentException if the arguments are invalid
      */
     private IpAddress(Version version, byte[] value) {
+        checkArguments(version, value, 0);
         this.version = version;
-        this.octets = Arrays.copyOf(value, INET_BYTE_LENGTH);
-    }
-
-    /**
-     * Converts an integer into an IPv4 address.
-     *
-     * @param value an integer representing an IPv4 address value
-     * @return an IP address
-     */
-    public static IpAddress valueOf(int value) {
-        byte[] bytes =
-            ByteBuffer.allocate(INET_BYTE_LENGTH).putInt(value).array();
-        return new IpAddress(Version.INET, bytes);
-    }
-
-    /**
-     * Converts a byte array into an IP address.
-     *
-     * @param value the IP address value stored in network byte order
-     * (i.e., the most significant byte first)
-     * @return an IP address
-     */
-    public static IpAddress valueOf(byte[] value) {
-        checkNotNull(value);
-        return new IpAddress(Version.INET, value);
-    }
-
-    /**
-     * Converts a byte array and a given offset from the beginning of the
-     * array into an IP address.
-     * <p>
-     * The IP address is stored in network byte order (i.e., the most
-     * significant byte first).
-     * </p>
-     * @param value the value to use
-     * @param offset the offset in bytes from the beginning of the byte array
-     * @return an IP address
-     */
-    public static IpAddress valueOf(byte[] value, int offset) {
-        // Verify the arguments
-        if ((offset < 0) || (offset + INET_BYTE_LENGTH > value.length)) {
-            String msg;
-            if (value.length < INET_BYTE_LENGTH) {
-                msg = "Invalid IPv4 address array: array length: " +
-                    value.length + ". Must be at least " + INET_BYTE_LENGTH;
-            } else {
-                msg = "Invalid IPv4 address array: array offset: " +
-                    offset + ". Must be in the interval [0, " +
-                    (value.length - INET_BYTE_LENGTH) + "]";
-            }
-            throw new IllegalArgumentException(msg);
+        switch (version) {
+        case INET:
+            this.octets = Arrays.copyOf(value, INET_BYTE_LENGTH);
+            break;
+        case INET6:
+            this.octets = Arrays.copyOf(value, INET6_BYTE_LENGTH);
+            break;
+        default:
+            // Should not be reached
+            this.octets = null;
+            break;
         }
-
-        byte[] bc = Arrays.copyOfRange(value, offset, value.length);
-        return IpAddress.valueOf(bc);
-    }
-
-    /**
-     * Converts a dotted-decimal string (x.x.x.x) into an IPv4 address.
-     *
-     * @param address an IP address in string form, e.g. "10.0.0.1"
-     * @return an IP address
-     */
-    public static IpAddress valueOf(String address) {
-        final String[] net = address.split("\\.");
-        if (net.length != INET_BYTE_LENGTH) {
-            String msg = "Malformed IPv4 address string: " + address + "." +
-                "Address must have four decimal values separated by dots (.)";
-            throw new IllegalArgumentException(msg);
-        }
-        final byte[] bytes = new byte[INET_BYTE_LENGTH];
-        for (int i = 0; i < INET_BYTE_LENGTH; i++) {
-            bytes[i] = (byte) Short.parseShort(net[i], 10);
-        }
-        return new IpAddress(Version.INET, bytes);
     }
 
     /**
@@ -138,11 +85,12 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @return a byte array
      */
     public byte[] toOctets() {
-        return Arrays.copyOf(this.octets, INET_BYTE_LENGTH);
+        return Arrays.copyOf(octets, octets.length);
     }
 
     /**
      * Returns the integral value of this IP address.
+     * TODO: This method should be moved to Ip4Address.
      *
      * @return the IP address's value as an integer
      */
@@ -152,24 +100,133 @@ public final class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
+     * Computes the IP address byte length for a given IP version.
+     *
+     * @param version the IP version
+     * @return the IP address byte length for the IP version
+     * @throws IllegalArgumentException if the IP version is invalid
+     */
+    public static int byteLength(Version version) {
+        switch (version) {
+        case INET:
+            return INET_BYTE_LENGTH;
+        case INET6:
+            return INET6_BYTE_LENGTH;
+        default:
+            String msg = "Invalid IP version " + version;
+            throw new IllegalArgumentException(msg);
+        }
+    }
+
+    /**
+     * Converts an integer into an IPv4 address.
+     *
+     * @param value an integer representing an IPv4 address value
+     * @return an IP address
+     */
+    public static IpAddress valueOf(int value) {
+        byte[] bytes =
+            ByteBuffer.allocate(INET_BYTE_LENGTH).putInt(value).array();
+        return new IpAddress(Version.INET, bytes);
+    }
+
+    /**
+     * Converts a byte array into an IP address.
+     *
+     * @param version the IP address version
+     * @param value the IP address value stored in network byte order
+     * (i.e., the most significant byte first)
+     * @return an IP address
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    public static IpAddress valueOf(Version version, byte[] value) {
+        return new IpAddress(version, value);
+    }
+
+    /**
+     * Converts a byte array and a given offset from the beginning of the
+     * array into an IP address.
+     * <p>
+     * The IP address is stored in network byte order (i.e., the most
+     * significant byte first).
+     * </p>
+     * @param version the IP address version
+     * @param value the value to use
+     * @param offset the offset in bytes from the beginning of the byte array
+     * @return an IP address
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    public static IpAddress valueOf(Version version, byte[] value,
+                                    int offset) {
+        checkArguments(version, value, offset);
+        byte[] bc = Arrays.copyOfRange(value, offset, value.length);
+        return IpAddress.valueOf(version, bc);
+    }
+
+    /**
+     * Converts an IPv4 or IPv6 string literal (e.g., "10.2.3.4" or
+     * "1111:2222::8888") into an IP address.
+     *
+     * @param value an IP address value in string form
+     * @return an IP address
+     * @throws IllegalArgumentException if the argument is invalid
+     */
+    public static IpAddress valueOf(String value) {
+        InetAddress addr = null;
+        try {
+            addr = InetAddresses.forString(value);
+        } catch (IllegalArgumentException e) {
+            final String msg = "Invalid IP address string: " + value;
+            throw new IllegalArgumentException(msg);
+        }
+        byte[] bytes = addr.getAddress();
+        if (addr instanceof Inet4Address) {
+            return new IpAddress(Version.INET, bytes);
+        }
+        if (addr instanceof Inet6Address) {
+            return new IpAddress(Version.INET6, bytes);
+        }
+        final String msg = "Unrecognized IP version address string: " + value;
+        throw new IllegalArgumentException(msg);
+    }
+
+    /**
      * Creates an IP network mask prefix.
      *
+     * @param version the IP address version
      * @param prefixLength the length of the mask prefix. Must be in the
-     * interval [0, 32] for IPv4
+     * interval [0, 32] for IPv4, or [0, 128] for IPv6
      * @return a new IP address that contains a mask prefix of the
      * specified length
+     * @throws IllegalArgumentException if the arguments are invalid
      */
-    public static IpAddress makeMaskPrefix(int prefixLength) {
+    public static IpAddress makeMaskPrefix(Version version, int prefixLength) {
+        int addrByteLength = byteLength(version);
+        int addrBitLength = addrByteLength * Byte.SIZE;
+
         // Verify the prefix length
-        if ((prefixLength < 0) || (prefixLength > INET_BIT_LENGTH)) {
-            final String msg = "Invalid IPv4 prefix length: " + prefixLength +
-                ". Must be in the interval [0, 32].";
+        if ((prefixLength < 0) || (prefixLength > addrBitLength)) {
+            final String msg = "Invalid IP prefix length: " + prefixLength +
+                ". Must be in the interval [0, " + addrBitLength + "].";
             throw new IllegalArgumentException(msg);
         }
 
-        long v =
-            (0xffffffffL << (INET_BIT_LENGTH - prefixLength)) & 0xffffffffL;
-        return IpAddress.valueOf((int) v);
+        // Number of bytes and extra bits that should be all 1s
+        int maskBytes = prefixLength / Byte.SIZE;
+        int maskBits = prefixLength % Byte.SIZE;
+        byte[] mask = new byte[addrByteLength];
+
+        // Set the bytes and extra bits to 1s
+        for (int i = 0; i < maskBytes; i++) {
+            mask[i] = (byte) 0xff;              // Set mask bytes to 1s
+        }
+        for (int i = maskBytes; i < addrByteLength; i++) {
+            mask[i] = 0;                        // Set remaining bytes to 0s
+        }
+        if (maskBits > 0) {
+            mask[maskBytes] = (byte) (0xff << (Byte.SIZE - maskBits));
+        }
+        return new IpAddress(version, mask);
     }
 
     /**
@@ -178,27 +235,38 @@ public final class IpAddress implements Comparable<IpAddress> {
      *
      * @param addr the address to mask
      * @param prefixLength the length of the mask prefix. Must be in the
-     * interval [0, 32] for IPv4
+     * interval [0, 32] for IPv4, or [0, 128] for IPv6
      * @return a new IP address that is masked with a mask prefix of the
      * specified length
+     * @throws IllegalArgumentException if the prefix length is invalid
      */
     public static IpAddress makeMaskedAddress(final IpAddress addr,
                                               int prefixLength) {
-        IpAddress mask = IpAddress.makeMaskPrefix(prefixLength);
-        byte[] net = new byte[INET_BYTE_LENGTH];
+        IpAddress mask = IpAddress.makeMaskPrefix(addr.version(),
+                                                  prefixLength);
+        byte[] net = new byte[mask.octets.length];
 
         // Mask each byte
-        for (int i = 0; i < INET_BYTE_LENGTH; i++) {
+        for (int i = 0; i < net.length; i++) {
             net[i] = (byte) (addr.octets[i] & mask.octets[i]);
         }
-        return IpAddress.valueOf(net);
+        return IpAddress.valueOf(addr.version(), net);
     }
 
     @Override
     public int compareTo(IpAddress o) {
-        Long lv = ((long) this.toInt()) & 0xffffffffL;
-        Long rv = ((long) o.toInt()) & 0xffffffffL;
-        return lv.compareTo(rv);
+        // Compare first the version
+        if (this.version != o.version) {
+            return this.version.compareTo(o.version);
+        }
+
+        // Compare the bytes, one-by-one
+        for (int i = 0; i < this.octets.length; i++) {
+            if (this.octets[i] != o.octets[i]) {
+                return UnsignedBytes.compare(this.octets[i], o.octets[i]);
+            }
+        }
+        return 0;       // Equal
     }
 
     @Override
@@ -222,18 +290,67 @@ public final class IpAddress implements Comparable<IpAddress> {
     @Override
     /*
      * (non-Javadoc)
-     * The format is "x.x.x.x" for IPv4 addresses.
+     * The string representation of the IP address: "x.x.x.x" for IPv4
+     * addresses, or ':' separated string for IPv6 addresses.
      *
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        for (final byte b : this.octets) {
-            if (builder.length() > 0) {
-                builder.append(".");
-            }
-            builder.append(String.format("%d", b & 0xff));
+        InetAddress inetAddr = null;
+        try {
+            inetAddr = InetAddress.getByAddress(octets);
+        } catch (UnknownHostException e) {
+            // Should never happen
+            checkState(false, "Internal error: Ip6Address.toString()");
+            return "[Invalid IP Address]";
         }
-        return builder.toString();
+        return InetAddresses.toAddrString(inetAddr);
+    }
+
+    /**
+     * Gets the IP address name for the IP address version.
+     *
+     * @param version the IP address version
+     * @return the IP address name for the IP address version
+     */
+    private static String addressName(Version version) {
+        switch (version) {
+        case INET:
+            return "IPv4";
+        case INET6:
+            return "IPv6";
+        default:
+            break;
+        }
+        return "UnknownIP(" + version + ")";
+    }
+
+    /**
+     * Checks whether the arguments are valid.
+     *
+     * @param version the IP address version
+     * @param value the IP address value stored in a byte array
+     * @param offset the offset in bytes from the beginning of the byte
+     * array with the address
+     * @throws IllegalArgumentException if any of the arguments is invalid
+     */
+    private static void checkArguments(Version version, byte[] value,
+                                       int offset) {
+        // Check the offset and byte array length
+        int addrByteLength = byteLength(version);
+        if ((offset < 0) || (offset + addrByteLength > value.length)) {
+            String msg;
+            if (value.length < addrByteLength) {
+                msg = "Invalid " + addressName(version) +
+                    " address array: array length: " + value.length +
+                    ". Must be at least " + addrByteLength;
+            } else {
+                msg = "Invalid " + addressName(version) +
+                    " address array: array offset: " + offset +
+                    ". Must be in the interval [0, " +
+                    (value.length - addrByteLength) + "]";
+            }
+            throw new IllegalArgumentException(msg);
+        }
     }
 }

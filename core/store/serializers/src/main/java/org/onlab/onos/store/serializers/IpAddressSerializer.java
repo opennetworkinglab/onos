@@ -46,7 +46,8 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
         final int octLen = input.readInt();
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
-        return IpAddress.valueOf(octs);
+        // TODO: Add support for reading/writing the IP version
+        return IpAddress.valueOf(IpAddress.Version.INET, octs);
     }
 
 }

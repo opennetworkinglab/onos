@@ -148,7 +148,8 @@ public class DistributedClusterStore
 
     private IpAddress memberAddress(Member member) {
         byte[] address = member.getSocketAddress().getAddress().getAddress();
-        return IpAddress.valueOf(address);
+        // TODO: Add support for IPv6
+        return IpAddress.valueOf(IpAddress.Version.INET, address);
     }
 
     // Interceptor for membership events.
