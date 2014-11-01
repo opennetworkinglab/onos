@@ -85,7 +85,6 @@ public class ClusterCommunicationManager
         try {
             netty.activate();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             log.error("NettyMessagingService#activate", e);
         }
         messagingService = netty;
@@ -95,6 +94,12 @@ public class ClusterCommunicationManager
     @Deactivate
     public void deactivate() {
         // TODO: cleanup messageingService if needed.
+        // FIXME: workaround until it becomes a service.
+        try {
+            ((NettyMessagingService) messagingService).deactivate();
+        } catch (Exception e) {
+            log.error("NettyMessagingService#deactivate", e);
+        }
         log.info("Stopped");
     }
 
