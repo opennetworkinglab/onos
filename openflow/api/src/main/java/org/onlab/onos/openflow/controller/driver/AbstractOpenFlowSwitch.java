@@ -300,7 +300,6 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
                 this.transitionToEqualSwitch();
             }
         } else {
-            log.warn(">>> mismatch with expected role - got {} - Disconnecting", r);
             this.disconnectSwitch();
         }
     }

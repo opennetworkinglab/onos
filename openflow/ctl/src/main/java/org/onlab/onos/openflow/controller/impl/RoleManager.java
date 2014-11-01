@@ -17,6 +17,7 @@ package org.onlab.onos.openflow.controller.impl;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import org.onlab.onos.openflow.controller.RoleState;
 import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
@@ -41,6 +42,9 @@ import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 
 /**
  * A utility class to handle role requests and replies for this channel.
@@ -59,13 +63,15 @@ class RoleManager implements RoleHandler {
     protected static final long NICIRA_EXPERIMENTER = 0x2320;
 
     private static Logger log = LoggerFactory.getLogger(RoleManager.class);
-    // indicates that a request is currently pending
-    // needs to be volatile to allow correct double-check idiom
-    private volatile boolean requestPending;
-    // the transaction Id of the pending request
-    private int pendingXid;
-    // the role that's pending
-    private RoleState pendingRole;
+
+    // The time until cached XID is evicted. Arbitray for now.
+    private final int pendingXidTimeoutSeconds = 60;
+
+    // The cache for pending expected RoleReplies keyed on expected XID
+    private Cache<Integer, RoleState> pendingReplies =
+            CacheBuilder.newBuilder()
+                .expireAfterWrite(pendingXidTimeoutSeconds, TimeUnit.SECONDS)
+                .build();
 
     // the expectation set by the caller for the returned role
     private RoleRecvStatus expectation;
@@ -73,9 +79,6 @@ class RoleManager implements RoleHandler {
 
 
     public RoleManager(OpenFlowSwitchDriver sw) {
-        this.requestPending = false;
-        this.pendingXid = -1;
-        this.pendingRole = null;
         this.expectation = RoleRecvStatus.MATCHED_CURRENT_ROLE;
         this.sw = sw;
     }
@@ -157,15 +160,11 @@ class RoleManager implements RoleHandler {
             }
             // OF1.0 switch with support for NX_ROLE_REQUEST vendor extn.
             // make Role.EQUAL become Role.SLAVE
-            pendingRole = role;
-            role = (role == RoleState.EQUAL) ? RoleState.SLAVE : role;
-            pendingXid = sendNxRoleRequest(role);
-            requestPending = true;
+            RoleState roleToSend = (role == RoleState.EQUAL) ? RoleState.SLAVE : role;
+            pendingReplies.put(sendNxRoleRequest(roleToSend), role);
         } else {
             // OF1.3 switch, use OFPT_ROLE_REQUEST message
-            pendingXid = sendOF13RoleRequest(role);
-            pendingRole = role;
-            requestPending = true;
+            pendingReplies.put(sendOF13RoleRequest(role), role);
         }
         return true;
     }
@@ -192,12 +191,17 @@ class RoleManager implements RoleHandler {
     @Override
     public synchronized RoleRecvStatus deliverRoleReply(RoleReplyInfo rri)
             throws SwitchStateException {
-        if (!requestPending) {
+        int xid = (int) rri.getXid();
+        RoleState receivedRole = rri.getRole();
+        RoleState expectedRole = pendingReplies.getIfPresent(xid);
+
+        if (expectedRole == null) {
             RoleState currentRole = (sw != null) ? sw.getRole() : null;
             if (currentRole != null) {
                 if (currentRole == rri.getRole()) {
                     // Don't disconnect if the role reply we received is
                     // for the same role we are already in.
+                    // FIXME: but we do from the caller anyways.
                     log.debug("Received unexpected RoleReply from "
                             + "Switch: {}. "
                             + "Role in reply is same as current role of this "
@@ -223,26 +227,24 @@ class RoleManager implements RoleHandler {
             return RoleRecvStatus.OTHER_EXPECTATION;
         }
 
-        int xid = (int) rri.getXid();
-        RoleState receivedRole = rri.getRole();
         // XXX Should check generation id meaningfully and other cases of expectations
+        //if (pendingXid != xid) {
+        //    log.info("Received older role reply from " +
+        //            "switch {} ({}). Ignoring. " +
+        //            "Waiting for {}, xid={}",
+        //            new Object[] {sw.getStringId(), rri,
+        //            pendingRole, pendingXid });
+        //    return RoleRecvStatus.OLD_REPLY;
+        //}
+        sw.returnRoleReply(expectedRole, receivedRole);
 
-        if (pendingXid != xid) {
-            log.debug("Received older role reply from " +
-                    "switch {} ({}). Ignoring. " +
-                    "Waiting for {}, xid={}",
-                    new Object[] {sw.getStringId(), rri,
-                    pendingRole, pendingXid });
-            return RoleRecvStatus.OLD_REPLY;
-        }
-
-        sw.returnRoleReply(pendingRole, receivedRole);
-
-        if (pendingRole == receivedRole) {
+        if (expectedRole == receivedRole) {
             log.debug("Received role reply message from {} that matched "
                     + "expected role-reply {} with expectations {}",
                     new Object[] {sw.getStringId(), receivedRole, expectation});
 
+            // Done with this RoleReply; Invalidate
+            pendingReplies.invalidate(xid);
             if (expectation == RoleRecvStatus.MATCHED_CURRENT_ROLE ||
                     expectation == RoleRecvStatus.MATCHED_SET_ROLE) {
                 return expectation;
@@ -251,6 +253,7 @@ class RoleManager implements RoleHandler {
             }
         }
 
+        pendingReplies.invalidate(xid);
         // if xids match but role's don't, perhaps its a query (OF1.3)
         if (expectation == RoleRecvStatus.REPLY_QUERY) {
             return expectation;
@@ -270,18 +273,17 @@ class RoleManager implements RoleHandler {
     @Override
     public synchronized RoleRecvStatus deliverError(OFErrorMsg error)
             throws SwitchStateException {
-        if (!requestPending) {
-            log.debug("Received an error msg from sw {}, but no pending "
-                    + "requests in role-changer; not handling ...",
-                    sw.getStringId());
-            return RoleRecvStatus.OTHER_EXPECTATION;
-        }
-        if (pendingXid != error.getXid()) {
+        RoleState errorRole = pendingReplies.getIfPresent(error.getXid());
+        if (errorRole == null) {
             if (error.getErrType() == OFErrorType.ROLE_REQUEST_FAILED) {
                 log.debug("Received an error msg from sw {} for a role request,"
                         + " but not for pending request in role-changer; "
                         + " ignoring error {} ...",
                         sw.getStringId(), error);
+            } else {
+                log.debug("Received an error msg from sw {}, but no pending "
+                        + "requests in role-changer; not handling ...",
+                        sw.getStringId());
             }
             return RoleRecvStatus.OTHER_EXPECTATION;
         }
@@ -292,7 +294,7 @@ class RoleManager implements RoleHandler {
                     + "role-messaging is supported. Possible issues in "
                     + "switch driver configuration?", new Object[] {
                             ((OFBadRequestErrorMsg) error).toString(),
-                            sw.getStringId(), pendingRole
+                            sw.getStringId(), errorRole
                     });
             return RoleRecvStatus.UNSUPPORTED;
         }
@@ -316,7 +318,7 @@ class RoleManager implements RoleHandler {
                         + "received Error to for pending role request [%s]. "
                         + "Error:[%s]. Disconnecting switch ... ",
                         sw.getStringId(),
-                        pendingRole, rrerr);
+                        errorRole, rrerr);
                 throw new SwitchStateException(msgx);
             default:
                 break;
