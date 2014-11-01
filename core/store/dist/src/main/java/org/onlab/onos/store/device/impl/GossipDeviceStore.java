@@ -1216,7 +1216,7 @@ public class GossipDeviceStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received device update event from peer: {}", message.sender());
+            log.debug("Received device update event from peer: {}", message.sender());
             InternalDeviceEvent event = (InternalDeviceEvent) SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
@@ -1231,7 +1231,7 @@ public class GossipDeviceStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received device offline event from peer: {}", message.sender());
+            log.debug("Received device offline event from peer: {}", message.sender());
             InternalDeviceOfflineEvent event = (InternalDeviceOfflineEvent) SERIALIZER.decode(message.payload());
 
             DeviceId deviceId = event.deviceId();
@@ -1245,7 +1245,7 @@ public class GossipDeviceStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received device removed event from peer: {}", message.sender());
+            log.debug("Received device removed event from peer: {}", message.sender());
             InternalDeviceRemovedEvent event = (InternalDeviceRemovedEvent) SERIALIZER.decode(message.payload());
 
             DeviceId deviceId = event.deviceId();
@@ -1259,7 +1259,7 @@ public class GossipDeviceStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received port update event from peer: {}", message.sender());
+            log.debug("Received port update event from peer: {}", message.sender());
             InternalPortEvent event = (InternalPortEvent) SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
@@ -1280,9 +1280,8 @@ public class GossipDeviceStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received port status update event from peer: {}", message.sender());
+            log.debug("Received port status update event from peer: {}", message.sender());
             InternalPortStatusEvent event = (InternalPortStatusEvent) SERIALIZER.decode(message.payload());
-            log.info("{}", event);
 
             ProviderId providerId = event.providerId();
             DeviceId deviceId = event.deviceId();
