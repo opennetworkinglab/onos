@@ -40,7 +40,9 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
         MASTER_CHANGED,
 
         /**
-         * Signifies that the list of backup nodes has changed.
+         * Signifies that the list of backup nodes has changed. If
+         * the change in the backups list is accompanied by a change in
+         * master, the event is subsumed by MASTER_CHANGED.
          */
         BACKUPS_CHANGED
     }

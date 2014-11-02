@@ -16,6 +16,7 @@
 package org.onlab.onos.store.mastership.impl;
 
 import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
+import static org.onlab.onos.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
 
 import java.util.HashSet;
@@ -43,6 +44,7 @@ import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 
+import com.google.common.base.Objects;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IAtomicLong;
@@ -297,8 +299,7 @@ implements MastershipStore {
                 case NONE:
                     rv.reassign(nodeId, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
-                    // TODO: BACKUPS_CHANGED?
-                    return null;
+                    return new MastershipEvent(BACKUPS_CHANGED, deviceId, rv.roleInfo());
                 default:
                     log.warn("unknown Mastership Role {}", currentRole);
             }
@@ -327,7 +328,8 @@ implements MastershipStore {
                         roleMap.put(deviceId, rv);
                         return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                     } else {
-                        // no master candidate
+                        // No master candidate - no more backups, device is likely
+                        // fully disconnected
                         roleMap.put(deviceId, rv);
                         // Should there be new event type?
                         return null;
@@ -338,8 +340,7 @@ implements MastershipStore {
                     boolean modified = rv.reassign(nodeId, STANDBY, NONE);
                     if (modified) {
                         roleMap.put(deviceId, rv);
-                        // TODO: BACKUPS_CHANGED?
-                        return null;
+                        return new MastershipEvent(BACKUPS_CHANGED, deviceId, rv.roleInfo());
                     }
                     return null;
                 default:
@@ -441,8 +442,18 @@ implements MastershipStore {
 
         @Override
         public void entryUpdated(EntryEvent<DeviceId, RoleValue> event) {
-            notifyDelegate(new MastershipEvent(
-                    MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
+            // compare old and current RoleValues. If master is different,
+            // emit MASTER_CHANGED. else, emit BACKUPS_CHANGED.
+            RoleValue oldValue = event.getOldValue();
+            RoleValue newValue = event.getValue();
+
+            if (Objects.equal(oldValue.get(MASTER), newValue.get(MASTER))) {
+                notifyDelegate(new MastershipEvent(
+                        MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
+            } else {
+                notifyDelegate(new MastershipEvent(
+                        BACKUPS_CHANGED, event.getKey(), event.getValue().roleInfo()));
+            }
         }
 
         @Override

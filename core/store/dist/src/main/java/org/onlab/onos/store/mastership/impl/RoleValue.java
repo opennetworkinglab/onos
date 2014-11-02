@@ -55,6 +55,13 @@ final class RoleValue {
         return value.get(type);
     }
 
+    /**
+     * Returns the first node to match the MastershipRole, or if there
+     * are none, null.
+     *
+     * @param type the role
+     * @return a node ID or null
+     */
     public NodeId get(MastershipRole type) {
         return value.get(type).isEmpty() ? null : value.get(type).get(0);
     }

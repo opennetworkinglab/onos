@@ -51,13 +51,6 @@ import com.google.common.cache.CacheBuilder;
  * After a role request is submitted the role changer keeps track of the
  * pending request, collects the reply (if any) and times out the request
  * if necessary.
- *
- * To simplify role handling we only keep track of the /last/ pending
- * role reply send to the switch. If multiple requests are pending and
- * we receive replies for earlier requests we ignore them. However, this
- * way of handling pending requests implies that we could wait forever if
- * a new request is submitted before the timeout triggers. If necessary
- * we could work around that though.
  */
 class RoleManager implements RoleHandler {
     protected static final long NICIRA_EXPERIMENTER = 0x2320;
