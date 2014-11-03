@@ -34,11 +34,7 @@ public interface HostAdminService {
      * Binds IP and MAC addresses to the given connection point.
      * <p>
      * The addresses are added to the set of addresses already bound to the
-     * connection point. If any of the fields in addresses is null, no change
-     * is made to the corresponding addresses in the store.
-     * {@link #unbindAddressesFromPort(PortAddresses)} must be use to unbind
-     * addresses that have previously been bound.
-     * </p>
+     * connection point.
      *
      * @param addresses address object containing addresses to add and the port
      * to add them to

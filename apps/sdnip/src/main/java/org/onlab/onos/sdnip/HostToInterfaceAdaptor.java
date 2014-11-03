@@ -53,11 +53,13 @@ public class HostToInterfaceAdaptor implements InterfaceService {
     public Interface getInterface(ConnectPoint connectPoint) {
         checkNotNull(connectPoint);
 
-        PortAddresses portAddresses =
+        Set<PortAddresses> portAddresses =
                 hostService.getAddressBindingsForPort(connectPoint);
 
-        if (!portAddresses.ipAddresses().isEmpty()) {
-            return new Interface(portAddresses);
+        for (PortAddresses addresses : portAddresses) {
+            if (addresses.connectPoint().equals(connectPoint)) {
+                return new Interface(addresses);
+            }
         }
 
         return null;

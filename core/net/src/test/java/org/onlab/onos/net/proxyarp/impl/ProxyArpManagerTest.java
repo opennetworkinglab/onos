@@ -19,7 +19,10 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -207,13 +210,18 @@ public class ProxyArpManagerTest {
             IpAddress addr2 = IpAddress.valueOf("10.0." + (2 * i) + ".1");
             InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
-            PortAddresses pa =
-                new PortAddresses(cp, Sets.newHashSet(ia1, ia2),
-                                  MacAddress.valueOf(i));
-            addresses.add(pa);
+            PortAddresses pa1 =
+                new PortAddresses(cp, Sets.newHashSet(ia1),
+                                  MacAddress.valueOf(2 * i - 1));
+            PortAddresses pa2 =
+                    new PortAddresses(cp, Sets.newHashSet(ia2),
+                                      MacAddress.valueOf(2 * i));
+
+            addresses.add(pa1);
+            addresses.add(pa2);
 
             expect(hostService.getAddressBindingsForPort(cp))
-                    .andReturn(pa).anyTimes();
+                    .andReturn(Sets.newHashSet(pa1, pa2)).anyTimes();
         }
 
         expect(hostService.getAddressBindings()).andReturn(addresses).anyTimes();
@@ -222,7 +230,7 @@ public class ProxyArpManagerTest {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i + NUM_ADDRESS_PORTS),
                     P1);
             expect(hostService.getAddressBindingsForPort(cp))
-                    .andReturn(new PortAddresses(cp, null, null)).anyTimes();
+                    .andReturn(Collections.<PortAddresses>emptySet()).anyTimes();
         }
     }
 
@@ -339,7 +347,8 @@ public class ProxyArpManagerTest {
         IpAddress theirIp = IpAddress.valueOf("10.0.1.254");
         IpAddress ourFirstIp = IpAddress.valueOf("10.0.1.1");
         IpAddress ourSecondIp = IpAddress.valueOf("10.0.2.1");
-        MacAddress ourMac = MacAddress.valueOf(1L);
+        MacAddress firstMac = MacAddress.valueOf(1L);
+        MacAddress secondMac = MacAddress.valueOf(2L);
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
                 Collections.singleton(theirIp));
@@ -352,7 +361,7 @@ public class ProxyArpManagerTest {
         proxyArp.reply(arpRequest, LOC1);
 
         assertEquals(1, packetService.packets.size());
-        Ethernet arpReply = buildArp(ARP.OP_REPLY, ourMac, MAC2, ourFirstIp, theirIp);
+        Ethernet arpReply = buildArp(ARP.OP_REPLY, firstMac, MAC2, ourFirstIp, theirIp);
         verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
 
         // Test a request for the second address on that port
@@ -362,7 +371,7 @@ public class ProxyArpManagerTest {
         proxyArp.reply(arpRequest, LOC1);
 
         assertEquals(1, packetService.packets.size());
-        arpReply = buildArp(ARP.OP_REPLY, ourMac, MAC2, ourSecondIp, theirIp);
+        arpReply = buildArp(ARP.OP_REPLY, secondMac, MAC2, ourSecondIp, theirIp);
         verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
     }
 

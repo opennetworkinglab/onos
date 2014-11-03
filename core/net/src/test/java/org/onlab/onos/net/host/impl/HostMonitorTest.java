@@ -20,7 +20,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -130,7 +132,7 @@ public class HostMonitorTest {
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.<Host>emptySet()).anyTimes();
         expect(hostManager.getAddressBindingsForPort(cp))
-                .andReturn(pa).anyTimes();
+                .andReturn(Collections.singleton(pa)).anyTimes();
         replay(hostManager);
 
         TestPacketService packetService = new TestPacketService();

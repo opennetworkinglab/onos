@@ -134,14 +134,16 @@ public class ProxyArpManager implements ProxyArpService {
             IpAddress target =
                 IpAddress.valueOf(IpAddress.Version.INET,
                                   arp.getTargetProtocolAddress());
-            PortAddresses addresses =
+            Set<PortAddresses> addressSet =
                 hostService.getAddressBindingsForPort(inPort);
 
-            for (InterfaceIpAddress ia : addresses.ipAddresses()) {
-                if (ia.ipAddress().equals(target)) {
-                    Ethernet arpReply =
-                        buildArpReply(ia.ipAddress(), addresses.mac(), eth);
-                    sendTo(arpReply, inPort);
+            for (PortAddresses addresses : addressSet) {
+                for (InterfaceIpAddress ia : addresses.ipAddresses()) {
+                    if (ia.ipAddress().equals(target)) {
+                        Ethernet arpReply =
+                            buildArpReply(ia.ipAddress(), addresses.mac(), eth);
+                        sendTo(arpReply, inPort);
+                    }
                 }
             }
             return;
@@ -244,7 +246,7 @@ public class ProxyArpManager implements ProxyArpService {
         // TODO: Is this sufficient to identify outside-facing ports: just
         // having IP addresses on a port?
         //
-        return !hostService.getAddressBindingsForPort(port).ipAddresses().isEmpty();
+        return !hostService.getAddressBindingsForPort(port).isEmpty();
     }
 
     @Override
