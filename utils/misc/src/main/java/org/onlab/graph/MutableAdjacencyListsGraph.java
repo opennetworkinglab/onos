@@ -1,0 +1,147 @@
+package org.onlab.graph;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+
+public class MutableAdjacencyListsGraph<V extends Vertex, E extends Edge<V>>
+implements MutableGraph<V, E> {
+    private Set<V> vertexes = new HashSet<V>();
+    private Set<E> edges = new HashSet<E>();
+
+    private SetMultimap<V, E> sources = HashMultimap.create();
+    private SetMultimap<V, E> destinations = HashMultimap.create();
+
+    /**
+     * Creates a graph comprising of the specified vertexes and edges.
+     *
+     * @param vertexes set of graph vertexes
+     * @param edges    set of graph edges
+     */
+    public MutableAdjacencyListsGraph(Set<V> vertex, Set<E> edge) {
+        vertexes.addAll(vertex);
+        edges.addAll(edge);
+        for (E e : edge) {
+            sources.put(e.src(), e);
+            vertexes.add(e.src());
+            destinations.put(e.dst(), e);
+            vertexes.add(e.dst());
+        }
+    }
+
+    @Override
+    public Set<V> getVertexes() {
+        return vertexes;
+    }
+
+    @Override
+    public Set<E> getEdges() {
+        return edges;
+    }
+
+    @Override
+    public Set<E> getEdgesFrom(V src) {
+        return sources.get(src);
+    }
+
+    @Override
+    public Set<E> getEdgesTo(V dst) {
+        return destinations.get(dst);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof MutableAdjacencyListsGraph) {
+            MutableAdjacencyListsGraph that = (MutableAdjacencyListsGraph) obj;
+            return this.getClass() == that.getClass() &&
+                    Objects.equals(this.vertexes, that.vertexes) &&
+                    Objects.equals(this.edges, that.edges);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vertexes, edges);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("vertexes", vertexes)
+                .add("edges", edges)
+                .toString();
+    }
+
+
+    @Override
+    public void addVertex(V vertex) {
+        if (vertexes != null) {
+              if (!vertexes.contains(vertex)) {
+                    vertexes.add(vertex);
+                }
+        }
+    }
+
+    @Override
+    public void removeVertex(V vertex) {
+        // TODO Auto-generated method stub
+        if (vertexes != null && edges != null) {
+            if (vertexes.contains(vertex)) {
+                vertexes.remove(vertex);
+                Set<E> srcEdgesList = sources.get(vertex);
+                Set<E> dstEdgesList = destinations.get(vertex);
+                edges.removeAll(srcEdgesList);
+                edges.removeAll(dstEdgesList);
+                sources.remove(vertex, srcEdgesList);
+                sources.remove(vertex, dstEdgesList);
+            }
+        }
+    }
+
+    @Override
+    public void addEdge(E edge) {
+        if (edges != null) {
+                if (!edges.contains(edge)) {
+                    edges.add(edge);
+                    sources.put(edge.src(), edge);
+                    destinations.put(edge.dst(), edge);
+                }
+        }
+    }
+
+    @Override
+    public void removeEdge(E edge) {
+        if (edges != null) {
+            if (edges.contains(edge)) {
+                edges.remove(edge);
+                sources.remove(edge.src(), edge);
+                destinations.remove(edge.dst(), edge);
+            }
+        }
+    }
+
+    @Override
+    public Graph<V, E> toImmutable() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * Clear the graph.
+     */
+    public void clear() {
+        edges.clear();
+        vertexes.clear();
+        sources.clear();
+        destinations.clear();
+    }
+}
