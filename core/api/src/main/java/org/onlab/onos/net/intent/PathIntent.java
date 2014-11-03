@@ -15,7 +15,11 @@
  */
 package org.onlab.onos.net.intent;
 
+import java.util.List;
+
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
@@ -28,7 +32,7 @@ import org.onlab.onos.net.resource.LinkResourceRequest;
 public class PathIntent extends ConnectivityIntent {
 
     private final Path path;
-    private final LinkResourceRequest[] resourceRequests;
+    private final List<LinkResourceRequest> resourceRequests;
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
@@ -45,7 +49,7 @@ public class PathIntent extends ConnectivityIntent {
         super(id(PathIntent.class, selector, treatment, path), appId,
               resources(path.links()), selector, treatment);
         this.path = path;
-        this.resourceRequests = resourceRequests;
+        this.resourceRequests = ImmutableList.copyOf(resourceRequests);
     }
 
     /**
@@ -54,7 +58,7 @@ public class PathIntent extends ConnectivityIntent {
     protected PathIntent() {
         super();
         this.path = null;
-        this.resourceRequests = new LinkResourceRequest[0];
+        this.resourceRequests = ImmutableList.of();
     }
 
     /**
@@ -71,8 +75,9 @@ public class PathIntent extends ConnectivityIntent {
         return true;
     }
 
+    // TODO: consider changing return type
     public LinkResourceRequest[] resourceRequests() {
-        return resourceRequests;
+        return resourceRequests.toArray(new LinkResourceRequest[resourceRequests.size()]);
     }
 
     @Override
