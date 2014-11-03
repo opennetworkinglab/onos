@@ -161,11 +161,11 @@ public final class Criteria {
     /**
      * Creates a match on lambda field using the specified value.
      *
-     * @param lambda
+     * @param sigType
      * @return match criterion
      */
-    public static Criterion matchOpticalSignalType(Byte lambda) {
-        return new OpticalSignalTypeCriterion(lambda, Type.OCH_SIGTYPE);
+    public static Criterion matchOpticalSignalType(Short sigType) {
+        return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }
 
 
@@ -587,10 +587,10 @@ public final class Criteria {
 
     public static final class OpticalSignalTypeCriterion implements Criterion {
 
-        private final byte signalType;
+        private final Short signalType;
         private final Type type;
 
-        public OpticalSignalTypeCriterion(byte signalType, Type type) {
+        public OpticalSignalTypeCriterion(Short signalType, Type type) {
             this.signalType = signalType;
             this.type = type;
         }
@@ -600,7 +600,7 @@ public final class Criteria {
             return this.type;
         }
 
-        public Byte signalType() {
+        public Short signalType() {
             return this.signalType;
         }
 

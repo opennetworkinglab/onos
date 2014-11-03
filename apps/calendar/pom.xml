@@ -62,6 +62,32 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
+
+    <dependency>
+      <groupId>org.onlab.onos</groupId>
+      <artifactId>onlab-thirdparty</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.onlab.onos</groupId>
+      <artifactId>onlab-misc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.onlab.onos</groupId>
+      <artifactId>onlab-junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.onlab.onos</groupId>
+      <artifactId>onos-cli</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.karaf.shell</groupId>
+      <artifactId>org.apache.karaf.shell.console</artifactId>
+    </dependency>
     </dependencies>
 
     <build>
@@ -77,6 +103,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
+                            org.slf4j,
                             org.osgi.framework,
                             javax.ws.rs,javax.ws.rs.core,
                             com.sun.jersey.api.core,

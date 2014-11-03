@@ -15,123 +15,970 @@
  */
 package org.onlab.packet;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.testing.EqualsTester;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
-import java.util.Arrays;
-
-import org.junit.Test;
-import org.onlab.packet.IpAddress.Version;
-
-import com.google.common.testing.EqualsTester;
-
+/**
+ * Tests for class {@link IpPrefix}.
+ */
 public class IpPrefixTest {
-
-    private static final byte [] BYTES1 = new byte [] {0xa, 0x0, 0x0, 0xa};
-    private static final byte [] BYTES2 = new byte [] {0xa, 0x0, 0x0, 0xb};
-    private static final int INTVAL0 = 0x0a000000;
-    private static final int INTVAL1 = 0x0a00000a;
-    private static final int INTVAL2 = 0x0a00000b;
-    private static final String STRVAL = "10.0.0.12/16";
-    private static final int MASK_LENGTH = 16;
-
+    /**
+     * Tests the immutability of {@link IpPrefix}.
+     */
     @Test
-    public void testEquality() {
-        IpPrefix ip1 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                        BYTES1, IpPrefix.MAX_INET_MASK_LENGTH);
-        IpPrefix ip2 = IpPrefix.valueOf(INTVAL1, IpPrefix.MAX_INET_MASK_LENGTH);
-        IpPrefix ip3 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                        BYTES2, IpPrefix.MAX_INET_MASK_LENGTH);
-        IpPrefix ip4 = IpPrefix.valueOf(INTVAL2, IpPrefix.MAX_INET_MASK_LENGTH);
-        IpPrefix ip5 = IpPrefix.valueOf(STRVAL);
-
-        new EqualsTester().addEqualityGroup(ip1, ip2)
-        .addEqualityGroup(ip3, ip4)
-        .addEqualityGroup(ip5)
-        .testEquals();
-
-        // string conversions
-        IpPrefix ip6 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                        BYTES1, MASK_LENGTH);
-        IpPrefix ip7 = IpPrefix.valueOf("10.0.0.10/16");
-        IpPrefix ip8 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                        new byte [] {0xa, 0x0, 0x0, 0xc}, 16);
-        assertEquals("incorrect address conversion", ip6, ip7);
-        assertEquals("incorrect address conversion", ip5, ip8);
+    public void testImmutable() {
+        assertThatClassIsImmutable(IpPrefix.class);
     }
 
+    /**
+     * Tests the maximum mask length.
+     */
     @Test
-    public void basics() {
-        IpPrefix ip1 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                        BYTES1, MASK_LENGTH);
-        final byte [] bytes = new byte [] {0xa, 0x0, 0x0, 0x0};
-
-        // check fields
-        assertEquals("incorrect IP Version", Version.INET, ip1.version());
-        assertEquals("incorrect netmask", 16, ip1.prefixLength());
-        assertTrue("faulty toOctets()",
-                   Arrays.equals(bytes, ip1.address().toOctets()));
-        assertEquals("faulty toInt()", INTVAL0, ip1.address().toInt());
-        assertEquals("faulty toString()", "10.0.0.0/16", ip1.toString());
+    public void testMaxMaskLength() {
+        assertThat(IpPrefix.MAX_INET_MASK_LENGTH, is(32));
+        assertThat(IpPrefix.MAX_INET6_MASK_LENGTH, is(128));
     }
 
+    /**
+     * Tests returning the IP version of the prefix.
+     */
     @Test
-    public void netmasks() {
-        // masked
-        IpPrefix ip1 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                        BYTES1, MASK_LENGTH);
-        IpPrefix ip2 = IpPrefix.valueOf("10.0.0.10/16");
-        IpPrefix ip3 = IpPrefix.valueOf("10.0.0.0/16");
-        assertEquals("incorrect binary masked address",
-                     ip1.toString(), "10.0.0.0/16");
-        assertEquals("incorrect string masked address",
-                     ip2.toString(), "10.0.0.0/16");
-        assertEquals("incorrect network address",
-                     ip2.toString(), "10.0.0.0/16");
+    public void testVersion() {
+        IpPrefix ipPrefix;
+
+        // IPv4
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertThat(ipPrefix.version(), is(IpAddress.Version.INET));
+
+        // IPv6
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertThat(ipPrefix.version(), is(IpAddress.Version.INET6));
     }
 
+    /**
+     * Tests returning the IP address value and IP address prefix length of
+     * an IPv4 prefix.
+     */
     @Test
-    public void testContainsIpPrefix() {
-        IpPrefix slash31 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                            BYTES1, 31);
-        IpPrefix slash32 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                            BYTES1, 32);
-        IpPrefix differentSlash32 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                                     BYTES2, 32);
+    public void testAddressAndPrefixLengthIPv4() {
+        IpPrefix ipPrefix;
 
-        assertTrue(slash31.contains(differentSlash32));
-        assertFalse(differentSlash32.contains(slash31));
+        ipPrefix = IpPrefix.valueOf("1.2.3.0/24");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("1.2.3.0")));
+        assertThat(ipPrefix.prefixLength(), is(24));
 
-        assertTrue(slash31.contains(slash32));
-        assertFalse(slash32.contains(differentSlash32));
-        assertFalse(differentSlash32.contains(slash32));
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/24");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("1.2.3.0")));
+        assertThat(ipPrefix.prefixLength(), is(24));
 
-        IpPrefix zero = IpPrefix.valueOf("0.0.0.0/0");
-        assertTrue(zero.contains(differentSlash32));
-        assertFalse(differentSlash32.contains(zero));
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/32");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("1.2.3.4")));
+        assertThat(ipPrefix.prefixLength(), is(32));
 
-        IpPrefix slash8 = IpPrefix.valueOf("10.0.0.0/8");
-        assertTrue(slash8.contains(slash31));
-        assertFalse(slash31.contains(slash8));
+        ipPrefix = IpPrefix.valueOf("1.2.3.5/32");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("1.2.3.5")));
+        assertThat(ipPrefix.prefixLength(), is(32));
+
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("0.0.0.0")));
+        assertThat(ipPrefix.prefixLength(), is(0));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertThat(ipPrefix.address(),
+                   equalTo(IpAddress.valueOf("255.255.255.255")));
+        assertThat(ipPrefix.prefixLength(), is(32));
     }
 
+    /**
+     * Tests returning the IP address value and IP address prefix length of
+     * an IPv6 prefix.
+     */
     @Test
-    public void testContainsIpAddress() {
-        IpPrefix slash31 = IpPrefix.valueOf(IpAddress.Version.INET,
-                                            BYTES1, 31);
-        IpAddress addr32 = IpAddress.valueOf(IpAddress.Version.INET, BYTES1);
+    public void testAddressAndPrefixLengthIPv6() {
+        IpPrefix ipPrefix;
 
-        assertTrue(slash31.contains(addr32));
+        ipPrefix = IpPrefix.valueOf("1100::/8");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("1100::")));
+        assertThat(ipPrefix.prefixLength(), is(8));
 
-        IpPrefix intf = IpPrefix.valueOf("192.168.10.101/24");
-        IpAddress addr = IpAddress.valueOf("192.168.10.1");
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8885/8");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("1100::")));
+        assertThat(ipPrefix.prefixLength(), is(8));
 
-        assertTrue(intf.contains(addr));
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8800/120");
+        assertThat(ipPrefix.address(),
+                   equalTo(IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8800")));
+        assertThat(ipPrefix.prefixLength(), is(120));
 
-        IpPrefix intf1 = IpPrefix.valueOf("10.0.0.101/24");
-        IpAddress addr1 = IpAddress.valueOf("10.0.0.4");
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8885/128");
+        assertThat(ipPrefix.address(),
+                   equalTo(IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8885")));
+        assertThat(ipPrefix.prefixLength(), is(128));
 
-        assertTrue(intf1.contains(addr1));
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertThat(ipPrefix.address(), equalTo(IpAddress.valueOf("::")));
+        assertThat(ipPrefix.prefixLength(), is(0));
+
+        ipPrefix =
+            IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertThat(ipPrefix.address(),
+                   equalTo(IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
+        assertThat(ipPrefix.prefixLength(), is(128));
+
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8885/64");
+        assertThat(ipPrefix.address(),
+                   equalTo(IpAddress.valueOf("1111:2222:3333:4444::")));
+        assertThat(ipPrefix.prefixLength(), is(64));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 integer value.
+     */
+    @Test
+    public void testValueOfForIntegerIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf(0x01020304, 24);
+        assertThat(ipPrefix.toString(), is("1.2.3.0/24"));
+
+        ipPrefix = IpPrefix.valueOf(0x01020304, 32);
+        assertThat(ipPrefix.toString(), is("1.2.3.4/32"));
+
+        ipPrefix = IpPrefix.valueOf(0x01020305, 32);
+        assertThat(ipPrefix.toString(), is("1.2.3.5/32"));
+
+        ipPrefix = IpPrefix.valueOf(0, 0);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf(0, 32);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/32"));
+
+        ipPrefix = IpPrefix.valueOf(0xffffffff, 0);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf(0xffffffff, 16);
+        assertThat(ipPrefix.toString(), is("255.255.0.0/16"));
+
+        ipPrefix = IpPrefix.valueOf(0xffffffff, 32);
+        assertThat(ipPrefix.toString(), is("255.255.255.255/32"));
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 integer value and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfIntegerNegativePrefixLengthIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf(0x01020304, -1);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 integer value and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfIntegerTooLongPrefixLengthIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf(0x01020304, 33);
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 byte array.
+     */
+    @Test
+    public void testValueOfByteArrayIPv4() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {1, 2, 3, 4};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 24);
+        assertThat(ipPrefix.toString(), is("1.2.3.0/24"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 32);
+        assertThat(ipPrefix.toString(), is("1.2.3.4/32"));
+
+        value = new byte[] {1, 2, 3, 5};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 32);
+        assertThat(ipPrefix.toString(), is("1.2.3.5/32"));
+
+        value = new byte[] {0, 0, 0, 0};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 0);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 32);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/32"));
+
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 0);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 16);
+        assertThat(ipPrefix.toString(), is("255.255.0.0/16"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 32);
+        assertThat(ipPrefix.toString(), is("255.255.255.255/32"));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv6 byte array.
+     */
+    @Test
+    public void testValueOfByteArrayIPv6() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77, (byte) 0x88, (byte) 0x88};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 120);
+        assertThat(ipPrefix.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8800/120"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 128);
+        assertThat(ipPrefix.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8888/128"));
+
+        value = new byte[] {0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 0);
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 128);
+        assertThat(ipPrefix.toString(), is("::/128"));
+
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 0);
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 64);
+        assertThat(ipPrefix.toString(), is("ffff:ffff:ffff:ffff::/64"));
+
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 128);
+        assertThat(ipPrefix.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128"));
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a null array for IPv4.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidValueOfNullArrayIPv4() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = null;
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 24);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a null array for IPv6.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidValueOfNullArrayIPv6() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = null;
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 120);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a short array for IPv4.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfShortArrayIPv4() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {1, 2, 3};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 24);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a short array for IPv6.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfShortArrayIPv6() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 120);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 byte array and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfByteArrayNegativePrefixLengthIPv4() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {1, 2, 3, 4};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, -1);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv6 byte array and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfByteArrayNegativePrefixLengthIPv6() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77, (byte) 0x88, (byte) 0x88};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, -1);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 byte array and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfByteArrayTooLongPrefixLengthIPv4() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {1, 2, 3, 4};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, 33);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv6 byte array and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfByteArrayTooLongPrefixLengthIPv6() {
+        IpPrefix ipPrefix;
+        byte[] value;
+
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77, (byte) 0x88, (byte) 0x88};
+        ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, 129);
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 address.
+     */
+    @Test
+    public void testValueOfAddressIPv4() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress = IpAddress.valueOf("1.2.3.4");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 24);
+        assertThat(ipPrefix.toString(), is("1.2.3.0/24"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 32);
+        assertThat(ipPrefix.toString(), is("1.2.3.4/32"));
+
+        ipAddress = IpAddress.valueOf("1.2.3.5");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 32);
+        assertThat(ipPrefix.toString(), is("1.2.3.5/32"));
+
+        ipAddress = IpAddress.valueOf("0.0.0.0");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 0);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 32);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/32"));
+
+        ipAddress = IpAddress.valueOf("255.255.255.255");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 0);
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 16);
+        assertThat(ipPrefix.toString(), is("255.255.0.0/16"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 32);
+        assertThat(ipPrefix.toString(), is("255.255.255.255/32"));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv6 address.
+     */
+    @Test
+    public void testValueOfAddressIPv6() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress =
+            IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 120);
+        assertThat(ipPrefix.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8800/120"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 128);
+        assertThat(ipPrefix.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8888/128"));
+
+        ipAddress = IpAddress.valueOf("::");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 0);
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 128);
+        assertThat(ipPrefix.toString(), is("::/128"));
+
+        ipAddress =
+            IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 0);
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 64);
+        assertThat(ipPrefix.toString(), is("ffff:ffff:ffff:ffff::/64"));
+
+        ipPrefix = IpPrefix.valueOf(ipAddress, 128);
+        assertThat(ipPrefix.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128"));
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a null IP address.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidValueOfNullAddress() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress = null;
+        ipPrefix = IpPrefix.valueOf(ipAddress, 24);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 address and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfAddressNegativePrefixLengthIPv4() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress = IpAddress.valueOf("1.2.3.4");
+        ipPrefix = IpPrefix.valueOf(ipAddress, -1);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv6 address and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfAddressNegativePrefixLengthIPv6() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress =
+            IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        ipPrefix = IpPrefix.valueOf(ipAddress, -1);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 address and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfAddressTooLongPrefixLengthIPv4() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress = IpAddress.valueOf("1.2.3.4");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 33);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv6 address and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfAddressTooLongPrefixLengthIPv6() {
+        IpAddress ipAddress;
+        IpPrefix ipPrefix;
+
+        ipAddress =
+            IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        ipPrefix = IpPrefix.valueOf(ipAddress, 129);
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 string.
+     */
+    @Test
+    public void testValueOfStringIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/24");
+        assertThat(ipPrefix.toString(), is("1.2.3.0/24"));
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/32");
+        assertThat(ipPrefix.toString(), is("1.2.3.4/32"));
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.5/32");
+        assertThat(ipPrefix.toString(), is("1.2.3.5/32"));
+
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/32");
+        assertThat(ipPrefix.toString(), is("0.0.0.0/32"));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/0");
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/16");
+        assertThat(ipPrefix.toString(), is("255.255.0.0/16"));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertThat(ipPrefix.toString(), is("255.255.255.255/32"));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv6 string.
+     */
+    @Test
+    public void testValueOfStringIPv6() {
+        IpPrefix ipPrefix;
+
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8888/120");
+        assertThat(ipPrefix.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8800/120"));
+
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8888/128");
+        assertThat(ipPrefix.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8888/128"));
+
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix = IpPrefix.valueOf("::/128");
+        assertThat(ipPrefix.toString(), is("::/128"));
+
+        ipPrefix =
+            IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/0");
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix =
+            IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/64");
+        assertThat(ipPrefix.toString(), is("ffff:ffff:ffff:ffff::/64"));
+
+        ipPrefix =
+            IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertThat(ipPrefix.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128"));
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a null string.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidValueOfNullString() {
+        IpPrefix ipPrefix;
+        String fromString;
+
+        fromString = null;
+        ipPrefix = IpPrefix.valueOf(fromString);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for an empty string.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfEmptyString() {
+        IpPrefix ipPrefix;
+        String fromString;
+
+        fromString = "";
+        ipPrefix = IpPrefix.valueOf(fromString);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for an incorrect string.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfIncorrectString() {
+        IpPrefix ipPrefix;
+        String fromString;
+
+        fromString = "NoSuchIpPrefix";
+        ipPrefix = IpPrefix.valueOf(fromString);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 string and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfStringNegativePrefixLengthIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/-1");
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv6 string and
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfStringNegativePrefixLengthIPv6() {
+        IpPrefix ipPrefix;
+
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8888/-1");
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv4 string and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfStringTooLongPrefixLengthIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/33");
+    }
+
+    /**
+     * Tests invalid valueOf() converter for IPv6 string and
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfStringTooLongPrefixLengthIPv6() {
+        IpPrefix ipPrefix;
+
+        ipPrefix =
+            IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8888/129");
+    }
+
+    /**
+     * Tests IP prefix contains another IP prefix for IPv4.
+     */
+    @Test
+    public void testContainsIpPrefixIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1.2.0.0/24");
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/24")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/32")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.4/32")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/16")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.3.0.0/24")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/16")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/0")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("255.255.255.255/32")));
+
+        ipPrefix = IpPrefix.valueOf("1.2.0.0/32");
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/24")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/32")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.4/32")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/16")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.3.0.0/24")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/16")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/0")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("255.255.255.255/32")));
+
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/24")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/32")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.4/32")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/16")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("1.3.0.0/24")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/16")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/0")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("255.255.255.255/32")));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/24")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/32")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.4/32")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/16")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.3.0.0/24")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/16")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/0")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("255.255.255.255/32")));
+    }
+
+    /**
+     * Tests IP prefix contains another IP prefix for IPv6.
+     */
+    @Test
+    public void testContainsIpPrefixIPv6() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1111:2222:3333:4444::/120");
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/120")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/128")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::1/128")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/64")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4445::/120")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/64")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/0")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128")));
+
+        ipPrefix = IpPrefix.valueOf("1111:2222:3333:4444::/128");
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/120")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/128")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::1/128")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/64")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4445::/120")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/64")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/0")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128")));
+
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/120")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/128")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::1/128")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/64")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4445::/120")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("::/64")));
+        assertTrue(ipPrefix.contains(IpPrefix.valueOf("::/0")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128")));
+
+        ipPrefix =
+            IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/120")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/128")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::1/128")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4444::/64")));
+        assertFalse(ipPrefix.contains(
+                IpPrefix.valueOf("1111:2222:3333:4445::/120")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/64")));
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/0")));
+        assertTrue(ipPrefix.contains(
+                IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128")));
+    }
+
+    /**
+     * Tests IP prefix contains IP address for IPv4.
+     */
+    @Test
+    public void testContainsIpAddressIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1.2.0.0/24");
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("1.2.0.0")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("1.2.0.4")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.3.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("0.0.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("255.255.255.255")));
+
+        ipPrefix = IpPrefix.valueOf("1.2.0.0/32");
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("1.2.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.2.0.4")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.3.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("0.0.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("255.255.255.255")));
+
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("1.2.0.0")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("1.2.0.4")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("1.3.0.0")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("0.0.0.0")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("255.255.255.255")));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.2.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.2.0.4")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.3.0.0")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("0.0.0.0")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("255.255.255.255")));
+    }
+
+    /**
+     * Tests IP prefix contains IP address for IPv6.
+     */
+    @Test
+    public void testContainsIpAddressIPv6() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1111:2222:3333:4444::/120");
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::")));
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::1")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4445::")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("::")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
+
+        ipPrefix = IpPrefix.valueOf("1111:2222:3333:4444::/128");
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::1")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4445::")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("::")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
+
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::")));
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::1")));
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4445::")));
+        assertTrue(ipPrefix.contains(IpAddress.valueOf("::")));
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
+
+        ipPrefix =
+            IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4444::1")));
+        assertFalse(ipPrefix.contains(
+                IpAddress.valueOf("1111:2222:3333:4445::")));
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("::")));
+        assertTrue(ipPrefix.contains(
+                IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
+    }
+
+    /**
+     * Tests equality of {@link IpPrefix} for IPv4.
+     */
+    @Test
+    public void testEqualityIPv4() {
+        new EqualsTester()
+            .addEqualityGroup(IpPrefix.valueOf("1.2.0.0/24"),
+                              IpPrefix.valueOf("1.2.0.0/24"),
+                              IpPrefix.valueOf("1.2.0.4/24"))
+            .addEqualityGroup(IpPrefix.valueOf("1.2.0.0/16"),
+                              IpPrefix.valueOf("1.2.0.0/16"))
+            .addEqualityGroup(IpPrefix.valueOf("1.2.0.0/32"),
+                              IpPrefix.valueOf("1.2.0.0/32"))
+            .addEqualityGroup(IpPrefix.valueOf("1.3.0.0/24"),
+                              IpPrefix.valueOf("1.3.0.0/24"))
+            .addEqualityGroup(IpPrefix.valueOf("0.0.0.0/0"),
+                              IpPrefix.valueOf("0.0.0.0/0"))
+            .addEqualityGroup(IpPrefix.valueOf("255.255.255.255/32"),
+                              IpPrefix.valueOf("255.255.255.255/32"))
+            .testEquals();
+    }
+
+    /**
+     * Tests equality of {@link IpPrefix} for IPv6.
+     */
+    @Test
+    public void testEqualityIPv6() {
+        new EqualsTester()
+            .addEqualityGroup(
+                IpPrefix.valueOf("1111:2222:3333:4444::/120"),
+                IpPrefix.valueOf("1111:2222:3333:4444::1/120"),
+                IpPrefix.valueOf("1111:2222:3333:4444::/120"))
+            .addEqualityGroup(
+                IpPrefix.valueOf("1111:2222:3333:4444::/64"),
+                IpPrefix.valueOf("1111:2222:3333:4444::/64"))
+            .addEqualityGroup(
+                IpPrefix.valueOf("1111:2222:3333:4444::/128"),
+                IpPrefix.valueOf("1111:2222:3333:4444::/128"))
+            .addEqualityGroup(
+                IpPrefix.valueOf("1111:2222:3333:4445::/64"),
+                IpPrefix.valueOf("1111:2222:3333:4445::/64"))
+            .addEqualityGroup(
+                IpPrefix.valueOf("::/0"),
+                IpPrefix.valueOf("::/0"))
+            .addEqualityGroup(
+                IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128"),
+                IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128"))
+            .testEquals();
+    }
+
+    /**
+     * Tests object string representation for IPv4.
+     */
+    @Test
+    public void testToStringIPv4() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.0/24");
+        assertThat(ipPrefix.toString(), is("1.2.3.0/24"));
+
+        ipPrefix = IpPrefix.valueOf("1.2.3.4/24");
+        assertThat(ipPrefix.toString(), is("1.2.3.0/24"));
+
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertThat(ipPrefix.toString(), is("0.0.0.0/0"));
+
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertThat(ipPrefix.toString(), is("255.255.255.255/32"));
+    }
+
+    /**
+     * Tests object string representation for IPv6.
+     */
+    @Test
+    public void testToStringIPv6() {
+        IpPrefix ipPrefix;
+
+        ipPrefix = IpPrefix.valueOf("1100::/8");
+        assertThat(ipPrefix.toString(), is("1100::/8"));
+
+        ipPrefix = IpPrefix.valueOf("1111:2222:3333:4444:5555:6666:7777:8885/8");
+        assertThat(ipPrefix.toString(), is("1100::/8"));
+
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertThat(ipPrefix.toString(), is("::/0"));
+
+        ipPrefix = IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertThat(ipPrefix.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128"));
     }
 }
