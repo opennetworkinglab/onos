@@ -188,7 +188,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
-        public Builder matchOpticalSignalType(Byte signalType) {
+        public Builder matchOpticalSignalType(Short signalType) {
             return add(Criteria.matchOpticalSignalType(signalType));
 
         }

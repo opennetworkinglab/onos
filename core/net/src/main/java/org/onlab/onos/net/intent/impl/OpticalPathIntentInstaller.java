@@ -79,6 +79,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
     private ApplicationId appId;
 
     //final short WAVELENGTH = 80;
+    static final short SIGNAL_TYPE = (short) 1;
 
     @Activate
     public void activate() {
@@ -151,7 +152,9 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
             prev = link.dst();
             selectorBuilder.matchInport(link.dst().port());
+            selectorBuilder.matchOpticalSignalType(SIGNAL_TYPE); //todo
             selectorBuilder.matchLambda((short) la.toInt());
+
         }
 
         // build the last T port rule

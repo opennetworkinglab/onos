@@ -147,7 +147,7 @@ public interface TrafficSelector {
          * @param signalType
          * @return a selection builder
          */
-        public Builder matchOpticalSignalType(Byte signalType);
+        public Builder matchOpticalSignalType(Short signalType);
 
         /**
          * Builds an immutable traffic selector.

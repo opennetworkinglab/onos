@@ -27,11 +27,14 @@ public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.T
      */
     public enum Type {
 
+        // Request has been forwarded to MASTER Node
         /**
          * Signifies that a batch operation has been initiated.
          */
         BATCH_OPERATION_REQUESTED,
 
+        // MASTER Node has pushed the batch down to the Device
+        // (e.g., Received barrier reply)
         /**
          * Signifies that a batch operation has completed.
          */
