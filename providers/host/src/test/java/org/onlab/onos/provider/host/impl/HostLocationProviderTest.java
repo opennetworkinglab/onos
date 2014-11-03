@@ -216,7 +216,7 @@ public class HostLocationProviderTest {
             eth.setEtherType(Ethernet.TYPE_ARP)
                     .setVlanID(VLAN.toShort())
                     .setSourceMACAddress(MAC.toBytes())
-                    .setDestinationMACAddress(BCMAC.getAddress())
+                    .setDestinationMACAddress(BCMAC)
                     .setPayload(arp);
             ConnectPoint receivedFrom = new ConnectPoint(DeviceId.deviceId(deviceId),
                                                          PortNumber.portNumber(INPORT));

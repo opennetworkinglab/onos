@@ -246,11 +246,13 @@ public class BgpSession extends SimpleChannelHandler {
         InetAddress inetAddr;
         if (localAddress instanceof InetSocketAddress) {
             inetAddr = ((InetSocketAddress) localAddress).getAddress();
-            localIp4Address = IpAddress.valueOf(inetAddr.getAddress());
+            localIp4Address = IpAddress.valueOf(IpAddress.Version.INET,
+                                                inetAddr.getAddress());
         }
         if (remoteAddress instanceof InetSocketAddress) {
             inetAddr = ((InetSocketAddress) remoteAddress).getAddress();
-            remoteIp4Address = IpAddress.valueOf(inetAddr.getAddress());
+            remoteIp4Address = IpAddress.valueOf(IpAddress.Version.INET,
+                                                 inetAddr.getAddress());
         }
 
         log.debug("BGP Session Connected from {} on {}",

@@ -175,11 +175,6 @@ public class RoleManagerTest {
         }
 
         @Override
-        public void returnRoleAssertFailure(RoleState role) {
-            failed = role;
-        }
-
-        @Override
         public boolean isOptical() {
             return false;
         }
@@ -298,6 +293,11 @@ public class RoleManagerTest {
 
         @Override
         public void write(List<OFMessage> msgs) {
+        }
+
+        @Override
+        public void returnRoleReply(RoleState requested, RoleState response) {
+            failed = requested;
         }
 
     }

@@ -105,11 +105,11 @@ public class OpenFlowDeviceProviderTest {
 
     @Test
     public void roleChanged() {
-        provider.roleChanged(DEV1, MASTER);
+        provider.roleChanged(DID1, MASTER);
         assertEquals("Should be MASTER", RoleState.MASTER, controller.roleMap.get(DPID1));
-        provider.roleChanged(DEV1, STANDBY);
+        provider.roleChanged(DID1, STANDBY);
         assertEquals("Should be EQUAL", RoleState.EQUAL, controller.roleMap.get(DPID1));
-        provider.roleChanged(DEV1, NONE);
+        provider.roleChanged(DID1, NONE);
         assertEquals("Should be SLAVE", RoleState.SLAVE, controller.roleMap.get(DPID1));
     }
 
@@ -136,12 +136,13 @@ public class OpenFlowDeviceProviderTest {
     }
 
     @Test
-    public void roleAssertFailed() {
-        controller.listener.roleAssertFailed(DPID1, RoleState.MASTER);
+    public void receivedRoleReply() {
+        // check translation capabilities
+        controller.listener.receivedRoleReply(DPID1, RoleState.MASTER, RoleState.MASTER);
         assertEquals("wrong role reported", DPID1, registry.roles.get(MASTER));
-        controller.listener.roleAssertFailed(DPID1, RoleState.EQUAL);
+        controller.listener.receivedRoleReply(DPID1, RoleState.EQUAL, RoleState.MASTER);
         assertEquals("wrong role reported", DPID1, registry.roles.get(STANDBY));
-        controller.listener.roleAssertFailed(DPID1, RoleState.SLAVE);
+        controller.listener.receivedRoleReply(DPID1, RoleState.SLAVE, RoleState.MASTER);
         assertEquals("wrong role reported", DPID1, registry.roles.get(NONE));
     }
 
@@ -210,8 +211,9 @@ public class OpenFlowDeviceProviderTest {
             }
 
             @Override
-            public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
-                roles.put(role, Dpid.dpid(deviceId.uri()));
+            public void receivedRoleReply(DeviceId deviceId,
+                    MastershipRole requested, MastershipRole response) {
+                roles.put(requested, Dpid.dpid(deviceId.uri()));
             }
 
         }
@@ -368,16 +370,21 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
-        public void disconnectSwitch() {
+        public boolean isConnected() {
+            return true;
         }
 
         @Override
-        public void returnRoleAssertFailure(RoleState role) {
+        public void disconnectSwitch() {
         }
 
         @Override
         public boolean isOptical() {
             return false;
+        }
+
+        @Override
+        public void returnRoleReply(RoleState requested, RoleState reponse) {
         }
 
     }

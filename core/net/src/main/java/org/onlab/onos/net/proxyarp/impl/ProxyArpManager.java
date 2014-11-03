@@ -132,7 +132,8 @@ public class ProxyArpManager implements ProxyArpService {
         // for one of our external addresses.
         if (isOutsidePort(inPort)) {
             IpAddress target =
-                IpAddress.valueOf(arp.getTargetProtocolAddress());
+                IpAddress.valueOf(IpAddress.Version.INET,
+                                  arp.getTargetProtocolAddress());
             PortAddresses addresses =
                 hostService.getAddressBindingsForPort(inPort);
 
@@ -149,7 +150,8 @@ public class ProxyArpManager implements ProxyArpService {
             // it could be a request from an internal host to an external
             // address. Forward it over to the correct port.
             IpAddress source =
-                IpAddress.valueOf(arp.getSenderProtocolAddress());
+                IpAddress.valueOf(IpAddress.Version.INET,
+                                  arp.getSenderProtocolAddress());
             PortAddresses sourceAddresses = findPortInSubnet(source);
             if (sourceAddresses != null) {
                 for (InterfaceIpAddress ia : sourceAddresses.ipAddresses()) {
@@ -164,8 +166,9 @@ public class ProxyArpManager implements ProxyArpService {
         // Continue with normal proxy ARP case
 
         VlanId vlan = VlanId.vlanId(eth.getVlanID());
-        Set<Host> hosts = hostService.getHostsByIp(IpAddress.valueOf(arp
-                .getTargetProtocolAddress()));
+        Set<Host> hosts =
+            hostService.getHostsByIp(IpAddress.valueOf(IpAddress.Version.INET,
+                                        arp.getTargetProtocolAddress()));
 
         Host dst = null;
         Host src = hostService.getHost(HostId.hostId(eth.getSourceMAC(),
@@ -357,8 +360,8 @@ public class ProxyArpManager implements ProxyArpService {
             Ethernet request) {
 
         Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress(request.getSourceMACAddress());
-        eth.setSourceMACAddress(srcMac.getAddress());
+        eth.setDestinationMACAddress(request.getSourceMAC());
+        eth.setSourceMACAddress(srcMac);
         eth.setEtherType(Ethernet.TYPE_ARP);
         eth.setVlanID(request.getVlanID());
 
@@ -369,7 +372,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
-        arp.setSenderHardwareAddress(srcMac.getAddress());
+        arp.setSenderHardwareAddress(srcMac.toBytes());
         arp.setTargetHardwareAddress(request.getSourceMACAddress());
 
         arp.setTargetProtocolAddress(((ARP) request.getPayload())

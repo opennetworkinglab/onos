@@ -20,11 +20,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -155,17 +153,20 @@ public class HostMonitorTest {
         Instruction instruction = packet.treatment().instructions().get(0);
         assertTrue(instruction instanceof OutputInstruction);
         OutputInstruction oi = (OutputInstruction) instruction;
-        assertTrue(oi.port().equals(portNum));
+        assertEquals(portNum, oi.port());
 
         // Check the output packet is correct (well the important bits anyway)
         Ethernet eth = new Ethernet();
-        eth.deserialize(packet.data().array(), 0, packet.data().array().length);
+        final byte[] pktData = new byte[packet.data().remaining()];
+        packet.data().get(pktData);
+        eth.deserialize(pktData, 0, pktData.length);
         ARP arp = (ARP) eth.getPayload();
-        assertTrue(Arrays.equals(arp.getSenderProtocolAddress(),
-                                 SOURCE_ADDR.toOctets()));
-        assertTrue(Arrays.equals(arp.getSenderHardwareAddress(), sourceMac.toBytes()));
-        assertTrue(Arrays.equals(arp.getTargetProtocolAddress(),
-                                 TARGET_IP_ADDR.toOctets()));
+        assertArrayEquals(SOURCE_ADDR.toOctets(),
+                          arp.getSenderProtocolAddress());
+        assertArrayEquals(sourceMac.toBytes(),
+                          arp.getSenderHardwareAddress());
+        assertArrayEquals(TARGET_IP_ADDR.toOctets(),
+                          arp.getTargetProtocolAddress());
     }
 
     class TestPacketService implements PacketService {

@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.resource;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Representation of a request for bandwidth resource.
  */
@@ -52,5 +54,12 @@ public class BandwidthResourceRequest implements ResourceRequest {
     @Override
     public ResourceType type() {
         return ResourceType.BANDWIDTH;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("bandwidth", bandwidth)
+                .toString();
     }
 }

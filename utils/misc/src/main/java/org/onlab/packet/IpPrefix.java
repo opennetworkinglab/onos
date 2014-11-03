@@ -76,12 +76,15 @@ public final class IpPrefix {
     /**
      * Converts a byte array and a prefix length into an IP prefix.
      *
+     * @param version the IP address version
      * @param address the IP address value stored in network byte order
      * @param prefixLength the prefix length
      * @return an IP prefix
      */
-    public static IpPrefix valueOf(byte[] address, int prefixLength) {
-        return new IpPrefix(IpAddress.valueOf(address), prefixLength);
+    public static IpPrefix valueOf(IpAddress.Version version, byte[] address,
+                                   int prefixLength) {
+        return new IpPrefix(IpAddress.valueOf(version, address),
+                            prefixLength);
     }
 
     /**

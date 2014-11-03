@@ -374,9 +374,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
 
         @Override
-        public void returnRoleAssertFailed(Dpid dpid, RoleState role) {
+        public void returnRoleReply(Dpid dpid, RoleState requested, RoleState response) {
             for (OpenFlowSwitchListener l : ofSwitchListener) {
-                l.roleAssertFailed(dpid, role);
+                l.receivedRoleReply(dpid, requested, response);
             }
         }
     }

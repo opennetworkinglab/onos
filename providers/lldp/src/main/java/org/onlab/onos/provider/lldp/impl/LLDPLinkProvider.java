@@ -127,18 +127,19 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                 return;
             }
             log.trace("{} {} {}", event.type(), event.subject(), event);
+            final DeviceId deviceId = device.id();
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_UPDATED:
-                    ld = discoverers.get(device.id());
+                    ld = discoverers.get(deviceId);
                     if (ld == null) {
-                        log.debug("Device added ({}) {}", event.type(), device.id());
-                        discoverers.put(device.id(),
+                        log.debug("Device added ({}) {}", event.type(), deviceId);
+                        discoverers.put(deviceId,
                                new LinkDiscovery(device, packetSevice, masterService,
                                       providerService, useBDDP));
                     } else {
                         if (ld.isStopped()) {
-                            log.debug("Device restarted ({}) {}", event.type(), device.id());
+                            log.debug("Device restarted ({}) {}", event.type(), deviceId);
                             ld.start();
                         }
                     }
@@ -146,7 +147,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                 case PORT_ADDED:
                 case PORT_UPDATED:
                     if (port.isEnabled()) {
-                        ld = discoverers.get(device.id());
+                        ld = discoverers.get(deviceId);
                         if (ld == null) {
                             return;
                         }
@@ -156,47 +157,47 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                         }
                     } else {
                         log.debug("Port down {}", port);
-                        ConnectPoint point = new ConnectPoint(device.id(),
+                        ConnectPoint point = new ConnectPoint(deviceId,
                                                               port.number());
                         providerService.linksVanished(point);
                     }
                     break;
                 case PORT_REMOVED:
                     log.debug("Port removed {}", port);
-                    ConnectPoint point = new ConnectPoint(device.id(),
+                    ConnectPoint point = new ConnectPoint(deviceId,
                                                           port.number());
                     providerService.linksVanished(point);
                     // TODO: Don't we need to removePort from ld?
                     break;
                 case DEVICE_REMOVED:
                 case DEVICE_SUSPENDED:
-                    log.debug("Device removed {}", device.id());
-                    ld = discoverers.get(device.id());
+                    log.debug("Device removed {}", deviceId);
+                    ld = discoverers.get(deviceId);
                     if (ld == null) {
                         return;
                     }
                     ld.stop();
-                    providerService.linksVanished(device.id());
+                    providerService.linksVanished(deviceId);
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
-                    ld = discoverers.get(device.id());
+                    ld = discoverers.get(deviceId);
                     if (ld == null) {
                         return;
                     }
-                    if (deviceService.isAvailable(device.id())) {
-                        log.debug("Device up {}", device.id());
+                    if (deviceService.isAvailable(deviceId)) {
+                        log.debug("Device up {}", deviceId);
                         ld.start();
                     } else {
-                        providerService.linksVanished(device.id());
-                        log.debug("Device down {}", device.id());
+                        providerService.linksVanished(deviceId);
+                        log.debug("Device down {}", deviceId);
                         ld.stop();
                     }
                     break;
                 case DEVICE_MASTERSHIP_CHANGED:
-                    if (!discoverers.containsKey(device.id())) {
+                    if (!discoverers.containsKey(deviceId)) {
                         // TODO: ideally, should never reach here
-                        log.debug("Device mastership changed ({}) {}", event.type(), device.id());
-                        discoverers.put(device.id(),
+                        log.debug("Device mastership changed ({}) {}", event.type(), deviceId);
+                        discoverers.put(deviceId,
                                new LinkDiscovery(device, packetSevice, masterService,
                                       providerService, useBDDP));
                     }

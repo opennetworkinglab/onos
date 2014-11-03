@@ -39,7 +39,6 @@ import org.onlab.onos.openflow.controller.OpenFlowController;
 import org.onlab.onos.openflow.controller.OpenFlowSwitch;
 import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
 import org.onlab.onos.openflow.controller.RoleState;
-import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
@@ -112,27 +111,39 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
 
     @Override
-    public boolean isReachable(Device device) {
-        // FIXME if possible, we might want this to be part of
-        // OpenFlowSwitch interface so the driver interface isn't misused.
-        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
+    public boolean isReachable(DeviceId deviceId) {
+        OpenFlowSwitch sw = controller.getSwitch(dpid(deviceId.uri()));
+        if (sw == null || !sw.isConnected()) {
             return false;
         }
         return true;
-        //return checkChannel(device, sw);
     }
 
     @Override
     public void triggerProbe(Device device) {
-        LOG.info("Triggering probe on device {}", device.id());
+        final DeviceId deviceId = device.id();
+        LOG.info("Triggering probe on device {}", deviceId);
 
-        OpenFlowSwitch sw = controller.getSwitch(dpid(device.id().uri()));
-        //if (!checkChannel(device, sw)) {
-        //  LOG.error("Failed to probe device {} on sw={}", device, sw);
-        //  providerService.deviceDisconnected(device.id());
-        //return;
-        //}
+        final Dpid dpid = dpid(deviceId.uri());
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null || !sw.isConnected()) {
+            LOG.error("Failed to probe device {} on sw={}", device, sw);
+            providerService.deviceDisconnected(deviceId);
+        } else {
+            LOG.trace("Confirmed device {} connection", device);
+            // FIXME require something like below to match javadoc description
+            // but this starts infinite loop with current DeviceManager
+//            final ChassisId cId = new ChassisId(dpid.value());
+//            final Type deviceType = device.type();
+//            DeviceDescription description =
+//                    new DefaultDeviceDescription(deviceId.uri(), deviceType,
+//                                                 sw.manfacturerDescription(),
+//                                                 sw.hardwareDescription(),
+//                                                 sw.softwareDescription(),
+//                                                 sw.serialNumber(),
+//                                                 cId);
+//            providerService.deviceConnected(deviceId, description);
+        }
 
         // Prompt an update of port information. We can use any XID for this.
         OFFactory fact = sw.factory();
@@ -159,22 +170,22 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     // }
 
     @Override
-    public void roleChanged(Device device, MastershipRole newRole) {
+    public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
         switch (newRole) {
             case MASTER:
-                controller.setRole(dpid(device.id().uri()), RoleState.MASTER);
+                controller.setRole(dpid(deviceId.uri()), RoleState.MASTER);
                 break;
             case STANDBY:
-                controller.setRole(dpid(device.id().uri()), RoleState.EQUAL);
+                controller.setRole(dpid(deviceId.uri()), RoleState.EQUAL);
                 break;
             case NONE:
-                controller.setRole(dpid(device.id().uri()), RoleState.SLAVE);
+                controller.setRole(dpid(deviceId.uri()), RoleState.SLAVE);
                 break;
             default:
                 LOG.error("Unknown Mastership state : {}", newRole);
 
         }
-        LOG.info("Accepting mastership role change for device {}", device.id());
+        LOG.info("Accepting mastership role change for device {}", deviceId);
     }
 
     private class InternalDeviceProvider implements OpenFlowSwitchListener {
@@ -226,23 +237,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         }
 
         @Override
-        public void roleAssertFailed(Dpid dpid, RoleState role) {
-            MastershipRole failed;
-            switch (role) {
+        public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response) {
+            MastershipRole request = roleOf(requested);
+            MastershipRole reply = roleOf(response);
+
+            providerService.receivedRoleReply(deviceId(uri(dpid)), request, reply);
+        }
+
+        /**
+         * Translates a RoleState to the corresponding MastershipRole.
+         *
+         * @param response
+         * @return a MastershipRole
+         */
+        private MastershipRole roleOf(RoleState response) {
+            switch (response) {
                 case MASTER:
-                    failed = MastershipRole.MASTER;
-                    break;
+                    return MastershipRole.MASTER;
                 case EQUAL:
-                    failed = MastershipRole.STANDBY;
-                    break;
+                    return MastershipRole.STANDBY;
                 case SLAVE:
-                    failed = MastershipRole.NONE;
-                    break;
+                    return MastershipRole.NONE;
                 default:
-                    LOG.warn("unknown role {}", role);
-                    return;
+                    LOG.warn("unknown role {}", response);
+                    return null;
             }
-            providerService.unableToAssertRole(deviceId(uri(dpid)), failed);
         }
 
         /**

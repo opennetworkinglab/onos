@@ -368,12 +368,12 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
     }
 
     @Override
-    public void roleChanged(Device device, MastershipRole newRole) {
+    public void roleChanged(DeviceId device, MastershipRole newRole) {
         // TODO Auto-generated method stub.
     }
 
     @Override
-    public boolean isReachable(Device device) {
+    public boolean isReachable(DeviceId device) {
         return false;
     }
 }

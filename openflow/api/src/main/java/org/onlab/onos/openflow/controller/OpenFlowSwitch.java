@@ -115,17 +115,25 @@ public interface OpenFlowSwitch {
     public String serialNumber();
 
     /**
+     * Checks if the switch is still connected.
+     *
+     * @return whether the switch is still connected
+     */
+    public boolean isConnected();
+
+    /**
      * Disconnects the switch by closing the TCP connection. Results in a call
      * to the channel handler's channelDisconnected method for cleanup
      */
     public void disconnectSwitch();
 
     /**
-     * Notifies the controller that role assertion has failed.
+     * Notifies the controller that the device has responded to a set-role request.
      *
-     * @param role the failed role
+     * @param requested the role requested by the controller
+     * @param response the role set at the device
      */
-    public void returnRoleAssertFailure(RoleState role);
+    public void returnRoleReply(RoleState requested, RoleState reponse);
 
     /**
      * Indicates if this switch is optical.

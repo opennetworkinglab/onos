@@ -284,9 +284,10 @@ public class DistributedFlowRuleStore
 
         if (!replicaInfo.master().isPresent()) {
             log.warn("No master for {}", deviceId);
-            // TODO: revisit if this should be returning empty collection.
+            // TODO: revisit if this should be returning empty collection or throwing exception.
             // FIXME: throw a FlowStoreException
-            throw new RuntimeException("No master for " + deviceId);
+            //throw new RuntimeException("No master for " + deviceId);
+            return Collections.emptyList();
         }
 
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {

@@ -16,6 +16,7 @@
 package org.onlab.onos.net.device;
 
 import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.Provider;
 
@@ -42,16 +43,16 @@ public interface DeviceProvider extends Provider {
      * Notifies the provider of a mastership role change for the specified
      * device as decided by the core.
      *
-     * @param device  affected device
+     * @param deviceId  device identifier
      * @param newRole newly determined mastership role
      */
-    void roleChanged(Device device, MastershipRole newRole);
+    void roleChanged(DeviceId deviceId, MastershipRole newRole);
 
     /**
      * Checks the reachability (connectivity) of a device from this provider.
      *
-     * @param device device to check
+     * @param deviceId  device identifier
      * @return true if reachable, false otherwise
      */
-    boolean isReachable(Device device);
+    boolean isReachable(DeviceId deviceId);
 }

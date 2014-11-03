@@ -53,5 +53,5 @@ public interface OpenFlowSwitchListener {
      * @param dpid the switch that failed role assertion
      * @param role the role imposed by the controller
      */
-    public void roleAssertFailed(Dpid dpid, RoleState role);
+    public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response);
 }

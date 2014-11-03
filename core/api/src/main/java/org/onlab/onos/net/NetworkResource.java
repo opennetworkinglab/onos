@@ -16,7 +16,7 @@
 package org.onlab.onos.net;
 
 /**
- * Representation of a network resource.
+ * Representation of a network resource, e.g. a link, lambda, MPLS tag.
  */
 public interface NetworkResource {
 }

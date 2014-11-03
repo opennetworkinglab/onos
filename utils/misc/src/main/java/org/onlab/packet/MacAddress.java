@@ -25,9 +25,6 @@ public class MacAddress {
     public static final MacAddress ZERO = valueOf("00:00:00:00:00:00");
     public static final MacAddress BROADCAST = valueOf("ff:ff:ff:ff:ff:ff");
 
-    public static final byte[] ZERO_MAC_ADDRESS = ZERO.getAddress();
-    public static final byte[] BROADCAST_MAC = BROADCAST.getAddress();
-
     private static final byte[] LL = new byte[]{
             0x01, (byte) 0x80, (byte) 0xc2, 0x00, 0x00,
             0x00, 0x0e, 0x03
@@ -216,9 +213,5 @@ public class MacAddress {
             builder.append(String.format("%02X", b & 0xFF));
         }
         return builder.toString();
-    }
-
-    public byte[] getAddress() {
-        return this.address;
     }
 }

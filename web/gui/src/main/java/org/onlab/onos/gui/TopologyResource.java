@@ -101,7 +101,7 @@ public class TopologyResource extends BaseResource {
                             new Prop("Vendor", device.manufacturer()),
                             new Prop("H/W Version", device.hwVersion()),
                             new Prop("S/W Version", device.swVersion()),
-                            new Prop("S/W Version", device.serialNumber()),
+                            new Prop("Serial Number", device.serialNumber()),
                             new Separator(),
                             new Prop("Latitude", annot.value("latitude")),
                             new Prop("Longitude", annot.value("longitude")),

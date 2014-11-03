@@ -244,7 +244,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     }
 
     @Override
-    public void roleChanged(Device device, MastershipRole newRole) {
+    public void roleChanged(DeviceId device, MastershipRole newRole) {
     }
 
     @Override
@@ -257,7 +257,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     }
 
     @Override
-    public boolean isReachable(Device device) {
+    public boolean isReachable(DeviceId device) {
         return false;
     }
 }

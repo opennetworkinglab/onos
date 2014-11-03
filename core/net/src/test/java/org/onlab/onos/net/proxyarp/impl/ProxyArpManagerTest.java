@@ -19,12 +19,9 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -91,6 +88,7 @@ public class ProxyArpManagerTest {
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID2, P1, 123L);
+    private static final byte[] ZERO_MAC_ADDRESS = MacAddress.ZERO.toBytes();
 
     private ProxyArpManager proxyArp;
 
@@ -483,7 +481,7 @@ public class ProxyArpManagerTest {
      */
     private void verifyPacketOut(Ethernet expected, ConnectPoint outPort,
             OutboundPacket actual) {
-        assertTrue(Arrays.equals(expected.serialize(), actual.data().array()));
+        assertArrayEquals(expected.serialize(), actual.data().array());
         assertEquals(1, actual.treatment().instructions().size());
         assertEquals(outPort.deviceId(), actual.sendThrough());
         Instruction instruction = actual.treatment().instructions().get(0);
@@ -520,12 +518,12 @@ public class ProxyArpManagerTest {
         Ethernet eth = new Ethernet();
 
         if (dstMac == null) {
-            eth.setDestinationMACAddress(MacAddress.BROADCAST_MAC);
+            eth.setDestinationMACAddress(MacAddress.BROADCAST);
         } else {
-            eth.setDestinationMACAddress(dstMac.getAddress());
+            eth.setDestinationMACAddress(dstMac);
         }
 
-        eth.setSourceMACAddress(srcMac.getAddress());
+        eth.setSourceMACAddress(srcMac);
         eth.setEtherType(Ethernet.TYPE_ARP);
         eth.setVlanID(VLAN1.toShort());
 
@@ -536,12 +534,12 @@ public class ProxyArpManagerTest {
 
         arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
-        arp.setSenderHardwareAddress(srcMac.getAddress());
+        arp.setSenderHardwareAddress(srcMac.toBytes());
 
         if (dstMac == null) {
-            arp.setTargetHardwareAddress(MacAddress.ZERO_MAC_ADDRESS);
+            arp.setTargetHardwareAddress(ZERO_MAC_ADDRESS);
         } else {
-            arp.setTargetHardwareAddress(dstMac.getAddress());
+            arp.setTargetHardwareAddress(dstMac.toBytes());
         }
 
         arp.setSenderProtocolAddress(srcIp.toOctets());

@@ -15,13 +15,16 @@
  */
 package org.onlab.onos.store.trivial.impl;
 
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.device.DeviceClockProviderService;
 
-//FIXME: Code clone in onos-core-trivial, onos-core-hz-net
+import com.google.common.collect.Sets;
+
 /**
  * Dummy implementation of {@link DeviceClockProviderService}.
  */
@@ -29,7 +32,15 @@ import org.onlab.onos.net.device.DeviceClockProviderService;
 @Service
 public class NoOpClockProviderService implements DeviceClockProviderService {
 
+    private Set<DeviceId> registerdBefore = Sets.newConcurrentHashSet();
+
     @Override
     public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
+        registerdBefore.add(deviceId);
+    }
+
+    @Override
+    public boolean isTimestampAvailable(DeviceId deviceId) {
+        return registerdBefore.contains(deviceId);
     }
 }

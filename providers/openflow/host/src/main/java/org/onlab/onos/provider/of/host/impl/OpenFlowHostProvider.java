@@ -126,7 +126,8 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
                 IpAddress ip =
-                    IpAddress.valueOf(arp.getSenderProtocolAddress());
+                    IpAddress.valueOf(IpAddress.Version.INET,
+                                      arp.getSenderProtocolAddress());
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);

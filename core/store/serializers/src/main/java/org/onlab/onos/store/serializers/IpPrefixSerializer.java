@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.store.serializers;
 
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -51,6 +52,13 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         int prefLen = input.readInt();
-        return IpPrefix.valueOf(octs, prefLen);
+        // Use the address size to decide whether it is IPv4 or IPv6 address
+        if (octLen == IpAddress.INET_BYTE_LENGTH) {
+            return IpPrefix.valueOf(IpAddress.Version.INET, octs, prefLen);
+        }
+        if (octLen == IpAddress.INET6_BYTE_LENGTH) {
+            return IpPrefix.valueOf(IpAddress.Version.INET6, octs, prefLen);
+        }
+        return null;    // Shouldn't be reached
     }
 }

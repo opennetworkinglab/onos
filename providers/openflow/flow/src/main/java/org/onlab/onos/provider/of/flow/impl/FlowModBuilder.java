@@ -147,7 +147,8 @@ public abstract class FlowModBuilder {
                 ip = (IPCriterion) c;
                 if (ip.ip().prefixLength() != IpPrefix.MAX_INET_MASK_LENGTH) {
                     IpAddress maskAddr =
-                        IpAddress.makeMaskPrefix(ip.ip().prefixLength());
+                        IpAddress.makeMaskPrefix(ip.ip().address().version(),
+                                                 ip.ip().prefixLength());
                     Masked<IPv4Address> maskedIp =
                         Masked.of(IPv4Address.of(ip.ip().address().toInt()),
                                   IPv4Address.of(maskAddr.toInt()));
@@ -161,7 +162,8 @@ public abstract class FlowModBuilder {
                 ip = (IPCriterion) c;
                 if (ip.ip().prefixLength() != IpPrefix.MAX_INET_MASK_LENGTH) {
                     IpAddress maskAddr =
-                        IpAddress.makeMaskPrefix(ip.ip().prefixLength());
+                        IpAddress.makeMaskPrefix(ip.ip().address().version(),
+                                                 ip.ip().prefixLength());
                     Masked<IPv4Address> maskedIp =
                         Masked.of(IPv4Address.of(ip.ip().address().toInt()),
                                   IPv4Address.of(maskAddr.toInt()));

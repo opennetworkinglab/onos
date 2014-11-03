@@ -18,10 +18,9 @@ package org.onlab.onos.store.flow.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.onos.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
+import static org.onlab.onos.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
 
 import java.util.Collections;
-import java.util.List;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -96,12 +95,24 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
         @Override
         public void event(MastershipEvent event) {
-            // TODO: distinguish stby list update, when MastershipService,
-            //       start publishing them
-            final List<NodeId> standbyList = Collections.<NodeId>emptyList();
-            eventDispatcher.post(new ReplicaInfoEvent(MASTER_CHANGED,
-                                event.subject(),
-                                new ReplicaInfo(event.roleInfo().master(), standbyList)));
+            final ReplicaInfo replicaInfo
+                = new ReplicaInfo(event.roleInfo().master(),
+                                  event.roleInfo().backups());
+
+            switch (event.type()) {
+            case MASTER_CHANGED:
+                eventDispatcher.post(new ReplicaInfoEvent(MASTER_CHANGED,
+                                                          event.subject(),
+                                                          replicaInfo));
+                break;
+            case BACKUPS_CHANGED:
+                eventDispatcher.post(new ReplicaInfoEvent(BACKUPS_CHANGED,
+                                                          event.subject(),
+                                                          replicaInfo));
+                break;
+            default:
+                break;
+            }
         }
     }
 

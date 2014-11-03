@@ -214,11 +214,11 @@ public class DistributedMastershipStoreTest {
                 dms.roleMap.get(DID1).nodesOfRole(STANDBY).size());
 
         //If STANDBY, should drop to NONE
-        assertNull("wrong event:", dms.relinquishRole(N1, DID1));
+        assertEquals("wrong event:", Type.BACKUPS_CHANGED, dms.relinquishRole(N1, DID1).type());
         assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID1));
 
         //NONE - nothing happens
-        assertNull("wrong event:", dms.relinquishRole(N1, DID2));
+        assertEquals("wrong event:", Type.BACKUPS_CHANGED, dms.relinquishRole(N1, DID2).type());
         assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID2));
 
     }

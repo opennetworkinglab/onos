@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
@@ -43,6 +44,11 @@ import java.util.Set;
 @Command(scope = "onos", name = "intents",
          description = "Lists the inventory of intents and their states")
 public class IntentsListCommand extends AbstractShellCommand {
+
+    @Option(name = "-i", aliases = "--installable", description = "Output Installable Intents",
+            required = false, multiValued = false)
+    private boolean showInstallable = false;
+
 
     @Override
     protected void execute() {
@@ -93,7 +99,7 @@ public class IntentsListCommand extends AbstractShellCommand {
         }
 
         List<Intent> installable = service.getInstallableIntents(intent.id());
-        if (installable != null && !installable.isEmpty()) {
+        if (showInstallable && installable != null && !installable.isEmpty()) {
             print("    installable=%s", installable);
         }
     }

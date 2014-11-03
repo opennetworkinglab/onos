@@ -17,6 +17,7 @@ package org.onlab.onos.net.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
+import static org.onlab.onos.net.MastershipRole.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
@@ -29,7 +30,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.mastership.MastershipEvent;
@@ -58,8 +58,6 @@ import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
-
-import com.google.common.collect.HashMultimap;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -160,39 +158,15 @@ public class DeviceManager
         return store.isAvailable(deviceId);
     }
 
-    // Applies the specified role to the device; ignores NONE
-    private void applyRole(DeviceId deviceId, MastershipRole newRole) {
-        if (newRole.equals(MastershipRole.NONE)) {
-            return;
-        }
-
-        Device device = store.getDevice(deviceId);
-        // FIXME: Device might not be there yet. (eventual consistent)
-        if (device == null) {
-            return;
-        }
-
-        DeviceProvider provider = getProvider(device.providerId());
-        if (provider != null) {
-            provider.roleChanged(device, newRole);
-            // only trigger event when request was sent to provider
-            // TODO: consider removing this from Device event type?
-            post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
-
-            if (newRole.equals(MastershipRole.MASTER)) {
-                provider.triggerProbe(device);
-            }
-        }
-    }
-
     // Check a device for control channel connectivity.
-    private boolean isReachable(Device device) {
-        // FIXME: Device might not be there yet. (eventual consistent)
-        if (device == null) {
+    private boolean isReachable(DeviceId deviceId) {
+        DeviceProvider provider = getProvider(deviceId);
+        if (provider != null) {
+            return provider.isReachable(deviceId);
+        } else {
+            log.error("Provider not found for {}", deviceId);
             return false;
         }
-        DeviceProvider provider = getProvider(device.providerId());
-        return provider.isReachable(device);
     }
 
     @Override
@@ -234,6 +208,32 @@ public class DeviceManager
             super(provider);
         }
 
+        /**
+         * Apply role in reaction to provider event.
+         *
+         * @param deviceId  device identifier
+         * @param newRole   new role to apply to the device
+         * @return true if the request was sent to provider
+         */
+        private boolean applyRole(DeviceId deviceId, MastershipRole newRole) {
+
+            if (newRole.equals(MastershipRole.NONE)) {
+                //no-op
+                return true;
+            }
+
+            DeviceProvider provider = provider();
+            if (provider == null) {
+                log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
+                return false;
+            }
+            provider.roleChanged(deviceId, newRole);
+            // not triggering probe when triggered by provider service event
+
+            return true;
+        }
+
+
         @Override
         public void deviceConnected(DeviceId deviceId,
                                     DeviceDescription deviceDescription) {
@@ -242,26 +242,19 @@ public class DeviceManager
             checkValidity();
 
             log.info("Device {} connected", deviceId);
-            // check my Role
-            MastershipRole role = mastershipService.requestRoleFor(deviceId);
-            if (role != MastershipRole.MASTER) {
-                // TODO: Do we need to explicitly tell the Provider that
-                // this instance is no longer the MASTER? probably not
-//                Device device = getDevice(deviceId);
-//                if (device != null) {
-//                    // FIXME roleChanged should take DeviceId instead of Device
-//                    provider().roleChanged(device, role);
-//                }
-                return;
-            }
-            MastershipTerm term = termService.getMastershipTerm(deviceId);
-
             final NodeId myNodeId = clusterService.getLocalNode().id();
+
+            // check my Role
+            mastershipService.requestRoleFor(deviceId);
+            final MastershipTerm term = termService.getMastershipTerm(deviceId);
             if (!myNodeId.equals(term.master())) {
-                // lost mastership after requestRole told this instance was MASTER.
-                log.info("lost mastership before getting term info.");
+                log.info("Role of this node is STANDBY for {}", deviceId);
+                // TODO: Do we need to explicitly tell the Provider that
+                // this instance is not the MASTER
+                applyRole(deviceId, MastershipRole.STANDBY);
                 return;
             }
+            log.info("Role of this node is MASTER for {}", deviceId);
 
             // tell clock provider if this instance is the master
             deviceClockProviderService.setMastershipTerm(deviceId, term);
@@ -269,24 +262,15 @@ public class DeviceManager
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
 
+            applyRole(deviceId, MastershipRole.MASTER);
+
             // If there was a change of any kind, tell the provider
             // that this instance is the master.
-            // Note: event can be null, if mastership was lost between
-            // roleRequest and store update calls.
             if (event != null) {
-                // TODO: Check switch reconnected case. Is it assured that
-                //       event will never be null?
-                //       Could there be a situation MastershipService told this
-                //       instance is the new Master, but
-                //       event returned from the store is null?
-
-                // FIXME: 1st argument should be deviceId, to allow setting
-                //        certain roles even if the store returned null.
-                log.info("event: {} {}", event.type(), event);
-                provider().roleChanged(event.subject(), role);
+                log.trace("event: {} {}", event.type(), event);
                 post(event);
             } else {
-                log.info("No event to publish");
+                post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, store.getDevice(deviceId)));
             }
         }
 
@@ -295,6 +279,7 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
 
+            log.info("Device {} disconnected from this node", deviceId);
 
             DeviceEvent event = null;
             try {
@@ -318,18 +303,18 @@ public class DeviceManager
                 final NodeId myNodeId = clusterService.getLocalNode().id();
                 // TODO: Move this type of check inside device clock manager, etc.
                 if (myNodeId.equals(term.master())) {
-                    log.info("Marking {} offline", deviceId);
+                    log.info("Retry marking {} offline", deviceId);
                     deviceClockProviderService.setMastershipTerm(deviceId, term);
                     event = store.markOffline(deviceId);
                 } else {
-                    log.error("Failed again marking {} offline. {}", deviceId, role);
+                    log.info("Failed again marking {} offline. {}", deviceId, role);
                 }
             } finally {
                 //relinquish master role and ability to be backup.
                 mastershipService.relinquishMastership(deviceId);
 
                 if (event != null) {
-                    log.info("Device {} disconnected", deviceId);
+                    log.info("Device {} disconnected from cluster", deviceId);
                     post(event);
                 }
             }
@@ -342,6 +327,13 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                          "Port descriptions list cannot be null");
             checkValidity();
+
+            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+                // Never been a master for this device
+                // any update will be ignored.
+                log.trace("Ignoring {} port updates on standby node. {}", deviceId, portDescriptions);
+                return;
+            }
 
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                                                          deviceId, portDescriptions);
@@ -357,6 +349,13 @@ public class DeviceManager
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
 
+            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+                // Never been a master for this device
+                // any update will be ignored.
+                log.trace("Ignoring {} port update on standby node. {}", deviceId, portDescription);
+                return;
+            }
+
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
                                                              deviceId, portDescription);
             if (event != null) {
@@ -367,16 +366,48 @@ public class DeviceManager
         }
 
         @Override
-        public void unableToAssertRole(DeviceId deviceId, MastershipRole role) {
+        public void receivedRoleReply(
+                DeviceId deviceId, MastershipRole requested, MastershipRole response) {
+            // Several things can happen here:
+            // 1. request and response match
+            // 2. request and response don't match
+            // 3. MastershipRole and requested match (and 1 or 2 are true)
+            // 4. MastershipRole and requested don't match (and 1 or 2 are true)
+            //
+            // 2, 4, and 3 with case 2 are failure modes.
+
             // FIXME: implement response to this notification
-            log.warn("Failed to assert role [{}] onto Device {}", role,
-                     deviceId);
-            if (role == MastershipRole.MASTER) {
+
+            log.info("got reply to a role request for {}: asked for {}, and got {}",
+                    deviceId, requested, response);
+
+            if (requested == null && response == null) {
+                // something was off with DeviceProvider, maybe check channel too?
+                log.warn("Failed to assert role [{}] onto Device {}", requested, deviceId);
                 mastershipService.relinquishMastership(deviceId);
-                // TODO: Shouldn't we be triggering event?
-                //final Device device = getDevice(deviceId);
-                //post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
+                return;
             }
+
+            if (requested.equals(response)) {
+                if (requested.equals(mastershipService.getLocalRole(deviceId))) {
+
+                    return;
+                } else {
+                    return;
+                    // FIXME roleManager got the device to comply, but doesn't agree with
+                    // the store; use the store's view, then try to reassert.
+                }
+            } else {
+                // we didn't get back what we asked for. Reelect someone else.
+                log.warn("Failed to assert role [{}] onto Device {}", response, deviceId);
+                if (response == MastershipRole.MASTER) {
+                    mastershipService.relinquishMastership(deviceId);
+                    // TODO: Shouldn't we be triggering event?
+                    //final Device device = getDevice(deviceId);
+                    //post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
+                }
+            }
+
         }
     }
 
@@ -390,118 +421,134 @@ public class DeviceManager
     // Intercepts mastership events
     private class InternalMastershipListener implements MastershipListener {
 
-        // random cache size
-        private final int cacheSize = 5;
-        // temporarily stores term number + events to check for duplicates. A hack.
-        private HashMultimap<Integer, RoleInfo> eventCache =
-                HashMultimap.create();
+        // Applies the specified role to the device; ignores NONE
+        /**
+         * Apply role in reaction to mastership event.
+         *
+         * @param deviceId  device identifier
+         * @param newRole   new role to apply to the device
+         * @return true if the request was sent to provider
+         */
+        private boolean applyRole(DeviceId deviceId, MastershipRole newRole) {
+            if (newRole.equals(MastershipRole.NONE)) {
+                //no-op
+                return true;
+            }
+
+            Device device = store.getDevice(deviceId);
+            // FIXME: Device might not be there yet. (eventual consistent)
+            // FIXME relinquish role
+            if (device == null) {
+                log.warn("{} was not there. Cannot apply role {}", deviceId, newRole);
+                return false;
+            }
+
+            DeviceProvider provider = getProvider(device.providerId());
+            if (provider == null) {
+                log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
+                return false;
+            }
+            provider.roleChanged(deviceId, newRole);
+
+            if (newRole.equals(MastershipRole.MASTER)) {
+                // only trigger event when request was sent to provider
+                // TODO: consider removing this from Device event type?
+                post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
+
+                provider.triggerProbe(device);
+            }
+            return true;
+        }
 
         @Override
         public void event(MastershipEvent event) {
+
+            if (event.type() != MastershipEvent.Type.MASTER_CHANGED) {
+                // Don't care if backup list changed.
+                return;
+            }
+
             final DeviceId did = event.subject();
             final NodeId myNodeId = clusterService.getLocalNode().id();
 
+            // myRole suggested by MastershipService
+            MastershipRole myNextRole;
             if (myNodeId.equals(event.roleInfo().master())) {
+                // confirm latest info
                 MastershipTerm term = termService.getMastershipTerm(did);
-
-                // TODO duplicate suppression should probably occur in the MastershipManager
-                // itself, so listeners that can't deal with duplicates don't have to
-                // so this check themselves.
-//                if (checkDuplicate(event.roleInfo(), term.termNumber())) {
-//                    return;
-//                }
-
-                if (!myNodeId.equals(term.master())) {
-                    // something went wrong in consistency, let go
-                    log.warn("Mastership has changed after this event."
-                                     + "Term Service suggests {} for {}", term, did);
-                    // FIXME: Is it possible to let go of MASTER role
-                    //        but remain on STANDBY list?
-                    mastershipService.relinquishMastership(did);
-                    applyRole(did, MastershipRole.STANDBY);
-                    return;
-                }
-
-                // only set the new term if I am the master
-                deviceClockProviderService.setMastershipTerm(did, term);
-
-                // if the device is null here, we are the first master to claim the
-                // device. No worries, the DeviceManager will create one soon.
-                Device device = getDevice(did);
-                if ((device != null) && !isAvailable(did)) {
-                    if (!isReachable(device)) {
-                        log.warn("Device {} has disconnected after this event", did);
-                        mastershipService.relinquishMastership(did);
-                        return;
-                    }
-                    //flag the device as online. Is there a better way to do this?
-                    DeviceEvent devEvent =
-                            store.createOrUpdateDevice(device.providerId(), did,
-                                                       new DefaultDeviceDescription(
-                                                               did.uri(), device.type(), device.manufacturer(),
-                                                               device.hwVersion(), device.swVersion(),
-                                                               device.serialNumber(), device.chassisId()));
-                    post(devEvent);
-                }
-                applyRole(did, MastershipRole.MASTER);
-            } else if (event.roleInfo().backups().contains(myNodeId)) {
-                if (!isReachable(getDevice(did))) {
-                    log.warn("Device {} has disconnected after this event", did);
-                    mastershipService.relinquishMastership(did);
-                    return;
-                }
-                applyRole(did, MastershipRole.STANDBY);
-            } else {
-                // Event suggests that this Node has no connection to this Device
-                // confirm.
-                final Device device = getDevice(did);
-                if (!isReachable(device)) {
-                    // not connection to device, as expected
-                    return;
-                }
-                // connection seems to exist
-                log.info("Detected mastership info mismatch, requesting Role");
-                mastershipService.requestRoleFor(did);
-                final MastershipTerm term = termService.getMastershipTerm(did);
-                if (myNodeId.equals(term.master())) {
-                    // became MASTER
-                    // TODO: consider slicing out method for applying MASTER role
+                final boolean iHaveControl = myNodeId.equals(term.master());
+                if (iHaveControl) {
                     deviceClockProviderService.setMastershipTerm(did, term);
-
-                    //flag the device as online. Is there a better way to do this?
-                    DeviceEvent devEvent =
-                            store.createOrUpdateDevice(device.providerId(), did,
-                                                       new DefaultDeviceDescription(
-                                                               did.uri(), device.type(), device.manufacturer(),
-                                                               device.hwVersion(), device.swVersion(),
-                                                               device.serialNumber(), device.chassisId()));
-                    applyRole(did, MastershipRole.MASTER);
-                    post(devEvent);
+                    myNextRole = MASTER;
                 } else {
-                    applyRole(did, MastershipRole.STANDBY);
+                    myNextRole = STANDBY;
+                }
+            } else if (event.roleInfo().backups().contains(myNodeId)) {
+                myNextRole = STANDBY;
+            } else {
+                myNextRole = NONE;
+            }
+
+
+            final boolean isReachable = isReachable(did);
+            if (!isReachable) {
+                // device is not connected to this node
+                if (myNextRole != NONE) {
+                    log.warn("Node was instructed to be {} role for {}, "
+                            + "but this node cannot reach the device.  "
+                            + "Relinquishing role.  ",
+                             myNextRole, did);
+                    mastershipService.relinquishMastership(did);
+                    // FIXME disconnect?
+                }
+                return;
+            }
+
+            // device is connected to this node:
+
+            if (myNextRole == NONE) {
+                mastershipService.requestRoleFor(did);
+                MastershipTerm term = termService.getMastershipTerm(did);
+                if (myNodeId.equals(term.master())) {
+                    myNextRole = MASTER;
+                } else {
+                    myNextRole = STANDBY;
                 }
             }
-        }
 
-        // checks for duplicate event, returning true if one is found.
-        private boolean checkDuplicate(RoleInfo roleInfo, int term) {
-            // turning off duplicate check
-            return false;
-//            synchronized (eventCache) {
-//                if (eventCache.get(term).contains(roleInfo)) {
-//                    log.info("duplicate event detected; ignoring");
-//                    return true;
-//                } else {
-//                    eventCache.put(term, roleInfo);
-//                    // purge by-term oldest entries to keep the cache size under limit
-//                    if (eventCache.size() > cacheSize) {
-//                        eventCache.removeAll(term - cacheSize);
-//                    }
-//                    return false;
-//                }
-//            }
+            switch (myNextRole) {
+            case MASTER:
+                final Device device = getDevice(did);
+                if ((device != null) && !isAvailable(did)) {
+                    //flag the device as online. Is there a better way to do this?
+                    DefaultDeviceDescription deviceDescription
+                        = new DefaultDeviceDescription(did.uri(),
+                                                       device.type(),
+                                                       device.manufacturer(),
+                                                       device.hwVersion(),
+                                                       device.swVersion(),
+                                                       device.serialNumber(),
+                                                       device.chassisId());
+                    DeviceEvent devEvent =
+                            store.createOrUpdateDevice(device.providerId(), did,
+                                                       deviceDescription);
+                    post(devEvent);
+                }
+                // TODO: should apply role only if there is mismatch
+                log.info("Applying role {} to {}", myNextRole, did);
+                applyRole(did, MASTER);
+                break;
+            case STANDBY:
+                log.info("Applying role {} to {}", myNextRole, did);
+                applyRole(did, STANDBY);
+                break;
+            case NONE:
+            default:
+                // should never reach here
+                log.error("You didn't see anything. I did not exist.");
+                break;
+            }
         }
-
     }
 
     // Store delegate to re-post events emitted from the store.

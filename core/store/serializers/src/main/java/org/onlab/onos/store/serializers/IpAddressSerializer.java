@@ -46,7 +46,13 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
         final int octLen = input.readInt();
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
-        return IpAddress.valueOf(octs);
+        // Use the address size to decide whether it is IPv4 or IPv6 address
+        if (octLen == IpAddress.INET_BYTE_LENGTH) {
+            return IpAddress.valueOf(IpAddress.Version.INET, octs);
+        }
+        if (octLen == IpAddress.INET6_BYTE_LENGTH) {
+            return IpAddress.valueOf(IpAddress.Version.INET6, octs);
+        }
+        return null;    // Shouldn't be reached
     }
-
 }

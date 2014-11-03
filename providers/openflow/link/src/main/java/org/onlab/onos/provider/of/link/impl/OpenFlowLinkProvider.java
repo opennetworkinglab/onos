@@ -160,7 +160,8 @@ public class OpenFlowLinkProvider extends AbstractProvider implements LinkProvid
         }
 
         @Override
-        public void roleAssertFailed(Dpid dpid, RoleState role) {
+        public void receivedRoleReply(Dpid dpid, RoleState requested,
+                RoleState response) {
             // do nothing for this.
         }
 

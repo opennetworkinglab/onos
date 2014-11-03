@@ -61,12 +61,12 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
     void portStatusChanged(DeviceId deviceId, PortDescription portDescription);
 
     /**
-     * Notifies the core about the providers inability to assert the specified
-     * mastership role on the device.
+     * Notifies the core about the result of a RoleRequest sent to a device.
      *
      * @param deviceId identity of the device
-     * @param role mastership role that was asserted but failed
+     * @param requested mastership role that was requested by the node
+     * @param replied mastership role the switch accepted
      */
-    void unableToAssertRole(DeviceId deviceId, MastershipRole role);
+    void receivedRoleReply(DeviceId deviceId, MastershipRole requested, MastershipRole response);
 
 }

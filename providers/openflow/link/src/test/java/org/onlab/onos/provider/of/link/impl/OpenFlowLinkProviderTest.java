@@ -475,16 +475,21 @@ public class OpenFlowLinkProviderTest {
         }
 
         @Override
-        public void disconnectSwitch() {
+        public boolean isConnected() {
+            return true;
         }
 
         @Override
-        public void returnRoleAssertFailure(RoleState role) {
+        public void disconnectSwitch() {
         }
 
         @Override
         public boolean isOptical() {
             return false;
+        }
+
+        @Override
+        public void returnRoleReply(RoleState requested, RoleState reponse) {
         }
 
     }

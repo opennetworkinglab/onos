@@ -38,9 +38,11 @@ public class IpPrefixTest {
 
     @Test
     public void testEquality() {
-        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, IpPrefix.MAX_INET_MASK_LENGTH);
+        IpPrefix ip1 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                        BYTES1, IpPrefix.MAX_INET_MASK_LENGTH);
         IpPrefix ip2 = IpPrefix.valueOf(INTVAL1, IpPrefix.MAX_INET_MASK_LENGTH);
-        IpPrefix ip3 = IpPrefix.valueOf(BYTES2, IpPrefix.MAX_INET_MASK_LENGTH);
+        IpPrefix ip3 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                        BYTES2, IpPrefix.MAX_INET_MASK_LENGTH);
         IpPrefix ip4 = IpPrefix.valueOf(INTVAL2, IpPrefix.MAX_INET_MASK_LENGTH);
         IpPrefix ip5 = IpPrefix.valueOf(STRVAL);
 
@@ -50,16 +52,19 @@ public class IpPrefixTest {
         .testEquals();
 
         // string conversions
-        IpPrefix ip6 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
+        IpPrefix ip6 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                        BYTES1, MASK_LENGTH);
         IpPrefix ip7 = IpPrefix.valueOf("10.0.0.10/16");
-        IpPrefix ip8 = IpPrefix.valueOf(new byte [] {0xa, 0x0, 0x0, 0xc}, 16);
+        IpPrefix ip8 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                        new byte [] {0xa, 0x0, 0x0, 0xc}, 16);
         assertEquals("incorrect address conversion", ip6, ip7);
         assertEquals("incorrect address conversion", ip5, ip8);
     }
 
     @Test
     public void basics() {
-        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
+        IpPrefix ip1 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                        BYTES1, MASK_LENGTH);
         final byte [] bytes = new byte [] {0xa, 0x0, 0x0, 0x0};
 
         // check fields
@@ -74,7 +79,8 @@ public class IpPrefixTest {
     @Test
     public void netmasks() {
         // masked
-        IpPrefix ip1 = IpPrefix.valueOf(BYTES1, MASK_LENGTH);
+        IpPrefix ip1 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                        BYTES1, MASK_LENGTH);
         IpPrefix ip2 = IpPrefix.valueOf("10.0.0.10/16");
         IpPrefix ip3 = IpPrefix.valueOf("10.0.0.0/16");
         assertEquals("incorrect binary masked address",
@@ -87,9 +93,12 @@ public class IpPrefixTest {
 
     @Test
     public void testContainsIpPrefix() {
-        IpPrefix slash31 = IpPrefix.valueOf(BYTES1, 31);
-        IpPrefix slash32 = IpPrefix.valueOf(BYTES1, 32);
-        IpPrefix differentSlash32 = IpPrefix.valueOf(BYTES2, 32);
+        IpPrefix slash31 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                            BYTES1, 31);
+        IpPrefix slash32 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                            BYTES1, 32);
+        IpPrefix differentSlash32 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                                     BYTES2, 32);
 
         assertTrue(slash31.contains(differentSlash32));
         assertFalse(differentSlash32.contains(slash31));
@@ -109,8 +118,9 @@ public class IpPrefixTest {
 
     @Test
     public void testContainsIpAddress() {
-        IpPrefix slash31 = IpPrefix.valueOf(BYTES1, 31);
-        IpAddress addr32 = IpAddress.valueOf(BYTES1);
+        IpPrefix slash31 = IpPrefix.valueOf(IpAddress.Version.INET,
+                                            BYTES1, 31);
+        IpAddress addr32 = IpAddress.valueOf(IpAddress.Version.INET, BYTES1);
 
         assertTrue(slash31.contains(addr32));
 

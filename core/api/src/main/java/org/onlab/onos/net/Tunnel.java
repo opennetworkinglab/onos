@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
-
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.Timestamp;
+package org.onlab.onos.net;
 
 /**
- * Interface for a logical clock service that vends per device timestamps.
+ * Abstraction of a generalized network tunnel.
  */
-public interface DeviceClockService {
+public interface Tunnel extends Link {
 
     /**
-     * Checks if this service can issue Timestamp for specified device.
-     *
-     * @param deviceId device identifier.
-     * @return true if timestamp can be issued for specified device
+     * Tunnel technology type.
      */
-    public boolean isTimestampAvailable(DeviceId deviceId);
+    enum Type {
+        MPLS, VLAN, VXLAN, GRE, OPTICAL
+    }
 
     /**
-     * Returns a new timestamp for the specified deviceId.
+     * Network resource backing the tunnel, e.g. lambda, VLAN id, MPLS tag.
      *
-     * @param deviceId device identifier.
-     * @return timestamp.
+     * @return backing resource
      */
-    public Timestamp getTimestamp(DeviceId deviceId);
+    NetworkResource resource();
+
 }

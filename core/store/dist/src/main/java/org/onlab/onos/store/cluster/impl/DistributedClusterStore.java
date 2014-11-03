@@ -147,8 +147,7 @@ public class DistributedClusterStore
     }
 
     private IpAddress memberAddress(Member member) {
-        byte[] address = member.getSocketAddress().getAddress().getAddress();
-        return IpAddress.valueOf(address);
+        return IpAddress.valueOf(member.getSocketAddress().getAddress());
     }
 
     // Interceptor for membership events.

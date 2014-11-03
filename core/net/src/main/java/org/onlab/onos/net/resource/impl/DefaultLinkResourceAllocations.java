@@ -15,11 +15,7 @@
  */
 package org.onlab.onos.net.resource.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
@@ -27,6 +23,11 @@ import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.onos.net.resource.ResourceRequest;
 import org.onlab.onos.net.resource.ResourceType;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation of {@link LinkResourceAllocations}.
@@ -38,11 +39,11 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
     /**
      * Creates a new link resource allocations.
      *
-     * @param request requested resources
+     * @param request     requested resources
      * @param allocations allocated resources
      */
     DefaultLinkResourceAllocations(LinkResourceRequest request,
-            Map<Link, Set<ResourceAllocation>> allocations) {
+                                   Map<Link, Set<ResourceAllocation>> allocations) {
         this.request = request;
         this.allocations = allocations;
     }
@@ -76,4 +77,10 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("allocations", allocations)
+                .toString();
+    }
 }

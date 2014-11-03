@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.resource;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Representation of allocated bandwidth resource.
  */
@@ -34,5 +36,12 @@ public class BandwidthResourceAllocation extends BandwidthResourceRequest
      */
     public BandwidthResourceAllocation(Bandwidth bandwidth) {
         super(bandwidth);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("bandwidth", bandwidth())
+                .toString();
     }
 }

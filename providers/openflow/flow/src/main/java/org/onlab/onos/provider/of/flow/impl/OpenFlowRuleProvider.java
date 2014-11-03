@@ -302,7 +302,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         @Override
-        public void roleAssertFailed(Dpid dpid, RoleState role) {}
+        public void receivedRoleReply(Dpid dpid, RoleState requested,
+                RoleState response) {
+            // Do nothing here for now.
+        }
 
         private synchronized void pushFlowMetrics(Dpid dpid, OFStatsReply stats) {
             if (stats.getStatsType() != OFStatsType.FLOW) {

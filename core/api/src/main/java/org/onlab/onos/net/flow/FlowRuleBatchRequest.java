@@ -25,29 +25,29 @@ import com.google.common.collect.Lists;
 public class FlowRuleBatchRequest {
 
     private final int batchId;
-    private final List<FlowEntry> toAdd;
-    private final List<FlowEntry> toRemove;
+    private final List<FlowRule> toAdd;
+    private final List<FlowRule> toRemove;
 
-    public FlowRuleBatchRequest(int batchId, List<? extends FlowEntry> toAdd, List<? extends FlowEntry> toRemove) {
+    public FlowRuleBatchRequest(int batchId, List<? extends FlowRule> toAdd, List<? extends FlowRule> toRemove) {
         this.batchId = batchId;
         this.toAdd = Collections.unmodifiableList(toAdd);
         this.toRemove = Collections.unmodifiableList(toRemove);
     }
 
-    public List<FlowEntry> toAdd() {
+    public List<FlowRule> toAdd() {
         return toAdd;
     }
 
-    public List<FlowEntry> toRemove() {
+    public List<FlowRule> toRemove() {
         return toRemove;
     }
 
     public FlowRuleBatchOperation asBatchOperation() {
         List<FlowRuleBatchEntry> entries = Lists.newArrayList();
-        for (FlowEntry e : toAdd) {
+        for (FlowRule e : toAdd) {
             entries.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, e));
         }
-        for (FlowEntry e : toRemove) {
+        for (FlowRule e : toRemove) {
             entries.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, e));
         }
         return new FlowRuleBatchOperation(entries);
