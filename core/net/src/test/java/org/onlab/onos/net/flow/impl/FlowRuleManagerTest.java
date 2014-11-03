@@ -148,7 +148,7 @@ public class FlowRuleManagerTest {
         int i = 0;
         System.err.println("events :" + listener.events);
         for (FlowRuleEvent e : listener.events) {
-            assertTrue("unexpected event", e.type().equals(events[i]));
+            assertEquals("unexpected event", events[i], e.type());
             i++;
         }
 
@@ -178,15 +178,13 @@ public class FlowRuleManagerTest {
                        RULE_ADDED, RULE_ADDED);
 
         addFlowRule(1);
+        System.err.println("events :" + listener.events);
         assertEquals("should still be 2 rules", 2, flowCount());
 
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1));
         validateEvents(RULE_UPDATED);
     }
 
-
-    // TODO: If preserving iteration order is a requirement, redo FlowRuleStore.
-    //backing store is sensitive to the order of additions/removals
     private boolean validateState(Map<FlowRule, FlowEntryState> expected) {
         Map<FlowRule, FlowEntryState> expectedToCheck = new HashMap<>(expected);
         Iterable<FlowEntry> rules = service.getFlowEntries(DID);
@@ -539,17 +537,17 @@ public class FlowRuleManagerTest {
 
             @Override
             public boolean cancel(boolean mayInterruptIfRunning) {
-                return true;
+                return false;
             }
 
             @Override
             public boolean isCancelled() {
-                return true;
+                return false;
             }
 
             @Override
             public boolean isDone() {
-                return false;
+                return true;
             }
 
             @Override
@@ -562,12 +560,14 @@ public class FlowRuleManagerTest {
             public CompletedBatchOperation get(long timeout, TimeUnit unit)
                     throws InterruptedException,
                     ExecutionException, TimeoutException {
-                return null;
+                return new CompletedBatchOperation(true, Collections.<FlowRule>emptySet());
             }
 
             @Override
             public void addListener(Runnable task, Executor executor) {
-                // TODO: add stuff.
+                if (isDone()) {
+                    executor.execute(task);
+                }
             }
         }
 

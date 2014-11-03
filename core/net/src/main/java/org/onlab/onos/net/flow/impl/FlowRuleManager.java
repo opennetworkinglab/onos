@@ -371,10 +371,11 @@ public class FlowRuleManager
             final FlowRuleBatchRequest request = event.subject();
             switch (event.type()) {
             case BATCH_OPERATION_REQUESTED:
-                for (FlowEntry entry : request.toAdd()) {
+                // Request has been forwarded to MASTER Node, and was
+                for (FlowRule entry : request.toAdd()) {
                     eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADD_REQUESTED, entry));
                 }
-                for (FlowEntry entry : request.toRemove()) {
+                for (FlowRule entry : request.toRemove()) {
                     eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_REMOVE_REQUESTED, entry));
                 }
                 // FIXME: what about op.equals(FlowRuleOperation.MODIFY) ?
@@ -392,21 +393,15 @@ public class FlowRuleManager
                                                                                   Futures.getUnchecked(result)));
                     }
                 }, futureListeners);
+                break;
 
-                break;
             case BATCH_OPERATION_COMPLETED:
-                Set<FlowRule> failedItems = event.result().failedItems();
-                for (FlowEntry entry : request.toAdd()) {
-                    if (!failedItems.contains(entry)) {
-                        eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADDED, entry));
-                    }
-                }
-                for (FlowEntry entry : request.toRemove()) {
-                    if (!failedItems.contains(entry)) {
-                            eventDispatcher.post(new FlowRuleEvent(FlowRuleEvent.Type.RULE_REMOVED, entry));
-                    }
-                }
+                // MASTER Node has pushed the batch down to the Device
+
+                // Note: RULE_ADDED will be posted
+                // when Flow was actually confirmed by stats reply.
                 break;
+
             default:
                 break;
             }
