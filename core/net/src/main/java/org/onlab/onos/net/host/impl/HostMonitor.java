@@ -67,6 +67,7 @@ public class HostMonitor implements TimerTask {
     private final ConcurrentMap<ProviderId, HostProvider> hostProviders;
 
     private static final long DEFAULT_PROBE_RATE = 30000; // milliseconds
+    private static final byte[] ZERO_MAC_ADDRESS = MacAddress.ZERO.toBytes();
     private long probeRate = DEFAULT_PROBE_RATE;
 
     private Timeout timeout;
@@ -215,15 +216,15 @@ public class HostMonitor implements TimerTask {
            .setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH)
            .setOpCode(ARP.OP_REQUEST);
 
-        arp.setSenderHardwareAddress(sourceMac.getAddress())
+        arp.setSenderHardwareAddress(sourceMac.toBytes())
            .setSenderProtocolAddress(sourceIp.toOctets())
-           .setTargetHardwareAddress(MacAddress.ZERO_MAC_ADDRESS)
+           .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
            .setTargetProtocolAddress(targetIp.toOctets());
 
         Ethernet ethernet = new Ethernet();
         ethernet.setEtherType(Ethernet.TYPE_ARP)
-                .setDestinationMACAddress(MacAddress.BROADCAST_MAC)
-                .setSourceMACAddress(sourceMac.getAddress())
+                .setDestinationMACAddress(MacAddress.BROADCAST)
+                .setSourceMACAddress(sourceMac)
                 .setPayload(arp);
 
         return ethernet;

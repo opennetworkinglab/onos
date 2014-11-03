@@ -213,8 +213,8 @@ public class OpenFlowHostProviderTest {
             Ethernet eth = new Ethernet();
             eth.setEtherType(Ethernet.TYPE_ARP)
             .setVlanID(VLAN.toShort())
-            .setSourceMACAddress(MAC.toBytes())
-            .setDestinationMACAddress(BCMAC.getAddress())
+            .setSourceMACAddress(MAC)
+            .setDestinationMACAddress(BCMAC)
             .setPayload(arp);
 
             return eth;

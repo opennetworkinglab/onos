@@ -360,8 +360,8 @@ public class ProxyArpManager implements ProxyArpService {
             Ethernet request) {
 
         Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress(request.getSourceMACAddress());
-        eth.setSourceMACAddress(srcMac.getAddress());
+        eth.setDestinationMACAddress(request.getSourceMAC());
+        eth.setSourceMACAddress(srcMac);
         eth.setEtherType(Ethernet.TYPE_ARP);
         eth.setVlanID(request.getVlanID());
 
@@ -372,7 +372,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
-        arp.setSenderHardwareAddress(srcMac.getAddress());
+        arp.setSenderHardwareAddress(srcMac.toBytes());
         arp.setTargetHardwareAddress(request.getSourceMACAddress());
 
         arp.setTargetProtocolAddress(((ARP) request.getPayload())

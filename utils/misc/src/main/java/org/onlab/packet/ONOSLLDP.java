@@ -64,7 +64,7 @@ public class ONOSLLDP extends LLDP {
         setName(DEFAULT_NAME);
         setDevice(DEFAULT_DEVICE);
         setOptionalTLVList(Lists.<LLDPTLV>newArrayList(nameTLV, deviceTLV));
-        setTtl(new LLDPTLV().setType((byte) TTL_TLV_TYPE)
+        setTtl(new LLDPTLV().setType(TTL_TLV_TYPE)
                        .setLength((short) ttlValue.length)
                        .setValue(ttlValue));
 
@@ -94,7 +94,7 @@ public class ONOSLLDP extends LLDP {
     public void setChassisId(final ChassisId chassisId) {
         MacAddress chassisMac = MacAddress.valueOf(chassisId.value());
         byte[] chassis = ArrayUtils.addAll(new byte[] {CHASSIS_TLV_SUBTYPE},
-                                           chassisMac.getAddress());
+                                           chassisMac.toBytes());
 
         LLDPTLV chassisTLV = new LLDPTLV();
         chassisTLV.setLength(CHASSIS_TLV_SIZE);

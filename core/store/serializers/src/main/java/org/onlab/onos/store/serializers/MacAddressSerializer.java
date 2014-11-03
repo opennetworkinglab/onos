@@ -36,7 +36,7 @@ public class MacAddressSerializer extends Serializer<MacAddress> {
 
     @Override
     public void write(Kryo kryo, Output output, MacAddress object) {
-        output.writeBytes(object.getAddress());
+        output.writeBytes(object.toBytes());
     }
 
     @Override

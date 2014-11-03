@@ -18,6 +18,8 @@
 
 package org.onlab.packet;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -86,6 +88,17 @@ public class Ethernet extends BasePacket {
      * @param destMac the destination MAC to set
      * @return the Ethernet frame
      */
+    public Ethernet setDestinationMACAddress(final MacAddress destMac) {
+        this.destinationMACAddress = checkNotNull(destMac);
+        return this;
+    }
+
+    /**
+     * Sets the destination MAC address.
+     *
+     * @param destMac the destination MAC to set
+     * @return the Ethernet frame
+     */
     public Ethernet setDestinationMACAddress(final byte[] destMac) {
         this.destinationMACAddress = MacAddress.valueOf(destMac);
         return this;
@@ -118,6 +131,17 @@ public class Ethernet extends BasePacket {
      */
     public MacAddress getSourceMAC() {
         return this.sourceMACAddress;
+    }
+
+    /**
+     * Sets the source MAC address.
+     *
+     * @param sourceMac the source MAC to set
+     * @return the Ethernet frame
+     */
+    public Ethernet setSourceMACAddress(final MacAddress sourceMac) {
+        this.sourceMACAddress = checkNotNull(sourceMac);
+        return this;
     }
 
     /**
