@@ -30,7 +30,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A class representing an IP address.
- * TODO: Add support for IPv6 as well.
  */
 public final class IpAddress implements Comparable<IpAddress> {
     // IP Versions

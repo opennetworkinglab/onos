@@ -135,7 +135,7 @@ public class IpAddressTest {
      * Tests returning an IPv4 address asn an integer.
      */
     @Test
-    public void testToint() {
+    public void testToInt() {
         IpAddress ipAddress;
 
         ipAddress = IpAddress.valueOf("1.2.3.4");
@@ -149,10 +149,10 @@ public class IpAddressTest {
     }
 
     /**
-     * Tests valueOf() converter for an integer value.
+     * Tests valueOf() converter for IPv4 integer value.
      */
     @Test
-    public void testValueOfForInteger() {
+    public void testValueOfForIntegerIPv4() {
         IpAddress ipAddress;
 
         ipAddress = IpAddress.valueOf(0x01020304);

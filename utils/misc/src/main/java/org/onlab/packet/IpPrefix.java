@@ -17,8 +17,6 @@ package org.onlab.packet;
 
 import java.util.Objects;
 
-// TODO: Add support for IPv6 as well.
-
 /**
  * A class representing an IP prefix. A prefix consists of an IP address and
  * a subnet mask.
@@ -40,82 +38,12 @@ public final class IpPrefix {
      *
      * @param address the IP address
      * @param prefixLength the prefix length
-     */
-    private IpPrefix(IpAddress address, int prefixLength) {
-        checkPrefixLength(prefixLength);
-        this.address = IpAddress.makeMaskedAddress(address, prefixLength);
-        this.prefixLength = (short) prefixLength;
-    }
-
-    /**
-     * Checks whether the prefix length is valid.
-     *
-     * @param prefixLength the prefix length value to check
      * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    private static void checkPrefixLength(int prefixLength) {
-        if ((prefixLength < 0) || (prefixLength > MAX_INET_MASK_LENGTH)) {
-            String msg = "Invalid prefix length " + prefixLength + ". " +
-                "The value must be in the interval [0, " +
-                MAX_INET_MASK_LENGTH + "]";
-            throw new IllegalArgumentException(msg);
-        }
-    }
-
-    /**
-     * Converts an integer and a prefix length into an IPv4 prefix.
-     *
-     * @param address an integer representing the IPv4 address
-     * @param prefixLength the prefix length
-     * @return an IP prefix
-     */
-    public static IpPrefix valueOf(int address, int prefixLength) {
-        return new IpPrefix(IpAddress.valueOf(address), prefixLength);
-    }
-
-    /**
-     * Converts a byte array and a prefix length into an IP prefix.
-     *
-     * @param version the IP address version
-     * @param address the IP address value stored in network byte order
-     * @param prefixLength the prefix length
-     * @return an IP prefix
-     */
-    public static IpPrefix valueOf(IpAddress.Version version, byte[] address,
-                                   int prefixLength) {
-        return new IpPrefix(IpAddress.valueOf(version, address),
-                            prefixLength);
-    }
-
-    /**
-     * Converts an IP address and a prefix length into IP prefix.
-     *
-     * @param address the IP address
-     * @param prefixLength the prefix length
-     * @return an IP prefix
-     */
-    public static IpPrefix valueOf(IpAddress address, int prefixLength) {
-        return new IpPrefix(address, prefixLength);
-    }
-
-    /**
-     * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16") into an
-     * IP prefix.
-     *
-     * @param address an IP prefix in string form, e.g. "10.1.0.0/16"
-     * @return an IP prefix
-     */
-    public static IpPrefix valueOf(String address) {
-        final String[] parts = address.split("/");
-        if (parts.length != 2) {
-            String msg = "Malformed IP prefix string: " + address + "." +
-                "Address must take form \"x.x.x.x/y\"";
-            throw new IllegalArgumentException(msg);
-        }
-        IpAddress ipAddress = IpAddress.valueOf(parts[0]);
-        int prefixLength = Integer.parseInt(parts[1]);
-
-        return new IpPrefix(ipAddress, prefixLength);
+    private IpPrefix(IpAddress address, int prefixLength) {
+        checkPrefixLength(address.version(), prefixLength);
+        this.address = IpAddress.makeMaskedAddress(address, prefixLength);
+        this.prefixLength = (short) prefixLength;
     }
 
     /**
@@ -143,6 +71,65 @@ public final class IpPrefix {
      */
     public int prefixLength() {
         return prefixLength;
+    }
+
+    /**
+     * Converts an integer and a prefix length into an IPv4 prefix.
+     *
+     * @param address an integer representing the IPv4 address
+     * @param prefixLength the prefix length
+     * @return an IP prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
+     */
+    public static IpPrefix valueOf(int address, int prefixLength) {
+        return new IpPrefix(IpAddress.valueOf(address), prefixLength);
+    }
+
+    /**
+     * Converts a byte array and a prefix length into an IP prefix.
+     *
+     * @param version the IP address version
+     * @param address the IP address value stored in network byte order
+     * @param prefixLength the prefix length
+     * @return an IP prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
+     */
+    public static IpPrefix valueOf(IpAddress.Version version, byte[] address,
+                                   int prefixLength) {
+        return new IpPrefix(IpAddress.valueOf(version, address), prefixLength);
+    }
+
+    /**
+     * Converts an IP address and a prefix length into IP prefix.
+     *
+     * @param address the IP address
+     * @param prefixLength the prefix length
+     * @return an IP prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
+     */
+    public static IpPrefix valueOf(IpAddress address, int prefixLength) {
+        return new IpPrefix(address, prefixLength);
+    }
+
+    /**
+     * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16") into an
+     * IP prefix.
+     *
+     * @param address an IP prefix in string form, e.g. "10.1.0.0/16"
+     * @return an IP prefix
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    public static IpPrefix valueOf(String address) {
+        final String[] parts = address.split("/");
+        if (parts.length != 2) {
+            String msg = "Malformed IP prefix string: " + address + "." +
+                "Address must take form \"x.x.x.x/y\"";
+            throw new IllegalArgumentException(msg);
+        }
+        IpAddress ipAddress = IpAddress.valueOf(parts[0]);
+        int prefixLength = Integer.parseInt(parts[1]);
+
+        return new IpPrefix(ipAddress, prefixLength);
     }
 
     /**
@@ -216,5 +203,36 @@ public final class IpPrefix {
         builder.append("/");
         builder.append(String.format("%d", prefixLength));
         return builder.toString();
+    }
+
+    /**
+     * Checks whether the prefix length is valid.
+     *
+     * @param version the IP address version
+     * @param prefixLength the prefix length value to check
+     * @throws IllegalArgumentException if the prefix length value is invalid
+     */
+    private static void checkPrefixLength(IpAddress.Version version,
+                                          int prefixLength) {
+        int maxPrefixLen = 0;
+
+        switch (version) {
+        case INET:
+            maxPrefixLen = MAX_INET_MASK_LENGTH;
+            break;
+        case INET6:
+            maxPrefixLen = MAX_INET6_MASK_LENGTH;
+            break;
+        default:
+            String msg = "Invalid IP version " + version;
+            throw new IllegalArgumentException(msg);
+        }
+
+        if ((prefixLength < 0) || (prefixLength > maxPrefixLen)) {
+            String msg = "Invalid prefix length " + prefixLength + ". " +
+                "The value must be in the interval [0, " +
+                maxPrefixLen + "]";
+            throw new IllegalArgumentException(msg);
+        }
     }
 }
