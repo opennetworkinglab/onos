@@ -36,7 +36,7 @@ public class ReplicaInfoEvent extends AbstractEvent<ReplicaInfoEvent.Type, Devic
          */
         MASTER_CHANGED,
         //
-        // BACKUPS_CHANGED?
+        BACKUPS_CHANGED,
     }
 
 
