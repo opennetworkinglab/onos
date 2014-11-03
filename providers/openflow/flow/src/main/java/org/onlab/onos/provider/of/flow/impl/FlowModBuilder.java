@@ -19,6 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.criteria.Criteria;
 import org.onlab.onos.net.flow.criteria.Criteria.EthCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
@@ -46,6 +47,7 @@ import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TransportPort;
+import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
@@ -194,6 +196,12 @@ public abstract class FlowModBuilder {
                 LambdaCriterion lc = (LambdaCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGID,
                         new CircuitSignalID((byte) 1, (byte) 2, lc.lambda(), (short) 1));
+                break;
+            case OCH_SIGTYPE:
+                Criteria.OpticalSignalTypeCriterion sc =
+                        (Criteria.OpticalSignalTypeCriterion) c;
+                mBuilder.setExact(MatchField.OCH_SIGTYPE,
+                                  U8.of(sc.signalType()));
                 break;
             case ARP_OP:
             case ARP_SHA:

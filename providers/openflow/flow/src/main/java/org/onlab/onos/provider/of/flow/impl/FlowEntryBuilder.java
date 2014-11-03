@@ -289,7 +289,10 @@ public class FlowEntryBuilder {
             case OCH_SIGID:
                 builder.matchLambda(match.get(MatchField.OCH_SIGID).getChannelNumber());
                 break;
-            case OCH_SIGTYPE_BASIC:
+            case OCH_SIGTYPE:
+                builder.matchOpticalSignalType(match.get(MatchField
+                                                                 .OCH_SIGTYPE).getValue());
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
