@@ -15,14 +15,13 @@
  */
 package org.onlab.packet;
 
-import java.net.InetAddress;
-
 import com.google.common.net.InetAddresses;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
+import java.net.InetAddress;
+
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;

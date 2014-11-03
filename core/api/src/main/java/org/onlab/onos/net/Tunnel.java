@@ -16,7 +16,22 @@
 package org.onlab.onos.net;
 
 /**
- * Representation of a network resource, e.g. a link, lambda, MPLS tag.
+ * Abstraction of a generalized network tunnel.
  */
-public interface NetworkResource {
+public interface Tunnel extends Link {
+
+    /**
+     * Tunnel technology type.
+     */
+    enum Type {
+        MPLS, VLAN, VXLAN, GRE, OPTICAL
+    }
+
+    /**
+     * Network resource backing the tunnel, e.g. lambda, VLAN id, MPLS tag.
+     *
+     * @return backing resource
+     */
+    NetworkResource resource();
+
 }
