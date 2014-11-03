@@ -18,6 +18,7 @@ package org.onlab.packet;
 import java.net.InetAddress;
 
 import com.google.common.net.InetAddresses;
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -728,19 +729,16 @@ public class IpAddressTest {
      */
     @Test
     public void testEqualityIPv4() {
-        IpAddress addr1, addr2;
-
-        addr1 = IpAddress.valueOf("1.2.3.4");
-        addr2 = IpAddress.valueOf("1.2.3.4");
-        assertThat(addr1, is(addr2));
-
-        addr1 = IpAddress.valueOf("0.0.0.0");
-        addr2 = IpAddress.valueOf("0.0.0.0");
-        assertThat(addr1, is(addr2));
-
-        addr1 = IpAddress.valueOf("255.255.255.255");
-        addr2 = IpAddress.valueOf("255.255.255.255");
-        assertThat(addr1, is(addr2));
+        new EqualsTester()
+            .addEqualityGroup(IpAddress.valueOf("1.2.3.4"),
+                              IpAddress.valueOf("1.2.3.4"))
+            .addEqualityGroup(IpAddress.valueOf("1.2.3.5"),
+                              IpAddress.valueOf("1.2.3.5"))
+            .addEqualityGroup(IpAddress.valueOf("0.0.0.0"),
+                              IpAddress.valueOf("0.0.0.0"))
+            .addEqualityGroup(IpAddress.valueOf("255.255.255.255"),
+                              IpAddress.valueOf("255.255.255.255"))
+            .testEquals();
     }
 
     /**
@@ -748,51 +746,20 @@ public class IpAddressTest {
      */
     @Test
     public void testEqualityIPv6() {
-        IpAddress addr1, addr2;
-
-        addr1 = IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
-        addr2 = IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(addr1, is(addr2));
-
-        addr1 = IpAddress.valueOf("::");
-        addr2 = IpAddress.valueOf("::");
-        assertThat(addr1, is(addr2));
-
-        addr1 = IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        addr2 = IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(addr1, is(addr2));
-    }
-
-    /**
-     * Tests non-equality of {@link IpAddress} for IPv4.
-     */
-    @Test
-    public void testNonEqualityIPv4() {
-        IpAddress addr1, addr2, addr3, addr4;
-
-        addr1 = IpAddress.valueOf("1.2.3.4");
-        addr2 = IpAddress.valueOf("1.2.3.5");
-        addr3 = IpAddress.valueOf("0.0.0.0");
-        addr4 = IpAddress.valueOf("255.255.255.255");
-        assertThat(addr1, is(not(addr2)));
-        assertThat(addr3, is(not(addr2)));
-        assertThat(addr4, is(not(addr2)));
-    }
-
-    /**
-     * Tests non-equality of {@link IpAddress} for IPv6.
-     */
-    @Test
-    public void testNonEqualityIPv6() {
-        IpAddress addr1, addr2, addr3, addr4;
-
-        addr1 = IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
-        addr2 = IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:888A");
-        addr3 = IpAddress.valueOf("::");
-        addr4 = IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(addr1, is(not(addr2)));
-        assertThat(addr3, is(not(addr2)));
-        assertThat(addr4, is(not(addr2)));
+        new EqualsTester()
+            .addEqualityGroup(
+                IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888"),
+                IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888"))
+            .addEqualityGroup(
+                IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:888a"),
+                IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:888a"))
+            .addEqualityGroup(
+                IpAddress.valueOf("::"),
+                IpAddress.valueOf("::"))
+            .addEqualityGroup(
+                IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+                IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"))
+            .testEquals();
     }
 
     /**
