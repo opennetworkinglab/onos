@@ -195,7 +195,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
     @Override
     public void releaseResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
-        linkResourceAllocationsMap.remove(allocations);
+        linkResourceAllocationsMap.remove(allocations.intendId());
         for (Link link : allocations.links()) {
             addFreeResources(link, allocations);
             Set<LinkResourceAllocations> linkAllocs = allocatedResources.get(link);
