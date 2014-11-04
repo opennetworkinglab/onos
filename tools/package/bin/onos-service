@@ -3,7 +3,7 @@
 # Starts ONOS Apache Karaf container
 # -----------------------------------------------------------------------------
 
-export JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-openjdk-amd64/}
+#export JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-openjdk-amd64/}
 export JAVA_OPTS="${JAVA_OPTS:--Xms256M -Xmx2048M}"
 
 cd /opt/onos

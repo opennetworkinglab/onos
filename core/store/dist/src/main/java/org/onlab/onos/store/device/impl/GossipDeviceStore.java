@@ -32,6 +32,8 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.mastership.MastershipService;
+import org.onlab.onos.mastership.MastershipTerm;
+import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultDevice;
@@ -39,6 +41,7 @@ import org.onlab.onos.net.DefaultPort;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Device.Type;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceClockService;
@@ -89,6 +92,7 @@ import static com.google.common.base.Verify.verify;
 import static org.onlab.util.Tools.namedThreads;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.onos.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE;
+import static org.onlab.onos.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVE_REQ;
 
 // TODO: give me a better name
 /**
@@ -160,6 +164,7 @@ public class GossipDeviceStore
                 GossipDeviceStoreMessageSubjects.DEVICE_UPDATE, new InternalDeviceEventListener());
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE, new InternalDeviceOfflineEventListener());
+        clusterCommunicator.addSubscriber(DEVICE_REMOVE_REQ, new InternalRemoveRequestListener());
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.DEVICE_REMOVED, new InternalDeviceRemovedEventListener());
         clusterCommunicator.addSubscriber(
@@ -715,13 +720,47 @@ public class GossipDeviceStore
 
     @Override
     public synchronized DeviceEvent removeDevice(DeviceId deviceId) {
-        final NodeId master = mastershipService.getMasterFor(deviceId);
-        if (!clusterService.getLocalNode().id().equals(master)) {
-            log.info("Removal of device {} requested on non master node", deviceId);
-            // FIXME silently ignoring. Should be forwarding or broadcasting to
-            // master.
-            return null;
+        final NodeId myId = clusterService.getLocalNode().id();
+        NodeId master = mastershipService.getMasterFor(deviceId);
+
+        // if there exist a master, forward
+        // if there is no master, try to become one and process
+
+        boolean relinquishAtEnd = false;
+        if (master == null) {
+            final MastershipRole myRole = mastershipService.getLocalRole(deviceId);
+            if (myRole != MastershipRole.NONE) {
+                relinquishAtEnd = true;
+            }
+            log.info("Temporarlily requesting role for {} to remove", deviceId);
+            mastershipService.requestRoleFor(deviceId);
+            MastershipTermService termService = mastershipService.requestTermService();
+            MastershipTerm term = termService.getMastershipTerm(deviceId);
+            if (myId.equals(term.master())) {
+                master = myId;
+            }
         }
+
+        if (!myId.equals(master)) {
+            log.info("{} has control of {}, forwarding remove request",
+                     master, deviceId);
+
+             ClusterMessage message = new ClusterMessage(
+                     myId,
+                     DEVICE_REMOVE_REQ,
+                     SERIALIZER.encode(deviceId));
+
+             try {
+                 clusterCommunicator.unicast(message, master);
+             } catch (IOException e) {
+                 log.error("Failed to forward {} remove request to {}", deviceId, master, e);
+             }
+
+             // event will be triggered after master processes it.
+             return null;
+        }
+
+        // I have control..
 
         Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         DeviceEvent event = removeDeviceInternal(deviceId, timestamp);
@@ -734,6 +773,10 @@ public class GossipDeviceStore
                 log.error("Failed to notify peers of a device removed topology event for deviceId: {}",
                      deviceId);
             }
+        }
+        if (relinquishAtEnd) {
+            log.info("Relinquishing temporary role acquired for {}", deviceId);
+            mastershipService.relinquishMastership(deviceId);
         }
         return event;
     }
@@ -1238,6 +1281,16 @@ public class GossipDeviceStore
             Timestamp timestamp = event.timestamp();
 
             notifyDelegateIfNotNull(markOfflineInternal(deviceId, timestamp));
+        }
+    }
+
+    private final class InternalRemoveRequestListener
+            implements ClusterMessageHandler {
+        @Override
+        public void handle(ClusterMessage message) {
+            log.debug("Received device remove request from peer: {}", message.sender());
+            DeviceId did = SERIALIZER.decode(message.payload());
+            removeDevice(did);
         }
     }
 
