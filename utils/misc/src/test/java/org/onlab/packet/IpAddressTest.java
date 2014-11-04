@@ -234,9 +234,10 @@ public class IpAddressTest {
     @Test(expected = NullPointerException.class)
     public void testInvalidValueOfNullArrayIPv4() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = null;
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, fromArray);
+        value = null;
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value);
     }
 
     /**
@@ -245,9 +246,10 @@ public class IpAddressTest {
     @Test(expected = NullPointerException.class)
     public void testInvalidValueOfNullArrayIPv6() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = null;
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, fromArray);
+        value = null;
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value);
     }
 
     /**
@@ -257,9 +259,10 @@ public class IpAddressTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidValueOfShortArrayIPv4() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = new byte[] {1, 2, 3};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, fromArray);
+        value = new byte[] {1, 2, 3};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value);
     }
 
     /**
@@ -269,9 +272,10 @@ public class IpAddressTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidValueOfShortArrayIPv6() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, fromArray);
+        value = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value);
     }
 
     /**

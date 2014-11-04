@@ -136,18 +136,19 @@ public class Ip4AddressTest {
     @Test
     public void testValueOfByteArrayIPv4() {
         Ip4Address ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {1, 2, 3, 4};
-        ipAddress = Ip4Address.valueOf(value1);
+        value = new byte[] {1, 2, 3, 4};
+        ipAddress = Ip4Address.valueOf(value);
         assertThat(ipAddress.toString(), is("1.2.3.4"));
 
-        final byte[] value2 = new byte[] {0, 0, 0, 0};
-        ipAddress = Ip4Address.valueOf(value2);
+        value = new byte[] {0, 0, 0, 0};
+        ipAddress = Ip4Address.valueOf(value);
         assertThat(ipAddress.toString(), is("0.0.0.0"));
 
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
-        ipAddress = Ip4Address.valueOf(value3);
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipAddress = Ip4Address.valueOf(value);
         assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
@@ -157,9 +158,10 @@ public class Ip4AddressTest {
     @Test(expected = NullPointerException.class)
     public void testInvalidValueOfNullArrayIPv4() {
         Ip4Address ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = null;
-        ipAddress = Ip4Address.valueOf(fromArray);
+        value = null;
+        ipAddress = Ip4Address.valueOf(value);
     }
 
     /**
@@ -169,9 +171,10 @@ public class Ip4AddressTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidValueOfShortArrayIPv4() {
         Ip4Address ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = new byte[] {1, 2, 3};
-        ipAddress = Ip4Address.valueOf(fromArray);
+        value = new byte[] {1, 2, 3};
+        ipAddress = Ip4Address.valueOf(value);
     }
 
     /**

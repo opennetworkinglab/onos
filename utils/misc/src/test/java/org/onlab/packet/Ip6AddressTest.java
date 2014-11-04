@@ -154,9 +154,10 @@ public class Ip6AddressTest {
     @Test(expected = NullPointerException.class)
     public void testInvalidValueOfNullArrayIPv6() {
         Ip6Address ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = null;
-        ipAddress = Ip6Address.valueOf(fromArray);
+        value = null;
+        ipAddress = Ip6Address.valueOf(value);
     }
 
     /**
@@ -166,9 +167,10 @@ public class Ip6AddressTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidValueOfShortArrayIPv6() {
         Ip6Address ipAddress;
+        byte[] value;
 
-        final byte[] fromArray = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        ipAddress = Ip6Address.valueOf(fromArray);
+        value = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        ipAddress = Ip6Address.valueOf(value);
     }
 
     /**
