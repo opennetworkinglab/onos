@@ -48,6 +48,7 @@ public class LLDP extends BasePacket {
     /**
      * @param chassis
      *            the chassisId to set
+     * @return this
      */
     public LLDP setChassisId(final LLDPTLV chassis) {
         this.chassisId = chassis;
@@ -64,6 +65,7 @@ public class LLDP extends BasePacket {
     /**
      * @param portId
      *            the portId to set
+     * @return this
      */
     public LLDP setPortId(final LLDPTLV portId) {
         this.portId = portId;
@@ -80,6 +82,7 @@ public class LLDP extends BasePacket {
     /**
      * @param ttl
      *            the ttl to set
+     * @return this
      */
     public LLDP setTtl(final LLDPTLV ttl) {
         this.ttl = ttl;
@@ -96,6 +99,7 @@ public class LLDP extends BasePacket {
     /**
      * @param optionalTLVList
      *            the optionalTLVList to set
+     * @return this
      */
     public LLDP setOptionalTLVList(final List<LLDPTLV> optionalTLVList) {
         this.optionalTLVList = optionalTLVList;

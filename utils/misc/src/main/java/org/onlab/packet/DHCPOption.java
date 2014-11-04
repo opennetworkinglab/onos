@@ -38,6 +38,7 @@ public class DHCPOption {
     /**
      * @param code
      *            the code to set
+     * @return this
      */
     public DHCPOption setCode(final byte code) {
         this.code = code;
@@ -54,6 +55,7 @@ public class DHCPOption {
     /**
      * @param length
      *            the length to set
+     * @return this
      */
     public DHCPOption setLength(final byte length) {
         this.length = length;
@@ -70,6 +72,7 @@ public class DHCPOption {
     /**
      * @param data
      *            the data to set
+     * @return this
      */
     public DHCPOption setData(final byte[] data) {
         this.data = data;

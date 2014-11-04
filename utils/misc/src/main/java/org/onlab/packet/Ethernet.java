@@ -255,6 +255,7 @@ public class Ethernet extends BasePacket {
      *
      * @param pd
      *            the pad to set
+     * @return this
      */
     public Ethernet setPad(final boolean pd) {
         this.pad = pd;
@@ -345,7 +346,7 @@ public class Ethernet extends BasePacket {
     /**
      * Checks to see if a string is a valid MAC address.
      *
-     * @param macAddress
+     * @param macAddress string to test if it is a valid MAC
      * @return True if macAddress is a valid MAC, False otherwise
      */
     public static boolean isMACAddress(final String macAddress) {
@@ -368,7 +369,7 @@ public class Ethernet extends BasePacket {
      * matter, and returns a corresponding byte[].
      *
      * @param macAddress
-     *            The MAC address to convert into a bye array
+     *            The MAC address to convert into a byte array
      * @return The macAddress as a byte array
      */
     public static byte[] toMACAddress(final String macAddress) {
@@ -379,7 +380,7 @@ public class Ethernet extends BasePacket {
      * Accepts a MAC address and returns the corresponding long, where the MAC
      * bytes are set on the lower order bytes of the long.
      *
-     * @param macAddress
+     * @param macAddress MAC address as a byte array
      * @return a long containing the mac address bytes
      */
     public static long toLong(final byte[] macAddress) {
@@ -389,7 +390,7 @@ public class Ethernet extends BasePacket {
     /**
      * Converts a long MAC address to a byte array.
      *
-     * @param macAddress
+     * @param macAddress MAC address set on the lower order bytes of the long
      * @return the bytes of the mac address
      */
     public static byte[] toByteArray(final long macAddress) {

@@ -39,6 +39,7 @@ public class ICMP extends BasePacket {
     /**
      * @param icmpType
      *            to set
+     * @return this
      */
     public ICMP setIcmpType(final byte icmpType) {
         this.icmpType = icmpType;
@@ -55,6 +56,7 @@ public class ICMP extends BasePacket {
     /**
      * @param icmpCode
      *            code to set
+     * @return this
      */
     public ICMP setIcmpCode(final byte icmpCode) {
         this.icmpCode = icmpCode;
@@ -71,6 +73,7 @@ public class ICMP extends BasePacket {
     /**
      * @param checksum
      *            the checksum to set
+     * @return this
      */
     public ICMP setChecksum(final short checksum) {
         this.checksum = checksum;

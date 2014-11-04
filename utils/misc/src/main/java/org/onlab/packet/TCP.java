@@ -46,6 +46,7 @@ public class TCP extends BasePacket {
     /**
      * @param sourcePort
      *            the sourcePort to set
+     * @return this
      */
     public TCP setSourcePort(final short sourcePort) {
         this.sourcePort = sourcePort;
@@ -62,6 +63,7 @@ public class TCP extends BasePacket {
     /**
      * @param destinationPort
      *            the destinationPort to set
+     * @return this
      */
     public TCP setDestinationPort(final short destinationPort) {
         this.destinationPort = destinationPort;
@@ -157,6 +159,7 @@ public class TCP extends BasePacket {
     /**
      * @param checksum
      *            the checksum to set
+     * @return this
      */
     public TCP setChecksum(final short checksum) {
         this.checksum = checksum;

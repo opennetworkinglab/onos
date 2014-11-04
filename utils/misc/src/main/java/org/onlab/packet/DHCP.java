@@ -95,6 +95,7 @@ public class DHCP extends BasePacket {
     /**
      * @param opCode
      *            the opCode to set
+     * @return this
      */
     public DHCP setOpCode(final byte opCode) {
         this.opCode = opCode;
@@ -111,6 +112,7 @@ public class DHCP extends BasePacket {
     /**
      * @param hardwareType
      *            the hardwareType to set
+     * @return this
      */
     public DHCP setHardwareType(final byte hardwareType) {
         this.hardwareType = hardwareType;
@@ -127,6 +129,7 @@ public class DHCP extends BasePacket {
     /**
      * @param hardwareAddressLength
      *            the hardwareAddressLength to set
+     * @return this
      */
     public DHCP setHardwareAddressLength(final byte hardwareAddressLength) {
         this.hardwareAddressLength = hardwareAddressLength;
@@ -143,6 +146,7 @@ public class DHCP extends BasePacket {
     /**
      * @param hops
      *            the hops to set
+     * @return this
      */
     public DHCP setHops(final byte hops) {
         this.hops = hops;
@@ -159,6 +163,7 @@ public class DHCP extends BasePacket {
     /**
      * @param transactionId
      *            the transactionId to set
+     * @return this
      */
     public DHCP setTransactionId(final int transactionId) {
         this.transactionId = transactionId;
@@ -175,6 +180,7 @@ public class DHCP extends BasePacket {
     /**
      * @param seconds
      *            the seconds to set
+     * @return this
      */
     public DHCP setSeconds(final short seconds) {
         this.seconds = seconds;
@@ -191,6 +197,7 @@ public class DHCP extends BasePacket {
     /**
      * @param flags
      *            the flags to set
+     * @return this
      */
     public DHCP setFlags(final short flags) {
         this.flags = flags;
@@ -207,6 +214,7 @@ public class DHCP extends BasePacket {
     /**
      * @param clientIPAddress
      *            the clientIPAddress to set
+     * @return this
      */
     public DHCP setClientIPAddress(final int clientIPAddress) {
         this.clientIPAddress = clientIPAddress;
@@ -223,6 +231,7 @@ public class DHCP extends BasePacket {
     /**
      * @param yourIPAddress
      *            the yourIPAddress to set
+     * @return this
      */
     public DHCP setYourIPAddress(final int yourIPAddress) {
         this.yourIPAddress = yourIPAddress;
@@ -239,6 +248,7 @@ public class DHCP extends BasePacket {
     /**
      * @param serverIPAddress
      *            the serverIPAddress to set
+     * @return this
      */
     public DHCP setServerIPAddress(final int serverIPAddress) {
         this.serverIPAddress = serverIPAddress;
@@ -255,6 +265,7 @@ public class DHCP extends BasePacket {
     /**
      * @param gatewayIPAddress
      *            the gatewayIPAddress to set
+     * @return this
      */
     public DHCP setGatewayIPAddress(final int gatewayIPAddress) {
         this.gatewayIPAddress = gatewayIPAddress;
@@ -271,6 +282,7 @@ public class DHCP extends BasePacket {
     /**
      * @param clientHardwareAddress
      *            the clientHardwareAddress to set
+     * @return this
      */
     public DHCP setClientHardwareAddress(final byte[] clientHardwareAddress) {
         this.clientHardwareAddress = clientHardwareAddress;
@@ -303,6 +315,7 @@ public class DHCP extends BasePacket {
     /**
      * @param options
      *            the options to set
+     * @return this
      */
     public DHCP setOptions(final List<DHCPOption> options) {
         this.options = options;
@@ -334,6 +347,7 @@ public class DHCP extends BasePacket {
     /**
      * @param server
      *            the serverName to set
+     * @return this
      */
     public DHCP setServerName(final String server) {
         this.serverName = server;
@@ -350,6 +364,7 @@ public class DHCP extends BasePacket {
     /**
      * @param bootFile
      *            the bootFileName to set
+     * @return this
      */
     public DHCP setBootFileName(final String bootFile) {
         this.bootFileName = bootFile;

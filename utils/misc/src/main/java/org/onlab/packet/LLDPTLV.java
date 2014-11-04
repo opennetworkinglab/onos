@@ -40,6 +40,7 @@ public class LLDPTLV {
     /**
      * @param type
      *            the type to set
+     * @return this
      */
     public LLDPTLV setType(final byte type) {
         this.type = type;
@@ -56,6 +57,7 @@ public class LLDPTLV {
     /**
      * @param length
      *            the length to set
+     * @return this
      */
     public LLDPTLV setLength(final short length) {
         this.length = length;
@@ -72,6 +74,7 @@ public class LLDPTLV {
     /**
      * @param value
      *            the value to set
+     * @return this
      */
     public LLDPTLV setValue(final byte[] value) {
         this.value = value;

@@ -57,6 +57,7 @@ public class UDP extends BasePacket {
     /**
      * @param sourcePort
      *            the sourcePort to set
+     * @return this
      */
     public UDP setSourcePort(final short sourcePort) {
         this.sourcePort = sourcePort;
@@ -73,6 +74,7 @@ public class UDP extends BasePacket {
     /**
      * @param destinationPort
      *            the destinationPort to set
+     * @return this
      */
     public UDP setDestinationPort(final short destinationPort) {
         this.destinationPort = destinationPort;
@@ -96,6 +98,7 @@ public class UDP extends BasePacket {
     /**
      * @param checksum
      *            the checksum to set
+     * @return this
      */
     public UDP setChecksum(final short checksum) {
         this.checksum = checksum;

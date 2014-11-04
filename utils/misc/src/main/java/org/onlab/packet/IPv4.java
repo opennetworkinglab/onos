@@ -76,6 +76,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param version
      *            the version to set
+     * @return this
      */
     public IPv4 setVersion(final byte version) {
         this.version = version;
@@ -99,6 +100,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param diffServ
      *            the diffServ to set
+     * @return this
      */
     public IPv4 setDiffServ(final byte diffServ) {
         this.diffServ = diffServ;
@@ -130,6 +132,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param identification
      *            the identification to set
+     * @return this
      */
     public IPv4 setIdentification(final short identification) {
         this.identification = identification;
@@ -146,7 +149,8 @@ public class IPv4 extends BasePacket {
     /**
      * @param flags
      *            the flags to set
-     */
+     * @return this
+s     */
     public IPv4 setFlags(final byte flags) {
         this.flags = flags;
         return this;
@@ -162,6 +166,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param fragmentOffset
      *            the fragmentOffset to set
+     * @return this
      */
     public IPv4 setFragmentOffset(final short fragmentOffset) {
         this.fragmentOffset = fragmentOffset;
@@ -178,6 +183,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param ttl
      *            the ttl to set
+     * @return this
      */
     public IPv4 setTtl(final byte ttl) {
         this.ttl = ttl;
@@ -194,6 +200,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param protocol
      *            the protocol to set
+     * @return this
      */
     public IPv4 setProtocol(final byte protocol) {
         this.protocol = protocol;
@@ -210,6 +217,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param checksum
      *            the checksum to set
+     * @return this
      */
     public IPv4 setChecksum(final short checksum) {
         this.checksum = checksum;
@@ -232,6 +240,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param sourceAddress
      *            the sourceAddress to set
+     * @return this
      */
     public IPv4 setSourceAddress(final int sourceAddress) {
         this.sourceAddress = sourceAddress;
@@ -241,6 +250,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param sourceAddress
      *            the sourceAddress to set
+     * @return this
      */
     public IPv4 setSourceAddress(final String sourceAddress) {
         this.sourceAddress = IPv4.toIPv4Address(sourceAddress);
@@ -257,6 +267,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param destinationAddress
      *            the destinationAddress to set
+     * @return this
      */
     public IPv4 setDestinationAddress(final int destinationAddress) {
         this.destinationAddress = destinationAddress;
@@ -266,6 +277,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param destinationAddress
      *            the destinationAddress to set
+     * @return this
      */
     public IPv4 setDestinationAddress(final String destinationAddress) {
         this.destinationAddress = IPv4.toIPv4Address(destinationAddress);
@@ -282,6 +294,7 @@ public class IPv4 extends BasePacket {
     /**
      * @param options
      *            the options to set
+     * @return this
      */
     public IPv4 setOptions(final byte[] options) {
         if (options != null && options.length % 4 > 0) {
