@@ -15,7 +15,7 @@
  */
 
 /*
- Sample module file to illustrate framework integration.
+ Alternate sample module file to illustrate framework integration.
 
  @author Simon Hunt
  */
@@ -33,13 +33,6 @@
         });
     }
 
-    // NOTE: view is a view-token data structure:
-    // {
-    //     vid: 'view-id',
-    //     nid: 'nav-id',
-    //     $div: ...      // d3 selection of dom view div.
-    // }
-
     // gets invoked only the first time the view is loaded
     function preload(view, ctx) {
         svg = view.$div.append('svg');
@@ -52,8 +45,8 @@
     }
 
     function load(view, ctx) {
-        var fill = 'blue',
-            stroke = 'grey';
+        var fill = 'teal',
+            stroke = 'black';
 
         svg.append('circle')
             .attr({
@@ -64,7 +57,8 @@
             .style({
                 fill: fill,
                 stroke: stroke,
-                'stroke-width': 3.5
+                'stroke-width': 1.5,
+                opacity: 0.5
             });
     }
 
