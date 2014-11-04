@@ -31,6 +31,7 @@ import org.onlab.onos.net.MastershipRole;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.Lists;
 
 /**
  * A structure that holds node mastership roles associated with a
@@ -40,10 +41,24 @@ final class RoleValue {
 
     protected final Map<MastershipRole, List<NodeId>> value = new EnumMap<>(MastershipRole.class);
 
+    /**
+     * Constructs empty RoleValue.
+     */
     public RoleValue() {
         value.put(MastershipRole.MASTER, new LinkedList<NodeId>());
         value.put(MastershipRole.STANDBY, new LinkedList<NodeId>());
         value.put(MastershipRole.NONE, new LinkedList<NodeId>());
+    }
+
+    /**
+     * Constructs copy of specified RoleValue.
+     *
+     * @param original original to create copy from
+     */
+    public RoleValue(final RoleValue original) {
+        value.put(MASTER, Lists.newLinkedList(original.value.get(MASTER)));
+        value.put(STANDBY, Lists.newLinkedList(original.value.get(STANDBY)));
+        value.put(NONE, Lists.newLinkedList(original.value.get(NONE)));
     }
 
     // exposing internals for serialization purpose only
