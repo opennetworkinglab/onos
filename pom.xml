@@ -361,8 +361,8 @@
                     <!-- https://jira.codehaus.org/browse/MCOMPILER-205 -->
                     <version>2.5.1</version>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
 
@@ -407,7 +407,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-scr-plugin</artifactId>
-                    <version>1.15.0</version>
+                    <version>1.20.0</version>
                     <executions>
                         <execution>
                             <id>generate-scr-srcdescriptor</id>

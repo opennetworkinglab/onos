@@ -101,9 +101,9 @@ public class TestUtilsTest {
     @Test
     public void testSetGetPrivateField() throws TestUtilsException {
 
-        assertEquals(42, TestUtils.getField(test, "privateField"));
+        assertEquals(42, (int) TestUtils.getField(test, "privateField"));
         TestUtils.setField(test, "privateField", 0xDEAD);
-        assertEquals(0xDEAD, TestUtils.getField(test, "privateField"));
+        assertEquals(0xDEAD, (int) TestUtils.getField(test, "privateField"));
     }
 
     /**
@@ -114,9 +114,9 @@ public class TestUtilsTest {
     @Test
     public void testSetGetProtectedField() throws TestUtilsException {
 
-        assertEquals(2501, TestUtils.getField(test, "protectedField"));
+        assertEquals(2501, (int) TestUtils.getField(test, "protectedField"));
         TestUtils.setField(test, "protectedField", 0xBEEF);
-        assertEquals(0xBEEF, TestUtils.getField(test, "protectedField"));
+        assertEquals(0xBEEF, (int) TestUtils.getField(test, "protectedField"));
     }
 
     /**
