@@ -42,6 +42,20 @@
         <netty4.version>4.0.23.Final</netty4.version>
     </properties>
 
+    <repositories>
+        <!-- FIXME: Repository for copycat, Loxigen + optical experimenter.
+                    Decide how to deal with these before release. -->
+        <repository>
+            <id>onlab-temp</id>
+            <name>ON.lab temporary repository</name>
+            <url>http://mavenrepo.onlab.us:8081/nexus/content/groups/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+
     <dependencyManagement>
         <dependencies>
             <dependency>

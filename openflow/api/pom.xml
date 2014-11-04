@@ -31,15 +31,6 @@
 
     <description>ONOS OpenFlow controller subsystem API</description>
 
-    <repositories>
-        <!-- FIXME: for Loxigen + optical experimenter. Decide how to use Loxigen before release. -->
-        <repository>
-            <id>onlab-temp</id>
-            <name>ON.lab temporary repository</name>
-            <url>http://mavenrepo.onlab.us:8081/nexus/content/repositories/releases</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.projectfloodlight</groupId>
@@ -50,7 +41,6 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
-            <version>3.9.0.Final</version>
         </dependency>
     </dependencies>
 

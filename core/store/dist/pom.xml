@@ -31,18 +31,6 @@
 
     <description>ONOS Gossip based distributed store subsystems</description>
 
-    <repositories>
-        <!-- FIXME: for copycat. Decide how to deal with these before release. -->
-        <repository>
-            <id>onlab-temp</id>
-            <name>ON.lab temporary repository</name>
-            <url>http://mavenrepo.onlab.us:8081/nexus/content/groups/public</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.onlab.onos</groupId>
