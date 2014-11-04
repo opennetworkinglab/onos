@@ -26,12 +26,9 @@ import java.util.List;
 //import java.util.PriorityQueue;
 import java.util.Set;
 
-//import org.apache.commons.lang3.tuple.Pair;
-//import org.onlab.graph.AbstractGraphPathSearch.DefaultResult;
-
 /**
  * K-shortest-path graph search algorithm capable of finding not just one,
- * but K shortest paths with descending order between the source and destinations.
+ * but K shortest paths with ascending order between the source and destinations.
  */
 
 public class KshortestPathSearch<V extends Vertex, E extends Edge<V>> {
@@ -113,18 +110,18 @@ public class KshortestPathSearch<V extends Vertex, E extends Edge<V>> {
                 // 3.1 the spur node ranges from the first node to the last node in the previous k-shortest path.
                 List<E> lastPath = pathResults.get(pathResults.size() - 1);
                 for (int i = 0; i < lastPath.size(); i++) {
-                    // 4.1 convert the graph into mutable.
+                    // 3.1.1 convert the graph into mutable.
                     convertGraph();
-                    // 4.2 transform the graph.
+                    // 3.1.2 transform the graph.
                     List<E> rootPath = createSpurNode(lastPath, i);
                     transformGraph(rootPath);
-                    // 4.3 find the deviation node.
+                    // 3.1.3 find the deviation node.
                     V devNode;
                     devNode = getDevNode(rootPath);
                     List<E> spurPath;
-                    // 4.4 find the shortest path in the transformed graph.
+                    // 3.1.4 find the shortest path in the transformed graph.
                     spurPath = searchShortestPath(mutableGraph, devNode, sink);
-                    // 4.5 update the path candidates.
+                    // 3.1.5 update the path candidates.
                     if (spurPath != null) {
                         // totalPath = rootPath + spurPath;
                         rootPath.addAll(spurPath);
