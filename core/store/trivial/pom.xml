@@ -36,6 +36,13 @@
           <groupId>org.apache.commons</groupId>
           <artifactId>commons-lang3</artifactId>
         </dependency>
+
+        <dependency>
+          <groupId>org.onlab.onos</groupId>
+          <artifactId>onos-api</artifactId>
+          <classifier>tests</classifier>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
