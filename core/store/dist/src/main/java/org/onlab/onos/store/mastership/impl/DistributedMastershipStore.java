@@ -447,13 +447,16 @@ implements MastershipStore {
             RoleValue oldValue = event.getOldValue();
             RoleValue newValue = event.getValue();
 
+            // There will be no oldValue at the very first instance of an EntryEvent.
+            // Technically, the progression is: null event -> null master -> some master;
+            // We say a null master and a null oldValue are the same condition.
             NodeId oldMaster = null;
             if (oldValue != null) {
                 oldMaster = oldValue.get(MASTER);
             }
             NodeId newMaster = newValue.get(MASTER);
 
-            if (Objects.equal(oldMaster, newMaster)) {
+            if (!Objects.equal(oldMaster, newMaster)) {
                 notifyDelegate(new MastershipEvent(
                         MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
             } else {
