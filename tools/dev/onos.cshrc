@@ -16,7 +16,9 @@ endif
 # Setup some environmental context for developers
 if ( ! $?JAVA_HOME ) then
     if ( -x /usr/libexec/java_home ) then
-        setenv JAVA_HOME `/usr/libexec/java_home -v 1.7`
+        setenv JAVA_HOME `/usr/libexec/java_home -v 1.8`
+    else if ( -d /usr/lib/jvm/java-8-oracle ) then
+        setenv JAVA_HOME /usr/lib/jvm/java-8-oracle
     else if ( -d /usr/lib/jvm/java-7-openjdk-amd64 ) then
         setenv JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
     endif
@@ -24,8 +26,11 @@ endif
 if ( ! $?MAVEN ) then
     setenv MAVEN $HOME/Applications/apache-maven-3.2.2
 endif
+if ( ! $?KARAF_VERSION ) then
+    setenv KARAF_VERSION 3.0.2
+endif
 if ( ! $?KARAF ) then
-    setenv KARAF $HOME/Applications/apache-karaf-3.0.1
+    setenv KARAF $HOME/Applications/apache-karaf-$KARAF_VERSION
 endif
 setenv KARAF_LOG $KARAF/data/log/karaf.log
 
