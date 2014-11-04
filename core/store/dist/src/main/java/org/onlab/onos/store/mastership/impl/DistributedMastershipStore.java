@@ -447,7 +447,13 @@ implements MastershipStore {
             RoleValue oldValue = event.getOldValue();
             RoleValue newValue = event.getValue();
 
-            if (Objects.equal(oldValue.get(MASTER), newValue.get(MASTER))) {
+            NodeId oldMaster = null;
+            if (oldValue != null) {
+                oldMaster = oldValue.get(MASTER);
+            }
+            NodeId newMaster = newValue.get(MASTER);
+
+            if (Objects.equal(oldMaster, newMaster)) {
                 notifyDelegate(new MastershipEvent(
                         MASTER_CHANGED, event.getKey(), event.getValue().roleInfo()));
             } else {
