@@ -106,10 +106,11 @@ public class DistributedFlowRuleStore
 
     private final Logger log = getLogger(getClass());
 
+    // primary data:
+    //  read/write needs to be synchronized
     // store entries as a pile of rules, no info about device tables
-    private final Multimap<DeviceId, StoredFlowEntry> flowEntries =
-            ArrayListMultimap.<DeviceId, StoredFlowEntry>create();
-
+    private final Multimap<DeviceId, StoredFlowEntry> flowEntries
+        = ArrayListMultimap.<DeviceId, StoredFlowEntry>create();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ReplicaInfoService replicaInfoManager;
@@ -135,6 +136,7 @@ public class DistributedFlowRuleStore
                 //.removalListener(listener)
                 .build();
 
+    // Cache of SMaps used for backup data.  each SMap contain device flow table
     private LoadingCache<DeviceId, SMap<FlowId, ImmutableList<StoredFlowEntry>>> smaps;
 
 
@@ -311,7 +313,7 @@ public class DistributedFlowRuleStore
         }
     }
 
-    private Set<FlowEntry> getFlowEntriesInternal(DeviceId deviceId) {
+    private synchronized Set<FlowEntry> getFlowEntriesInternal(DeviceId deviceId) {
         Collection<? extends FlowEntry> rules = flowEntries.get(deviceId);
         if (rules == null) {
             return Collections.emptySet();
@@ -365,7 +367,9 @@ public class DistributedFlowRuleStore
         }
     }
 
-    private ListenableFuture<CompletedBatchOperation> storeBatchInternal(FlowRuleBatchOperation operation) {
+    private synchronized ListenableFuture<CompletedBatchOperation>
+                        storeBatchInternal(FlowRuleBatchOperation operation) {
+
         final List<StoredFlowEntry> toRemove = new ArrayList<>();
         final List<StoredFlowEntry> toAdd = new ArrayList<>();
         DeviceId did = null;
