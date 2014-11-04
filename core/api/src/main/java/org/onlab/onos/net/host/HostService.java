@@ -135,7 +135,7 @@ public interface HostService {
      * @param connectPoint the connection point to retrieve address bindings for
      * @return addresses bound to the port
      */
-    PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint);
+    Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint);
 
     /**
      * Adds the specified host listener.

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2014 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+  ONOS UI - single page web app
+  Version 1.1
+
+  @author Simon Hunt
+  -->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ONOS GUI (v1.1)</title>
+
+    <link rel="shortcut icon" href="img/onos-logo.png">
+
+    <!-- first script to be run -->
+    <script src="preamble.js"></script>
+
+    <!-- Third party library code included here -->
+    <!--TODO: use the minified version of d3, once debugging is complete -->
+    <script src="libs/d3.js"></script>
+    <script src="libs/jquery-2.1.1.min.js"></script>
+
+    <!-- Base library and framework stylesheets included here -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="onos2.css">
+    <link rel="stylesheet" href="mast2.css">
+
+    <!-- This is where contributed stylesheets get INJECTED -->
+    <!-- TODO: replace with template marker and inject refs server-side -->
+    <link rel="stylesheet" href="topo2.css">
+
+
+    <!-- General library modules included here-->
+    <script src="geometry2.js"></script>
+
+    <!-- ONOS UI Framework included here-->
+    <script src="onos2.js"></script>
+
+</head>
+<body>
+    <div id="frame">
+        <div id="mast">
+            <!-- NOTE: masthead injected here by mast.js -->
+        </div>
+        <div id="view">
+            <!-- NOTE: views injected here by onos.js -->
+        </div>
+        <div id="overlays">
+            <!-- NOTE: overlays injected here, as needed -->
+        </div>
+    </div>
+
+    <!-- Initialize the UI...-->
+    <script type="text/javascript">
+        var ONOS = $.onos({note: "config, if needed"});
+    </script>
+
+    <!-- Framework module files included here -->
+    <script src="mast2.js"></script>
+
+    <!-- Contributed (application) views injected here -->
+    <!-- TODO: replace with template marker and inject refs server-side -->
+    <script src="temp2.js"></script>
+
+    <!-- finally, build the UI-->
+    <script type="text/javascript">
+        $(ONOS.buildUi);
+    </script>
+
+</body>
+</html>

@@ -175,13 +175,15 @@ public class HostMonitor implements TimerTask {
         for (Device device : deviceService.getDevices()) {
             for (Port port : deviceService.getPorts(device.id())) {
                 ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-                PortAddresses portAddresses =
+                Set<PortAddresses> portAddressSet =
                     hostManager.getAddressBindingsForPort(cp);
 
-                for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
-                    if (ia.subnetAddress().contains(targetIp)) {
-                        sendProbe(device.id(), port, targetIp,
-                                  ia.ipAddress(), portAddresses.mac());
+                for (PortAddresses portAddresses : portAddressSet) {
+                    for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
+                        if (ia.subnetAddress().contains(targetIp)) {
+                            sendProbe(device.id(), port, targetIp,
+                                      ia.ipAddress(), portAddresses.mac());
+                        }
                     }
                 }
             }

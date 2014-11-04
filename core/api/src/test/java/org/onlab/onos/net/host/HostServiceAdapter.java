@@ -95,7 +95,7 @@ public class HostServiceAdapter implements HostService {
     }
 
     @Override
-    public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
+    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
         return null;
     }
 

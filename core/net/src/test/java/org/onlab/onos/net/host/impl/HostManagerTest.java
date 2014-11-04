@@ -234,10 +234,10 @@ public class HostManagerTest {
             new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
-        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+        Set<PortAddresses> storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(add1.ipAddresses().equals(storedAddresses.ipAddresses()));
-        assertTrue(add1.mac().equals(storedAddresses.mac()));
+        assertEquals(1, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
 
         // Add some more addresses and check that they're added correctly
         PortAddresses add2 =
@@ -246,18 +246,19 @@ public class HostManagerTest {
         mgr.bindAddressesToPort(add2);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().equals(
-                Sets.newHashSet(IA1, IA2, IA3)));
-        assertTrue(storedAddresses.mac().equals(MAC1));
+        assertEquals(2, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
+        assertTrue(storedAddresses.contains(add2));
 
         PortAddresses add3 = new PortAddresses(CP1, null, MAC2);
 
         mgr.bindAddressesToPort(add3);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().equals(
-                Sets.newHashSet(IA1, IA2, IA3)));
-        assertTrue(storedAddresses.mac().equals(MAC2));
+        assertEquals(3, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
+        assertTrue(storedAddresses.contains(add2));
+        assertTrue(storedAddresses.contains(add3));
     }
 
     @Test
@@ -266,10 +267,10 @@ public class HostManagerTest {
             new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
-        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+        Set<PortAddresses> storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().size() == 2);
-        assertNotNull(storedAddresses.mac());
+        assertEquals(1, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
 
         PortAddresses rem1 =
             new PortAddresses(CP1, Sets.newHashSet(IA1), null);
@@ -277,25 +278,15 @@ public class HostManagerTest {
         mgr.unbindAddressesFromPort(rem1);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().equals(Sets.newHashSet(IA2)));
-        assertTrue(storedAddresses.mac().equals(MAC1));
+        // It shouldn't have been removed because it didn't match the originally
+        // submitted address object
+        assertEquals(1, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
 
-        PortAddresses rem2 = new PortAddresses(CP1, null, MAC1);
-
-        mgr.unbindAddressesFromPort(rem2);
+        mgr.unbindAddressesFromPort(add1);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().equals(Sets.newHashSet(IA2)));
-        assertNull(storedAddresses.mac());
-
-        PortAddresses rem3 =
-            new PortAddresses(CP1, Sets.newHashSet(IA2), MAC1);
-
-        mgr.unbindAddressesFromPort(rem3);
-        storedAddresses = mgr.getAddressBindingsForPort(CP1);
-
-        assertTrue(storedAddresses.ipAddresses().isEmpty());
-        assertNull(storedAddresses.mac());
+        assertTrue(storedAddresses.isEmpty());
     }
 
     @Test
@@ -304,16 +295,15 @@ public class HostManagerTest {
             new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
-        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+        Set<PortAddresses> storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().size() == 2);
-        assertNotNull(storedAddresses.mac());
+        assertEquals(1, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
 
         mgr.clearAddresses(CP1);
         storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.ipAddresses().isEmpty());
-        assertNull(storedAddresses.mac());
+        assertTrue(storedAddresses.isEmpty());
     }
 
     @Test
@@ -322,12 +312,10 @@ public class HostManagerTest {
             new PortAddresses(CP1, Sets.newHashSet(IA1, IA2), MAC1);
 
         mgr.bindAddressesToPort(add1);
-        PortAddresses storedAddresses = mgr.getAddressBindingsForPort(CP1);
+        Set<PortAddresses> storedAddresses = mgr.getAddressBindingsForPort(CP1);
 
-        assertTrue(storedAddresses.connectPoint().equals(CP1));
-        assertTrue(storedAddresses.ipAddresses().equals(
-                        Sets.newHashSet(IA1, IA2)));
-        assertTrue(storedAddresses.mac().equals(MAC1));
+        assertEquals(1, storedAddresses.size());
+        assertTrue(storedAddresses.contains(add1));
     }
 
     @Test

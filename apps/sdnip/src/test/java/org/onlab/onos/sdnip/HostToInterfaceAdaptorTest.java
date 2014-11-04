@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,10 +63,6 @@ public class HostToInterfaceAdaptorTest {
 
     private static final ConnectPoint NON_EXISTENT_CP = new ConnectPoint(
             DeviceId.deviceId("doesnotexist"), PortNumber.portNumber(1));
-
-    private static final PortAddresses DEFAULT_PA = new PortAddresses(
-            NON_EXISTENT_CP, null, null);
-
 
     @Before
     public void setUp() throws Exception {
@@ -123,7 +120,8 @@ public class HostToInterfaceAdaptorTest {
             MacAddress mac) {
         PortAddresses pa = new PortAddresses(cp, ipAddresses, mac);
         portAddresses.add(pa);
-        expect(hostService.getAddressBindingsForPort(cp)).andReturn(pa).anyTimes();
+        expect(hostService.getAddressBindingsForPort(cp)).andReturn(
+                Collections.singleton(pa)).anyTimes();
 
         Interface intf = new Interface(cp, ipAddresses, mac);
         interfaces.put(cp, intf);
@@ -158,7 +156,7 @@ public class HostToInterfaceAdaptorTest {
         // Try and get an interface for a connect point with no addresses
         reset(hostService);
         expect(hostService.getAddressBindingsForPort(NON_EXISTENT_CP))
-                .andReturn(DEFAULT_PA).anyTimes();
+                .andReturn(Collections.<PortAddresses>emptySet()).anyTimes();
         replay(hostService);
 
         assertNull(adaptor.getInterface(NON_EXISTENT_CP));

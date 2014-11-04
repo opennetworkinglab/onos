@@ -207,7 +207,7 @@ public class HostManager
     }
 
     @Override
-    public PortAddresses getAddressBindingsForPort(ConnectPoint connectPoint) {
+    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
         return store.getAddressBindingsForPort(connectPoint);
     }
 
