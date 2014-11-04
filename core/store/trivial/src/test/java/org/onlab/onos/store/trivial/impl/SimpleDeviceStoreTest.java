@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 import static org.onlab.onos.net.Device.Type.SWITCH;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
+import static org.onlab.onos.net.NetTestTools.assertAnnotationsEquals;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,7 +39,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
@@ -56,6 +56,7 @@ import org.onlab.onos.net.provider.ProviderId;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+
 import org.onlab.packet.ChassisId;
 
 /**
@@ -144,25 +145,6 @@ public class SimpleDeviceStoreTest {
         assertEquals(HW, device.hwVersion());
         assertEquals(swVersion, device.swVersion());
         assertEquals(SN, device.serialNumber());
-    }
-
-    // TODO slice this out somewhere
-    /**
-     * Verifies that Annotations created by merging {@code annotations} is
-     * equal to actual Annotations.
-     *
-     * @param actual Annotations to check
-     * @param annotations
-     */
-    public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
-        DefaultAnnotations expected = DefaultAnnotations.builder().build();
-        for (SparseAnnotations a : annotations) {
-            expected = DefaultAnnotations.merge(expected, a);
-        }
-        assertEquals(expected.keys(), actual.keys());
-        for (String key : expected.keys()) {
-            assertEquals(expected.value(key), actual.value(key));
-        }
     }
 
     @Test

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
 import static org.onlab.onos.net.PortNumber.portNumber;
@@ -83,6 +84,25 @@ public final class NetTestTools {
             links.add(link(ids[i], i, ids[i + 1], i));
         }
         return new DefaultPath(PID, links, ids.length);
+    }
+
+
+    /**
+     * Verifies that Annotations created by merging {@code annotations} is
+     * equal to actual Annotations.
+     *
+     * @param actual Annotations to check
+     * @param annotations
+     */
+    public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+        DefaultAnnotations expected = DefaultAnnotations.builder().build();
+        for (SparseAnnotations a : annotations) {
+            expected = DefaultAnnotations.merge(expected, a);
+        }
+        assertEquals(expected.keys(), actual.keys());
+        for (String key : expected.keys()) {
+            assertEquals(expected.value(key), actual.value(key));
+        }
     }
 
 }

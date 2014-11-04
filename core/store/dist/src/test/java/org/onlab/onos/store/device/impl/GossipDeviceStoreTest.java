@@ -41,10 +41,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.ControllerNode.State;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.mastership.MastershipServiceAdapter;
@@ -65,6 +63,7 @@ import org.onlab.onos.net.device.DeviceStore;
 import org.onlab.onos.net.device.DeviceStoreDelegate;
 import org.onlab.onos.net.device.PortDescription;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.store.cluster.StaticClusterService;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
@@ -133,6 +132,7 @@ public class GossipDeviceStoreTest {
     private DeviceClockManager deviceClockManager;
     private DeviceClockService deviceClockService;
     private ClusterCommunicationService clusterCommunicator;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
     }
@@ -838,45 +838,15 @@ public class GossipDeviceStoreTest {
         }
     }
 
-    private static final class TestClusterService implements ClusterService {
-
-        private final Map<NodeId, ControllerNode> nodes = new HashMap<>();
-        private final Map<NodeId, ControllerNode.State> nodeStates = new HashMap<>();
+    private static final class TestClusterService extends StaticClusterService {
 
         public TestClusterService() {
+            localNode = ONOS1;
             nodes.put(NID1, ONOS1);
             nodeStates.put(NID1, ACTIVE);
 
             nodes.put(NID2, ONOS2);
             nodeStates.put(NID2, ACTIVE);
-        }
-
-        @Override
-        public ControllerNode getLocalNode() {
-            return GossipDeviceStoreTest.ONOS1;
-        }
-
-        @Override
-        public Set<ControllerNode> getNodes() {
-            return Sets.newHashSet(nodes.values());
-        }
-
-        @Override
-        public ControllerNode getNode(NodeId nodeId) {
-            return nodes.get(nodeId);
-        }
-
-        @Override
-        public State getState(NodeId nodeId) {
-            return nodeStates.get(nodeId);
-        }
-
-        @Override
-        public void addListener(ClusterEventListener listener) {
-        }
-
-        @Override
-        public void removeListener(ClusterEventListener listener) {
         }
     }
 }
