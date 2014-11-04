@@ -8,7 +8,9 @@ export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
 # Setup some environmental context for developers
 if [ -z "${JAVA_HOME}" ]; then
     if [ -x /usr/libexec/java_home ]; then
-        export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
+        export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+    elif [ -d /usr/lib/jvm/java-8-oracle ]; then
+        export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
     elif [ -d /usr/lib/jvm/java-7-openjdk-amd64 ]; then
         export JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
     fi
@@ -16,7 +18,7 @@ fi
 
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.2.2}
 
-export KARAF_VERSION=${KARAF_VERSION:-3.0.1}
+export KARAF_VERSION=${KARAF_VERSION:-3.0.2}
 export KARAF=${KARAF:-~/Applications/apache-karaf-$KARAF_VERSION}
 export KARAF_LOG=$KARAF/data/log/karaf.log
 
