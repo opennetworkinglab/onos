@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------
 # Continuously watches the Apache Karaf log; survives 'karaf clean'
 # ----------------------------------------------------------------------------
-KARAF_LOG=${KARAF_LOG:-~/apache-karaf-3.0.1/data/log/karaf.log}
+KARAF_LOG=${KARAF_LOG:-~/apache-karaf-3.0.2/data/log/karaf.log}
 
 while true; do
     [ ! -f $KARAF_LOG ] && sleep 2 && continue

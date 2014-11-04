@@ -1,0 +1,14 @@
+# ONOS DEVA instances 1,2,3,4 & ONOS mininet box
+
+export ONOS_NIC=10.128.4.*
+export OC1="10.128.4.2"
+export OC2="10.128.4.3"
+export OC3="10.128.4.4"
+export OC4="10.128.4.5"
+export OCN="10.128.4.2"
+export OCI="${OC1}"
+
+export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-openflow,onos-app-fwd,onos-app-proxyarp,onos-app-tvue,onos-app-metrics}"
+
+#export ONOS_FEATURES="webconsole,onos-api,onos-core-trivial,onos-cli,onos-openflow,onos-app-fwd,onos-app-mobility,onos-app-tvue,onos-app-proxyarp"
+## export ONOS_FEATURES="webconsole,onos-api,onos-core-trivial,onos-cli,onos-openflow,onos-app-fwd"
