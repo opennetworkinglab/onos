@@ -15,6 +15,8 @@
  */
 package org.onlab.netty;
 
+import java.nio.charset.StandardCharsets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,7 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // onosiscool in ascii
-    public static final byte[] PREAMBLE = "onosiscool".getBytes();
+    static final byte[] PREAMBLE = "onosiscool".getBytes(StandardCharsets.US_ASCII);
     public static final int HEADER_VERSION = 1;
     public static final int SERIALIZER_VERSION = 1;
 
