@@ -23,6 +23,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -40,10 +41,14 @@ public abstract class ConnectivityIntent extends Intent {
 
     private final TrafficSelector selector;
     private final TrafficTreatment treatment;
+    private final List<Constraint> constraints;
 
     /**
      * Creates a connectivity intent that matches on the specified selector
      * and applies the specified treatment.
+     * <p>
+     * Path will be chosen without any constraints.
+     * </p>
      *
      * @param id        intent identifier
      * @param appId     application identifier
@@ -56,9 +61,33 @@ public abstract class ConnectivityIntent extends Intent {
                                  Collection<NetworkResource> resources,
                                  TrafficSelector selector,
                                  TrafficTreatment treatment) {
+        this(id, appId, resources, selector, treatment, null);
+    }
+
+    /**
+     * Creates a connectivity intent that matches on the specified selector
+     * and applies the specified treatment.
+     * <p>
+     * Path will be optimized based on the first constraint if one is given.
+     * </p>
+     *
+     * @param id          intent identifier
+     * @param appId       application identifier
+     * @param resources   required network resources (optional)
+     * @param selector    traffic selector
+     * @param treatment   treatment
+     * @param constraints optional prioritized list of constraints
+     * @throws NullPointerException if the selector or treatement is null
+     */
+    protected ConnectivityIntent(IntentId id, ApplicationId appId,
+                                 Collection<NetworkResource> resources,
+                                 TrafficSelector selector,
+                                 TrafficTreatment treatment,
+                                 List<Constraint> constraints) {
         super(id, appId, resources);
         this.selector = checkNotNull(selector);
         this.treatment = checkNotNull(treatment);
+        this.constraints = constraints;
     }
 
     /**
@@ -68,6 +97,7 @@ public abstract class ConnectivityIntent extends Intent {
         super();
         this.selector = null;
         this.treatment = null;
+        this.constraints = null;
     }
 
     /**
@@ -89,13 +119,22 @@ public abstract class ConnectivityIntent extends Intent {
     }
 
     /**
+     * Returns the set of connectivity constraints.
+     *
+     * @return list of intent constraints
+     */
+    public List<Constraint> constraints() {
+        return constraints;
+    }
+
+    /**
      * Produces a collection of network resources from the given links.
      *
      * @param links collection of links
      * @return collection of link resources
      */
     protected static Collection<NetworkResource> resources(Collection<Link> links) {
-        return ImmutableSet.<NetworkResource>copyOf(links);
+        return ImmutableSet.<NetworkResource>copyOf((Iterable<? extends NetworkResource>) links);
     }
 
 }

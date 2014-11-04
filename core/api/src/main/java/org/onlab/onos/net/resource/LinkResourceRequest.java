@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.IntentId;
 
 /**
@@ -65,6 +66,14 @@ public interface LinkResourceRequest extends ResourceRequest {
          * @return self
          */
         public Builder addBandwidthRequest(double bandwidth);
+
+        /**
+         * Adds the resources required for a constraint.
+         *
+         * @param constraint the constraint
+         * @return self
+         */
+        public Builder addConstraint(Constraint constraint);
 
         /**
          * Returns link resource request.

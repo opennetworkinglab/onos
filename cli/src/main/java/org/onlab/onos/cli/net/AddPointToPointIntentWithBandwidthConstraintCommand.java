@@ -27,8 +27,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.PointToPointIntentWithBandwidthConstraint;
-import org.onlab.onos.net.resource.BandwidthResourceRequest;
+import org.onlab.onos.net.intent.PointToPointIntent;
 
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
@@ -73,9 +72,10 @@ public class AddPointToPointIntentWithBandwidthConstraintCommand extends Connect
         TrafficSelector selector = buildTrafficSelector();
         TrafficTreatment treatment = builder().build();
 
-        Intent intent = new PointToPointIntentWithBandwidthConstraint(
+        // FIXME: add bandwitdh constraint
+        Intent intent = new PointToPointIntent(
                 appId(), selector, treatment,
-                ingress, egress, new BandwidthResourceRequest(bandwidth));
+                ingress, egress);
         service.submit(intent);
     }
 

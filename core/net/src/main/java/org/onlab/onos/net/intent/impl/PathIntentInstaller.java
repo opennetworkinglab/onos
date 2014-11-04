@@ -35,10 +35,13 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceService;
 import org.slf4j.Logger;
 
@@ -79,13 +82,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
     @Override
     public List<FlowRuleBatchOperation> install(PathIntent intent) {
-        if (intent.resourceRequests().length > 0) {
-            LinkResourceAllocations allocations = allocateBandwidth(intent);
-            if (allocations == null) {
-                log.debug("Insufficient bandwidth available to install path intent {}", intent);
-                return null;
-            }
-        }
+        LinkResourceAllocations allocations = allocateResources(intent);
 
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
@@ -110,6 +107,10 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(PathIntent intent) {
+        LinkResourceAllocations allocatedResources = resourceService.getAllocations(intent.id());
+        if (allocatedResources != null) {
+            resourceService.releaseResources(allocatedResources);
+        }
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
@@ -130,8 +131,23 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
-    private LinkResourceAllocations allocateBandwidth(PathIntent intent) {
-        return resourceService.requestResources(intent.resourceRequests()[0]);
+    /**
+     * Allocate resources required for an intent.
+     *
+     * @param intent intent to allocate resource for
+     * @return allocated resources if any are required, null otherwise
+     */
+    private LinkResourceAllocations allocateResources(PathIntent intent) {
+        if (intent.constraints() == null) {
+            return null;
+        }
+        LinkResourceRequest.Builder builder =
+                DefaultLinkResourceRequest.builder(intent.id(), intent.path().links());
+        for (Constraint constraint : intent.constraints()) {
+            builder.addConstraint(constraint);
+        }
+        LinkResourceRequest request = builder.build();
+        return request.resources().isEmpty() ? null : resourceService.requestResources(request);
     }
 
     // TODO refactor below this line... ----------------------------

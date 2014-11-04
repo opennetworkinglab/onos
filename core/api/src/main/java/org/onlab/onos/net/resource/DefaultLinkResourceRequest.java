@@ -20,9 +20,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.IntentId;
 
 import com.google.common.collect.ImmutableSet;
+import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
+import org.onlab.onos.net.intent.constraint.LambdaConstraint;
 
 /**
  * Implementation of {@link LinkResourceRequest}.
@@ -124,6 +127,18 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
             resources.add(new BandwidthResourceRequest(bandwidth));
             return this;
         }
+
+        @Override
+        public LinkResourceRequest.Builder addConstraint(Constraint constraint) {
+            if (constraint instanceof LambdaConstraint) {
+                return addLambdaRequest();
+            } else if (constraint instanceof BandwidthConstraint) {
+                BandwidthConstraint bw = (BandwidthConstraint) constraint;
+                return addBandwidthRequest(bw.bandwidth().toDouble());
+            }
+            return this;
+        }
+
 
         /**
          * Returns link resource request.

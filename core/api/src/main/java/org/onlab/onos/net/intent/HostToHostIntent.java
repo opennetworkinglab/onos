@@ -21,6 +21,8 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.List;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -44,11 +46,30 @@ public final class HostToHostIntent extends ConnectivityIntent {
     public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
                             TrafficSelector selector,
                             TrafficTreatment treatment) {
+        this(appId, one, two, selector, treatment, null);
+    }
+
+    /**
+     * Creates a new host-to-host intent with the supplied host pair.
+     *
+     * @param appId       application identifier
+     * @param one         first host
+     * @param two         second host
+     * @param selector    action
+     * @param treatment   ingress port
+     * @param constraints optional prioritized list of path selection constraints
+     * @throws NullPointerException if {@code one} or {@code two} is null.
+     */
+    public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
+                            TrafficSelector selector,
+                            TrafficTreatment treatment,
+                            List<Constraint> constraints) {
         super(id(HostToHostIntent.class, min(one, two), max(one, two),
-                 selector, treatment),
-              appId, null, selector, treatment);
+                 selector, treatment, constraints),
+              appId, null, selector, treatment, constraints);
         this.one = checkNotNull(one);
         this.two = checkNotNull(two);
+
     }
 
     private static HostId min(HostId one, HostId two) {

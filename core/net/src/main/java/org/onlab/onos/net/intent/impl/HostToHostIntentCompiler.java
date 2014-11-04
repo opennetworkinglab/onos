@@ -15,30 +15,21 @@
  */
 package org.onlab.onos.net.intent.impl;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentCompiler;
-import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.TopologyEdge;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.onlab.onos.net.flow.DefaultTrafficSelector.builder;
 
@@ -47,13 +38,7 @@ import static org.onlab.onos.net.flow.DefaultTrafficSelector.builder;
  */
 @Component(immediate = true)
 public class HostToHostIntentCompiler
-        implements IntentCompiler<HostToHostIntent> {
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentExtensionService intentManager;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PathService pathService;
+        extends ConnectivityIntentCompiler<HostToHostIntent> {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -70,8 +55,8 @@ public class HostToHostIntentCompiler
 
     @Override
     public List<Intent> compile(HostToHostIntent intent) {
-        Path pathOne = getPath(intent.one(), intent.two());
-        Path pathTwo = getPath(intent.two(), intent.one());
+        Path pathOne = getPath(intent, intent.one(), intent.two());
+        Path pathTwo = getPath(intent, intent.two(), intent.one());
 
         Host one = hostService.getHost(intent.one());
         Host two = hostService.getHost(intent.two());
@@ -85,22 +70,7 @@ public class HostToHostIntentCompiler
                                     HostToHostIntent intent) {
         TrafficSelector selector = builder(intent.selector())
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
-        return new PathIntent(intent.appId(), selector, intent.treatment(),
-                              path, new LinkResourceRequest[0]);
+        return new PathIntent(intent.appId(), selector, intent.treatment(), path);
     }
 
-    private Path getPath(HostId one, HostId two) {
-        Set<Path> paths = pathService.getPaths(one, two, new LinkWeight() {
-            @Override
-            public double weight(TopologyEdge edge) {
-                return edge.link().type() == Link.Type.OPTICAL ? -1 : +1;
-            }
-        });
-
-        if (paths.isEmpty()) {
-            throw new PathNotFoundException("No path from host " + one + " to " + two);
-        }
-        // TODO: let's be more intelligent about this eventually
-        return paths.iterator().next();
-    }
 }

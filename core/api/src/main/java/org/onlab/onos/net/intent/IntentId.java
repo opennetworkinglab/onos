@@ -51,6 +51,15 @@ public final class IntentId implements BatchOperationTarget {
         this.fingerprint = fingerprint;
     }
 
+    /**
+     * Returns the backing fingerprint.
+     *
+     * @return the fingerprint
+     */
+    public long fingerprint() {
+        return fingerprint;
+    }
+
     @Override
     public int hashCode() {
         return (int) (fingerprint ^ (fingerprint >>> 32));

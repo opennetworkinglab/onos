@@ -78,6 +78,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             if (!ci.treatment().instructions().isEmpty()) {
                 print("    treatment=%s", ci.treatment().instructions());
             }
+            if (ci.constraints() != null && !ci.constraints().isEmpty()) {
+                print("    constraints=%s", ci.constraints());
+            }
         }
 
         if (intent instanceof PointToPointIntent) {

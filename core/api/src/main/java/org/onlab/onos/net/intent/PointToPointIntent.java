@@ -16,10 +16,15 @@
 package org.onlab.onos.net.intent;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
+
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -33,7 +38,7 @@ public class PointToPointIntent extends ConnectivityIntent {
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
-     * ports.
+     * ports and with built-in link type constraint to avoid optical links.
      *
      * @param appId        application identifier
      * @param selector     traffic selector
@@ -46,8 +51,30 @@ public class PointToPointIntent extends ConnectivityIntent {
                               TrafficTreatment treatment,
                               ConnectPoint ingressPoint,
                               ConnectPoint egressPoint) {
-        super(id(PointToPointIntent.class, selector, treatment, ingressPoint, egressPoint),
-              appId, null, selector, treatment);
+        this(appId, selector, treatment, ingressPoint, egressPoint,
+             ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)));
+    }
+
+    /**
+     * Creates a new point-to-point intent with the supplied ingress/egress
+     * ports and constraints.
+     *
+     * @param appId        application identifier
+     * @param selector     traffic selector
+     * @param treatment    treatment
+     * @param ingressPoint ingress port
+     * @param egressPoint  egress port
+     * @param constraints  optional list of constraints
+     * @throws NullPointerException if {@code ingressPoint} or {@code egressPoints} is null.
+     */
+    public PointToPointIntent(ApplicationId appId, TrafficSelector selector,
+                              TrafficTreatment treatment,
+                              ConnectPoint ingressPoint,
+                              ConnectPoint egressPoint,
+                              List<Constraint> constraints) {
+        super(id(PointToPointIntent.class, selector, treatment,
+                 ingressPoint, egressPoint, constraints),
+              appId, null, selector, treatment, constraints);
         this.ingressPoint = checkNotNull(ingressPoint);
         this.egressPoint = checkNotNull(egressPoint);
     }
@@ -89,6 +116,7 @@ public class PointToPointIntent extends ConnectivityIntent {
                 .add("treatment", treatment())
                 .add("ingress", ingressPoint)
                 .add("egress", egressPoint)
+                .add("constraints", constraints())
                 .toString();
     }
 
