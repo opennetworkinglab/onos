@@ -47,6 +47,7 @@ public class DefaultDeviceDescription extends AbstractDescription
      * @param hwVersion    device HW version
      * @param swVersion    device SW version
      * @param serialNumber device serial number
+     * @param chassis      chasis id
      * @param annotations  optional key/value annotations map
      */
     public DefaultDeviceDescription(URI uri, Type type, String manufacturer,

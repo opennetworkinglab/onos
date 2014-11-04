@@ -91,6 +91,7 @@ public abstract class Intent implements BatchOperationTarget {
      * Produces an intent identifier backed by hash-like fingerprint for the
      * specified class of intent and its constituent fields.
      *
+     * @param intentClass Class of the intent
      * @param fields intent fields
      * @return intent identifier
      */

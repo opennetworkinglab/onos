@@ -54,6 +54,7 @@ public class DefaultDevice extends AbstractElement implements Device {
      * @param hwVersion    device HW version
      * @param swVersion    device SW version
      * @param serialNumber device serial number
+     * @param chassisId    chasis id
      * @param annotations optional key/value annotations
      */
     public DefaultDevice(ProviderId providerId, DeviceId id, Type type,

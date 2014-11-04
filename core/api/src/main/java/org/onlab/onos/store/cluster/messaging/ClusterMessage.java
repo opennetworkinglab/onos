@@ -32,7 +32,9 @@ public class ClusterMessage {
     /**
      * Creates a cluster message.
      *
+     * @param sender  message sender
      * @param subject message subject
+     * @param payload message payload
      */
     public ClusterMessage(NodeId sender, MessageSubject subject, byte[] payload) {
         this.sender = sender;
@@ -71,7 +73,7 @@ public class ClusterMessage {
      * Sends a response to the sender.
      *
      * @param data payload response.
-     * @throws IOException
+     * @throws IOException when I/O exception of some sort has occurred
      */
     public void respond(byte[] data) throws IOException {
         throw new IllegalStateException("One can only repond to message recived from others.");

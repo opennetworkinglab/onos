@@ -48,6 +48,7 @@ public interface FlowRuleProvider extends Provider {
     /**
      * Removes rules by their id.
      * @param id the id to remove
+     * @param flowRules one or more flow rules
      */
     void removeRulesById(ApplicationId id, FlowRule... flowRules);
 

@@ -29,7 +29,7 @@ public interface MessagingService {
      * @param ep end point to send the message to.
      * @param type type of message.
      * @param payload message payload bytes.
-     * @throws IOException
+     * @throws IOException when I/O exception of some sort has occurred
      */
     public void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException;
 
@@ -39,7 +39,7 @@ public interface MessagingService {
      * @param type type of message.
      * @param payload message payload.
      * @return a response future
-     * @throws IOException
+     * @throws IOException when I/O exception of some sort has occurred
      */
     public ListenableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) throws IOException;
 

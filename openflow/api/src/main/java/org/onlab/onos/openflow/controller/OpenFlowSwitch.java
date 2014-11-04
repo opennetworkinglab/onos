@@ -133,7 +133,7 @@ public interface OpenFlowSwitch {
      * @param requested the role requested by the controller
      * @param response the role set at the device
      */
-    public void returnRoleReply(RoleState requested, RoleState reponse);
+    public void returnRoleReply(RoleState requested, RoleState response);
 
     /**
      * Indicates if this switch is optical.

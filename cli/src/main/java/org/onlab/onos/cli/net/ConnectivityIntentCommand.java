@@ -44,6 +44,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     /**
      * Constructs a traffic selector based on the command line arguments
      * presented to the command.
+     * @return traffic selector
      */
     protected TrafficSelector buildTrafficSelector() {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();

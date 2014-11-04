@@ -107,6 +107,7 @@ public abstract class IOLoop<M extends Message, S extends MessageStream<M>>
      * Completes connection request pending on the given selection key.
      *
      * @param key selection key holding the pending connect operation.
+     * @throws IOException when I/O exception of some sort has occurred
      */
     protected void connect(SelectionKey key) throws IOException {
         SocketChannel ch = (SocketChannel) key.channel();

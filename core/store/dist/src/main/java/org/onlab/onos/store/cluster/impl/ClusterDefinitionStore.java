@@ -48,7 +48,7 @@ public class ClusterDefinitionStore {
         file = new File(filePath);
     }
 
-    /**
+    /*
      * Returns set of the controller nodes, including self.
      *
      * @return set of controller nodes
@@ -67,7 +67,7 @@ public class ClusterDefinitionStore {
         return nodes;
     }
 
-    /**
+    /*
      * Writes the given set of the controller nodes.
      *
      * @param nodes set of controller nodes

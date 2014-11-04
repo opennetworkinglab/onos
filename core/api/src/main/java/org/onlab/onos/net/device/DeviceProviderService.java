@@ -32,6 +32,7 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
     /**
      * Signals the core that a device has connected or has been detected somehow.
      *
+     * @param deviceId device identifier
      * @param deviceDescription information about network device
      */
     void deviceConnected(DeviceId deviceId, DeviceDescription deviceDescription);
@@ -65,7 +66,7 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      *
      * @param deviceId identity of the device
      * @param requested mastership role that was requested by the node
-     * @param replied mastership role the switch accepted
+     * @param response mastership role the switch accepted
      */
     void receivedRoleReply(DeviceId deviceId, MastershipRole requested, MastershipRole response);
 

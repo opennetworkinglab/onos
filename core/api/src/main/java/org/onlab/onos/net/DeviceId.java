@@ -48,6 +48,7 @@ public final class DeviceId extends ElementId {
      * Creates a device id using the supplied URI.
      *
      * @param uri device URI
+     * @return DeviceId
      */
     public static DeviceId deviceId(URI uri) {
         return new DeviceId(uri);
@@ -57,6 +58,7 @@ public final class DeviceId extends ElementId {
      * Creates a device id using the supplied URI string.
      *
      * @param string device URI string
+     * @return DeviceId
      */
     public static DeviceId deviceId(String string) {
         return deviceId(URI.create(string));

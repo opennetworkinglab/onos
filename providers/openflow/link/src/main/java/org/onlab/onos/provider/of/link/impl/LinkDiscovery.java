@@ -87,7 +87,7 @@ public class LinkDiscovery implements TimerTask {
     protected final Map<Integer, OFPortDesc> ports;
     private Timeout timeout;
 
-    /**
+    /*
      * Instantiates discovery manager for the given physical switch. Creates a
      * generic LLDP packet that will be customized for the port it is sent out on.
      * Starts the the timer for the discovery process.
@@ -281,7 +281,7 @@ public class LinkDiscovery implements TimerTask {
         return "LinkDiscovery " + this.sw.getStringId();
     }
 
-    /**
+    /*
      * Handles an incoming LLDP packet. Creates link in topology and sends ACK
      * to port where LLDP originated.
      */

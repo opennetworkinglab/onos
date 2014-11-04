@@ -86,6 +86,7 @@ public interface FlowRuleService {
     /**
      * Applies a batch operation of FlowRules.
      *
+     * @param batch batch operation to apply
      * @return future indicating the state of the batch operation
      */
     Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch);

@@ -59,6 +59,7 @@ public interface IntentService {
      * affected at later time.
      * </p>
      * @param operations batch of intent operations
+     * @return Future to get execution result
      */
     Future<IntentOperations> execute(IntentOperations operations);
 

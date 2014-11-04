@@ -24,7 +24,7 @@ public final class HexString {
     /**
      * Convert a string of bytes to a ':' separated hex string.
      *
-     * @param bytes
+     * @param bytes string of bytes to convert
      * @return "0f:ca:fe:de:ad:be:ef"
      */
     public static String toHexString(final byte[] bytes) {

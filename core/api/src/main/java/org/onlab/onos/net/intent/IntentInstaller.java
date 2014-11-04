@@ -27,6 +27,7 @@ public interface IntentInstaller<T extends Intent> {
      * Installs the specified intent to the environment.
      *
      * @param intent intent to be installed
+     * @return FlowRule operations to install
      * @throws IntentException if issues are encountered while installing the intent
      */
     List<FlowRuleBatchOperation> install(T intent);
@@ -35,6 +36,7 @@ public interface IntentInstaller<T extends Intent> {
      * Uninstalls the specified intent from the environment.
      *
      * @param intent intent to be uninstalled
+     * @return FlowRule operations to uninstall
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
     List<FlowRuleBatchOperation> uninstall(T intent);

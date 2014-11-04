@@ -31,6 +31,7 @@ public interface OpenFlowPacketContext {
     /**
      * Blocks further responses (ie. send() calls) on this
      * packet in event.
+     * @return true if blocks
      */
     public boolean block();
 

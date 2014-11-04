@@ -46,6 +46,7 @@ public class PointToPointIntentWithBandwidthConstraint extends ConnectivityInten
      * @param treatment    treatment
      * @param ingressPoint ingress port
      * @param egressPoint  egress port
+     * @param bandwidthResourceRequest bandwidth resource request
      * @throws NullPointerException if {@code ingressPoint} or {@code egressPoints} is null.
      */
     public PointToPointIntentWithBandwidthConstraint(ApplicationId appId, TrafficSelector selector,

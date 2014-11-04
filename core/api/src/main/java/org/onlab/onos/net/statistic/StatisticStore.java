@@ -34,7 +34,7 @@ public interface StatisticStore {
 
     /**
      * Remove entries associated with this rule.
-     a @param rule {@link org.onlab.onos.net.flow.FlowRule}
+     * @param rule {@link org.onlab.onos.net.flow.FlowRule}
      */
     void removeFromStatistics(FlowRule rule);
 

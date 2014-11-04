@@ -43,6 +43,7 @@ public interface PathService {
      *
      * @param src source element
      * @param dst destination element
+     * @param weight edge-weight entity
      * @return set of all shortest paths between the two element
      */
     Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight);

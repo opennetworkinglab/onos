@@ -92,6 +92,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
     /**
      * Produces a JSON object from the specified key/value annotations.
      *
+     * @param mapper ObjectMapper to use while converting to JSON
      * @param annotations key/value annotations
      * @return JSON object
      */

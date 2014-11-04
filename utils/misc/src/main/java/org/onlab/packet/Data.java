@@ -33,7 +33,7 @@ public class Data extends BasePacket {
     }
 
     /**
-     * @param data
+     * @param data the data
      */
     public Data(final byte[] data) {
         this.data = data;
@@ -49,6 +49,7 @@ public class Data extends BasePacket {
     /**
      * @param data
      *            the data to set
+     * @return self
      */
     public Data setData(final byte[] data) {
         this.data = data;

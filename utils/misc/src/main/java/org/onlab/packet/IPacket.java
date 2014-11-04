@@ -64,7 +64,7 @@ public interface IPacket {
     /**
      * Deserializes this packet layer and all possible payloads.
      *
-     * @param data
+     * @param data bytes to deserialize
      * @param offset
      *            offset to start deserializing from
      * @param length

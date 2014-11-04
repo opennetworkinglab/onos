@@ -131,7 +131,7 @@ public final class Criteria {
     /**
      * Creates a match on TCP source port field using the specified value.
      *
-     * @param tcpPort
+     * @param tcpPort TCP source port
      * @return match criterion
      */
     public static Criterion matchTcpSrc(Short tcpPort) {
@@ -141,7 +141,7 @@ public final class Criteria {
     /**
      * Creates a match on TCP destination port field using the specified value.
      *
-     * @param tcpPort
+     * @param tcpPort TCP destination port
      * @return match criterion
      */
     public static Criterion matchTcpDst(Short tcpPort) {
@@ -151,7 +151,7 @@ public final class Criteria {
     /**
      * Creates a match on lambda field using the specified value.
      *
-     * @param lambda
+     * @param lambda lamda to match on
      * @return match criterion
      */
     public static Criterion matchLambda(Short lambda) {
@@ -161,7 +161,7 @@ public final class Criteria {
     /**
      * Creates a match on lambda field using the specified value.
      *
-     * @param sigType
+     * @param sigType signame type
      * @return match criterion
      */
     public static Criterion matchOpticalSignalType(Short sigType) {

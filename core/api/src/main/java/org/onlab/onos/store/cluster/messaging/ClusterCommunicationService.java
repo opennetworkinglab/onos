@@ -33,6 +33,7 @@ public interface ClusterCommunicationService {
      *
      * @param message  message to send
      * @return true if the message was sent successfully to all nodes; false otherwise.
+     * @throws IOException when I/O exception of some sort has occurred
      */
     boolean broadcast(ClusterMessage message) throws IOException;
 
@@ -42,6 +43,7 @@ public interface ClusterCommunicationService {
      * @param message  message to send
      * @param toNodeId node identifier
      * @return true if the message was sent successfully; false otherwise.
+     * @throws IOException when I/O exception of some sort has occurred
      */
     boolean unicast(ClusterMessage message, NodeId toNodeId) throws IOException;
 
@@ -49,7 +51,9 @@ public interface ClusterCommunicationService {
      * Multicast a message to a set of controller nodes.
      *
      * @param message  message to send
+     * @param nodeIds  recipient node identifiers
      * @return true if the message was sent successfully to all nodes in the group; false otherwise.
+     * @throws IOException when I/O exception of some sort has occurred
      */
     boolean multicast(ClusterMessage message, Set<NodeId> nodeIds) throws IOException;
 
@@ -58,7 +62,7 @@ public interface ClusterCommunicationService {
      * @param message message to send
      * @param toNodeId recipient node identifier
      * @return reply future.
-     * @throws IOException
+     * @throws IOException when I/O exception of some sort has occurred
      */
     ListenableFuture<byte[]> sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException;
 

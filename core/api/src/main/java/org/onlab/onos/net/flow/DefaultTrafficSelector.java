@@ -99,6 +99,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
      * Returns a new traffic selector builder primed to produce entities
      * patterned after the supplied selector.
      *
+     * @param selector base selector
      * @return traffic selector builder
      */
     public static TrafficSelector.Builder builder(TrafficSelector selector) {

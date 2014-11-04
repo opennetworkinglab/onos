@@ -85,7 +85,7 @@ public class IOLoopTestServer {
         System.exit(0);
     }
 
-    /**
+    /*
      * Starts a standalone IO loop test server.
      *
      * @param args command-line arguments

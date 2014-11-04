@@ -137,14 +137,14 @@ public interface TrafficSelector {
 
         /**
          * Matches an optical signal ID or lambda.
-         * @param lambda
+         * @param lambda lamda
          * @return a selection builder
          */
         public Builder matchLambda(Short lambda);
 
         /**
          * Matches an optical Signal Type.
-         * @param signalType
+         * @param signalType signalType
          * @return a selection builder
          */
         public Builder matchOpticalSignalType(Short signalType);

@@ -85,7 +85,7 @@ public class IOLoopTestClient {
         System.exit(0);
     }
 
-    /**
+    /*
      * Starts a standalone IO loop test client.
      *
      * @param args command-line arguments

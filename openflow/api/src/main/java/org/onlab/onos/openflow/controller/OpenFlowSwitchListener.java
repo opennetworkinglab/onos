@@ -51,7 +51,8 @@ public interface OpenFlowSwitchListener {
      * Notify that a role imposed on a switch failed to take hold.
      *
      * @param dpid the switch that failed role assertion
-     * @param role the role imposed by the controller
+     * @param requested the role controller requested
+     * @param response role reply from the switch
      */
     public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response);
 }

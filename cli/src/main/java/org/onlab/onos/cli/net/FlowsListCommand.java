@@ -141,7 +141,8 @@ public class FlowsListCommand extends AbstractShellCommand {
     /**
      * Returns the list of devices sorted using the device ID URIs.
      *
-     * @param service device service
+     * @param deviceService device service
+     * @param service flow rule service
      * @return sorted device list
      */
     protected Map<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService,
@@ -175,7 +176,8 @@ public class FlowsListCommand extends AbstractShellCommand {
      * Prints flows.
      *
      * @param d     the device
-     * @param flows the set of flows for that device.
+     * @param flows the set of flows for that device
+     * @param coreService core system service
      */
     protected void printFlows(Device d, List<FlowEntry> flows,
                               CoreService coreService) {

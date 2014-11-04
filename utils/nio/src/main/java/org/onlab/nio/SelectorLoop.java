@@ -74,6 +74,7 @@ public abstract class SelectorLoop implements Runnable {
 
     /**
      * Indicates that the loop is marked to run.
+     * @return true if the loop is marked to run
      */
     protected boolean isRunning() {
         return state == State.STARTED || state == State.STARTING;

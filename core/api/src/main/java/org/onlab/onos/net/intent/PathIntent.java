@@ -42,6 +42,7 @@ public class PathIntent extends ConnectivityIntent {
      * @param selector  traffic selector
      * @param treatment treatment
      * @param path      traversed links
+     * @param resourceRequests link resource request
      * @throws NullPointerException {@code path} is null
      */
     public PathIntent(ApplicationId appId, TrafficSelector selector,

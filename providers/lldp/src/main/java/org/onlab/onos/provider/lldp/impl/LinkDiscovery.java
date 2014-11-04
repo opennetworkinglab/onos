@@ -90,7 +90,9 @@ public class LinkDiscovery implements TimerTask {
      * Starts the the timer for the discovery process.
      *
      * @param device        the physical switch
+     * @param pktService    packet service
      * @param masterService mastership service
+     * @param providerService link provider service
      * @param useBDDP       flag to also use BDDP for discovery
      */
     public LinkDiscovery(Device device, PacketService pktService,
@@ -201,6 +203,8 @@ public class LinkDiscovery implements TimerTask {
     /**
      * Handles an incoming LLDP packet. Creates link in topology and sends ACK
      * to port where LLDP originated.
+     * @param context packet context
+     * @return true if handled
      */
     public boolean handleLLDP(PacketContext context) {
         Ethernet eth = context.inPacket().parsed();

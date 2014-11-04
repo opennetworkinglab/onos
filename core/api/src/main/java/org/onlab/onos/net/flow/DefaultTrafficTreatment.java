@@ -63,6 +63,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
      * Returns a new traffic treatment builder primed to produce entities
      * patterned after the supplied treatment.
      *
+     * @param treatment base treatment
      * @return traffic treatment builder
      */
     public static TrafficTreatment.Builder builder(TrafficTreatment treatment) {

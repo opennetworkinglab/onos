@@ -54,6 +54,7 @@ public class DefaultControllerNode implements ControllerNode {
      *
      * @param id instance identifier
      * @param ip instance IP address
+     * @param tcpPort TCP port
      */
     public DefaultControllerNode(NodeId id, IpAddress ip, int tcpPort) {
         this.id = id;

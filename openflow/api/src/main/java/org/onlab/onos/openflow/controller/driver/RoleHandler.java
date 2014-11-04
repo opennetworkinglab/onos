@@ -58,8 +58,9 @@ public interface RoleHandler {
      * OF1.3 switches, because Role.EQUAL is well defined and we can simulate
      * SLAVE behavior by using ASYNC messages.
      *
-     * @param role
-     * @throws IOException
+     * @param role role to request
+     * @param exp expectation
+     * @throws IOException when I/O exception of some sort has occurred
      * @return false if and only if the switch does not support role-request
      * messages, according to the switch driver; true otherwise.
      */
@@ -70,7 +71,7 @@ public interface RoleHandler {
      * Extract the role information from an OF1.3 Role Reply Message.
      * @param rrmsg role reply message
      * @return RoleReplyInfo object
-     * @throws SwitchStateException
+     * @throws SwitchStateException If unknown role encountered
      */
     public RoleReplyInfo extractOFRoleReply(OFRoleReply rrmsg)
             throws SwitchStateException;
@@ -89,6 +90,7 @@ public interface RoleHandler {
      *
      * @param rri information about role-reply in format that
      *                      controller can understand.
+     * @return result comparing expected and received reply
      * @throws SwitchStateException if no request is pending
      */
     public RoleRecvStatus deliverRoleReply(RoleReplyInfo rri)
@@ -102,6 +104,9 @@ public interface RoleHandler {
      * Note: since we only keep the last pending request we might get
      * error messages for earlier role requests that we won't be able
      * to handle
+     * @param error error message
+     * @return result comparing expected and received reply
+     * @throws SwitchStateException if switch did not support requested role
      */
     public RoleRecvStatus deliverError(OFErrorMsg error)
             throws SwitchStateException;

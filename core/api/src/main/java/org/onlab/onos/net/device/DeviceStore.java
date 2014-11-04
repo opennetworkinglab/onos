@@ -125,6 +125,7 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * Administratively removes the specified device from the store.
      *
      * @param deviceId device to be removed
+     * @return null if no such device, or was forwarded to remove master
      */
     DeviceEvent removeDevice(DeviceId deviceId);
 }

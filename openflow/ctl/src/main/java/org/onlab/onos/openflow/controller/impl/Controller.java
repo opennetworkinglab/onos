@@ -160,6 +160,7 @@ public class Controller {
 
     /**
      * Initialize internal data structures.
+     * @param configParams configuration parameters
      */
     public void init(Map<String, String> configParams) {
         // These data structures are initialized here because other
@@ -192,7 +193,9 @@ public class Controller {
 
     /**
      * Forward to the driver-manager to get an IOFSwitch instance.
-     * @param desc
+     * @param dpid data path id
+     * @param desc switch description
+     * @param ofv OpenFlow version
      * @return switch instance
      */
     protected OpenFlowSwitchDriver getOFSwitchInstance(long dpid,

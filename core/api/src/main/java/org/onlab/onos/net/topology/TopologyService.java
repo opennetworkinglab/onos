@@ -103,6 +103,7 @@ public interface TopologyService {
      * @param topology topology descriptor
      * @param src      source device
      * @param dst      destination device
+     * @param weight   edge-weight entity
      * @return set of all shortest paths between the two devices
      */
     Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,

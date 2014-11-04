@@ -95,7 +95,8 @@ public interface OpenFlowAgent {
      * Notifies the controller that role assertion has failed.
      *
      * @param dpid the switch that failed role assertion
-     * @param role the failed role
+     * @param requested the role controller requested
+     * @param response role reply from the switch
      */
     public void returnRoleReply(Dpid dpid, RoleState requested, RoleState response);
 }

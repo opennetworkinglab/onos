@@ -38,8 +38,8 @@ implements MutableGraph<V, E> {
     /**
      * Creates a graph comprising of the specified vertexes and edges.
      *
-     * @param vertexes set of graph vertexes
-     * @param edges    set of graph edges
+     * @param vertex   set of graph vertexes
+     * @param edge     set of graph edges
      */
     public MutableAdjacencyListsGraph(Set<V> vertex, Set<E> edge) {
         vertexes.addAll(vertex);

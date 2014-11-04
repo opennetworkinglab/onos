@@ -44,6 +44,7 @@ public interface StoreSerializer {
      *
      * @param bytes bytes to be deserialized
      * @return deserialized object
+     * @param <T> decoded type
      */
     public <T> T decode(final byte[] bytes);
 
@@ -52,6 +53,7 @@ public interface StoreSerializer {
      *
      * @param buffer bytes to be deserialized
      * @return deserialized object
+     * @param <T> decoded type
      */
     public <T> T decode(final ByteBuffer buffer);
 }
