@@ -17,6 +17,7 @@ package org.onlab.packet;
 
 import com.google.common.net.InetAddresses;
 import com.google.common.testing.EqualsTester;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -33,6 +34,7 @@ public class IpAddressTest {
     /**
      * Tests the immutability of {@link IpAddress}.
      */
+    @Ignore("The class is not pure immutable, because it is not 'final'")
     @Test
     public void testImmutable() {
         assertThatClassIsImmutable(IpAddress.class);
@@ -80,19 +82,20 @@ public class IpAddressTest {
     @Test
     public void testAddressToOctetsIPv4() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {1, 2, 3, 4};
+        value = new byte[] {1, 2, 3, 4};
         ipAddress = IpAddress.valueOf("1.2.3.4");
-        assertThat(ipAddress.toOctets(), is(value1));
+        assertThat(ipAddress.toOctets(), is(value));
 
-        final byte[] value2 = new byte[] {0, 0, 0, 0};
+        value = new byte[] {0, 0, 0, 0};
         ipAddress = IpAddress.valueOf("0.0.0.0");
-        assertThat(ipAddress.toOctets(), is(value2));
+        assertThat(ipAddress.toOctets(), is(value));
 
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
         ipAddress = IpAddress.valueOf("255.255.255.255");
-        assertThat(ipAddress.toOctets(), is(value3));
+        assertThat(ipAddress.toOctets(), is(value));
     }
 
     /**
@@ -101,38 +104,39 @@ public class IpAddressTest {
     @Test
     public void testAddressToOctetsIPv6() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88};
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88};
         ipAddress =
             IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(ipAddress.toOctets(), is(value1));
+        assertThat(ipAddress.toOctets(), is(value));
 
-        final byte[] value2 = new byte[] {0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00};
+        value = new byte[] {0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00};
         ipAddress = IpAddress.valueOf("::");
-        assertThat(ipAddress.toOctets(), is(value2));
+        assertThat(ipAddress.toOctets(), is(value));
 
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
         ipAddress =
             IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(ipAddress.toOctets(), is(value3));
+        assertThat(ipAddress.toOctets(), is(value));
     }
 
     /**
-     * Tests returning an IPv4 address asn an integer.
+     * Tests returning an IPv4 address as an integer.
      */
     @Test
     public void testToInt() {
@@ -171,18 +175,19 @@ public class IpAddressTest {
     @Test
     public void testValueOfByteArrayIPv4() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {1, 2, 3, 4};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value1);
+        value = new byte[] {1, 2, 3, 4};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value);
         assertThat(ipAddress.toString(), is("1.2.3.4"));
 
-        final byte[] value2 = new byte[] {0, 0, 0, 0};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value2);
+        value = new byte[] {0, 0, 0, 0};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value);
         assertThat(ipAddress.toString(), is("0.0.0.0"));
 
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value3);
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value);
         assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
@@ -192,32 +197,33 @@ public class IpAddressTest {
     @Test
     public void testValueOfByteArrayIPv6() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value1);
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value);
         assertThat(ipAddress.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8888"));
 
-        final byte[] value2 = new byte[] {0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value2);
+        value = new byte[] {0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value);
         assertThat(ipAddress.toString(), is("::"));
 
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value3);
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value);
         assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
@@ -274,24 +280,25 @@ public class IpAddressTest {
     @Test
     public void testValueOfByteArrayOffsetIPv4() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {11, 22, 33,   // Preamble
-                                          1, 2, 3, 4,
-                                          44, 55};      // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value1, 3);
+        value = new byte[] {11, 22, 33,                 // Preamble
+                            1, 2, 3, 4,
+                            44, 55};                    // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value, 3);
         assertThat(ipAddress.toString(), is("1.2.3.4"));
 
-        final byte[] value2 = new byte[] {11, 22,       // Preamble
-                                          0, 0, 0, 0,
-                                          33};          // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value2, 2);
+        value = new byte[] {11, 22,                     // Preamble
+                            0, 0, 0, 0,
+                            33};                        // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value, 2);
         assertThat(ipAddress.toString(), is("0.0.0.0"));
 
-        final byte[] value3 = new byte[] {11, 22,       // Preamble
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          33};          // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value3, 2);
+        value = new byte[] {11, 22,                     // Preamble
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            33};                        // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value, 2);
         assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
@@ -301,38 +308,39 @@ public class IpAddressTest {
     @Test
     public void testValueOfByteArrayOffsetIPv6() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {11, 22, 33,           // Preamble
-                                          0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88,
-                                          44, 55};              // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value1, 3);
+        value = new byte[] {11, 22, 33,                 // Preamble
+                            0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88,
+                            44, 55};                    // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value, 3);
         assertThat(ipAddress.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8888"));
 
-        final byte[] value2 = new byte[] {11, 22,               // Preamble
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          33};                  // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value2, 2);
+        value = new byte[] {11, 22,                     // Preamble
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            33};                        // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value, 2);
         assertThat(ipAddress.toString(), is("::"));
 
-        final byte[] value3 = new byte[] {11, 22,               // Preamble
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          33};                  // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value3, 2);
+        value = new byte[] {11, 22,                     // Preamble
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            33};                        // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value, 2);
         assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
@@ -344,11 +352,12 @@ public class IpAddressTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidValueOfArrayInvalidOffsetIPv4() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {11, 22, 33,   // Preamble
-                                          1, 2, 3, 4,
-                                          44, 55};      // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value1, 6);
+        value = new byte[] {11, 22, 33,                 // Preamble
+                            1, 2, 3, 4,
+                            44, 55};                    // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET, value, 6);
     }
 
     /**
@@ -358,15 +367,16 @@ public class IpAddressTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidValueOfArrayInvalidOffsetIPv6() {
         IpAddress ipAddress;
+        byte[] value;
 
-        final byte[] value1 = new byte[] {11, 22, 33,           // Preamble
-                                          0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88,
-                                          44, 55};              // Extra bytes
-        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value1, 6);
+        value = new byte[] {11, 22, 33,                 // Preamble
+                            0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88,
+                            44, 55};                    // Extra bytes
+        ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, value, 6);
     }
 
     /**

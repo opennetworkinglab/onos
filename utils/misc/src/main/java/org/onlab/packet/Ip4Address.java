@@ -15,203 +15,160 @@
  */
 package org.onlab.packet;
 
+import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.nio.ByteBuffer;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Arrays;
+
+import com.google.common.net.InetAddresses;
 
 /**
- * The class representing an IPv4 address.
+ * A class representing an IPv4 address.
  * This class is immutable.
  */
-public final class Ip4Address implements Comparable<Ip4Address> {
-    private final int value;
-
-    /** The length of the address in bytes (octets). */
-    public static final int BYTE_LENGTH = 4;
-
-    /** The length of the address in bits. */
-    public static final int BIT_LENGTH = BYTE_LENGTH * Byte.SIZE;
+public final class Ip4Address extends IpAddress {
+    public static final IpAddress.Version VERSION = IpAddress.Version.INET;
+    public static final int BYTE_LENGTH = IpAddress.INET_BYTE_LENGTH;
+    public static final int BIT_LENGTH = IpAddress.INET_BIT_LENGTH;
 
     /**
-     * Default constructor.
+     * Constructor for given IP address version and address octets.
+     *
+     * @param value the IP address value stored in network byte order
+     * (i.e., the most significant byte first)
+     * @throws IllegalArgumentException if the arguments are invalid
      */
-    public Ip4Address() {
-        this.value = 0;
+    private Ip4Address(byte[] value) {
+        super(VERSION, value);
     }
 
     /**
-     * Copy constructor.
+     * Returns the integer value of this IPv4 address.
      *
-     * @param other the object to copy from
+     * @return the IPv4 address's value as an integer
      */
-    public Ip4Address(Ip4Address other) {
-        this.value = other.value;
+    public int toInt() {
+        ByteBuffer bb = ByteBuffer.wrap(super.toOctets());
+        return bb.getInt();
     }
 
     /**
-     * Constructor from an integer value.
+     * Converts an integer into an IPv4 address.
      *
-     * @param value the value to use
+     * @param value an integer representing an IPv4 address value
+     * @return an IPv4 address
      */
-    public Ip4Address(int value) {
-        this.value = value;
+    public static Ip4Address valueOf(int value) {
+        byte[] bytes =
+            ByteBuffer.allocate(INET_BYTE_LENGTH).putInt(value).array();
+        return new Ip4Address(bytes);
     }
 
     /**
-     * Constructor from a byte array with the IPv4 address stored in network
-     * byte order (i.e., the most significant byte first).
+     * Converts a byte array into an IPv4 address.
      *
-     * @param value the value to use
+     * @param value the IPv4 address value stored in network byte order
+     * (i.e., the most significant byte first)
+     * @return an IPv4 address
+     * @throws IllegalArgumentException if the argument is invalid
      */
-    public Ip4Address(byte[] value) {
-        this(value, 0);
+    public static Ip4Address valueOf(byte[] value) {
+        return new Ip4Address(value);
     }
 
     /**
-     * Constructor from a byte array with the IPv4 address stored in network
-     * byte order (i.e., the most significant byte first), and a given offset
-     * from the beginning of the byte array.
-     *
+     * Converts a byte array and a given offset from the beginning of the
+     * array into an IPv4 address.
+     * <p>
+     * The IP address is stored in network byte order (i.e., the most
+     * significant byte first).
+     * </p>
      * @param value the value to use
      * @param offset the offset in bytes from the beginning of the byte array
+     * @return an IPv4 address
+     * @throws IllegalArgumentException if the arguments are invalid
      */
-    public Ip4Address(byte[] value, int offset) {
-        checkNotNull(value);
-
-        // Verify the arguments
-        if ((offset < 0) || (offset + BYTE_LENGTH > value.length)) {
-            String msg;
-            if (value.length < BYTE_LENGTH) {
-                msg = "Invalid IPv4 address array: array length: " +
-                    value.length + ". Must be at least " + BYTE_LENGTH;
-            } else {
-                msg = "Invalid IPv4 address array: array offset: " +
-                    offset + ". Must be in the interval [0, " +
-                    (value.length - BYTE_LENGTH) + "]";
-            }
-            throw new IllegalArgumentException(msg);
-        }
-
-        // Read the address
-        ByteBuffer bb = ByteBuffer.wrap(value);
-        this.value = bb.getInt(offset);
+    public static Ip4Address valueOf(byte[] value, int offset) {
+        IpAddress.checkArguments(VERSION, value, offset);
+        byte[] bc = Arrays.copyOfRange(value, offset, value.length);
+        return Ip4Address.valueOf(bc);
     }
 
     /**
-     * Constructs an IPv4 address from a string representation of the address.
-     *<p>
-     * Example: "1.2.3.4"
+     * Converts an InetAddress into an IPv4 address.
      *
-     * @param value the value to use
+     * @param inetAddress the InetAddress value to use. It must contain an IPv4
+     * address
+     * @return an IPv4 address
+     * @throws IllegalArgumentException if the argument is invalid
      */
-    public Ip4Address(String value) {
-        checkNotNull(value);
-
-        String[] splits = value.split("\\.");
-        if (splits.length != 4) {
-            final String msg = "Invalid IPv4 address string: " + value;
+    public static Ip4Address valueOf(InetAddress inetAddress) {
+        byte[] bytes = inetAddress.getAddress();
+        if (inetAddress instanceof Inet4Address) {
+            return new Ip4Address(bytes);
+        }
+        if ((inetAddress instanceof Inet6Address) ||
+            (bytes.length == INET6_BYTE_LENGTH)) {
+            final String msg = "Invalid IPv4 version address string: " +
+                inetAddress.toString();
             throw new IllegalArgumentException(msg);
         }
-
-        int result = 0;
-        for (int i = 0; i < BYTE_LENGTH; i++) {
-            result |= Integer.parseInt(splits[i]) <<
-                ((BYTE_LENGTH - (i + 1)) * Byte.SIZE);
+        // Use the number of bytes as a hint
+        if (bytes.length == INET_BYTE_LENGTH) {
+            return new Ip4Address(bytes);
         }
-        this.value = result;
+        final String msg = "Unrecognized IP version address string: " +
+            inetAddress.toString();
+        throw new IllegalArgumentException(msg);
     }
 
     /**
-     * Gets the IPv4 address as a byte array.
+     * Converts an IPv4 string literal (e.g., "10.2.3.4") into an IP address.
      *
-     * @return a byte array with the IPv4 address stored in network byte order
-     * (i.e., the most significant byte first).
+     * @param value an IPv4 address value in string form
+     * @return an IPv4 address
+     * @throws IllegalArgumentException if the argument is invalid
      */
-    public byte[] toOctets() {
-        return ByteBuffer.allocate(BYTE_LENGTH).putInt(value).array();
+    public static Ip4Address valueOf(String value) {
+        InetAddress inetAddress = null;
+        try {
+            inetAddress = InetAddresses.forString(value);
+        } catch (IllegalArgumentException e) {
+            final String msg = "Invalid IP address string: " + value;
+            throw new IllegalArgumentException(msg);
+        }
+        return valueOf(inetAddress);
     }
 
     /**
      * Creates an IPv4 network mask prefix.
      *
-     * @param prefixLen the length of the mask prefix. Must be in the interval
-     * [0, 32].
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 32]
      * @return a new IPv4 address that contains a mask prefix of the
      * specified length
+     * @throws IllegalArgumentException if the argument is invalid
      */
-    public static Ip4Address makeMaskPrefix(int prefixLen) {
-        // Verify the prefix length
-        if ((prefixLen < 0) || (prefixLen > Ip4Address.BIT_LENGTH)) {
-            final String msg = "Invalid IPv4 prefix length: " + prefixLen +
-                ". Must be in the interval [0, 32].";
-            throw new IllegalArgumentException(msg);
-        }
-
-        long v =
-            (0xffffffffL << (Ip4Address.BIT_LENGTH - prefixLen)) & 0xffffffffL;
-        return new Ip4Address((int) v);
+    public static Ip4Address makeMaskPrefix(int prefixLength) {
+        byte[] mask = IpAddress.makeMaskPrefixArray(VERSION, prefixLength);
+        return new Ip4Address(mask);
     }
 
     /**
      * Creates an IPv4 address by masking it with a network mask of given
      * mask length.
      *
-     * @param addr the address to mask
-     * @param prefixLen the length of the mask prefix. Must be in the interval
-     * [0, 32].
+     * @param address the address to mask
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 32]
      * @return a new IPv4 address that is masked with a mask prefix of the
      * specified length
+     * @throws IllegalArgumentException if the prefix length is invalid
      */
-    public static Ip4Address makeMaskedAddress(final Ip4Address addr,
-                                               int prefixLen) {
-        Ip4Address mask = Ip4Address.makeMaskPrefix(prefixLen);
-        long v = addr.value & mask.value;
-
-        return new Ip4Address((int) v);
-    }
-
-    /**
-     * Gets the value of the IPv4 address.
-     *
-     * @return the value of the IPv4 address
-     */
-    public int getValue() {
-        return value;
-    }
-
-    /**
-     * Converts the IPv4 value to a '.' separated string.
-     *
-     * @return the IPv4 value as a '.' separated string
-     */
-    @Override
-    public String toString() {
-        return ((this.value >> 24) & 0xff) + "." +
-                ((this.value >> 16) & 0xff) + "." +
-                ((this.value >> 8) & 0xff) + "." +
-                (this.value & 0xff);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Ip4Address)) {
-            return false;
-        }
-        Ip4Address other = (Ip4Address) o;
-        if (this.value != other.value) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return this.value;
-    }
-
-    @Override
-    public int compareTo(Ip4Address o) {
-        Long lv = ((long) this.value) & 0xffffffffL;
-        Long rv = ((long) o.value) & 0xffffffffL;
-        return lv.compareTo(rv);
+    public static Ip4Address makeMaskedAddress(final Ip4Address address,
+                                               int prefixLength) {
+        byte[] net = makeMaskedAddressArray(address, prefixLength);
+        return Ip4Address.valueOf(net);
     }
 }

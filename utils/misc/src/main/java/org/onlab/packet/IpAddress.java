@@ -30,8 +30,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A class representing an IP address.
+ * This class is immutable.
  */
-public final class IpAddress implements Comparable<IpAddress> {
+public class IpAddress implements Comparable<IpAddress> {
     // IP Versions
     public enum Version { INET, INET6 };
 
@@ -52,7 +53,7 @@ public final class IpAddress implements Comparable<IpAddress> {
      * (i.e., the most significant byte first)
      * @throws IllegalArgumentException if the arguments are invalid
      */
-    private IpAddress(Version version, byte[] value) {
+    protected IpAddress(Version version, byte[] value) {
         checkArguments(version, value, 0);
         this.version = version;
         switch (version) {
@@ -88,7 +89,7 @@ public final class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
-     * Returns the integral value of this IP address.
+     * Returns the integer value of this IP address.
      * TODO: This method should be moved to Ip4Address.
      *
      * @return the IP address's value as an integer
@@ -219,31 +220,7 @@ public final class IpAddress implements Comparable<IpAddress> {
      * @throws IllegalArgumentException if the arguments are invalid
      */
     public static IpAddress makeMaskPrefix(Version version, int prefixLength) {
-        int addrByteLength = byteLength(version);
-        int addrBitLength = addrByteLength * Byte.SIZE;
-
-        // Verify the prefix length
-        if ((prefixLength < 0) || (prefixLength > addrBitLength)) {
-            final String msg = "Invalid IP prefix length: " + prefixLength +
-                ". Must be in the interval [0, " + addrBitLength + "].";
-            throw new IllegalArgumentException(msg);
-        }
-
-        // Number of bytes and extra bits that should be all 1s
-        int maskBytes = prefixLength / Byte.SIZE;
-        int maskBits = prefixLength % Byte.SIZE;
-        byte[] mask = new byte[addrByteLength];
-
-        // Set the bytes and extra bits to 1s
-        for (int i = 0; i < maskBytes; i++) {
-            mask[i] = (byte) 0xff;              // Set mask bytes to 1s
-        }
-        for (int i = maskBytes; i < addrByteLength; i++) {
-            mask[i] = 0;                        // Set remaining bytes to 0s
-        }
-        if (maskBits > 0) {
-            mask[maskBytes] = (byte) (0xff << (Byte.SIZE - maskBits));
-        }
+        byte[] mask = makeMaskPrefixArray(version, prefixLength);
         return new IpAddress(version, mask);
     }
 
@@ -251,24 +228,26 @@ public final class IpAddress implements Comparable<IpAddress> {
      * Creates an IP address by masking it with a network mask of given
      * mask length.
      *
-     * @param addr the address to mask
+     * @param address the address to mask
      * @param prefixLength the length of the mask prefix. Must be in the
      * interval [0, 32] for IPv4, or [0, 128] for IPv6
      * @return a new IP address that is masked with a mask prefix of the
      * specified length
      * @throws IllegalArgumentException if the prefix length is invalid
      */
-    public static IpAddress makeMaskedAddress(final IpAddress addr,
+    public static IpAddress makeMaskedAddress(final IpAddress address,
                                               int prefixLength) {
-        IpAddress mask = IpAddress.makeMaskPrefix(addr.version(),
-                                                  prefixLength);
-        byte[] net = new byte[mask.octets.length];
-
-        // Mask each byte
-        for (int i = 0; i < net.length; i++) {
-            net[i] = (byte) (addr.octets[i] & mask.octets[i]);
+        // TODO: The code below should go away and replaced with generics
+        if (address instanceof Ip4Address) {
+            Ip4Address ip4a = (Ip4Address) address;
+            return Ip4Address.makeMaskedAddress(ip4a, prefixLength);
+        } else if (address instanceof Ip6Address) {
+            Ip6Address ip6a = (Ip6Address) address;
+            return Ip6Address.makeMaskedAddress(ip6a, prefixLength);
+        } else {
+            byte[] net = makeMaskedAddressArray(address, prefixLength);
+            return IpAddress.valueOf(address.version(), net);
         }
-        return IpAddress.valueOf(addr.version(), net);
     }
 
     @Override
@@ -352,8 +331,7 @@ public final class IpAddress implements Comparable<IpAddress> {
      * array with the address
      * @throws IllegalArgumentException if any of the arguments is invalid
      */
-    private static void checkArguments(Version version, byte[] value,
-                                       int offset) {
+    static void checkArguments(Version version, byte[] value, int offset) {
         // Check the offset and byte array length
         int addrByteLength = byteLength(version);
         if ((offset < 0) || (offset + addrByteLength > value.length)) {
@@ -370,5 +348,68 @@ public final class IpAddress implements Comparable<IpAddress> {
             }
             throw new IllegalArgumentException(msg);
         }
+    }
+
+    /**
+     * Creates a byte array for IP network mask prefix.
+     *
+     * @param version the IP address version
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 32] for IPv4, or [0, 128] for IPv6
+     * @return a byte array that contains a mask prefix of the
+     * specified length
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    static byte[] makeMaskPrefixArray(Version version, int prefixLength) {
+        int addrByteLength = byteLength(version);
+        int addrBitLength = addrByteLength * Byte.SIZE;
+
+        // Verify the prefix length
+        if ((prefixLength < 0) || (prefixLength > addrBitLength)) {
+            final String msg = "Invalid IP prefix length: " + prefixLength +
+                ". Must be in the interval [0, " + addrBitLength + "].";
+            throw new IllegalArgumentException(msg);
+        }
+
+        // Number of bytes and extra bits that should be all 1s
+        int maskBytes = prefixLength / Byte.SIZE;
+        int maskBits = prefixLength % Byte.SIZE;
+        byte[] mask = new byte[addrByteLength];
+
+        // Set the bytes and extra bits to 1s
+        for (int i = 0; i < maskBytes; i++) {
+            mask[i] = (byte) 0xff;              // Set mask bytes to 1s
+        }
+        for (int i = maskBytes; i < addrByteLength; i++) {
+            mask[i] = 0;                        // Set remaining bytes to 0s
+        }
+        if (maskBits > 0) {
+            mask[maskBytes] = (byte) (0xff << (Byte.SIZE - maskBits));
+        }
+        return mask;
+    }
+
+    /**
+     * Creates a byte array that represents an IP address masked with
+     * a network mask of given mask length.
+     *
+     * @param addr the address to mask
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 32] for IPv4, or [0, 128] for IPv6
+     * @return a byte array that represents the IP address masked with
+     * a mask prefix of the specified length
+     * @throws IllegalArgumentException if the prefix length is invalid
+     */
+    static byte[] makeMaskedAddressArray(final IpAddress addr,
+                                         int prefixLength) {
+        byte[] mask = IpAddress.makeMaskPrefixArray(addr.version(),
+                                                    prefixLength);
+        byte[] net = new byte[mask.length];
+
+        // Mask each byte
+        for (int i = 0; i < net.length; i++) {
+            net[i] = (byte) (addr.octets[i] & mask[i]);
+        }
+        return net;
     }
 }

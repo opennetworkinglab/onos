@@ -15,10 +15,13 @@
  */
 package org.onlab.packet;
 
+import com.google.common.net.InetAddresses;
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
+import java.net.InetAddress;
+
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -36,10 +39,18 @@ public class Ip4AddressTest {
     }
 
     /**
+     * Tests the IPv4 address version constant.
+     */
+    @Test
+    public void testAddressVersion() {
+        assertThat(Ip4Address.VERSION, is(IpAddress.Version.INET));
+    }
+
+    /**
      * Tests the length of the address in bytes (octets).
      */
     @Test
-    public void testAddrBytelen() {
+    public void testAddrByteLength() {
         assertThat(Ip4Address.BYTE_LENGTH, is(4));
     }
 
@@ -47,299 +58,372 @@ public class Ip4AddressTest {
      * Tests the length of the address in bits.
      */
     @Test
-    public void testAddrBitlen() {
+    public void testAddrBitLength() {
         assertThat(Ip4Address.BIT_LENGTH, is(32));
     }
 
     /**
-     * Tests default class constructor.
+     * Tests returning the IP address version.
      */
     @Test
-    public void testDefaultConstructor() {
-        Ip4Address ip4Address = new Ip4Address();
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+    public void testVersion() {
+        Ip4Address ipAddress;
+
+        // IPv4
+        ipAddress = Ip4Address.valueOf("0.0.0.0");
+        assertThat(ipAddress.version(), is(IpAddress.Version.INET));
     }
 
     /**
-     * Tests valid class copy constructor.
+     * Tests returning an IPv4 address as a byte array.
      */
     @Test
-    public void testCopyConstructor() {
-        Ip4Address fromAddr = new Ip4Address("1.2.3.4");
-        Ip4Address ip4Address = new Ip4Address(fromAddr);
-        assertThat(ip4Address.toString(), is("1.2.3.4"));
+    public void testAddressToOctetsIPv4() {
+        Ip4Address ipAddress;
+        byte[] value;
 
-        fromAddr = new Ip4Address("0.0.0.0");
-        ip4Address = new Ip4Address(fromAddr);
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+        value = new byte[] {1, 2, 3, 4};
+        ipAddress = Ip4Address.valueOf("1.2.3.4");
+        assertThat(ipAddress.toOctets(), is(value));
 
-        fromAddr = new Ip4Address("255.255.255.255");
-        ip4Address = new Ip4Address(fromAddr);
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
+        value = new byte[] {0, 0, 0, 0};
+        ipAddress = Ip4Address.valueOf("0.0.0.0");
+        assertThat(ipAddress.toOctets(), is(value));
+
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipAddress = Ip4Address.valueOf("255.255.255.255");
+        assertThat(ipAddress.toOctets(), is(value));
     }
 
     /**
-     * Tests invalid class copy constructor for a null object to copy from.
+     * Tests returning an IPv4 address as an integer.
      */
-    @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullObject() {
-        Ip4Address fromAddr = null;
-        Ip4Address ip4Address = new Ip4Address(fromAddr);
+    @Test
+    public void testToInt() {
+        Ip4Address ipAddress;
+
+        ipAddress = Ip4Address.valueOf("1.2.3.4");
+        assertThat(ipAddress.toInt(), is(0x01020304));
+
+        ipAddress = Ip4Address.valueOf("0.0.0.0");
+        assertThat(ipAddress.toInt(), is(0));
+
+        ipAddress = Ip4Address.valueOf("255.255.255.255");
+        assertThat(ipAddress.toInt(), is(-1));
     }
 
     /**
-     * Tests valid class constructor for an integer value.
+     * Tests valueOf() converter for IPv4 integer value.
      */
     @Test
-    public void testConstructorForInteger() {
-        Ip4Address ip4Address = new Ip4Address(0x01020304);
-        assertThat(ip4Address.toString(), is("1.2.3.4"));
+    public void testValueOfForIntegerIPv4() {
+        Ip4Address ipAddress;
 
-        ip4Address = new Ip4Address(0);
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+        ipAddress = Ip4Address.valueOf(0x01020304);
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
 
-        ip4Address = new Ip4Address(0xffffffff);
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
+        ipAddress = Ip4Address.valueOf(0);
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        ipAddress = Ip4Address.valueOf(0xffffffff);
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
     /**
-     * Tests valid class constructor for an array value.
+     * Tests valueOf() converter for IPv4 byte array.
      */
     @Test
-    public void testConstructorForArray() {
+    public void testValueOfByteArrayIPv4() {
+        Ip4Address ipAddress;
+
         final byte[] value1 = new byte[] {1, 2, 3, 4};
-        Ip4Address ip4Address = new Ip4Address(value1);
-        assertThat(ip4Address.toString(), is("1.2.3.4"));
+        ipAddress = Ip4Address.valueOf(value1);
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
 
         final byte[] value2 = new byte[] {0, 0, 0, 0};
-        ip4Address = new Ip4Address(value2);
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+        ipAddress = Ip4Address.valueOf(value2);
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
 
         final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
                                           (byte) 0xff, (byte) 0xff};
-        ip4Address = new Ip4Address(value3);
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
+        ipAddress = Ip4Address.valueOf(value3);
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
     /**
-     * Tests valid class constructor for an array value and an offset.
-     */
-    @Test
-    public void testConstructorForArrayAndOffset() {
-        final byte[] value1 = new byte[] {11, 22, 33,   // Preamble
-                                          1, 2, 3, 4,
-                                          44, 55};      // Extra bytes
-        Ip4Address ip4Address = new Ip4Address(value1, 3);
-        assertThat(ip4Address.toString(), is("1.2.3.4"));
-
-        final byte[] value2 = new byte[] {11, 22,       // Preamble
-                                          0, 0, 0, 0,
-                                          33};          // Extra bytes
-        ip4Address = new Ip4Address(value2, 2);
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
-
-        final byte[] value3 = new byte[] {11, 22,       // Preamble
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          33};          // Extra bytes
-        ip4Address = new Ip4Address(value3, 2);
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
-    }
-
-    /**
-     * Tests invalid class constructor for a null array.
+     * Tests invalid valueOf() converter for a null array for IPv4.
      */
     @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullArray() {
+    public void testInvalidValueOfNullArrayIPv4() {
+        Ip4Address ipAddress;
+
         final byte[] fromArray = null;
-        Ip4Address ip4Address = new Ip4Address(fromArray);
+        ipAddress = Ip4Address.valueOf(fromArray);
     }
 
     /**
-     * Tests invalid class constructor for an array that is too short.
+     * Tests invalid valueOf() converger for an array that is too short for
+     * IPv4.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testInvalidConstructorShortArray() {
+    public void testInvalidValueOfShortArrayIPv4() {
+        Ip4Address ipAddress;
+
         final byte[] fromArray = new byte[] {1, 2, 3};
-        Ip4Address ip4Address = new Ip4Address(fromArray);
+        ipAddress = Ip4Address.valueOf(fromArray);
     }
 
     /**
-     * Tests invalid class constructor for an array and an invalid offset.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidConstructorArrayInvalidOffset() {
-        final byte[] value1 = new byte[] {11, 22, 33,   // Preamble
-                                          1, 2, 3, 4,
-                                          44, 55};      // Extra bytes
-        Ip4Address ip4Address = new Ip4Address(value1, 6);
-    }
-
-    /**
-     * Tests valid class constructor for a string.
+     * Tests valueOf() converter for IPv4 byte array and an offset.
      */
     @Test
-    public void testConstructorForString() {
-        Ip4Address ip4Address = new Ip4Address("1.2.3.4");
-        assertThat(ip4Address.toString(), is("1.2.3.4"));
+    public void testValueOfByteArrayOffsetIPv4() {
+        Ip4Address ipAddress;
+        byte[] value;
 
-        ip4Address = new Ip4Address("0.0.0.0");
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+        value = new byte[] {11, 22, 33,                 // Preamble
+                            1, 2, 3, 4,
+                            44, 55};                    // Extra bytes
+        ipAddress = Ip4Address.valueOf(value, 3);
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
 
-        ip4Address = new Ip4Address("255.255.255.255");
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
+        value = new byte[] {11, 22,                     // Preamble
+                            0, 0, 0, 0,
+                            33};                        // Extra bytes
+        ipAddress = Ip4Address.valueOf(value, 2);
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        value = new byte[] {11, 22,                     // Preamble
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            33};                        // Extra bytes
+        ipAddress = Ip4Address.valueOf(value, 2);
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
     /**
-     * Tests invalid class constructor for a null string.
+     * Tests invalid valueOf() converger for an array and an invalid offset
+     * for IPv4.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfArrayInvalidOffsetIPv4() {
+        Ip4Address ipAddress;
+        byte[] value;
+
+        value = new byte[] {11, 22, 33,                 // Preamble
+                            1, 2, 3, 4,
+                            44, 55};                    // Extra bytes
+        ipAddress = Ip4Address.valueOf(value, 6);
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 InetAddress.
+     */
+    @Test
+    public void testValueOfInetAddressIPv4() {
+        Ip4Address ipAddress;
+        InetAddress inetAddress;
+
+        inetAddress = InetAddresses.forString("1.2.3.4");
+        ipAddress = Ip4Address.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
+
+        inetAddress = InetAddresses.forString("0.0.0.0");
+        ipAddress = Ip4Address.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        inetAddress = InetAddresses.forString("255.255.255.255");
+        ipAddress = Ip4Address.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv4 string.
+     */
+    @Test
+    public void testValueOfStringIPv4() {
+        Ip4Address ipAddress;
+
+        ipAddress = Ip4Address.valueOf("1.2.3.4");
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
+
+        ipAddress = Ip4Address.valueOf("0.0.0.0");
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        ipAddress = Ip4Address.valueOf("255.255.255.255");
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a null string.
      */
     @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullString() {
+    public void testInvalidValueOfNullString() {
+        Ip4Address ipAddress;
+
         String fromString = null;
-        Ip4Address ip4Address = new Ip4Address(fromString);
+        ipAddress = Ip4Address.valueOf(fromString);
     }
 
     /**
-     * Tests invalid class constructor for an empty string.
+     * Tests invalid valueOf() converter for an empty string.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testInvalidConstructors() {
-        // Check constructor for invalid ID: empty string
-        Ip4Address ip4Address = new Ip4Address("");
+    public void testInvalidValueOfEmptyString() {
+        Ip4Address ipAddress;
+
+        String fromString = "";
+        ipAddress = Ip4Address.valueOf(fromString);
     }
 
     /**
-     * Tests returning the address as a byte array.
+     * Tests invalid valueOf() converter for an incorrect string.
      */
-    @Test
-    public void testAddressToOctets() {
-        final byte[] value1 = new byte[] {1, 2, 3, 4};
-        Ip4Address ip4Address = new Ip4Address("1.2.3.4");
-        assertThat(ip4Address.toOctets(), is(value1));
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfIncorrectString() {
+        Ip4Address ipAddress;
 
-        final byte[] value2 = new byte[] {0, 0, 0, 0};
-        ip4Address = new Ip4Address("0.0.0.0");
-        assertThat(ip4Address.toOctets(), is(value2));
-
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
-        ip4Address = new Ip4Address("255.255.255.255");
-        assertThat(ip4Address.toOctets(), is(value3));
+        String fromString = "NoSuchIpAddress";
+        ipAddress = Ip4Address.valueOf(fromString);
     }
 
     /**
-     * Tests making a mask prefix for a given prefix length.
+     * Tests making a mask prefix for a given prefix length for IPv4.
      */
     @Test
-    public void testMakeMaskPrefix() {
-        Ip4Address ip4Address = Ip4Address.makeMaskPrefix(25);
-        assertThat(ip4Address.toString(), is("255.255.255.128"));
+    public void testMakeMaskPrefixIPv4() {
+        Ip4Address ipAddress;
 
-        ip4Address = Ip4Address.makeMaskPrefix(0);
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+        ipAddress = Ip4Address.makeMaskPrefix(25);
+        assertThat(ipAddress.toString(), is("255.255.255.128"));
 
-        ip4Address = Ip4Address.makeMaskPrefix(32);
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
+        ipAddress = Ip4Address.makeMaskPrefix(0);
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        ipAddress = Ip4Address.makeMaskPrefix(32);
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 
     /**
-     * Tests making of a masked address.
+     * Tests making a mask prefix for an invalid prefix length for IPv4:
+     * negative prefix length.
      */
-    @Test
-    public void testMakeMaskedAddress() {
-        Ip4Address ip4Address = new Ip4Address("1.2.3.5");
-        Ip4Address ip4AddressMasked =
-            Ip4Address.makeMaskedAddress(ip4Address, 24);
-        assertThat(ip4AddressMasked.toString(), is("1.2.3.0"));
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeNegativeMaskPrefixIPv4() {
+        Ip4Address ipAddress;
 
-        ip4AddressMasked = Ip4Address.makeMaskedAddress(ip4Address, 0);
-        assertThat(ip4AddressMasked.toString(), is("0.0.0.0"));
-
-        ip4AddressMasked = Ip4Address.makeMaskedAddress(ip4Address, 32);
-        assertThat(ip4AddressMasked.toString(), is("1.2.3.5"));
+        ipAddress = Ip4Address.makeMaskPrefix(-1);
     }
 
     /**
-     * Tests getting the value of an address.
+     * Tests making a mask prefix for an invalid prefix length for IPv4:
+     * too long prefix length.
      */
-    @Test
-    public void testGetValue() {
-        Ip4Address ip4Address = new Ip4Address("1.2.3.4");
-        assertThat(ip4Address.getValue(), is(0x01020304));
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeTooLongMaskPrefixIPv4() {
+        Ip4Address ipAddress;
 
-        ip4Address = new Ip4Address("0.0.0.0");
-        assertThat(ip4Address.getValue(), is(0));
-
-        ip4Address = new Ip4Address("255.255.255.255");
-        assertThat(ip4Address.getValue(), is(-1));
+        ipAddress = Ip4Address.makeMaskPrefix(33);
     }
 
     /**
-     * Tests equality of {@link Ip4Address}.
+     * Tests making of a masked address for IPv4.
      */
     @Test
-    public void testEquality() {
-        Ip4Address addr1 = new Ip4Address("1.2.3.4");
-        Ip4Address addr2 = new Ip4Address("1.2.3.4");
-        assertThat(addr1, is(addr2));
+    public void testMakeMaskedAddressIPv4() {
+        Ip4Address ipAddress = Ip4Address.valueOf("1.2.3.5");
+        Ip4Address ipAddressMasked;
 
-        addr1 = new Ip4Address("0.0.0.0");
-        addr2 = new Ip4Address("0.0.0.0");
-        assertThat(addr1, is(addr2));
+        ipAddressMasked = Ip4Address.makeMaskedAddress(ipAddress, 24);
+        assertThat(ipAddressMasked.toString(), is("1.2.3.0"));
 
-        addr1 = new Ip4Address("255.255.255.255");
-        addr2 = new Ip4Address("255.255.255.255");
-        assertThat(addr1, is(addr2));
+        ipAddressMasked = Ip4Address.makeMaskedAddress(ipAddress, 0);
+        assertThat(ipAddressMasked.toString(), is("0.0.0.0"));
+
+        ipAddressMasked = Ip4Address.makeMaskedAddress(ipAddress, 32);
+        assertThat(ipAddressMasked.toString(), is("1.2.3.5"));
     }
 
     /**
-     * Tests non-equality of {@link Ip4Address}.
+     * Tests making of a masked address for invalid prefix length for IPv4:
+     * negative prefix length.
      */
-    @Test
-    public void testNonEquality() {
-        Ip4Address addr1 = new Ip4Address("1.2.3.4");
-        Ip4Address addr2 = new Ip4Address("1.2.3.5");
-        Ip4Address addr3 = new Ip4Address("0.0.0.0");
-        Ip4Address addr4 = new Ip4Address("255.255.255.255");
-        assertThat(addr1, is(not(addr2)));
-        assertThat(addr3, is(not(addr2)));
-        assertThat(addr4, is(not(addr2)));
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeNegativeMaskedAddressIPv4() {
+        Ip4Address ipAddress = Ip4Address.valueOf("1.2.3.5");
+        Ip4Address ipAddressMasked;
+
+        ipAddressMasked = Ip4Address.makeMaskedAddress(ipAddress, -1);
     }
 
     /**
-     * Tests comparison of {@link Ip4Address}.
+     * Tests making of a masked address for an invalid prefix length for IPv4:
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeTooLongMaskedAddressIPv4() {
+        Ip4Address ipAddress = Ip4Address.valueOf("1.2.3.5");
+        Ip4Address ipAddressMasked;
+
+        ipAddressMasked = Ip4Address.makeMaskedAddress(ipAddress, 33);
+    }
+
+    /**
+     * Tests comparison of {@link Ip4Address} for IPv4.
      */
     @Test
-    public void testComparison() {
-        Ip4Address addr1 = new Ip4Address("1.2.3.4");
-        Ip4Address addr2 = new Ip4Address("1.2.3.4");
-        Ip4Address addr3 = new Ip4Address("1.2.3.3");
-        Ip4Address addr4 = new Ip4Address("1.2.3.5");
+    public void testComparisonIPv4() {
+        Ip4Address addr1, addr2, addr3, addr4;
+
+        addr1 = Ip4Address.valueOf("1.2.3.4");
+        addr2 = Ip4Address.valueOf("1.2.3.4");
+        addr3 = Ip4Address.valueOf("1.2.3.3");
+        addr4 = Ip4Address.valueOf("1.2.3.5");
         assertTrue(addr1.compareTo(addr2) == 0);
         assertTrue(addr1.compareTo(addr3) > 0);
         assertTrue(addr1.compareTo(addr4) < 0);
 
-        addr1 = new Ip4Address("255.2.3.4");
-        addr2 = new Ip4Address("255.2.3.4");
-        addr3 = new Ip4Address("255.2.3.3");
-        addr4 = new Ip4Address("255.2.3.5");
+        addr1 = Ip4Address.valueOf("255.2.3.4");
+        addr2 = Ip4Address.valueOf("255.2.3.4");
+        addr3 = Ip4Address.valueOf("255.2.3.3");
+        addr4 = Ip4Address.valueOf("255.2.3.5");
         assertTrue(addr1.compareTo(addr2) == 0);
         assertTrue(addr1.compareTo(addr3) > 0);
         assertTrue(addr1.compareTo(addr4) < 0);
     }
 
     /**
-     * Tests object string representation.
+     * Tests equality of {@link Ip4Address} for IPv4.
      */
     @Test
-    public void testToString() {
-        Ip4Address ip4Address = new Ip4Address("1.2.3.4");
-        assertThat(ip4Address.toString(), is("1.2.3.4"));
+    public void testEqualityIPv4() {
+        new EqualsTester()
+            .addEqualityGroup(Ip4Address.valueOf("1.2.3.4"),
+                              Ip4Address.valueOf("1.2.3.4"))
+            .addEqualityGroup(Ip4Address.valueOf("1.2.3.5"),
+                              Ip4Address.valueOf("1.2.3.5"))
+            .addEqualityGroup(Ip4Address.valueOf("0.0.0.0"),
+                              Ip4Address.valueOf("0.0.0.0"))
+            .addEqualityGroup(Ip4Address.valueOf("255.255.255.255"),
+                              Ip4Address.valueOf("255.255.255.255"))
+            .testEquals();
+    }
 
-        ip4Address = new Ip4Address("0.0.0.0");
-        assertThat(ip4Address.toString(), is("0.0.0.0"));
+    /**
+     * Tests object string representation for IPv4.
+     */
+    @Test
+    public void testToStringIPv4() {
+        Ip4Address ipAddress;
 
-        ip4Address = new Ip4Address("255.255.255.255");
-        assertThat(ip4Address.toString(), is("255.255.255.255"));
+        ipAddress = Ip4Address.valueOf("1.2.3.4");
+        assertThat(ipAddress.toString(), is("1.2.3.4"));
+
+        ipAddress = Ip4Address.valueOf("0.0.0.0");
+        assertThat(ipAddress.toString(), is("0.0.0.0"));
+
+        ipAddress = Ip4Address.valueOf("255.255.255.255");
+        assertThat(ipAddress.toString(), is("255.255.255.255"));
     }
 }

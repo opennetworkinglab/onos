@@ -15,110 +15,79 @@
  */
 package org.onlab.packet;
 
-import java.util.Objects;
-
 /**
  * The class representing an IPv6 network address.
  * This class is immutable.
  */
-public final class Ip6Prefix {
-    private final Ip6Address address;           // The IPv6 address
-    private final short prefixLen;              // The prefix length
+public final class Ip6Prefix extends IpPrefix {
+    public static final IpAddress.Version VERSION = IpAddress.Version.INET6;
+    // Maximum network mask length
+    public static final int MAX_MASK_LENGTH = IpPrefix.MAX_INET6_MASK_LENGTH;
 
     /**
-     * Default constructor.
+     * Constructor for given IPv6 address, and a prefix length.
+     *
+     * @param address the IPv6 address
+     * @param prefixLength the prefix length
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public Ip6Prefix() {
-        this.address = new Ip6Address();
-        this.prefixLen = 0;
+    private Ip6Prefix(Ip6Address address, int prefixLength) {
+        super(address, prefixLength);
     }
 
     /**
-     * Copy constructor.
+     * Returns the IPv6 address value of the prefix.
      *
-     * @param other the object to copy from
+     * @return the IPv6 address value of the prefix
      */
-    public Ip6Prefix(Ip6Prefix other) {
-        this.address = new Ip6Address(other.address);
-        this.prefixLen = other.prefixLen;
+    public Ip6Address address() {
+        IpAddress a = super.address();
+        return (Ip6Address) a;
     }
 
     /**
-     * Constructor for a given address and prefix length.
+     * Converts a byte array and a prefix length into an IPv6 prefix.
      *
-     * @param address   the address to use
-     * @param prefixLen the prefix length to use
+     * @param address the IPv6 address value stored in network byte order
+     * @param prefixLength the prefix length
+     * @return an IPv6 prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public Ip6Prefix(Ip6Address address, short prefixLen) {
-        this.address = Ip6Address.makeMaskedAddress(address, prefixLen);
-        this.prefixLen = prefixLen;
+    public static Ip6Prefix valueOf(byte[] address, int prefixLength) {
+        return new Ip6Prefix(Ip6Address.valueOf(address), prefixLength);
     }
 
     /**
-     * Constructs an IPv6 prefix from a string representation of the
-     * prefix.
-     *<p>
-     * Example: "1111:2222::/32"
+     * Converts an IPv6 address and a prefix length into an IPv6 prefix.
      *
-     * @param value the value to use
+     * @param address the IPv6 address
+     * @param prefixLength the prefix length
+     * @return an IPv6 prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public Ip6Prefix(String value) {
-        String[] splits = value.split("/");
-        if (splits.length != 2) {
-            throw new IllegalArgumentException("Specified IPv6 prefix must contain an IPv6 " +
-                    "address and a prefix length separated by '/'");
+    public static Ip6Prefix valueOf(Ip6Address address, int prefixLength) {
+        return new Ip6Prefix(address, prefixLength);
+    }
+
+    /**
+     * Converts a CIDR (slash) notation string (e.g., "1111:2222::/64")
+     * into an IPv6 prefix.
+     *
+     * @param address an IP prefix in string form (e.g.,"1111:2222::/64")
+     * @return an IPv6 prefix
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    public static Ip6Prefix valueOf(String address) {
+        final String[] parts = address.split("/");
+        if (parts.length != 2) {
+            String msg = "Malformed IPv6 prefix string: " + address + "." +
+                "Address must take form " +
+                "\"xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/y\"";
+            throw new IllegalArgumentException(msg);
         }
-        this.prefixLen = Short.decode(splits[1]);
-        this.address = Ip6Address.makeMaskedAddress(new Ip6Address(splits[0]),
-                this.prefixLen);
-    }
+        Ip6Address ipAddress = Ip6Address.valueOf(parts[0]);
+        int prefixLength = Integer.parseInt(parts[1]);
 
-    /**
-     * Gets the address value of the IPv6 prefix.
-     *
-     * @return the address value of the IPv6 prefix
-     */
-    public Ip6Address getAddress() {
-        return address;
-    }
-
-    /**
-     * Gets the prefix length value of the IPv6 prefix.
-     *
-     * @return the prefix length value of the IPv6 prefix
-     */
-    public short getPrefixLen() {
-        return prefixLen;
-    }
-
-    /**
-     * Converts the IPv6 prefix value to an "address/prefixLen" string.
-     *
-     * @return the IPv6 prefix value as an "address/prefixLen" string
-     */
-    @Override
-    public String toString() {
-        return this.address.toString() + "/" + this.prefixLen;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-
-        if (!(other instanceof Ip6Prefix)) {
-            return false;
-        }
-
-        Ip6Prefix otherIp6Prefix = (Ip6Prefix) other;
-
-        return Objects.equals(this.address, otherIp6Prefix.address)
-                && this.prefixLen == otherIp6Prefix.prefixLen;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(address, prefixLen);
+        return new Ip6Prefix(ipAddress, prefixLength);
     }
 }

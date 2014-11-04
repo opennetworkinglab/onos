@@ -16,260 +16,137 @@
 package org.onlab.packet;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.Objects;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.util.Arrays;
 
 import com.google.common.net.InetAddresses;
-import com.google.common.primitives.UnsignedLongs;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
- * The class representing an IPv6 address.
+ * A class representing an IPv6 address.
  * This class is immutable.
  */
-public final class Ip6Address implements Comparable<Ip6Address> {
-    private final long valueHigh;    // The higher (more significant) 64 bits
-    private final long valueLow;     // The lower (less significant) 64 bits
-
-    /** The length of the address in bytes (octets). */
-    public static final int BYTE_LENGTH = 16;
-
-    /** The length of the address in bits. */
-    public static final int BIT_LENGTH = BYTE_LENGTH * Byte.SIZE;
+public final class Ip6Address extends IpAddress {
+    public static final IpAddress.Version VERSION = IpAddress.Version.INET6;
+    public static final int BYTE_LENGTH = IpAddress.INET6_BYTE_LENGTH;
+    public static final int BIT_LENGTH = IpAddress.INET6_BIT_LENGTH;
 
     /**
-     * Default constructor.
+     * Constructor for given IP address version and address octets.
+     *
+     * @param value the IP address value stored in network byte order
+     * (i.e., the most significant byte first)
+     * @throws IllegalArgumentException if the arguments are invalid
      */
-    public Ip6Address() {
-        this.valueHigh = 0;
-        this.valueLow = 0;
+    private Ip6Address(byte[] value) {
+        super(VERSION, value);
     }
 
     /**
-     * Copy constructor.
+     * Converts a byte array into an IPv6 address.
      *
-     * @param other the object to copy from
+     * @param value the IPv6 address value stored in network byte order
+     * (i.e., the most significant byte first)
+     * @return an IPv6 address
+     * @throws IllegalArgumentException if the argument is invalid
      */
-    public Ip6Address(Ip6Address other) {
-        this.valueHigh = other.valueHigh;
-        this.valueLow = other.valueLow;
+    public static Ip6Address valueOf(byte[] value) {
+        return new Ip6Address(value);
     }
 
     /**
-     * Constructor from integer values.
-     *
-     * @param valueHigh the higher (more significant) 64 bits of the address
-     * @param valueLow  the lower (less significant) 64 bits of the address
-     */
-    public Ip6Address(long valueHigh, long valueLow) {
-        this.valueHigh = valueHigh;
-        this.valueLow = valueLow;
-    }
-
-    /**
-     * Constructor from a byte array with the IPv6 address stored in network
-     * byte order (i.e., the most significant byte first).
-     *
-     * @param value the value to use
-     */
-    public Ip6Address(byte[] value) {
-        this(value, 0);
-    }
-
-    /**
-     * Constructor from a byte array with the IPv6 address stored in network
-     * byte order (i.e., the most significant byte first), and a given offset
-     * from the beginning of the byte array.
-     *
+     * Converts a byte array and a given offset from the beginning of the
+     * array into an IPv6 address.
+     * <p>
+     * The IP address is stored in network byte order (i.e., the most
+     * significant byte first).
+     * </p>
      * @param value the value to use
      * @param offset the offset in bytes from the beginning of the byte array
+     * @return an IPv6 address
+     * @throws IllegalArgumentException if the arguments are invalid
      */
-    public Ip6Address(byte[] value, int offset) {
-        checkNotNull(value);
-
-        // Verify the arguments
-        if ((offset < 0) || (offset + BYTE_LENGTH > value.length)) {
-            String msg;
-            if (value.length < BYTE_LENGTH) {
-                msg = "Invalid IPv6 address array: array length: " +
-                    value.length + ". Must be at least " + BYTE_LENGTH;
-            } else {
-                msg = "Invalid IPv6 address array: array offset: " +
-                    offset + ". Must be in the interval [0, " +
-                    (value.length - BYTE_LENGTH) + "]";
-            }
-            throw new IllegalArgumentException(msg);
-        }
-
-        // Read the address
-        ByteBuffer bb = ByteBuffer.wrap(value);
-        bb.position(offset);
-        this.valueHigh = bb.getLong();
-        this.valueLow = bb.getLong();
+    public static Ip6Address valueOf(byte[] value, int offset) {
+        IpAddress.checkArguments(VERSION, value, offset);
+        byte[] bc = Arrays.copyOfRange(value, offset, value.length);
+        return Ip6Address.valueOf(bc);
     }
 
     /**
-     * Constructs an IPv6 address from a string representation of the address.
-     *<p>
-     * Example: "1111:2222::8888"
+     * Converts an InetAddress into an IPv6 address.
      *
-     * @param value the value to use
+     * @param inetAddress the InetAddress value to use. It must contain an IPv6
+     * address
+     * @return an IPv6 address
+     * @throws IllegalArgumentException if the argument is invalid
      */
-    public Ip6Address(String value) {
-        checkNotNull(value);
-
-        if (value.isEmpty()) {
-            final String msg = "Specified IPv6 cannot be an empty string";
+    public static Ip6Address valueOf(InetAddress inetAddress) {
+        byte[] bytes = inetAddress.getAddress();
+        if (inetAddress instanceof Inet6Address) {
+            return new Ip6Address(bytes);
+        }
+        if ((inetAddress instanceof Inet4Address) ||
+            (bytes.length == INET_BYTE_LENGTH)) {
+            final String msg = "Invalid IPv6 version address string: " +
+                inetAddress.toString();
             throw new IllegalArgumentException(msg);
         }
-        InetAddress addr = null;
+        // Use the number of bytes as a hint
+        if (bytes.length == INET6_BYTE_LENGTH) {
+            return new Ip6Address(bytes);
+        }
+        final String msg = "Unrecognized IP version address string: " +
+            inetAddress.toString();
+        throw new IllegalArgumentException(msg);
+    }
+
+    /**
+     * Converts an IPv6 string literal (e.g., "1111:2222::8888") into an IP
+     * address.
+     *
+     * @param value an IPv6 address value in string form
+     * @return an IPv6 address
+     * @throws IllegalArgumentException if the argument is invalid
+     */
+    public static Ip6Address valueOf(String value) {
+        InetAddress inetAddress = null;
         try {
-            addr = InetAddresses.forString(value);
+            inetAddress = InetAddresses.forString(value);
         } catch (IllegalArgumentException e) {
-            final String msg = "Invalid IPv6 address string: " + value;
+            final String msg = "Invalid IP address string: " + value;
             throw new IllegalArgumentException(msg);
         }
-        byte[] bytes = addr.getAddress();
-        ByteBuffer bb = ByteBuffer.wrap(bytes);
-        this.valueHigh = bb.getLong();
-        this.valueLow = bb.getLong();
-    }
-
-    /**
-     * Gets the IPv6 address as a byte array.
-     *
-     * @return a byte array with the IPv6 address stored in network byte order
-     * (i.e., the most significant byte first).
-     */
-    public byte[] toOctets() {
-        return ByteBuffer.allocate(BYTE_LENGTH)
-            .putLong(valueHigh).putLong(valueLow).array();
+        return valueOf(inetAddress);
     }
 
     /**
      * Creates an IPv6 network mask prefix.
      *
-     * @param prefixLen the length of the mask prefix. Must be in the interval
-     * [0, 128].
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 128]
      * @return a new IPv6 address that contains a mask prefix of the
      * specified length
+     * @throws IllegalArgumentException if the arguments are invalid
      */
-    public static Ip6Address makeMaskPrefix(int prefixLen) {
-        long vh, vl;
-
-        // Verify the prefix length
-        if ((prefixLen < 0) || (prefixLen > Ip6Address.BIT_LENGTH)) {
-            final String msg = "Invalid IPv6 prefix length: " + prefixLen +
-                ". Must be in the interval [0, 128].";
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (prefixLen == 0) {
-            //
-            // NOTE: Apparently, the result of "<< 64" shifting to the left
-            // results in all 1s instead of all 0s, hence we handle it as
-            // a special case.
-            //
-            vh = 0;
-            vl = 0;
-        } else if (prefixLen <= 64) {
-            vh = (0xffffffffffffffffL << (64 - prefixLen)) & 0xffffffffffffffffL;
-            vl = 0;
-        } else {
-            vh = -1L;           // All 1s
-            vl = (0xffffffffffffffffL << (128 - prefixLen)) & 0xffffffffffffffffL;
-        }
-        return new Ip6Address(vh, vl);
+    public static Ip6Address makeMaskPrefix(int prefixLength) {
+        byte[] mask = IpAddress.makeMaskPrefixArray(VERSION, prefixLength);
+        return new Ip6Address(mask);
     }
 
     /**
      * Creates an IPv6 address by masking it with a network mask of given
      * mask length.
      *
-     * @param addr the address to mask
-     * @param prefixLen the length of the mask prefix. Must be in the interval
-     * [0, 128].
+     * @param address the address to mask
+     * @param prefixLength the length of the mask prefix. Must be in the
+     * interval [0, 128]
      * @return a new IPv6 address that is masked with a mask prefix of the
      * specified length
+     * @throws IllegalArgumentException if the prefix length is invalid
      */
-    public static Ip6Address makeMaskedAddress(final Ip6Address addr,
-                                               int prefixLen) {
-        Ip6Address mask = Ip6Address.makeMaskPrefix(prefixLen);
-        long vh = addr.valueHigh & mask.valueHigh;
-        long vl = addr.valueLow & mask.valueLow;
-
-        return new Ip6Address(vh, vl);
-    }
-
-    /**
-     * Gets the value of the higher (more significant) 64 bits of the address.
-     *
-     * @return the value of the higher (more significant) 64 bits of the
-     * address
-     */
-    public long getValueHigh() {
-        return valueHigh;
-    }
-
-    /**
-     * Gets the value of the lower (less significant) 64 bits of the address.
-     *
-     * @return the value of the lower (less significant) 64 bits of the
-     * address
-     */
-    public long getValueLow() {
-        return valueLow;
-    }
-
-    /**
-     * Converts the IPv6 value to a ':' separated string.
-     *
-     * @return the IPv6 value as a ':' separated string
-     */
-    @Override
-    public String toString() {
-        ByteBuffer bb = ByteBuffer.allocate(Ip6Address.BYTE_LENGTH);
-        bb.putLong(valueHigh);
-        bb.putLong(valueLow);
-        InetAddress inetAddr = null;
-        try {
-            inetAddr = InetAddress.getByAddress(bb.array());
-        } catch (UnknownHostException e) {
-            // Should never happen
-            checkState(false, "Internal error: Ip6Address.toString()");
-            return "::";
-        }
-        return InetAddresses.toAddrString(inetAddr);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Ip6Address)) {
-            return false;
-        }
-        Ip6Address other = (Ip6Address) o;
-        return this.valueHigh == other.valueHigh
-                && this.valueLow == other.valueLow;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(valueHigh, valueLow);
-    }
-
-    @Override
-    public int compareTo(Ip6Address o) {
-        // Compare the high-order 64-bit value
-        if (this.valueHigh != o.valueHigh) {
-            return UnsignedLongs.compare(this.valueHigh, o.valueHigh);
-        }
-        // Compare the low-order 64-bit value
-        if (this.valueLow != o.valueLow) {
-            return UnsignedLongs.compare(this.valueLow, o.valueLow);
-        }
-        return 0;
+    public static Ip6Address makeMaskedAddress(final Ip6Address address,
+                                               int prefixLength) {
+        byte[] net = makeMaskedAddressArray(address, prefixLength);
+        return Ip6Address.valueOf(net);
     }
 }

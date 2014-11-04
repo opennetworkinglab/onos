@@ -15,110 +15,90 @@
  */
 package org.onlab.packet;
 
-import java.util.Objects;
-
 /**
  * The class representing an IPv4 network address.
  * This class is immutable.
  */
-public final class Ip4Prefix {
-    private final Ip4Address address;           // The IPv4 address
-    private final short prefixLen;              // The prefix length
+public final class Ip4Prefix extends IpPrefix {
+    public static final IpAddress.Version VERSION = IpAddress.Version.INET;
+    // Maximum network mask length
+    public static final int MAX_MASK_LENGTH = IpPrefix.MAX_INET_MASK_LENGTH;
 
     /**
-     * Default constructor.
+     * Constructor for given IPv4 address, and a prefix length.
+     *
+     * @param address the IPv4 address
+     * @param prefixLength the prefix length
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public Ip4Prefix() {
-        this.address = new Ip4Address();
-        this.prefixLen = 0;
+    private Ip4Prefix(Ip4Address address, int prefixLength) {
+        super(address, prefixLength);
     }
 
     /**
-     * Copy constructor.
+     * Returns the IPv4 address value of the prefix.
      *
-     * @param other the object to copy from
+     * @return the IPv4 address value of the prefix
      */
-    public Ip4Prefix(Ip4Prefix other) {
-        this.address = new Ip4Address(other.address);
-        this.prefixLen = other.prefixLen;
+    public Ip4Address address() {
+        IpAddress a = super.address();
+        return (Ip4Address) a;
     }
 
     /**
-     * Constructor for a given address and prefix length.
+     * Converts an integer and a prefix length into an IPv4 prefix.
      *
-     * @param address   the address to use
-     * @param prefixLen the prefix length to use
+     * @param address an integer representing the IPv4 address
+     * @param prefixLength the prefix length
+     * @return an IPv4 prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public Ip4Prefix(Ip4Address address, short prefixLen) {
-        this.address = Ip4Address.makeMaskedAddress(address, prefixLen);
-        this.prefixLen = prefixLen;
+    public static Ip4Prefix valueOf(int address, int prefixLength) {
+        return new Ip4Prefix(Ip4Address.valueOf(address), prefixLength);
     }
 
     /**
-     * Constructs an IPv4 prefix from a string representation of the
-     * prefix.
-     *<p>
-     * Example: "1.2.0.0/16"
+     * Converts a byte array and a prefix length into an IPv4 prefix.
      *
-     * @param value the value to use
+     * @param address the IPv4 address value stored in network byte order
+     * @param prefixLength the prefix length
+     * @return an IPv4 prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    public Ip4Prefix(String value) {
-        String[] splits = value.split("/");
-        if (splits.length != 2) {
-            throw new IllegalArgumentException("Specified IPv4 prefix must contain an IPv4 " +
-                    "address and a prefix length separated by '/'");
+    public static Ip4Prefix valueOf(byte[] address, int prefixLength) {
+        return new Ip4Prefix(Ip4Address.valueOf(address), prefixLength);
+    }
+
+    /**
+     * Converts an IPv4 address and a prefix length into an IPv4 prefix.
+     *
+     * @param address the IPv4 address
+     * @param prefixLength the prefix length
+     * @return an IPv4 prefix
+     * @throws IllegalArgumentException if the prefix length value is invalid
+     */
+    public static Ip4Prefix valueOf(Ip4Address address, int prefixLength) {
+        return new Ip4Prefix(address, prefixLength);
+    }
+
+    /**
+     * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16")
+     * into an IPv4 prefix.
+     *
+     * @param address an IP prefix in string form (e.g., "10.1.0.0/16")
+     * @return an IPv4 prefix
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    public static Ip4Prefix valueOf(String address) {
+        final String[] parts = address.split("/");
+        if (parts.length != 2) {
+            String msg = "Malformed IPv4 prefix string: " + address + "." +
+                "Address must take form \"x.x.x.x/y\"";
+            throw new IllegalArgumentException(msg);
         }
-        this.prefixLen = Short.decode(splits[1]);
-        this.address = Ip4Address.makeMaskedAddress(new Ip4Address(splits[0]),
-                this.prefixLen);
-    }
+        Ip4Address ipAddress = Ip4Address.valueOf(parts[0]);
+        int prefixLength = Integer.parseInt(parts[1]);
 
-    /**
-     * Gets the address value of the IPv4 prefix.
-     *
-     * @return the address value of the IPv4 prefix
-     */
-    public Ip4Address getAddress() {
-        return address;
-    }
-
-    /**
-     * Gets the prefix length value of the IPv4 prefix.
-     *
-     * @return the prefix length value of the IPv4 prefix
-     */
-    public short getPrefixLen() {
-        return prefixLen;
-    }
-
-    /**
-     * Converts the IPv4 prefix value to an "address/prefixLen" string.
-     *
-     * @return the IPv4 prefix value as an "address/prefixLen" string
-     */
-    @Override
-    public String toString() {
-        return this.address.toString() + "/" + this.prefixLen;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-
-        if (!(other instanceof Ip4Prefix)) {
-            return false;
-        }
-
-        Ip4Prefix otherIp4Prefix = (Ip4Prefix) other;
-
-        return Objects.equals(this.address, otherIp4Prefix.address)
-                && this.prefixLen == otherIp4Prefix.prefixLen;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(address, prefixLen);
+        return new Ip4Prefix(ipAddress, prefixLength);
     }
 }

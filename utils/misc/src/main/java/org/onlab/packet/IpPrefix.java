@@ -20,12 +20,13 @@ import java.util.Objects;
 /**
  * A class representing an IP prefix. A prefix consists of an IP address and
  * a subnet mask.
+ * This class is immutable.
  * <p>
  * NOTE: The stored IP address in the result IP prefix is masked to
  * contain zeroes in all bits after the prefix length.
  * </p>
  */
-public final class IpPrefix {
+public class IpPrefix {
     // Maximum network mask length
     public static final int MAX_INET_MASK_LENGTH = IpAddress.INET_BIT_LENGTH;
     public static final int MAX_INET6_MASK_LENGTH = IpAddress.INET6_BIT_LENGTH;
@@ -40,7 +41,7 @@ public final class IpPrefix {
      * @param prefixLength the prefix length
      * @throws IllegalArgumentException if the prefix length value is invalid
      */
-    private IpPrefix(IpAddress address, int prefixLength) {
+    protected IpPrefix(IpAddress address, int prefixLength) {
         checkPrefixLength(address.version(), prefixLength);
         this.address = IpAddress.makeMaskedAddress(address, prefixLength);
         this.prefixLength = (short) prefixLength;
@@ -100,7 +101,7 @@ public final class IpPrefix {
     }
 
     /**
-     * Converts an IP address and a prefix length into IP prefix.
+     * Converts an IP address and a prefix length into an IP prefix.
      *
      * @param address the IP address
      * @param prefixLength the prefix length
@@ -112,10 +113,11 @@ public final class IpPrefix {
     }
 
     /**
-     * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16") into an
-     * IP prefix.
+     * Converts a CIDR (slash) notation string (e.g., "10.1.0.0/16" or
+     * "1111:2222::/64") into an IP prefix.
      *
-     * @param address an IP prefix in string form, e.g. "10.1.0.0/16"
+     * @param address an IP prefix in string form (e.g. "10.1.0.0/16" or
+     * "1111:2222::/64")
      * @return an IP prefix
      * @throws IllegalArgumentException if the arguments are invalid
      */
@@ -123,7 +125,8 @@ public final class IpPrefix {
         final String[] parts = address.split("/");
         if (parts.length != 2) {
             String msg = "Malformed IP prefix string: " + address + "." +
-                "Address must take form \"x.x.x.x/y\"";
+                "Address must take form \"x.x.x.x/y\" or " +
+                "\"xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/y\"";
             throw new IllegalArgumentException(msg);
         }
         IpAddress ipAddress = IpAddress.valueOf(parts[0]);

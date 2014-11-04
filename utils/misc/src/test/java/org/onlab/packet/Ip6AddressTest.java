@@ -15,10 +15,13 @@
  */
 package org.onlab.packet;
 
+import com.google.common.net.InetAddresses;
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
+import java.net.InetAddress;
+
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -36,10 +39,18 @@ public class Ip6AddressTest {
     }
 
     /**
+     * Tests the IPv4 address version constant.
+     */
+    @Test
+    public void testAddressVersion() {
+        assertThat(Ip6Address.VERSION, is(IpAddress.Version.INET6));
+    }
+
+    /**
      * Tests the length of the address in bytes (octets).
      */
     @Test
-    public void testAddrBytelen() {
+    public void testAddrByteLength() {
         assertThat(Ip6Address.BYTE_LENGTH, is(16));
     }
 
@@ -47,406 +58,440 @@ public class Ip6AddressTest {
      * Tests the length of the address in bits.
      */
     @Test
-    public void testAddrBitlen() {
+    public void testAddrBitLength() {
         assertThat(Ip6Address.BIT_LENGTH, is(128));
     }
 
     /**
-     * Tests default class constructor.
+     * Tests returning the IP address version.
      */
     @Test
-    public void testDefaultConstructor() {
-        Ip6Address ip6Address = new Ip6Address();
-        assertThat(ip6Address.toString(), is("::"));
+    public void testVersion() {
+        IpAddress ipAddress;
+
+        // IPv6
+        ipAddress = IpAddress.valueOf("::");
+        assertThat(ipAddress.version(), is(IpAddress.Version.INET6));
     }
 
     /**
-     * Tests valid class copy constructor.
+     * Tests returning an IPv6 address as a byte array.
      */
     @Test
-    public void testCopyConstructor() {
-        Ip6Address fromAddr =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        Ip6Address ip6Address = new Ip6Address(fromAddr);
-        assertThat(ip6Address.toString(),
+    public void testAddressToOctetsIPv6() {
+        Ip6Address ipAddress;
+        byte[] value;
+
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88};
+        ipAddress =
+            Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        assertThat(ipAddress.toOctets(), is(value));
+
+        value = new byte[] {0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00};
+        ipAddress = Ip6Address.valueOf("::");
+        assertThat(ipAddress.toOctets(), is(value));
+
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipAddress =
+            Ip6Address.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        assertThat(ipAddress.toOctets(), is(value));
+    }
+
+    /**
+     * Tests valueOf() converter for IPv6 byte array.
+     */
+    @Test
+    public void testValueOfByteArrayIPv6() {
+        Ip6Address ipAddress;
+        byte[] value;
+
+        value = new byte[] {0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88};
+        ipAddress = Ip6Address.valueOf(value);
+        assertThat(ipAddress.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8888"));
 
-        fromAddr = new Ip6Address("::");
-        ip6Address = new Ip6Address(fromAddr);
-        assertThat(ip6Address.toString(), is("::"));
+        value = new byte[] {0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00};
+        ipAddress = Ip6Address.valueOf(value);
+        assertThat(ipAddress.toString(), is("::"));
 
-        fromAddr = new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        ip6Address = new Ip6Address(fromAddr);
-        assertThat(ip6Address.toString(),
+        value = new byte[] {(byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff};
+        ipAddress = Ip6Address.valueOf(value);
+        assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
 
     /**
-     * Tests invalid class copy constructor for a null object to copy from.
+     * Tests invalid valueOf() converter for a null array for IPv6.
      */
     @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullObject() {
-        Ip6Address fromAddr = null;
-        Ip6Address ip6Address = new Ip6Address(fromAddr);
-    }
+    public void testInvalidValueOfNullArrayIPv6() {
+        Ip6Address ipAddress;
 
-    /**
-     * Tests valid class constructor for integer values.
-     */
-    @Test
-    public void testConstructorForInteger() {
-        Ip6Address ip6Address =
-            new Ip6Address(0x1111222233334444L, 0x5555666677778888L);
-        assertThat(ip6Address.toString(),
-                   is("1111:2222:3333:4444:5555:6666:7777:8888"));
-
-        ip6Address = new Ip6Address(0L, 0L);
-        assertThat(ip6Address.toString(), is("::"));
-
-        ip6Address = new Ip6Address(-1L, -1L);
-        assertThat(ip6Address.toString(),
-                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
-    }
-
-    /**
-     * Tests valid class constructor for an array value.
-     */
-    @Test
-    public void testConstructorForArray() {
-        final byte[] value1 = new byte[] {0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88};
-        Ip6Address ip6Address = new Ip6Address(value1);
-        assertThat(ip6Address.toString(),
-                   is("1111:2222:3333:4444:5555:6666:7777:8888"));
-
-        final byte[] value2 = new byte[] {0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00};
-        ip6Address = new Ip6Address(value2);
-        assertThat(ip6Address.toString(), is("::"));
-
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
-        ip6Address = new Ip6Address(value3);
-        assertThat(ip6Address.toString(),
-                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
-    }
-
-    /**
-     * Tests valid class constructor for an array value and an offset.
-     */
-    @Test
-    public void testConstructorForArrayAndOffset() {
-        final byte[] value1 = new byte[] {11, 22, 33,           // Preamble
-                                          0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88,
-                                          44, 55};              // Extra bytes
-        Ip6Address ip6Address = new Ip6Address(value1, 3);
-        assertThat(ip6Address.toString(),
-                   is("1111:2222:3333:4444:5555:6666:7777:8888"));
-
-        final byte[] value2 = new byte[] {11, 22,               // Preamble
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          33};                  // Extra bytes
-        ip6Address = new Ip6Address(value2, 2);
-        assertThat(ip6Address.toString(), is("::"));
-
-        final byte[] value3 = new byte[] {11, 22,               // Preamble
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          33};                  // Extra bytes
-        ip6Address = new Ip6Address(value3, 2);
-        assertThat(ip6Address.toString(),
-                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
-    }
-
-    /**
-     * Tests invalid class constructor for a null array.
-     */
-    @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullArray() {
         final byte[] fromArray = null;
-        Ip6Address ip6Address = new Ip6Address(fromArray);
+        ipAddress = Ip6Address.valueOf(fromArray);
     }
 
     /**
-     * Tests invalid class constructor for an array that is too short.
+     * Tests invalid valueOf() converger for an array that is too short for
+     * IPv6.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testInvalidConstructorShortArray() {
+    public void testInvalidValueOfShortArrayIPv6() {
+        Ip6Address ipAddress;
+
         final byte[] fromArray = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        Ip6Address ip6Address = new Ip6Address(fromArray);
+        ipAddress = Ip6Address.valueOf(fromArray);
     }
 
     /**
-     * Tests invalid class constructor for an array and an invalid offset.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidConstructorArrayInvalidOffset() {
-        final byte[] value1 = new byte[] {11, 22, 33,           // Preamble
-                                          0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88,
-                                          44, 55};              // Extra bytes
-        Ip6Address ip6Address = new Ip6Address(value1, 6);
-    }
-
-    /**
-     * Tests valid class constructor for a string.
+     * Tests valueOf() converter for IPv6 byte array and an offset.
      */
     @Test
-    public void testConstructorForString() {
-        Ip6Address ip6Address =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(ip6Address.toString(),
+    public void testValueOfByteArrayOffsetIPv6() {
+        Ip6Address ipAddress;
+        byte[] value;
+
+        value = new byte[] {11, 22, 33,                         // Preamble
+                            0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88,
+                            44, 55};                            // Extra bytes
+        ipAddress = Ip6Address.valueOf(value, 3);
+        assertThat(ipAddress.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8888"));
 
-        ip6Address = new Ip6Address("::");
-        assertThat(ip6Address.toString(), is("::"));
+        value = new byte[] {11, 22,                             // Preamble
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00,
+                            33};                                // Extra bytes
+        ipAddress = Ip6Address.valueOf(value, 2);
+        assertThat(ipAddress.toString(), is("::"));
 
-        ip6Address = new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(ip6Address.toString(),
+        value = new byte[] {11, 22,                             // Preamble
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            (byte) 0xff, (byte) 0xff,
+                            33};                                // Extra bytes
+        ipAddress = Ip6Address.valueOf(value, 2);
+        assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
 
     /**
-     * Tests invalid class constructor for a null string.
-     */
-    @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullString() {
-        String fromString = null;
-        Ip6Address ip6Address = new Ip6Address(fromString);
-    }
-
-    /**
-     * Tests invalid class constructor for an empty string.
+     * Tests invalid valueOf() converger for an array and an invalid offset
+     * for IPv6.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testInvalidConstructors() {
-        // Check constructor for invalid ID: empty string
-        Ip6Address ip6Address = new Ip6Address("");
+    public void testInvalidValueOfArrayInvalidOffsetIPv6() {
+        Ip6Address ipAddress;
+        byte[] value;
+
+        value = new byte[] {11, 22, 33,                         // Preamble
+                            0x11, 0x11, 0x22, 0x22,
+                            0x33, 0x33, 0x44, 0x44,
+                            0x55, 0x55, 0x66, 0x66,
+                            0x77, 0x77,
+                            (byte) 0x88, (byte) 0x88,
+                            44, 55};                            // Extra bytes
+        ipAddress = Ip6Address.valueOf(value, 6);
     }
 
     /**
-     * Tests returning the address as a byte array.
+     * Tests valueOf() converter for IPv6 InetAddress.
      */
     @Test
-    public void testAddressToOctets() {
-        final byte[] value1 = new byte[] {0x11, 0x11, 0x22, 0x22,
-                                          0x33, 0x33, 0x44, 0x44,
-                                          0x55, 0x55, 0x66, 0x66,
-                                          0x77, 0x77,
-                                          (byte) 0x88, (byte) 0x88};
-        Ip6Address ip6Address =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(ip6Address.toOctets(), is(value1));
+    public void testValueOfInetAddressIPv6() {
+        Ip6Address ipAddress;
+        InetAddress inetAddress;
 
-        final byte[] value2 = new byte[] {0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00};
-        ip6Address = new Ip6Address("::");
-        assertThat(ip6Address.toOctets(), is(value2));
+        inetAddress =
+            InetAddresses.forString("1111:2222:3333:4444:5555:6666:7777:8888");
+        ipAddress = Ip6Address.valueOf(inetAddress);
+        assertThat(ipAddress.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8888"));
 
-        final byte[] value3 = new byte[] {(byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff,
-                                          (byte) 0xff, (byte) 0xff};
-        ip6Address = new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(ip6Address.toOctets(), is(value3));
+        inetAddress = InetAddresses.forString("::");
+        ipAddress = Ip6Address.valueOf(inetAddress);
+        assertThat(ipAddress.toString(), is("::"));
+
+        inetAddress =
+            InetAddresses.forString("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        ipAddress = Ip6Address.valueOf(inetAddress);
+        assertThat(ipAddress.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
 
     /**
-     * Tests making a mask prefix for a given prefix length.
+     * Tests valueOf() converter for IPv6 string.
      */
     @Test
-    public void testMakeMaskPrefix() {
-        Ip6Address ip6Address = Ip6Address.makeMaskPrefix(8);
-        assertThat(ip6Address.toString(), is("ff00::"));
+    public void testValueOfStringIPv6() {
+        Ip6Address ipAddress;
 
-        ip6Address = Ip6Address.makeMaskPrefix(120);
-        assertThat(ip6Address.toString(),
+        ipAddress =
+            Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        assertThat(ipAddress.toString(),
+                   is("1111:2222:3333:4444:5555:6666:7777:8888"));
+
+        ipAddress = Ip6Address.valueOf("::");
+        assertThat(ipAddress.toString(), is("::"));
+
+        ipAddress =
+            Ip6Address.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        assertThat(ipAddress.toString(),
+                   is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
+    }
+
+    /**
+     * Tests invalid valueOf() converter for a null string.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidValueOfNullString() {
+        Ip6Address ipAddress;
+
+        String fromString = null;
+        ipAddress = Ip6Address.valueOf(fromString);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for an empty string.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfEmptyString() {
+        Ip6Address ipAddress;
+
+        String fromString = "";
+        ipAddress = Ip6Address.valueOf(fromString);
+    }
+
+    /**
+     * Tests invalid valueOf() converter for an incorrect string.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidValueOfIncorrectString() {
+        Ip6Address ipAddress;
+
+        String fromString = "NoSuchIpAddress";
+        ipAddress = Ip6Address.valueOf(fromString);
+    }
+
+    /**
+     * Tests making a mask prefix for a given prefix length for IPv6.
+     */
+    @Test
+    public void testMakeMaskPrefixIPv6() {
+        Ip6Address ipAddress;
+
+        ipAddress = Ip6Address.makeMaskPrefix(8);
+        assertThat(ipAddress.toString(), is("ff00::"));
+
+        ipAddress = Ip6Address.makeMaskPrefix(120);
+        assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff00"));
 
-        ip6Address = Ip6Address.makeMaskPrefix(0);
-        assertThat(ip6Address.toString(), is("::"));
+        ipAddress = Ip6Address.makeMaskPrefix(0);
+        assertThat(ipAddress.toString(), is("::"));
 
-        ip6Address = Ip6Address.makeMaskPrefix(128);
-        assertThat(ip6Address.toString(),
+        ipAddress = Ip6Address.makeMaskPrefix(128);
+        assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
 
-        ip6Address = Ip6Address.makeMaskPrefix(64);
-        assertThat(ip6Address.toString(), is("ffff:ffff:ffff:ffff::"));
+        ipAddress = Ip6Address.makeMaskPrefix(64);
+        assertThat(ipAddress.toString(), is("ffff:ffff:ffff:ffff::"));
     }
 
     /**
-     * Tests making of a masked address.
+     * Tests making a mask prefix for an invalid prefix length for IPv6:
+     * negative prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeNegativeMaskPrefixIPv6() {
+        Ip6Address ipAddress;
+
+        ipAddress = Ip6Address.makeMaskPrefix(-1);
+    }
+
+    /**
+     * Tests making a mask prefix for an invalid prefix length for IPv6:
+     * too long prefix length.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeTooLongMaskPrefixIPv6() {
+        Ip6Address ipAddress;
+
+        ipAddress = Ip6Address.makeMaskPrefix(129);
+    }
+
+    /**
+     * Tests making of a masked address for IPv6.
      */
     @Test
-    public void testMakeMaskedAddress() {
-        Ip6Address ip6Address =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8885");
-        Ip6Address ip6AddressMasked =
-            Ip6Address.makeMaskedAddress(ip6Address, 8);
-        assertThat(ip6AddressMasked.toString(), is("1100::"));
+    public void testMakeMaskedAddressIPv6() {
+        Ip6Address ipAddress =
+            Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8885");
+        Ip6Address ipAddressMasked;
 
-        ip6AddressMasked = Ip6Address.makeMaskedAddress(ip6Address, 120);
-        assertThat(ip6AddressMasked.toString(),
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, 8);
+        assertThat(ipAddressMasked.toString(), is("1100::"));
+
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, 120);
+        assertThat(ipAddressMasked.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8800"));
 
-        ip6AddressMasked = Ip6Address.makeMaskedAddress(ip6Address, 0);
-        assertThat(ip6AddressMasked.toString(), is("::"));
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, 0);
+        assertThat(ipAddressMasked.toString(), is("::"));
 
-        ip6AddressMasked = Ip6Address.makeMaskedAddress(ip6Address, 128);
-        assertThat(ip6AddressMasked.toString(),
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, 128);
+        assertThat(ipAddressMasked.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8885"));
 
-        ip6AddressMasked = Ip6Address.makeMaskedAddress(ip6Address, 64);
-        assertThat(ip6AddressMasked.toString(), is("1111:2222:3333:4444::"));
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, 64);
+        assertThat(ipAddressMasked.toString(), is("1111:2222:3333:4444::"));
     }
 
     /**
-     * Tests getting the value of an address.
+     * Tests making of a masked address for invalid prefix length for IPv6:
+     * negative prefix length.
      */
-    @Test
-    public void testGetValue() {
-        Ip6Address ip6Address =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(ip6Address.getValueHigh(), is(0x1111222233334444L));
-        assertThat(ip6Address.getValueLow(), is(0x5555666677778888L));
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeNegativeMaskedAddressIPv6() {
+        Ip6Address ipAddress =
+            Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8885");
+        Ip6Address ipAddressMasked;
 
-        ip6Address = new Ip6Address(0, 0);
-        assertThat(ip6Address.getValueHigh(), is(0L));
-        assertThat(ip6Address.getValueLow(), is(0L));
-
-        ip6Address = new Ip6Address(-1L, -1L);
-        assertThat(ip6Address.getValueHigh(), is(-1L));
-        assertThat(ip6Address.getValueLow(), is(-1L));
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, -1);
     }
 
     /**
-     * Tests equality of {@link Ip6Address}.
+     * Tests making of a masked address for an invalid prefix length for IPv6:
+     * too long prefix length.
      */
-    @Test
-    public void testEquality() {
-        Ip6Address addr1 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        Ip6Address addr2 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(addr1, is(addr2));
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidMakeTooLongMaskedAddressIPv6() {
+        Ip6Address ipAddress =
+            Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8885");
+        Ip6Address ipAddressMasked;
 
-        addr1 = new Ip6Address("::");
-        addr2 = new Ip6Address("::");
-        assertThat(addr1, is(addr2));
-
-        addr1 = new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        addr2 = new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(addr1, is(addr2));
+        ipAddressMasked = Ip6Address.makeMaskedAddress(ipAddress, 129);
     }
 
     /**
-     * Tests non-equality of {@link Ip6Address}.
+     * Tests comparison of {@link Ip6Address} for IPv6.
      */
     @Test
-    public void testNonEquality() {
-        Ip6Address addr1 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        Ip6Address addr2 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:888A");
-        Ip6Address addr3 = new Ip6Address("::");
-        Ip6Address addr4 =
-            new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(addr1, is(not(addr2)));
-        assertThat(addr3, is(not(addr2)));
-        assertThat(addr4, is(not(addr2)));
-    }
+    public void testComparisonIPv6() {
+        Ip6Address addr1, addr2, addr3, addr4;
 
-    /**
-     * Tests comparison of {@link Ip6Address}.
-     */
-    @Test
-    public void testComparison() {
-        Ip6Address addr1 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        Ip6Address addr2 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        Ip6Address addr3 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8887");
-        Ip6Address addr4 =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8889");
+        addr1 = Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        addr2 = Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        addr3 = Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8887");
+        addr4 = Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8889");
         assertTrue(addr1.compareTo(addr2) == 0);
         assertTrue(addr1.compareTo(addr3) > 0);
         assertTrue(addr1.compareTo(addr4) < 0);
 
-        addr1 = new Ip6Address("ffff:2222:3333:4444:5555:6666:7777:8888");
-        addr2 = new Ip6Address("ffff:2222:3333:4444:5555:6666:7777:8888");
-        addr3 = new Ip6Address("ffff:2222:3333:4444:5555:6666:7777:8887");
-        addr4 = new Ip6Address("ffff:2222:3333:4444:5555:6666:7777:8889");
+        addr1 = Ip6Address.valueOf("ffff:2222:3333:4444:5555:6666:7777:8888");
+        addr2 = Ip6Address.valueOf("ffff:2222:3333:4444:5555:6666:7777:8888");
+        addr3 = Ip6Address.valueOf("ffff:2222:3333:4444:5555:6666:7777:8887");
+        addr4 = Ip6Address.valueOf("ffff:2222:3333:4444:5555:6666:7777:8889");
         assertTrue(addr1.compareTo(addr2) == 0);
         assertTrue(addr1.compareTo(addr3) > 0);
         assertTrue(addr1.compareTo(addr4) < 0);
 
-        addr1 = new Ip6Address("ffff:2222:3333:4444:5555:6666:7777:8888");
-        addr2 = new Ip6Address("ffff:2222:3333:4444:5555:6666:7777:8888");
-        addr3 = new Ip6Address("ffff:2222:3333:4443:5555:6666:7777:8888");
-        addr4 = new Ip6Address("ffff:2222:3333:4445:5555:6666:7777:8888");
+        addr1 = Ip6Address.valueOf("ffff:2222:3333:4444:5555:6666:7777:8888");
+        addr2 = Ip6Address.valueOf("ffff:2222:3333:4444:5555:6666:7777:8888");
+        addr3 = Ip6Address.valueOf("ffff:2222:3333:4443:5555:6666:7777:8888");
+        addr4 = Ip6Address.valueOf("ffff:2222:3333:4445:5555:6666:7777:8888");
         assertTrue(addr1.compareTo(addr2) == 0);
         assertTrue(addr1.compareTo(addr3) > 0);
         assertTrue(addr1.compareTo(addr4) < 0);
     }
 
     /**
-     * Tests object string representation.
+     * Tests equality of {@link Ip6Address} for IPv6.
      */
     @Test
-    public void testToString() {
-        Ip6Address ip6Address =
-            new Ip6Address("1111:2222:3333:4444:5555:6666:7777:8888");
-        assertThat(ip6Address.toString(),
+    public void testEqualityIPv6() {
+        new EqualsTester()
+            .addEqualityGroup(
+                Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888"),
+                Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888"))
+            .addEqualityGroup(
+                Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:888a"),
+                Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:888a"))
+            .addEqualityGroup(
+                Ip6Address.valueOf("::"),
+                Ip6Address.valueOf("::"))
+            .addEqualityGroup(
+                Ip6Address.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+                Ip6Address.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"))
+            .testEquals();
+    }
+
+    /**
+     * Tests object string representation for IPv6.
+     */
+    @Test
+    public void testToStringIPv6() {
+        Ip6Address ipAddress;
+
+        ipAddress =
+            Ip6Address.valueOf("1111:2222:3333:4444:5555:6666:7777:8888");
+        assertThat(ipAddress.toString(),
                    is("1111:2222:3333:4444:5555:6666:7777:8888"));
 
-        ip6Address = new Ip6Address("1111::8888");
-        assertThat(ip6Address.toString(), is("1111::8888"));
+        ipAddress = Ip6Address.valueOf("1111::8888");
+        assertThat(ipAddress.toString(), is("1111::8888"));
 
-        ip6Address = new Ip6Address("1111::");
-        assertThat(ip6Address.toString(), is("1111::"));
+        ipAddress = Ip6Address.valueOf("1111::");
+        assertThat(ipAddress.toString(), is("1111::"));
 
-        ip6Address = new Ip6Address("::8888");
-        assertThat(ip6Address.toString(), is("::8888"));
+        ipAddress = Ip6Address.valueOf("::8888");
+        assertThat(ipAddress.toString(), is("::8888"));
 
-        ip6Address = new Ip6Address("::");
-        assertThat(ip6Address.toString(), is("::"));
+        ipAddress = Ip6Address.valueOf("::");
+        assertThat(ipAddress.toString(), is("::"));
 
-        ip6Address = new Ip6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        assertThat(ip6Address.toString(),
+        ipAddress =
+            Ip6Address.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
     }
 }
