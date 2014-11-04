@@ -23,9 +23,6 @@
 (function (onos) {
     'use strict';
 
-    // reference to the framework api
-    var api = onos.api;
-
     // configuration data
     var config = {
         useLiveData: true,
@@ -1213,7 +1210,7 @@
     // ======================================================================
     // register with the UI framework
 
-    api.addView('network', {
+    onos.ui.addView('topo', {
         load: loadNetworkView
     });
 

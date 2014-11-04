@@ -24,6 +24,19 @@ html, body {
     height: 100%;
 }
 
+div.onosView {
+    display: none;
+}
+
+div.onosView.currentView {
+    display: block;
+}
+
+/*
+ * ==============================================================
+ * END OF NEW ONOS.JS file
+ * ==============================================================
+ */
 
 /*
  * === DEBUGGING ======

@@ -68,7 +68,10 @@
 
     <!-- Initialize the UI...-->
     <script type="text/javascript">
-        var ONOS = $.onos({note: "config, if needed"});
+        var ONOS = $.onos({
+            comment: "configuration options",
+            trace: false
+        });
     </script>
 
     <!-- Framework module files included here -->
@@ -76,7 +79,8 @@
 
     <!-- Contributed (application) views injected here -->
     <!-- TODO: replace with template marker and inject refs server-side -->
-    <script src="temp2.js"></script>
+    <script src="sample2.js"></script>
+    <script src="sampleAlt2.js"></script>
 
     <!-- finally, build the UI-->
     <script type="text/javascript">

@@ -24,12 +24,22 @@
     'use strict';
     var tsI = new Date().getTime(),         // initialize time stamp
         tsB,                                // build time stamp
-        defaultHash = 'temp1';
+        mastHeight = 36,                    // see mast2.css
+        defaultHash = 'sample';
 
 
     // attach our main function to the jQuery object
     $.onos = function (options) {
-        var publicApi;             // public api
+        var uiApi,
+            viewApi,
+            navApi;
+
+        var defaultOptions = {
+            trace: false
+        };
+
+        // compute runtime settings
+        var settings = $.extend({}, defaultOptions, options);
 
         // internal state
         var views = {},
@@ -55,7 +65,19 @@
 
         function doError(msg) {
             errorCount++;
-            console.warn(msg);
+            console.error(msg);
+        }
+
+        function trace(msg) {
+            if (settings.trace) {
+                console.log(msg);
+            }
+        }
+
+        function traceFn(fn, params) {
+            if (settings.trace) {
+                console.log('*FN* ' + fn + '(...): ' + params);
+            }
         }
 
         // hash navigation
@@ -64,6 +86,8 @@
                 redo = false,
                 view,
                 t;
+
+            traceFn('hash', hash);
 
             if (!hash) {
                 hash = defaultHash;
@@ -88,12 +112,12 @@
                 // hash was not modified... navigate to where we need to be
                 navigate(hash, view, t);
             }
-
         }
 
         function parseHash(s) {
             // extract navigation coordinates from the supplied string
             // "vid,ctx" --> { vid:vid, ctx:ctx }
+            traceFn('parseHash', s);
 
             var m = /^[#]{0,1}(\S+),(\S*)$/.exec(s);
             if (m) {
@@ -105,6 +129,7 @@
         }
 
         function makeHash(t, ctx) {
+            traceFn('makeHash');
             // make a hash string from the given navigation coordinates.
             // if t is not an object, then it is a vid
             var h = t,
@@ -118,43 +143,66 @@
             if (c) {
                 h += ',' + c;
             }
+            trace('hash = "' + h + '"');
             return h;
         }
 
         function navigate(hash, view, t) {
+            traceFn('navigate', view.vid);
             // closePanes()     // flyouts etc.
-            // updateNav()      // accordion / selected nav item
+            // updateNav()      // accordion / selected nav item etc.
             createView(view);
             setView(view, hash, t);
         }
 
         function reportBuildErrors() {
+            traceFn('reportBuildErrors');
             // TODO: validate registered views / nav-item linkage etc.
             console.log('(no build errors)');
+        }
+
+        // returns the reference if it is a function, null otherwise
+        function isF(f) {
+            return $.isFunction(f) ? f : null;
         }
 
         // ..........................................................
         // View life-cycle functions
 
+        function setViewDimensions(sel) {
+            var w = window.innerWidth,
+                h = window.innerHeight - mastHeight;
+            sel.each(function () {
+                $(this)
+                    .css('width', w + 'px')
+                    .css('height', h + 'px')
+            });
+        }
+
         function createView(view) {
             var $d;
+
             // lazy initialization of the view
             if (view && !view.$div) {
+                trace('creating view for ' + view.vid);
                 $d = $view.append('div')
                         .attr({
-                            id: view.vid
+                            id: view.vid,
+                            class: 'onosView'
                          });
-                view.$div = $d;     // cache a reference to the selected div
+                setViewDimensions($d);
+                view.$div = $d;   // cache a reference to the D3 selection
             }
         }
 
         function setView(view, hash, t) {
+            traceFn('setView', view.vid);
             // set the specified view as current, while invoking the
             // appropriate life-cycle callbacks
 
             // if there is a current view, and it is not the same as
             // the incoming view, then unload it...
-            if (current.view && !(current.view.vid !== view.vid)) {
+            if (current.view && (current.view.vid !== view.vid)) {
                 current.view.unload();
             }
 
@@ -162,23 +210,24 @@
             current.view = view;
             current.ctx = t.ctx || '';
 
-            // TODO: clear radio button set (store on view?)
-
             // preload is called only once, after the view is in the DOM
             if (!view.preloaded) {
-                view.preload(t.ctx);
+                view.preload(current.ctx);
+                view.preloaded = true;
             }
 
             // clear the view of stale data
             view.reset();
 
             // load the view
-            view.load(t.ctx);
+            view.load(current.ctx);
         }
 
-        function resizeView() {
+        function resize(e) {
+            d3.selectAll('.onosView').call(setViewDimensions);
+            // allow current view to react to resize event...
             if (current.view) {
-                current.view.resize();
+                current.view.resize(current.ctx);
             }
         }
 
@@ -189,28 +238,24 @@
         // Constructor
         //      vid : view id
         //      nid : id of associated nav-item (optional)
-        //      cb  : callbacks (preload, reset, load, resize, unload, error)
-        //      data: custom data object (optional)
+        //      cb  : callbacks (preload, reset, load, unload, resize, error)
         function View(vid) {
             var av = 'addView(): ',
                 args = Array.prototype.slice.call(arguments),
                 nid,
-                cb,
-                data;
+                cb;
 
             args.shift();   // first arg is always vid
             if (typeof args[0] === 'string') {  // nid specified
                 nid = args.shift();
             }
             cb = args.shift();
-            data = args.shift();
 
             this.vid = vid;
 
             if (validateViewArgs(vid)) {
                 this.nid = nid;     // explicit navitem id (can be null)
                 this.cb = $.isPlainObject(cb) ? cb : {};    // callbacks
-                this.data = data;   // custom data (can be null)
                 this.$div = null;   // view not yet added to DOM
                 this.ok = true;     // valid view
             }
@@ -218,7 +263,8 @@
         }
 
         function validateViewArgs(vid) {
-            var ok = false;
+            var av = "ui.addView(...): ",
+                ok = false;
             if (typeof vid !== 'string' || !vid) {
                 doError(av + 'vid required');
             } else if (views[vid]) {
@@ -234,29 +280,140 @@
                 return '[View: id="' + this.vid + '"]';
             },
 
-            token: function() {
+            token: function () {
                 return {
+                    // attributes
                     vid: this.vid,
                     nid: this.nid,
-                    data: this.data
+                    $div: this.$div,
+
+                    // functions
+                    width: this.width,
+                    height: this.height
                 }
+            },
+
+            preload: function (ctx) {
+                var c = ctx || '',
+                    fn = isF(this.cb.preload);
+                traceFn('View.preload', this.vid + ', ' + c);
+                if (fn) {
+                    trace('PRELOAD cb for ' + this.vid);
+                    fn(this.token(), c);
+                }
+            },
+
+            reset: function () {
+                var fn = isF(this.cb.reset);
+                traceFn('View.reset', this.vid);
+                if (fn) {
+                    trace('RESET cb for ' + this.vid);
+                    fn(this.token());
+                } else if (this.cb.reset === true) {
+                    // boolean true signifies "clear view"
+                    trace('  [true] cleaing view...');
+                    viewApi.empty();
+                }
+            },
+
+            load: function (ctx) {
+                var c = ctx || '',
+                    fn = isF(this.cb.load);
+                traceFn('View.load', this.vid + ', ' + c);
+                this.$div.classed('currentView', true);
+                // TODO: add radio button set, if needed
+                if (fn) {
+                    trace('LOAD cb for ' + this.vid);
+                    fn(this.token(), c);
+                }
+            },
+
+            unload: function () {
+                var fn = isF(this.cb.unload);
+                traceFn('View.unload', this.vid);
+                this.$div.classed('currentView', false);
+                // TODO: remove radio button set, if needed
+                if (fn) {
+                    trace('UNLOAD cb for ' + this.vid);
+                    fn(this.token());
+                }
+            },
+
+            resize: function (ctx) {
+                var c = ctx || '',
+                    fn = isF(this.cb.resize),
+                    w = this.width(),
+                    h = this.height();
+                traceFn('View.resize', this.vid + '/' + c +
+                        ' [' + w + 'x' + h + ']');
+                if (fn) {
+                    trace('RESIZE cb for ' + this.vid);
+                    fn(this.token(), c);
+                }
+            },
+
+            error: function (ctx) {
+                var c = ctx || '',
+                    fn = isF(this.cb.error);
+                traceFn('View.error', this.vid + ', ' + c);
+                if (fn) {
+                    trace('ERROR cb for ' + this.vid);
+                    fn(this.token(), c);
+                }
+            },
+
+            width: function () {
+                return $(this.$div.node()).width();
+            },
+
+            height: function () {
+                return $(this.$div.node()).height();
             }
-            // TODO: create, preload, reset, load, error, resize, unload
+
+
+            // TODO: consider schedule, clearTimer, etc.
         };
 
         // attach instance methods to the view prototype
         $.extend(View.prototype, viewInstanceMethods);
 
         // ..........................................................
-        // Exported API
+        // UI API
 
-        publicApi = {
-            printTime: function () {
-                console.log("the time is " + new Date());
-            },
-
-            addView: function (vid, nid, cb, data) {
-                var view = new View(vid, nid, cb, data),
+        uiApi = {
+            /** @api ui addView( vid, nid, cb )
+             * Adds a view to the UI.
+             * <p>
+             * Views are loaded/unloaded into the view content pane at
+             * appropriate times, by the navigation framework. This method
+             * adds a view to the UI and returns a token object representing
+             * the view. A view's token is always passed as the first
+             * argument to each of the view's life-cycle callback functions.
+             * <p>
+             * Note that if the view is directly referenced by a nav-item,
+             * or in a group of views with one of those views referenced by
+             * a nav-item, then the <i>nid</i> argument can be omitted as
+             * the framework can infer it.
+             * <p>
+             * <i>cb</i> is a plain object containing callback functions:
+             * "preload", "reset", "load", "unload", "resize", "error".
+             * <pre>
+             *     function myLoad(view, ctx) { ... }
+             *     ...
+             *     // short form...
+             *     onos.ui.addView('viewId', {
+             *         load: myLoad
+             *     });
+             * </pre>
+             *
+             * @param vid (string) [*] view ID (a unique DOM element id)
+             * @param nid (string) nav-item ID (a unique DOM element id)
+             * @param cb (object) [*] callbacks object
+             * @return the view token
+             */
+            addView: function (vid, nid, cb) {
+                traceFn('addView', vid);
+                var view = new View(vid, nid, cb),
                     token;
                 if (view.ok) {
                     views[vid] = view;
@@ -267,6 +424,33 @@
                 return token;
             }
         };
+
+        // ..........................................................
+        // View API
+
+        viewApi = {
+            /** @api view empty( )
+             * Empties the current view.
+             * <p>
+             * More specifically, removes all DOM elements from the
+             * current view's display div.
+             */
+            empty: function () {
+                if (!current.view) {
+                    return;
+                }
+                current.view.$div.html('');
+            }
+        };
+
+        // ..........................................................
+        // Nav API
+        navApi = {
+
+        };
+
+        // ..........................................................
+        // Exported API
 
         // function to be called from index.html to build the ONOS UI
         function buildOnosUi() {
@@ -283,6 +467,7 @@
             $view = d3.select('#view');
 
             $(window).on('hashchange', hash);
+            $(window).on('resize', resize);
 
             // Invoke hashchange callback to navigate to content
             // indicated by the window location hash.
@@ -295,7 +480,9 @@
 
         // export the api and build-UI function
         return {
-            api: publicApi,
+            ui: uiApi,
+            view: viewApi,
+            nav: navApi,
             buildUi: buildOnosUi
         };
     };
