@@ -347,7 +347,7 @@ class RoleManager implements RoleHandler {
 
         RoleState role = null;
         OFNiciraControllerRole ncr = nrr.getRole();
-        switch(ncr) {
+        switch (ncr) {
         case ROLE_MASTER:
             role = RoleState.MASTER;
             break;
@@ -383,7 +383,7 @@ class RoleManager implements RoleHandler {
             throws SwitchStateException {
         OFControllerRole cr = rrmsg.getRole();
         RoleState role = null;
-        switch(cr) {
+        switch (cr) {
         case ROLE_EQUAL:
             role = RoleState.EQUAL;
             break;

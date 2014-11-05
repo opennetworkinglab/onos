@@ -32,9 +32,15 @@ public class RoleReplyInfo {
         this.genId = genId;
         this.xid = xid;
     }
-    public RoleState getRole() { return role; }
-    public U64 getGenId() { return genId; }
-    public long getXid() { return xid; }
+    public RoleState getRole() {
+        return role;
+    }
+    public U64 getGenId() {
+        return genId;
+    }
+    public long getXid() {
+        return xid;
+    }
     @Override
     public String toString() {
         return "[Role:" + role + " GenId:" + genId + " Xid:" + xid + "]";
