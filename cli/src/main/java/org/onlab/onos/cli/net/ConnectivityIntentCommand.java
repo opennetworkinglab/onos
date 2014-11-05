@@ -15,14 +15,21 @@
  */
 package org.onlab.onos.cli.net;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.intent.Constraint;
+import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
+import org.onlab.onos.net.intent.constraint.LambdaConstraint;
+import org.onlab.onos.net.resource.Bandwidth;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Base class for command line operations for connectivity based intents.
@@ -41,6 +48,14 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private String ethTypeString = "";
 
+    @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
+            required = false, multiValued = false)
+    private String bandwidthString = "";
+
+    @Option(name = "-l", aliases = "--lambda", description = "Lambda",
+            required = false, multiValued = false)
+    private boolean lambda = false;
+
     /**
      * Constructs a traffic selector based on the command line arguments
      * presented to the command.
@@ -50,21 +65,43 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         Short ethType = Ethernet.TYPE_IPV4;
 
-        if (!Strings.isNullOrEmpty(ethTypeString)) {
+        if (!isNullOrEmpty(ethTypeString)) {
             EthType ethTypeParameter = EthType.valueOf(ethTypeString);
             ethType = ethTypeParameter.value();
         }
         selectorBuilder.matchEthType(ethType);
 
-        if (!Strings.isNullOrEmpty(srcMacString)) {
+        if (!isNullOrEmpty(srcMacString)) {
             selectorBuilder.matchEthSrc(MacAddress.valueOf(srcMacString));
         }
 
-        if (!Strings.isNullOrEmpty(dstMacString)) {
+        if (!isNullOrEmpty(dstMacString)) {
             selectorBuilder.matchEthDst(MacAddress.valueOf(dstMacString));
         }
 
         return selectorBuilder.build();
     }
 
+    /**
+     * Builds the constraint list for this command based on the command line
+     * parameters.
+     *
+     * @return List of constraint objects describing the constraints requested
+     */
+    protected List<Constraint> buildConstraints() {
+        final List<Constraint> constraints = new LinkedList<>();
+
+        // Check for a bandwidth specification
+        if (!isNullOrEmpty(bandwidthString)) {
+            final double bandwidthValue = Double.parseDouble(bandwidthString);
+            constraints.add(new BandwidthConstraint(Bandwidth.valueOf(bandwidthValue)));
+        }
+
+        // Check for a lambda specification
+        if (lambda) {
+            constraints.add(new LambdaConstraint(null));
+        }
+
+        return constraints;
+    }
 }

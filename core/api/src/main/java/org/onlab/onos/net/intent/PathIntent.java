@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.intent;
 
+import java.util.List;
+
 import com.google.common.base.MoreObjects;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.Path;
@@ -42,6 +44,24 @@ public class PathIntent extends ConnectivityIntent {
                       TrafficTreatment treatment, Path path) {
         super(id(PathIntent.class, selector, treatment, path), appId,
               resources(path.links()), selector, treatment);
+        this.path = path;
+    }
+
+    /**
+     * Creates a new point-to-point intent with the supplied ingress/egress
+     * ports and using the specified explicit path.
+     *
+     * @param appId     application identifier
+     * @param selector  traffic selector
+     * @param treatment treatment
+     * @param path      traversed links
+     * @param constraints  optional list of constraints
+     * @throws NullPointerException {@code path} is null
+     */
+    public PathIntent(ApplicationId appId, TrafficSelector selector,
+                      TrafficTreatment treatment, Path path, List<Constraint> constraints) {
+        super(id(PathIntent.class, selector, treatment, path, constraints), appId,
+                resources(path.links()), selector, treatment, constraints);
         this.path = path;
     }
 
@@ -75,6 +95,7 @@ public class PathIntent extends ConnectivityIntent {
                 .add("appId", appId())
                 .add("selector", selector())
                 .add("treatment", treatment())
+                .add("constraints", constraints())
                 .add("path", path)
                 .toString();
     }

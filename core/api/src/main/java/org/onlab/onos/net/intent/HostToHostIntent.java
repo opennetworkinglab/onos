@@ -105,6 +105,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
                 .add("appId", appId())
                 .add("selector", selector())
                 .add("treatment", treatment())
+                .add("constraints", constraints())
                 .add("one", one)
                 .add("two", two)
                 .toString();
