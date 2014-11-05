@@ -41,6 +41,11 @@ public class LambdaConstraint extends BooleanConstraint {
         this.lambda = lambda;
     }
 
+    // Constructor for serialization
+    private LambdaConstraint() {
+        this.lambda = null;
+    }
+
     @Override
     public boolean isValid(Link link, LinkResourceService resourceService) {
         for (ResourceRequest request : resourceService.getAvailableResources(link)) {

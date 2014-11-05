@@ -33,6 +33,11 @@ public final class Lambda extends LinkResource {
         this.lambda = lambda;
     }
 
+    // Constructor for serialization
+    private Lambda() {
+        this.lambda = 0;
+    }
+
     /**
      * Creates a new instance with given lambda.
      *

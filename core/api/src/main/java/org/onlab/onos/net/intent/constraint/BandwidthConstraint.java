@@ -43,6 +43,11 @@ public class BandwidthConstraint extends BooleanConstraint {
         this.bandwidth = checkNotNull(bandwidth, "Bandwidth cannot be null");
     }
 
+    // Constructor for serialization
+    private BandwidthConstraint() {
+        this.bandwidth = null;
+    }
+
     @Override
     public boolean isValid(Link link, LinkResourceService resourceService) {
         for (ResourceRequest request : resourceService.getAvailableResources(link)) {

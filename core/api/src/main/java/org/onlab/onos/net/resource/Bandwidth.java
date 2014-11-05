@@ -33,6 +33,11 @@ public final class Bandwidth extends LinkResource {
         this.bandwidth = bandwidth;
     }
 
+    // Constructor for serialization
+    private Bandwidth() {
+        this.bandwidth = 0;
+    }
+
     /**
      * Creates a new instance with given bandwidth.
      *

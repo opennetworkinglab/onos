@@ -49,6 +49,12 @@ public class LinkTypeConstraint extends BooleanConstraint {
         this.isInclusive = inclusive;
     }
 
+    // Constructor for serialization
+    private LinkTypeConstraint() {
+        this.types = null;
+        this.isInclusive = false;
+    }
+
     @Override
     public boolean isValid(Link link, LinkResourceService resourceService) {
         boolean contains = types.contains(link.type());

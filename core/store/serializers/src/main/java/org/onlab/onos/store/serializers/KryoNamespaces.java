@@ -75,9 +75,15 @@ import org.onlab.onos.net.intent.OpticalConnectivityIntent;
 import org.onlab.onos.net.intent.OpticalPathIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
+import org.onlab.onos.net.intent.constraint.BooleanConstraint;
+import org.onlab.onos.net.intent.constraint.LambdaConstraint;
+import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.resource.Bandwidth;
+import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.ChassisId;
@@ -188,7 +194,13 @@ public final class KryoNamespaces {
                     LinkCollectionIntent.class,
                     OpticalConnectivityIntent.class,
                     OpticalPathIntent.class,
-                    LinkResourceRequest.class
+                    LinkResourceRequest.class,
+                    Lambda.class,
+                    Bandwidth.class,
+                    LambdaConstraint.class,
+                    BandwidthConstraint.class,
+                    LinkTypeConstraint.class,
+                    BooleanConstraint.class
                     )
             .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
             .register(URI.class, new URISerializer())
