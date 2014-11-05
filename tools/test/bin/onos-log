@@ -19,11 +19,11 @@ instance=$2
     LOG=$ONOS_INSTALL_DIR/$KARAF_DIST/instances/$instance/data/log/karaf.log || \
     LOG=$ONOS_INSTALL_DIR/log/karaf.log
 
-trap "ssh $remote 'ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | xargs kill'" EXIT
 
 if [ $less -eq 1 ]; then
     ssh -t $remote "less $LOG"
 else
+    trap "ssh $remote 'ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | xargs kill'" EXIT
     ssh $remote "
     while true; do
         echo ==================================================================
