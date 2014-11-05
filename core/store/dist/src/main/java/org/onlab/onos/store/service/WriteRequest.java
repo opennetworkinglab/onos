@@ -15,19 +15,23 @@ public class WriteRequest {
     private final long previousVersion;
     private final byte[] oldValue;
 
+    // put regardless of previous value
     public WriteRequest(String tableName, String key, byte[] newValue) {
         this(tableName, key, newValue, -1, null);
     }
 
+    // put if version matches
     public WriteRequest(String tableName, String key, byte[] newValue, long previousVersion) {
         this(tableName, key, newValue, previousVersion, null);
         checkArgument(previousVersion >= 0);
     }
 
+    // put if value matches
     public WriteRequest(String tableName, String key, byte[] newValue, byte[] oldValue) {
         this(tableName, key, newValue, -1, oldValue);
     }
 
+    // hidden constructor
     private WriteRequest(String tableName, String key, byte[] newValue, long previousVersion, byte[] oldValue) {
 
         checkArgument(tableName != null);

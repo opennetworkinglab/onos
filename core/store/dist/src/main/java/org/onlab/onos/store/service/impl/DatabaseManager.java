@@ -56,14 +56,15 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Activate
     public void activate() {
+        // FIXME hack tcpPort +1 for copycat communication
         TcpMember localMember =
                 new TcpMember(
                         clusterService.getLocalNode().ip().toString(),
-                        clusterService.getLocalNode().tcpPort());
+                        clusterService.getLocalNode().tcpPort() + 1);
         List<TcpMember> remoteMembers = Lists.newArrayList();
 
         for (ControllerNode node : clusterService.getNodes()) {
-            TcpMember member = new TcpMember(node.ip().toString(), node.tcpPort());
+            TcpMember member = new TcpMember(node.ip().toString(), node.tcpPort() + 1);
             if (!member.equals(localMember)) {
                 remoteMembers.add(member);
             }
