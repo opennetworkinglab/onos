@@ -15,10 +15,8 @@ import net.kuujo.copycat.log.ChronicleLog;
 import net.kuujo.copycat.log.Log;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.netty.Endpoint;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
@@ -42,8 +40,8 @@ import com.google.common.collect.Lists;
  * Strongly consistent and durable state management service based on
  * Copycat implementation of Raft consensus protocol.
  */
-@Component(immediate = true)
-@Service
+//@Component(immediate = true)
+//@Service
 public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     private final Logger log = getLogger(getClass());
