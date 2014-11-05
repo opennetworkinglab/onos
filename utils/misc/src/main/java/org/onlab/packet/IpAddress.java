@@ -312,7 +312,7 @@ public class IpAddress implements Comparable<IpAddress> {
         if (this == obj) {
             return true;
         }
-        if ((obj == null) || (getClass() != obj.getClass())) {
+        if ((obj == null) || (!(obj instanceof IpAddress))) {
             return false;
         }
         IpAddress other = (IpAddress) obj;

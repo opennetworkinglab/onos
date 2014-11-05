@@ -221,7 +221,7 @@ public class IpPrefix {
         if (this == obj) {
             return true;
         }
-        if ((obj == null) || (getClass() != obj.getClass())) {
+        if ((obj == null) || (!(obj instanceof IpPrefix))) {
             return false;
         }
         IpPrefix other = (IpPrefix) obj;
