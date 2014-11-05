@@ -134,7 +134,7 @@ public abstract class ConnectivityIntent extends Intent {
      * @return collection of link resources
      */
     protected static Collection<NetworkResource> resources(Collection<Link> links) {
-        return ImmutableSet.<NetworkResource>copyOf((Iterable<? extends NetworkResource>) links);
+        return ImmutableSet.copyOf(links);
     }
 
 }
