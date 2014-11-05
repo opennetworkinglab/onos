@@ -17,24 +17,59 @@ public class WriteRequest {
     private final long previousVersion;
     private final byte[] oldValue;
 
-    // put regardless of previous value
-    public WriteRequest(String tableName, String key, byte[] newValue) {
-        this(tableName, key, newValue, -1, null);
+    /**
+     * Creates a write request, which will
+     * put the specified value to the table regardless of the previous value.
+     *
+     * @param tableName name of the table
+     * @param key       key in the table
+     * @param newValue  value to write
+     * @return WriteRequest
+     */
+    public static WriteRequest put(String tableName, String key,
+                                   byte[] newValue) {
+        return new WriteRequest(tableName, key, newValue, -1, null);
     }
 
-    // put if version matches
-    public WriteRequest(String tableName, String key, byte[] newValue, long previousVersion) {
-        this(tableName, key, newValue, previousVersion, null);
+    // FIXME: Is there a special version value to realize putIfAbsent?
+    /**
+     * Creates a write request, which will
+     * put the specified value to the table if the previous version matches.
+     *
+     * @param tableName name of the table
+     * @param key       key in the table
+     * @param newValue  value to write
+     * @param previousVersion previous version expected
+     * @return WriteRequest
+     */
+    public static WriteRequest putIfVersionMatches(String tableName, String key,
+                                                   byte[] newValue,
+                                                   long previousVersion) {
         checkArgument(previousVersion >= 0);
+        return new WriteRequest(tableName, key, newValue, previousVersion, null);
     }
 
-    // put if value matches
-    public WriteRequest(String tableName, String key, byte[] newValue, byte[] oldValue) {
-        this(tableName, key, newValue, -1, oldValue);
+    // FIXME: What is the behavior of oldValue=null? putIfAbsent?
+    /**
+     * Creates a write request, which will
+     * put the specified value to the table if the previous value matches.
+     *
+     * @param tableName name of the table
+     * @param key       key in the table
+     * @param newValue  value to write
+     * @param oldValue  previous value expected
+     * @return WriteRequest
+     */
+    public static WriteRequest putIfValueMatches(String tableName, String key,
+                                                 byte[] newValue,
+                                                 byte[] oldValue) {
+        return new WriteRequest(tableName, key, newValue, -1, oldValue);
     }
+
+    // FIXME: How do we remove value? newValue=null?
 
     // hidden constructor
-    private WriteRequest(String tableName, String key, byte[] newValue, long previousVersion, byte[] oldValue) {
+    protected WriteRequest(String tableName, String key, byte[] newValue, long previousVersion, byte[] oldValue) {
 
         checkArgument(tableName != null);
         checkArgument(key != null);
