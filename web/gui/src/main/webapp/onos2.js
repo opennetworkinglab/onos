@@ -49,11 +49,38 @@
                 ctx: ''
             },
             built = false,
-            errorCount = 0;
+            errorCount = 0,
+            keyHandler = {};
 
         // DOM elements etc.
         var $view,
             $mastRadio;
+
+
+        function whatKey(code) {
+            switch (code) {
+                case 13: return 'enter';
+                case 16: return 'shift';
+                case 17: return 'ctrl';
+                case 18: return 'alt';
+                case 27: return 'esc';
+                case 32: return 'space';
+                case 37: return 'leftArrow';
+                case 38: return 'upArrow';
+                case 39: return 'rightArrow';
+                case 40: return 'downArrow';
+                case 91: return 'cmdLeft';
+                case 93: return 'cmdRight';
+                default:
+                    if ((code >= 48 && code <= 57) ||
+                        (code >= 65 && code <= 90)) {
+                        return String.fromCharCode(code);
+                    } else if (code >= 112 && code <= 123) {
+                        return 'F' + (code - 111);
+                    }
+                    return '.';
+            }
+        }
 
 
         // ..........................................................
@@ -206,9 +233,11 @@
             // the incoming view, then unload it...
             if (current.view && (current.view.vid !== view.vid)) {
                 current.view.unload();
-                // detach radio buttons, if they were there..
-                $('#mastRadio').children().detach();
 
+                // detach radio buttons, key handlers, etc.
+                $('#mastRadio').children().detach();
+                keyHandler.fn = null;
+                keyHandler.map = {};
             }
 
             // cache new view and context
@@ -283,6 +312,27 @@
             $mastRadio.node().appendChild(btnG.node());
         }
 
+        function setKeyBindings(keyArg) {
+            if ($.isFunction(keyArg)) {
+                // set general key handler callback
+                keyHandler.fn = keyArg;
+            } else {
+                // set specific key filter map
+                keyHandler.map = keyArg;
+            }
+        }
+
+        function keyIn() {
+            var event = d3.event,
+                keyCode = event.keyCode,
+                key = whatKey(keyCode),
+                cb = isF(keyHandler.map[key]) || isF(keyHandler.fn);
+
+            if (cb) {
+                cb(current.view.token(), key, keyCode, event);
+            }
+        }
+
         function resize(e) {
             d3.selectAll('.onosView').call(setViewDimensions);
             // allow current view to react to resize event...
@@ -320,7 +370,6 @@
                 this.radioButtons = null;       // no radio buttons yet
                 this.ok = true;                 // valid view
             }
-
         }
 
         function validateViewArgs(vid) {
@@ -348,7 +397,8 @@
                     width: this.width,
                     height: this.height,
                     uid: this.uid,
-                    setRadio: this.setRadio
+                    setRadio: this.setRadio,
+                    setKeys: this.setKeys
                 }
             },
 
@@ -431,6 +481,10 @@
 
             setRadio: function (btnSet, cb) {
                 setRadioButtons(this.vid, btnSet, cb);
+            },
+
+            setKeys: function (keyArg) {
+                setKeyBindings(keyArg);
             },
 
             uid: function (id) {
@@ -536,6 +590,8 @@
             $(window).on('hashchange', hash);
             $(window).on('resize', resize);
 
+            d3.select('body').on('keydown', keyIn);
+
             // Invoke hashchange callback to navigate to content
             // indicated by the window location hash.
             hash();
@@ -543,7 +599,6 @@
             // If there were any build errors, report them
             reportBuildErrors();
         }
-
 
         // export the api and build-UI function
         return {
