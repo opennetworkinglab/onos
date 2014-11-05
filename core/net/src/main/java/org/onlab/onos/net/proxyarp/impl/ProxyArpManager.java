@@ -56,6 +56,7 @@ import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
@@ -113,7 +114,7 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     @Override
-    public boolean known(IpAddress addr) {
+    public boolean known(Ip4Address addr) {
         checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
@@ -131,9 +132,8 @@ public class ProxyArpManager implements ProxyArpService {
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
         if (isOutsidePort(inPort)) {
-            IpAddress target =
-                IpAddress.valueOf(IpAddress.Version.INET,
-                                  arp.getTargetProtocolAddress());
+            Ip4Address target =
+                Ip4Address.valueOf(arp.getTargetProtocolAddress());
             Set<PortAddresses> addressSet =
                 hostService.getAddressBindingsForPort(inPort);
 
@@ -141,7 +141,7 @@ public class ProxyArpManager implements ProxyArpService {
                 for (InterfaceIpAddress ia : addresses.ipAddresses()) {
                     if (ia.ipAddress().equals(target)) {
                         Ethernet arpReply =
-                            buildArpReply(ia.ipAddress(), addresses.mac(), eth);
+                            buildArpReply(target, addresses.mac(), eth);
                         sendTo(arpReply, inPort);
                     }
                 }
@@ -151,9 +151,8 @@ public class ProxyArpManager implements ProxyArpService {
             // If the source address matches one of our external addresses
             // it could be a request from an internal host to an external
             // address. Forward it over to the correct port.
-            IpAddress source =
-                IpAddress.valueOf(IpAddress.Version.INET,
-                                  arp.getSenderProtocolAddress());
+            Ip4Address source =
+                Ip4Address.valueOf(arp.getSenderProtocolAddress());
             PortAddresses sourceAddresses = findPortInSubnet(source);
             if (sourceAddresses != null) {
                 for (InterfaceIpAddress ia : sourceAddresses.ipAddresses()) {
@@ -168,9 +167,8 @@ public class ProxyArpManager implements ProxyArpService {
         // Continue with normal proxy ARP case
 
         VlanId vlan = VlanId.vlanId(eth.getVlanID());
-        Set<Host> hosts =
-            hostService.getHostsByIp(IpAddress.valueOf(IpAddress.Version.INET,
-                                        arp.getTargetProtocolAddress()));
+        Set<Host> hosts = hostService.getHostsByIp(
+                        Ip4Address.valueOf(arp.getTargetProtocolAddress()));
 
         Host dst = null;
         Host src = hostService.getHost(HostId.hostId(eth.getSourceMAC(),
@@ -188,11 +186,19 @@ public class ProxyArpManager implements ProxyArpService {
             return;
         }
 
-        // TODO find the correct IP address
-        IpAddress ipAddress = dst.ipAddresses().iterator().next();
-        Ethernet arpReply = buildArpReply(ipAddress, dst.mac(), eth);
-        // TODO: check send status with host service.
-        sendTo(arpReply, src.location());
+        //
+        // TODO find the correct IP address.
+        // Right now we use the first IPv4 address that is found.
+        //
+        for (IpAddress ipAddress : dst.ipAddresses()) {
+            Ip4Address ip4Address = ipAddress.getIp4Address();
+            if (ip4Address != null) {
+                Ethernet arpReply = buildArpReply(ip4Address, dst.mac(), eth);
+                // TODO: check send status with host service.
+                sendTo(arpReply, src.location());
+                break;
+            }
+        }
     }
 
     /**
@@ -223,7 +229,7 @@ public class ProxyArpManager implements ProxyArpService {
      * @param target the target address to find a matching port for
      * @return a PortAddresses object if one was found, otherwise null
      */
-    private PortAddresses findPortInSubnet(IpAddress target) {
+    private PortAddresses findPortInSubnet(Ip4Address target) {
         for (PortAddresses addresses : hostService.getAddressBindings()) {
             for (InterfaceIpAddress ia : addresses.ipAddresses()) {
                 if (ia.subnetAddress().contains(target)) {
@@ -358,7 +364,7 @@ public class ProxyArpManager implements ProxyArpService {
      * @param request the ARP request we got
      * @return an Ethernet frame containing the ARP reply
      */
-    private Ethernet buildArpReply(IpAddress srcIp, MacAddress srcMac,
+    private Ethernet buildArpReply(Ip4Address srcIp, MacAddress srcMac,
             Ethernet request) {
 
         Ethernet eth = new Ethernet();
@@ -372,7 +378,7 @@ public class ProxyArpManager implements ProxyArpService {
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
 
-        arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
+        arp.setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
         arp.setSenderHardwareAddress(srcMac.toBytes());
         arp.setTargetHardwareAddress(request.getSourceMACAddress());

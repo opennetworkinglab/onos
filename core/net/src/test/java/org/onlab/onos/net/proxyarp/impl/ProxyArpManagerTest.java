@@ -57,8 +57,8 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -74,8 +74,8 @@ public class ProxyArpManagerTest {
     private static final int NUM_ADDRESS_PORTS = NUM_DEVICES / 2;
     private static final int NUM_FLOOD_PORTS = 3;
 
-    private static final IpAddress IP1 = IpAddress.valueOf("192.168.1.1");
-    private static final IpAddress IP2 = IpAddress.valueOf("192.168.1.2");
+    private static final Ip4Address IP1 = Ip4Address.valueOf("192.168.1.1");
+    private static final Ip4Address IP2 = Ip4Address.valueOf("192.168.1.2");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
@@ -204,10 +204,12 @@ public class ProxyArpManagerTest {
 
         for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
-            IpPrefix prefix1 = IpPrefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
-            IpAddress addr1 = IpAddress.valueOf("10.0." + (2 * i - 1) + ".1");
-            IpPrefix prefix2 = IpPrefix.valueOf("10.0." + (2 * i) + ".0/24");
-            IpAddress addr2 = IpAddress.valueOf("10.0." + (2 * i) + ".1");
+            Ip4Prefix prefix1 =
+                Ip4Prefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
+            Ip4Address addr1 =
+                Ip4Address.valueOf("10.0." + (2 * i - 1) + ".1");
+            Ip4Prefix prefix2 = Ip4Prefix.valueOf("10.0." + (2 * i) + ".0/24");
+            Ip4Address addr2 = Ip4Address.valueOf("10.0." + (2 * i) + ".1");
             InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
             PortAddresses pa1 =
@@ -235,7 +237,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#known(IpAddress)} in the case where the
+     * Tests {@link ProxyArpManager#known(Ip4Address)} in the case where the
      * IP address is not known.
      * Verifies the method returns false.
      */
@@ -248,7 +250,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#known(IpAddress)} in the case where the
+     * Tests {@link ProxyArpManager#known(Ip4Address)} in the case where the
      * IP address is known.
      * Verifies the method returns true.
      */
@@ -344,9 +346,9 @@ public class ProxyArpManagerTest {
 
     @Test
     public void testReplyToRequestForUs() {
-        IpAddress theirIp = IpAddress.valueOf("10.0.1.254");
-        IpAddress ourFirstIp = IpAddress.valueOf("10.0.1.1");
-        IpAddress ourSecondIp = IpAddress.valueOf("10.0.2.1");
+        Ip4Address theirIp = Ip4Address.valueOf("10.0.1.254");
+        Ip4Address ourFirstIp = Ip4Address.valueOf("10.0.1.1");
+        Ip4Address ourSecondIp = Ip4Address.valueOf("10.0.2.1");
         MacAddress firstMac = MacAddress.valueOf(1L);
         MacAddress secondMac = MacAddress.valueOf(2L);
 
@@ -379,11 +381,11 @@ public class ProxyArpManagerTest {
     public void testReplyExternalPortBadRequest() {
         replay(hostService); // no further host service expectations
 
-        IpAddress theirIp = IpAddress.valueOf("10.0.1.254");
+        Ip4Address theirIp = Ip4Address.valueOf("10.0.1.254");
 
         // Request for a valid external IP address but coming in the wrong port
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp,
-                IpAddress.valueOf("10.0.3.1"));
+                Ip4Address.valueOf("10.0.3.1"));
         proxyArp.reply(arpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
@@ -398,9 +400,9 @@ public class ProxyArpManagerTest {
     public void testReplyToRequestFromUs() {
         replay(hostService); // no further host service expectations
 
-        IpAddress ourIp = IpAddress.valueOf("10.0.1.1");
+        Ip4Address ourIp = Ip4Address.valueOf("10.0.1.1");
         MacAddress ourMac = MacAddress.valueOf(1L);
-        IpAddress theirIp = IpAddress.valueOf("10.0.1.100");
+        Ip4Address theirIp = Ip4Address.valueOf("10.0.1.100");
 
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
@@ -523,7 +525,7 @@ public class ProxyArpManagerTest {
      * @return the ARP packet
      */
     private Ethernet buildArp(short opcode, MacAddress srcMac, MacAddress dstMac,
-            IpAddress srcIp, IpAddress dstIp) {
+            Ip4Address srcIp, Ip4Address dstIp) {
         Ethernet eth = new Ethernet();
 
         if (dstMac == null) {
@@ -541,7 +543,7 @@ public class ProxyArpManagerTest {
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
 
-        arp.setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH);
+        arp.setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH);
         arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
         arp.setSenderHardwareAddress(srcMac.toBytes());
 
