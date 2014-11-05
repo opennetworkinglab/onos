@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import com.google.common.base.MoreObjects;
+
 
 /**
  * Database read result.
@@ -18,7 +20,7 @@ public class ReadResult {
 
     /**
      * Returns database table name.
-     * @return table name.
+     * @return table name
      */
     public String tableName() {
         return tableName;
@@ -26,7 +28,7 @@ public class ReadResult {
 
     /**
      * Returns database table key.
-     * @return key.
+     * @return key
      */
     public String key() {
         return key;
@@ -38,5 +40,14 @@ public class ReadResult {
      */
     public VersionedValue value() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("tableName", tableName)
+                .add("key", key)
+                .add("value", value)
+                .toString();
     }
 }

@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Database read request.
  */
@@ -31,6 +33,9 @@ public class ReadRequest {
 
     @Override
     public String toString() {
-        return "ReadRequest [tableName=" + tableName + ", key=" + key + "]";
+        return MoreObjects.toStringHelper(getClass())
+                .add("tableName", tableName)
+                .add("key", key)
+                .toString();
     }
 }
