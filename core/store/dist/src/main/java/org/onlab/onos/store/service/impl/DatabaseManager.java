@@ -11,9 +11,8 @@ import net.kuujo.copycat.StateMachine;
 import net.kuujo.copycat.cluster.TcpCluster;
 import net.kuujo.copycat.cluster.TcpClusterConfig;
 import net.kuujo.copycat.cluster.TcpMember;
-import net.kuujo.copycat.log.ChronicleLog;
+import net.kuujo.copycat.log.InMemoryLog;
 import net.kuujo.copycat.log.Log;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -52,7 +51,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterMessagingProtocol copycatMessagingProtocol;
+    protected DatabaseProtocolService copycatMessagingProtocol;
 
     public static final String LOG_FILE_PREFIX = "onos-copy-cat-log";
 
@@ -61,6 +60,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Activate
     public void activate() {
+        log.info("Starting.");
 
         // TODO: Not every node can be part of the consensus ring.
 
@@ -88,7 +88,9 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
         StateMachine stateMachine = new DatabaseStateMachine();
         ControllerNode thisNode = clusterService.getLocalNode();
-        Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
+        // FIXME resolve Chronicle + OSGi issue
+        //Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
+        Log consensusLog = new InMemoryLog();
 
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
         copycat.start();

@@ -64,7 +64,8 @@ import com.google.common.collect.ImmutableSet;
  */
 @Component(immediate = true)
 @Service
-public class ClusterMessagingProtocol implements Protocol<TcpMember> {
+public class ClusterMessagingProtocol
+    implements DatabaseProtocolService, Protocol<TcpMember> {
 
     private final Logger log = getLogger(getClass());
 

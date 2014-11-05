@@ -31,12 +31,43 @@
 
   <description>ONLab third-party dependencies</description>
 
+  <!-- TODO move to root pom? -->
+  <properties>
+      <copycat.version>0.4.0-SNAPSHOT</copycat.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.googlecode.concurrent-trees</groupId>
       <artifactId>concurrent-trees</artifactId>
       <version>2.4.0</version>
     </dependency>
+
+        <dependency>
+            <groupId>net.kuujo.copycat</groupId>
+            <artifactId>copycat</artifactId>
+            <version>${copycat.version}</version>
+        </dependency>
+<!-- Commented out due to Chronicle + OSGi issue 
+        <dependency>
+            <groupId>net.kuujo.copycat</groupId>
+            <artifactId>copycat-chronicle</artifactId>
+            <version>${copycat.version}</version>
+        </dependency>
+-->
+        <dependency>
+            <groupId>net.kuujo.copycat</groupId>
+            <artifactId>copycat-tcp</artifactId>
+            <version>${copycat.version}</version>
+        </dependency>
+
+<!-- chronicle transitive dependency
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+-->
   </dependencies>
 
   <build>
@@ -47,19 +78,36 @@
         <version>2.3</version>
         <configuration>
           <filters>
+
             <filter>
               <artifact>com.googlecode.concurrent-trees:concurrent-trees</artifact>
               <includes>
                 <include>com/googlecode/**</include>
               </includes>
-              
             </filter>
+
             <filter>
               <artifact>com.google.guava:guava</artifact>
               <excludes>
                 <exclude>**</exclude>
               </excludes>
             </filter>
+
+            <filter>
+              <artifact>net.kuujo.copycat:*</artifact>
+              <includes>
+                <include>net/kuujo/copycat/**</include>
+              </includes>
+            </filter>
+<!-- chronicle transitive dependency
+
+            <filter>
+              <artifact>net.java.dev.jna:*</artifact>
+              <includes>
+                <include>com/sun/jna/**</include>
+              </includes>
+            </filter>
+-->
           </filters>
         </configuration>
         <executions>
@@ -70,14 +118,14 @@
             </goals>
           </execution>
         </executions>
-      </plugin>            
+      </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
             <Export-Package>
-              com.googlecode.concurrenttrees.*
+              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*
             </Export-Package>
           </instructions>
         </configuration>
