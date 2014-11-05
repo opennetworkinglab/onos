@@ -40,6 +40,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netty4.version>4.0.23.Final</netty4.version>
+        <copycat.version>0.4.0-SNAPSHOT</copycat.version>
     </properties>
 
     <repositories>
