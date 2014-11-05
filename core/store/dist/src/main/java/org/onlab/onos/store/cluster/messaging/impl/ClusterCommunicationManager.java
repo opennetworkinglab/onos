@@ -88,7 +88,7 @@ public class ClusterCommunicationManager
             log.error("NettyMessagingService#activate", e);
         }
         messagingService = netty;
-        log.info("Started");
+        log.info("Started on {}:{}", localNode.ip(), localNode.tcpPort());
     }
 
     @Deactivate
