@@ -75,6 +75,42 @@ public class IpPrefix {
     }
 
     /**
+     * Gets the {@link Ip4Prefix} view of the IP prefix.
+     *
+     * @return the {@link Ip4Prefix} view of the IP prefix if it is IPv4,
+     * otherwise null
+     */
+    public Ip4Prefix getIp4Prefix() {
+        if (version() != Ip4Prefix.VERSION) {
+            return null;
+        }
+
+        // Return this object itself if it is already instance of Ip4Prefix
+        if (this instanceof Ip4Prefix) {
+            return (Ip4Prefix) this;
+        }
+        return Ip4Prefix.valueOf(address.getIp4Address(), prefixLength);
+    }
+
+    /**
+     * Gets the {@link Ip6Prefix} view of the IP prefix.
+     *
+     * @return the {@link Ip6Prefix} view of the IP prefix if it is IPv6,
+     * otherwise null
+     */
+    public Ip6Prefix getIp6Prefix() {
+        if (version() != Ip6Prefix.VERSION) {
+            return null;
+        }
+
+        // Return this object itself if it is already instance of Ip6Prefix
+        if (this instanceof Ip6Prefix) {
+            return (Ip6Prefix) this;
+        }
+        return Ip6Prefix.valueOf(address.getIp6Address(), prefixLength);
+    }
+
+    /**
      * Converts an integer and a prefix length into an IPv4 prefix.
      *
      * @param address an integer representing the IPv4 address

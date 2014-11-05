@@ -80,6 +80,42 @@ public class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
+     * Gets the {@link Ip4Address} view of the IP address.
+     *
+     * @return the {@link Ip4Address} view of the IP address if it is IPv4,
+     * otherwise null
+     */
+    public Ip4Address getIp4Address() {
+        if (version() != Ip4Address.VERSION) {
+            return null;
+        }
+
+        // Return this object itself if it is already instance of Ip4Address
+        if (this instanceof Ip4Address) {
+            return (Ip4Address) this;
+        }
+        return Ip4Address.valueOf(octets);
+    }
+
+    /**
+     * Gets the {@link Ip6Address} view of the IP address.
+     *
+     * @return the {@link Ip6Address} view of the IP address if it is IPv6,
+     * otherwise null
+     */
+    public Ip6Address getIp6Address() {
+        if (version() != Ip6Address.VERSION) {
+            return null;
+        }
+
+        // Return this object itself if it is already instance of Ip6Address
+        if (this instanceof Ip6Address) {
+            return (Ip6Address) this;
+        }
+        return Ip6Address.valueOf(octets);
+    }
+
+    /**
      * Returns the IP address as a byte array.
      *
      * @return a byte array

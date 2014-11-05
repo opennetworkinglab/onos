@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.net.InetAddress;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -74,6 +75,44 @@ public class IpAddressTest {
         // IPv6
         ipAddress = IpAddress.valueOf("::");
         assertThat(ipAddress.version(), is(IpAddress.Version.INET6));
+    }
+
+    /**
+     * Tests getting the Ip4Address and Ip6Address view of the IP address.
+     */
+    @Test
+    public void testGetIp4AndIp6AddressView() {
+        IpAddress ipAddress;
+        Ip4Address ip4Address;
+        Ip6Address ip6Address;
+
+        // Pure IPv4 IpAddress
+        ipAddress = IpAddress.valueOf("1.2.3.4");
+        ip4Address = ipAddress.getIp4Address();
+        ip6Address = ipAddress.getIp6Address();
+        assertThat(ip4Address.toString(), is("1.2.3.4"));
+        assertNull(ip6Address);
+
+        // IPv4 IpAddress that is Ip4Address
+        ipAddress = Ip4Address.valueOf("1.2.3.4");
+        ip4Address = ipAddress.getIp4Address();
+        ip6Address = ipAddress.getIp6Address();
+        assertThat(ip4Address.toString(), is("1.2.3.4"));
+        assertNull(ip6Address);
+
+        // Pure IPv6 IpAddress
+        ipAddress = IpAddress.valueOf("1111:2222::");
+        ip4Address = ipAddress.getIp4Address();
+        ip6Address = ipAddress.getIp6Address();
+        assertNull(ip4Address);
+        assertThat(ip6Address.toString(), is("1111:2222::"));
+
+        // IPv6 IpAddress that is Ip6Address
+        ipAddress = Ip6Address.valueOf("1111:2222::");
+        ip4Address = ipAddress.getIp4Address();
+        ip6Address = ipAddress.getIp6Address();
+        assertNull(ip4Address);
+        assertThat(ip6Address.toString(), is("1111:2222::"));
     }
 
     /**

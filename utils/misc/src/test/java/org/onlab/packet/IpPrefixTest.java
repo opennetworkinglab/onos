@@ -21,8 +21,9 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
@@ -142,6 +143,44 @@ public class IpPrefixTest {
         assertThat(ipPrefix.address(),
                    equalTo(IpAddress.valueOf("1111:2222:3333:4444::")));
         assertThat(ipPrefix.prefixLength(), is(64));
+    }
+
+    /**
+     * Tests getting the Ip4Prefix and Ip6Prefix view of the IP prefix.
+     */
+    @Test
+    public void testGetIp4AndIp6PrefixView() {
+        IpPrefix ipPrefix;
+        Ip4Prefix ip4Prefix;
+        Ip6Prefix ip6Prefix;
+
+        // Pure IPv4 IpPrefix
+        ipPrefix = IpPrefix.valueOf("1.2.3.0/24");
+        ip4Prefix = ipPrefix.getIp4Prefix();
+        ip6Prefix = ipPrefix.getIp6Prefix();
+        assertThat(ip4Prefix.toString(), is("1.2.3.0/24"));
+        assertNull(ip6Prefix);
+
+        // IPv4 IpPrefix that is Ip4Prefix
+        ipPrefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        ip4Prefix = ipPrefix.getIp4Prefix();
+        ip6Prefix = ipPrefix.getIp6Prefix();
+        assertThat(ip4Prefix.toString(), is("1.2.3.0/24"));
+        assertNull(ip6Prefix);
+
+        // Pure IPv6 IpPrefix
+        ipPrefix = IpPrefix.valueOf("1111:2222::/64");
+        ip4Prefix = ipPrefix.getIp4Prefix();
+        ip6Prefix = ipPrefix.getIp6Prefix();
+        assertNull(ip4Prefix);
+        assertThat(ip6Prefix.toString(), is("1111:2222::/64"));
+
+        // IPv6 IpPrefix that is Ip6Prefix
+        ipPrefix = Ip6Prefix.valueOf("1111:2222::/64");
+        ip4Prefix = ipPrefix.getIp4Prefix();
+        ip6Prefix = ipPrefix.getIp6Prefix();
+        assertNull(ip4Prefix);
+        assertThat(ip6Prefix.toString(), is("1111:2222::/64"));
     }
 
     /**
