@@ -27,7 +27,7 @@ public class DatabaseStateMachine implements StateMachine {
             serializerPool = KryoNamespace.newBuilder()
                     .register(VersionedValue.class)
                     .register(State.class)
-                    .register(NettyProtocol.COMMON)
+                    .register(ClusterMessagingProtocol.COMMON)
                     .build()
                     .populate(1);
         }

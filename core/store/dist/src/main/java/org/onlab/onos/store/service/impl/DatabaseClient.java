@@ -11,35 +11,20 @@ import net.kuujo.copycat.protocol.SubmitRequest;
 import net.kuujo.copycat.protocol.SubmitResponse;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
 
-import org.apache.commons.lang3.RandomUtils;
-import org.onlab.netty.Endpoint;
-import org.onlab.netty.NettyMessagingService;
 import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.ReadRequest;
 import org.onlab.onos.store.service.WriteRequest;
 
 public class DatabaseClient {
 
-    private final Endpoint copycatEp;
-    ProtocolClient client;
-    NettyMessagingService messagingService;
+    private final ProtocolClient client;
 
-    public DatabaseClient(Endpoint copycatEp) {
-        this.copycatEp = copycatEp;
+    public DatabaseClient(ProtocolClient client) {
+        this.client = client;
     }
 
     private static String nextId() {
         return UUID.randomUUID().toString();
-    }
-
-    public void activate() throws Exception {
-        messagingService = new NettyMessagingService(RandomUtils.nextInt(10000, 40000));
-        messagingService.activate();
-        client = new NettyProtocolClient(copycatEp, messagingService);
-    }
-
-    public void deactivate() throws Exception {
-        messagingService.deactivate();
     }
 
     public boolean createTable(String tableName) {

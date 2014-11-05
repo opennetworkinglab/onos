@@ -11,7 +11,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.protocol.PingRequest;
 import net.kuujo.copycat.protocol.PingResponse;
 import net.kuujo.copycat.protocol.PollRequest;
@@ -22,37 +21,54 @@ import net.kuujo.copycat.protocol.SyncRequest;
 import net.kuujo.copycat.protocol.SyncResponse;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
 
-import org.onlab.netty.Endpoint;
-import org.onlab.netty.NettyMessagingService;
+import org.onlab.onos.cluster.ControllerNode;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.ClusterMessage;
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.slf4j.Logger;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
- * {@link NettyMessagingService} based Copycat protocol client.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under
+ * the License.
  */
-public class NettyProtocolClient implements ProtocolClient {
+
+public class ClusterMessagingProtocolClient implements ProtocolClient {
 
     private final Logger log = getLogger(getClass());
+
     private static final ThreadFactory THREAD_FACTORY =
             new ThreadFactoryBuilder().setNameFormat("copycat-netty-messaging-%d").build();
 
-    // Remote endpoint, this client instance is used
-    // for communicating with.
-    private final Endpoint remoteEp;
-    private final NettyMessagingService messagingService;
+    public static final long RETRY_INTERVAL_MILLIS = 2000;
 
-    // TODO: Is 10 the right number of threads?
+    private final ClusterCommunicationService clusterCommunicator;
+    private final ControllerNode remoteNode;
+
+    // FIXME: Thread pool sizing.
     private static final ScheduledExecutorService THREAD_POOL =
             new ScheduledThreadPoolExecutor(10, THREAD_FACTORY);
 
-    public NettyProtocolClient(NettyProtocol protocol, TcpMember member) {
-        this(new Endpoint(member.host(), member.port()), protocol.getServer().getNettyMessagingService());
-    }
-
-    public NettyProtocolClient(Endpoint remoteEp, NettyMessagingService messagingService) {
-        this.remoteEp = remoteEp;
-        this.messagingService = messagingService;
+    public ClusterMessagingProtocolClient(
+            ClusterCommunicationService clusterCommunicator,
+            ControllerNode remoteNode) {
+        this.clusterCommunicator = clusterCommunicator;
+        this.remoteNode = remoteNode;
     }
 
     @Override
@@ -85,16 +101,16 @@ public class NettyProtocolClient implements ProtocolClient {
         return CompletableFuture.completedFuture(null);
     }
 
-    public <I> String messageType(I input) {
+    public <I> MessageSubject messageType(I input) {
         Class<?> clazz = input.getClass();
         if (clazz.equals(PollRequest.class)) {
-            return NettyProtocol.COPYCAT_POLL;
+            return ClusterMessagingProtocol.COPYCAT_POLL;
         } else if (clazz.equals(SyncRequest.class)) {
-            return NettyProtocol.COPYCAT_SYNC;
+            return ClusterMessagingProtocol.COPYCAT_SYNC;
         } else if (clazz.equals(SubmitRequest.class)) {
-            return NettyProtocol.COPYCAT_SUBMIT;
+            return ClusterMessagingProtocol.COPYCAT_SUBMIT;
         } else if (clazz.equals(PingRequest.class)) {
-            return NettyProtocol.COPYCAT_PING;
+            return ClusterMessagingProtocol.COPYCAT_PING;
         } else {
             throw new IllegalArgumentException("Unknown class " + clazz.getName());
         }
@@ -109,33 +125,34 @@ public class NettyProtocolClient implements ProtocolClient {
 
     private class RPCTask<I, O> implements Runnable {
 
-        private final String messageType;
-        private final byte[] payload;
-
+        private final ClusterMessage message;
         private final CompletableFuture<O> future;
 
         public RPCTask(I request, CompletableFuture<O> future) {
-            this.messageType = messageType(request);
-            this.payload = NettyProtocol.SERIALIZER.encode(request);
+            this.message =
+                    new ClusterMessage(
+                            null,
+                            messageType(request),
+                            ClusterMessagingProtocol.SERIALIZER.encode(request));
             this.future = future;
         }
 
         @Override
         public void run() {
             try {
-                byte[] response = messagingService
-                    .sendAndReceive(remoteEp, messageType, payload)
-                    .get(NettyProtocol.RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
-                future.complete(NettyProtocol.SERIALIZER.decode(response));
+                byte[] response = clusterCommunicator
+                    .sendAndReceive(message, remoteNode.id())
+                    .get(RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+                future.complete(ClusterMessagingProtocol.SERIALIZER.decode(response));
 
             } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
-                if (messageType.equals(NettyProtocol.COPYCAT_SYNC) ||
-                        messageType.equals(NettyProtocol.COPYCAT_PING)) {
+                if (message.subject().equals(ClusterMessagingProtocol.COPYCAT_SYNC) ||
+                        message.subject().equals(ClusterMessagingProtocol.COPYCAT_PING)) {
                     log.warn("Request to {} failed. Will retry "
-                            + "in {} ms", remoteEp, NettyProtocol.RETRY_INTERVAL_MILLIS);
+                            + "in {} ms", remoteNode, RETRY_INTERVAL_MILLIS);
                     THREAD_POOL.schedule(
                             this,
-                            NettyProtocol.RETRY_INTERVAL_MILLIS,
+                            RETRY_INTERVAL_MILLIS,
                             TimeUnit.MILLISECONDS);
                 } else {
                     future.completeExceptionally(e);

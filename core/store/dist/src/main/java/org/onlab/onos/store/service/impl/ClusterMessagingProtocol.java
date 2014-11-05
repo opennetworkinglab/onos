@@ -1,5 +1,8 @@
 package org.onlab.onos.store.service.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +30,16 @@ import net.kuujo.copycat.spi.protocol.Protocol;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
 import net.kuujo.copycat.spi.protocol.ProtocolServer;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.ControllerNode;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ImmutableListSerializer;
 import org.onlab.onos.store.serializers.ImmutableMapSerializer;
 import org.onlab.onos.store.serializers.ImmutableSetSerializer;
@@ -37,6 +50,7 @@ import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
 import org.onlab.util.KryoNamespace;
+import org.slf4j.Logger;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -46,17 +60,44 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * {@link Protocol} based on {@link org.onlab.netty.NettyMessagingService}.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under
+ * the License.
  */
-public class NettyProtocol implements Protocol<TcpMember> {
 
-    public static final String COPYCAT_PING = "copycat-raft-consensus-ping";
-    public static final String COPYCAT_SYNC = "copycat-raft-consensus-sync";
-    public static final String COPYCAT_POLL = "copycat-raft-consensus-poll";
-    public static final String COPYCAT_SUBMIT = "copycat-raft-consensus-submit";
+@Component(immediate = true)
+@Service
+public class ClusterMessagingProtocol implements Protocol<TcpMember> {
 
-    // TODO: make this configurable.
-    public static final long RETRY_INTERVAL_MILLIS = 2000;
+    private final Logger log = getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    ClusterCommunicationService clusterCommunicator;
+
+    public static final MessageSubject COPYCAT_PING =
+            new MessageSubject("copycat-raft-consensus-ping");
+    public static final MessageSubject COPYCAT_SYNC =
+            new MessageSubject("copycat-raft-consensus-sync");
+    public static final MessageSubject COPYCAT_POLL =
+            new MessageSubject("copycat-raft-consensus-poll");
+    public static final MessageSubject COPYCAT_SUBMIT =
+            new MessageSubject("copycat-raft-consensus-submit");
 
     private static final KryoNamespace COPYCAT = KryoNamespace.newBuilder()
             .register(PingRequest.class)
@@ -76,8 +117,7 @@ public class NettyProtocol implements Protocol<TcpMember> {
             .register(TcpMember.class)
             .build();
 
-    // TODO: Move to the right place.
-    private static final KryoNamespace CRAFT = KryoNamespace.newBuilder()
+    private static final KryoNamespace DATABASE = KryoNamespace.newBuilder()
             .register(ReadRequest.class)
             .register(WriteRequest.class)
             .register(InternalReadResult.class)
@@ -116,31 +156,41 @@ public class NettyProtocol implements Protocol<TcpMember> {
             serializerPool = KryoNamespace.newBuilder()
                     .register(COPYCAT)
                     .register(COMMON)
-                    .register(CRAFT)
+                    .register(DATABASE)
                     .build()
                     .populate(1);
         }
     };
 
-    private NettyProtocolServer server = null;
+    @Activate
+    public void activate() {
+        log.info("Started.");
+    }
 
-    // FIXME: This is a total hack.Assumes
-    // ProtocolServer is initialized before ProtocolClient
-    protected NettyProtocolServer getServer() {
-        if (server == null) {
-            throw new IllegalStateException("ProtocolServer is not initialized yet!");
-        }
-        return server;
+    @Deactivate
+    public void deactivate() {
+        log.info("Stopped.");
     }
 
     @Override
     public ProtocolServer createServer(TcpMember member) {
-        server = new NettyProtocolServer(member);
-        return server;
+        return new ClusterMessagingProtocolServer(clusterCommunicator);
     }
 
     @Override
     public ProtocolClient createClient(TcpMember member) {
-        return new NettyProtocolClient(this, member);
+        ControllerNode node = getControllerNode(member.host(), member.port());
+        checkNotNull(node, "A valid controller node is expected");
+        return new ClusterMessagingProtocolClient(
+                clusterCommunicator, node);
+    }
+
+    private ControllerNode getControllerNode(String host, int port) {
+        for (ControllerNode node : clusterService.getNodes()) {
+            if (node.ip().toString().equals(host) && node.tcpPort() == port) {
+                return node;
+            }
+        }
+        return null;
     }
 }

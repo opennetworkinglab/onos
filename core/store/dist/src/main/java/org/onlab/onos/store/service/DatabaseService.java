@@ -26,7 +26,7 @@ public interface DatabaseService {
 
     /**
      * Performs a write operation on the database.
-     * @param request
+     * @param request write request
      * @return write result.
      * @throws DatabaseException if there is failure in execution write.
      */

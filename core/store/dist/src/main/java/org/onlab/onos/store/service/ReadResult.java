@@ -17,15 +17,15 @@ public class ReadResult {
     }
 
     /**
-     * Database table name.
-     * @return
+     * Returns database table name.
+     * @return table name.
      */
     public String tableName() {
         return tableName;
     }
 
     /**
-     * Database table key.
+     * Returns database table key.
      * @return key.
      */
     public String key() {
@@ -33,7 +33,7 @@ public class ReadResult {
     }
 
     /**
-     * value associated with the key.
+     * Returns value associated with the key.
      * @return non-null value if the table contains one, null otherwise.
      */
     public VersionedValue value() {

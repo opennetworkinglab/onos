@@ -18,7 +18,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.netty.Endpoint;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.service.DatabaseAdminService;
@@ -50,6 +49,9 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    ClusterMessagingProtocol copycatMessagingProtocol;
+
     public static final String LOG_FILE_PREFIX = "onos-copy-cat-log";
 
     private Copycat copycat;
@@ -57,15 +59,14 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Activate
     public void activate() {
-        // FIXME hack tcpPort +1 for copycat communication
         TcpMember localMember =
                 new TcpMember(
                         clusterService.getLocalNode().ip().toString(),
-                        clusterService.getLocalNode().tcpPort() + 1);
+                        clusterService.getLocalNode().tcpPort());
         List<TcpMember> remoteMembers = Lists.newArrayList();
 
         for (ControllerNode node : clusterService.getNodes()) {
-            TcpMember member = new TcpMember(node.ip().toString(), node.tcpPort() + 1);
+            TcpMember member = new TcpMember(node.ip().toString(), node.tcpPort());
             if (!member.equals(localMember)) {
                 remoteMembers.add(member);
             }
@@ -84,10 +85,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         ControllerNode thisNode = clusterService.getLocalNode();
         Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
 
-        copycat = new Copycat(stateMachine, consensusLog, cluster, new NettyProtocol());
+        copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
         copycat.start();
 
-        client = new DatabaseClient(new Endpoint(localMember.host(), localMember.port()));
+        client = new DatabaseClient(copycatMessagingProtocol.createClient(localMember));
 
         log.info("Started.");
     }

@@ -12,8 +12,8 @@ public class VersionedValue {
 
     /**
      * Creates a new instance with the specified value and version.
-     * @param value
-     * @param version
+     * @param value value
+     * @param version version
      */
     public VersionedValue(byte[] value, long version) {
         this.value = value;
