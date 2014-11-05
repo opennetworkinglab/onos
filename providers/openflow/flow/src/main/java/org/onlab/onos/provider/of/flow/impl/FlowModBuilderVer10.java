@@ -29,6 +29,7 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanIdI
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onlab.packet.Ip4Address;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -166,13 +167,16 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
     private OFAction buildL3Modification(Instruction i) {
         L3ModificationInstruction l3m = (L3ModificationInstruction) i;
         ModIPInstruction ip;
+        Ip4Address ip4;
         switch (l3m.subtype()) {
         case IP_DST:
             ip = (ModIPInstruction) i;
-            return factory().actions().setNwDst(IPv4Address.of(ip.ip().toInt()));
+            ip4 = ip.ip().getIp4Address();
+            return factory().actions().setNwDst(IPv4Address.of(ip4.toInt()));
         case IP_SRC:
             ip = (ModIPInstruction) i;
-            return factory().actions().setNwSrc(IPv4Address.of(ip.ip().toInt()));
+            ip4 = ip.ip().getIp4Address();
+            return factory().actions().setNwSrc(IPv4Address.of(ip4.toInt()));
         default:
             log.warn("Unimplemented action type {}.", l3m.subtype());
             break;
