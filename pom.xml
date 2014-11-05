@@ -502,6 +502,10 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <!-- begin: workaround for unexpected NullPointerException on Eclipse -->
+                    <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                    <testSourceDirectory>${project.build.testSourceDirectory}</testSourceDirectory>
+                    <!-- end: workaround for unexpected NullPointerException on Eclipse -->
                     <configLocation>onos/checkstyle.xml</configLocation>
                     <suppressionsLocation>onos/suppressions.xml
                     </suppressionsLocation>
