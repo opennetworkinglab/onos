@@ -66,7 +66,6 @@
         note(view, 'Key = ' + key + ' KeyCode = ' + keyCode);
     }
 
-    // Keys using a keyset to target specific keys only
     function load(view, ctx) {
         // this maps specific keys to specific functions (1)
         view.setKeys(keyDispatch);
