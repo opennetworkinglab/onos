@@ -2,6 +2,9 @@ package org.onlab.onos.store.service.impl;
 
 import org.onlab.onos.store.service.WriteResult;
 
+/**
+ * Result of a write operation executed on the DatabaseStateMachine.
+ */
 public class InternalWriteResult {
 
     public enum Status {

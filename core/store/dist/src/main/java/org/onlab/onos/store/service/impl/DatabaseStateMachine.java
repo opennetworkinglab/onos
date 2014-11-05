@@ -19,6 +19,13 @@ import org.onlab.util.KryoNamespace;
 
 import com.google.common.collect.Maps;
 
+/**
+ * StateMachine whose transitions are coordinated/replicated
+ * by Raft consensus.
+ * Each Raft cluster member has a instance of this state machine that is
+ * independently updated in lock step once there is consensus
+ * on the next transition.
+ */
 public class DatabaseStateMachine implements StateMachine {
 
     public static final KryoSerializer SERIALIZER = new KryoSerializer() {

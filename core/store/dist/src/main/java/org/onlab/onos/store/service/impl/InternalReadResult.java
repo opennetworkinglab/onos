@@ -2,6 +2,9 @@ package org.onlab.onos.store.service.impl;
 
 import org.onlab.onos.store.service.ReadResult;
 
+/**
+ * Result of a read operation executed on the DatabaseStateMachine.
+ */
 public class InternalReadResult {
 
     public enum Status {

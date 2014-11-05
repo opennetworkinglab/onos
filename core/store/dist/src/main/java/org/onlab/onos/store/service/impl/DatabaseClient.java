@@ -15,6 +15,9 @@ import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.ReadRequest;
 import org.onlab.onos.store.service.WriteRequest;
 
+/**
+ * Client for interacting with the Copycat Raft cluster.
+ */
 public class DatabaseClient {
 
     private final ProtocolClient client;
