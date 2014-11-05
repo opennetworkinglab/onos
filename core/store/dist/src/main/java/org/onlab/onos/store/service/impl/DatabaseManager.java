@@ -49,10 +49,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    ClusterService clusterService;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    ClusterMessagingProtocol copycatMessagingProtocol;
+    protected ClusterMessagingProtocol copycatMessagingProtocol;
 
     public static final String LOG_FILE_PREFIX = "onos-copy-cat-log";
 
