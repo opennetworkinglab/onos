@@ -192,7 +192,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
             return factory().actions().setDlSrc(MacAddress.of(eth.mac().toLong()));
         case VLAN_ID:
             ModVlanIdInstruction vlanId = (ModVlanIdInstruction) l2m;
-            return factory().actions().setVlanVid(VlanVid.ofVlan(vlanId.vlanId.toShort()));
+            return factory().actions().setVlanVid(VlanVid.ofVlan(vlanId.vlanId().toShort()));
         case VLAN_PCP:
             ModVlanPcpInstruction vlanPcp = (ModVlanPcpInstruction) l2m;
             return factory().actions().setVlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));

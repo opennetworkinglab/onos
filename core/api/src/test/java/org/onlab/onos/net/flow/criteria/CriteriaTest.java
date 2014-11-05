@@ -116,7 +116,7 @@ public class CriteriaTest {
     private <T> T checkAndConvert(Criterion criterion, Criterion.Type type, Class clazz) {
         assertThat(criterion, is(notNullValue()));
         assertThat(criterion.type(), is(equalTo(type)));
-        assertThat(criterion, is(instanceOf(clazz)));
+        assertThat(criterion, instanceOf(clazz));
         return (T) criterion;
     }
 
@@ -131,16 +131,19 @@ public class CriteriaTest {
      */
     private <T extends Criterion> void checkEqualsAndToString(T c1, T c1match,
                                                               T c2, Class clazz) {
-        assertThat(c1, is(instanceOf(clazz)));
-        assertThat(c1match, is(instanceOf(clazz)));
-        assertThat(c2, is(instanceOf(clazz)));
+        assertThat(c1, instanceOf(clazz));
+        assertThat(c1match, instanceOf(clazz));
+        assertThat(c2, instanceOf(clazz));
 
         assertThat(c1, is(equalTo(c1match)));
         assertThat(c1, is(not(equalTo(c2))));
         assertThat(c1, is(not(equalTo(new Object()))));
 
-        // Make sure the enumerated type appears in the toString() output.
+        // Make sure the enumerated type appears in the toString() output and
+        // the toString output is unique.
         assertThat(c1.toString(), containsString(c1.type().toString()));
+        assertThat(c1.toString(), equalTo(c1match.toString()));
+        assertThat(c1.toString(), not(equalTo(c2.toString())));
     }
 
 
