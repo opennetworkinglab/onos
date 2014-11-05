@@ -15,6 +15,7 @@ import net.kuujo.copycat.log.ChronicleLog;
 import net.kuujo.copycat.log.Log;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.netty.Endpoint;
@@ -91,9 +92,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         log.info("Started.");
     }
 
-    @Activate
+    @Deactivate
     public void deactivate() {
         copycat.stop();
+        log.info("Stopped.");
     }
 
     @Override
