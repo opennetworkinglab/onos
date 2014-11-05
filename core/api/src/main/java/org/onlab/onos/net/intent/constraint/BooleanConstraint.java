@@ -35,6 +35,15 @@ public abstract class BooleanConstraint implements Constraint {
      */
     public abstract boolean isValid(Link link, LinkResourceService resourceService);
 
+    /**
+     * {@inheritDoc}
+     *
+     * Negative return value means the specified link does not satisfy this constraint.
+     *
+     * @param link {@inheritDoc}
+     * @param resourceService {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public double cost(Link link, LinkResourceService resourceService) {
         return isValid(link, resourceService) ? +1 : -1;
