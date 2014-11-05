@@ -96,8 +96,8 @@ public class CriteriaTest {
     Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
     Criterion matchLambda2 = Criteria.matchLambda(lambda2);
 
-    byte signalLambda1 = 1;
-    byte signalLambda2 = 2;
+    short signalLambda1 = 1;
+    short signalLambda2 = 2;
     Criterion matchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion sameAsMatchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion matchSignalLambda2 = Criteria.matchOpticalSignalType(signalLambda2);
