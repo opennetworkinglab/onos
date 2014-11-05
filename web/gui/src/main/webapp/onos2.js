@@ -25,7 +25,7 @@
     var tsI = new Date().getTime(),         // initialize time stamp
         tsB,                                // build time stamp
         mastHeight = 36,                    // see mast2.css
-        defaultHash = 'sample';
+        defaultVid = 'sample';
 
 
     // attach our main function to the jQuery object
@@ -35,7 +35,8 @@
             navApi;
 
         var defaultOptions = {
-            trace: false
+            trace: false,
+            startVid: defaultVid
         };
 
         // compute runtime settings
@@ -91,7 +92,7 @@
             traceFn('hash', hash);
 
             if (!hash) {
-                hash = defaultHash;
+                hash = settings.startVid;
                 redo = true;
             }
 
@@ -336,10 +337,6 @@
         }
 
         var viewInstanceMethods = {
-            toString: function () {
-                return '[View: id="' + this.vid + '"]';
-            },
-
             token: function () {
                 return {
                     // attributes
@@ -350,6 +347,7 @@
                     // functions
                     width: this.width,
                     height: this.height,
+                    uid: this.uid,
                     setRadio: this.setRadio
                 }
             },
@@ -433,6 +431,10 @@
 
             setRadio: function (btnSet, cb) {
                 setRadioButtons(this.vid, btnSet, cb);
+            },
+
+            uid: function (id) {
+                return uid(this, id);
             }
 
             // TODO: consider schedule, clearTimer, etc.

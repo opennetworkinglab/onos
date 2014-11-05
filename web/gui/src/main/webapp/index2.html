@@ -70,6 +70,7 @@
     <script type="text/javascript">
         var ONOS = $.onos({
             comment: "configuration options",
+            startVid: 'topo',
             trace: false
         });
     </script>
@@ -77,11 +78,14 @@
     <!-- Framework module files included here -->
     <script src="mast2.js"></script>
 
-    <!-- Contributed (application) views injected here -->
-    <!-- TODO: replace with template marker and inject refs server-side -->
+    <!-- Sample views; can be dispensed with eventually -->
     <script src="sample2.js"></script>
     <script src="sampleAlt2.js"></script>
     <script src="sampleRadio.js"></script>
+
+    <!-- Contributed (application) views injected here -->
+    <!-- TODO: replace with template marker and inject refs server-side -->
+    <script src="topo2.js"></script>
 
     <!-- finally, build the UI-->
     <script type="text/javascript">

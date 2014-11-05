@@ -20,3 +20,7 @@
  @author Simon Hunt
  */
 
+svg #topo-bg {
+    opacity: 0.5;
+}
+
