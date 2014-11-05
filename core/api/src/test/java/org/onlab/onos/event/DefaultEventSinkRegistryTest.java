@@ -28,11 +28,15 @@ public class DefaultEventSinkRegistryTest {
     private DefaultEventSinkRegistry registry;
 
     private static class FooEvent extends TestEvent {
-        public FooEvent(String subject) { super(Type.FOO, subject); }
+        public FooEvent(String subject) {
+            super(Type.FOO, subject);
+        }
     }
 
     private static class BarEvent extends TestEvent {
-        public BarEvent(String subject) { super(Type.BAR, subject); }
+        public BarEvent(String subject) {
+            super(Type.BAR, subject);
+        }
     }
 
     private static class FooSink implements EventSink<FooEvent> {
