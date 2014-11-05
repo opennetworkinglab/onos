@@ -210,11 +210,11 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             break;
         case VLAN_ID:
             ModVlanIdInstruction vlanId = (ModVlanIdInstruction) l2m;
-            oxm = factory().oxms().vlanVid(OFVlanVidMatch.ofVlan(vlanId.vlanId.toShort()));
+            oxm = factory().oxms().vlanVid(OFVlanVidMatch.ofVlan(vlanId.vlanId().toShort()));
             break;
         case VLAN_PCP:
             ModVlanPcpInstruction vlanPcp = (ModVlanPcpInstruction) l2m;
-            oxm = factory().oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp));
+            oxm = factory().oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
             break;
         default:
             log.warn("Unimplemented action type {}.", l2m.subtype());

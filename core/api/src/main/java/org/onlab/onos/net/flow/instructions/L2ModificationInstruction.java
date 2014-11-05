@@ -119,7 +119,7 @@ public abstract class L2ModificationInstruction implements Instruction {
      */
     public static final class ModVlanIdInstruction extends L2ModificationInstruction {
 
-        public final VlanId vlanId;
+        private final VlanId vlanId;
 
         public ModVlanIdInstruction(VlanId vlanId) {
             this.vlanId = vlanId;
@@ -168,7 +168,7 @@ public abstract class L2ModificationInstruction implements Instruction {
      */
     public static final class ModVlanPcpInstruction extends L2ModificationInstruction {
 
-        public final Byte vlanPcp;
+        private final Byte vlanPcp;
 
         public ModVlanPcpInstruction(Byte vlanPcp) {
             this.vlanPcp = vlanPcp;
