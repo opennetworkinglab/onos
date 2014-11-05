@@ -48,7 +48,6 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.1</version>
                 <configuration>
-                    <!--additionalparam>-Xdoclint:none</additionalparam-->
                     <show>package</show>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API</doctitle>
