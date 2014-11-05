@@ -32,6 +32,7 @@ public class TestMessage extends AbstractMessage {
     /**
      * Creates a new message with the specified data.
      *
+     * @param length        message length
      * @param requestorTime requester time
      * @param responderTime responder time
      * @param padding       message padding

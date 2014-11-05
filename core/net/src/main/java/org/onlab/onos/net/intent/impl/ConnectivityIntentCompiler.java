@@ -67,7 +67,8 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
     /**
      * Validates the specified path against the given constraints.
      *
-     * @param path path to be checked
+     * @param path        path to be checked
+     * @param constraints path constraints
      * @return true if the path passes all constraints
      */
     protected boolean checkPath(Path path, List<Constraint> constraints) {
@@ -82,8 +83,9 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
     /**
      * Computes a path between two ConnectPoints.
      *
-     * @param one start of the path
-     * @param two end of the path
+     * @param intent intent on which behalf path is being computed
+     * @param one    start of the path
+     * @param two    end of the path
      * @return Path between the two
      * @throws PathNotFoundException if a path cannot be found
      */

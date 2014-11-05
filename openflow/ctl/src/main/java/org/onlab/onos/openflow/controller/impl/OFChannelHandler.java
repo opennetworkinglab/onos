@@ -115,7 +115,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
     /**
      * Create a new unconnected OFChannelHandler.
-     * @param controller
+     * @param controller parent controller
      */
     OFChannelHandler(Controller controller) {
         this.controller = controller;
@@ -794,7 +794,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * @param m The PortStatus message we received
          * @param doNotify if true switch port changed events will be
          * dispatched
-         * @throws SwitchStateException
+         * @throws SwitchStateException if the switch is not bound to the channel
          *
          */
         protected void handlePortStatusMessage(OFChannelHandler h, OFPortStatus m,
@@ -826,8 +826,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          *
          * @param h The OFChannelHandler that received the message
          * @param m The message we received.
-         * @throws SwitchStateException
-         * @throws IOException
+         * @throws SwitchStateException if the switch is not bound to the channel
+         * @throws IOException if unable to send message back to the switch
          */
         void processOFMessage(OFChannelHandler h, OFMessage m)
                 throws IOException, SwitchStateException {
