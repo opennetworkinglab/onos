@@ -50,7 +50,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             ByteBuf buffer,
             List<Object> out) throws Exception {
 
-        switch(state()) {
+        switch (state()) {
         case READ_HEADER_VERSION:
             int headerVersion = buffer.readInt();
             checkState(headerVersion == MessageEncoder.HEADER_VERSION, "Unexpected header version");
