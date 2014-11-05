@@ -50,7 +50,10 @@
             },
             built = false,
             errorCount = 0,
-            keyHandler = {};
+            keyHandler = {
+                fn: null,
+                map: {}
+            };
 
         // DOM elements etc.
         var $view,
@@ -258,50 +261,56 @@
         }
 
         // generate 'unique' id by prefixing view id
-        function uid(view, id) {
+        function makeUid(view, id) {
             return view.vid + '-' + id;
         }
 
         // restore id by removing view id prefix
-        function unUid(view, uid) {
+        function unmakeUid(view, uid) {
             var re = new RegExp('^' + view.vid + '-');
             return uid.replace(re, '');
         }
 
-        function setRadioButtons(vid, btnSet, callback) {
+        function setRadioButtons(vid, btnSet) {
             var view = views[vid],
                 btnG;
 
             // lazily create the buttons...
             if (!(btnG = view.radioButtons)) {
                 btnG = d3.select(document.createElement('div'));
+                btnG.buttonDef = {};
 
                 btnSet.forEach(function (btn, i) {
                     var bid = btn.id || 'b' + i,
                         txt = btn.text || 'Button #' + i,
-                        b = btnG.append('span')
+                        uid = makeUid(view, bid),
+                        button = btnG.append('span')
                         .attr({
-                            id: uid(view, bid),
+                            id: uid,
                             class: 'radio'
                         })
                         .text(txt);
+
+                    btnG.buttonDef[uid] = btn;
+
                     if (i === 0) {
-                        b.classed('active', true);
+                        button.classed('active', true);
                     }
                 });
 
                 btnG.selectAll('span')
                     .on('click', function (d) {
-                        var btn = d3.select(this),
-                            bid = btn.attr('id'),
-                            act = btn.classed('active');
+                        var button = d3.select(this),
+                            uid = button.attr('id'),
+                            btn = btnG.buttonDef[uid],
+                            act = button.classed('active');
 
                         if (!act) {
-                            $mastRadio.selectAll('span')
-                                .classed('active', false);
-                            btn.classed('active', true);
-
-                            callback(view.token(), unUid(view, bid));
+                            btnG.selectAll('span').classed('active', false);
+                            button.classed('active', true);
+                            if (isF(btn.cb)) {
+                                btn.cb(view.token(), btn);
+                            }
                         }
                     });
 
@@ -479,8 +488,8 @@
                 return $(this.$div.node()).height();
             },
 
-            setRadio: function (btnSet, cb) {
-                setRadioButtons(this.vid, btnSet, cb);
+            setRadio: function (btnSet) {
+                setRadioButtons(this.vid, btnSet);
             },
 
             setKeys: function (keyArg) {
@@ -488,7 +497,7 @@
             },
 
             uid: function (id) {
-                return uid(this, id);
+                return makeUid(this, id);
             }
 
             // TODO: consider schedule, clearTimer, etc.

@@ -23,7 +23,7 @@
 (function (onos) {
     'use strict';
 
-    var keyDispatch =  {
+    var keyDispatch = {
         Z: keyUndo,
         X: keyCut,
         C: keyCopy,

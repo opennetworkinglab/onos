@@ -1,0 +1,372 @@
+{
+    "comment": [
+        "1 optical switch removed from base",
+        "  ff07  "
+    ],
+    "devices": [
+        {
+            "id": "of:0000ffffffffff08",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff08",
+                "FF:FF:FF:FF:FF:08",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff03",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff03",
+                "FF:FF:FF:FF:FF:03",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff02",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff02",
+                "FF:FF:FF:FF:FF:02",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffff0003",
+            "type": "switch",
+            "online": false,
+            "labels": [
+                "0000ffffffff0003",
+                "FF:FF:FF:FF:00:03",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff06",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff06",
+                "FF:FF:FF:FF:FF:06",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffff0007",
+            "type": "switch",
+            "online": false,
+            "labels": [
+                "0000ffffffff0007",
+                "FF:FF:FF:FF:00:07",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff05",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff05",
+                "FF:FF:FF:FF:FF:05",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffff0009",
+            "type": "switch",
+            "online": false,
+            "labels": [
+                "0000ffffffff0009",
+                "FF:FF:FF:FF:00:09",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff04",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff04",
+                "FF:FF:FF:FF:FF:04",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffff000A",
+            "type": "switch",
+            "online": false,
+            "labels": [
+                "0000ffffffff000A",
+                "FF:FF:FF:FF:00:0A",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffff0001",
+            "type": "switch",
+            "online": false,
+            "labels": [
+                "0000ffffffff0001",
+                "FF:FF:FF:FF:00:01",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff01",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff01",
+                "FF:FF:FF:FF:FF:01",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffff0004",
+            "type": "switch",
+            "online": false,
+            "labels": [
+                "0000ffffffff0004",
+                "FF:FF:FF:FF:00:04",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff0A",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff0A",
+                "FF:FF:FF:FF:FF:0A",
+                "?"
+            ]
+        },
+        {
+            "id": "of:0000ffffffffff09",
+            "type": "roadm",
+            "online": false,
+            "labels": [
+                "0000ffffffffff09",
+                "FF:FF:FF:FF:FF:09",
+                "?"
+            ]
+        }
+    ],
+    "links": [
+        {
+            "src": "of:0000ffffffffff02",
+            "srcPort": "20",
+            "dst": "of:0000ffffffffff05",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffff000A",
+            "srcPort": "2",
+            "dst": "of:0000ffffffffff0A",
+            "dstPort": "1",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff03",
+            "srcPort": "10",
+            "dst": "of:0000ffffffffff02",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff07",
+            "srcPort": "21",
+            "dst": "of:0000ffffffffff05",
+            "dstPort": "20",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffff0001",
+            "srcPort": "2",
+            "dst": "of:0000ffffffffff01",
+            "dstPort": "1",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff09",
+            "srcPort": "20",
+            "dst": "of:0000ffffffffff0A",
+            "dstPort": "20",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff06",
+            "srcPort": "20",
+            "dst": "of:0000ffffffffff05",
+            "dstPort": "30",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff07",
+            "srcPort": "30",
+            "dst": "of:0000ffffffffff08",
+            "dstPort": "20",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff03",
+            "srcPort": "20",
+            "dst": "of:0000ffffffffff06",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff02",
+            "srcPort": "10",
+            "dst": "of:0000ffffffffff01",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff09",
+            "srcPort": "1",
+            "dst": "of:0000ffffffff0009",
+            "dstPort": "2",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff03",
+            "srcPort": "30",
+            "dst": "of:0000ffffffffff04",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff07",
+            "srcPort": "20",
+            "dst": "of:0000ffffffffff09",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff0A",
+            "srcPort": "10",
+            "dst": "of:0000ffffffffff08",
+            "dstPort": "30",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffff0004",
+            "srcPort": "2",
+            "dst": "of:0000ffffffffff04",
+            "dstPort": "1",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff07",
+            "srcPort": "1",
+            "dst": "of:0000ffffffff0007",
+            "dstPort": "2",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffff0003",
+            "srcPort": "2",
+            "dst": "of:0000ffffffffff03",
+            "dstPort": "1",
+            "type": "optical",
+            "linkWidth": 2
+        },
+        {
+            "src": "of:0000ffffffffff06",
+            "srcPort": "30",
+            "dst": "of:0000ffffffffff08",
+            "dstPort": "10",
+            "type": "optical",
+            "linkWidth": 2
+        }
+    ],
+    "hosts": [
+        {
+            "id": "00:00:00:00:00:03/-1",
+            "cp": {
+                "device": "of:0000ffffffff0003",
+                "port": 1
+            },
+            "labels": [
+                "10.0.0.3",
+                "00:00:00:00:00:03"
+            ]
+        },
+        {
+            "id": "00:00:00:00:00:04/-1",
+            "cp": {
+                "device": "of:0000ffffffff0004",
+                "port": 1
+            },
+            "labels": [
+                "10.0.0.4",
+                "00:00:00:00:00:04"
+            ]
+        },
+        {
+            "id": "00:00:00:00:00:0A/-1",
+            "cp": {
+                "device": "of:0000ffffffff000A",
+                "port": 1
+            },
+            "labels": [
+                "10.0.0.10",
+                "00:00:00:00:00:0A"
+            ]
+        },
+        {
+            "id": "00:00:00:00:00:09/-1",
+            "cp": {
+                "device": "of:0000ffffffff0009",
+                "port": 1
+            },
+            "labels": [
+                "10.0.0.9",
+                "00:00:00:00:00:09"
+            ]
+        },
+        {
+            "id": "00:00:00:00:00:07/-1",
+            "cp": {
+                "device": "of:0000ffffffff0007",
+                "port": 1
+            },
+            "labels": [
+                "10.0.0.7",
+                "00:00:00:00:00:07"
+            ]
+        },
+        {
+            "id": "00:00:00:00:00:01/-1",
+            "cp": {
+                "device": "of:0000ffffffff0001",
+                "port": 1
+            },
+            "labels": [
+                "10.0.0.1",
+                "00:00:00:00:00:01"
+            ]
+        }
+    ]
+}

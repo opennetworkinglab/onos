@@ -23,39 +23,39 @@
 (function (onos) {
     'use strict';
 
-    var data = [ 'Yo, radio button set...', 'Time to shine' ],
+    var intro = [ 'Yo, radio button set...', 'Time to shine' ],
         btnSet = [
-            { id: 'b1', text: 'First Button' },
-            { id: 'b2', text: 'Second Button' },
-            { id: 'b3', text: 'Third Button' }
-        ],
-        btnLookup = {};
+            { text: 'First Button', cb: cbRadio },
+            { text: 'Second Button', cb: cbRadio },
+            { text: 'Third Button', cb: cbRadio }
+        ];
 
-    btnSet.forEach(function (b) {
-        btnLookup[b.id] = b;
-    });
-
-    // invoked when the view is loaded
-    function load(view, ctx) {
-        view.setRadio(btnSet, doRadio);
-
-        view.$div.selectAll('p')
-            .data(data)
-            .enter()
-            .append('p')
-            .text(function (d) { return d; })
-            .style('padding', '2px 8px');
+    // radio button callback
+    function cbRadio(view, btn) {
+        write(view, 'You pressed the ' + btn.text);
     }
 
-    function doRadio(view, id) {
+    function write(view, msg) {
         view.$div.append('p')
-            .text('You pressed the ' + btnLookup[id].text)
+            .text(msg)
             .style({
                 'font-size': '10pt',
                 color: 'green',
                 padding: '0 20px',
                 margin: '2px'
             });
+    }
+
+    // invoked when the view is loaded
+    function load(view, ctx) {
+        view.setRadio(btnSet);
+
+        view.$div.selectAll('p')
+            .data(intro)
+            .enter()
+            .append('p')
+            .text(function (d) { return d; })
+            .style('padding', '2px 8px');
     }
 
     // == register the view here, with links to lifecycle callbacks

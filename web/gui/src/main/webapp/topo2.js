@@ -68,58 +68,129 @@
 
     // radio buttons
     var btnSet = [
-            { id: 'showAll', text: 'All Layers' },
-            { id: 'showPkt', text: 'Packet Only' },
-            { id: 'showOpt', text: 'Optical Only' }
-        ];
+        { text: 'All Layers', cb: showAllLayers },
+        { text: 'Packet Only', cb: showPacketLayer },
+        { text: 'Optical Only', cb: showOpticalLayer }
+    ];
+
+    // key bindings
+    var keyDispatch = {
+        Q: getUpdatedNetworkData,
+        B: toggleBg,
+        G: toggleLayout,
+        L: cycleLabels,
+        P: togglePorts,
+        U: unpin
+    };
 
     // state variables
-    var svg,
-        bgImg,
-        network = {},
+    var network = {},
         selected = {},
         highlighted = null,
         hovered = null,
         viewMode = 'showAll',
         portLabelsOn = false;
 
+    // D3 selections
+    var svg,
+        bgImg,
+        topoG;
 
     // ==============================
-    // Private functions
+    // For Debugging / Development
 
-    // set the size of the SVG layer (or other element) to that of the view
-    function setSize(view, el) {
-        var thing = el || svg;
-        thing.attr({
-            width: view.width(),
-            height: view.height()
-        });
-    }
+    var topoPrefix = 'json/topoTest_',
+        lastFlavor = 4,
+        topoBase = true,
+        topoFlavor = 1;
 
-    function doRadio(view, id) {
-        showAllLayers();
-        if (id === 'showPkt') {
-            showPacketLayer();
-        } else if (id === 'showOpt') {
-            showOpticalLayer();
+    function nextTopo() {
+        if (topoBase) {
+            topoBase = false;
+        } else {
+            topoBase = true;
+            topoFlavor = (topoFlavor === lastFlavor) ? 1 : topoFlavor + 1
         }
     }
+
+    // TODO change this to return the live data URL
+    function getTopoUrl() {
+        var suffix = topoBase ? 'base' : topoFlavor;
+        return topoPrefix + suffix + '.json';
+    }
+
+    // ==============================
+    // Key Callbacks
+
+    function getUpdatedNetworkData(view) {
+        nextTopo();
+        getNetworkData(view);
+    }
+
+    function toggleBg() {
+        var vis = bgImg.style('visibility');
+        bgImg.style('visibility', (vis === 'hidden') ? 'visible' : 'hidden');
+    }
+
+    function toggleLayout(view) {
+
+    }
+
+    function cycleLabels(view) {
+
+    }
+
+    function togglePorts(view) {
+
+    }
+
+    function unpin(view) {
+
+    }
+
+    // ==============================
+    // Radio Button Callbacks
 
     function showAllLayers() {
 //        network.node.classed('inactive', false);
 //        network.link.classed('inactive', false);
 //        d3.selectAll('svg .port').classed('inactive', false);
 //        d3.selectAll('svg .portText').classed('inactive', false);
-        alert('show all layers');
+        // TODO ...
+        console.log('showAllLayers()');
     }
 
     function showPacketLayer() {
-        alert('show packet layer');
+        showAllLayers();
+        // TODO ...
+        console.log('showPacketLayer()');
     }
 
     function showOpticalLayer() {
-        alert('show optical layer');
+        showAllLayers();
+        // TODO ...
+        console.log('showOpticalLayer()');
     }
+
+    // ==============================
+    // Private functions
+
+    // set the size of the given element to that of the view
+    function setSize(el, view) {
+        el.attr({
+            width: view.width(),
+            height: view.height()
+        });
+    }
+
+
+    function getNetworkData(view) {
+        var url = getTopoUrl();
+
+        // TODO ...
+
+    }
+
 
     // ==============================
     // View life-cycle callbacks
@@ -132,8 +203,9 @@
 
         // NOTE: view.$div is a D3 selection of the view's div
         svg = view.$div.append('svg');
-        setSize(view);
-        svg.append('g')
+        setSize(svg, view);
+
+        topoG = svg.append('g')
             .attr('transform', config.force.translate());
 
         // load the background image
@@ -151,13 +223,15 @@
 
 
     function load(view, ctx) {
-        view.setRadio(btnSet, doRadio);
+        view.setRadio(btnSet);
+        view.setKeys(keyDispatch);
 
+        getNetworkData(view);
     }
 
     function resize(view, ctx) {
-        setSize(view);
-        setSize(view, bgImg);
+        setSize(svg, view);
+        setSize(bgImg, view);
     }
 
 
