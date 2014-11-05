@@ -5,16 +5,16 @@ package org.onlab.onos.store.service;
  * <p>
  * If a result is present, get() will return it otherwise get() will throw
  * the exception that was encountered in the process of generating the result.
- *
+ * </p>
  * @param <R> type of result.
  * @param <E> exception encountered in generating the result.
  */
 public interface OptionalResult<R, E extends Throwable> {
 
     /**
-     * Returns the result.
+     * Returns the result or throws an exception if there is no
+     * valid result.
      * @return result
-     * @throws E if there is no valid result.
      */
     public R get();
 

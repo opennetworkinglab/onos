@@ -2,13 +2,17 @@ package org.onlab.onos.store.service;
 
 import java.util.List;
 
+/**
+ * Service interface for a strongly consistent and durable
+ * key value data store.
+ */
 public interface DatabaseService {
 
     /**
      * Performs a read on the database.
      * @param request read request.
      * @return ReadResult
-     * @throws DatabaseException
+     * @throws DatabaseException if there is a failure in executing read.
      */
     ReadResult read(ReadRequest request);
 
@@ -16,7 +20,7 @@ public interface DatabaseService {
      * Performs a batch read operation on the database.
      * The main advantage of batch read operation is parallelization.
      * @param batch batch of read requests to execute.
-     * @return
+     * @return batch read result.
      */
     List<OptionalResult<ReadResult, DatabaseException>> batchRead(List<ReadRequest> batch);
 
@@ -24,7 +28,7 @@ public interface DatabaseService {
      * Performs a write operation on the database.
      * @param request
      * @return write result.
-     * @throws DatabaseException
+     * @throws DatabaseException if there is failure in execution write.
      */
     WriteResult write(WriteRequest request);
 

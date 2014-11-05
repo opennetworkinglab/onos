@@ -33,6 +33,7 @@ import org.onlab.onos.store.serializers.ImmutableSetSerializer;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.service.ReadRequest;
 import org.onlab.onos.store.service.ReadResult;
+import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
 import org.onlab.util.KryoNamespace;

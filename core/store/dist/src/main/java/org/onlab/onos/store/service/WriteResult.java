@@ -1,6 +1,5 @@
 package org.onlab.onos.store.service;
 
-import org.onlab.onos.store.service.impl.VersionedValue;
 
 /**
  * Database write result.

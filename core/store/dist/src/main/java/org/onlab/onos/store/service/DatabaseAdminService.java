@@ -3,7 +3,7 @@ package org.onlab.onos.store.service;
 import java.util.List;
 
 /**
- * Service for running administrative tasks on a Database.
+ * Service interface for running administrative tasks on a Database.
  */
 public interface DatabaseAdminService {
 
