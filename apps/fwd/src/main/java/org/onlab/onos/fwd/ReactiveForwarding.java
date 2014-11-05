@@ -132,6 +132,11 @@ public class ReactiveForwarding {
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
 
+            // Bail if this is deemed to be a control packet.
+            if (isControlPacket(ethPkt)) {
+                return;
+            }
+
             HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
             // Do not process link-local addresses in any way.
@@ -180,6 +185,13 @@ public class ReactiveForwarding {
             // Otherwise forward and be done with it.
             installRule(context, path.src().port());
         }
+
+    }
+
+    // Indicates whether this is a control packet, e.g. LLDP, BDDP
+    private boolean isControlPacket(Ethernet eth) {
+        short type = eth.getEtherType();
+        return type == Ethernet.TYPE_LLDP || type == Ethernet.TYPE_BSN;
     }
 
     // Selects a path from the given set that does not lead back to the
