@@ -82,7 +82,7 @@ public class LinkDiscovery implements TimerTask {
     private final PacketService pktService;
     private final MastershipService mastershipService;
     private Timeout timeout;
-    private boolean isStopped;
+    private volatile boolean isStopped;
 
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
@@ -243,8 +243,10 @@ public class LinkDiscovery implements TimerTask {
     public void run(final Timeout t) {
         boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
         if (!isMaster) {
-            // reschedule timer
-            timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);
+            if (!isStopped()) {
+                // reschedule timer
+                timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);
+            }
             return;
         }
 
@@ -280,16 +282,18 @@ public class LinkDiscovery implements TimerTask {
             }
         }
 
-        // reschedule timer
-        timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);
+        if (!isStopped()) {
+            // reschedule timer
+            timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);
+        }
     }
 
-    public void stop() {
+    public synchronized void stop() {
         timeout.cancel();
         isStopped = true;
     }
 
-    public void start() {
+    public synchronized void start() {
         if (isStopped) {
             timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
             isStopped = false;

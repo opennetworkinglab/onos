@@ -69,10 +69,10 @@ public class ClusterMessagingProtocol implements Protocol<TcpMember> {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    ClusterService clusterService;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    ClusterCommunicationService clusterCommunicator;
+    protected ClusterCommunicationService clusterCommunicator;
 
     public static final MessageSubject COPYCAT_PING =
             new MessageSubject("copycat-raft-consensus-ping");

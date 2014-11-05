@@ -2,6 +2,8 @@ package org.onlab.onos.store.service;
 
 import java.util.Arrays;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Wrapper object that holds the object (as byte array) and its version.
  */
@@ -38,7 +40,9 @@ public class VersionedValue {
 
     @Override
     public String toString() {
-        return "VersionedValue [value=" + Arrays.toString(value) + ", version="
-                + version + "]";
+        return MoreObjects.toStringHelper(getClass())
+                .add("version", version)
+                .add("value", Arrays.toString(value))
+                .toString();
     }
 }

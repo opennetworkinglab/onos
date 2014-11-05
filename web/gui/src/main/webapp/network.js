@@ -28,7 +28,7 @@
 
     // configuration data
     var config = {
-        useLiveData: true,
+        useLiveData: false,
         debugOn: false,
         debug: {
             showNodeXY: false,

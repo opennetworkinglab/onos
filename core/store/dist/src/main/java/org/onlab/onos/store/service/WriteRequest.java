@@ -4,6 +4,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Database write request.
  */
@@ -67,10 +69,13 @@ public class WriteRequest {
 
     @Override
     public String toString() {
-        return "WriteRequest [tableName=" + tableName + ", key=" + key
-                + ", newValue=" + newValue
-                + ", previousVersion=" + previousVersion
-                + ", oldValue=" + oldValue;
+        return MoreObjects.toStringHelper(getClass())
+                .add("tableName", tableName)
+                .add("key", key)
+                .add("newValue", newValue)
+                .add("previousVersion", previousVersion)
+                .add("oldValue", oldValue)
+                .toString();
     }
 
     @Override

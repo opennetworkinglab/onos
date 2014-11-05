@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import com.google.common.base.MoreObjects;
+
 
 /**
  * Database write result.
@@ -26,5 +28,14 @@ public class WriteResult {
 
     public VersionedValue previousValue() {
         return previousValue;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("tableName", tableName)
+                .add("key", key)
+                .add("previousValue", previousValue)
+                .toString();
     }
 }
