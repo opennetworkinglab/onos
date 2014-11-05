@@ -48,12 +48,8 @@
 }
 
 #mast span.radio {
-    color: darkslateblue;
     font-size: 10pt;
-}
-
-#mast span.radio {
-    margin: 4px 0;
+    margin: 4px 2px;
     border: 1px dotted #222;
     padding: 1px 6px;
     color: #eee;

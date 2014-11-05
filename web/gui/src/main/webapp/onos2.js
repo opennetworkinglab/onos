@@ -51,7 +51,8 @@
             errorCount = 0;
 
         // DOM elements etc.
-        var $view;
+        var $view,
+            $mastRadio;
 
 
         // ..........................................................
@@ -204,6 +205,9 @@
             // the incoming view, then unload it...
             if (current.view && (current.view.vid !== view.vid)) {
                 current.view.unload();
+                // detach radio buttons, if they were there..
+                $('#mastRadio').children().detach();
+
             }
 
             // cache new view and context
@@ -221,6 +225,61 @@
 
             // load the view
             view.load(current.ctx);
+        }
+
+        // generate 'unique' id by prefixing view id
+        function uid(view, id) {
+            return view.vid + '-' + id;
+        }
+
+        // restore id by removing view id prefix
+        function unUid(view, uid) {
+            var re = new RegExp('^' + view.vid + '-');
+            return uid.replace(re, '');
+        }
+
+        function setRadioButtons(vid, btnSet, callback) {
+            var view = views[vid],
+                btnG;
+
+            // lazily create the buttons...
+            if (!(btnG = view.radioButtons)) {
+                btnG = d3.select(document.createElement('div'));
+
+                btnSet.forEach(function (btn, i) {
+                    var bid = btn.id || 'b' + i,
+                        txt = btn.text || 'Button #' + i,
+                        b = btnG.append('span')
+                        .attr({
+                            id: uid(view, bid),
+                            class: 'radio'
+                        })
+                        .text(txt);
+                    if (i === 0) {
+                        b.classed('active', true);
+                    }
+                });
+
+                btnG.selectAll('span')
+                    .on('click', function (d) {
+                        var btn = d3.select(this),
+                            bid = btn.attr('id'),
+                            act = btn.classed('active');
+
+                        if (!act) {
+                            $mastRadio.selectAll('span')
+                                .classed('active', false);
+                            btn.classed('active', true);
+
+                            callback(view.token(), unUid(view, bid));
+                        }
+                    });
+
+                view.radioButtons = btnG;
+            }
+
+            // attach the buttons to the masthead
+            $mastRadio.node().appendChild(btnG.node());
         }
 
         function resize(e) {
@@ -256,8 +315,9 @@
             if (validateViewArgs(vid)) {
                 this.nid = nid;     // explicit navitem id (can be null)
                 this.cb = $.isPlainObject(cb) ? cb : {};    // callbacks
-                this.$div = null;   // view not yet added to DOM
-                this.ok = true;     // valid view
+                this.$div = null;               // view not yet added to DOM
+                this.radioButtons = null;       // no radio buttons yet
+                this.ok = true;                 // valid view
             }
 
         }
@@ -289,7 +349,8 @@
 
                     // functions
                     width: this.width,
-                    height: this.height
+                    height: this.height,
+                    setRadio: this.setRadio
                 }
             },
 
@@ -368,8 +429,11 @@
 
             height: function () {
                 return $(this.$div.node()).height();
-            }
+            },
 
+            setRadio: function (btnSet, cb) {
+                setRadioButtons(this.vid, btnSet, cb);
+            }
 
             // TODO: consider schedule, clearTimer, etc.
         };
@@ -465,6 +529,7 @@
             built = true;
 
             $view = d3.select('#view');
+            $mastRadio = d3.select('#mastRadio');
 
             $(window).on('hashchange', hash);
             $(window).on('resize', resize);
