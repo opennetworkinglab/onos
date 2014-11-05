@@ -15,9 +15,11 @@ import net.kuujo.copycat.log.ChronicleLog;
 import net.kuujo.copycat.log.Log;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.service.DatabaseAdminService;
@@ -40,8 +42,8 @@ import com.google.common.collect.Lists;
  * Strongly consistent and durable state management service based on
  * Copycat implementation of Raft consensus protocol.
  */
-//@Component(immediate = true)
-//@Service
+@Component(immediate = true)
+@Service
 public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     private final Logger log = getLogger(getClass());
@@ -59,6 +61,9 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Activate
     public void activate() {
+
+        // TODO: Not every node can be part of the consensus ring.
+
         TcpMember localMember =
                 new TcpMember(
                         clusterService.getLocalNode().ip().toString(),
