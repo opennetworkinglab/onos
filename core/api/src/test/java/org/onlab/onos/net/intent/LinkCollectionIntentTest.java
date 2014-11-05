@@ -28,6 +28,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.intent.constraint.LambdaConstraint;
 import org.onlab.onos.net.resource.Lambda;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -111,7 +112,7 @@ public class LinkCollectionIntentTest {
         assertThat(collectionIntent.isInstallable(), is(true));
         assertThat(collectionIntent.treatment(), is(treatment));
         assertThat(collectionIntent.selector(), is(selector));
-        assertThat(collectionIntent.egressPoint(), is(egress));
+        assertThat(collectionIntent.egressPoints(), is(ImmutableSet.of(egress)));
         assertThat(collectionIntent.resources(), hasSize(1));
         final List<Constraint> createdConstraints = collectionIntent.constraints();
         assertThat(createdConstraints, hasSize(0));
@@ -140,7 +141,7 @@ public class LinkCollectionIntentTest {
         assertThat(collectionIntent.isInstallable(), is(true));
         assertThat(collectionIntent.treatment(), is(treatment));
         assertThat(collectionIntent.selector(), is(selector));
-        assertThat(collectionIntent.egressPoint(), is(egress));
+        assertThat(collectionIntent.egressPoints(), is(ImmutableSet.of(egress)));
 
         final List<Constraint> createdConstraints = collectionIntent.constraints();
         assertThat(createdConstraints, hasSize(1));
@@ -161,7 +162,7 @@ public class LinkCollectionIntentTest {
         assertThat(collectionIntent.isInstallable(), is(true));
         assertThat(collectionIntent.treatment(), nullValue());
         assertThat(collectionIntent.selector(), nullValue());
-        assertThat(collectionIntent.egressPoint(), nullValue());
+        assertThat(collectionIntent.egressPoints(), nullValue());
 
         final List<Constraint> createdConstraints = collectionIntent.constraints();
         assertThat(createdConstraints, hasSize(0));

@@ -17,12 +17,15 @@ package org.onlab.onos.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,30 +41,50 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
     /**
      * Creates a new single-to-multi point connectivity intent.
      *
-     * @param appId        application identifier
-     * @param selector     traffic selector
-     * @param treatment    treatment
+     * @param appId application identifier
+     * @param selector traffic selector
+     * @param treatment treatment
      * @param ingressPoint port on which traffic will ingress
      * @param egressPoints set of ports on which traffic will egress
-     * @throws NullPointerException     if {@code ingressPoint} or
-     *                                  {@code egressPoints} is null
+     * @throws NullPointerException if {@code ingressPoint} or
+     *             {@code egressPoints} is null
      * @throws IllegalArgumentException if the size of {@code egressPoints} is
-     *                                  not more than 1
+     *             not more than 1
      */
     public SinglePointToMultiPointIntent(ApplicationId appId,
-                                         TrafficSelector selector,
-                                         TrafficTreatment treatment,
-                                         ConnectPoint ingressPoint,
-                                         Set<ConnectPoint> egressPoints) {
+            TrafficSelector selector, TrafficTreatment treatment,
+            ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints) {
+        this(appId, selector, treatment, ingressPoint, egressPoints, Collections.emptyList());
+    }
+
+    /**
+     * Creates a new single-to-multi point connectivity intent.
+     *
+     * @param appId application identifier
+     * @param selector traffic selector
+     * @param treatment treatment
+     * @param ingressPoint port on which traffic will ingress
+     * @param egressPoints set of ports on which traffic will egress
+     * @param constraints constraints to apply to the intent
+     * @throws NullPointerException if {@code ingressPoint} or
+     *             {@code egressPoints} is null
+     * @throws IllegalArgumentException if the size of {@code egressPoints} is
+     *             not more than 1
+     */
+    public SinglePointToMultiPointIntent(ApplicationId appId,
+            TrafficSelector selector, TrafficTreatment treatment,
+            ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints,
+            List<Constraint> constraints) {
         super(id(SinglePointToMultiPointIntent.class, selector, treatment,
-                 ingressPoint, egressPoints), appId, null, selector, treatment);
+                 ingressPoint, egressPoints), appId, null, selector, treatment,
+              constraints);
         checkNotNull(egressPoints);
         checkNotNull(ingressPoint);
         checkArgument(!egressPoints.isEmpty(), "Egress point set cannot be empty");
         checkArgument(!egressPoints.contains(ingressPoint),
                 "Set of egresses should not contain ingress (ingress: %s)", ingressPoint);
 
-        this.ingressPoint = ingressPoint;
+        this.ingressPoint = checkNotNull(ingressPoint);
         this.egressPoints = Sets.newHashSet(egressPoints);
     }
 
@@ -75,7 +98,8 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
     }
 
     /**
-     * Returns the port on which the ingress traffic should be connected to the egress.
+     * Returns the port on which the ingress traffic should be connected to the
+     * egress.
      *
      * @return ingress port
      */
@@ -101,6 +125,7 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
                 .add("treatment", treatment())
                 .add("ingress", ingressPoint)
                 .add("egress", egressPoints)
+                .add("constraints", constraints())
                 .toString();
     }
 

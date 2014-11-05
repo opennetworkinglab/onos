@@ -161,6 +161,15 @@
             </optional-completers>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.AddSinglePointToMultiPointIntentCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+            <optional-completers>
+                <entry key="-t" value-ref="ethTypeCompleter"/>
+            </optional-completers>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.IntentPushTestCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>

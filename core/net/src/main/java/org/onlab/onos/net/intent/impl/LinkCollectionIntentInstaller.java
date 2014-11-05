@@ -15,9 +15,12 @@
  */
 package org.onlab.onos.net.intent.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,6 +29,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.PortNumber;
@@ -42,18 +46,16 @@ import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentInstaller;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.PathIntent;
-import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 
 /**
- * Installer for {@link org.onlab.onos.net.intent.LinkCollectionIntent}
- * path segment intents.
+ * Installer for {@link org.onlab.onos.net.intent.LinkCollectionIntent} path
+ * segment intents.
  */
 @Component(immediate = true)
-public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollectionIntent> {
-
-    private final Logger log = getLogger(getClass());
+public class LinkCollectionIntentInstaller
+        implements IntentInstaller<LinkCollectionIntent> {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -76,37 +78,58 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
 
     @Override
     public List<FlowRuleBatchOperation> install(LinkCollectionIntent intent) {
+        Map<DeviceId, Set<PortNumber>> outputMap = new HashMap<DeviceId, Set<PortNumber>>();
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+
         for (Link link : intent.links()) {
-            rules.add(createBatchEntry(FlowRuleOperation.ADD,
-                   intent,
-                   link.src().deviceId(),
-                   link.src().port()));
+            if (outputMap.get(link.src().deviceId()) == null) {
+                outputMap.put(link.src().deviceId(), new HashSet<PortNumber>());
+            }
+            outputMap.get(link.src().deviceId()).add(link.src().port());
+
         }
 
-        rules.add(createBatchEntry(FlowRuleOperation.ADD,
-                intent,
-                intent.egressPoint().deviceId(),
-                intent.egressPoint().port()));
+        for (ConnectPoint egressPoint : intent.egressPoints()) {
+            if (outputMap.get(egressPoint.deviceId()) == null) {
+                outputMap
+                        .put(egressPoint.deviceId(), new HashSet<PortNumber>());
+            }
+            outputMap.get(egressPoint.deviceId()).add(egressPoint.port());
+
+        }
+
+        for (Entry<DeviceId, Set<PortNumber>> entry : outputMap.entrySet()) {
+            rules.add(createBatchEntry(FlowRuleOperation.ADD, intent,
+                                       entry.getKey(), entry.getValue()));
+        }
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(LinkCollectionIntent intent) {
+        Map<DeviceId, Set<PortNumber>> outputMap = new HashMap<DeviceId, Set<PortNumber>>();
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
 
         for (Link link : intent.links()) {
-            rules.add(createBatchEntry(FlowRuleOperation.REMOVE,
-                    intent,
-                    link.src().deviceId(),
-                    link.src().port()));
+            if (outputMap.get(link.src().deviceId()) == null) {
+                outputMap.put(link.src().deviceId(), new HashSet<PortNumber>());
+            }
+            outputMap.get(link.src().deviceId()).add(link.src().port());
         }
 
-        rules.add(createBatchEntry(FlowRuleOperation.REMOVE,
-               intent,
-               intent.egressPoint().deviceId(),
-               intent.egressPoint().port()));
+        for (ConnectPoint egressPoint : intent.egressPoints()) {
+            if (outputMap.get(egressPoint.deviceId()) == null) {
+                outputMap
+                        .put(egressPoint.deviceId(), new HashSet<PortNumber>());
+            }
+            outputMap.get(egressPoint.deviceId()).add(egressPoint.port());
+        }
+
+        for (Entry<DeviceId, Set<PortNumber>> entry : outputMap.entrySet()) {
+            rules.add(createBatchEntry(FlowRuleOperation.REMOVE, intent,
+                                       entry.getKey(), entry.getValue()));
+        }
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
@@ -128,17 +151,20 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
      * @return the new flow rule batch entry
      */
     private FlowRuleBatchEntry createBatchEntry(FlowRuleOperation operation,
-                                    LinkCollectionIntent intent,
-                                    DeviceId deviceId,
-                                    PortNumber outPort) {
+                                                LinkCollectionIntent intent,
+                                                DeviceId deviceId,
+                                                Set<PortNumber> outPorts) {
 
-        TrafficTreatment.Builder treatmentBuilder =
-                DefaultTrafficTreatment.builder(intent.treatment());
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
+                .builder(intent.treatment());
 
-        TrafficTreatment treatment = treatmentBuilder.setOutput(outPort).build();
+        for (PortNumber outPort : outPorts) {
+            treatmentBuilder.setOutput(outPort);
+        }
+        TrafficTreatment treatment = treatmentBuilder.build();
 
-        TrafficSelector selector = DefaultTrafficSelector.builder(intent.selector())
-                                   .build();
+        TrafficSelector selector = DefaultTrafficSelector
+                .builder(intent.selector()).build();
 
         FlowRule rule = new DefaultFlowRule(deviceId,
                 selector, treatment, 123,

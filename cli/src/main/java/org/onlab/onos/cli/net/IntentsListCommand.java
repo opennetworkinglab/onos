@@ -340,7 +340,7 @@ public class IntentsListCommand extends AbstractShellCommand {
         } else if (intent instanceof LinkCollectionIntent) {
             LinkCollectionIntent li = (LinkCollectionIntent) intent;
             print("    links=%s", li.links());
-            print("    egress=%s", li.egressPoint());
+            print("    egress=%s", li.egressPoints());
         }
 
         List<Intent> installable = service.getInstallableIntents(intent.id());

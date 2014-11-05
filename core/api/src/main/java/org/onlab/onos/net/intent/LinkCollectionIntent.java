@@ -16,6 +16,8 @@
 package org.onlab.onos.net.intent;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
@@ -34,11 +36,11 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
 
     private final Set<Link> links;
 
-    private final ConnectPoint egressPoint;
+    private final Set<ConnectPoint> egressPoints;
 
     /**
-     * Creates a new actionable intent capable of funneling the selected
-     * traffic along the specified convergent tree and out the given egress point.
+     * Creates a new actionable intent capable of funneling the selected traffic
+     * along the specified convergent tree and out the given egress point.
      *
      * @param appId       application identifier
      * @param selector    traffic match
@@ -77,7 +79,31 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
         super(id(LinkCollectionIntent.class, selector, treatment, links, egressPoint, constraints),
                 appId, resources(links), selector, treatment, constraints);
         this.links = links;
-        this.egressPoint = egressPoint;
+        this.egressPoints = ImmutableSet.of(egressPoint);
+    }
+
+    /**
+     * Creates a new actionable intent capable of funneling the selected traffic
+     * along the specified convergent tree and out the given egress point.
+     *
+     * @param appId        application identifier
+     * @param selector     traffic match
+     * @param treatment    action
+     * @param links        traversed links
+     * @param egressPoints Set of egress point
+     * @throws NullPointerException {@code path} is null
+     */
+    public LinkCollectionIntent(ApplicationId appId,
+                                TrafficSelector selector,
+                                TrafficTreatment treatment,
+                                Set<Link> links,
+                                Set<ConnectPoint> egressPoints,
+                                List<Constraint> constraints) {
+        super(id(LinkCollectionIntent.class, selector, treatment, links,
+                 egressPoints), appId, resources(links), selector, treatment);
+
+        this.links = links;
+        this.egressPoints = ImmutableSet.copyOf(egressPoints);
     }
 
     /**
@@ -86,7 +112,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
     protected LinkCollectionIntent() {
         super();
         this.links = null;
-        this.egressPoint = null;
+        this.egressPoints = null;
     }
 
     /**
@@ -104,8 +130,8 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
      *
      * @return the egress point
      */
-    public ConnectPoint egressPoint() {
-        return egressPoint;
+    public Set<ConnectPoint> egressPoints() {
+        return egressPoints;
     }
 
     @Override
@@ -121,7 +147,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                 .add("selector", selector())
                 .add("treatment", treatment())
                 .add("links", links())
-                .add("egress", egressPoint())
+                .add("egress", egressPoints())
                 .toString();
     }
 }

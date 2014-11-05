@@ -80,6 +80,7 @@ import org.onlab.onos.net.intent.OpticalPathIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.intent.constraint.AnnotationConstraint;
+import org.onlab.onos.net.intent.SinglePointToMultiPointIntent;
 import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
 import org.onlab.onos.net.intent.constraint.BooleanConstraint;
 import org.onlab.onos.net.intent.constraint.LambdaConstraint;
@@ -251,6 +252,7 @@ public final class KryoNamespaces {
                     HostToHostIntent.class,
                     PointToPointIntent.class,
                     MultiPointToSinglePointIntent.class,
+                    SinglePointToMultiPointIntent.class,
                     LinkCollectionIntent.class,
                     OpticalConnectivityIntent.class,
                     OpticalPathIntent.class,
