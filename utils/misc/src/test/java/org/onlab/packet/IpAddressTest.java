@@ -175,23 +175,6 @@ public class IpAddressTest {
     }
 
     /**
-     * Tests returning an IPv4 address as an integer.
-     */
-    @Test
-    public void testToInt() {
-        IpAddress ipAddress;
-
-        ipAddress = IpAddress.valueOf("1.2.3.4");
-        assertThat(ipAddress.toInt(), is(0x01020304));
-
-        ipAddress = IpAddress.valueOf("0.0.0.0");
-        assertThat(ipAddress.toInt(), is(0));
-
-        ipAddress = IpAddress.valueOf("255.255.255.255");
-        assertThat(ipAddress.toInt(), is(-1));
-    }
-
-    /**
      * Tests valueOf() converter for IPv4 integer value.
      */
     @Test

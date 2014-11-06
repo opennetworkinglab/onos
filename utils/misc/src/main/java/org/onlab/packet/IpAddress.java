@@ -125,17 +125,6 @@ public class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
-     * Returns the integer value of this IP address.
-     * TODO: This method should be moved to Ip4Address.
-     *
-     * @return the IP address's value as an integer
-     */
-    public int toInt() {
-        ByteBuffer bb = ByteBuffer.wrap(octets);
-        return bb.getInt();
-    }
-
-    /**
      * Computes the IP address byte length for a given IP version.
      *
      * @param version the IP version
