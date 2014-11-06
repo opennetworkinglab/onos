@@ -38,6 +38,28 @@ public class VersionedValue {
         return version;
     }
 
+    /**
+     * Creates a copy of given VersionedValue.
+     *
+     * @param original VersionedValue to create a copy
+     * @return same as original if original or it's value is null,
+     *         otherwise creates a copy.
+     */
+    public static VersionedValue copy(VersionedValue original) {
+        if (original == null) {
+            return null;
+        }
+        if (original.value == null) {
+            // immutable, no need to copy
+            return original;
+        } else {
+            return new VersionedValue(
+                                      Arrays.copyOf(original.value,
+                                                    original.value.length),
+                                      original.version);
+        }
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())

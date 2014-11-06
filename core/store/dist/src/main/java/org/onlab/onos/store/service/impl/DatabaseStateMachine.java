@@ -76,7 +76,7 @@ public class DatabaseStateMachine implements StateMachine {
                 results.add(new InternalReadResult(InternalReadResult.Status.NO_SUCH_TABLE, null));
                 continue;
             }
-            VersionedValue value = table.get(request.key());
+            VersionedValue value = VersionedValue.copy(table.get(request.key()));
             results.add(new InternalReadResult(
                     InternalReadResult.Status.OK,
                     new ReadResult(
