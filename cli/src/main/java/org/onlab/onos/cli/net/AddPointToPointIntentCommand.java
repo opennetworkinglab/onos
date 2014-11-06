@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.cli.net;
 
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.net.ConnectPoint;
@@ -22,6 +24,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
@@ -63,8 +66,10 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
         TrafficSelector selector = buildTrafficSelector();
         TrafficTreatment treatment = builder().build();
 
+        List<Constraint> constraints = buildConstraints();
+
         Intent intent = new PointToPointIntent(appId(), selector, treatment,
-                                               ingress, egress);
+                                               ingress, egress, constraints);
         service.submit(intent);
     }
 

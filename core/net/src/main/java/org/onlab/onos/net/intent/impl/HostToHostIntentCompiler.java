@@ -70,7 +70,8 @@ public class HostToHostIntentCompiler
                                     HostToHostIntent intent) {
         TrafficSelector selector = builder(intent.selector())
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
-        return new PathIntent(intent.appId(), selector, intent.treatment(), path);
+        return new PathIntent(intent.appId(), selector, intent.treatment(),
+                              path, intent.constraints());
     }
 
 }
