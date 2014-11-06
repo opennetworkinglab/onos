@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -65,7 +64,7 @@ import org.slf4j.LoggerFactory;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Component(immediate = true)
+//@Component(immediate = true)
 public class OpticalConfigProvider extends AbstractProvider implements DeviceProvider, LinkProvider {
 
     protected static final Logger log = LoggerFactory
