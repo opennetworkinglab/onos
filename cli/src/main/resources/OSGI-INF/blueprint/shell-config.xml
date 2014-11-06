@@ -116,17 +116,6 @@
             </optional-completers>
         </command>
         <command>
-            <action class="org.onlab.onos.cli.net.AddPointToPointIntentWithBandwidthConstraintCommand"/>
-            <completers>
-                <ref component-id="connectPointCompleter"/>
-                <ref component-id="connectPointCompleter"/>
-                <null/>
-            </completers>
-            <optional-completers>
-                <entry key="-t" value-ref="ethTypeCompleter"/>
-            </optional-completers>
-        </command>
-        <command>
             <action class="org.onlab.onos.cli.net.AddOpticalIntentCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
