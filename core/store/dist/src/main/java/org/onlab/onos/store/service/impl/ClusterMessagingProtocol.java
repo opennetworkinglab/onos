@@ -149,12 +149,12 @@ public class ClusterMessagingProtocol
 
     @Activate
     public void activate() {
-        log.info("Started.");
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        log.info("Stopped.");
+        log.info("Stopped");
     }
 
     @Override

@@ -5,6 +5,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import net.kuujo.copycat.Copycat;
 import net.kuujo.copycat.StateMachine;
@@ -60,8 +62,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     private Copycat copycat;
     private DatabaseClient client;
 
-    // TODO: check if synchronization is required to read/modify this
+    // guarded by synchronized block
     private ClusterConfig<TcpMember> clusterConfig;
+
+    private CountDownLatch clusterEventLatch;
 
     private ClusterEventListener clusterEventListener;
 
@@ -81,8 +85,11 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
         List<TcpMember> remoteMembers = new ArrayList<>(clusterService.getNodes().size());
 
+        clusterEventLatch = new CountDownLatch(1);
         clusterEventListener = new InternalClusterEventListener();
         clusterService.addListener(clusterEventListener);
+
+        // note: from this point beyond, clusterConfig requires synchronization
 
         for (ControllerNode node : clusterService.getNodes()) {
             TcpMember member = new TcpMember(node.ip().toString(), node.tcpPort());
@@ -90,13 +97,33 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
                 remoteMembers.add(member);
             }
         }
-        clusterConfig.addRemoteMembers(remoteMembers);
 
-        log.info("Starting cluster with Local:[{}], Remote:{}", localMember, remoteMembers);
+        if (remoteMembers.isEmpty()) {
+            log.info("This node is the only node in the cluster.  "
+                    + "Waiting for others to show up.");
+            // FIXME: hack trying to relax cases forming multiple consensus rings.
+            // add seed node configuration to avoid this
 
+            // If the node is alone on it's own, wait some time
+            // hoping other will come up soon
+            try {
+                if (!clusterEventLatch.await(120, TimeUnit.SECONDS)) {
+                    log.info("Starting as single node cluster");
+                }
+            } catch (InterruptedException e) {
+                log.info("Interrupted waiting for others", e);
+            }
+        }
 
-        // Create the cluster.
-        TcpCluster cluster = new TcpCluster(clusterConfig);
+        final TcpCluster cluster;
+        synchronized (clusterConfig) {
+            clusterConfig.addRemoteMembers(remoteMembers);
+
+            // Create the cluster.
+            cluster = new TcpCluster(clusterConfig);
+        }
+        log.info("Starting cluster: {}", cluster);
+
 
         StateMachine stateMachine = new DatabaseStateMachine();
         // FIXME resolve Chronicle + OSGi issue
@@ -207,17 +234,24 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             case INSTANCE_ACTIVATED:
             case INSTANCE_ADDED:
                 log.info("{} was added to the cluster", tcpMember);
-                clusterConfig.addRemoteMember(tcpMember);
+                synchronized (clusterConfig) {
+                    clusterConfig.addRemoteMember(tcpMember);
+                }
                 break;
             case INSTANCE_DEACTIVATED:
             case INSTANCE_REMOVED:
                 log.info("{} was removed from the cluster", tcpMember);
-                clusterConfig.removeRemoteMember(tcpMember);
+                synchronized (clusterConfig) {
+                    clusterConfig.removeRemoteMember(tcpMember);
+                }
                 break;
             default:
                 break;
             }
-            log.debug("Current cluster: {}", copycat.cluster());
+            if (copycat != null) {
+                log.debug("Current cluster: {}", copycat.cluster());
+            }
+            clusterEventLatch.countDown();
         }
 
     }
