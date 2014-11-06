@@ -5,8 +5,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import net.kuujo.copycat.Command;
 import net.kuujo.copycat.Query;
 import net.kuujo.copycat.StateMachine;
@@ -20,6 +18,7 @@ import org.onlab.onos.store.service.WriteResult;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 /**
@@ -64,8 +63,8 @@ public class DatabaseStateMachine implements StateMachine {
     }
 
     @Query
-    public Set<String> listTables() {
-        return state.getTables().keySet();
+    public List<String> listTables() {
+        return ImmutableList.copyOf(state.getTables().keySet());
     }
 
     @Query
