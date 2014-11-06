@@ -58,12 +58,12 @@ public class JsonCodecTest {
 
     private static class FooCodec extends JsonCodec<Foo> {
         @Override
-        public ObjectNode encode(Foo entity, ObjectMapper mapper) {
-            return mapper.createObjectNode().put("name", entity.name);
+        public ObjectNode encode(Foo entity, CodecContext context) {
+            return context.mapper().createObjectNode().put("name", entity.name);
         }
 
         @Override
-        public Foo decode(ObjectNode json) {
+        public Foo decode(ObjectNode json, CodecContext context) {
             return new Foo(json.get("name").asText());
         }
     }
@@ -74,9 +74,26 @@ public class JsonCodecTest {
         Foo f2 = new Foo("bar");
         FooCodec codec = new FooCodec();
         ImmutableList<Foo> entities = ImmutableList.of(f1, f2);
-        ArrayNode json = codec.encode(entities, new ObjectMapper());
-        List<Foo> foos = codec.decode(json);
+        ArrayNode json = codec.encode(entities, new TestContext());
+        List<Foo> foos = codec.decode(json, new TestContext());
         assertEquals("incorrect encode/decode", entities, foos);
     }
 
+    private class TestContext implements CodecContext {
+        private ObjectMapper mapper = new ObjectMapper();
+        @Override
+        public ObjectMapper mapper() {
+            return mapper;
+        }
+
+        @Override
+        public <T> JsonCodec<T> codec(Class<T> entityClass) {
+            return null;
+        }
+
+        @Override
+        public <T> T get(Class<T> serviceClass) {
+            return null;
+        }
+    }
 }

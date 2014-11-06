@@ -38,7 +38,7 @@
         <module>nio</module>
         <module>osgi</module>
         <module>rest</module>
-	<module>thirdparty</module>
+        <module>thirdparty</module>
     </modules>
 
     <dependencies>

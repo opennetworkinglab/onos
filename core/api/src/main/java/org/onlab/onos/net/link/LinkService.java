@@ -92,6 +92,8 @@ public interface LinkService {
      */
     Set<Link> getIngressLinks(ConnectPoint connectPoint);
 
+    // FIXME: I don't think this makes sense; discuss and remove or adjust return
+    // to be a Set<Link> or add Link.Type parameter
     /**
      * Returns the infrastructure links between the specified source
      * and destination connection points.

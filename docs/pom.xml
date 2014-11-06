@@ -80,7 +80,7 @@
                         <group>
                             <title>GUI, REST &amp; Command-Line</title>
                             <packages>
-                                org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli:org.onlab.onos.gui.*:org.onlab.onos.rest.*:org.onlab.onos.cli.*
+                                org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli:org.onlab.onos.gui.*:org.onlab.onos.rest.*:org.onlab.onos.cli.*:org.onlab.onos.codec.impl
                             </packages>
                         </group>
                         <group>

@@ -16,7 +16,6 @@
 package org.onlab.onos.codec;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -31,37 +30,42 @@ public abstract class JsonCodec<T> {
     /**
      * Encodes the specified entity into JSON.
      *
-     * @param entity entity to encode
-     * @param mapper object mapper
+     * @param entity  entity to encode
+     * @param context encoding context
      * @return JSON node
      * @throws java.lang.UnsupportedOperationException if the codec does not
      *                                                 support encode operations
      */
-    public abstract ObjectNode encode(T entity, ObjectMapper mapper);
+    public ObjectNode encode(T entity, CodecContext context) {
+        throw new UnsupportedOperationException("encode() not supported");
+    }
 
     /**
      * Decodes the specified entity from JSON.
      *
-     * @param json JSON to decode
+     * @param json    JSON to decode
+     * @param context decoding context
      * @return decoded entity
      * @throws java.lang.UnsupportedOperationException if the codec does not
      *                                                 support decode operations
      */
-    public abstract T decode(ObjectNode json);
+    public T decode(ObjectNode json, CodecContext context) {
+        throw new UnsupportedOperationException("decode() not supported");
+    }
 
     /**
      * Encodes the collection of the specified entities.
      *
      * @param entities collection of entities to encode
-     * @param mapper   object mapper
+     * @param context  encoding context
      * @return JSON array
      * @throws java.lang.UnsupportedOperationException if the codec does not
      *                                                 support encode operations
      */
-    public ArrayNode encode(Iterable<T> entities, ObjectMapper mapper) {
-        ArrayNode result = mapper.createArrayNode();
+    public ArrayNode encode(Iterable<T> entities, CodecContext context) {
+        ArrayNode result = context.mapper().createArrayNode();
         for (T entity : entities) {
-            result.add(encode(entity, mapper));
+            result.add(encode(entity, context));
         }
         return result;
     }
@@ -69,15 +73,16 @@ public abstract class JsonCodec<T> {
     /**
      * Decodes the specified JSON array into a collection of entities.
      *
-     * @param json JSON array to decode
+     * @param json    JSON array to decode
+     * @param context decoding context
      * @return collection of decoded entities
      * @throws java.lang.UnsupportedOperationException if the codec does not
      *                                                 support decode operations
      */
-    public List<T> decode(ArrayNode json) {
+    public List<T> decode(ArrayNode json, CodecContext context) {
         List<T> result = new ArrayList<>();
         for (JsonNode node : json) {
-            result.add(decode((ObjectNode) node));
+            result.add(decode((ObjectNode) node, context));
         }
         return result;
     }

@@ -15,19 +15,19 @@
  */
 package org.onlab.onos.codec;
 
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Service for registering and retrieving JSON codecs for various entities.
+ * Context for codecs to use while encoding/decoding.
  */
-public interface CodecService {
+public interface CodecContext {
 
     /**
-     * Returns the set of classes with currently registered codecs.
+     * Returns the JSON object mapper.
      *
-     * @return set of entity classes
+     * @return object mapper
      */
-    Set<Class<?>> getCodecs();
+    ObjectMapper mapper();
 
     /**
      * Returns the JSON codec for the specified entity class.
@@ -36,21 +36,15 @@ public interface CodecService {
      * @param <T>         entity type
      * @return JSON codec; null if no codec available for the class
      */
-    <T> JsonCodec<T> getCodec(Class<T> entityClass);
+    <T> JsonCodec<T> codec(Class<T> entityClass);
 
     /**
-     * Registers the specified JSON codec for the given entity class.
+     * Returns reference to the specified service implementation.
      *
-     * @param entityClass entity class
-     * @param codec       JSON codec
+     * @param serviceClass service class
+     * @param <T>          service type
+     * @return JSON codec; null if no codec available for the class
      */
-    <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec);
-
-    /**
-     * Unregisters the JSON codec for the specified entity class.
-     *
-     * @param entityClass entity class
-     */
-    void unregisterCodec(Class<?> entityClass);
+    <T> T get(Class<T> serviceClass);
 
 }

@@ -18,6 +18,8 @@ package org.onlab.rest;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 
+import javax.ws.rs.core.Response;
+
 /**
  * Base abstraction of a JAX-RS resource.
  */
@@ -44,8 +46,12 @@ public abstract class BaseResource {
      * @param <T>     type of service
      * @return service implementation
      */
-    protected static <T> T get(Class<T> service) {
+    public <T> T get(Class<T> service) {
         return services.get(service);
+    }
+
+    protected static Response.ResponseBuilder ok(Object obj) {
+        return Response.ok(obj);
     }
 
 }
