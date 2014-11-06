@@ -283,16 +283,15 @@ implements MastershipStore {
                 case MASTER:
                     NodeId newMaster = reelect(nodeId, deviceId, rv);
                     rv.reassign(nodeId, NONE, STANDBY);
+                    updateTerm(deviceId);
                     if (newMaster != null) {
-                        updateTerm(deviceId);
                         roleMap.put(deviceId, rv);
                         return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                     } else {
                         // no master candidate
                         roleMap.put(deviceId, rv);
-                        // FIXME: Should there be new event type?
-                        // or should we issue null Master event?
-                        return null;
+                        // TODO: Should there be new event type for no MASTER?
+                        return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                     }
                 case STANDBY:
                     return null;

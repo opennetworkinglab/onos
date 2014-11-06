@@ -28,6 +28,7 @@ import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.mastership.MastershipService;
+import org.onlab.onos.mastership.MastershipStore;
 import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
@@ -57,9 +58,9 @@ public class MastershipManagerTest {
     public void setUp() {
         mgr = new MastershipManager();
         service = mgr;
-        mgr.store = new SimpleMastershipStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.clusterService = new TestClusterService();
+        mgr.store = new TestSimpleMastershipStore(mgr.clusterService);
         mgr.activate();
     }
 
@@ -74,7 +75,8 @@ public class MastershipManagerTest {
     @Test
     public void setRole() {
         mgr.setRole(NID_OTHER, DEV_MASTER, MASTER);
-        assertEquals("wrong local role:", STANDBY, mgr.getLocalRole(DEV_MASTER));
+        assertEquals("wrong local role:", NONE, mgr.getLocalRole(DEV_MASTER));
+        assertEquals("wrong obtained role:", STANDBY, mgr.requestRoleFor(DEV_MASTER));
 
         //set to master
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
@@ -181,5 +183,13 @@ public class MastershipManagerTest {
         public void removeListener(ClusterEventListener listener) {
         }
 
+    }
+
+    private final class TestSimpleMastershipStore extends SimpleMastershipStore
+            implements MastershipStore {
+
+        public TestSimpleMastershipStore(ClusterService clusterService) {
+            super.clusterService = clusterService;
+        }
     }
 }
