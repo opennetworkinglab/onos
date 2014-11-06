@@ -2,6 +2,8 @@ package org.onlab.onos.store.service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -11,7 +13,6 @@ public class ReadRequest {
 
     private final String tableName;
     private final String key;
-
 
     /**
      * Creates a read request,
@@ -53,4 +54,26 @@ public class ReadRequest {
                 .add("key", key)
                 .toString();
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, tableName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        ReadRequest other = (ReadRequest) obj;
+        return Objects.equals(this.key, other.key) &&
+                Objects.equals(this.tableName, other.tableName);
+    }
+
 }
