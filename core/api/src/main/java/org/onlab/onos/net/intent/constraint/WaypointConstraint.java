@@ -1,0 +1,105 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onlab.onos.net.intent.constraint;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import org.onlab.onos.net.ElementId;
+import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Path;
+import org.onlab.onos.net.intent.Constraint;
+import org.onlab.onos.net.resource.LinkResourceService;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * Constraint that evaluates elements passed through in order.
+ */
+public class WaypointConstraint implements Constraint {
+
+    private final List<ElementId> waypoints;
+
+    /**
+     * Creates a new waypoint constraint.
+     *
+     * @param waypoints waypoints
+     */
+    public WaypointConstraint(ElementId... waypoints) {
+        checkNotNull(waypoints, "waypoints cannot be null");
+        checkArgument(waypoints.length > 0, "length of waypoints should be more than 0");
+        this.waypoints = ImmutableList.copyOf(waypoints);
+    }
+
+    @Override
+    public double cost(Link link, LinkResourceService resourceService) {
+        // Always consider the number of hops
+        return 1;
+    }
+
+    @Override
+    public boolean validate(Path path, LinkResourceService resourceService) {
+        LinkedList<ElementId> waypoints = new LinkedList<>(this.waypoints);
+        ElementId current = waypoints.poll();
+        // This is safe because Path class ensures the number of links are more than 0
+        Link firstLink = path.links().get(0);
+        if (firstLink.src().elementId().equals(current)) {
+            current = waypoints.poll();
+        }
+
+        for (Link link : path.links()) {
+            if (link.dst().elementId().equals(current)) {
+                current = waypoints.poll();
+                // Empty waypoints means passing through all waypoints in the specified order
+                if (current == null) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(waypoints);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof WaypointConstraint)) {
+            return false;
+        }
+
+        final WaypointConstraint that = (WaypointConstraint) obj;
+        return Objects.equals(this.waypoints, that.waypoints);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("waypoints", waypoints)
+                .toString();
+    }
+}
