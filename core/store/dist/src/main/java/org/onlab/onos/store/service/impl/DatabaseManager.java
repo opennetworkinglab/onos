@@ -217,7 +217,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             default:
                 break;
             }
-            log.info("Current cluster: {}", clusterConfig.getMembers());
+            log.debug("Current cluster: {}", copycat.cluster());
         }
 
     }
