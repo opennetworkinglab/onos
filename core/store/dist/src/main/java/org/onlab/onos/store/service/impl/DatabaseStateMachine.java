@@ -172,8 +172,8 @@ public class DatabaseStateMachine implements StateMachine {
         try {
             return SERIALIZER.encode(state);
         } catch (Exception e) {
-            log.error("Snapshot serialization error", e);
-            return null;
+            log.error("Failed to take snapshot", e);
+            throw new SnapshotException(e);
         }
     }
 
@@ -182,7 +182,8 @@ public class DatabaseStateMachine implements StateMachine {
         try {
             this.state = SERIALIZER.decode(data);
         } catch (Exception e) {
-            log.error("Snapshot deserialization error", e);
+            log.error("Failed to install from snapshot", e);
+            throw new SnapshotException(e);
         }
     }
 }
