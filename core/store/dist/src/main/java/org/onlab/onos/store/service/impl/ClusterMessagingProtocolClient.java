@@ -132,8 +132,8 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
             } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
                 if (message.subject().equals(ClusterMessagingProtocol.COPYCAT_SYNC) ||
                         message.subject().equals(ClusterMessagingProtocol.COPYCAT_PING)) {
-                    log.warn("Request to {} failed. Will retry "
-                            + "in {} ms", remoteNode, RETRY_INTERVAL_MILLIS);
+                    log.warn("{} Request to {} failed. Will retry in {} ms",
+                             message.subject(), remoteNode, RETRY_INTERVAL_MILLIS);
                     THREAD_POOL.schedule(
                             this,
                             RETRY_INTERVAL_MILLIS,

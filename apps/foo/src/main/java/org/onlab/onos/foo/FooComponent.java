@@ -23,6 +23,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipEvent;
+import org.onlab.onos.mastership.MastershipListener;
+import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
@@ -50,15 +54,20 @@ public class FooComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
     private final ClusterEventListener clusterListener = new InnerClusterListener();
     private final DeviceListener deviceListener = new InnerDeviceListener();
     private final IntentListener intentListener = new InnerIntentListener();
+    private final MastershipListener mastershipListener = new InnerMastershipListener();
 
     @Activate
     public void activate() {
         clusterService.addListener(clusterListener);
         deviceService.addListener(deviceListener);
         intentService.addListener(intentListener);
+        mastershipService.addListener(mastershipListener);
         log.info("Started");
     }
 
@@ -67,6 +76,7 @@ public class FooComponent {
         clusterService.removeListener(clusterListener);
         deviceService.removeListener(deviceListener);
         intentService.removeListener(intentListener);
+        mastershipService.removeListener(mastershipListener);
         log.info("Stopped");
     }
 
@@ -98,6 +108,18 @@ public class FooComponent {
                 message = "CRAP!!! Things are not turning out as intended: {}";
             }
             log.info(message, event.subject());
+        }
+    }
+
+    private class InnerMastershipListener implements MastershipListener {
+        @Override
+        public void event(MastershipEvent event) {
+            final NodeId myId = clusterService.getLocalNode().id();
+            if (myId.equals(event.roleInfo().master())) {
+                log.info("I have control/I wish you luck {}", event);
+            } else {
+                log.info("you have control {}", event);
+            }
         }
     }
 }

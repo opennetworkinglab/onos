@@ -56,6 +56,9 @@
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13</bundle>
 
         <bundle>mvn:org.onlab.onos/onlab-thirdparty/1.0.0-SNAPSHOT</bundle>
+
+        <bundle>mvn:org.mapdb/mapdb/1.0.6</bundle>
+
 <!-- FIXME: resolce Chronicle's dependency issue
         <bundle>mvn:net.openhft/lang/6.4.6</bundle>
         <bundle>mvn:net.openhft/affinity/2.1.1</bundle>

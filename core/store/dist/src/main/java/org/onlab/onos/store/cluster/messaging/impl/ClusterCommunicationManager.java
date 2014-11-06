@@ -159,7 +159,7 @@ public class ClusterCommunicationManager
             return messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
 
         } catch (IOException e) {
-            log.error("Failed interaction with remote nodeId: " + toNodeId, e);
+            log.trace("Failed interaction with remote nodeId: " + toNodeId, e);
             throw e;
         }
     }

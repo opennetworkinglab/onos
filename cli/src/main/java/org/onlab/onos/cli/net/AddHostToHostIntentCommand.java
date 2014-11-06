@@ -15,14 +15,16 @@
  */
 package org.onlab.onos.cli.net;
 
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.IntentService;
 
@@ -31,7 +33,7 @@ import org.onlab.onos.net.intent.IntentService;
  */
 @Command(scope = "onos", name = "add-host-intent",
          description = "Installs host-to-host connectivity intent")
-public class AddHostToHostIntentCommand extends AbstractShellCommand {
+public class AddHostToHostIntentCommand extends ConnectivityIntentCommand {
 
     @Argument(index = 0, name = "one", description = "One host ID",
               required = true, multiValued = false)
@@ -50,9 +52,11 @@ public class AddHostToHostIntentCommand extends AbstractShellCommand {
 
         TrafficSelector selector = DefaultTrafficSelector.builder().build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        List<Constraint> constraints = buildConstraints();
 
         HostToHostIntent intent = new HostToHostIntent(appId(), oneId, twoId,
-                                                       selector, treatment);
+                                                       selector, treatment,
+                                                       constraints);
         service.submit(intent);
     }
 

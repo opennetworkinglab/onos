@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.store.trivial.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.DeviceId;
 
@@ -74,6 +77,7 @@ public class SimpleMastershipStoreTest {
         assertEquals("wrong role", MASTER, sms.getRole(N2, DID3));
 
         //N2 is master but N1 is only in backups set
+        put(DID4, N1, false, true);
         put(DID4, N2, true, false);
         assertEquals("wrong role", STANDBY, sms.getRole(N1, DID4));
     }
@@ -127,12 +131,12 @@ public class SimpleMastershipStoreTest {
         put(DID1, N1, false, false);
         assertEquals("wrong role", MASTER, sms.requestRole(DID1));
 
-        //STANDBY without backup - become MASTER
+        //was STANDBY - become MASTER
         put(DID2, N1, false, true);
         assertEquals("wrong role", MASTER, sms.requestRole(DID2));
 
-        //STANDBY with backup - stay STANDBY
-        put(DID3, N2, false, true);
+        //other MASTER - stay STANDBY
+        put(DID3, N2, true, false);
         assertEquals("wrong role", STANDBY, sms.requestRole(DID3));
 
         //local (N1) is MASTER - stay MASTER
@@ -145,30 +149,34 @@ public class SimpleMastershipStoreTest {
         //NONE - record backup but take no other action
         put(DID1, N1, false, false);
         sms.setStandby(N1, DID1);
-        assertTrue("not backed up", sms.backups.contains(N1));
-        sms.termMap.clear();
+        assertTrue("not backed up", sms.backups.get(DID1).contains(N1));
+        int prev = sms.termMap.get(DID1).get();
         sms.setStandby(N1, DID1);
-        assertTrue("term not set", sms.termMap.containsKey(DID1));
+        assertEquals("term should not change", prev, sms.termMap.get(DID1).get());
 
         //no backup, MASTER
-        put(DID1, N1, true, true);
-        assertNull("wrong event", sms.setStandby(N1, DID1));
+        put(DID1, N1, true, false);
+        assertNull("expect no MASTER event", sms.setStandby(N1, DID1).roleInfo().master());
         assertNull("wrong node", sms.masterMap.get(DID1));
 
         //backup, switch
         sms.masterMap.clear();
         put(DID1, N1, true, true);
+        put(DID1, N2, false, true);
         put(DID2, N2, true, true);
-        assertEquals("wrong event", MASTER_CHANGED, sms.setStandby(N1, DID1).type());
+        MastershipEvent event = sms.setStandby(N1, DID1);
+        assertEquals("wrong event", MASTER_CHANGED, event.type());
+        assertEquals("wrong master", N2, event.roleInfo().master());
     }
 
     //helper to populate master/backup structures
-    private void put(DeviceId dev, NodeId node, boolean store, boolean backup) {
-        if (store) {
+    private void put(DeviceId dev, NodeId node, boolean master, boolean backup) {
+        if (master) {
             sms.masterMap.put(dev, node);
-        }
-        if (backup) {
-            sms.backups.add(node);
+        } else if (backup) {
+            List<NodeId> stbys = sms.backups.getOrDefault(dev, new ArrayList<>());
+            stbys.add(node);
+            sms.backups.put(dev, stbys);
         }
         sms.termMap.put(dev, new AtomicInteger());
     }

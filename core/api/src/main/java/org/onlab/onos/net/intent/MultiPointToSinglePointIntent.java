@@ -22,6 +22,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -56,6 +57,38 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                                          ConnectPoint egressPoint) {
         super(id(MultiPointToSinglePointIntent.class, selector, treatment,
                  ingressPoints, egressPoint), appId, null, selector, treatment);
+
+        checkNotNull(ingressPoints);
+        checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");
+
+        this.ingressPoints = Sets.newHashSet(ingressPoints);
+        this.egressPoint = checkNotNull(egressPoint);
+    }
+
+    /**
+     * Creates a new multi-to-single point connectivity intent for the specified
+     * traffic selector and treatment.
+     *
+     * @param appId         application identifier
+     * @param selector      traffic selector
+     * @param treatment     treatment
+     * @param ingressPoints set of ports from which ingress traffic originates
+     * @param egressPoint   port to which traffic will egress
+     * @param constraints   constraints to apply to the intent
+     * @throws NullPointerException     if {@code ingressPoints} or
+     *                                  {@code egressPoint} is null.
+     * @throws IllegalArgumentException if the size of {@code ingressPoints} is
+     *                                  not more than 1
+     */
+    public MultiPointToSinglePointIntent(ApplicationId appId,
+                                         TrafficSelector selector,
+                                         TrafficTreatment treatment,
+                                         Set<ConnectPoint> ingressPoints,
+                                         ConnectPoint egressPoint,
+                                         List<Constraint> constraints) {
+        super(id(MultiPointToSinglePointIntent.class, selector, treatment,
+                ingressPoints, egressPoint), appId, null, selector, treatment,
+                constraints);
 
         checkNotNull(ingressPoints);
         checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");
@@ -101,6 +134,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                 .add("treatment", treatment())
                 .add("ingress", ingressPoints())
                 .add("egress", egressPoint())
+                .add("constraints", constraints())
                 .toString();
     }
 }

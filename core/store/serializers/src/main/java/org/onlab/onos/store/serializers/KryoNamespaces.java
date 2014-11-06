@@ -103,6 +103,20 @@ import com.google.common.collect.ImmutableSet;
 
 public final class KryoNamespaces {
 
+    public static final KryoNamespace BASIC = KryoNamespace.newBuilder()
+            .register(ImmutableMap.class, new ImmutableMapSerializer())
+            .register(ImmutableList.class, new ImmutableListSerializer())
+            .register(ImmutableSet.class, new ImmutableSetSerializer())
+            .register(
+                    ArrayList.class,
+                    Arrays.asList().getClass(),
+                    HashMap.class,
+                    HashSet.class,
+                    LinkedList.class,
+                    byte[].class
+                    )
+            .build();
+
     /**
      * KryoNamespace which can serialize ON.lab misc classes.
      */
@@ -123,19 +137,8 @@ public final class KryoNamespaces {
      */
     public static final KryoNamespace API = KryoNamespace.newBuilder()
             .register(MISC)
-            .register(ImmutableMap.class, new ImmutableMapSerializer())
-            .register(ImmutableList.class, new ImmutableListSerializer())
-            .register(ImmutableSet.class, new ImmutableSetSerializer())
+            .register(BASIC)
             .register(
-                    //
-                    ArrayList.class,
-                    Arrays.asList().getClass(),
-                    HashMap.class,
-                    HashSet.class,
-                    LinkedList.class,
-                    byte[].class,
-                    //
-                    //
                     ControllerNode.State.class,
                     Device.Type.class,
                     Port.Type.class,

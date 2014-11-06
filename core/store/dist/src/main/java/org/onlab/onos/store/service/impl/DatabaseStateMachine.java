@@ -1,10 +1,10 @@
 package org.onlab.onos.store.service.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import net.kuujo.copycat.Command;
 import net.kuujo.copycat.Query;
 import net.kuujo.copycat.StateMachine;
@@ -16,7 +16,9 @@ import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
 import org.onlab.util.KryoNamespace;
+import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 /**
@@ -27,6 +29,8 @@ import com.google.common.collect.Maps;
  * on the next transition.
  */
 public class DatabaseStateMachine implements StateMachine {
+
+    private final Logger log = getLogger(getClass());
 
     public static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
@@ -59,8 +63,8 @@ public class DatabaseStateMachine implements StateMachine {
     }
 
     @Query
-    public Set<String> listTables() {
-        return state.getTables().keySet();
+    public List<String> listTables() {
+        return ImmutableList.copyOf(state.getTables().keySet());
     }
 
     @Query
@@ -72,7 +76,7 @@ public class DatabaseStateMachine implements StateMachine {
                 results.add(new InternalReadResult(InternalReadResult.Status.NO_SUCH_TABLE, null));
                 continue;
             }
-            VersionedValue value = table.get(request.key());
+            VersionedValue value = VersionedValue.copy(table.get(request.key()));
             results.add(new InternalReadResult(
                     InternalReadResult.Status.OK,
                     new ReadResult(
@@ -85,6 +89,8 @@ public class DatabaseStateMachine implements StateMachine {
 
     @Command
     public List<InternalWriteResult> write(List<WriteRequest> requests) {
+
+        // applicability check
         boolean abort = false;
         List<InternalWriteResult.Status> validationResults = new ArrayList<>(requests.size());
         for (WriteRequest request : requests) {
@@ -128,8 +134,13 @@ public class DatabaseStateMachine implements StateMachine {
             return results;
         }
 
+        // apply changes
         for (WriteRequest request : requests) {
             Map<String, VersionedValue> table = state.getTables().get(request.tableName());
+            // FIXME: If this method could be called by multiple thread,
+            // synchronization scope is wrong.
+            // Whole function including applicability check needs to be protected.
+            // Confirm copycat's thread safety requirement for StateMachine
             synchronized (table) {
                 VersionedValue previousValue =
                         table.put(request.key(), new VersionedValue(request.newValue(), state.nextVersion()));
@@ -161,8 +172,8 @@ public class DatabaseStateMachine implements StateMachine {
         try {
             return SERIALIZER.encode(state);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            log.error("Failed to take snapshot", e);
+            throw new SnapshotException(e);
         }
     }
 
@@ -171,7 +182,8 @@ public class DatabaseStateMachine implements StateMachine {
         try {
             this.state = SERIALIZER.decode(data);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to install from snapshot", e);
+            throw new SnapshotException(e);
         }
     }
 }

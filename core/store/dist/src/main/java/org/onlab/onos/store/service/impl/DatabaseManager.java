@@ -5,20 +5,26 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import net.kuujo.copycat.Copycat;
 import net.kuujo.copycat.StateMachine;
+import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.TcpCluster;
 import net.kuujo.copycat.cluster.TcpClusterConfig;
 import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.log.InMemoryLog;
 import net.kuujo.copycat.log.Log;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.cluster.ClusterEvent;
+import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.service.DatabaseAdminService;
@@ -34,8 +40,6 @@ import org.onlab.onos.store.service.WriteAborted;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
 import org.slf4j.Logger;
-
-import com.google.common.collect.Lists;
 
 /**
  * Strongly consistent and durable state management service based on
@@ -58,17 +62,34 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     private Copycat copycat;
     private DatabaseClient client;
 
+    // guarded by synchronized block
+    private ClusterConfig<TcpMember> clusterConfig;
+
+    private CountDownLatch clusterEventLatch;
+
+    private ClusterEventListener clusterEventListener;
+
     @Activate
     public void activate() {
-        log.info("Starting.");
 
-        // TODO: Not every node can be part of the consensus ring.
+        // TODO: Not every node should be part of the consensus ring.
 
+        final ControllerNode localNode = clusterService.getLocalNode();
         TcpMember localMember =
                 new TcpMember(
-                        clusterService.getLocalNode().ip().toString(),
-                        clusterService.getLocalNode().tcpPort());
-        List<TcpMember> remoteMembers = Lists.newArrayList();
+                        localNode.ip().toString(),
+                        localNode.tcpPort());
+
+        clusterConfig = new TcpClusterConfig();
+        clusterConfig.setLocalMember(localMember);
+
+        List<TcpMember> remoteMembers = new ArrayList<>(clusterService.getNodes().size());
+
+        clusterEventLatch = new CountDownLatch(1);
+        clusterEventListener = new InternalClusterEventListener();
+        clusterService.addListener(clusterEventListener);
+
+        // note: from this point beyond, clusterConfig requires synchronization
 
         for (ControllerNode node : clusterService.getNodes()) {
             TcpMember member = new TcpMember(node.ip().toString(), node.tcpPort());
@@ -77,20 +98,37 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             }
         }
 
-        // Configure the cluster.
-        TcpClusterConfig config = new TcpClusterConfig();
+        if (remoteMembers.isEmpty()) {
+            log.info("This node is the only node in the cluster.  "
+                    + "Waiting for others to show up.");
+            // FIXME: hack trying to relax cases forming multiple consensus rings.
+            // add seed node configuration to avoid this
 
-        config.setLocalMember(localMember);
-        config.setRemoteMembers(remoteMembers.toArray(new TcpMember[]{}));
+            // If the node is alone on it's own, wait some time
+            // hoping other will come up soon
+            try {
+                if (!clusterEventLatch.await(120, TimeUnit.SECONDS)) {
+                    log.info("Starting as single node cluster");
+                }
+            } catch (InterruptedException e) {
+                log.info("Interrupted waiting for others", e);
+            }
+        }
 
-        // Create the cluster.
-        TcpCluster cluster = new TcpCluster(config);
+        final TcpCluster cluster;
+        synchronized (clusterConfig) {
+            clusterConfig.addRemoteMembers(remoteMembers);
+
+            // Create the cluster.
+            cluster = new TcpCluster(clusterConfig);
+        }
+        log.info("Starting cluster: {}", cluster);
+
 
         StateMachine stateMachine = new DatabaseStateMachine();
-        ControllerNode thisNode = clusterService.getLocalNode();
         // FIXME resolve Chronicle + OSGi issue
         //Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
-        Log consensusLog = new InMemoryLog();
+        Log consensusLog = new KryoRegisteredInMemoryLog();
 
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
         copycat.start();
@@ -102,6 +140,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Deactivate
     public void deactivate() {
+        clusterService.removeListener(clusterEventListener);
         copycat.stop();
         log.info("Stopped.");
     }
@@ -177,6 +216,53 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
         return writeResults;
 
+    }
+
+    private final class InternalClusterEventListener
+            implements ClusterEventListener {
+
+        @Override
+        public void event(ClusterEvent event) {
+            // TODO: Not every node should be part of the consensus ring.
+
+            final ControllerNode node = event.subject();
+            final TcpMember tcpMember = new TcpMember(node.ip().toString(),
+                                                      node.tcpPort());
+
+            log.trace("{}", event);
+            switch (event.type()) {
+            case INSTANCE_ACTIVATED:
+            case INSTANCE_ADDED:
+                log.info("{} was added to the cluster", tcpMember);
+                synchronized (clusterConfig) {
+                    clusterConfig.addRemoteMember(tcpMember);
+                }
+                break;
+            case INSTANCE_DEACTIVATED:
+            case INSTANCE_REMOVED:
+                log.info("{} was removed from the cluster", tcpMember);
+                synchronized (clusterConfig) {
+                    clusterConfig.removeRemoteMember(tcpMember);
+                }
+                break;
+            default:
+                break;
+            }
+            if (copycat != null) {
+                log.debug("Current cluster: {}", copycat.cluster());
+            }
+            clusterEventLatch.countDown();
+        }
+
+    }
+
+    public static final class KryoRegisteredInMemoryLog extends InMemoryLog {
+        public KryoRegisteredInMemoryLog() {
+            super();
+            // required to deserialize object across bundles
+            super.kryo.register(TcpMember.class, new TcpMemberSerializer());
+            super.kryo.register(TcpClusterConfig.class, new TcpClusterConfigSerializer());
+        }
     }
 
     private class DatabaseOperationResult<R, E extends DatabaseException> implements OptionalResult<R, E> {
