@@ -89,6 +89,8 @@ public class DatabaseStateMachine implements StateMachine {
 
     @Command
     public List<InternalWriteResult> write(List<WriteRequest> requests) {
+
+        // applicability check
         boolean abort = false;
         List<InternalWriteResult.Status> validationResults = new ArrayList<>(requests.size());
         for (WriteRequest request : requests) {
@@ -132,8 +134,13 @@ public class DatabaseStateMachine implements StateMachine {
             return results;
         }
 
+        // apply changes
         for (WriteRequest request : requests) {
             Map<String, VersionedValue> table = state.getTables().get(request.tableName());
+            // FIXME: If this method could be called by multiple thread,
+            // synchronization scope is wrong.
+            // Whole function including applicability check needs to be protected.
+            // Confirm copycat's thread safety requirement for StateMachine
             synchronized (table) {
                 VersionedValue previousValue =
                         table.put(request.key(), new VersionedValue(request.newValue(), state.nextVersion()));
