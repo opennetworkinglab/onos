@@ -25,6 +25,7 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.Comparators;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Port;
+import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceService;
 
 import java.util.ArrayList;
@@ -108,7 +109,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
         for (Port port : service.getPorts(device.id())) {
             if (isIncluded(port)) {
                 ports.add(mapper.createObjectNode()
-                                  .put("port", port.number().toString())
+                                  .put("port", portName(port.number()))
                                   .put("isEnabled", port.isEnabled())
                                   .put("type", port.type().toString().toLowerCase())
                                   .put("portSpeed", port.portSpeed())
@@ -118,6 +119,10 @@ public class DevicePortsListCommand extends DevicesListCommand {
         result.set("device", json(service, mapper, device));
         result.set("ports", ports);
         return result;
+    }
+
+    private String portName(PortNumber port) {
+        return port.equals(PortNumber.LOCAL) ? "local" : port.toString();
     }
 
     // Determines if a port should be included in output.
@@ -133,7 +138,8 @@ public class DevicePortsListCommand extends DevicesListCommand {
         Collections.sort(ports, Comparators.PORT_COMPARATOR);
         for (Port port : ports) {
             if (isIncluded(port)) {
-                print(FMT, port.number(), port.isEnabled() ? "enabled" : "disabled",
+                print(FMT, portName(port.number()),
+                      port.isEnabled() ? "enabled" : "disabled",
                       port.type().toString().toLowerCase(), port.portSpeed(),
                       annotations(port.annotations()));
             }
