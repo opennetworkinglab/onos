@@ -77,7 +77,7 @@ import com.google.common.collect.Lists;
 @Service
 public class IntentManager
         implements IntentService, IntentExtensionService {
-    private final Logger log = getLogger(getClass());
+    private static final Logger log = getLogger(IntentManager.class);
 
     public static final String INTENT_NULL = "Intent cannot be null";
     public static final String INTENT_ID_NULL = "Intent ID cannot be null";
