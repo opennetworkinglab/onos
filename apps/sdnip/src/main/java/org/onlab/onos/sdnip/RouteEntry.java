@@ -19,8 +19,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 
 import com.google.common.base.MoreObjects;
 
@@ -28,8 +28,8 @@ import com.google.common.base.MoreObjects;
  * Represents a route entry for an IP prefix.
  */
 public class RouteEntry {
-    private final IpPrefix prefix;             // The IP prefix
-    private final IpAddress nextHop;           // Next-hop IP address
+    private final Ip4Prefix prefix;             // The IP prefix
+    private final Ip4Address nextHop;           // Next-hop IP address
 
     /**
      * Class constructor.
@@ -37,7 +37,7 @@ public class RouteEntry {
      * @param prefix the IP prefix of the route
      * @param nextHop the next hop IP address for the route
      */
-    public RouteEntry(IpPrefix prefix, IpAddress nextHop) {
+    public RouteEntry(Ip4Prefix prefix, Ip4Address nextHop) {
         this.prefix = checkNotNull(prefix);
         this.nextHop = checkNotNull(nextHop);
     }
@@ -47,7 +47,7 @@ public class RouteEntry {
      *
      * @return the IP prefix of the route
      */
-    public IpPrefix prefix() {
+    public Ip4Prefix prefix() {
         return prefix;
     }
 
@@ -56,7 +56,7 @@ public class RouteEntry {
      *
      * @return the next hop IP address for the route
      */
-    public IpAddress nextHop() {
+    public Ip4Address nextHop() {
         return nextHop;
     }
 
@@ -67,7 +67,7 @@ public class RouteEntry {
      * @param ip4Prefix the IPv4 prefix to use
      * @return the binary string representation
      */
-    static String createBinaryString(IpPrefix ip4Prefix) {
+    static String createBinaryString(Ip4Prefix ip4Prefix) {
         if (ip4Prefix.prefixLength() == 0) {
             return "";
         }
@@ -75,7 +75,7 @@ public class RouteEntry {
         StringBuilder result = new StringBuilder(ip4Prefix.prefixLength());
         long value = ip4Prefix.address().toInt() & 0xffffffffL;
         for (int i = 0; i < ip4Prefix.prefixLength(); i++) {
-            long mask = 1 << (IpPrefix.MAX_INET_MASK_LENGTH - 1 - i);
+            long mask = 1 << (Ip4Prefix.MAX_MASK_LENGTH - 1 - i);
             result.append(((value & mask) == 0) ? "0" : "1");
         }
         return result.toString();

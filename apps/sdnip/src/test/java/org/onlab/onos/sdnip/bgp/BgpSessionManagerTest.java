@@ -45,8 +45,8 @@ import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.onos.sdnip.RouteListener;
 import org.onlab.onos.sdnip.RouteUpdate;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 
 import com.google.common.net.InetAddresses;
 
@@ -54,9 +54,10 @@ import com.google.common.net.InetAddresses;
  * Unit tests for the BgpSessionManager class.
  */
 public class BgpSessionManagerTest {
-    private static final IpAddress IP_LOOPBACK_ID =
-        IpAddress.valueOf("127.0.0.1");
-    private static final IpAddress BGP_PEER1_ID = IpAddress.valueOf("10.0.0.1");
+    private static final Ip4Address IP_LOOPBACK_ID =
+        Ip4Address.valueOf("127.0.0.1");
+    private static final Ip4Address BGP_PEER1_ID =
+        Ip4Address.valueOf("10.0.0.1");
     private static final long DEFAULT_LOCAL_PREF = 10;
     private static final long DEFAULT_MULTI_EXIT_DISC = 20;
 
@@ -245,7 +246,7 @@ public class BgpSessionManagerTest {
     @Test
     public void testProcessedBgpUpdateMessages() throws InterruptedException {
         BgpSession bgpSession;
-        IpAddress nextHopRouter;
+        Ip4Address nextHopRouter;
         BgpRouteEntry bgpRouteEntry;
         ChannelBuffer message;
         Collection<BgpRouteEntry> bgpRibIn;
@@ -265,18 +266,18 @@ public class BgpSessionManagerTest {
         bgpSession = bgpSessionManager.getBgpSessions().iterator().next();
 
         // Prepare routes to add/delete
-        nextHopRouter = IpAddress.valueOf("10.20.30.40");
-        Collection<IpPrefix> addedRoutes = new LinkedList<>();
-        Collection<IpPrefix> withdrawnRoutes = new LinkedList<>();
-        addedRoutes.add(IpPrefix.valueOf("0.0.0.0/0"));
-        addedRoutes.add(IpPrefix.valueOf("20.0.0.0/8"));
-        addedRoutes.add(IpPrefix.valueOf("30.0.0.0/16"));
-        addedRoutes.add(IpPrefix.valueOf("40.0.0.0/24"));
-        addedRoutes.add(IpPrefix.valueOf("50.0.0.0/32"));
-        withdrawnRoutes.add(IpPrefix.valueOf("60.0.0.0/8"));
-        withdrawnRoutes.add(IpPrefix.valueOf("70.0.0.0/16"));
-        withdrawnRoutes.add(IpPrefix.valueOf("80.0.0.0/24"));
-        withdrawnRoutes.add(IpPrefix.valueOf("90.0.0.0/32"));
+        nextHopRouter = Ip4Address.valueOf("10.20.30.40");
+        Collection<Ip4Prefix> addedRoutes = new LinkedList<>();
+        Collection<Ip4Prefix> withdrawnRoutes = new LinkedList<>();
+        addedRoutes.add(Ip4Prefix.valueOf("0.0.0.0/0"));
+        addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        addedRoutes.add(Ip4Prefix.valueOf("30.0.0.0/16"));
+        addedRoutes.add(Ip4Prefix.valueOf("40.0.0.0/24"));
+        addedRoutes.add(Ip4Prefix.valueOf("50.0.0.0/32"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("60.0.0.0/8"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("70.0.0.0/16"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("80.0.0.0/24"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("90.0.0.0/32"));
         // Write the routes
         message = peerChannelHandler.prepareBgpUpdate(nextHopRouter,
                                                       addedRoutes,
@@ -314,7 +315,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("0.0.0.0/0"),
+                              Ip4Prefix.valueOf("0.0.0.0/0"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -324,7 +325,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("20.0.0.0/8"),
+                              Ip4Prefix.valueOf("20.0.0.0/8"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -334,7 +335,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("30.0.0.0/16"),
+                              Ip4Prefix.valueOf("30.0.0.0/16"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -344,7 +345,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("40.0.0.0/24"),
+                              Ip4Prefix.valueOf("40.0.0.0/24"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -354,7 +355,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("50.0.0.0/32"),
+                              Ip4Prefix.valueOf("50.0.0.0/32"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -365,8 +366,8 @@ public class BgpSessionManagerTest {
         // Delete some routes
         addedRoutes = new LinkedList<>();
         withdrawnRoutes = new LinkedList<>();
-        withdrawnRoutes.add(IpPrefix.valueOf("0.0.0.0/0"));
-        withdrawnRoutes.add(IpPrefix.valueOf("50.0.0.0/32"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("0.0.0.0/0"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("50.0.0.0/32"));
 
         // Write the routes
         message = peerChannelHandler.prepareBgpUpdate(nextHopRouter,
@@ -382,7 +383,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("20.0.0.0/8"),
+                              Ip4Prefix.valueOf("20.0.0.0/8"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -392,7 +393,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("30.0.0.0/16"),
+                              Ip4Prefix.valueOf("30.0.0.0/16"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,
@@ -402,7 +403,7 @@ public class BgpSessionManagerTest {
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession,
-                              IpPrefix.valueOf("40.0.0.0/24"),
+                              Ip4Prefix.valueOf("40.0.0.0/24"),
                               nextHopRouter,
                               (byte) BgpConstants.Update.Origin.IGP,
                               asPath,

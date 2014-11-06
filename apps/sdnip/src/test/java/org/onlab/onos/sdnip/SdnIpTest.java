@@ -207,7 +207,7 @@ public class SdnIpTest {
         reset(intentService);
 
         for (RouteUpdate update : routeUpdates) {
-            IpAddress nextHopAddress = update.routeEntry().nextHop();
+            Ip4Address nextHopAddress = update.routeEntry().nextHop();
 
             // Find out the egress ConnectPoint
             ConnectPoint egressConnectPoint = getConnectPoint(nextHopAddress);
@@ -268,7 +268,7 @@ public class SdnIpTest {
         reset(intentService);
 
         for (RouteUpdate update : routeUpdates) {
-            IpAddress nextHopAddress = update.routeEntry().nextHop();
+            Ip4Address nextHopAddress = update.routeEntry().nextHop();
 
             // Find out the egress ConnectPoint
             ConnectPoint egressConnectPoint = getConnectPoint(nextHopAddress);
@@ -342,11 +342,6 @@ public class SdnIpTest {
                                       prefixLength);
                 // We have to ensure we don't generate the same prefix twice
                 // (this is quite easy to happen with small prefix lengths).
-                // TODO:
-                // The IpPrefix does the comparison using 32 bits length,
-                // but we need to compare only the prefix length. So I use
-                // Ip4Prefix for this moment and changed to IpPrefix. This
-                // can be improved in the future.
             } while (prefixes.contains(prefix));
 
             prefixes.add(prefix);
@@ -366,9 +361,9 @@ public class SdnIpTest {
             assertNotNull(nextHop);
 
             RouteUpdate update =
-                    new RouteUpdate(RouteUpdate.Type.UPDATE,
-                                    new RouteEntry(prefix,
-                                                   nextHop.ipAddress()));
+                new RouteUpdate(RouteUpdate.Type.UPDATE,
+                        new RouteEntry(prefix,
+                                       nextHop.ipAddress().getIp4Address()));
 
             routeUpdates.add(update);
         }

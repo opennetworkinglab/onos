@@ -26,30 +26,30 @@ import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 
 /**
  * Unit tests for the BgpRouteEntry class.
  */
 public class BgpRouteEntryTest {
     private BgpSession bgpSession;
-    private static final IpAddress BGP_SESSION_BGP_ID =
-        IpAddress.valueOf("10.0.0.1");
-    private static final IpAddress BGP_SESSION_IP_ADDRESS =
-        IpAddress.valueOf("20.0.0.1");
+    private static final Ip4Address BGP_SESSION_BGP_ID =
+        Ip4Address.valueOf("10.0.0.1");
+    private static final Ip4Address BGP_SESSION_IP_ADDRESS =
+        Ip4Address.valueOf("20.0.0.1");
 
     private BgpSession bgpSession2;
-    private static final IpAddress BGP_SESSION_BGP_ID2 =
-        IpAddress.valueOf("10.0.0.2");
-    private static final IpAddress BGP_SESSION_IP_ADDRESS2 =
-        IpAddress.valueOf("20.0.0.1");
+    private static final Ip4Address BGP_SESSION_BGP_ID2 =
+        Ip4Address.valueOf("10.0.0.2");
+    private static final Ip4Address BGP_SESSION_IP_ADDRESS2 =
+        Ip4Address.valueOf("20.0.0.1");
 
     private BgpSession bgpSession3;
-    private static final IpAddress BGP_SESSION_BGP_ID3 =
-        IpAddress.valueOf("10.0.0.1");
-    private static final IpAddress BGP_SESSION_IP_ADDRESS3 =
-        IpAddress.valueOf("20.0.0.2");
+    private static final Ip4Address BGP_SESSION_BGP_ID3 =
+        Ip4Address.valueOf("10.0.0.1");
+    private static final Ip4Address BGP_SESSION_IP_ADDRESS3 =
+        Ip4Address.valueOf("20.0.0.2");
 
     @Before
     public void setUp() throws Exception {
@@ -85,8 +85,8 @@ public class BgpRouteEntryTest {
      * @return a generated BGP Route Entry
      */
     private BgpRouteEntry generateBgpRouteEntry() {
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
@@ -143,8 +143,8 @@ public class BgpRouteEntryTest {
     @Test(expected = NullPointerException.class)
     public void testInvalidConstructorNullBgpSession() {
         BgpSession bgpSessionNull = null;
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
@@ -161,8 +161,8 @@ public class BgpRouteEntryTest {
      */
     @Test(expected = NullPointerException.class)
     public void testInvalidConstructorNullAsPath() {
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         BgpRouteEntry.AsPath asPath = null;
         long localPref = 100;
@@ -177,8 +177,8 @@ public class BgpRouteEntryTest {
     @Test
     public void testGetFields() {
         // Create the fields to compare against
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
@@ -231,8 +231,8 @@ public class BgpRouteEntryTest {
         //
         // Test local route with AS Path that begins with AS_SET
         //
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
@@ -291,8 +291,8 @@ public class BgpRouteEntryTest {
         //
         // Get neighbor AS for a local route
         //
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
@@ -341,8 +341,8 @@ public class BgpRouteEntryTest {
         //
         // Compare two routes with different LOCAL_PREF
         //
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
@@ -460,8 +460,8 @@ public class BgpRouteEntryTest {
         BgpRouteEntry bgpRouteEntry1 = generateBgpRouteEntry();
 
         // Setup BGP Route 2
-        IpPrefix prefix = IpPrefix.valueOf("1.2.3.0/24");
-        IpAddress nextHop = IpAddress.valueOf("5.6.7.8");
+        Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
+        Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
         byte origin = BgpConstants.Update.Origin.IGP;
         // Setup the AS Path
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();

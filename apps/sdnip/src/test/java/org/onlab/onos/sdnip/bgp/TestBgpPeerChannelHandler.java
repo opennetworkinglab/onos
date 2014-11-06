@@ -22,8 +22,8 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 
 /**
  * Class for handling the remote BGP Peer session.
@@ -31,7 +31,7 @@ import org.onlab.packet.IpPrefix;
 class TestBgpPeerChannelHandler extends SimpleChannelHandler {
     static final long PEER_AS = 65001;
     static final int PEER_HOLDTIME = 120;       // 120 seconds
-    final IpAddress bgpId;                     // The BGP ID
+    final Ip4Address bgpId;                     // The BGP ID
     final long localPref;                       // Local preference for routes
     final long multiExitDisc = 20;              // MED value
 
@@ -43,8 +43,7 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
      * @param bgpId the BGP ID to use
      * @param localPref the local preference for the routes to use
      */
-    TestBgpPeerChannelHandler(IpAddress bgpId,
-                              long localPref) {
+    TestBgpPeerChannelHandler(Ip4Address bgpId, long localPref) {
         this.bgpId = bgpId;
         this.localPref = localPref;
     }
@@ -99,9 +98,9 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
      * @param withdrawnRoutes the routes to withdraw
      * @return the message to transmit (BGP header included)
      */
-    ChannelBuffer prepareBgpUpdate(IpAddress nextHopRouter,
-                                   Collection<IpPrefix> addedRoutes,
-                                   Collection<IpPrefix> withdrawnRoutes) {
+    ChannelBuffer prepareBgpUpdate(Ip4Address nextHopRouter,
+                                   Collection<Ip4Prefix> addedRoutes,
+                                   Collection<Ip4Prefix> withdrawnRoutes) {
         int attrFlags;
         ChannelBuffer message =
             ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
@@ -178,24 +177,24 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
      * @param prefixes the prefixes to encode
      * @return the buffer with the encoded prefixes
      */
-    private ChannelBuffer encodePackedPrefixes(Collection<IpPrefix> prefixes) {
+    private ChannelBuffer encodePackedPrefixes(Collection<Ip4Prefix> prefixes) {
         ChannelBuffer message =
             ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
 
         // Write each of the prefixes
-        for (IpPrefix prefix : prefixes) {
+        for (Ip4Prefix prefix : prefixes) {
             int prefixBitlen = prefix.prefixLength();
             int prefixBytelen = (prefixBitlen + 7) / 8;         // Round-up
             message.writeByte(prefixBitlen);
 
-            IpAddress address = prefix.address();
+            Ip4Address address = prefix.address();
             long value = address.toInt() & 0xffffffffL;
-            for (int i = 0; i < IpAddress.INET_BYTE_LENGTH; i++) {
+            for (int i = 0; i < Ip4Address.BYTE_LENGTH; i++) {
                 if (prefixBytelen-- == 0) {
                     break;
                 }
                 long nextByte =
-                    (value >> ((IpAddress.INET_BYTE_LENGTH - i - 1) * 8)) & 0xff;
+                    (value >> ((Ip4Address.BYTE_LENGTH - i - 1) * 8)) & 0xff;
                 message.writeByte((int) nextByte);
             }
         }

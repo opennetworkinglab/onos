@@ -58,7 +58,9 @@ import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.onos.sdnip.config.SdnIpConfigService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -191,8 +193,8 @@ public class RouterTestWithAsyncArp {
 
         // Construct a route entry
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         // Construct a route intent
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
@@ -243,8 +245,8 @@ public class RouterTestWithAsyncArp {
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         // Construct the existing MultiPointToSinglePointIntent intent
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
@@ -256,8 +258,8 @@ public class RouterTestWithAsyncArp {
 
         // Start to construct a new route entry and new intent
         RouteEntry routeEntryUpdate = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.20.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.20.1"));
 
         // Construct a new MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilderNew =
@@ -323,8 +325,8 @@ public class RouterTestWithAsyncArp {
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         // Construct the existing MultiPointToSinglePointIntent intent
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
@@ -401,8 +403,8 @@ public class RouterTestWithAsyncArp {
             MultiPointToSinglePointIntent intent)
             throws TestUtilsException {
 
-        ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent>
-        pushedRouteIntents =  new ConcurrentHashMap<>();
+        ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
+            pushedRouteIntents =  new ConcurrentHashMap<>();
         pushedRouteIntents.put(routeEntry.prefix(), intent);
         TestUtils.setField(router, "pushedRouteIntents", pushedRouteIntents);
     }

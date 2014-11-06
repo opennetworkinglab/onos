@@ -42,8 +42,8 @@ import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.HoldTimerExpired;
 import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.MessageHeaderError;
 import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.OpenMessageError;
 import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,18 +62,18 @@ public class BgpSession extends SimpleChannelHandler {
     private boolean isClosed = false;
 
     private SocketAddress remoteAddress;        // Peer IP addr/port
-    private IpAddress remoteIp4Address;        // Peer IPv4 address
+    private Ip4Address remoteIp4Address;        // Peer IPv4 address
     private int remoteBgpVersion;               // 1 octet
     private long remoteAs;                      // 2 octets
     private long remoteHoldtime;                // 2 octets
-    private IpAddress remoteBgpId;             // 4 octets -> IPv4 address
+    private Ip4Address remoteBgpId;             // 4 octets -> IPv4 address
     //
     private SocketAddress localAddress;         // Local IP addr/port
-    private IpAddress localIp4Address;         // Local IPv4 address
+    private Ip4Address localIp4Address;         // Local IPv4 address
     private int localBgpVersion;                // 1 octet
     private long localAs;                       // 2 octets
     private long localHoldtime;                 // 2 octets
-    private IpAddress localBgpId;              // 4 octets -> IPv4 address
+    private Ip4Address localBgpId;              // 4 octets -> IPv4 address
     //
     private long localKeepaliveInterval;        // Keepalive interval
 
@@ -83,7 +83,7 @@ public class BgpSession extends SimpleChannelHandler {
     private volatile Timeout sessionTimeout;    // Session timeout
 
     // BGP RIB-IN routing entries from this peer
-    private ConcurrentMap<IpPrefix, BgpRouteEntry> bgpRibIn =
+    private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRibIn =
         new ConcurrentHashMap<>();
 
     /**
@@ -110,7 +110,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @param prefix the prefix of the route to search for
      * @return the BGP routing entry if found, otherwise null
      */
-    public BgpRouteEntry findBgpRouteEntry(IpPrefix prefix) {
+    public BgpRouteEntry findBgpRouteEntry(Ip4Prefix prefix) {
         return bgpRibIn.get(prefix);
     }
 
@@ -128,7 +128,7 @@ public class BgpSession extends SimpleChannelHandler {
      *
      * @return the BGP session remote IPv4 address
      */
-    public IpAddress getRemoteIp4Address() {
+    public Ip4Address getRemoteIp4Address() {
         return remoteIp4Address;
     }
 
@@ -164,7 +164,7 @@ public class BgpSession extends SimpleChannelHandler {
      *
      * @return the BGP session remote BGP Identifier as an IPv4 address
      */
-    public IpAddress getRemoteBgpId() {
+    public Ip4Address getRemoteBgpId() {
         return remoteBgpId;
     }
 
@@ -209,7 +209,7 @@ public class BgpSession extends SimpleChannelHandler {
      *
      * @return the BGP session local BGP Identifier as an IPv4 address
      */
-    public IpAddress getLocalBgpId() {
+    public Ip4Address getLocalBgpId() {
         return localBgpId;
     }
 
@@ -246,13 +246,11 @@ public class BgpSession extends SimpleChannelHandler {
         InetAddress inetAddr;
         if (localAddress instanceof InetSocketAddress) {
             inetAddr = ((InetSocketAddress) localAddress).getAddress();
-            localIp4Address = IpAddress.valueOf(IpAddress.Version.INET,
-                                                inetAddr.getAddress());
+            localIp4Address = Ip4Address.valueOf(inetAddr.getAddress());
         }
         if (remoteAddress instanceof InetSocketAddress) {
             inetAddr = ((InetSocketAddress) remoteAddress).getAddress();
-            remoteIp4Address = IpAddress.valueOf(IpAddress.Version.INET,
-                                                 inetAddr.getAddress());
+            remoteIp4Address = Ip4Address.valueOf(inetAddr.getAddress());
         }
 
         log.debug("BGP Session Connected from {} on {}",
@@ -388,7 +386,7 @@ public class BgpSession extends SimpleChannelHandler {
         }
 
         // Remote BGP Identifier
-        remoteBgpId = IpAddress.valueOf((int) message.readUnsignedInt());
+        remoteBgpId = Ip4Address.valueOf((int) message.readUnsignedInt());
 
         // Optional Parameters
         int optParamLen = message.readUnsignedByte();
@@ -460,7 +458,7 @@ public class BgpSession extends SimpleChannelHandler {
      */
     void processBgpUpdate(ChannelHandlerContext ctx, ChannelBuffer message) {
         Collection<BgpRouteEntry> addedRoutes = null;
-        Map<IpPrefix, BgpRouteEntry> deletedRoutes = new HashMap<>();
+        Map<Ip4Prefix, BgpRouteEntry> deletedRoutes = new HashMap<>();
 
         int minLength =
             BgpConstants.BGP_UPDATE_MIN_LENGTH - BgpConstants.BGP_HEADER_LENGTH;
@@ -494,7 +492,7 @@ public class BgpSession extends SimpleChannelHandler {
             actionsBgpUpdateMalformedAttributeList(ctx);
             return;
         }
-        Collection<IpPrefix> withdrawnPrefixes = null;
+        Collection<Ip4Prefix> withdrawnPrefixes = null;
         try {
             withdrawnPrefixes = parsePackedPrefixes(withdrawnRoutesLength,
                                                     message);
@@ -505,7 +503,7 @@ public class BgpSession extends SimpleChannelHandler {
             actionsBgpUpdateInvalidNetworkField(ctx);
             return;
         }
-        for (IpPrefix prefix : withdrawnPrefixes) {
+        for (Ip4Prefix prefix : withdrawnPrefixes) {
             log.debug("BGP RX UPDATE message WITHDRAWN from {}: {}",
                       remoteAddress, prefix);
             BgpRouteEntry bgpRouteEntry = bgpRibIn.get(prefix);
@@ -560,19 +558,19 @@ public class BgpSession extends SimpleChannelHandler {
                                 ChannelHandlerContext ctx,
                                 ChannelBuffer message)
         throws BgpParseException {
-        Map<IpPrefix, BgpRouteEntry> addedRoutes = new HashMap<>();
+        Map<Ip4Prefix, BgpRouteEntry> addedRoutes = new HashMap<>();
 
         //
         // Parsed values
         //
         Short origin = -1;                      // Mandatory
         BgpRouteEntry.AsPath asPath = null;     // Mandatory
-        IpAddress nextHop = null;              // Mandatory
+        Ip4Address nextHop = null;              // Mandatory
         long multiExitDisc =                    // Optional
             BgpConstants.Update.MultiExitDisc.LOWEST_MULTI_EXIT_DISC;
         Long localPref = null;                  // Mandatory
         Long aggregatorAsNumber = null;         // Optional: unused
-        IpAddress aggregatorIpAddress = null;  // Optional: unused
+        Ip4Address aggregatorIpAddress = null;  // Optional: unused
 
         //
         // Get and verify the Path Attributes Length
@@ -684,7 +682,7 @@ public class BgpSession extends SimpleChannelHandler {
 
             case BgpConstants.Update.Aggregator.TYPE:
                 // Attribute Type Code AGGREGATOR
-                Pair<Long, IpAddress> aggregator =
+                Pair<Long, Ip4Address> aggregator =
                     parseAttributeTypeAggregator(ctx, attrTypeCode, attrLen,
                                                  attrFlags, message);
                 aggregatorAsNumber = aggregator.getLeft();
@@ -720,7 +718,7 @@ public class BgpSession extends SimpleChannelHandler {
         //
         // Parse the NLRI (Network Layer Reachability Information)
         //
-        Collection<IpPrefix> addedPrefixes = null;
+        Collection<Ip4Prefix> addedPrefixes = null;
         int nlriLength = message.readableBytes();
         try {
             addedPrefixes = parsePackedPrefixes(nlriLength, message);
@@ -734,7 +732,7 @@ public class BgpSession extends SimpleChannelHandler {
         }
 
         // Generate the added routes
-        for (IpPrefix prefix : addedPrefixes) {
+        for (Ip4Prefix prefix : addedPrefixes) {
             BgpRouteEntry bgpRouteEntry =
                 new BgpRouteEntry(this, prefix, nextHop,
                                   origin.byteValue(), asPath, localPref);
@@ -768,7 +766,7 @@ public class BgpSession extends SimpleChannelHandler {
                         ChannelHandlerContext ctx,
                         Short origin,
                         BgpRouteEntry.AsPath asPath,
-                        IpAddress nextHop,
+                        Ip4Address nextHop,
                         Long localPref)
         throws BgpParseException {
         //
@@ -1025,7 +1023,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @return the parsed NEXT_HOP value
      * @throws BgpParseException
      */
-    private IpAddress parseAttributeTypeNextHop(
+    private Ip4Address parseAttributeTypeNextHop(
                         ChannelHandlerContext ctx,
                         int attrTypeCode,
                         int attrLen,
@@ -1043,8 +1041,8 @@ public class BgpSession extends SimpleChannelHandler {
         }
 
         message.markReaderIndex();
-        long address = message.readUnsignedInt();
-        IpAddress nextHopAddress = IpAddress.valueOf((int) address);
+        Ip4Address nextHopAddress =
+            Ip4Address.valueOf((int) message.readUnsignedInt());
         //
         // Check whether the NEXT_HOP IP address is semantically correct.
         // As per RFC 4271, Section 6.3:
@@ -1173,7 +1171,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @return the parsed AGGREGATOR value: a tuple of <AS-Number, IP-Address>
      * @throws BgpParseException
      */
-    private Pair<Long, IpAddress> parseAttributeTypeAggregator(
+    private Pair<Long, Ip4Address> parseAttributeTypeAggregator(
                         ChannelHandlerContext ctx,
                         int attrTypeCode,
                         int attrLen,
@@ -1193,11 +1191,10 @@ public class BgpSession extends SimpleChannelHandler {
         // The AGGREGATOR AS number
         long aggregatorAsNumber = message.readUnsignedShort();
         // The AGGREGATOR IP address
-        long aggregatorAddress = message.readUnsignedInt();
-        IpAddress aggregatorIpAddress =
-                IpAddress.valueOf((int) aggregatorAddress);
+        Ip4Address aggregatorIpAddress =
+            Ip4Address.valueOf((int) message.readUnsignedInt());
 
-        Pair<Long, IpAddress> aggregator = Pair.of(aggregatorAsNumber,
+        Pair<Long, Ip4Address> aggregator = Pair.of(aggregatorAsNumber,
                                                     aggregatorIpAddress);
         return aggregator;
     }
@@ -1215,10 +1212,10 @@ public class BgpSession extends SimpleChannelHandler {
      * @return a collection of parsed IPv4 network prefixes
      * @throws BgpParseException
      */
-    private Collection<IpPrefix> parsePackedPrefixes(int totalLength,
+    private Collection<Ip4Prefix> parsePackedPrefixes(int totalLength,
                                                       ChannelBuffer message)
         throws BgpParseException {
-        Collection<IpPrefix> result = new ArrayList<>();
+        Collection<Ip4Prefix> result = new ArrayList<>();
 
         if (totalLength == 0) {
             return result;
@@ -1242,9 +1239,9 @@ public class BgpSession extends SimpleChannelHandler {
                 prefixBytelen--;
             }
             address <<= extraShift;
-            IpPrefix prefix =
-                IpPrefix.valueOf(IpAddress.valueOf((int) address),
-                                 prefixBitlen);
+            Ip4Prefix prefix =
+                Ip4Prefix.valueOf(Ip4Address.valueOf((int) address),
+                                  prefixBitlen);
             result.add(prefix);
         }
 
@@ -1413,7 +1410,7 @@ public class BgpSession extends SimpleChannelHandler {
                         int attrLen,
                         int attrFlags,
                         ChannelBuffer message,
-                        IpAddress nextHop) {
+                        Ip4Address nextHop) {
         log.debug("BGP RX UPDATE Error from {}: Invalid NEXT_HOP Attribute {}",
                   remoteAddress, nextHop);
 

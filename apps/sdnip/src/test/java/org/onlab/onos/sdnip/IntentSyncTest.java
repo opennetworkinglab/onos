@@ -42,7 +42,9 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -209,36 +211,36 @@ public class IntentSyncTest {
         // 6. RouteEntry6 was newly added, but the intent was not submitted.
         //
         RouteEntry routeEntry1 = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         RouteEntry routeEntry2 = new RouteEntry(
-                IpPrefix.valueOf("2.2.2.0/24"),
-                IpAddress.valueOf("192.168.20.1"));
+                Ip4Prefix.valueOf("2.2.2.0/24"),
+                Ip4Address.valueOf("192.168.20.1"));
 
         RouteEntry routeEntry3 = new RouteEntry(
-                IpPrefix.valueOf("3.3.3.0/24"),
-                IpAddress.valueOf("192.168.30.1"));
+                Ip4Prefix.valueOf("3.3.3.0/24"),
+                Ip4Address.valueOf("192.168.30.1"));
 
         RouteEntry routeEntry4 = new RouteEntry(
-                IpPrefix.valueOf("4.4.4.0/24"),
-                IpAddress.valueOf("192.168.30.1"));
+                Ip4Prefix.valueOf("4.4.4.0/24"),
+                Ip4Address.valueOf("192.168.30.1"));
 
         RouteEntry routeEntry4Update = new RouteEntry(
-                IpPrefix.valueOf("4.4.4.0/24"),
-                IpAddress.valueOf("192.168.20.1"));
+                Ip4Prefix.valueOf("4.4.4.0/24"),
+                Ip4Address.valueOf("192.168.20.1"));
 
         RouteEntry routeEntry5 = new RouteEntry(
-                IpPrefix.valueOf("5.5.5.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("5.5.5.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         RouteEntry routeEntry6 = new RouteEntry(
-                IpPrefix.valueOf("6.6.6.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("6.6.6.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         RouteEntry routeEntry7 = new RouteEntry(
-                IpPrefix.valueOf("7.7.7.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("7.7.7.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         MultiPointToSinglePointIntent intent1 = intentBuilder(
                 routeEntry1.prefix(), "00:00:00:00:00:01", SW1_ETH1);
@@ -286,7 +288,7 @@ public class IntentSyncTest {
                 routeEntry7);
         TestUtils.setField(router, "bgpRoutes", bgpRoutes);
 
-        ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent>
+        ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
         pushedRouteIntents =  new ConcurrentHashMap<>();
         pushedRouteIntents.put(routeEntry1.prefix(), intent1);
         pushedRouteIntents.put(routeEntry3.prefix(), intent3);
@@ -355,7 +357,7 @@ public class IntentSyncTest {
      * @param egressPoint to which packets should be sent
      * @return the constructed MultiPointToSinglePointIntent
      */
-    private MultiPointToSinglePointIntent intentBuilder(IpPrefix ipPrefix,
+    private MultiPointToSinglePointIntent intentBuilder(Ip4Prefix ipPrefix,
             String nextHopMacAddress, ConnectPoint egressPoint) {
 
         TrafficSelector.Builder selectorBuilder =

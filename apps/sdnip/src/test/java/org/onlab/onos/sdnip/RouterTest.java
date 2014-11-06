@@ -57,7 +57,9 @@ import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.onos.sdnip.config.SdnIpConfigService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -228,8 +230,8 @@ public class RouterTest {
     public void testProcessRouteAdd() throws TestUtilsException {
         // Construct a route entry
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         // Construct a MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilder =
@@ -281,8 +283,8 @@ public class RouterTest {
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         // Construct the existing MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilder =
@@ -305,8 +307,8 @@ public class RouterTest {
 
         // Start to construct a new route entry and new intent
         RouteEntry routeEntryUpdate = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.20.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.20.1"));
 
         // Construct a new MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilderNew =
@@ -359,8 +361,8 @@ public class RouterTest {
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"),
-                IpAddress.valueOf("192.168.10.1"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"));
 
         // Construct the existing MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilder =
@@ -406,7 +408,8 @@ public class RouterTest {
     public void testLocalRouteAdd() throws TestUtilsException {
         // Construct a route entry, the next hop is the local BGP speaker
         RouteEntry routeEntry = new RouteEntry(
-                IpPrefix.valueOf("1.1.1.0/24"), IpAddress.valueOf("0.0.0.0"));
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("0.0.0.0"));
 
         // Reset intentService to check whether the submit method is called
         reset(intentService);

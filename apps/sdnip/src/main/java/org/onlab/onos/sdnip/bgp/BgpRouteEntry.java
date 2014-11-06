@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import org.onlab.onos.sdnip.RouteEntry;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 
 import com.google.common.base.MoreObjects;
 
@@ -48,8 +48,8 @@ public class BgpRouteEntry extends RouteEntry {
      * @param asPath the AS path
      * @param localPref the route local preference
      */
-    public BgpRouteEntry(BgpSession bgpSession, IpPrefix prefix,
-                         IpAddress nextHop, byte origin,
+    public BgpRouteEntry(BgpSession bgpSession, Ip4Prefix prefix,
+                         Ip4Address nextHop, byte origin,
                          BgpRouteEntry.AsPath asPath, long localPref) {
         super(prefix, nextHop);
         this.bgpSession = checkNotNull(bgpSession);
@@ -232,15 +232,15 @@ public class BgpRouteEntry extends RouteEntry {
         }
 
         // Compare the peer BGP ID: lower is better
-        IpAddress peerBgpId = getBgpSession().getRemoteBgpId();
-        IpAddress otherPeerBgpId = other.getBgpSession().getRemoteBgpId();
+        Ip4Address peerBgpId = getBgpSession().getRemoteBgpId();
+        Ip4Address otherPeerBgpId = other.getBgpSession().getRemoteBgpId();
         if (!peerBgpId.equals(otherPeerBgpId)) {
             return (peerBgpId.compareTo(otherPeerBgpId) < 0);
         }
 
         // Compare the peer BGP address: lower is better
-        IpAddress peerAddress = getBgpSession().getRemoteIp4Address();
-        IpAddress otherPeerAddress =
+        Ip4Address peerAddress = getBgpSession().getRemoteIp4Address();
+        Ip4Address otherPeerAddress =
             other.getBgpSession().getRemoteIp4Address();
         if (!peerAddress.equals(otherPeerAddress)) {
             return (peerAddress.compareTo(otherPeerAddress) < 0);

@@ -21,7 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
-import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
 
 /**
  * Class for handling the decoding of the BGP messages at the remote
@@ -31,7 +31,7 @@ class TestBgpPeerFrameDecoder extends FrameDecoder {
     int remoteBgpVersion;               // 1 octet
     long remoteAs;                      // 2 octets
     long remoteHoldtime;                // 2 octets
-    IpAddress remoteBgpIdentifier;     // 4 octets -> IPv4 address
+    Ip4Address remoteBgpIdentifier;     // 4 octets -> IPv4 address
 
     final CountDownLatch receivedOpenMessageLatch = new CountDownLatch(1);
     final CountDownLatch receivedKeepaliveMessageLatch = new CountDownLatch(1);
@@ -144,7 +144,8 @@ class TestBgpPeerFrameDecoder extends FrameDecoder {
         remoteBgpVersion = message.readUnsignedByte();
         remoteAs = message.readUnsignedShort();
         remoteHoldtime = message.readUnsignedShort();
-        remoteBgpIdentifier = IpAddress.valueOf((int) message.readUnsignedInt());
+        remoteBgpIdentifier =
+            Ip4Address.valueOf((int) message.readUnsignedInt());
         // Optional Parameters
         int optParamLen = message.readUnsignedByte();
         if (message.readableBytes() < optParamLen) {

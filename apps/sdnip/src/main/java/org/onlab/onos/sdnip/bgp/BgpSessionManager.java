@@ -35,8 +35,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.onos.sdnip.RouteListener;
 import org.onlab.onos.sdnip.RouteUpdate;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +49,10 @@ public class BgpSessionManager {
     private Channel serverChannel;     // Listener for incoming BGP connections
     private ConcurrentMap<SocketAddress, BgpSession> bgpSessions =
         new ConcurrentHashMap<>();
-    private IpAddress myBgpId;         // Same BGP ID for all peers
+    private Ip4Address myBgpId;        // Same BGP ID for all peers
 
     private BgpRouteSelector bgpRouteSelector = new BgpRouteSelector();
-    private ConcurrentMap<IpPrefix, BgpRouteEntry> bgpRoutes =
+    private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRoutes =
         new ConcurrentHashMap<>();
 
     private final RouteListener routeListener;
@@ -105,8 +105,7 @@ public class BgpSessionManager {
         if (bgpSession.getLocalAddress() instanceof InetSocketAddress) {
             InetAddress inetAddr =
                 ((InetSocketAddress) bgpSession.getLocalAddress()).getAddress();
-            IpAddress ip4Address = IpAddress.valueOf(IpAddress.Version.INET,
-                                                     inetAddr.getAddress());
+            Ip4Address ip4Address = Ip4Address.valueOf(inetAddr.getAddress());
             updateMyBgpId(ip4Address);
         }
         return true;
@@ -128,7 +127,7 @@ public class BgpSessionManager {
      *
      * @param ip4Address the IPv4 address to use as BGP ID
      */
-    private synchronized void updateMyBgpId(IpAddress ip4Address) {
+    private synchronized void updateMyBgpId(Ip4Address ip4Address) {
         if (myBgpId == null) {
             myBgpId = ip4Address;
             log.debug("BGP: My BGP ID is {}", myBgpId);
@@ -140,7 +139,7 @@ public class BgpSessionManager {
      *
      * @return the local BGP Identifier as an IPv4 address
      */
-    IpAddress getMyBgpId() {
+    Ip4Address getMyBgpId() {
         return myBgpId;
     }
 
@@ -352,7 +351,7 @@ public class BgpSessionManager {
          * @param prefix the prefix of the route
          * @return the best route if found, otherwise null
          */
-        private BgpRouteEntry findBestBgpRoute(IpPrefix prefix) {
+        private BgpRouteEntry findBestBgpRoute(Ip4Prefix prefix) {
             BgpRouteEntry bestRoute = null;
 
             // Iterate across all BGP Sessions and select the best route
