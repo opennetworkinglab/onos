@@ -21,12 +21,12 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
+import com.google.common.testing.EqualsTester;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.junit.UtilityClassChecker.assertThatClassIsUtility;
@@ -121,33 +121,6 @@ public class CriteriaTest {
     }
 
     /**
-     * Checks the equals() and toString() methods of a Criterion class.
-     *
-     * @param c1 first object to compare
-     * @param c1match object that should be equal to the first
-     * @param c2 object that should be not equal to the first
-     * @param clazz Class object for the Criterion subclass
-     * @param <T> type of the arguments
-     */
-    private <T extends Criterion> void checkEqualsAndToString(T c1, T c1match,
-                                                              T c2, Class clazz) {
-        assertThat(c1, instanceOf(clazz));
-        assertThat(c1match, instanceOf(clazz));
-        assertThat(c2, instanceOf(clazz));
-
-        assertThat(c1, is(equalTo(c1match)));
-        assertThat(c1, is(not(equalTo(c2))));
-        assertThat(c1, is(not(equalTo(new Object()))));
-
-        // Make sure the enumerated type appears in the toString() output and
-        // the toString output is unique.
-        assertThat(c1.toString(), containsString(c1.type().toString()));
-        assertThat(c1.toString(), equalTo(c1match.toString()));
-        assertThat(c1.toString(), not(equalTo(c2.toString())));
-    }
-
-
-    /**
      * Check that the Criteria class is a valid utility class.
      */
     @Test
@@ -193,17 +166,10 @@ public class CriteriaTest {
      */
     @Test
     public void testPortCriterionEquals() {
-        checkEqualsAndToString(matchInPort1, sameAsMatchInPort1, matchInPort2,
-                Criteria.PortCriterion.class);
-    }
-
-    /**
-     * Test the hashCode() method of the PortCriterion class.
-     */
-    @Test
-    public void testPortCriterionHashCode() {
-        assertThat(matchInPort1.hashCode(), is(equalTo(sameAsMatchInPort1.hashCode())));
-        assertThat(matchInPort1.hashCode(), is(not(equalTo(matchInPort2.hashCode()))));
+        new EqualsTester()
+                .addEqualityGroup(matchInPort1, sameAsMatchInPort1)
+                .addEqualityGroup(matchInPort2)
+                .testEquals();
     }
 
     // EthCriterion class
@@ -239,19 +205,11 @@ public class CriteriaTest {
      */
     @Test
     public void testEthCriterionEquals() {
-        checkEqualsAndToString(matchEth1, sameAsMatchEth1, matchEth2,
-                Criteria.EthCriterion.class);
+        new EqualsTester()
+                .addEqualityGroup(matchEth1, sameAsMatchEth1)
+                .addEqualityGroup(matchEth2)
+                .testEquals();
     }
-
-    /**
-     * Test the hashCode() method of the EthCriterion class.
-     */
-    @Test
-    public void testEthCriterionHashCode() {
-        assertThat(matchEth1.hashCode(), is(equalTo(sameAsMatchEth1.hashCode())));
-        assertThat(matchEth1.hashCode(), is(not(equalTo(matchEth2.hashCode()))));
-    }
-
 
     // TcpPortCriterion class
 
@@ -286,19 +244,11 @@ public class CriteriaTest {
      */
     @Test
     public void testTcpPortCriterionEquals() {
-        checkEqualsAndToString(matchTcpPort1, sameAsMatchTcpPort1, matchTcpPort2,
-                Criteria.TcpPortCriterion.class);
+        new EqualsTester()
+                .addEqualityGroup(matchTcpPort1, sameAsMatchTcpPort1)
+                .addEqualityGroup(matchTcpPort2)
+                .testEquals();
     }
-
-    /**
-     * Test the hashCode() method of the TcpPortCriterion class.
-     */
-    @Test
-    public void testTcpPortCriterionHashCode() {
-        assertThat(matchTcpPort1.hashCode(), is(equalTo(sameAsMatchTcpPort1.hashCode())));
-        assertThat(matchTcpPort1.hashCode(), is(not(equalTo(matchTcpPort2.hashCode()))));
-    }
-
 
     // EthTypeCriterion class
 
@@ -321,19 +271,11 @@ public class CriteriaTest {
      */
     @Test
     public void testEthTypeCriterionEquals() {
-        checkEqualsAndToString(matchEthType1, sameAsMatchEthType1, matchEthType2,
-                Criteria.EthTypeCriterion.class);
+        new EqualsTester()
+                .addEqualityGroup(matchEthType1, sameAsMatchEthType1)
+                .addEqualityGroup(matchEthType2)
+                .testEquals();
     }
-
-    /**
-     * Test the hashCode() method of the EthTypeCriterion class.
-     */
-    @Test
-    public void testEthTypeCriterionHashCode() {
-        assertThat(matchInPort1.hashCode(), is(equalTo(sameAsMatchInPort1.hashCode())));
-        assertThat(matchInPort1.hashCode(), is(not(equalTo(matchInPort2.hashCode()))));
-    }
-
 
     // VlanIdCriterion class
 
@@ -355,17 +297,10 @@ public class CriteriaTest {
      */
     @Test
     public void testVlanIdCriterionEquals() {
-        checkEqualsAndToString(matchVlanId1, sameAsMatchVlanId1, matchVlanId2,
-                Criteria.VlanIdCriterion.class);
-    }
-
-    /**
-     * Test the hashCode() method of the VlanIdCriterion class.
-     */
-    @Test
-    public void testVlanIdCriterionHashCode() {
-        assertThat(matchVlanId1.hashCode(), is(equalTo(sameAsMatchVlanId1.hashCode())));
-        assertThat(matchVlanId1.hashCode(), is(not(equalTo(matchVlanId2.hashCode()))));
+        new EqualsTester()
+                .addEqualityGroup(matchVlanId1, sameAsMatchVlanId1)
+                .addEqualityGroup(matchVlanId2)
+                .testEquals();
     }
 
     // VlanPcpCriterion class
@@ -388,17 +323,10 @@ public class CriteriaTest {
      */
     @Test
     public void testVlanPcpCriterionEquals() {
-        checkEqualsAndToString(matchVlanPcp1, sameAsMatchVlanPcp1, matchVlanPcp2,
-                Criteria.VlanPcpCriterion.class);
-    }
-
-    /**
-     * Test the hashCode() method of the VlnPcpCriterion class.
-     */
-    @Test
-    public void testVlanPcpCriterionHashCode() {
-        assertThat(matchVlanPcp1.hashCode(), is(equalTo(sameAsMatchVlanPcp1.hashCode())));
-        assertThat(matchVlanPcp1.hashCode(), is(not(equalTo(matchVlanPcp2.hashCode()))));
+        new EqualsTester()
+                .addEqualityGroup(matchVlanPcp1, sameAsMatchVlanPcp1)
+                .addEqualityGroup(matchVlanPcp2)
+                .testEquals();
     }
 
     // IpProtocolCriterion class
@@ -421,17 +349,10 @@ public class CriteriaTest {
      */
     @Test
     public void testIpProtocolCriterionEquals() {
-        checkEqualsAndToString(matchIpProtocol1, sameAsMatchIpProtocol1,
-                               matchIpProtocol2, Criteria.IPProtocolCriterion.class);
-    }
-
-    /**
-     * Test the hashCode() method of the IpProtocolCriterion class.
-     */
-    @Test
-    public void testIpProtocolCriterionHashCode() {
-        assertThat(matchIpProtocol1.hashCode(), is(equalTo(sameAsMatchIpProtocol1.hashCode())));
-        assertThat(matchIpProtocol1.hashCode(), is(not(equalTo(matchIpProtocol2.hashCode()))));
+        new EqualsTester()
+                .addEqualityGroup(matchIpProtocol1, sameAsMatchIpProtocol1)
+                .addEqualityGroup(matchIpProtocol2)
+                .testEquals();
     }
 
     // IPCriterion class
@@ -467,17 +388,10 @@ public class CriteriaTest {
      */
     @Test
     public void testIPCriterionEquals() {
-        checkEqualsAndToString(matchIp1, sameAsMatchIp1, matchIp2,
-                Criteria.IPCriterion.class);
-    }
-
-    /**
-     * Test the hashCode() method of the IpCriterion class.
-     */
-    @Test
-    public void testIPCriterionHashCode() {
-        assertThat(matchIp1.hashCode(), is(equalTo(sameAsMatchIp1.hashCode())));
-        assertThat(matchIp1.hashCode(), is(not(equalTo(matchIp2.hashCode()))));
+        new EqualsTester()
+                .addEqualityGroup(matchIp1, sameAsMatchIp1)
+                .addEqualityGroup(matchIp2)
+                .testEquals();
     }
 
     // LambdaCriterion class
@@ -500,17 +414,10 @@ public class CriteriaTest {
      */
     @Test
     public void testLambdaCriterionEquals() {
-        checkEqualsAndToString(matchLambda1, sameAsMatchLambda1, matchLambda2,
-                Criteria.LambdaCriterion.class);
-    }
-
-    /**
-     * Test the hashCode() method of the LambdaCriterion class.
-     */
-    @Test
-    public void testLambdaCriterionHashCode() {
-        assertThat(matchLambda1.hashCode(), is(equalTo(sameAsMatchLambda1.hashCode())));
-        assertThat(matchLambda1.hashCode(), is(not(equalTo(matchLambda2.hashCode()))));
+        new EqualsTester()
+                .addEqualityGroup(matchLambda1, sameAsMatchLambda1)
+                .addEqualityGroup(matchLambda2)
+                .testEquals();
     }
 
     // OpticalSignalTypeCriterion class
@@ -533,18 +440,9 @@ public class CriteriaTest {
      */
     @Test
     public void testOpticalSignalTypeCriterionEquals() {
-        checkEqualsAndToString(matchSignalLambda1, sameAsMatchSignalLambda1,
-                matchSignalLambda2,
-                Criteria.OpticalSignalTypeCriterion.class);
+        new EqualsTester()
+                .addEqualityGroup(matchSignalLambda1, sameAsMatchSignalLambda1)
+                .addEqualityGroup(matchSignalLambda2)
+                .testEquals();
     }
-
-    /**
-     * Test the hashCode() method of the OpticalSignalTypeCriterion class.
-     */
-    @Test
-    public void testOpticalSignalTypeCriterionHashCode() {
-        assertThat(matchSignalLambda1.hashCode(), is(equalTo(sameAsMatchSignalLambda1.hashCode())));
-        assertThat(matchSignalLambda1.hashCode(), is(not(equalTo(matchSignalLambda2.hashCode()))));
-    }
-
 }
