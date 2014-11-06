@@ -45,6 +45,8 @@ public class MapDBLogTest {
     @After
     public void tearDown() throws Exception {
         Files.deleteIfExists(new File(DB_FILE_NAME).toPath());
+        Files.deleteIfExists(new File(DB_FILE_NAME + ".t").toPath());
+        Files.deleteIfExists(new File(DB_FILE_NAME + ".p").toPath());
     }
 
     @Test(expected = IllegalStateException.class)
