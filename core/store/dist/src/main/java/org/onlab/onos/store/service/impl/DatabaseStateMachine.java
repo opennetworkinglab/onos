@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
 import org.onlab.util.KryoNamespace;
+import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
 
@@ -27,6 +30,8 @@ import com.google.common.collect.Maps;
  * on the next transition.
  */
 public class DatabaseStateMachine implements StateMachine {
+
+    private final Logger log = getLogger(getClass());
 
     public static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
@@ -161,7 +166,7 @@ public class DatabaseStateMachine implements StateMachine {
         try {
             return SERIALIZER.encode(state);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Snapshot serialization error", e);
             return null;
         }
     }
@@ -171,7 +176,7 @@ public class DatabaseStateMachine implements StateMachine {
         try {
             this.state = SERIALIZER.decode(data);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Snapshot deserialization error", e);
         }
     }
 }
