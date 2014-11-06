@@ -31,8 +31,8 @@ import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
@@ -168,12 +168,12 @@ public class FlowEntryBuilder {
             case SET_NW_DST:
                 OFActionSetNwDst nwdst = (OFActionSetNwDst) act;
                 IPv4Address di = nwdst.getNwAddr();
-                builder.setIpDst(IpAddress.valueOf(di.getInt()));
+                builder.setIpDst(Ip4Address.valueOf(di.getInt()));
                 break;
             case SET_NW_SRC:
                 OFActionSetNwSrc nwsrc = (OFActionSetNwSrc) act;
                 IPv4Address si = nwsrc.getNwAddr();
-                builder.setIpSrc(IpAddress.valueOf(si.getInt()));
+                builder.setIpSrc(Ip4Address.valueOf(si.getInt()));
                 break;
             case EXPERIMENTER:
                 OFActionExperimenter exp = (OFActionExperimenter) act;
@@ -237,33 +237,33 @@ public class FlowEntryBuilder {
                 builder.matchEthType((short) ethType);
                 break;
             case IPV4_DST:
-                IpPrefix dip;
+                Ip4Prefix dip;
                 if (match.isPartiallyMasked(MatchField.IPV4_DST)) {
                     Masked<IPv4Address> maskedIp = match.getMasked(MatchField.IPV4_DST);
 
-                    dip = IpPrefix.valueOf(
+                    dip = Ip4Prefix.valueOf(
                             maskedIp.getValue().getInt(),
                             maskedIp.getMask().asCidrMaskLength());
                 } else {
-                    dip = IpPrefix.valueOf(
+                    dip = Ip4Prefix.valueOf(
                             match.get(MatchField.IPV4_DST).getInt(),
-                            IpPrefix.MAX_INET_MASK_LENGTH);
+                            Ip4Prefix.MAX_MASK_LENGTH);
                 }
 
                 builder.matchIPDst(dip);
                 break;
             case IPV4_SRC:
-                IpPrefix sip;
+                Ip4Prefix sip;
                 if (match.isPartiallyMasked(MatchField.IPV4_SRC)) {
                     Masked<IPv4Address> maskedIp = match.getMasked(MatchField.IPV4_SRC);
 
-                    sip = IpPrefix.valueOf(
+                    sip = Ip4Prefix.valueOf(
                             maskedIp.getValue().getInt(),
                             maskedIp.getMask().asCidrMaskLength());
                 } else {
-                    sip = IpPrefix.valueOf(
+                    sip = Ip4Prefix.valueOf(
                             match.get(MatchField.IPV4_SRC).getInt(),
-                            IpPrefix.MAX_INET_MASK_LENGTH);
+                            Ip4Prefix.MAX_MASK_LENGTH);
                 }
 
                 builder.matchIPSrc(sip);
