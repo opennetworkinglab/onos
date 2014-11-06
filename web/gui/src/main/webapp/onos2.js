@@ -407,7 +407,8 @@
                     height: this.height,
                     uid: this.uid,
                     setRadio: this.setRadio,
-                    setKeys: this.setKeys
+                    setKeys: this.setKeys,
+                    dataLoadError: this.dataLoadError
                 }
             },
 
@@ -498,6 +499,16 @@
 
             uid: function (id) {
                 return makeUid(this, id);
+            },
+
+            // TODO : implement custom dialogs (don't use alerts)
+
+            dataLoadError: function (err, url) {
+                var msg = 'Data Load Error\n\n' +
+                    err.status + ' -- ' + err.statusText + '\n\n' +
+                    'relative-url: "' + url + '"\n\n' +
+                    'complete-url: "' + err.responseURL + '"';
+                alert(msg);
             }
 
             // TODO: consider schedule, clearTimer, etc.

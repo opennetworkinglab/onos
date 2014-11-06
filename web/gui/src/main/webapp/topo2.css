@@ -24,3 +24,6 @@ svg #topo-bg {
     opacity: 0.5;
 }
 
+svg .node {
+    fill: #03c;
+}
