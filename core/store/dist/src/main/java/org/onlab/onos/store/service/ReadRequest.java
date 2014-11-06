@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -10,9 +12,22 @@ public class ReadRequest {
     private final String tableName;
     private final String key;
 
+
+    /**
+     * Creates a read request,
+     * which will retrieve the specified key from the table.
+     *
+     * @param tableName name of the table
+     * @param key       key in the table
+     * @return ReadRequest
+     */
+    public static ReadRequest get(String tableName, String key) {
+        return new ReadRequest(tableName, key);
+    }
+
     public ReadRequest(String tableName, String key) {
-        this.tableName = tableName;
-        this.key = key;
+        this.tableName = checkNotNull(tableName);
+        this.key = checkNotNull(key);
     }
 
     /**
