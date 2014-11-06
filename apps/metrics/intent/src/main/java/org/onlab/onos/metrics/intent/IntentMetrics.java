@@ -29,6 +29,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.EventMetric;
 import org.onlab.metrics.MetricsService;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.IntentService;
@@ -44,9 +46,15 @@ public class IntentMetrics implements IntentMetricsService,
     private static final Logger log = getLogger(IntentMetrics.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MetricsService metricsService;
+
+    private ApplicationId appId;
 
     private LinkedList<IntentEvent> lastEvents = new LinkedList<>();
     private static final int LAST_EVENTS_MAX_N = 100;
@@ -74,10 +82,13 @@ public class IntentMetrics implements IntentMetricsService,
 
     @Activate
     protected void activate() {
+        appId =
+            coreService.registerApplication("org.onlab.onos.metrics.intent");
+
         clear();
         registerMetrics();
         intentService.addListener(this);
-        log.info("ONOS Intent Metrics started.");
+        log.info("Started with Application ID {}", appId.id());
     }
 
     @Deactivate
@@ -85,7 +96,7 @@ public class IntentMetrics implements IntentMetricsService,
         intentService.removeListener(this);
         removeMetrics();
         clear();
-        log.info("ONOS Intent Metrics stopped.");
+        log.info("Stopped");
     }
 
     @Override

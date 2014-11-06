@@ -29,6 +29,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.EventMetric;
 import org.onlab.metrics.MetricsService;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
@@ -53,15 +55,24 @@ public class TopologyMetrics implements TopologyMetricsService {
     private static final Logger log = getLogger(TopologyMetrics.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MetricsService metricsService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
+
+    private ApplicationId appId;
 
     private LinkedList<Event> lastEvents = new LinkedList<>();
     private static final int LAST_EVENTS_MAX_N = 100;
@@ -94,6 +105,9 @@ public class TopologyMetrics implements TopologyMetricsService {
 
     @Activate
     protected void activate() {
+        appId =
+            coreService.registerApplication("org.onlab.onos.metrics.topology");
+
         clear();
         registerMetrics();
 
@@ -103,7 +117,7 @@ public class TopologyMetrics implements TopologyMetricsService {
         linkService.addListener(linkListener);
         topologyService.addListener(topologyListener);
 
-        log.info("ONOS Topology Metrics started.");
+        log.info("Started with Application ID {}", appId.id());
     }
 
     @Deactivate
@@ -116,7 +130,7 @@ public class TopologyMetrics implements TopologyMetricsService {
 
         removeMetrics();
         clear();
-        log.info("ONOS Topology Metrics stopped.");
+        log.info("Stopped");
     }
 
     @Override
