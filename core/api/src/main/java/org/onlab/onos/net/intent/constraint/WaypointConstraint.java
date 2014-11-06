@@ -48,6 +48,10 @@ public class WaypointConstraint implements Constraint {
         this.waypoints = ImmutableList.copyOf(waypoints);
     }
 
+    public List<ElementId> waypoints() {
+        return waypoints;
+    }
+
     @Override
     public double cost(Link link, LinkResourceService resourceService) {
         // Always consider the number of hops

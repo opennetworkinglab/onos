@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.intent.constraint;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.net.DefaultLink;
@@ -22,6 +23,7 @@ import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.resource.LinkResourceService;
 
@@ -83,5 +85,20 @@ public class WaypointConstraintTest {
         sut = new WaypointConstraint(DID4);
 
         assertThat(sut.validate(path, linkResourceService), is(false));
+    }
+
+    @Test
+    public void testEquality() {
+        Constraint c1 = new WaypointConstraint(DID1, DID2);
+        Constraint c2 = new WaypointConstraint(DID1, DID2);
+
+        Constraint c3 = new WaypointConstraint(DID2);
+        Constraint c4 = new WaypointConstraint(DID3);
+
+        new EqualsTester()
+                .addEqualityGroup(c1, c2)
+                .addEqualityGroup(c3)
+                .addEqualityGroup(c4)
+                .testEquals();
     }
 }
