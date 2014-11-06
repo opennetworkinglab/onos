@@ -43,7 +43,11 @@ import org.onlab.onos.net.flow.FlowId;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 
@@ -168,8 +172,28 @@ public class KryoSerializerTest {
     }
 
     @Test
+    public void testIp4Prefix() {
+        testSerialized(Ip4Prefix.valueOf("192.168.0.1/24"));
+    }
+
+    @Test
+    public void testIp6Prefix() {
+        testSerialized(Ip6Prefix.valueOf("1111:2222::/120"));
+    }
+
+    @Test
     public void testIpAddress() {
         testSerialized(IpAddress.valueOf("192.168.0.1"));
+    }
+
+    @Test
+    public void testIp4Address() {
+        testSerialized(Ip4Address.valueOf("192.168.0.1"));
+    }
+
+    @Test
+    public void testIp6Address() {
+        testSerialized(Ip6Address.valueOf("1111:2222::"));
     }
 
     @Test

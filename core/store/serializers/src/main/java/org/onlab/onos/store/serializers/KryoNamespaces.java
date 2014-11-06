@@ -88,7 +88,11 @@ import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -104,7 +108,11 @@ public final class KryoNamespaces {
      */
     public static final KryoNamespace MISC = KryoNamespace.newBuilder()
             .register(IpPrefix.class, new IpPrefixSerializer())
+            .register(Ip4Prefix.class, new Ip4PrefixSerializer())
+            .register(Ip6Prefix.class, new Ip6PrefixSerializer())
             .register(IpAddress.class, new IpAddressSerializer())
+            .register(Ip4Address.class, new Ip4AddressSerializer())
+            .register(Ip6Address.class, new Ip6AddressSerializer())
             .register(MacAddress.class, new MacAddressSerializer())
             .register(VlanId.class)
             .build();
