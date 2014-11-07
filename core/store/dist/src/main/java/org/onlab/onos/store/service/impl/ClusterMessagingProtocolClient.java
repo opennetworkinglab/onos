@@ -145,6 +145,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                     future.completeExceptionally(e);
                 }
             } catch (Exception e) {
+                log.warn("RPCTask for {} terribly failed.", request, e);
                 future.completeExceptionally(e);
             }
         }
