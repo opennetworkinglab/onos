@@ -230,9 +230,10 @@ public class GossipDeviceStore
         final Timestamped<DeviceDescription> deltaDesc = new Timestamped<>(deviceDescription, newTimestamp);
         final DeviceEvent event;
         final Timestamped<DeviceDescription> mergedDesc;
-        synchronized (getOrCreateDeviceDescriptionsMap(deviceId)) {
+        final Map<ProviderId, DeviceDescriptions> device = getOrCreateDeviceDescriptionsMap(deviceId);
+        synchronized (device) {
             event = createOrUpdateDeviceInternal(providerId, deviceId, deltaDesc);
-            mergedDesc = getOrCreateDeviceDescriptionsMap(deviceId).get(providerId).getDeviceDesc();
+            mergedDesc = device.get(providerId).getDeviceDesc();
         }
         if (event != null) {
             log.info("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
@@ -252,10 +253,10 @@ public class GossipDeviceStore
                                     Timestamped<DeviceDescription> deltaDesc) {
 
         // Collection of DeviceDescriptions for a Device
-        Map<ProviderId, DeviceDescriptions> providerDescs
+        Map<ProviderId, DeviceDescriptions> device
             = getOrCreateDeviceDescriptionsMap(deviceId);
 
-        synchronized (providerDescs) {
+        synchronized (device) {
             // locking per device
 
             if (isDeviceRemoved(deviceId, deltaDesc.timestamp())) {
@@ -263,7 +264,7 @@ public class GossipDeviceStore
                 return null;
             }
 
-            DeviceDescriptions descs = getOrCreateProviderDeviceDescriptions(providerDescs, providerId, deltaDesc);
+            DeviceDescriptions descs = getOrCreateProviderDeviceDescriptions(device, providerId, deltaDesc);
 
             final Device oldDevice = devices.get(deviceId);
             final Device newDevice;
@@ -272,7 +273,7 @@ public class GossipDeviceStore
                 deltaDesc.isNewer(descs.getDeviceDesc())) {
                 // on new device or valid update
                 descs.putDeviceDesc(deltaDesc);
-                newDevice = composeDevice(deviceId, providerDescs);
+                newDevice = composeDevice(deviceId, device);
             } else {
                 // outdated event, ignored.
                 return null;
@@ -444,9 +445,10 @@ public class GossipDeviceStore
         final List<DeviceEvent> events;
         final Timestamped<List<PortDescription>> merged;
 
-        synchronized (getOrCreateDeviceDescriptionsMap(deviceId)) {
+        final Map<ProviderId, DeviceDescriptions> device = getOrCreateDeviceDescriptionsMap(deviceId);
+        synchronized (device) {
             events = updatePortsInternal(providerId, deviceId, timestampedInput);
-            final DeviceDescriptions descs = getOrCreateDeviceDescriptionsMap(deviceId).get(providerId);
+            final DeviceDescriptions descs = device.get(providerId);
             List<PortDescription> mergedList =
                     FluentIterable.from(portDescriptions)
                 .transform(new Function<PortDescription, PortDescription>() {
@@ -632,9 +634,10 @@ public class GossipDeviceStore
             = new Timestamped<>(portDescription, newTimestamp);
         final DeviceEvent event;
         final Timestamped<PortDescription> mergedDesc;
-        synchronized (getOrCreateDeviceDescriptionsMap(deviceId)) {
+        final Map<ProviderId, DeviceDescriptions> device = getOrCreateDeviceDescriptionsMap(deviceId);
+        synchronized (device) {
             event = updatePortStatusInternal(providerId, deviceId, deltaDesc);
-            mergedDesc = getOrCreateDeviceDescriptionsMap(deviceId).get(providerId)
+            mergedDesc = device.get(providerId)
                             .getPortDesc(portDescription.portNumber());
         }
         if (event != null) {
