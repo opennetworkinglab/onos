@@ -117,6 +117,8 @@ public class DatabaseStateMachine implements StateMachine {
             return InternalWriteResult.Status.PREVIOUS_VERSION_MISMATCH;
         case REMOVE:
             return InternalWriteResult.Status.OK;
+        default:
+            break;
         }
         log.error("Should never reach here {}", request);
         return InternalWriteResult.Status.ABORTED;

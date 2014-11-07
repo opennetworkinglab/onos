@@ -201,7 +201,7 @@ public class FooComponent {
                 } else {
                     log.info("Write failed trying to write{}", next);
                 }
-            } while(retry-- > 0);
+            } while (retry-- > 0);
         } catch (Exception e) {
             log.error("Exception thrown", e);
         }

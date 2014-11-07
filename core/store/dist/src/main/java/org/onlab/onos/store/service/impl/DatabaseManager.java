@@ -34,7 +34,6 @@ import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.NoSuchTableException;
 import org.onlab.onos.store.service.OptimisticLockException;
 import org.onlab.onos.store.service.OptionalResult;
-import org.onlab.onos.store.service.PreconditionFailedException;
 import org.onlab.onos.store.service.ReadRequest;
 import org.onlab.onos.store.service.ReadResult;
 import org.onlab.onos.store.service.WriteAborted;
@@ -195,8 +194,8 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     }
 
     @Override
-    public WriteResult write(WriteRequest request)
-            throws OptimisticLockException, PreconditionFailedException {
+    public WriteResult write(WriteRequest request) {
+//            throws OptimisticLockException, PreconditionFailedException {
         return writeNothrow(request).get();
     }
 
