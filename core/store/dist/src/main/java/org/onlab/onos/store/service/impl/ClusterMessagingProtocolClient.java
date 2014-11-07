@@ -85,7 +85,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
         return CompletableFuture.completedFuture(null);
     }
 
-    public <I> MessageSubject messageType(I input) {
+    private <I> MessageSubject messageType(I input) {
         Class<?> clazz = input.getClass();
         if (clazz.equals(PollRequest.class)) {
             return ClusterMessagingProtocol.COPYCAT_POLL;
@@ -117,7 +117,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
             this.request = request;
             this.message =
                     new ClusterMessage(
-                            null,
+                            null, // FIXME fill in proper sender
                             messageType(request),
                             ClusterMessagingProtocol.SERIALIZER.encode(request));
             this.future = future;
