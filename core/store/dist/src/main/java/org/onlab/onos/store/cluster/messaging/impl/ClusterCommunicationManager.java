@@ -166,8 +166,13 @@ public class ClusterCommunicationManager
 
     @Override
     public void addSubscriber(MessageSubject subject,
-            ClusterMessageHandler subscriber) {
+                              ClusterMessageHandler subscriber) {
         messagingService.registerHandler(subject.value(), new InternalClusterMessageHandler(subscriber));
+    }
+
+    @Override
+    public void removeSubscriber(MessageSubject subject) {
+        messagingService.unregisterHandler(subject.value());
     }
 
     private final class InternalClusterMessageHandler implements MessageHandler {

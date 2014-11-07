@@ -27,18 +27,12 @@ import org.slf4j.Logger;
 public class ClusterMessagingProtocolServer implements ProtocolServer {
 
     private final Logger log = getLogger(getClass());
-    private RequestHandler handler;
+    private volatile RequestHandler handler;
+    private ClusterCommunicationService clusterCommunicator;
 
     public ClusterMessagingProtocolServer(ClusterCommunicationService clusterCommunicator) {
+        this.clusterCommunicator = clusterCommunicator;
 
-        clusterCommunicator.addSubscriber(
-                ClusterMessagingProtocol.COPYCAT_PING, new CopycatMessageHandler<PingRequest>());
-        clusterCommunicator.addSubscriber(
-                ClusterMessagingProtocol.COPYCAT_SYNC, new CopycatMessageHandler<SyncRequest>());
-        clusterCommunicator.addSubscriber(
-                ClusterMessagingProtocol.COPYCAT_POLL, new CopycatMessageHandler<PollRequest>());
-        clusterCommunicator.addSubscriber(
-                ClusterMessagingProtocol.COPYCAT_SUBMIT, new CopycatMessageHandler<SubmitRequest>());
     }
 
     @Override
@@ -48,11 +42,23 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
 
     @Override
     public CompletableFuture<Void> listen() {
+        clusterCommunicator.addSubscriber(ClusterMessagingProtocol.COPYCAT_PING,
+                                          new CopycatMessageHandler<PingRequest>());
+        clusterCommunicator.addSubscriber(ClusterMessagingProtocol.COPYCAT_SYNC,
+                                          new CopycatMessageHandler<SyncRequest>());
+        clusterCommunicator.addSubscriber(ClusterMessagingProtocol.COPYCAT_POLL,
+                                          new CopycatMessageHandler<PollRequest>());
+        clusterCommunicator.addSubscriber(ClusterMessagingProtocol.COPYCAT_SUBMIT,
+                                          new CopycatMessageHandler<SubmitRequest>());
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<Void> close() {
+        clusterCommunicator.removeSubscriber(ClusterMessagingProtocol.COPYCAT_PING);
+        clusterCommunicator.removeSubscriber(ClusterMessagingProtocol.COPYCAT_SYNC);
+        clusterCommunicator.removeSubscriber(ClusterMessagingProtocol.COPYCAT_POLL);
+        clusterCommunicator.removeSubscriber(ClusterMessagingProtocol.COPYCAT_SUBMIT);
         return CompletableFuture.completedFuture(null);
     }
 

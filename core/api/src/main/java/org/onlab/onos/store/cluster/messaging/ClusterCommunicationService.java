@@ -73,4 +73,12 @@ public interface ClusterCommunicationService {
      * @param subscriber message subscriber
      */
     void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber);
+
+    /**
+     * Removes a subscriber for the specified message subject.
+     *
+     * @param subject    message subject
+     */
+    void removeSubscriber(MessageSubject subject);
+
 }
