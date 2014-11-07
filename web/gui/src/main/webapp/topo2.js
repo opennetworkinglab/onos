@@ -23,6 +23,9 @@
 (function (onos) {
     'use strict';
 
+    // shorter names for library APIs
+    var d3u = onos.lib.d3util;
+
     // configuration data
     var config = {
         useLiveData: false,
@@ -60,6 +63,10 @@
                 width: 18,
                 height: 14
             }
+        },
+        topo: {
+            linkInColor: '#66f',
+            linkInWidth: 14
         },
         icons: {
             w: 28,
@@ -106,7 +113,9 @@
     // key bindings
     var keyDispatch = {
         space: injectTestEvent,     // TODO: remove (testing only)
- //       M: testMe,                  // TODO: remove (testing only)
+        S: injectStartupEvents,     // TODO: remove (testing only)
+        A: testAlert,               // TODO: remove (testing only)
+        M: testMe,                  // TODO: remove (testing only)
 
         B: toggleBg,
         G: toggleLayout,
@@ -141,7 +150,8 @@
     // For Debugging / Development
 
     var eventPrefix = 'json/eventTest_',
-        eventNumber = 0;
+        eventNumber = 0,
+        alertNumber = 0;
 
     function note(label, msg) {
         console.log('NOTE: ' + label + ': ' + msg);
@@ -155,22 +165,12 @@
     // ==============================
     // Key Callbacks
 
+    function testAlert(view) {
+        alertNumber++;
+        view.alert("Test me! -- " + alertNumber);
+    }
+
     function testMe(view) {
-        svg.append('line')
-            .attr({
-                x1: 100,
-                y1: 100,
-                x2: 500,
-                y2: 400,
-                stroke: '#2f3',
-                'stroke-width': 8
-            })
-            .transition()
-            .duration(1200)
-            .attr({
-                stroke: '#666',
-                'stroke-width': 6
-            });
     }
 
     function injectTestEvent(view) {
@@ -185,6 +185,13 @@
                 handleServerEvent(data);
             }
         });
+    }
+
+    function injectStartupEvents(view) {
+        var lastStartupEvent = 32;
+        while (eventNumber < lastStartupEvent) {
+            injectTestEvent(view);
+        }
     }
 
     function toggleBg() {
@@ -370,6 +377,11 @@
         return lnk;
     }
 
+    function linkWidth(w) {
+        // w is number of links between nodes. Scale appropriately.
+        return w * 1.2;
+    }
+
     function updateLinks() {
         link = linkG.selectAll('.link')
             .data(network.links, function (d) { return d.id; });
@@ -387,12 +399,12 @@
                 y1: function (d) { return d.y1; },
                 x2: function (d) { return d.x2; },
                 y2: function (d) { return d.y2; },
-                stroke: '#66f',
-                'stroke-width': 10
+                stroke: config.topo.linkInColor,
+                'stroke-width': config.topo.linkInWidth
             })
             .transition().duration(1000)
             .attr({
-                'stroke-width': function (d) { return d.width; },
+                'stroke-width': function (d) { return linkWidth(d.width); },
                 stroke: '#666'      // TODO: remove explicit stroke, rather...
             });
 
@@ -461,6 +473,10 @@
         return box;
     }
 
+    function mkSvgClass(d) {
+        return d.fixed ? d.svgClass + ' fixed' : d.svgClass;
+    }
+
     function updateNodes() {
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -473,11 +489,11 @@
             .append('g')
             .attr({
                 id: function (d) { return safeId(d.id); },
-                class: function (d) { return d.svgClass; },
+                class: mkSvgClass,
                 transform: function (d) { return translate(d.x, d.y); },
                 opacity: 0
             })
-            //.call(network.drag)
+            .call(network.drag)
             //.on('mouseover', function (d) {})
             //.on('mouseover', function (d) {})
             .transition()
@@ -578,6 +594,9 @@
         svg = view.$div.append('svg');
         setSize(svg, view);
 
+        // add blue glow filter to svg layer
+        d3u.appendGlow(svg);
+
         // load the background image
         bgImg = svg.append('svg:image')
             .attr({
@@ -612,6 +631,20 @@
             return fcfg.charge[d.class] || -200;
         }
 
+        function selectCb(d, self) {
+            // TODO: selectObject(d, self);
+        }
+
+        function atDragEnd(d, self) {
+            // once we've finished moving, pin the node in position,
+            // if it is a device (not a host)
+            if (d.class === 'device') {
+                d.fixed = true;
+                d3.select(self).classed('fixed', true)
+                // TODO: send new [x,y] back to server, via websocket.
+            }
+        }
+
         // set up the force layout
         network.force = d3.layout.force()
             .size(forceDim)
@@ -621,8 +654,9 @@
             .linkDistance(ldist)
             .linkStrength(lstrg)
             .on('tick', tick);
-    }
 
+        network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
+    }
 
     function load(view, ctx) {
         // cache the view token, so network topo functions can access it

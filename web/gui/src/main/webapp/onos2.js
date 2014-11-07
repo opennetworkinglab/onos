@@ -32,7 +32,8 @@
     $.onos = function (options) {
         var uiApi,
             viewApi,
-            navApi;
+            navApi,
+            libApi;
 
         var defaultOptions = {
             trace: false,
@@ -331,6 +332,58 @@
             }
         }
 
+        var alerts = {
+            open: false,
+            count: 0
+        };
+
+        function createAlerts() {
+            var al = d3.select('#alerts')
+                .style('display', 'block');
+            al.append('span')
+                .attr('class', 'close')
+                .text('X')
+                .on('click', closeAlerts);
+            al.append('pre');
+            alerts.open = true;
+            alerts.count = 0;
+        }
+
+        function closeAlerts() {
+            d3.select('#alerts')
+                .style('display', 'none');
+            d3.select('#alerts span').remove();
+            d3.select('#alerts pre').remove();
+            alerts.open = false;
+        }
+
+        function addAlert(msg) {
+            var lines,
+                oldContent;
+
+            if (alerts.count) {
+                oldContent = d3.select('#alerts pre').html();
+            }
+
+            lines = msg.split('\n');
+            lines[0] += '  '; // spacing so we don't crowd 'X'
+            lines = lines.join('\n');
+
+            if (oldContent) {
+                lines += '\n----\n' + oldContent;
+            }
+
+            d3.select('#alerts pre').html(lines);
+            alerts.count++;
+        }
+
+        function doAlert(msg) {
+            if (!alerts.open) {
+                createAlerts();
+            }
+            addAlert(msg);
+        }
+
         function keyIn() {
             var event = d3.event,
                 keyCode = event.keyCode,
@@ -408,7 +461,8 @@
                     uid: this.uid,
                     setRadio: this.setRadio,
                     setKeys: this.setKeys,
-                    dataLoadError: this.dataLoadError
+                    dataLoadError: this.dataLoadError,
+                    alert: this.alert
                 }
             },
 
@@ -501,14 +555,20 @@
                 return makeUid(this, id);
             },
 
-            // TODO : implement custom dialogs (don't use alerts)
+            // TODO : implement custom dialogs
+
+            // Consider enhancing alert mechanism to handle multiples
+            // as individually closable.
+            alert: function (msg) {
+                doAlert(msg);
+            },
 
             dataLoadError: function (err, url) {
                 var msg = 'Data Load Error\n\n' +
                     err.status + ' -- ' + err.statusText + '\n\n' +
                     'relative-url: "' + url + '"\n\n' +
                     'complete-url: "' + err.responseURL + '"';
-                alert(msg);
+                this.alert(msg);
             }
 
             // TODO: consider schedule, clearTimer, etc.
@@ -521,6 +581,12 @@
         // UI API
 
         uiApi = {
+            addLib: function (libName, api) {
+                // TODO: validation of args
+                libApi[libName] = api;
+            },
+
+            // TODO: it remains to be seen whether we keep this style of docs
             /** @api ui addView( vid, nid, cb )
              * Adds a view to the UI.
              * <p>
@@ -590,6 +656,12 @@
         };
 
         // ..........................................................
+        // Library API
+        libApi = {
+
+        };
+
+        // ..........................................................
         // Exported API
 
         // function to be called from index.html to build the ONOS UI
@@ -623,7 +695,8 @@
         // export the api and build-UI function
         return {
             ui: uiApi,
-            view: viewApi,
+            lib: libApi,
+            //view: viewApi,
             nav: navApi,
             buildUi: buildOnosUi
         };

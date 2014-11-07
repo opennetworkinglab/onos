@@ -24,10 +24,16 @@ svg #topo-bg {
     opacity: 0.5;
 }
 
+/* NODES */
+
 svg .node.device {
     stroke: none;
     stroke-width: 1.5px;
     cursor: pointer;
+}
+
+svg .node.device rect {
+    stroke-width: 1.5px;
 }
 
 svg .node.device.fixed rect {
@@ -48,6 +54,17 @@ svg .node text {
     fill: white;
     font: 10pt sans-serif;
     pointer-events: none;
+}
+
+svg .node.selected rect,
+svg .node.selected circle {
+    filter: url(#blue-glow);
+}
+
+/* LINKS */
+
+svg .link {
+    opacity: .7;
 }
 
 /* for debugging */

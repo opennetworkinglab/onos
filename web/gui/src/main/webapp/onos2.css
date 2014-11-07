@@ -32,6 +32,34 @@ div.onosView.currentView {
     display: block;
 }
 
+div#alerts {
+    display: none;
+    position: absolute;
+    z-index: 2000;
+    opacity: 0.65;
+    background-color: #006;
+    color: white;
+    top: 80px;
+    left: 40px;
+    padding: 3px 6px;
+    box-shadow: 4px 6px 12px #777;
+}
+
+div#alerts pre {
+    margin: 0.2em 6px;
+}
+
+div#alerts span.close {
+    color: #6af;
+    float: right;
+    right: 2px;
+    cursor: pointer;
+}
+
+div#alerts span.close:hover {
+    color: #fff;
+}
+
 /*
  * ==============================================================
  * END OF NEW ONOS.JS file
@@ -54,12 +82,6 @@ svg #bg {
  * Network Graph elements ======================================
  */
 
-svg .link {
-    opacity: .7;
-}
-
-svg .link.host {
-}
 
 svg g.portLayer rect.port {
     fill: #ccc;
@@ -70,33 +92,13 @@ svg g.portLayer text {
     pointer-events: none;
 }
 
-svg .node.device rect {
-    stroke-width: 1.5px;
-}
 
-svg .node.device.fixed rect {
-    stroke-width: 1.5;
-    stroke: #ccc;
-}
-
-svg .node.device.roadm rect {
-    fill: #03c;
-}
-
-svg .node.device.switch rect {
-    fill: #06f;
-}
 
 svg .node.host circle {
     fill: #c96;
     stroke: #000;
 }
 
-svg .node text {
-    fill: white;
-    font: 10pt sans-serif;
-    pointer-events: none;
-}
 
 /* for debugging */
 svg .node circle.debug {
@@ -110,10 +112,6 @@ svg .node rect.debug {
 }
 
 
-svg .node.selected rect,
-svg .node.selected circle {
-    filter: url(#blue-glow);
-}
 
 svg .link.inactive,
 svg .port.inactive,
