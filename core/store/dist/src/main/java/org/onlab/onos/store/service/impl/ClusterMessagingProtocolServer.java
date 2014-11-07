@@ -86,13 +86,17 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
                 }
             }
             if (request.getClass().equals(PingRequest.class)) {
-                handler.ping((PingRequest) request).whenComplete(new PostExecutionTask<PingResponse>(message));
+                handler.ping((PingRequest) request)
+                    .whenComplete(new PostExecutionTask<PingResponse>(message));
             } else if (request.getClass().equals(PollRequest.class)) {
-                handler.poll((PollRequest) request).whenComplete(new PostExecutionTask<PollResponse>(message));
+                handler.poll((PollRequest) request)
+                    .whenComplete(new PostExecutionTask<PollResponse>(message));
             } else if (request.getClass().equals(SyncRequest.class)) {
-                handler.sync((SyncRequest) request).whenComplete(new PostExecutionTask<SyncResponse>(message));
+                handler.sync((SyncRequest) request)
+                    .whenComplete(new PostExecutionTask<SyncResponse>(message));
             } else if (request.getClass().equals(SubmitRequest.class)) {
-                handler.submit((SubmitRequest) request).whenComplete(new PostExecutionTask<SubmitResponse>(message));
+                handler.submit((SubmitRequest) request)
+                    .whenComplete(new PostExecutionTask<SubmitResponse>(message));
             } else {
                 throw new IllegalStateException("Unknown request type: " + request.getClass().getName());
             }
