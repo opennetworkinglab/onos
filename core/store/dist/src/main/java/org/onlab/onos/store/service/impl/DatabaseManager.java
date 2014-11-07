@@ -2,7 +2,6 @@ package org.onlab.onos.store.service.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -129,7 +128,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         // Chronicle + OSGi issue
         //Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
         //Log consensusLog = new KryoRegisteredInMemoryLog();
-        Log consensusLog = new MapDBLog(new File(LOG_FILE_PREFIX + localNode.id()),
+        Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
                                         ClusterMessagingProtocol.SERIALIZER);
 
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);

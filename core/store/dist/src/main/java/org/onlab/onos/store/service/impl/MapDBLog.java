@@ -35,8 +35,8 @@ public class MapDBLog implements Log {
     private static final String LOG_NAME = "log";
     private static final String SIZE_FIELD_NAME = "size";
 
-    public MapDBLog(File dbFile, StoreSerializer serializer) {
-        this.dbFile = dbFile;
+    public MapDBLog(String dbFileName, StoreSerializer serializer) {
+        this.dbFile = new File(dbFileName);
         this.serializer = serializer;
     }
 
