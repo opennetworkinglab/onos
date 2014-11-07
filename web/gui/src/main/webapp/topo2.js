@@ -40,6 +40,7 @@
             showBackground: true
         },
         backgroundUrl: 'img/us-map.png',
+        webSockUrl: 'ws/topology',
         data: {
             live: {
                 jsonUrl: 'rs/topology/graph',
@@ -130,6 +131,7 @@
             links: [],
             lookup: {}
         },
+        webSock,
         labelIdx = 0,
         selected = {},
         highlighted = null,
@@ -579,6 +581,52 @@
     }
 
     // ==============================
+    // Web-Socket for live data
+
+    function webSockUrl() {
+        return document.location.toString()
+            .replace(/\#.*/, '')
+            .replace('http://', 'ws://')
+            .replace('https://', 'wss://')
+            .replace('index2.html', config.webSockUrl);
+    }
+
+    webSock = {
+        ws : null,
+
+        connect : function() {
+            webSock.ws = new WebSocket(webSockUrl());
+
+            webSock.ws.onopen = function() {
+                webSock._send("Hi there!");
+            };
+
+            webSock.ws.onmessage = function(m) {
+                if (m.data) {
+                    console.log(m.data);
+                }
+            };
+
+            webSock.ws.onclose = function(m) {
+                webSock.ws = null;
+            };
+        },
+
+        send : function(text) {
+            if (text != null && text.length > 0) {
+                webSock._send(text);
+            }
+        },
+
+        _send : function(message) {
+            if (webSock.ws) {
+                webSock.ws.send(message);
+            }
+        }
+
+    };
+
+    // ==============================
     // View life-cycle callbacks
 
     function preload(view, ctx) {
@@ -656,6 +704,7 @@
             .on('tick', tick);
 
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
+        webSock.connect();
     }
 
     function load(view, ctx) {

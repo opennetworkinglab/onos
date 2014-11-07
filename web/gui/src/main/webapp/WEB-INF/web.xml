@@ -39,4 +39,16 @@
         <url-pattern>/rs/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>Web Socket Service</servlet-name>
+        <servlet-class>org.onlab.onos.gui.GuiWebSocketServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Web Socket Service</servlet-name>
+        <url-pattern>/ws/*</url-pattern>
+    </servlet-mapping>
+
+
 </web-app>
