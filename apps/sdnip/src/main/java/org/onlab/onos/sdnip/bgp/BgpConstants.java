@@ -119,6 +119,31 @@ public final class BgpConstants {
 
             /** BGP UPDATE ORIGIN: INCOMPLETE. */
             public static final int INCOMPLETE = 2;
+
+            /**
+             * Gets the BGP UPDATE origin type as a string.
+             *
+             * @param type the BGP UPDATE origin type
+             * @return the BGP UPDATE origin type as a string
+             */
+            public static String typeToString(int type) {
+                String typeString = "UNKNOWN";
+
+                switch (type) {
+                case IGP:
+                    typeString = "IGP";
+                    break;
+                case EGP:
+                    typeString = "EGP";
+                    break;
+                case INCOMPLETE:
+                    typeString = "INCOMPLETE";
+                    break;
+                default:
+                    break;
+                }
+                return typeString;
+            }
         }
 
         /**
@@ -142,6 +167,28 @@ public final class BgpConstants {
 
             /** BGP UPDATE AS_PATH Type: AS_SEQUENCE. */
             public static final int AS_SEQUENCE = 2;
+
+            /**
+             * Gets the BGP AS_PATH type as a string.
+             *
+             * @param type the BGP AS_PATH type
+             * @return the BGP AS_PATH type as a string
+             */
+            public static String typeToString(int type) {
+                String typeString = "UNKNOWN";
+
+                switch (type) {
+                case AS_SET:
+                    typeString = "AS_SET";
+                    break;
+                case AS_SEQUENCE:
+                    typeString = "AS_SEQUENCE";
+                    break;
+                default:
+                    break;
+                }
+                return typeString;
+            }
         }
 
         /**

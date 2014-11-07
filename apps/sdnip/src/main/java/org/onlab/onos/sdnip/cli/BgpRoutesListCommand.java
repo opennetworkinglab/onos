@@ -15,10 +15,18 @@
  */
 package org.onlab.onos.sdnip.cli;
 
+import java.util.Collection;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.sdnip.SdnIpService;
-import org.onlab.onos.sdnip.bgp.BgpConstants;
+import org.onlab.onos.sdnip.bgp.BgpConstants.Update.AsPath;
+import org.onlab.onos.sdnip.bgp.BgpConstants.Update.Origin;
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
 
 /**
@@ -27,46 +35,134 @@ import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
 @Command(scope = "onos", name = "bgp-routes",
          description = "Lists all routes received from BGP")
 public class BgpRoutesListCommand extends AbstractShellCommand {
+    @Option(name = "-s", aliases = "--summary",
+            description = "BGP routes summary",
+            required = false, multiValued = false)
+    private boolean routesSummary = false;
 
-    private static final String FORMAT =
+    private static final String FORMAT_SUMMARY = "Total BGP routes = %d";
+    private static final String FORMAT_ROUTE =
             "prefix=%s, nexthop=%s, origin=%s, localpref=%s, med=%s, aspath=%s, bgpid=%s";
 
     @Override
     protected void execute() {
         SdnIpService service = get(SdnIpService.class);
 
-        for (BgpRouteEntry route : service.getBgpRoutes()) {
-            printRoute(route);
+        // Print summary of the routes
+        if (routesSummary) {
+            printSummary(service.getBgpRoutes());
+            return;
+        }
+
+        // Print all routes
+        printRoutes(service.getBgpRoutes());
+    }
+
+    /**
+     * Prints summary of the routes.
+     *
+     * @param routes the routes
+     */
+    private void printSummary(Collection<BgpRouteEntry> routes) {
+        if (outputJson()) {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode result = mapper.createObjectNode();
+            result.put("totalRoutes", routes.size());
+            print("%s", result);
+        } else {
+            print(FORMAT_SUMMARY, routes.size());
         }
     }
 
+    /**
+     * Prints all routes.
+     *
+     * @param routes the routes to print
+     */
+    private void printRoutes(Collection<BgpRouteEntry> routes) {
+        if (outputJson()) {
+            print("%s", json(routes));
+        } else {
+            for (BgpRouteEntry route : routes) {
+                printRoute(route);
+            }
+        }
+    }
+
+    /**
+     * Prints a BGP route.
+     *
+     * @param route the route to print
+     */
     private void printRoute(BgpRouteEntry route) {
         if (route != null) {
-            print(FORMAT, route.prefix(), route.nextHop(),
-                    originToString(route.getOrigin()), route.getLocalPref(),
-                    route.getMultiExitDisc(), route.getAsPath(),
-                    route.getBgpSession().getRemoteBgpId());
+            print(FORMAT_ROUTE, route.prefix(), route.nextHop(),
+                  Origin.typeToString(route.getOrigin()),
+                  route.getLocalPref(), route.getMultiExitDisc(),
+                  route.getAsPath(), route.getBgpSession().getRemoteBgpId());
         }
     }
 
-    private static String originToString(int origin) {
-        String originString = "UNKNOWN";
+    /**
+     * Produces a JSON array of routes.
+     *
+     * @param routes the routes with the data
+     * @return JSON array with the routes
+     */
+    private JsonNode json(Collection<BgpRouteEntry> routes) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
 
-        switch (origin) {
-        case BgpConstants.Update.Origin.IGP:
-            originString = "IGP";
-            break;
-        case BgpConstants.Update.Origin.EGP:
-            originString = "EGP";
-            break;
-        case BgpConstants.Update.Origin.INCOMPLETE:
-            originString = "INCOMPLETE";
-            break;
-        default:
-            break;
+        for (BgpRouteEntry route : routes) {
+            result.add(json(mapper, route));
         }
-
-        return originString;
+        return result;
     }
 
+    /**
+     * Produces JSON object for a route.
+     *
+     * @param mapper the JSON object mapper to use
+     * @param route the route with the data
+     * @return JSON object for the route
+     */
+    private ObjectNode json(ObjectMapper mapper, BgpRouteEntry route) {
+        ObjectNode result = mapper.createObjectNode();
+
+        result.put("prefix", route.prefix().toString());
+        result.put("nextHop", route.nextHop().toString());
+        result.put("bgpId", route.getBgpSession().getRemoteBgpId().toString());
+        result.put("origin", Origin.typeToString(route.getOrigin()));
+        result.put("asPath", json(mapper, route.getAsPath()));
+        result.put("localPref", route.getLocalPref());
+        result.put("multiExitDisc", route.getMultiExitDisc());
+
+        return result;
+    }
+
+    /**
+     * Produces JSON object for an AS path.
+     *
+     * @param mapper the JSON object mapper to use
+     * @param asPath the AS path with the data
+     * @return JSON object for the AS path
+     */
+    private ObjectNode json(ObjectMapper mapper, BgpRouteEntry.AsPath asPath) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode pathSegmentsJson = mapper.createArrayNode();
+        for (BgpRouteEntry.PathSegment pathSegment : asPath.getPathSegments()) {
+            ObjectNode pathSegmentJson = mapper.createObjectNode();
+            pathSegmentJson.put("type",
+                                AsPath.typeToString(pathSegment.getType()));
+            ArrayNode segmentAsNumbersJson = mapper.createArrayNode();
+            for (Long asNumber : pathSegment.getSegmentAsNumbers()) {
+                segmentAsNumbersJson.add(asNumber);
+            }
+            pathSegmentJson.put("segmentAsNumbers", segmentAsNumbersJson);
+            pathSegmentsJson.add(pathSegmentJson);
+        }
+        result.put("pathSegments", pathSegmentsJson);
+
+        return result;
+    }
 }

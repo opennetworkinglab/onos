@@ -309,7 +309,7 @@ public class BgpRouteEntry extends RouteEntry {
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
-                .add("type", this.type)
+                .add("type", BgpConstants.Update.AsPath.typeToString(type))
                 .add("segmentAsNumbers", this.segmentAsNumbers)
                 .toString();
         }
@@ -444,7 +444,7 @@ public class BgpRouteEntry extends RouteEntry {
             .add("prefix", prefix())
             .add("nextHop", nextHop())
             .add("bgpId", bgpSession.getRemoteBgpId())
-            .add("origin", origin)
+            .add("origin", BgpConstants.Update.Origin.typeToString(origin))
             .add("asPath", asPath)
             .add("localPref", localPref)
             .add("multiExitDisc", multiExitDisc)
