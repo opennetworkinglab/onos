@@ -11,12 +11,16 @@ public class InternalWriteResult {
         OK,
         ABORTED,
         NO_SUCH_TABLE,
-        OPTIMISTIC_LOCK_FAILURE,
+        PREVIOUS_VERSION_MISMATCH,
         PREVIOUS_VALUE_MISMATCH
     }
 
     private final Status status;
     private final WriteResult result;
+
+    public static InternalWriteResult ok(WriteResult result) {
+        return new InternalWriteResult(Status.OK, result);
+    }
 
     public InternalWriteResult(Status status, WriteResult result) {
         this.status = status;

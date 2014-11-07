@@ -24,13 +24,24 @@ public interface DatabaseService {
      */
     List<OptionalResult<ReadResult, DatabaseException>> batchRead(List<ReadRequest> batch);
 
+    // FIXME Give me a better name
     /**
      * Performs a write operation on the database.
      * @param request write request
      * @return write result.
      * @throws DatabaseException if there is failure in execution write.
      */
-    WriteResult write(WriteRequest request);
+    OptionalResult<WriteResult, DatabaseException> writeNothrow(WriteRequest request);
+
+    /**
+     * Performs a write operation on the database.
+     * @param request write request
+     * @return write result.
+     * @throws OptimisticLockException FIXME define conditional failure
+     * @throws PreconditionFailedException FIXME define conditional failure
+     * @throws DatabaseException if there is failure in execution write.
+     */
+    WriteResult write(WriteRequest request)/* throws OptimisticLockException, PreconditionFailedException*/;
 
     /**
      * Performs a batch write operation on the database.

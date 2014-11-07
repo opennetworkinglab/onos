@@ -2,6 +2,7 @@ package org.onlab.onos.store.service.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +58,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DatabaseProtocolService copycatMessagingProtocol;
 
-    public static final String LOG_FILE_PREFIX = "onos-copy-cat-log";
+    public static final String LOG_FILE_PREFIX = "/tmp/onos-copy-cat-log";
 
     private Copycat copycat;
     private DatabaseClient client;
@@ -126,9 +127,11 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
 
         StateMachine stateMachine = new DatabaseStateMachine();
-        // FIXME resolve Chronicle + OSGi issue
+        // Chronicle + OSGi issue
         //Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
-        Log consensusLog = new KryoRegisteredInMemoryLog();
+        //Log consensusLog = new KryoRegisteredInMemoryLog();
+        Log consensusLog = new MapDBLog(new File(LOG_FILE_PREFIX + localNode.id()),
+                                        ClusterMessagingProtocol.SERIALIZER);
 
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
         copycat.start();
@@ -187,8 +190,14 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     }
 
     @Override
-    public WriteResult write(WriteRequest request) {
-        return batchWrite(Arrays.asList(request)).get(0).get();
+    public OptionalResult<WriteResult, DatabaseException> writeNothrow(WriteRequest request) {
+        return batchWrite(Arrays.asList(request)).get(0);
+    }
+
+    @Override
+    public WriteResult write(WriteRequest request)
+            throws OptimisticLockException, PreconditionFailedException {
+        return writeNothrow(request).get();
     }
 
     @Override
@@ -199,13 +208,13 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             if (internalWriteResult.status() == InternalWriteResult.Status.NO_SUCH_TABLE) {
                 writeResults.add(new DatabaseOperationResult<WriteResult, DatabaseException>(
                         new NoSuchTableException()));
-            } else if (internalWriteResult.status() == InternalWriteResult.Status.OPTIMISTIC_LOCK_FAILURE) {
+            } else if (internalWriteResult.status() == InternalWriteResult.Status.PREVIOUS_VERSION_MISMATCH) {
                 writeResults.add(new DatabaseOperationResult<WriteResult, DatabaseException>(
                         new OptimisticLockException()));
             } else if (internalWriteResult.status() == InternalWriteResult.Status.PREVIOUS_VALUE_MISMATCH) {
                 // TODO: throw a different exception?
                 writeResults.add(new DatabaseOperationResult<WriteResult, DatabaseException>(
-                        new PreconditionFailedException()));
+                        new OptimisticLockException()));
             } else if (internalWriteResult.status() == InternalWriteResult.Status.ABORTED) {
                 writeResults.add(new DatabaseOperationResult<WriteResult, DatabaseException>(
                         new WriteAborted()));

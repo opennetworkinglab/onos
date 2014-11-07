@@ -105,6 +105,7 @@ public class ClusterMessagingProtocol
     private static final KryoNamespace DATABASE = KryoNamespace.newBuilder()
             .register(ReadRequest.class)
             .register(WriteRequest.class)
+            .register(WriteRequest.Type.class)
             .register(InternalReadResult.class)
             .register(InternalWriteResult.class)
             .register(InternalReadResult.Status.class)
@@ -135,6 +136,7 @@ public class ClusterMessagingProtocol
                     byte[].class)
             .build();
 
+    // serializer used for CopyCat Protocol
     public static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {

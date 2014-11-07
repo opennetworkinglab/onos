@@ -1,6 +1,5 @@
 package org.onlab.onos.store.service;
 
-
 /**
  * Exception that indicates a precondition failure.
  * Scenarios that can cause this exception:

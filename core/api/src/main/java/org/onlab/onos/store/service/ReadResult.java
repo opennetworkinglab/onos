@@ -35,6 +35,15 @@ public class ReadResult {
     }
 
     /**
+     * Returns true if database table contained value for the key.
+     *
+     * @return true if database table contained value for the key
+     */
+    public boolean valueExists() {
+        return value != null;
+    }
+
+    /**
      * Returns value associated with the key.
      * @return non-null value if the table contains one, null otherwise.
      */

@@ -1,11 +1,14 @@
 package org.onlab.onos.store.service.impl;
 
+import java.io.Serializable;
+
 import org.onlab.onos.store.service.ReadResult;
 
 /**
  * Result of a read operation executed on the DatabaseStateMachine.
  */
-public class InternalReadResult {
+@SuppressWarnings("serial")
+public class InternalReadResult implements Serializable {
 
     public enum Status {
         OK,
