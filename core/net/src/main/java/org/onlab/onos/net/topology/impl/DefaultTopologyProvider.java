@@ -61,8 +61,8 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     // TODO: make these configurable
     private static final int MAX_EVENTS = 100;
-    private static final int MAX_IDLE_MS = 50;
-    private static final int MAX_BATCH_MS = 200;
+    private static final int MAX_IDLE_MS = 5;
+    private static final int MAX_BATCH_MS = 50;
     private static final int MAX_THREADS = 8;
 
     // FIXME: Replace with a system-wide timer instance;
