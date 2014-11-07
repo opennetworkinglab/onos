@@ -41,15 +41,15 @@ import static org.onlab.onos.net.Link.Type.DIRECT;
  */
 public class WaypointConstraintTest {
 
-    public static final DeviceId DID1 = deviceId("of:1");
-    public static final DeviceId DID2 = deviceId("of:2");
-    public static final DeviceId DID3 = deviceId("of:3");
-    public static final DeviceId DID4 = deviceId("of:4");
-    public static final PortNumber PN1 = PortNumber.portNumber(1);
-    public static final PortNumber PN2 = PortNumber.portNumber(2);
-    public static final PortNumber PN3 = PortNumber.portNumber(3);
-    public static final PortNumber PN4 = PortNumber.portNumber(4);
-    public static final ProviderId PROVIDER_ID = new ProviderId("of", "foo");
+    private static final DeviceId DID1 = deviceId("of:1");
+    private static final DeviceId DID2 = deviceId("of:2");
+    private static final DeviceId DID3 = deviceId("of:3");
+    private static final DeviceId DID4 = deviceId("of:4");
+    private static final PortNumber PN1 = PortNumber.portNumber(1);
+    private static final PortNumber PN2 = PortNumber.portNumber(2);
+    private static final PortNumber PN3 = PortNumber.portNumber(3);
+    private static final PortNumber PN4 = PortNumber.portNumber(4);
+    private static final ProviderId PROVIDER_ID = new ProviderId("of", "foo");
 
     private WaypointConstraint sut;
     private LinkResourceService linkResourceService;
