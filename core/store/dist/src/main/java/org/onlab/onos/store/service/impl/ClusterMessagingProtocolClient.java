@@ -109,10 +109,12 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
 
     private class RPCTask<I, O> implements Runnable {
 
+        private final I request;
         private final ClusterMessage message;
         private final CompletableFuture<O> future;
 
         public RPCTask(I request, CompletableFuture<O> future) {
+            this.request = request;
             this.message =
                     new ClusterMessage(
                             null,
@@ -139,6 +141,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                             RETRY_INTERVAL_MILLIS,
                             TimeUnit.MILLISECONDS);
                 } else {
+                    log.warn("RPCTask for {} failed.", request, e);
                     future.completeExceptionally(e);
                 }
             } catch (Exception e) {
