@@ -15,6 +15,7 @@
  */
 package org.onlab.netty;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
@@ -67,7 +68,11 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
-        log.error("Exception inside channel handling pipeline.", cause);
+        if (cause instanceof IOException) {
+            log.debug("IOException inside channel handling pipeline.", cause);
+        } else {
+            log.error("non-IOException inside channel handling pipeline.", cause);
+        }
         context.close();
     }
 }
