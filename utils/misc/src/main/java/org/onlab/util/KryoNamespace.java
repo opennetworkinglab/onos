@@ -27,7 +27,6 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.google.common.collect.ImmutableList;
 
@@ -44,6 +43,7 @@ public final class KryoNamespace implements KryoFactory {
      * @see #serialize(Object)
      */
     public static final int DEFAULT_BUFFER_SIZE = 1 * 1000 * 1000;
+    public static final int MAX_BUFFER_SIZE = 100 * 1000 * 1000;
 
     private final ConcurrentLinkedQueue<Kryo> pool = new ConcurrentLinkedQueue<>();
     private final ImmutableList<Pair<Class<?>, Serializer<?>>> registeredTypes;
@@ -188,7 +188,7 @@ public final class KryoNamespace implements KryoFactory {
      * @return serialized bytes
      */
     public byte[] serialize(final Object obj, final int bufferSize) {
-        Output out = new Output(bufferSize);
+        ByteBufferOutput out = new ByteBufferOutput(bufferSize, MAX_BUFFER_SIZE);
         Kryo kryo = getKryo();
         try {
             kryo.writeClassAndObject(out, obj);
