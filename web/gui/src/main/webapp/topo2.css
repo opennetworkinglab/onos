@@ -24,6 +24,34 @@ svg #topo-bg {
     opacity: 0.5;
 }
 
-svg .node {
+svg .node.device {
+    stroke: none;
+    stroke-width: 1.5px;
+    cursor: pointer;
+}
+
+svg .node.device.fixed rect {
+    stroke-width: 1.5;
+    stroke: #ccc;
+}
+
+svg .node.device.switch {
+    fill: #17f;
+}
+
+svg .node.device.roadm {
     fill: #03c;
+}
+
+svg .node text {
+    stroke: none;
+    fill: white;
+    font: 10pt sans-serif;
+    pointer-events: none;
+}
+
+/* for debugging */
+svg .node circle.debug {
+    fill: white;
+    stroke: red;
 }

@@ -1,0 +1,14 @@
+{
+  "event": "addLink",
+  "payload": {
+    "src": "of:0000ffffffffff07",
+    "srcPort": "20",
+    "dst": "of:0000ffffffffff09",
+    "dstPort": "10",
+    "type": "optical",
+    "linkWidth": 2,
+    "props" : {
+      "BW": "70 G"
+    }
+  }
+}

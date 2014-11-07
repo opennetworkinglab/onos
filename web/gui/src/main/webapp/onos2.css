@@ -55,19 +55,10 @@ svg #bg {
  */
 
 svg .link {
-    fill: none;
-    stroke: #666;
-    stroke-width: 2.0px;
     opacity: .7;
-
-    transition: opacity 250ms;
-    -webkit-transition: opacity 250ms;
-    -moz-transition: opacity 250ms;
 }
 
 svg .link.host {
-    stroke: #666;
-    stroke-width: 1px;
 }
 
 svg g.portLayer rect.port {
@@ -81,10 +72,6 @@ svg g.portLayer text {
 
 svg .node.device rect {
     stroke-width: 1.5px;
-
-    transition: opacity 250ms;
-    -webkit-transition: opacity 250ms;
-    -moz-transition: opacity 250ms;
 }
 
 svg .node.device.fixed rect {

@@ -25,11 +25,11 @@
 
     // configuration data
     var config = {
-        useLiveData: true,
+        useLiveData: false,
         debugOn: false,
         debug: {
-            showNodeXY: false,
-            showKeyHandler: true
+            showNodeXY: true,
+            showKeyHandler: false
         },
         options: {
             layering: true,
@@ -48,6 +48,24 @@
                 detailPrefix: 'json/',
                 detailSuffix: '.json'
             }
+        },
+        labels: {
+            imgPad: 16,
+            padLR: 4,
+            padTB: 3,
+            marginLR: 3,
+            marginTB: 2,
+            port: {
+                gap: 3,
+                width: 18,
+                height: 14
+            }
+        },
+        icons: {
+            w: 28,
+            h: 28,
+            xoff: -12,
+            yoff: -8
         },
         iconUrl: {
             device: 'img/device.png',
@@ -87,7 +105,9 @@
 
     // key bindings
     var keyDispatch = {
-        Q: getUpdatedNetworkData,
+        space: injectTestEvent,     // TODO: remove (testing only)
+ //       M: testMe,                  // TODO: remove (testing only)
+
         B: toggleBg,
         G: toggleLayout,
         L: cycleLabels,
@@ -96,7 +116,12 @@
     };
 
     // state variables
-    var network = {},
+    var network = {
+            nodes: [],
+            links: [],
+            lookup: {}
+        },
+        labelIdx = 0,
         selected = {},
         highlighted = null,
         hovered = null,
@@ -115,32 +140,51 @@
     // ==============================
     // For Debugging / Development
 
-    var topoPrefix = 'json/topoTest_',
-        lastFlavor = 4,
-        topoBase = true,
-        topoFlavor = 1;
+    var eventPrefix = 'json/eventTest_',
+        eventNumber = 0;
 
-    function nextTopo() {
-        if (topoBase) {
-            topoBase = false;
-        } else {
-            topoBase = true;
-            topoFlavor = (topoFlavor === lastFlavor) ? 1 : topoFlavor + 1
-        }
+    function note(label, msg) {
+        console.log('NOTE: ' + label + ': ' + msg);
     }
 
-    // TODO change this to return the live data URL
-    function getTopoUrl() {
-        var suffix = topoBase ? 'base' : topoFlavor;
-        return topoPrefix + suffix + '.json';
+    function debug(what) {
+        return config.debugOn && config.debug[what];
     }
+
 
     // ==============================
     // Key Callbacks
 
-    function getUpdatedNetworkData(view) {
-        nextTopo();
-        getNetworkData(view);
+    function testMe(view) {
+        svg.append('line')
+            .attr({
+                x1: 100,
+                y1: 100,
+                x2: 500,
+                y2: 400,
+                stroke: '#2f3',
+                'stroke-width': 8
+            })
+            .transition()
+            .duration(1200)
+            .attr({
+                stroke: '#666',
+                'stroke-width': 6
+            });
+    }
+
+    function injectTestEvent(view) {
+        eventNumber++;
+        var eventUrl = eventPrefix + eventNumber + '.json';
+
+        console.log('Fetching JSON: ' + eventUrl);
+        d3.json(eventUrl, function(err, data) {
+            if (err) {
+                view.dataLoadError(err, eventUrl);
+            } else {
+                handleServerEvent(data);
+            }
+        });
     }
 
     function toggleBg() {
@@ -152,8 +196,30 @@
 
     }
 
-    function cycleLabels(view) {
+    function cycleLabels() {
+        labelIdx = (labelIdx === network.deviceLabelCount - 1) ? 0 : labelIdx + 1;
+        network.nodes.forEach(function (d) {
+            var idx = (labelIdx < d.labels.length) ? labelIdx : 0,
+                node = d3.select('#' + safeId(d.id)),
+                box;
 
+            node.select('text')
+                .text(d.labels[idx])
+                .style('opacity', 0)
+                .transition()
+                .style('opacity', 1);
+
+            box = adjustRectToFitText(node);
+
+            node.select('rect')
+                .transition()
+                .attr(box);
+
+            node.select('image')
+                .transition()
+                .attr('x', box.x + config.icons.xoff)
+                .attr('y', box.y + config.icons.yoff);
+        });
     }
 
     function togglePorts(view) {
@@ -191,6 +257,10 @@
     // ==============================
     // Private functions
 
+    function safeId(s) {
+        return s.replace(/[^a-z0-9]/gi, '-');
+    }
+
     // set the size of the given element to that of the view (reduced if padded)
     function setSize(el, view, pad) {
         var padding = pad ? pad * 2 : 0;
@@ -200,127 +270,288 @@
         });
     }
 
-    function getNetworkData(view) {
-        var url = getTopoUrl();
+    function establishWebSocket() {
+        // TODO: establish a real web-socket
+        // NOTE, for now, we are using the 'Q' key to artificially inject
+        //       "events" from the server.
+    }
 
-        console.log('Fetching JSON: ' + url);
-        d3.json(url, function(err, data) {
-            if (err) {
-                view.dataLoadError(err, url);
-            } else {
-                network.data = data;
-                drawNetwork(view);
+    // ==============================
+    // Event handlers for server-pushed events
+
+    var eventDispatch = {
+        addDevice: addDevice,
+        updateDevice: updateDevice,
+        removeDevice: removeDevice,
+        addLink: addLink
+    };
+
+    function addDevice(data) {
+        var device = data.payload,
+            node = createDeviceNode(device);
+        note('addDevice', device.id);
+
+        network.nodes.push(node);
+        network.lookup[node.id] = node;
+        updateNodes();
+        network.force.start();
+    }
+
+    function updateDevice(data) {
+        var device = data.payload;
+        note('updateDevice', device.id);
+
+    }
+
+    function removeDevice(data) {
+        var device = data.payload;
+        note('removeDevice', device.id);
+
+    }
+
+    function addLink(data) {
+        var link = data.payload,
+            lnk = createLink(link);
+
+        if (lnk) {
+            note('addLink', lnk.id);
+
+            network.links.push(lnk);
+            updateLinks();
+            network.force.start();
+        }
+    }
+
+    // ....
+
+    function unknownEvent(data) {
+        // TODO: use dialog, not alert
+        alert('Unknown event type: "' + data.event + '"');
+    }
+
+    function handleServerEvent(data) {
+        var fn = eventDispatch[data.event] || unknownEvent;
+        fn(data);
+    }
+
+    // ==============================
+    // force layout modification functions
+
+    function translate(x, y) {
+        return 'translate(' + x + ',' + y + ')';
+    }
+
+    function createLink(link) {
+        var type = link.type,
+            src = link.src,
+            dst = link.dst,
+            w = link.linkWidth,
+            srcNode = network.lookup[src],
+            dstNode = network.lookup[dst],
+            lnk;
+
+        if (!(srcNode && dstNode)) {
+            alert('nodes not on map');
+            return null;
+        }
+
+        lnk = {
+                id: safeId(src) + '~' + safeId(dst),
+                source: srcNode,
+                target: dstNode,
+                class: 'link',
+                svgClass: type ? 'link ' + type : 'link',
+                x1: srcNode.x,
+                y1: srcNode.y,
+                x2: dstNode.x,
+                y2: dstNode.y,
+                width: w
+            };
+        return lnk;
+    }
+
+    function updateLinks() {
+        link = linkG.selectAll('.link')
+            .data(network.links, function (d) { return d.id; });
+
+        // operate on existing links, if necessary
+        // link .foo() .bar() ...
+
+        // operate on entering links:
+        var entering = link.enter()
+            .append('line')
+            .attr({
+                id: function (d) { return d.id; },
+                class: function (d) { return d.svgClass; },
+                x1: function (d) { return d.x1; },
+                y1: function (d) { return d.y1; },
+                x2: function (d) { return d.x2; },
+                y2: function (d) { return d.y2; },
+                stroke: '#66f',
+                'stroke-width': 10
+            })
+            .transition().duration(1000)
+            .attr({
+                'stroke-width': function (d) { return d.width; },
+                stroke: '#666'      // TODO: remove explicit stroke, rather...
+            });
+
+        // augment links
+        // TODO: add src/dst port labels etc.
+
+    }
+
+    function createDeviceNode(device) {
+        // start with the object as is
+        var node = device,
+            type = device.type;
+
+        // Augment as needed...
+        node.class = 'device';
+        node.svgClass = type ? 'node device ' + type : 'node device';
+        positionNode(node);
+
+        // cache label array length
+        network.deviceLabelCount = device.labels.length;
+
+        return node;
+    }
+
+    function positionNode(node) {
+        var meta = node.metaUi,
+            x = 0,
+            y = 0;
+
+        if (meta) {
+            x = meta.x;
+            y = meta.y;
+        }
+        if (x && y) {
+            node.fixed = true;
+        }
+        node.x = x || network.view.width() / 2;
+        node.y = y || network.view.height() / 2;
+    }
+
+
+    function iconUrl(d) {
+        return 'img/' + d.type + '.png';
+    }
+
+    // returns the newly computed bounding box of the rectangle
+    function adjustRectToFitText(n) {
+        var text = n.select('text'),
+            box = text.node().getBBox(),
+            lab = config.labels;
+
+        text.attr('text-anchor', 'middle')
+            .attr('y', '-0.8em')
+            .attr('x', lab.imgPad/2);
+
+        // translate the bbox so that it is centered on [x,y]
+        box.x = -box.width / 2;
+        box.y = -box.height / 2;
+
+        // add padding
+        box.x -= (lab.padLR + lab.imgPad/2);
+        box.width += lab.padLR * 2 + lab.imgPad;
+        box.y -= lab.padTB;
+        box.height += lab.padTB * 2;
+
+        return box;
+    }
+
+    function updateNodes() {
+        node = nodeG.selectAll('.node')
+            .data(network.nodes, function (d) { return d.id; });
+
+        // operate on existing nodes, if necessary
+        //node .foo() .bar() ...
+
+        // operate on entering nodes:
+        var entering = node.enter()
+            .append('g')
+            .attr({
+                id: function (d) { return safeId(d.id); },
+                class: function (d) { return d.svgClass; },
+                transform: function (d) { return translate(d.x, d.y); },
+                opacity: 0
+            })
+            //.call(network.drag)
+            //.on('mouseover', function (d) {})
+            //.on('mouseover', function (d) {})
+            .transition()
+            .attr('opacity', 1);
+
+        // augment device nodes...
+        entering.filter('.device').each(function (d) {
+            var node = d3.select(this),
+                icon = iconUrl(d),
+                idx = (labelIdx < d.labels.length) ? labelIdx : 0,
+                box;
+
+            node.append('rect')
+                .attr({
+                    'rx': 5,
+                    'ry': 5
+                });
+
+            node.append('text')
+                .text(d.labels[idx])
+                .attr('dy', '1.1em');
+
+            box = adjustRectToFitText(node);
+
+            node.select('rect')
+                .attr(box);
+
+            if (icon) {
+                var cfg = config.icons;
+                node.append('svg:image')
+                    .attr({
+                        x: box.x + config.icons.xoff,
+                        y: box.y + config.icons.yoff,
+                        width: cfg.w,
+                        height: cfg.h,
+                        'xlink:href': icon
+                    });
+            }
+
+            // debug function to show the modelled x,y coordinates of nodes...
+            if (debug('showNodeXY')) {
+                node.select('rect').attr('fill-opacity', 0.5);
+                node.append('circle')
+                    .attr({
+                        class: 'debug',
+                        cx: 0,
+                        cy: 0,
+                        r: '3px'
+                    });
             }
         });
-    }
 
-    function drawNetwork(view) {
-        preprocessData(view);
-        updateLayout(view);
-    }
 
-    function preprocessData(view) {
-        var w = view.width(),
-            h = view.height(),
-            hDevice = h * 0.6,
-            hHost = h * 0.3,
-            data = network.data,
-            deviceLayout = computeInitLayout(w, hDevice, data.devices.length),
-            hostLayout = computeInitLayout(w, hHost, data.hosts.length);
+        // operate on both existing and new nodes, if necessary
+        //node .foo() .bar() ...
 
-        network.lookup = {};
-        network.nodes = [];
-        network.links = [];
-        // we created new arrays, so need to set the refs in the force layout
-        network.force.nodes(network.nodes);
-        network.force.links(network.links);
-
-        // let's just start with the nodes
-
-        // note that both 'devices' and 'hosts' get mapped into the nodes array
-        function makeNode(d, cls, layout) {
-            var node = {
-                    id: d.id,
-                    labels: d.labels,
-                    class: cls,
-                    icon: cls,
-                    type: d.type,
-                    x: layout.x(),
-                    y: layout.y()
-                };
-            network.lookup[d.id] = node;
-            network.nodes.push(node);
-        }
-
-        // first the devices...
-        network.data.devices.forEach(function (d) {
-            makeNode(d, 'device', deviceLayout);
-        });
-
-        // then the hosts...
-        network.data.hosts.forEach(function (d) {
-            makeNode(d, 'host', hostLayout);
-        });
-
-        // TODO: process links
-    }
-
-    function computeInitLayout(w, h, n) {
-        var maxdw = 60,
-            compdw, dw, ox, layout;
-
-        if (n < 2) {
-            layout = { ox: w/2, dw: 0 }
-        } else {
-            compdw = (0.8 * w) / (n - 1);
-            dw = Math.min(maxdw, compdw);
-            ox = w/2 - ((n - 1)/2 * dw);
-            layout = { ox: ox, dw: dw }
-        }
-
-        layout.i = 0;
-
-        layout.x = function () {
-            var x = layout.ox + layout.i*layout.dw;
-            layout.i++;
-            return x;
-        };
-
-        layout.y = function () {
-            return h;
-        };
-
-        return layout;
-    }
-
-    function linkId(d) {
-        return d.source.id + '~' + d.target.id;
-    }
-
-    function nodeId(d) {
-        return d.id;
-    }
-
-    function updateLayout(view) {
-        link = link.data(network.force.links(), linkId);
-        link.enter().append('line')
-            .attr('class', 'link');
-        link.exit().remove();
-
-        node = node.data(network.force.nodes(), nodeId);
-        node.enter().append('circle')
-            .attr('id', function (d) { return 'nodeId-' + d.id; })
-            .attr('class', function (d) { return 'node'; })
-            .attr('r', 12);
-
-        network.force.start();
+        // operate on exiting nodes:
+        // TODO: figure out how to remove the node 'g' AND its children
+        node.exit()
+            .transition()
+            .duration(750)
+            .attr({
+                opacity: 0,
+                cx: 0,
+                cy: 0,
+                r: 0
+            })
+            .remove();
     }
 
 
     function tick() {
         node.attr({
-            cx: function(d) { return d.x; },
-            cy: function(d) { return d.y; }
+            transform: function (d) { return translate(d.x, d.y); }
         });
 
         link.attr({
@@ -371,28 +602,45 @@
         link = linkG.selectAll('.link');
         node = nodeG.selectAll('.node');
 
+        function ldist(d) {
+            return fcfg.linkDistance[d.class] || 150;
+        }
+        function lstrg(d) {
+            return fcfg.linkStrength[d.class] || 1;
+        }
+        function lchrg(d) {
+            return fcfg.charge[d.class] || -200;
+        }
+
         // set up the force layout
         network.force = d3.layout.force()
             .size(forceDim)
             .nodes(network.nodes)
             .links(network.links)
-            .charge(function (d) { return fcfg.charge[d.class]; })
-            .linkDistance(function (d) { return fcfg.linkDistance[d.class]; })
-            .linkStrength(function (d) { return fcfg.linkStrength[d.class]; })
+            .charge(lchrg)
+            .linkDistance(ldist)
+            .linkStrength(lstrg)
             .on('tick', tick);
     }
 
 
     function load(view, ctx) {
+        // cache the view token, so network topo functions can access it
+        network.view = view;
+
+        // set our radio buttons and key bindings
         view.setRadio(btnSet);
         view.setKeys(keyDispatch);
 
-        getNetworkData(view);
+        establishWebSocket();
     }
 
     function resize(view, ctx) {
         setSize(svg, view);
         setSize(bgImg, view);
+
+        // TODO: hook to recompute layout, perhaps? work with zoom/pan code
+        // adjust force layout size
     }
 
 
