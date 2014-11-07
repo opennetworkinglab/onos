@@ -6,7 +6,7 @@
     "dst": "of:0000ffffffffff08",
     "dstPort": "10",
     "type": "optical",
-    "linkWidth": 2,
+    "linkWidth": 6,
     "props" : {
       "BW": "70 G"
     }
