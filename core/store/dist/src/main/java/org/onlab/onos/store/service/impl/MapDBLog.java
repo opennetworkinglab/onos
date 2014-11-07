@@ -18,6 +18,7 @@ import org.mapdb.Atomic;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 import org.mapdb.TxBlock;
 import org.mapdb.TxMaker;
 import org.onlab.onos.store.serializers.StoreSerializer;
@@ -84,7 +85,7 @@ public class MapDBLog implements Log {
         txMaker.execute(new TxBlock() {
             @Override
             public void tx(DB db) {
-                BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+                BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
                 long nextIndex = log.isEmpty() ? 1 : log.lastKey() + 1;
                 for (Entry entry : entries) {
@@ -105,7 +106,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             return log.containsKey(index);
         } finally {
             db.close();
@@ -118,7 +119,7 @@ public class MapDBLog implements Log {
         txMaker.execute(new TxBlock() {
             @Override
             public void tx(DB db) {
-                BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+                BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
                 log.clear();
                 size.set(0);
@@ -131,7 +132,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             return log.isEmpty() ? null : serializer.decode(log.firstEntry().getValue());
         } finally {
             db.close();
@@ -143,7 +144,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             return log.isEmpty() ? 0 : log.firstKey();
         } finally {
             db.close();
@@ -155,7 +156,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             if (log.isEmpty()) {
                 throw new LogIndexOutOfBoundsException("Log is empty");
             } else if (from < log.firstKey()) {
@@ -179,7 +180,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             byte[] entryBytes = log.get(index);
             return entryBytes == null ? null : serializer.decode(entryBytes);
         } finally {
@@ -192,7 +193,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             return log.isEmpty();
         } finally {
             db.close();
@@ -204,7 +205,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             return log.isEmpty() ? null : serializer.decode(log.lastEntry().getValue());
         } finally {
             db.close();
@@ -216,7 +217,7 @@ public class MapDBLog implements Log {
         assertIsOpen();
         DB db = txMaker.makeTx();
         try {
-            BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+            BTreeMap<Long, byte[]> log = getLogMap(db);
             return log.isEmpty() ? 0 : log.lastKey();
         } finally {
             db.close();
@@ -229,7 +230,7 @@ public class MapDBLog implements Log {
         txMaker.execute(new TxBlock() {
             @Override
             public void tx(DB db) {
-                BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+                BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
                 long startIndex = index + 1;
                 long endIndex = log.lastKey();
@@ -265,7 +266,7 @@ public class MapDBLog implements Log {
         txMaker.execute(new TxBlock() {
             @Override
             public void tx(DB db) {
-                BTreeMap<Long, byte[]> log = db.getTreeMap(LOG_NAME);
+                BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
                 ConcurrentNavigableMap<Long, byte[]> headMap = log.headMap(index);
                 long deletedBytes = headMap.keySet().stream().mapToLong(i -> log.remove(i).length).sum();
@@ -276,5 +277,13 @@ public class MapDBLog implements Log {
                 db.compact();
             }
         });
+    }
+
+    private BTreeMap<Long, byte[]> getLogMap(DB db) {
+        return db.createTreeMap(LOG_NAME)
+                    .valuesOutsideNodesEnable()
+                    .keySerializerWrap(Serializer.LONG)
+                    .valueSerializer(Serializer.BYTE_ARRAY)
+                    .makeOrGet();
     }
 }
