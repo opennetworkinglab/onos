@@ -2,10 +2,14 @@ package org.onlab.onos.store.service.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 import net.kuujo.copycat.Command;
 import net.kuujo.copycat.Query;
@@ -23,6 +27,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
 
 /**
  * StateMachine whose transitions are coordinated/replicated
@@ -49,6 +54,8 @@ public class DatabaseStateMachine implements StateMachine {
     };
 
     private State state = new State();
+
+    private boolean compressSnapshot = false;
 
     @Command
     public boolean createTable(String tableName) {
@@ -214,7 +221,16 @@ public class DatabaseStateMachine implements StateMachine {
     @Override
     public byte[] takeSnapshot() {
         try {
-            return SERIALIZER.encode(state);
+            if (compressSnapshot) {
+                byte[] input = SERIALIZER.encode(state);
+                ByteArrayOutputStream comp = new ByteArrayOutputStream(input.length);
+                DeflaterOutputStream compressor = new DeflaterOutputStream(comp);
+                compressor.write(input, 0, input.length);
+                compressor.close();
+                return comp.toByteArray();
+            } else {
+                return SERIALIZER.encode(state);
+            }
         } catch (Exception e) {
             log.error("Failed to take snapshot", e);
             throw new SnapshotException(e);
@@ -224,7 +240,14 @@ public class DatabaseStateMachine implements StateMachine {
     @Override
     public void installSnapshot(byte[] data) {
         try {
-            this.state = SERIALIZER.decode(data);
+            if (compressSnapshot) {
+                ByteArrayInputStream in = new ByteArrayInputStream(data);
+                InflaterInputStream decompressor = new InflaterInputStream(in);
+                ByteStreams.toByteArray(decompressor);
+                this.state = SERIALIZER.decode(ByteStreams.toByteArray(decompressor));
+            } else {
+                this.state = SERIALIZER.decode(data);
+            }
         } catch (Exception e) {
             log.error("Failed to install from snapshot", e);
             throw new SnapshotException(e);
