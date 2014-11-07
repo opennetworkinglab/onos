@@ -199,7 +199,11 @@ public class FooComponent {
                     log.info("Write success {} -> {}", result.get().previousValue(), next);
                     break;
                 } else {
-                    log.info("Write failed trying to write{}", next);
+                    log.info("Write failed trying to write {}", next);
+                    read = dbService.read(ReadRequest.get(someTable, someKey));
+                    if (!read.valueExists()) {
+                        log.error("Shouldn't reach here");
+                    }
                 }
             } while (retry-- > 0);
         } catch (Exception e) {
