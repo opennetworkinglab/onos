@@ -130,9 +130,9 @@ public class BgpRouteEntryTest {
 
         String expectedString =
             "BgpRouteEntry{prefix=1.2.3.0/24, nextHop=5.6.7.8, " +
-            "bgpId=10.0.0.1, origin=0, asPath=AsPath{pathSegments=" +
-            "[PathSegment{type=2, segmentAsNumbers=[1, 2, 3]}, " +
-            "PathSegment{type=1, segmentAsNumbers=[4, 5, 6]}]}, " +
+            "bgpId=10.0.0.1, origin=IGP, asPath=AsPath{pathSegments=" +
+            "[PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
+            "PathSegment{type=AS_SET, segmentAsNumbers=[4, 5, 6]}]}, " +
             "localPref=100, multiExitDisc=20}";
         assertThat(bgpRouteEntry.toString(), is(expectedString));
     }
@@ -504,9 +504,9 @@ public class BgpRouteEntryTest {
 
         String expectedString =
             "BgpRouteEntry{prefix=1.2.3.0/24, nextHop=5.6.7.8, " +
-            "bgpId=10.0.0.1, origin=0, asPath=AsPath{pathSegments=" +
-            "[PathSegment{type=2, segmentAsNumbers=[1, 2, 3]}, " +
-            "PathSegment{type=1, segmentAsNumbers=[4, 5, 6]}]}, " +
+            "bgpId=10.0.0.1, origin=IGP, asPath=AsPath{pathSegments=" +
+            "[PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
+            "PathSegment{type=AS_SET, segmentAsNumbers=[4, 5, 6]}]}, " +
             "localPref=100, multiExitDisc=20}";
         assertThat(bgpRouteEntry.toString(), is(expectedString));
     }

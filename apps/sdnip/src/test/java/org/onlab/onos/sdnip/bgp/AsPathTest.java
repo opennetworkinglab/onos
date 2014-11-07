@@ -66,8 +66,8 @@ public class AsPathTest {
 
         String expectedString =
             "AsPath{pathSegments=" +
-            "[PathSegment{type=2, segmentAsNumbers=[1, 2, 3]}, " +
-            "PathSegment{type=1, segmentAsNumbers=[4, 5, 6]}]}";
+            "[PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
+            "PathSegment{type=AS_SET, segmentAsNumbers=[4, 5, 6]}]}";
         assertThat(asPath.toString(), is(expectedString));
     }
 
@@ -177,8 +177,8 @@ public class AsPathTest {
 
         String expectedString =
             "AsPath{pathSegments=" +
-            "[PathSegment{type=2, segmentAsNumbers=[1, 2, 3]}, " +
-            "PathSegment{type=1, segmentAsNumbers=[4, 5, 6]}]}";
+            "[PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
+            "PathSegment{type=AS_SET, segmentAsNumbers=[4, 5, 6]}]}";
         assertThat(asPath.toString(), is(expectedString));
     }
 }

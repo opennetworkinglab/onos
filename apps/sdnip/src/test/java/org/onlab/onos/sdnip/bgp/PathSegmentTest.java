@@ -52,7 +52,7 @@ public class PathSegmentTest {
         BgpRouteEntry.PathSegment pathSegment = generatePathSegment();
 
         String expectedString =
-            "PathSegment{type=2, segmentAsNumbers=[1, 2, 3]}";
+            "PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}";
         assertThat(pathSegment.toString(), is(expectedString));
     }
 
@@ -124,7 +124,7 @@ public class PathSegmentTest {
         BgpRouteEntry.PathSegment pathSegment = generatePathSegment();
 
         String expectedString =
-            "PathSegment{type=2, segmentAsNumbers=[1, 2, 3]}";
+            "PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}";
         assertThat(pathSegment.toString(), is(expectedString));
     }
 }
