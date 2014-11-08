@@ -113,13 +113,11 @@
 
     // key bindings
     var keyDispatch = {
-        space: injectTestEvent,     // TODO: remove (testing only)
-        S: injectStartupEvents,     // TODO: remove (testing only)
-        A: testAlert,               // TODO: remove (testing only)
         M: testMe,                  // TODO: remove (testing only)
+        S: injectStartupEvents,     // TODO: remove (testing only)
+        space: injectTestEvent,     // TODO: remove (testing only)
 
         B: toggleBg,
-        G: toggleLayout,
         L: cycleLabels,
         P: togglePorts,
         U: unpin
@@ -127,6 +125,7 @@
 
     // state variables
     var network = {
+            view: null,     // view token reference
             nodes: [],
             links: [],
             lookup: {}
@@ -167,19 +166,19 @@
     // ==============================
     // Key Callbacks
 
-    function testAlert(view) {
-        alertNumber++;
-        view.alert("Test me! -- " + alertNumber);
-    }
-
     function testMe(view) {
+        view.alert('test');
     }
 
     function injectTestEvent(view) {
+        if (config.useLiveData) {
+            view.alert("Sorry, currently using live data..");
+            return;
+        }
+
         eventNumber++;
         var eventUrl = eventPrefix + eventNumber + '.json';
 
-        console.log('Fetching JSON: ' + eventUrl);
         d3.json(eventUrl, function(err, data) {
             if (err) {
                 view.dataLoadError(err, eventUrl);
@@ -190,6 +189,11 @@
     }
 
     function injectStartupEvents(view) {
+        if (config.useLiveData) {
+            view.alert("Sorry, currently using live data..");
+            return;
+        }
+
         var lastStartupEvent = 32;
         while (eventNumber < lastStartupEvent) {
             injectTestEvent(view);
@@ -199,10 +203,6 @@
     function toggleBg() {
         var vis = bgImg.style('visibility');
         bgImg.style('visibility', (vis === 'hidden') ? 'visible' : 'hidden');
-    }
-
-    function toggleLayout(view) {
-
     }
 
     function cycleLabels() {
@@ -232,11 +232,11 @@
     }
 
     function togglePorts(view) {
-
+        view.alert('togglePorts() callback')
     }
 
     function unpin(view) {
-
+        view.alert('unpin() callback')
     }
 
     // ==============================
@@ -248,19 +248,19 @@
 //        d3.selectAll('svg .port').classed('inactive', false);
 //        d3.selectAll('svg .portText').classed('inactive', false);
         // TODO ...
-        console.log('showAllLayers()');
+        network.view.alert('showAllLayers() callback');
     }
 
     function showPacketLayer() {
         showAllLayers();
         // TODO ...
-        console.log('showPacketLayer()');
+        network.view.alert('showPacketLayer() callback');
     }
 
     function showOpticalLayer() {
         showAllLayers();
         // TODO ...
-        console.log('showOpticalLayer()');
+        network.view.alert('showOpticalLayer() callback');
     }
 
     // ==============================
@@ -279,11 +279,6 @@
         });
     }
 
-    function establishWebSocket() {
-        // TODO: establish a real web-socket
-        // NOTE, for now, we are using the 'Q' key to artificially inject
-        //       "events" from the server.
-    }
 
     // ==============================
     // Event handlers for server-pushed events
@@ -334,8 +329,7 @@
     // ....
 
     function unknownEvent(data) {
-        // TODO: use dialog, not alert
-        alert('Unknown event type: "' + data.event + '"');
+        network.view.alert('Unknown event type: "' + data.event + '"');
     }
 
     function handleServerEvent(data) {
@@ -360,7 +354,9 @@
             lnk;
 
         if (!(srcNode && dstNode)) {
-            alert('nodes not on map');
+            // TODO: send warning message back to server on websocket
+            network.view.alert('nodes not on map for link\n\n' +
+                'src = ' + src + '\ndst = ' + dst);
             return null;
         }
 
@@ -381,6 +377,7 @@
 
     function linkWidth(w) {
         // w is number of links between nodes. Scale appropriately.
+        // TODO: use a d3.scale (linear, log, ... ?)
         return w * 1.2;
     }
 
@@ -705,7 +702,6 @@
             .on('tick', tick);
 
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
-        webSock.connect();
     }
 
     function load(view, ctx) {
@@ -716,7 +712,9 @@
         view.setRadio(btnSet);
         view.setKeys(keyDispatch);
 
-        establishWebSocket();
+        if (config.useLiveData) {
+            webSock.connect();
+        }
     }
 
     function resize(view, ctx) {
