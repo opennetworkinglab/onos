@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net;
 
+import org.onlab.onos.TestApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
@@ -39,6 +41,7 @@ public final class NetTestTools {
     }
 
     public static final ProviderId PID = new ProviderId("of", "foo");
+    public static final ApplicationId APP_ID = new TestApplicationId("foo");
 
     // Short-hand for producing a device id from a string
     public static DeviceId did(String id) {
