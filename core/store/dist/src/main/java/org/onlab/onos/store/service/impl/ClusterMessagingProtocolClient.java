@@ -132,18 +132,18 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 future.complete(ClusterMessagingProtocol.SERIALIZER.decode(response));
 
             } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
-                if (message.subject().equals(ClusterMessagingProtocol.COPYCAT_SYNC) ||
-                        message.subject().equals(ClusterMessagingProtocol.COPYCAT_PING)) {
-                    log.warn("{} Request to {} failed. Will retry in {} ms",
-                             message.subject(), remoteNode, RETRY_INTERVAL_MILLIS);
-                    THREAD_POOL.schedule(
-                            this,
-                            RETRY_INTERVAL_MILLIS,
-                            TimeUnit.MILLISECONDS);
-                } else {
+//                if (message.subject().equals(ClusterMessagingProtocol.COPYCAT_SYNC) ||
+//                        message.subject().equals(ClusterMessagingProtocol.COPYCAT_PING)) {
+//                    log.warn("{} Request to {} failed. Will retry in {} ms",
+//                             message.subject(), remoteNode, RETRY_INTERVAL_MILLIS);
+//                    THREAD_POOL.schedule(
+//                            this,
+//                            RETRY_INTERVAL_MILLIS,
+//                            TimeUnit.MILLISECONDS);
+//                } else {
                     log.warn("RPCTask for {} failed.", request, e);
                     future.completeExceptionally(e);
-                }
+//                }
             } catch (Exception e) {
                 log.warn("RPCTask for {} terribly failed.", request, e);
                 future.completeExceptionally(e);
