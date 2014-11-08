@@ -604,6 +604,7 @@
             webSock.ws.onmessage = function(m) {
                 if (m.data) {
                     console.log(m.data);
+                    handleServerEvent(JSON.parse(m.data));
                 }
             };
 
