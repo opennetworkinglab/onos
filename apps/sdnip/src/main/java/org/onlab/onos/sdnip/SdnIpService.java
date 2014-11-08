@@ -18,11 +18,19 @@ package org.onlab.onos.sdnip;
 import java.util.Collection;
 
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
+import org.onlab.onos.sdnip.bgp.BgpSession;
 
 /**
  * Service interface exported by SDN-IP.
  */
 public interface SdnIpService {
+    /**
+     * Gets the BGP sessions.
+     *
+     * @return the BGP sessions
+     */
+    public Collection<BgpSession> getBgpSessions();
+
     /**
      * Gets the BGP routes.
      *

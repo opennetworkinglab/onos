@@ -30,6 +30,7 @@ import org.onlab.onos.core.CoreService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
+import org.onlab.onos.sdnip.bgp.BgpSession;
 import org.onlab.onos.sdnip.bgp.BgpSessionManager;
 import org.onlab.onos.sdnip.config.SdnIpConfigReader;
 import org.slf4j.Logger;
@@ -94,6 +95,11 @@ public class SdnIp implements SdnIpService {
         router.shutdown();
 
         log.info("Stopped");
+    }
+
+    @Override
+    public Collection<BgpSession> getBgpSessions() {
+        return bgpSessionManager.getBgpSessions();
     }
 
     @Override
