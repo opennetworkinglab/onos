@@ -13,39 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onlab.onos.store.serializers.impl;
 
-import org.onlab.onos.store.impl.MastershipBasedTimestamp;
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-// To be used if Timestamp ever needs to cross bundle boundary.
-/**
- * Kryo Serializer for {@link MastershipBasedTimestamp}.
- */
-public class MastershipBasedTimestampSerializer extends Serializer<MastershipBasedTimestamp> {
+public final class MessageSubjectSerializer extends Serializer<MessageSubject> {
 
     /**
-     * Creates a serializer for {@link MastershipBasedTimestamp}.
+     * Creates a serializer for {@link MessageSubject}.
      */
-    public MastershipBasedTimestampSerializer() {
+    public MessageSubjectSerializer() {
         // non-null, immutable
         super(false, true);
     }
 
+
     @Override
-    public void write(Kryo kryo, Output output, MastershipBasedTimestamp object) {
-        output.writeInt(object.termNumber());
-        output.writeInt(object.sequenceNumber());
+    public void write(Kryo kryo, Output output, MessageSubject object) {
+        output.writeString(object.value());
     }
 
     @Override
-    public MastershipBasedTimestamp read(Kryo kryo, Input input, Class<MastershipBasedTimestamp> type) {
-        final int term = input.readInt();
-        final int sequence = input.readInt();
-        return new MastershipBasedTimestamp(term, sequence);
+    public MessageSubject read(Kryo kryo, Input input,
+            Class<MessageSubject> type) {
+        return new MessageSubject(input.readString());
     }
 }

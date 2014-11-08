@@ -59,7 +59,7 @@ import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.DistributedStoreSerializers;
+import org.onlab.onos.store.serializers.impl.DistributedStoreSerializers;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.NewConcurrentHashMap;
