@@ -117,7 +117,7 @@
         S: injectStartupEvents,     // TODO: remove (testing only)
         space: injectTestEvent,     // TODO: remove (testing only)
 
-        B: toggleBg,
+        B: toggleBg,                // TODO: do we really need this?
         L: cycleLabels,
         P: togglePorts,
         U: unpin,
@@ -135,7 +135,6 @@
         webSock,
         labelIdx = 0,
 
-        //selected = {},
         selectOrder = [],
         selections = {},
 
@@ -788,8 +787,9 @@
             if (d.class === 'device') {
                 d.fixed = true;
                 d3.select(self).classed('fixed', true);
-                tellServerCoords(d);
-                // TODO: send new [x,y] back to server, via websocket.
+                if (config.useLiveData) {
+                    tellServerCoords(d);
+                }
             }
         }
 
