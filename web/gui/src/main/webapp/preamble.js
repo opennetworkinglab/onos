@@ -21,12 +21,17 @@
  */
 
 (function () {
+
+    // NOTE: DON'T Want to do this.. we want to be able to
+    //  use the parameter section, for example:
+    //   #viewId,context?flag1,flag2,flag3
+
     // Check if the URL in the address bar contains a parameter section
     // (delineated by '?'). If this is the case, rewrite using '#' instead.
 
-    var m = /([^?]*)\?(.*)/.exec(window.location.href);
-    if (m) {
-        window.location.href = m[1] + '#' + m[2];
-    }
+    //var m = /([^?]*)\?(.*)/.exec(window.location.href);
+    //if (m) {
+    //    window.location.href = m[1] + '#' + m[2];
+    //}
 
 }());

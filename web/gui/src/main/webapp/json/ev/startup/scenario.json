@@ -1,0 +1,10 @@
+{
+  "comments": [
+    "This scenario steps through adding devices and links.",
+    "(Typical 'start-ip' of the view.)"
+  ],
+  "title": "Startup Scenario",
+  "params": {
+    "lastAuto": 32
+  }
+}
