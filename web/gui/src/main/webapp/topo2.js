@@ -212,13 +212,18 @@
 
     function cycleLabels() {
         labelIdx = (labelIdx === network.deviceLabelCount - 1) ? 0 : labelIdx + 1;
+
+        function niceLabel(label) {
+            return (label && label.trim()) ? label : '.';
+        }
+
         network.nodes.forEach(function (d) {
             var idx = (labelIdx < d.labels.length) ? labelIdx : 0,
                 node = d3.select('#' + safeId(d.id)),
                 box;
 
             node.select('text')
-                .text(d.labels[idx])
+                .text(niceLabel(d.labels[idx]))
                 .style('opacity', 0)
                 .transition()
                 .style('opacity', 1);
@@ -684,13 +689,7 @@
             deselectAll();
         }
 
-        // TODO: allow for mutli selections
-        var selected = {
-            obj : obj,
-            el  : el
-        };
-
-        selections[obj.id] = selected;
+        selections[obj.id] = { obj: obj, el  : el};
         selectOrder.push(obj.id);
 
         n.classed('selected', true);
@@ -797,8 +796,8 @@
             sendMessage('updateMeta', {
                 id: d.id,
                 'class': d.class,
-                x: d.x,
-                y: d.y
+                x: Math.floor(d.x),
+                y: Math.floor(d.y)
             });
         }
 
