@@ -37,23 +37,34 @@
 
         var defaultOptions = {
             trace: false,
+            theme: 'light',
             startVid: defaultVid
         };
 
         // compute runtime settings
         var settings = $.extend({}, defaultOptions, options);
 
+        // set the selected theme
+        d3.select('body').classed(settings.theme, true);
+
         // internal state
         var views = {},
             current = {
                 view: null,
-                ctx: ''
+                ctx: '',
+                theme: settings.theme
             },
             built = false,
             errorCount = 0,
             keyHandler = {
-                fn: null,
-                map: {}
+                globalKeys: {},
+                maskedKeys: {},
+                viewKeys: {},
+                viewFn: null
+            },
+            alerts = {
+                open: false,
+                count: 0
             };
 
         // DOM elements etc.
@@ -240,8 +251,8 @@
 
                 // detach radio buttons, key handlers, etc.
                 $('#mastRadio').children().detach();
-                keyHandler.fn = null;
-                keyHandler.map = {};
+                keyHandler.viewKeys = {};
+                keyHandler.viewFn = null;
             }
 
             // cache new view and context
@@ -322,20 +333,74 @@
             $mastRadio.node().appendChild(btnG.node());
         }
 
+        function setupGlobalKeys() {
+            keyHandler.globalKeys = {
+                esc: escapeKey,
+                T: toggleTheme
+            };
+            // Masked keys are global key handlers that always return true.
+            // That is, the view will never see the event for that key.
+            keyHandler.maskedKeys = {
+                T: true
+            };
+        }
+
+        function escapeKey(view, key, code, ev) {
+            if (alerts.open) {
+                closeAlerts();
+                return true;
+            }
+            return false;
+        }
+
+        function toggleTheme(view, key, code, ev) {
+            var body = d3.select('body');
+            current.theme = (current.theme === 'light') ? 'dark' : 'light';
+            body.classed('light dark', false);
+            body.classed(current.theme, true);
+            return true;
+        }
+
         function setKeyBindings(keyArg) {
+            var viewKeys,
+                masked = [];
+
             if ($.isFunction(keyArg)) {
                 // set general key handler callback
-                keyHandler.fn = keyArg;
+                keyHandler.viewFn = keyArg;
             } else {
                 // set specific key filter map
-                keyHandler.map = keyArg;
+                viewKeys = d3.map(keyArg).keys();
+                viewKeys.forEach(function (key) {
+                    if (keyHandler.maskedKeys[key]) {
+                        masked.push('  Key "' + key + '" is reserved');
+                    }
+                });
+
+                if (masked.length) {
+                    doAlert('WARNING...\n\nsetKeys():\n' + masked.join('\n'));
+                }
+                keyHandler.viewKeys = keyArg;
             }
         }
 
-        var alerts = {
-            open: false,
-            count: 0
-        };
+        function keyIn() {
+            var event = d3.event,
+                keyCode = event.keyCode,
+                key = whatKey(keyCode),
+                gcb = isF(keyHandler.globalKeys[key]),
+                vcb = isF(keyHandler.viewKeys[key]) || isF(keyHandler.viewFn);
+
+            // global callback?
+            if (gcb && gcb(current.view.token(), key, keyCode, event)) {
+                // if the event was 'handled', we are done
+                return;
+            }
+            // otherwise, let the view callback have a shot
+            if (vcb) {
+                vcb(current.view.token(), key, keyCode, event);
+            }
+        }
 
         function createAlerts() {
             var al = d3.select('#alerts')
@@ -345,15 +410,16 @@
                 .text('X')
                 .on('click', closeAlerts);
             al.append('pre');
+            al.append('p').attr('class', 'footnote')
+                .text('Press ESCAPE to close');
             alerts.open = true;
             alerts.count = 0;
         }
 
         function closeAlerts() {
             d3.select('#alerts')
-                .style('display', 'none');
-            d3.select('#alerts span').remove();
-            d3.select('#alerts pre').remove();
+                .style('display', 'none')
+                .html('');
             alerts.open = false;
         }
 
@@ -382,17 +448,6 @@
                 createAlerts();
             }
             addAlert(msg);
-        }
-
-        function keyIn() {
-            var event = d3.event,
-                keyCode = event.keyCode,
-                key = whatKey(keyCode),
-                cb = isF(keyHandler.map[key]) || isF(keyHandler.fn);
-
-            if (cb) {
-                cb(current.view.token(), key, keyCode, event);
-            }
         }
 
         function resize(e) {
@@ -683,6 +738,7 @@
             $(window).on('resize', resize);
 
             d3.select('body').on('keydown', keyIn);
+            setupGlobalKeys();
 
             // Invoke hashchange callback to navigate to content
             // indicated by the window location hash.

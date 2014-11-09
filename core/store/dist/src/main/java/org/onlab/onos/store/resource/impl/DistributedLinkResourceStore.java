@@ -73,7 +73,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
      * @param link the target link
      * @return free resources
      */
-    private Set<ResourceAllocation> readOriginalFreeResources(Link link) {
+    private synchronized Set<ResourceAllocation> readOriginalFreeResources(Link link) {
         // TODO read capacity and lambda resources from topology
         Set<ResourceAllocation> allocations = new HashSet<>();
         for (int i = 1; i <= 100; i++) {
@@ -92,7 +92,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
      *         {@link org.onlab.onos.net.resource.BandwidthResourceAllocation} object with 0 bandwidth
      *
      */
-    private BandwidthResourceAllocation getBandwidth(Set<ResourceAllocation> freeRes) {
+    private synchronized BandwidthResourceAllocation getBandwidth(Set<ResourceAllocation> freeRes) {
         for (ResourceAllocation res : freeRes) {
             if (res.type() == ResourceType.BANDWIDTH) {
                 return (BandwidthResourceAllocation) res;
@@ -107,7 +107,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
      * @param link the target link
      * @param allocations the resources to be subtracted
      */
-    private void subtractFreeResources(Link link, LinkResourceAllocations allocations) {
+    private synchronized void subtractFreeResources(Link link, LinkResourceAllocations allocations) {
         // TODO Use lock or version for updating freeResources.
         checkNotNull(link);
         Set<ResourceAllocation> freeRes = new HashSet<>(getFreeResources(link));
@@ -141,7 +141,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
      * @param link the target link
      * @param allocations the resources to be added
      */
-    private void addFreeResources(Link link, LinkResourceAllocations allocations) {
+    private synchronized void addFreeResources(Link link, LinkResourceAllocations allocations) {
         // TODO Use lock or version for updating freeResources.
         Set<ResourceAllocation> freeRes = new HashSet<>(getFreeResources(link));
         Set<ResourceAllocation> addRes = allocations.getResourceAllocation(link);
@@ -167,7 +167,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public Set<ResourceAllocation> getFreeResources(Link link) {
+    public synchronized Set<ResourceAllocation> getFreeResources(Link link) {
         checkNotNull(link);
         Set<ResourceAllocation> freeRes = freeResources.get(link);
         if (freeRes == null) {
@@ -178,7 +178,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public void allocateResources(LinkResourceAllocations allocations) {
+    public synchronized void allocateResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
         linkResourceAllocationsMap.put(allocations.intendId(), allocations);
         for (Link link : allocations.links()) {
@@ -193,7 +193,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public void releaseResources(LinkResourceAllocations allocations) {
+    public synchronized void releaseResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
         linkResourceAllocationsMap.remove(allocations.intendId());
         for (Link link : allocations.links()) {
@@ -209,13 +209,13 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public LinkResourceAllocations getAllocations(IntentId intentId) {
+    public synchronized LinkResourceAllocations getAllocations(IntentId intentId) {
         checkNotNull(intentId);
         return linkResourceAllocationsMap.get(intentId);
     }
 
     @Override
-    public Iterable<LinkResourceAllocations> getAllocations(Link link) {
+    public synchronized Iterable<LinkResourceAllocations> getAllocations(Link link) {
         checkNotNull(link);
         Set<LinkResourceAllocations> result = allocatedResources.get(link);
         if (result == null) {
@@ -225,7 +225,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public Iterable<LinkResourceAllocations> getAllocations() {
+    public synchronized Iterable<LinkResourceAllocations> getAllocations() {
         return Collections.unmodifiableCollection(linkResourceAllocationsMap.values());
     }
 

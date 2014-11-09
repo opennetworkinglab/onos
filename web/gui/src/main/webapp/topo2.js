@@ -28,7 +28,7 @@
 
     // configuration data
     var config = {
-        useLiveData: false,
+        useLiveData: true,
         debugOn: false,
         debug: {
             showNodeXY: true,
@@ -113,27 +113,31 @@
 
     // key bindings
     var keyDispatch = {
-        space: injectTestEvent,     // TODO: remove (testing only)
-        S: injectStartupEvents,     // TODO: remove (testing only)
-        A: testAlert,               // TODO: remove (testing only)
         M: testMe,                  // TODO: remove (testing only)
+        S: injectStartupEvents,     // TODO: remove (testing only)
+        space: injectTestEvent,     // TODO: remove (testing only)
 
-        B: toggleBg,
-        G: toggleLayout,
+        B: toggleBg,                // TODO: do we really need this?
         L: cycleLabels,
         P: togglePorts,
-        U: unpin
+        U: unpin,
+
+        X: requestPath
     };
 
     // state variables
     var network = {
+            view: null,     // view token reference
             nodes: [],
             links: [],
             lookup: {}
         },
         webSock,
         labelIdx = 0,
-        selected = {},
+
+        selectOrder = [],
+        selections = {},
+
         highlighted = null,
         hovered = null,
         viewMode = 'showAll',
@@ -167,19 +171,19 @@
     // ==============================
     // Key Callbacks
 
-    function testAlert(view) {
-        alertNumber++;
-        view.alert("Test me! -- " + alertNumber);
-    }
-
     function testMe(view) {
+        view.alert('test');
     }
 
     function injectTestEvent(view) {
+        if (config.useLiveData) {
+            view.alert("Sorry, currently using live data..");
+            return;
+        }
+
         eventNumber++;
         var eventUrl = eventPrefix + eventNumber + '.json';
 
-        console.log('Fetching JSON: ' + eventUrl);
         d3.json(eventUrl, function(err, data) {
             if (err) {
                 view.dataLoadError(err, eventUrl);
@@ -190,6 +194,11 @@
     }
 
     function injectStartupEvents(view) {
+        if (config.useLiveData) {
+            view.alert("Sorry, currently using live data..");
+            return;
+        }
+
         var lastStartupEvent = 32;
         while (eventNumber < lastStartupEvent) {
             injectTestEvent(view);
@@ -201,19 +210,20 @@
         bgImg.style('visibility', (vis === 'hidden') ? 'visible' : 'hidden');
     }
 
-    function toggleLayout(view) {
-
-    }
-
     function cycleLabels() {
         labelIdx = (labelIdx === network.deviceLabelCount - 1) ? 0 : labelIdx + 1;
+
+        function niceLabel(label) {
+            return (label && label.trim()) ? label : '.';
+        }
+
         network.nodes.forEach(function (d) {
             var idx = (labelIdx < d.labels.length) ? labelIdx : 0,
                 node = d3.select('#' + safeId(d.id)),
                 box;
 
             node.select('text')
-                .text(d.labels[idx])
+                .text(niceLabel(d.labels[idx]))
                 .style('opacity', 0)
                 .transition()
                 .style('opacity', 1);
@@ -232,11 +242,19 @@
     }
 
     function togglePorts(view) {
-
+        view.alert('togglePorts() callback')
     }
 
     function unpin(view) {
+        view.alert('unpin() callback')
+    }
 
+    function requestPath(view) {
+        var payload = {
+            one: selections[selectOrder[0]].obj.id,
+            two: selections[selectOrder[1]].obj.id
+        }
+        sendMessage('requestPath', payload);
     }
 
     // ==============================
@@ -248,19 +266,19 @@
 //        d3.selectAll('svg .port').classed('inactive', false);
 //        d3.selectAll('svg .portText').classed('inactive', false);
         // TODO ...
-        console.log('showAllLayers()');
+        network.view.alert('showAllLayers() callback');
     }
 
     function showPacketLayer() {
         showAllLayers();
         // TODO ...
-        console.log('showPacketLayer()');
+        network.view.alert('showPacketLayer() callback');
     }
 
     function showOpticalLayer() {
         showAllLayers();
         // TODO ...
-        console.log('showOpticalLayer()');
+        network.view.alert('showOpticalLayer() callback');
     }
 
     // ==============================
@@ -279,11 +297,6 @@
         });
     }
 
-    function establishWebSocket() {
-        // TODO: establish a real web-socket
-        // NOTE, for now, we are using the 'Q' key to artificially inject
-        //       "events" from the server.
-    }
 
     // ==============================
     // Event handlers for server-pushed events
@@ -292,7 +305,8 @@
         addDevice: addDevice,
         updateDevice: updateDevice,
         removeDevice: removeDevice,
-        addLink: addLink
+        addLink: addLink,
+        showPath: showPath
     };
 
     function addDevice(data) {
@@ -331,11 +345,14 @@
         }
     }
 
+    function showPath(data) {
+        network.view.alert(data.event + "\n" + data.payload.links.length);
+    }
+
     // ....
 
     function unknownEvent(data) {
-        // TODO: use dialog, not alert
-        alert('Unknown event type: "' + data.event + '"');
+        network.view.alert('Unknown event type: "' + data.event + '"');
     }
 
     function handleServerEvent(data) {
@@ -360,7 +377,9 @@
             lnk;
 
         if (!(srcNode && dstNode)) {
-            alert('nodes not on map');
+            // TODO: send warning message back to server on websocket
+            network.view.alert('nodes not on map for link\n\n' +
+                'src = ' + src + '\ndst = ' + dst);
             return null;
         }
 
@@ -381,6 +400,7 @@
 
     function linkWidth(w) {
         // w is number of links between nodes. Scale appropriately.
+        // TODO: use a d3.scale (linear, log, ... ?)
         return w * 1.2;
     }
 
@@ -604,6 +624,7 @@
             webSock.ws.onmessage = function(m) {
                 if (m.data) {
                     console.log(m.data);
+                    handleServerEvent(JSON.parse(m.data));
                 }
             };
 
@@ -613,7 +634,7 @@
         },
 
         send : function(text) {
-            if (text != null && text.length > 0) {
+            if (text != null) {
                 webSock._send(text);
             }
         },
@@ -621,10 +642,86 @@
         _send : function(message) {
             if (webSock.ws) {
                 webSock.ws.send(message);
+            } else {
+                network.view.alert('no web socket open');
             }
         }
 
     };
+
+    var sid = 0;
+
+    function sendMessage(evType, payload) {
+        var toSend = {
+            event: evType,
+            sid: ++sid,
+            payload: payload
+        };
+        webSock.send(JSON.stringify(toSend));
+    }
+
+
+    // ==============================
+    // Selection stuff
+
+    function selectObject(obj, el) {
+        var n,
+            meta = d3.event.sourceEvent.metaKey;
+
+        if (el) {
+            n = d3.select(el);
+        } else {
+            node.each(function(d) {
+                if (d == obj) {
+                    n = d3.select(el = this);
+                }
+            });
+        }
+        if (!n) return;
+
+        if (meta && n.classed('selected')) {
+            deselectObject(obj.id);
+            //flyinPane(null);
+            return;
+        }
+
+        if (!meta) {
+            deselectAll();
+        }
+
+        selections[obj.id] = { obj: obj, el  : el};
+        selectOrder.push(obj.id);
+
+        n.classed('selected', true);
+        //flyinPane(obj);
+    }
+
+    function deselectObject(id) {
+        var obj = selections[id];
+        if (obj) {
+            d3.select(obj.el).classed('selected', false);
+            selections[id] = null;
+            // TODO: use splice to remove element
+        }
+        //flyinPane(null);
+    }
+
+    function deselectAll() {
+        // deselect all nodes in the network...
+        node.classed('selected', false);
+        selections = {};
+        selectOrder = [];
+        //flyinPane(null);
+    }
+
+
+    $('#view').on('click', function(e) {
+        if (!$(e.target).closest('.node').length) {
+            if (!e.metaKey) {
+                deselectAll();
+            }
+        }
+    });
 
     // ==============================
     // View life-cycle callbacks
@@ -680,7 +777,7 @@
         }
 
         function selectCb(d, self) {
-            // TODO: selectObject(d, self);
+            selectObject(d, self);
         }
 
         function atDragEnd(d, self) {
@@ -688,9 +785,20 @@
             // if it is a device (not a host)
             if (d.class === 'device') {
                 d.fixed = true;
-                d3.select(self).classed('fixed', true)
-                // TODO: send new [x,y] back to server, via websocket.
+                d3.select(self).classed('fixed', true);
+                if (config.useLiveData) {
+                    tellServerCoords(d);
+                }
             }
+        }
+
+        function tellServerCoords(d) {
+            sendMessage('updateMeta', {
+                id: d.id,
+                'class': d.class,
+                x: Math.floor(d.x),
+                y: Math.floor(d.y)
+            });
         }
 
         // set up the force layout
@@ -704,7 +812,6 @@
             .on('tick', tick);
 
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
-        webSock.connect();
     }
 
     function load(view, ctx) {
@@ -715,7 +822,9 @@
         view.setRadio(btnSet);
         view.setKeys(keyDispatch);
 
-        establishWebSocket();
+        if (config.useLiveData) {
+            webSock.connect();
+        }
     }
 
     function resize(view, ctx) {

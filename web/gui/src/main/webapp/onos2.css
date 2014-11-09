@@ -32,7 +32,7 @@ div.onosView.currentView {
     display: block;
 }
 
-div#alerts {
+#alerts {
     display: none;
     position: absolute;
     z-index: 2000;
@@ -45,19 +45,26 @@ div#alerts {
     box-shadow: 4px 6px 12px #777;
 }
 
-div#alerts pre {
+#alerts pre {
     margin: 0.2em 6px;
 }
 
-div#alerts span.close {
+#alerts span.close {
     color: #6af;
     float: right;
     right: 2px;
     cursor: pointer;
 }
 
-div#alerts span.close:hover {
+#alerts span.close:hover {
     color: #fff;
+}
+
+#alerts p.footnote {
+    text-align: right;
+    font-size: 8pt;
+    margin: 8px 0 0 0;
+    color: #66d;
 }
 
 /*

@@ -67,14 +67,36 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
         @Override
         public void handle(ClusterMessage message) {
             T request = ClusterMessagingProtocol.SERIALIZER.decode(message.payload());
+            if (handler == null) {
+                // there is a slight window of time during state transition,
+                // where handler becomes null
+                for (int i = 0; i < 10; ++i) {
+                    if (handler != null) {
+                        break;
+                    }
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        log.trace("Exception", e);
+                    }
+                }
+                if (handler == null) {
+                    log.error("There was no handler for registered!");
+                    return;
+                }
+            }
             if (request.getClass().equals(PingRequest.class)) {
-                handler.ping((PingRequest) request).whenComplete(new PostExecutionTask<PingResponse>(message));
+                handler.ping((PingRequest) request)
+                    .whenComplete(new PostExecutionTask<PingResponse>(message));
             } else if (request.getClass().equals(PollRequest.class)) {
-                handler.poll((PollRequest) request).whenComplete(new PostExecutionTask<PollResponse>(message));
+                handler.poll((PollRequest) request)
+                    .whenComplete(new PostExecutionTask<PollResponse>(message));
             } else if (request.getClass().equals(SyncRequest.class)) {
-                handler.sync((SyncRequest) request).whenComplete(new PostExecutionTask<SyncResponse>(message));
+                handler.sync((SyncRequest) request)
+                    .whenComplete(new PostExecutionTask<SyncResponse>(message));
             } else if (request.getClass().equals(SubmitRequest.class)) {
-                handler.submit((SubmitRequest) request).whenComplete(new PostExecutionTask<SubmitResponse>(message));
+                handler.submit((SubmitRequest) request)
+                    .whenComplete(new PostExecutionTask<SubmitResponse>(message));
             } else {
                 throw new IllegalStateException("Unknown request type: " + request.getClass().getName());
             }
@@ -94,6 +116,7 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
                     log.error("Processing for " + message.subject() + " failed.", t);
                 } else {
                     try {
+                        log.trace("responding to {}", message.subject());
                         message.respond(ClusterMessagingProtocol.SERIALIZER.encode(response));
                     } catch (Exception e) {
                         log.error("Failed to respond to " + response.getClass().getName(), e);

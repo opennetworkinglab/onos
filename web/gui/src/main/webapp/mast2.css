@@ -23,8 +23,15 @@
 #mast {
     height: 36px;
     padding: 4px;
-    background-color: #bbb;
     vertical-align: baseline;
+}
+
+.light #mast {
+    background-color: #bbb;
+    box-shadow: 0px 2px 8px #777;
+}
+.dark #mast {
+    background-color: #444;
     box-shadow: 0px 2px 8px #777;
 }
 
@@ -35,10 +42,16 @@
 }
 
 #mast span.title {
-    color: #369;
     font-size: 14pt;
     font-style: italic;
     vertical-align: 12px;
+}
+
+.light #mast span.title {
+    color: #369;
+}
+.dark #mast span.title {
+    color: #78a;
 }
 
 #mast span.right {
@@ -50,16 +63,31 @@
 #mast span.radio {
     font-size: 10pt;
     margin: 4px 2px;
-    border: 1px dotted #222;
     padding: 1px 6px;
-    color: #eee;
     cursor: pointer;
 }
 
+.light #mast span.radio {
+    border: 1px dotted #222;
+    color: #eee;
+}
+.dark #mast span.radio {
+    border: 1px dotted #bbb;
+    color: #888;
+}
+
 #mast span.radio.active {
+    padding: 1px 6px;
+    font-weight: bold;
+}
+
+.light #mast span.radio.active {
     background-color: #bbb;
     border: 1px solid #eee;
-    padding: 1px 6px;
     color: #666;
-    font-weight: bold;
+}
+.dark #mast span.radio.active {
+    background-color: #222;
+    border: 1px solid #eee;
+    color: #aaf;
 }

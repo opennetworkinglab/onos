@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onlab.onos.store.serializers.impl;
 
 import org.onlab.onos.store.impl.MastershipBasedTimestamp;
 import org.onlab.onos.store.impl.Timestamped;
 import org.onlab.onos.store.impl.WallClockTimestamp;
+import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.util.KryoNamespace;
 
 public final class DistributedStoreSerializers {

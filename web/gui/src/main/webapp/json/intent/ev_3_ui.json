@@ -1,0 +1,7 @@
+{
+  "event": "monitorIntent",
+  "sid": 2,
+  "payload": {
+    "intentId": "0x1234"
+  }
+}

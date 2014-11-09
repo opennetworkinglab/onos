@@ -1,0 +1,7 @@
+{
+  "event": "cancelMonitorIntent",
+  "sid": 3,
+  "payload": {
+    "intentId": "0x1234"
+  }
+}

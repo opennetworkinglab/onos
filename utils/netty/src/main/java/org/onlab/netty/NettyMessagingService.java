@@ -316,7 +316,11 @@ public class NettyMessagingService implements MessagingService {
                 return;
             }
             MessageHandler handler = NettyMessagingService.this.getMessageHandler(type);
-            handler.handle(message);
+            if (handler != null) {
+                handler.handle(message);
+            } else {
+                log.debug("No handler registered for {}", type);
+            }
         }
 
         @Override

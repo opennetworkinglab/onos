@@ -75,9 +75,9 @@ import org.onlab.onos.store.flow.ReplicaInfoService;
 import org.onlab.onos.store.hz.AbstractHazelcastStore;
 import org.onlab.onos.store.hz.SMap;
 import org.onlab.onos.store.serializers.DecodeTo;
-import org.onlab.onos.store.serializers.DistributedStoreSerializers;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onlab.onos.store.serializers.impl.DistributedStoreSerializers;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 

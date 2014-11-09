@@ -1,0 +1,8 @@
+{
+  "event": "addHostIntent",
+  "sid": 1,
+  "payload": {
+    "one": "hostOne",
+    "two": "hostTwo"
+  }
+}

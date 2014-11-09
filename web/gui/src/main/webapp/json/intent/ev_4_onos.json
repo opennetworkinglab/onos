@@ -1,0 +1,13 @@
+{
+  "event": "showPath",
+  "sid": 2,
+  "payload": {
+    "intentId": "0x1234",
+    "path": {
+      "links": [ "1-2", "2-3" ],
+      "traffic": true,
+      "srcLabel": "567 Mb",
+      "dstLabel": "6 Mb"
+    }
+  }
+}
