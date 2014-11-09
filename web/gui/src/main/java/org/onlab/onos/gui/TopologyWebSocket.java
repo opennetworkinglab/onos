@@ -23,7 +23,9 @@ import org.eclipse.jetty.websocket.WebSocket;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.link.LinkEvent;
@@ -37,7 +39,11 @@ import org.onlab.onos.net.topology.TopologyVertex;
 import org.onlab.osgi.ServiceDirectory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
@@ -55,6 +61,12 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage, TopologyListe
     private final ObjectMapper mapper = new ObjectMapper();
 
     private Connection connection;
+
+    // TODO: extract into an external & durable state; good enough for now and demo
+    private static Map<String, ObjectNode> metaUi = new HashMap<>();
+
+    private static final String COMPACT = "%s/%s-%s/%s";
+
 
     /**
      * Creates a new web-socket for serving data to GUI topology view.
@@ -101,8 +113,55 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage, TopologyListe
 
     @Override
     public void onMessage(String data) {
-        System.out.println("Received: " + data);
+        try {
+            ObjectNode event = (ObjectNode) mapper.reader().readTree(data);
+            String type = event.path("event").asText("unknown");
+            ObjectNode payload = (ObjectNode) event.path("payload");
+
+            switch (type) {
+                case "updateMeta":
+                    metaUi.put(payload.path("id").asText(), payload);
+                    break;
+                case "requestPath":
+                    findPath(deviceId(payload.path("one").asText()),
+                             deviceId(payload.path("two").asText()));
+                default:
+                    break;
+            }
+        } catch (IOException e) {
+            System.out.println("Received: " + data);
+        }
     }
+
+    private void findPath(DeviceId one, DeviceId two) {
+        Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
+                                                   one, two);
+        if (!paths.isEmpty()) {
+            ObjectNode payload = mapper.createObjectNode();
+            ArrayNode links = mapper.createArrayNode();
+
+            Path path = paths.iterator().next();
+            for (Link link : path.links()) {
+                links.add(compactLinkString(link));
+            }
+
+            payload.set("links", links);
+            sendMessage(envelope("showPath", payload));
+        }
+        // TODO: when no path, send a message to the client
+    }
+
+    /**
+     * Returns a compact string representing the given link.
+     *
+     * @param link infrastructure link
+     * @return formatted link string
+     */
+    public static String compactLinkString(Link link) {
+        return String.format(COMPACT, link.src().deviceId(), link.src().port(),
+                             link.dst().deviceId(), link.dst().port());
+    }
+
 
     private void sendMessage(String data) {
         try {
@@ -130,7 +189,11 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage, TopologyListe
         // Add labels, props and stuff the payload into envelope.
         payload.set("labels", labels);
         payload.set("props", props(device.annotations()));
-        payload.set("metaUi", mapper.createObjectNode());
+
+        ObjectNode meta = metaUi.get(device.id().toString());
+        if (meta != null) {
+            payload.set("metaUi", meta);
+        }
 
         String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
                 ((event.type() == DEVICE_REMOVED) ? "removeDevice" : "updateDevice");

@@ -28,7 +28,7 @@
 
     // configuration data
     var config = {
-        useLiveData: false,
+        useLiveData: true,
         debugOn: false,
         debug: {
             showNodeXY: true,
@@ -120,7 +120,9 @@
         B: toggleBg,
         L: cycleLabels,
         P: togglePorts,
-        U: unpin
+        U: unpin,
+
+        X: requestPath
     };
 
     // state variables
@@ -132,7 +134,11 @@
         },
         webSock,
         labelIdx = 0,
-        selected = {},
+
+        //selected = {},
+        selectOrder = [],
+        selections = {},
+
         highlighted = null,
         hovered = null,
         viewMode = 'showAll',
@@ -239,6 +245,14 @@
         view.alert('unpin() callback')
     }
 
+    function requestPath(view) {
+        var payload = {
+            one: selections[selectOrder[0]].obj.id,
+            two: selections[selectOrder[1]].obj.id
+        }
+        sendMessage('requestPath', payload);
+    }
+
     // ==============================
     // Radio Button Callbacks
 
@@ -287,7 +301,8 @@
         addDevice: addDevice,
         updateDevice: updateDevice,
         removeDevice: removeDevice,
-        addLink: addLink
+        addLink: addLink,
+        showPath: showPath
     };
 
     function addDevice(data) {
@@ -324,6 +339,10 @@
             updateLinks();
             network.force.start();
         }
+    }
+
+    function showPath(data) {
+        network.view.alert(data.event + "\n" + data.payload.links.length);
     }
 
     // ....
@@ -611,7 +630,7 @@
         },
 
         send : function(text) {
-            if (text != null && text.length > 0) {
+            if (text != null) {
                 webSock._send(text);
             }
         },
@@ -619,10 +638,92 @@
         _send : function(message) {
             if (webSock.ws) {
                 webSock.ws.send(message);
+            } else {
+                network.view.alert('no web socket open');
             }
         }
 
     };
+
+    var sid = 0;
+
+    function sendMessage(evType, payload) {
+        var toSend = {
+            event: evType,
+            sid: ++sid,
+            payload: payload
+        };
+        webSock.send(JSON.stringify(toSend));
+    }
+
+
+    // ==============================
+    // Selection stuff
+
+    function selectObject(obj, el) {
+        var n,
+            meta = d3.event.sourceEvent.metaKey;
+
+        if (el) {
+            n = d3.select(el);
+        } else {
+            node.each(function(d) {
+                if (d == obj) {
+                    n = d3.select(el = this);
+                }
+            });
+        }
+        if (!n) return;
+
+        if (meta && n.classed('selected')) {
+            deselectObject(obj.id);
+            //flyinPane(null);
+            return;
+        }
+
+        if (!meta) {
+            deselectAll();
+        }
+
+        // TODO: allow for mutli selections
+        var selected = {
+            obj : obj,
+            el  : el
+        };
+
+        selections[obj.id] = selected;
+        selectOrder.push(obj.id);
+
+        n.classed('selected', true);
+        //flyinPane(obj);
+    }
+
+    function deselectObject(id) {
+        var obj = selections[id];
+        if (obj) {
+            d3.select(obj.el).classed('selected', false);
+            selections[id] = null;
+            // TODO: use splice to remove element
+        }
+        //flyinPane(null);
+    }
+
+    function deselectAll() {
+        // deselect all nodes in the network...
+        node.classed('selected', false);
+        selections = {};
+        selectOrder = [];
+        //flyinPane(null);
+    }
+
+
+    $('#view').on('click', function(e) {
+        if (!$(e.target).closest('.node').length) {
+            if (!e.metaKey) {
+                deselectAll();
+            }
+        }
+    });
 
     // ==============================
     // View life-cycle callbacks
@@ -678,7 +779,7 @@
         }
 
         function selectCb(d, self) {
-            // TODO: selectObject(d, self);
+            selectObject(d, self);
         }
 
         function atDragEnd(d, self) {
@@ -686,9 +787,19 @@
             // if it is a device (not a host)
             if (d.class === 'device') {
                 d.fixed = true;
-                d3.select(self).classed('fixed', true)
+                d3.select(self).classed('fixed', true);
+                tellServerCoords(d);
                 // TODO: send new [x,y] back to server, via websocket.
             }
+        }
+
+        function tellServerCoords(d) {
+            sendMessage('updateMeta', {
+                id: d.id,
+                'class': d.class,
+                x: d.x,
+                y: d.y
+            });
         }
 
         // set up the force layout
