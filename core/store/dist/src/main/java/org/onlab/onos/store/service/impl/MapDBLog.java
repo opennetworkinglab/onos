@@ -2,6 +2,7 @@ package org.onlab.onos.store.service.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import org.mapdb.Serializer;
 import org.mapdb.TxBlock;
 import org.mapdb.TxMaker;
 import org.onlab.onos.store.serializers.StoreSerializer;
+import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 
@@ -29,6 +31,8 @@ import com.google.common.collect.Lists;
  * MapDB based log implementation.
  */
 public class MapDBLog implements Log {
+
+    private final Logger log = getLogger(getClass());
 
     private final File dbFile;
     private TxMaker txMaker;
@@ -273,7 +277,11 @@ public class MapDBLog implements Log {
                 size.addAndGet(-1 * deletedBytes);
                 byte[] entryBytes = serializer.encode(entry);
                 byte[] existingEntry = log.put(index, entryBytes);
-                size.addAndGet(entryBytes.length - existingEntry.length);
+                if (existingEntry != null) {
+                    size.addAndGet(entryBytes.length - existingEntry.length);
+                } else {
+                    size.addAndGet(entryBytes.length);
+                }
                 db.compact();
             }
         });

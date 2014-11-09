@@ -15,14 +15,6 @@
  */
 package org.onlab.netty;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -43,6 +35,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
@@ -307,7 +307,8 @@ public class NettyMessagingService implements MessagingService {
                         futureResponse.set(message.payload());
                     } else {
                         log.warn("Received a reply for message id:[{}]. "
-                                + "But was unable to locate the request handle", message.id());
+                                + " from {}. But was unable to locate the"
+                                + " request handle", message.id(), message.sender());
                     }
                 } finally {
                     NettyMessagingService.this.responseFutures.invalidate(message.id());
