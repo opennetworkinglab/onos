@@ -1,0 +1,9 @@
+{
+  "comments": [
+    "This scenario steps through adding a host intent."
+  ],
+  "title": "Host Intent Scenario",
+  "params": {
+    "lastAuto": 0
+  }
+}
