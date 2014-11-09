@@ -352,6 +352,7 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
     private ObjectNode linkMessage(LinkEvent event) {
         Link link = event.subject();
         ObjectNode payload = mapper.createObjectNode()
+                .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
                 .put("linkWidth", 2)
                 .put("src", link.src().deviceId().toString())
