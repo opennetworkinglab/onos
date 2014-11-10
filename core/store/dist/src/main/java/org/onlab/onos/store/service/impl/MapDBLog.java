@@ -2,13 +2,16 @@ package org.onlab.onos.store.service.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 
 import net.kuujo.copycat.log.Entry;
@@ -24,8 +27,6 @@ import org.mapdb.TxBlock;
 import org.mapdb.TxMaker;
 import org.onlab.onos.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
-
-import com.google.common.collect.Lists;
 
 /**
  * MapDB based log implementation.
@@ -84,7 +85,7 @@ public class MapDBLog implements Log {
     public List<Long> appendEntries(List<Entry> entries) {
         assertIsOpen();
         checkArgument(entries != null, "expecting non-null entries");
-        final List<Long> indices = Lists.newArrayList();
+        final List<Long> indices = new ArrayList<>(entries.size());
 
         txMaker.execute(new TxBlock() {
             @Override
@@ -92,13 +93,15 @@ public class MapDBLog implements Log {
                 BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
                 long nextIndex = log.isEmpty() ? 1 : log.lastKey() + 1;
+                long addedBytes = 0;
                 for (Entry entry : entries) {
                     byte[] entryBytes = serializer.encode(entry);
                     log.put(nextIndex, entryBytes);
-                    size.addAndGet(entryBytes.length);
+                    addedBytes += entryBytes.length;
                     indices.add(nextIndex);
                     nextIndex++;
                 }
+                size.addAndGet(addedBytes);
             }
         });
 
@@ -236,12 +239,15 @@ public class MapDBLog implements Log {
             public void tx(DB db) {
                 BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
-                long startIndex = index + 1;
-                long endIndex = log.lastKey();
-                for (long i = startIndex; i <= endIndex; ++i) {
-                    byte[] entryBytes = log.remove(i);
-                    size.addAndGet(-1L * entryBytes.length);
+                long removedBytes = 0;
+                ConcurrentNavigableMap<Long, byte[]> tailMap = log.tailMap(index, false);
+                Iterator<Map.Entry<Long, byte[]>> it = tailMap.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<Long, byte[]> entry = it.next();
+                    removedBytes += entry.getValue().length;
+                    it.remove();
                 }
+                size.addAndGet(-removedBytes);
             }
         });
     }
@@ -273,9 +279,16 @@ public class MapDBLog implements Log {
                 BTreeMap<Long, byte[]> log = getLogMap(db);
                 Atomic.Long size = db.getAtomicLong(SIZE_FIELD_NAME);
                 ConcurrentNavigableMap<Long, byte[]> headMap = log.headMap(index);
-                long deletedBytes = headMap.keySet().stream().mapToLong(i -> log.remove(i).length).sum();
-                size.addAndGet(-1 * deletedBytes);
-                byte[] entryBytes = serializer.encode(entry);
+                Iterator<Map.Entry<Long, byte[]>> it = headMap.entrySet().iterator();
+
+                long deletedBytes = 0;
+                while (it.hasNext()) {
+                    Map.Entry<Long, byte[]> e = it.next();
+                    deletedBytes += e.getValue().length;
+                    it.remove();
+                }
+                size.addAndGet(-deletedBytes);
+                byte[] entryBytes = verifyNotNull(serializer.encode(entry));
                 byte[] existingEntry = log.put(index, entryBytes);
                 if (existingEntry != null) {
                     size.addAndGet(entryBytes.length - existingEntry.length);

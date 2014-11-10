@@ -132,8 +132,21 @@
             links: [],
             lookup: {}
         },
+        scenario = {
+            evDir: 'json/ev/',
+            evScenario: '/scenario.json',
+            evPrefix: '/ev_',
+            evOnos: '_onos.json',
+            evUi: '_ui.json',
+            ctx: null,
+            params: {},
+            evNumber: 0,
+            view: null,
+            debug: false
+        },
         webSock,
-        labelIdx = 0,
+        deviceLabelIndex = 0,
+        hostLabelIndex = 0,
 
         selectOrder = [],
         selections = {},
@@ -155,10 +168,6 @@
     // ==============================
     // For Debugging / Development
 
-    var eventPrefix = 'json/eventTest_',
-        eventNumber = 0,
-        alertNumber = 0;
-
     function note(label, msg) {
         console.log('NOTE: ' + label + ': ' + msg);
     }
@@ -175,32 +184,71 @@
         view.alert('test');
     }
 
-    function injectTestEvent(view) {
+    function abortIfLive() {
         if (config.useLiveData) {
-            view.alert("Sorry, currently using live data..");
-            return;
+            scenario.view.alert("Sorry, currently using live data..");
+            return true;
         }
+        return false;
+    }
 
-        eventNumber++;
-        var eventUrl = eventPrefix + eventNumber + '.json';
+    function testDebug(msg) {
+        if (scenario.debug) {
+            scenario.view.alert(msg);
+        }
+    }
 
-        d3.json(eventUrl, function(err, data) {
+    function injectTestEvent(view) {
+        if (abortIfLive()) { return; }
+        var sc = scenario,
+            evn = ++sc.evNumber,
+            pfx = sc.evDir + sc.ctx + sc.evPrefix + evn,
+            onosUrl = pfx + sc.evOnos,
+            uiUrl = pfx + sc.evUi;
+
+        tryOnosEvent(onosUrl, uiUrl);
+    }
+
+    // TODO: tryOnosEvent/tryUiEvent folded into recursive function.
+    function tryOnosEvent(onosUrl, uiUrl) {
+        var v = scenario.view;
+        d3.json(onosUrl, function(err, data) {
             if (err) {
-                view.dataLoadError(err, eventUrl);
+                if (err.status === 404) {
+                    tryUiEvent(uiUrl);
+                } else {
+                    v.alert('non-404 error:\n\n' + onosUrl + '\n\n' + err);
+                }
             } else {
+                testDebug('loaded: ' + onosUrl);
                 handleServerEvent(data);
             }
         });
     }
 
-    function injectStartupEvents(view) {
-        if (config.useLiveData) {
-            view.alert("Sorry, currently using live data..");
-            return;
-        }
+    function tryUiEvent(uiUrl) {
+        var v = scenario.view;
+        d3.json(uiUrl, function(err, data) {
+            if (err) {
+                v.alert('Error:\n\n' + uiUrl + '\n\n' +
+                        err.status + ': ' + err.statusText);
+            } else {
+                testDebug('loaded: ' + uiUrl);
+                handleUiEvent(data);
+            }
+        });
+    }
 
-        var lastStartupEvent = 32;
-        while (eventNumber < lastStartupEvent) {
+    function handleUiEvent(data) {
+        testDebug('handleUiEvent(): ' + data.event);
+        // TODO:
+    }
+
+    function injectStartupEvents(view) {
+        var last = scenario.params.lastAuto || 0;
+        if (abortIfLive()) { return; }
+
+        while (scenario.evNumber < last) {
             injectTestEvent(view);
         }
     }
@@ -211,14 +259,16 @@
     }
 
     function cycleLabels() {
-        labelIdx = (labelIdx === network.deviceLabelCount - 1) ? 0 : labelIdx + 1;
+        deviceLabelIndex = (deviceLabelIndex === network.deviceLabelCount - 1) ? 0 : deviceLabelIndex + 1;
 
         function niceLabel(label) {
             return (label && label.trim()) ? label : '.';
         }
 
         network.nodes.forEach(function (d) {
-            var idx = (labelIdx < d.labels.length) ? labelIdx : 0,
+            if (d.class !== 'device') { return; }
+
+            var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0,
                 node = d3.select('#' + safeId(d.id)),
                 box;
 
@@ -303,9 +353,14 @@
 
     var eventDispatch = {
         addDevice: addDevice,
-        updateDevice: updateDevice,
-        removeDevice: removeDevice,
+        updateDevice: stillToImplement,
+        removeDevice: stillToImplement,
         addLink: addLink,
+        updateLink: stillToImplement,
+        removeLink: stillToImplement,
+        addHost: addHost,
+        updateHost: stillToImplement,
+        removeHost: stillToImplement,
         showPath: showPath
     };
 
@@ -320,18 +375,6 @@
         network.force.start();
     }
 
-    function updateDevice(data) {
-        var device = data.payload;
-        note('updateDevice', device.id);
-
-    }
-
-    function removeDevice(data) {
-        var device = data.payload;
-        note('removeDevice', device.id);
-
-    }
-
     function addLink(data) {
         var link = data.payload,
             lnk = createLink(link);
@@ -340,16 +383,57 @@
             note('addLink', lnk.id);
 
             network.links.push(lnk);
+            network.lookup[lnk.id] = lnk;
             updateLinks();
             network.force.start();
         }
     }
 
-    function showPath(data) {
-        network.view.alert(data.event + "\n" + data.payload.links.length);
+    function addHost(data) {
+        var host = data.payload,
+            node = createHostNode(host),
+            lnk;
+
+        note('addHost', node.id);
+        network.nodes.push(node);
+        network.lookup[host.id] = node;
+        updateNodes();
+
+        lnk = createHostLink(host);
+        if (lnk) {
+            network.links.push(lnk);
+            network.lookup[host.ingress] = lnk;
+            network.lookup[host.egress] = lnk;
+            updateLinks();
+        }
+        network.force.start();
     }
 
-    // ....
+    function showPath(data) {
+        var links = data.payload.links,
+            s = [ data.event + "\n" + links.length ];
+        links.forEach(function (d, i) {
+            s.push(d);
+        });
+        network.view.alert(s.join('\n'));
+
+        links.forEach(function (d, i) {
+            var link = network.lookup[d];
+            if (link) {
+                d3.select('#' + link.svgId).classed('showPath', true);
+            }
+        });
+
+        // TODO: add selection-highlite lines to links
+    }
+
+    // ...............................
+
+    function stillToImplement(data) {
+        var p = data.payload;
+        note(data.event, p.id);
+        //network.view.alert('Not yet implemented: "' + data.event + '"');
+    }
 
     function unknownEvent(data) {
         network.view.alert('Unknown event type: "' + data.event + '"');
@@ -367,10 +451,42 @@
         return 'translate(' + x + ',' + y + ')';
     }
 
+    function createHostLink(host) {
+        var src = host.id,
+            dst = host.cp.device,
+            id = host.id,
+            srcNode = network.lookup[src],
+            dstNode = network.lookup[dst],
+            lnk;
+
+        if (!dstNode) {
+            // TODO: send warning message back to server on websocket
+            network.view.alert('switch not on map for link\n\n' +
+            'src = ' + src + '\ndst = ' + dst);
+            return null;
+        }
+
+        lnk = {
+            svgId: safeId(src) + '-' + safeId(dst),
+            id: id,
+            source: srcNode,
+            target: dstNode,
+            class: 'link',
+            svgClass: 'link hostLink',
+            x1: srcNode.x,
+            y1: srcNode.y,
+            x2: dstNode.x,
+            y2: dstNode.y,
+            width: 1
+        };
+        return lnk;
+    }
+
     function createLink(link) {
         var type = link.type,
             src = link.src,
             dst = link.dst,
+            id = link.id,
             w = link.linkWidth,
             srcNode = network.lookup[src],
             dstNode = network.lookup[dst],
@@ -384,7 +500,8 @@
         }
 
         lnk = {
-                id: safeId(src) + '~' + safeId(dst),
+                svgId: safeId(src) + '-' + safeId(dst),
+                id: id,
                 source: srcNode,
                 target: dstNode,
                 class: 'link',
@@ -415,7 +532,7 @@
         var entering = link.enter()
             .append('line')
             .attr({
-                id: function (d) { return d.id; },
+                id: function (d) { return d.svgId; },
                 class: function (d) { return d.svgClass; },
                 x1: function (d) { return d.x1; },
                 y1: function (d) { return d.y1; },
@@ -433,6 +550,19 @@
         // augment links
         // TODO: add src/dst port labels etc.
 
+
+        // operate on both existing and new links, if necessary
+        //link .foo() .bar() ...
+
+        // operate on exiting links:
+        // TODO: figure out how to remove the node 'g' AND its children
+        link.exit()
+            .transition()
+            .duration(750)
+            .attr({
+                opacity: 0
+            })
+            .remove();
     }
 
     function createDeviceNode(device) {
@@ -447,6 +577,22 @@
 
         // cache label array length
         network.deviceLabelCount = device.labels.length;
+
+        return node;
+    }
+
+    function createHostNode(host) {
+        // start with the object as is
+        var node = host;
+
+        // Augment as needed...
+        node.class = 'host';
+        node.svgClass = 'node host';
+        // TODO: consider placing near its switch, if [x,y] not defined
+        positionNode(node);
+
+        // cache label array length
+        network.hostLabelCount = host.labels.length;
 
         return node;
     }
@@ -525,7 +671,7 @@
         entering.filter('.device').each(function (d) {
             var node = d3.select(this),
                 icon = iconUrl(d),
-                idx = (labelIdx < d.labels.length) ? labelIdx : 0,
+                idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0,
                 box;
 
             node.append('rect')
@@ -568,6 +714,32 @@
             }
         });
 
+        // augment host nodes...
+        entering.filter('.host').each(function (d) {
+            var node = d3.select(this),
+                idx = (hostLabelIndex < d.labels.length) ? hostLabelIndex : 0,
+                box;
+
+            node.append('circle')
+                .attr('r', 8);     // TODO: define host circle radius
+
+            // TODO: are we attaching labels to hosts?
+            node.append('text')
+                .text(d.labels[idx])
+                .attr('dy', '1.1em');
+
+            // debug function to show the modelled x,y coordinates of nodes...
+            if (debug('showNodeXY')) {
+                node.select('circle').attr('fill-opacity', 0.5);
+                node.append('circle')
+                    .attr({
+                        class: 'debug',
+                        cx: 0,
+                        cy: 0,
+                        r: '3px'
+                    });
+            }
+        });
 
         // operate on both existing and new nodes, if necessary
         //node .foo() .bar() ...
@@ -618,7 +790,6 @@
             webSock.ws = new WebSocket(webSockUrl());
 
             webSock.ws.onopen = function() {
-                webSock._send("Hi there!");
             };
 
             webSock.ws.onmessage = function(m) {
@@ -643,7 +814,7 @@
             if (webSock.ws) {
                 webSock.ws.send(message);
             } else {
-                network.view.alert('no web socket open');
+                network.view.alert('no web socket open\n\n' + message);
             }
         }
 
@@ -714,7 +885,7 @@
         //flyinPane(null);
     }
 
-
+    // TODO: this click handler does not get unloaded when the view does
     $('#view').on('click', function(e) {
         if (!$(e.target).closest('.node').length) {
             if (!e.metaKey) {
@@ -722,6 +893,33 @@
             }
         }
     });
+
+
+    function prepareScenario(view, ctx, dbg) {
+        var sc = scenario,
+            urlSc = sc.evDir + ctx + sc.evScenario;
+
+        if (!ctx) {
+            view.alert("No scenario specified (null ctx)");
+            return;
+        }
+
+        sc.view = view;
+        sc.ctx = ctx;
+        sc.debug = dbg;
+        sc.evNumber = 0;
+
+        d3.json(urlSc, function(err, data) {
+            var p = data && data.params || {};
+            if (err) {
+                view.alert('No scenario found:\n\n' + urlSc + '\n\n' + err);
+            } else {
+                sc.params = p;
+                view.alert("Scenario loaded: " + ctx + '\n\n' + data.title);
+            }
+        });
+
+    }
 
     // ==============================
     // View life-cycle callbacks
@@ -767,10 +965,12 @@
         node = nodeG.selectAll('.node');
 
         function ldist(d) {
-            return fcfg.linkDistance[d.class] || 150;
+            return 2 * 30;
+            //return fcfg.linkDistance[d.class] || 150;
         }
         function lstrg(d) {
-            return fcfg.linkStrength[d.class] || 1;
+            return 2 * 0.6;
+            //return fcfg.linkStrength[d.class] || 1;
         }
         function lchrg(d) {
             return fcfg.charge[d.class] || -200;
@@ -781,14 +981,11 @@
         }
 
         function atDragEnd(d, self) {
-            // once we've finished moving, pin the node in position,
-            // if it is a device (not a host)
-            if (d.class === 'device') {
-                d.fixed = true;
-                d3.select(self).classed('fixed', true);
-                if (config.useLiveData) {
-                    tellServerCoords(d);
-                }
+            // once we've finished moving, pin the node in position
+            d.fixed = true;
+            d3.select(self).classed('fixed', true);
+            if (config.useLiveData) {
+                tellServerCoords(d);
             }
         }
 
@@ -806,17 +1003,34 @@
             .size(forceDim)
             .nodes(network.nodes)
             .links(network.links)
-            .charge(lchrg)
+            .gravity(0.3)
+            .charge(-15000)
+            .friction(0.1)
+            //.charge(lchrg)
             .linkDistance(ldist)
             .linkStrength(lstrg)
             .on('tick', tick);
 
+            // TVUE
+            //.gravity(0.3)
+            //.charge(-15000)
+            //.friction(0.1)
+            //.linkDistance(function(d) { return d.value * 30; })
+            //.linkStrength(function(d) { return d.value * 0.6; })
+            //.size([w, h])
+            //.start();
+
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
     }
 
-    function load(view, ctx) {
+    function load(view, ctx, flags) {
         // cache the view token, so network topo functions can access it
         network.view = view;
+        config.useLiveData = !flags.local;
+
+        if (!config.useLiveData) {
+            prepareScenario(view, ctx, flags.debug);
+        }
 
         // set our radio buttons and key bindings
         view.setRadio(btnSet);

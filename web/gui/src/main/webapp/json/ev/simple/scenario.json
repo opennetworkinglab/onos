@@ -1,0 +1,9 @@
+{
+  "comments": [
+    "Add two devices and one link (auto), and two hosts."
+  ],
+  "title": "Simple Startup Scenario",
+  "params": {
+    "lastAuto": 0
+  }
+}

@@ -29,8 +29,8 @@ endif
 if ( ! $?KARAF_VERSION ) then
     setenv KARAF_VERSION 3.0.2
 endif
-if ( ! $?KARAF ) then
-    setenv KARAF $HOME/Applications/apache-karaf-$KARAF_VERSION
+if ( ! $?KARAF_HOME ) then
+    setenv KARAF_HOME $HOME/Applications/apache-karaf-$KARAF_VERSION
 endif
 setenv KARAF_LOG $KARAF/data/log/karaf.log
 

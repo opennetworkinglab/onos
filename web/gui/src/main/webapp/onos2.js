@@ -52,6 +52,7 @@
             current = {
                 view: null,
                 ctx: '',
+                flags: {},
                 theme: settings.theme
             },
             built = false,
@@ -110,6 +111,7 @@
         function doError(msg) {
             errorCount++;
             console.error(msg);
+            doAlert(msg);
         }
 
         function trace(msg) {
@@ -140,7 +142,7 @@
 
             t = parseHash(hash);
             if (!t || !t.vid) {
-                doError('Unable to parse target hash: ' + hash);
+                doError('Unable to parse target hash: "' + hash + '"');
             }
 
             view = views[t.vid];
@@ -160,32 +162,71 @@
 
         function parseHash(s) {
             // extract navigation coordinates from the supplied string
-            // "vid,ctx" --> { vid:vid, ctx:ctx }
+            // "vid,ctx?flag1,flag2" --> { vid:vid, ctx:ctx, flags:{...} }
             traceFn('parseHash', s);
 
-            var m = /^[#]{0,1}(\S+),(\S*)$/.exec(s);
+            // look for use of flags, first
+            var vidctx,
+                vid,
+                ctx,
+                flags,
+                flagMap,
+                m;
+
+            // RE that includes flags ('?flag1,flag2')
+            m = /^[#]{0,1}(.+)\?(.+)$/.exec(s);
             if (m) {
-                return { vid: m[1], ctx: m[2] };
+                vidctx = m[1];
+                flags = m[2];
+                flagMap = {};
+            } else {
+                // no flags
+                m = /^[#]{0,1}((.+)(,.+)*)$/.exec(s);
+                if (m) {
+                    vidctx = m[1];
+                } else {
+                    // bad hash
+                    return null;
+                }
             }
 
-            m = /^[#]{0,1}(\S+)$/.exec(s);
-            return m ? { vid: m[1] } : null;
+            vidctx = vidctx.split(',');
+            vid = vidctx[0];
+            ctx = vidctx[1];
+            if (flags) {
+                flags.split(',').forEach(function (f) {
+                    flagMap[f.trim()] = true;
+                });
+            }
+
+            return {
+                vid: vid.trim(),
+                ctx: ctx ? ctx.trim() : '',
+                flags: flagMap
+            };
+
         }
 
-        function makeHash(t, ctx) {
+        function makeHash(t, ctx, flags) {
             traceFn('makeHash');
-            // make a hash string from the given navigation coordinates.
+            // make a hash string from the given navigation coordinates,
+            // and optional flags map.
             // if t is not an object, then it is a vid
             var h = t,
-                c = ctx || '';
+                c = ctx || '',
+                f = $.isPlainObject(flags) ? flags : null;
 
             if ($.isPlainObject(t)) {
                 h = t.vid;
                 c = t.ctx || '';
+                f = t.flags || null;
             }
 
             if (c) {
                 h += ',' + c;
+            }
+            if (f) {
+                h += '?' + d3.map(f).keys().join(',');
             }
             trace('hash = "' + h + '"');
             return h;
@@ -244,6 +285,9 @@
             // set the specified view as current, while invoking the
             // appropriate life-cycle callbacks
 
+            // first, we'll start by closing the alerts pane, if open
+            closeAlerts();
+
             // if there is a current view, and it is not the same as
             // the incoming view, then unload it...
             if (current.view && (current.view.vid !== view.vid)) {
@@ -258,10 +302,11 @@
             // cache new view and context
             current.view = view;
             current.ctx = t.ctx || '';
+            current.flags = t.flags || {};
 
             // preload is called only once, after the view is in the DOM
             if (!view.preloaded) {
-                view.preload(current.ctx);
+                view.preload(current.ctx, current.flags);
                 view.preloaded = true;
             }
 
@@ -269,7 +314,7 @@
             view.reset();
 
             // load the view
-            view.load(current.ctx);
+            view.load(current.ctx, current.flags);
         }
 
         // generate 'unique' id by prefixing view id
@@ -454,7 +499,7 @@
             d3.selectAll('.onosView').call(setViewDimensions);
             // allow current view to react to resize event...
             if (current.view) {
-                current.view.resize(current.ctx);
+                current.view.resize(current.ctx, current.flags);
             }
         }
 
@@ -521,13 +566,13 @@
                 }
             },
 
-            preload: function (ctx) {
+            preload: function (ctx, flags) {
                 var c = ctx || '',
                     fn = isF(this.cb.preload);
                 traceFn('View.preload', this.vid + ', ' + c);
                 if (fn) {
                     trace('PRELOAD cb for ' + this.vid);
-                    fn(this.token(), c);
+                    fn(this.token(), c, flags);
                 }
             },
 
@@ -544,15 +589,14 @@
                 }
             },
 
-            load: function (ctx) {
+            load: function (ctx, flags) {
                 var c = ctx || '',
                     fn = isF(this.cb.load);
                 traceFn('View.load', this.vid + ', ' + c);
                 this.$div.classed('currentView', true);
-                // TODO: add radio button set, if needed
                 if (fn) {
                     trace('LOAD cb for ' + this.vid);
-                    fn(this.token(), c);
+                    fn(this.token(), c, flags);
                 }
             },
 
@@ -560,14 +604,13 @@
                 var fn = isF(this.cb.unload);
                 traceFn('View.unload', this.vid);
                 this.$div.classed('currentView', false);
-                // TODO: remove radio button set, if needed
                 if (fn) {
                     trace('UNLOAD cb for ' + this.vid);
                     fn(this.token());
                 }
             },
 
-            resize: function (ctx) {
+            resize: function (ctx, flags) {
                 var c = ctx || '',
                     fn = isF(this.cb.resize),
                     w = this.width(),
@@ -576,7 +619,7 @@
                         ' [' + w + 'x' + h + ']');
                 if (fn) {
                     trace('RESIZE cb for ' + this.vid);
-                    fn(this.token(), c);
+                    fn(this.token(), c, flags);
                 }
             },
 

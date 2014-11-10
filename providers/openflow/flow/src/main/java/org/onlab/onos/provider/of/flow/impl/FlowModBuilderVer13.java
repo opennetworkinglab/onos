@@ -139,7 +139,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setXid(cookie)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
+                //.setActions(actions) //FIXME do we want to send actions in flowdel?
                 //.setInstructions(Collections.singletonList(writeActions))
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
