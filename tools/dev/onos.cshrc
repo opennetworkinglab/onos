@@ -32,10 +32,10 @@ endif
 if ( ! $?KARAF_HOME ) then
     setenv KARAF_HOME $HOME/Applications/apache-karaf-$KARAF_VERSION
 endif
-setenv KARAF_LOG $KARAF/data/log/karaf.log
+setenv KARAF_LOG $KARAF_HOME/data/log/karaf.log
 
 alias onos-setup-cell ' ( env ONOS_CELL=\!^ $ONOS_ROOT/tools/test/bin/onos-show-cell \!^ ) && setenv ONOS_CELL \!^'
 
 set path=( $path $ONOS_ROOT/tools/dev/bin $ONOS_ROOT/tools/test/bin )
 set path=( $path $ONOS_ROOT/tools/build )
-set path=( $path $KARAF/bin )
+set path=( $path $KARAF_HOME/bin )
