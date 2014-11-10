@@ -16,7 +16,11 @@
 package org.onlab.onos.store.intent.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.hazelcast.core.EntryAdapter;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.Member;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -87,6 +91,8 @@ public class DistributedIntentStore
         // TODO: disable near cache, disable read from backup for this IMap
         IMap<byte[], byte[]> rawStates = super.theInstance.getMap("intent-states");
         states = new SMap<>(rawStates , super.serializer);
+        EntryListener<IntentId, IntentState> listener = new RemoteIntentStateListener();
+        states.addEntryListener(listener , false);
 
         transientStates.clear();
 
@@ -213,5 +219,21 @@ public class DistributedIntentStore
         installable.remove(intentId);
     }
 
-    // FIXME add handler to react to remote event
+    public final class RemoteIntentStateListener extends EntryAdapter<IntentId, IntentState> {
+
+        @Override
+        public void onEntryEvent(EntryEvent<IntentId, IntentState> event) {
+            final Member myself = theInstance.getCluster().getLocalMember();
+            if (!myself.equals(event.getMember())) {
+                // When Intent state was modified by remote node,
+                // clear local transient state.
+                final IntentId intentId = event.getKey();
+                IntentState oldState = transientStates.remove(intentId);
+                if (oldState != null) {
+                    log.debug("{} state updated remotely, removing transient state {}",
+                              intentId, oldState);
+                }
+            }
+        }
+    }
 }
