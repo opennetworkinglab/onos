@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.intent.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -30,6 +31,7 @@ import org.onlab.onos.net.topology.LinkWeight;
 import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.TopologyEdge;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -113,12 +115,16 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
          * @param constraints path constraints
          */
         ConstraintBasedLinkWeight(List<Constraint> constraints) {
-            this.constraints = constraints;
+            if (constraints == null) {
+                this.constraints = Collections.emptyList();
+            } else {
+                this.constraints = ImmutableList.copyOf(constraints);
+            }
         }
 
         @Override
         public double weight(TopologyEdge edge) {
-            if (constraints == null || !constraints.iterator().hasNext()) {
+            if (!constraints.iterator().hasNext()) {
                 return 1.0;
             }
 
