@@ -31,7 +31,6 @@ import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.DefaultGraphDescription;
 import org.onlab.onos.net.topology.GraphDescription;
 import org.onlab.onos.net.topology.TopologyProvider;
@@ -45,6 +44,7 @@ import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.onos.core.CoreService.CORE_PROVIDER_ID;
 import static org.onlab.onos.net.device.DeviceEvent.Type.*;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -93,7 +93,7 @@ public class DefaultTopologyProvider extends AbstractProvider
      * Creates a provider with the supplier identifier.
      */
     public DefaultTopologyProvider() {
-        super(new ProviderId("core", "org.onlab.onos.provider.topology"));
+        super(CORE_PROVIDER_ID);
     }
 
     @Activate

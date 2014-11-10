@@ -48,6 +48,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.collect.ImmutableSetMultimap.Builder;
 import static org.onlab.graph.GraphPathSearch.Result;
 import static org.onlab.graph.TarjanGraphSearch.SCCResult;
+import static org.onlab.onos.core.CoreService.CORE_PROVIDER_ID;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 
 /**
@@ -60,8 +61,6 @@ public class DefaultTopology extends AbstractModel implements Topology {
             new DijkstraGraphSearch<>();
     private static final TarjanGraphSearch<TopologyVertex, TopologyEdge> TARJAN =
             new TarjanGraphSearch<>();
-
-    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.net");
 
     private final long time;
     private final TopologyGraph graph;
@@ -295,7 +294,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         for (TopologyEdge edge : path.edges()) {
             links.add(edge.link());
         }
-        return new DefaultPath(PID, links, path.cost());
+        return new DefaultPath(CORE_PROVIDER_ID, links, path.cost());
     }
 
 

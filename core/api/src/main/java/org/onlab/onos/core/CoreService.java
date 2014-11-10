@@ -15,12 +15,17 @@
  */
 package org.onlab.onos.core;
 
+import org.onlab.onos.net.provider.ProviderId;
+
 import java.util.Set;
 
 /**
  * Service for interacting with the core system of the controller.
  */
 public interface CoreService {
+
+    public static final ProviderId CORE_PROVIDER_ID =
+            new ProviderId("core", "org.onlab.onos.core");
 
     /**
      * Returns the product version.
