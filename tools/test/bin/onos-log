@@ -24,7 +24,7 @@ if [ $less -eq 1 ]; then
     ssh -t $remote "less $LOG"
 else
     trap "ssh $remote 'ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | xargs kill'" EXIT
-    ssh $remote "
+    ssh -t $remote "
     while true; do
         echo ==================================================================
         [ ! -f $LOG ] && sleep 2 && continue

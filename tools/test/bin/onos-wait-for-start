@@ -8,7 +8,7 @@
 
 remote=$ONOS_USER@${1:-$OCI}
 
-ssh $remote "
+ssh -t $remote "
     # Wait until we reach the run-level 100
     running=""
     while [ -z \$running ]; do
