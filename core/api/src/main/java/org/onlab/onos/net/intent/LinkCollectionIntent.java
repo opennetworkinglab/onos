@@ -22,6 +22,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -50,8 +51,30 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 TrafficTreatment treatment,
                                 Set<Link> links,
                                 ConnectPoint egressPoint) {
-        super(id(LinkCollectionIntent.class, selector, treatment, links, egressPoint),
-              appId, resources(links), selector, treatment);
+        this(appId, selector , treatment, links, egressPoint, null);
+    }
+
+    /**
+     * Creates a new actionable intent capable of funneling the selected
+     * traffic along the specified convergent tree and out the given egress point
+     * satisfying the specified constraints.
+     *
+     * @param appId       application identifier
+     * @param selector    traffic match
+     * @param treatment   action
+     * @param links       traversed links
+     * @param egressPoint egress point
+     * @param constraints optional list of constraints
+     * @throws NullPointerException {@code path} is null
+     */
+    public LinkCollectionIntent(ApplicationId appId,
+                                TrafficSelector selector,
+                                TrafficTreatment treatment,
+                                Set<Link> links,
+                                ConnectPoint egressPoint,
+                                List<Constraint> constraints) {
+        super(id(LinkCollectionIntent.class, selector, treatment, links, egressPoint, constraints),
+                appId, resources(links), selector, treatment, constraints);
         this.links = links;
         this.egressPoint = egressPoint;
     }
