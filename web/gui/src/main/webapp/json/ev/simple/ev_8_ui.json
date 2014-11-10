@@ -1,0 +1,6 @@
+{
+  "event": "doUiThing",
+  "payload": {
+    "id": "xyyzy"
+  }
+}

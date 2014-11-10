@@ -1,6 +1,7 @@
 {
   "comments": [
-    "Add two devices and one link (auto), and two hosts."
+    "Add two devices and one link (auto), and two hosts.",
+    "Then update the two hosts (with IP address labels)."
   ],
   "title": "Simple Startup Scenario",
   "params": {

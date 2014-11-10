@@ -82,18 +82,21 @@
             opt: 'img/opt.png'
         },
         force: {
-            note: 'node.class or link.class is used to differentiate',
+            note_for_links: 'link.type is used to differentiate',
             linkDistance: {
-                infra: 200,
-                host: 40
+                direct: 100,
+                optical: 120,
+                hostLink: 20
             },
             linkStrength: {
-                infra: 1.0,
-                host: 1.0
+                direct: 1.0,
+                optical: 1.0,
+                hostLink: 1.0
             },
+            note_for_nodes: 'node.class is used to differentiate',
             charge: {
-                device: -400,
-                host: -100
+                device: -8000,
+                host: -300
             },
             pad: 20,
             translate: function() {
@@ -204,39 +207,37 @@
             evn = ++sc.evNumber,
             pfx = sc.evDir + sc.ctx + sc.evPrefix + evn,
             onosUrl = pfx + sc.evOnos,
-            uiUrl = pfx + sc.evUi;
-
-        tryOnosEvent(onosUrl, uiUrl);
+            uiUrl = pfx + sc.evUi,
+            stack = [
+                { url: onosUrl, cb: handleServerEvent },
+                { url: uiUrl, cb: handleUiEvent }
+            ];
+        recurseFetchEvent(stack, evn);
     }
 
-    // TODO: tryOnosEvent/tryUiEvent folded into recursive function.
-    function tryOnosEvent(onosUrl, uiUrl) {
-        var v = scenario.view;
-        d3.json(onosUrl, function(err, data) {
+    function recurseFetchEvent(stack, evn) {
+        var v = scenario.view,
+            frame;
+        if (stack.length === 0) {
+            v.alert('Error:\n\nNo event #' + evn + ' found.');
+            return;
+        }
+        frame = stack.shift();
+
+        d3.json(frame.url, function (err, data) {
             if (err) {
                 if (err.status === 404) {
-                    tryUiEvent(uiUrl);
+                    // if we didn't find the data, try the next stack frame
+                    recurseFetchEvent(stack, evn);
                 } else {
-                    v.alert('non-404 error:\n\n' + onosUrl + '\n\n' + err);
+                    v.alert('non-404 error:\n\n' + frame.url + '\n\n' + err);
                 }
             } else {
-                testDebug('loaded: ' + onosUrl);
-                handleServerEvent(data);
+                testDebug('loaded: ' + frame.url);
+                frame.cb(data);
             }
         });
-    }
 
-    function tryUiEvent(uiUrl) {
-        var v = scenario.view;
-        d3.json(uiUrl, function(err, data) {
-            if (err) {
-                v.alert('Error:\n\n' + uiUrl + '\n\n' +
-                        err.status + ': ' + err.statusText);
-            } else {
-                testDebug('loaded: ' + uiUrl);
-                handleUiEvent(data);
-            }
-        });
     }
 
     function handleUiEvent(data) {
@@ -261,19 +262,15 @@
     function cycleLabels() {
         deviceLabelIndex = (deviceLabelIndex === network.deviceLabelCount - 1) ? 0 : deviceLabelIndex + 1;
 
-        function niceLabel(label) {
-            return (label && label.trim()) ? label : '.';
-        }
-
         network.nodes.forEach(function (d) {
             if (d.class !== 'device') { return; }
 
-            var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0,
-                node = d3.select('#' + safeId(d.id)),
+            var label = niceLabel(deviceLabel(d)),
+                node = d.el,
                 box;
 
             node.select('text')
-                .text(niceLabel(d.labels[idx]))
+                .text(label)
                 .style('opacity', 0)
                 .transition()
                 .style('opacity', 1);
@@ -359,18 +356,18 @@
         updateLink: stillToImplement,
         removeLink: stillToImplement,
         addHost: addHost,
-        updateHost: stillToImplement,
+        updateHost: updateHost,
         removeHost: stillToImplement,
         showPath: showPath
     };
 
     function addDevice(data) {
         var device = data.payload,
-            node = createDeviceNode(device);
+            nodeData = createDeviceNode(device);
         note('addDevice', device.id);
 
-        network.nodes.push(node);
-        network.lookup[node.id] = node;
+        network.nodes.push(nodeData);
+        network.lookup[nodeData.id] = nodeData;
         updateNodes();
         network.force.start();
     }
@@ -380,7 +377,7 @@
             lnk = createLink(link);
 
         if (lnk) {
-            note('addLink', lnk.id);
+            note('addLink', link.id);
 
             network.links.push(lnk);
             network.lookup[lnk.id] = lnk;
@@ -393,8 +390,8 @@
         var host = data.payload,
             node = createHostNode(host),
             lnk;
-
         note('addHost', node.id);
+
         network.nodes.push(node);
         network.lookup[host.id] = node;
         updateNodes();
@@ -409,6 +406,15 @@
         network.force.start();
     }
 
+    function updateHost(data) {
+        var host = data.payload,
+            hostData = network.lookup[host.id];
+        note('updateHost', host.id);
+
+        $.extend(hostData, host);
+        updateNodes();
+    }
+
     function showPath(data) {
         var links = data.payload.links,
             s = [ data.event + "\n" + links.length ];
@@ -420,7 +426,7 @@
         links.forEach(function (d, i) {
             var link = network.lookup[d];
             if (link) {
-                d3.select('#' + link.svgId).classed('showPath', true);
+                link.el.classed('showPath', true);
             }
         });
 
@@ -432,7 +438,7 @@
     function stillToImplement(data) {
         var p = data.payload;
         note(data.event, p.id);
-        //network.view.alert('Not yet implemented: "' + data.event + '"');
+        network.view.alert('Not yet implemented: "' + data.event + '"');
     }
 
     function unknownEvent(data) {
@@ -454,7 +460,7 @@
     function createHostLink(host) {
         var src = host.id,
             dst = host.cp.device,
-            id = host.id,
+            id = host.ingress,
             srcNode = network.lookup[src],
             dstNode = network.lookup[dst],
             lnk;
@@ -466,31 +472,32 @@
             return null;
         }
 
+        // Compose link ...
         lnk = {
-            svgId: safeId(src) + '-' + safeId(dst),
             id: id,
             source: srcNode,
             target: dstNode,
             class: 'link',
+            type: 'hostLink',
             svgClass: 'link hostLink',
             x1: srcNode.x,
             y1: srcNode.y,
             x2: dstNode.x,
             y2: dstNode.y,
             width: 1
-        };
+        }
         return lnk;
     }
 
     function createLink(link) {
-        var type = link.type,
+        // start with the link object as is
+        var lnk = link,
+            type = link.type,
             src = link.src,
             dst = link.dst,
-            id = link.id,
             w = link.linkWidth,
             srcNode = network.lookup[src],
-            dstNode = network.lookup[dst],
-            lnk;
+            dstNode = network.lookup[dst];
 
         if (!(srcNode && dstNode)) {
             // TODO: send warning message back to server on websocket
@@ -499,19 +506,18 @@
             return null;
         }
 
-        lnk = {
-                svgId: safeId(src) + '-' + safeId(dst),
-                id: id,
-                source: srcNode,
-                target: dstNode,
-                class: 'link',
-                svgClass: type ? 'link ' + type : 'link',
-                x1: srcNode.x,
-                y1: srcNode.y,
-                x2: dstNode.x,
-                y2: dstNode.y,
-                width: w
-            };
+        // Augment as needed...
+        $.extend(lnk, {
+            source: srcNode,
+            target: dstNode,
+            class: 'link',
+            svgClass: type ? 'link ' + type : 'link',
+            x1: srcNode.x,
+            y1: srcNode.y,
+            x2: dstNode.x,
+            y2: dstNode.y,
+            width: w
+        });
         return lnk;
     }
 
@@ -532,7 +538,6 @@
         var entering = link.enter()
             .append('line')
             .attr({
-                id: function (d) { return d.svgId; },
                 class: function (d) { return d.svgClass; },
                 x1: function (d) { return d.x1; },
                 y1: function (d) { return d.y1; },
@@ -548,8 +553,13 @@
             });
 
         // augment links
-        // TODO: add src/dst port labels etc.
+        entering.each(function (d) {
+            var link = d3.select(this);
+            // provide ref to element selection from backing data....
+            d.el = link;
 
+            // TODO: add src/dst port labels etc.
+        });
 
         // operate on both existing and new links, if necessary
         //link .foo() .bar() ...
@@ -577,7 +587,6 @@
 
         // cache label array length
         network.deviceLabelCount = device.labels.length;
-
         return node;
     }
 
@@ -587,13 +596,16 @@
 
         // Augment as needed...
         node.class = 'host';
+        if (!node.type) {
+            // TODO: perhaps type would be: {phone, tablet, laptop, endstation} ?
+            node.type = 'endstation';
+        }
         node.svgClass = 'node host';
         // TODO: consider placing near its switch, if [x,y] not defined
         positionNode(node);
 
         // cache label array length
         network.hostLabelCount = host.labels.length;
-
         return node;
     }
 
@@ -645,11 +657,27 @@
         return d.fixed ? d.svgClass + ' fixed' : d.svgClass;
     }
 
+    function hostLabel(d) {
+        var idx = (hostLabelIndex < d.labels.length) ? hostLabelIndex : 0;
+        return d.labels[idx];
+    }
+    function deviceLabel(d) {
+        var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0;
+        return d.labels[idx];
+    }
+    function niceLabel(label) {
+        return (label && label.trim()) ? label : '.';
+    }
+
     function updateNodes() {
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
 
         // operate on existing nodes, if necessary
+        //  update host labels
+        node.filter('.host').select('text')
+            .text(hostLabel);
+
         //node .foo() .bar() ...
 
         // operate on entering nodes:
@@ -671,8 +699,11 @@
         entering.filter('.device').each(function (d) {
             var node = d3.select(this),
                 icon = iconUrl(d),
-                idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0,
+                label = niceLabel(deviceLabel(d)),
                 box;
+
+            // provide ref to element from backing data....
+            d.el = node;
 
             node.append('rect')
                 .attr({
@@ -681,7 +712,7 @@
                 });
 
             node.append('text')
-                .text(d.labels[idx])
+                .text(label)
                 .attr('dy', '1.1em');
 
             box = adjustRectToFitText(node);
@@ -717,16 +748,19 @@
         // augment host nodes...
         entering.filter('.host').each(function (d) {
             var node = d3.select(this),
-                idx = (hostLabelIndex < d.labels.length) ? hostLabelIndex : 0,
                 box;
+
+            // provide ref to element from backing data....
+            d.el = node;
 
             node.append('circle')
                 .attr('r', 8);     // TODO: define host circle radius
 
             // TODO: are we attaching labels to hosts?
             node.append('text')
-                .text(d.labels[idx])
-                .attr('dy', '1.1em');
+                .text(hostLabel)
+                .attr('dy', '1.3em')
+                .attr('text-anchor', 'middle');
 
             // debug function to show the modelled x,y coordinates of nodes...
             if (debug('showNodeXY')) {
@@ -964,16 +998,15 @@
         link = linkG.selectAll('.link');
         node = nodeG.selectAll('.node');
 
+        function chrg(d) {
+            return fcfg.charge[d.class] || -12000;
+        }
         function ldist(d) {
-            return 2 * 30;
-            //return fcfg.linkDistance[d.class] || 150;
+            return fcfg.linkDistance[d.type] || 50;
         }
         function lstrg(d) {
-            return 2 * 0.6;
-            //return fcfg.linkStrength[d.class] || 1;
-        }
-        function lchrg(d) {
-            return fcfg.charge[d.class] || -200;
+            // 0.0 - 1.0
+            return fcfg.linkStrength[d.type] || 1.0;
         }
 
         function selectCb(d, self) {
@@ -1003,22 +1036,12 @@
             .size(forceDim)
             .nodes(network.nodes)
             .links(network.links)
-            .gravity(0.3)
-            .charge(-15000)
-            .friction(0.1)
-            //.charge(lchrg)
+            .gravity(0.4)
+            .friction(0.7)
+            .charge(chrg)
             .linkDistance(ldist)
             .linkStrength(lstrg)
             .on('tick', tick);
-
-            // TVUE
-            //.gravity(0.3)
-            //.charge(-15000)
-            //.friction(0.1)
-            //.linkDistance(function(d) { return d.value * 30; })
-            //.linkStrength(function(d) { return d.value * 0.6; })
-            //.size([w, h])
-            //.start();
 
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
     }

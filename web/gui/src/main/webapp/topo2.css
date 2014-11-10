@@ -53,10 +53,15 @@
     fill: #846;
 }
 
-#topo svg .node text {
-    stroke: none;
+#topo svg .node.device text {
     fill: white;
     font: 10pt sans-serif;
+    pointer-events: none;
+}
+
+#topo svg .node.host text {
+    fill: #846;
+    font: 9pt sans-serif;
     pointer-events: none;
 }
 
@@ -73,7 +78,7 @@
 
 #topo svg .link.showPath {
     stroke: #f00;
-    stroke-width: 4px;
+    stroke-width: 6px;
 }
 
 /* for debugging */

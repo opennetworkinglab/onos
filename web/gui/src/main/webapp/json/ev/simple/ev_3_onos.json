@@ -1,12 +1,13 @@
 {
   "event": "addLink",
   "payload": {
+    "id": "of:0000ffffffff0003/21-of:0000ffffffff0008/20",
+    "type": "direct",
+    "linkWidth": 2,
     "src": "of:0000ffffffff0003",
     "srcPort": "21",
     "dst": "of:0000ffffffff0008",
     "dstPort": "20",
-    "type": "infra",
-    "linkWidth": 2,
     "props" : {
       "BW": "70 G"
     }

@@ -7,7 +7,8 @@
     "labels": [
       "0000ffffffff0008",
       "FF:FF:FF:FF:00:08",
-      "sw-8"
+      "sw-8",
+      ""
     ],
     "metaUi": {
       "x": 400,
