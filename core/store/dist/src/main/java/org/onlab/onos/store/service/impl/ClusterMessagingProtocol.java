@@ -6,6 +6,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -133,6 +134,7 @@ public class ClusterMessagingProtocol
                     HashMap.class,
                     HashSet.class,
                     LinkedList.class,
+                    Collections.singletonList("").getClass(),
                     byte[].class)
             .build();
 
