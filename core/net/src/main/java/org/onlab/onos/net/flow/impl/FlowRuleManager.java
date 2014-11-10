@@ -296,7 +296,7 @@ public class FlowRuleManager
                     post(event);
                 }
             } else {
-                log.info("Removing flow rules....");
+                log.debug("Removing flow rules....");
                 removeFlowRules(flowEntry);
             }
 

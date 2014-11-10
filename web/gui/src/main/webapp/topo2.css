@@ -71,6 +71,11 @@
     opacity: .7;
 }
 
+#topo svg .link.showPath {
+    stroke: #f00;
+    stroke-width: 4px;
+}
+
 /* for debugging */
 #topo svg .node circle.debug {
     fill: white;

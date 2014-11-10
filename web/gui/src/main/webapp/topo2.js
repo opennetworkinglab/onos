@@ -383,6 +383,7 @@
             note('addLink', lnk.id);
 
             network.links.push(lnk);
+            network.lookup[lnk.id] = lnk;
             updateLinks();
             network.force.start();
         }
@@ -401,13 +402,29 @@
         lnk = createHostLink(host);
         if (lnk) {
             network.links.push(lnk);
+            network.lookup[host.ingress] = lnk;
+            network.lookup[host.egress] = lnk;
             updateLinks();
         }
         network.force.start();
     }
 
     function showPath(data) {
-        network.view.alert(data.event + "\n" + data.payload.links.length);
+        var links = data.payload.links,
+            s = [ data.event + "\n" + links.length ];
+        links.forEach(function (d, i) {
+            s.push(d);
+        });
+        network.view.alert(s.join('\n'));
+
+        links.forEach(function (d, i) {
+            var link = network.lookup[d];
+            if (link) {
+                d3.select('#' + link.svgId).classed('showPath', true);
+            }
+        });
+
+        // TODO: add selection-highlite lines to links
     }
 
     // ...............................
@@ -415,7 +432,7 @@
     function stillToImplement(data) {
         var p = data.payload;
         note(data.event, p.id);
-        network.view.alert('Not yet implemented: "' + data.event + '"');
+        //network.view.alert('Not yet implemented: "' + data.event + '"');
     }
 
     function unknownEvent(data) {
@@ -437,6 +454,7 @@
     function createHostLink(host) {
         var src = host.id,
             dst = host.cp.device,
+            id = host.id,
             srcNode = network.lookup[src],
             dstNode = network.lookup[dst],
             lnk;
@@ -449,7 +467,8 @@
         }
 
         lnk = {
-            id: safeId(src) + '~' + safeId(dst),
+            svgId: safeId(src) + '-' + safeId(dst),
+            id: id,
             source: srcNode,
             target: dstNode,
             class: 'link',
@@ -467,6 +486,7 @@
         var type = link.type,
             src = link.src,
             dst = link.dst,
+            id = link.id,
             w = link.linkWidth,
             srcNode = network.lookup[src],
             dstNode = network.lookup[dst],
@@ -480,7 +500,8 @@
         }
 
         lnk = {
-                id: safeId(src) + '~' + safeId(dst),
+                svgId: safeId(src) + '-' + safeId(dst),
+                id: id,
                 source: srcNode,
                 target: dstNode,
                 class: 'link',
@@ -511,7 +532,7 @@
         var entering = link.enter()
             .append('line')
             .attr({
-                id: function (d) { return d.id; },
+                id: function (d) { return d.svgId; },
                 class: function (d) { return d.svgClass; },
                 x1: function (d) { return d.x1; },
                 y1: function (d) { return d.y1; },
@@ -529,6 +550,19 @@
         // augment links
         // TODO: add src/dst port labels etc.
 
+
+        // operate on both existing and new links, if necessary
+        //link .foo() .bar() ...
+
+        // operate on exiting links:
+        // TODO: figure out how to remove the node 'g' AND its children
+        link.exit()
+            .transition()
+            .duration(750)
+            .attr({
+                opacity: 0
+            })
+            .remove();
     }
 
     function createDeviceNode(device) {
@@ -756,7 +790,6 @@
             webSock.ws = new WebSocket(webSockUrl());
 
             webSock.ws.onopen = function() {
-                webSock._send("Hi there!");
             };
 
             webSock.ws.onmessage = function(m) {
@@ -932,10 +965,12 @@
         node = nodeG.selectAll('.node');
 
         function ldist(d) {
-            return fcfg.linkDistance[d.class] || 150;
+            return 2 * 30;
+            //return fcfg.linkDistance[d.class] || 150;
         }
         function lstrg(d) {
-            return fcfg.linkStrength[d.class] || 1;
+            return 2 * 0.6;
+            //return fcfg.linkStrength[d.class] || 1;
         }
         function lchrg(d) {
             return fcfg.charge[d.class] || -200;
@@ -968,10 +1003,22 @@
             .size(forceDim)
             .nodes(network.nodes)
             .links(network.links)
-            .charge(lchrg)
+            .gravity(0.3)
+            .charge(-15000)
+            .friction(0.1)
+            //.charge(lchrg)
             .linkDistance(ldist)
             .linkStrength(lstrg)
             .on('tick', tick);
+
+            // TVUE
+            //.gravity(0.3)
+            //.charge(-15000)
+            //.friction(0.1)
+            //.linkDistance(function(d) { return d.value * 30; })
+            //.linkStrength(function(d) { return d.value * 0.6; })
+            //.size([w, h])
+            //.start();
 
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
     }

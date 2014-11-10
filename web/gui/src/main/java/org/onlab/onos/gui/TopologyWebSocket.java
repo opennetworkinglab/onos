@@ -20,12 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipListener;
 import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.Annotations;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultEdgeLink;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
@@ -34,28 +39,41 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.DefaultTrafficSelector;
+import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.HostToHostIntent;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentListener;
+import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.onos.net.link.LinkService;
+import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.topology.PathService;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
+import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 
@@ -64,6 +82,10 @@ import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
  */
 public class TopologyWebSocket implements WebSocket.OnTextMessage {
 
+    private static final String APP_ID = "org.onlab.onos.gui";
+    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
+
+    private final ApplicationId appId;
     private final ServiceDirectory directory;
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -74,14 +96,19 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
     private final LinkService linkService;
     private final HostService hostService;
     private final MastershipService mastershipService;
+    private final IntentService intentService;
 
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
     private final HostListener hostListener = new InternalHostListener();
     private final MastershipListener mastershipListener = new InternalMastershipListener();
+    private final IntentListener intentListener = new InternalIntentListener();
 
     // TODO: extract into an external & durable state; good enough for now and demo
-    private static Map<String, ObjectNode> metaUi = new HashMap<>();
+    private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
+
+    // Intents that are being monitored for the GUI
+    private static Map<IntentId, Long> intentsToMonitor = new ConcurrentHashMap<>();
 
     private static final String COMPACT = "%s/%s-%s/%s";
 
@@ -97,6 +124,9 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         linkService = directory.get(LinkService.class);
         hostService = directory.get(HostService.class);
         mastershipService = directory.get(MastershipService.class);
+        intentService = directory.get(IntentService.class);
+
+        appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }
 
     @Override
@@ -106,9 +136,17 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         linkService.addListener(linkListener);
         hostService.addListener(hostListener);
         mastershipService.addListener(mastershipListener);
+        intentService.addListener(intentListener);
 
         sendAllDevices();
         sendAllLinks();
+        sendAllHosts();
+    }
+
+    private void sendAllHosts() {
+        for (Host host : hostService.getHosts()) {
+            sendMessage(hostMessage(new HostEvent(HOST_ADDED, host)));
+        }
     }
 
     private void sendAllDevices() {
@@ -141,14 +179,15 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
             } else if (type.equals("updateMeta")) {
                 updateMetaInformation(event);
             } else if (type.equals("requestPath")) {
-                sendPath(event);
+                createHostIntent(event);
             } else if (type.equals("requestTraffic")) {
                 sendTraffic(event);
             } else if (type.equals("cancelTraffic")) {
                 cancelTraffic(event);
             }
-        } catch (IOException e) {
-            System.out.println("Received: " + data);
+        } catch (Exception e) {
+            System.out.println("WTF?! " + data);
+            e.printStackTrace();
         }
     }
 
@@ -250,19 +289,19 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         metaUi.put(string(payload, "id"), payload);
     }
 
-    // Sends path message.
-    private void sendPath(ObjectNode event) {
+    // Creates host-to-host intent.
+    private void createHostIntent(ObjectNode event) {
         ObjectNode payload = payload(event);
         long id = number(event, "sid");
-        DeviceId one = deviceId(string(payload, "one"));
-        DeviceId two = deviceId(string(payload, "two"));
+        // TODO: add protection against device ids and non-existent hosts.
+        HostId one = hostId(string(payload, "one"));
+        HostId two = hostId(string(payload, "two"));
 
-        ObjectNode response = findPath(one, two);
-        if (response != null) {
-            sendMessage(envelope("showPath", id, response));
-        } else {
-            sendMessage(message("warn", id, "No path found"));
-        }
+        HostToHostIntent hostIntent = new HostToHostIntent(appId, one, two,
+                                                           DefaultTrafficSelector.builder().build(),
+                                                           DefaultTrafficTreatment.builder().build());
+        intentsToMonitor.put(hostIntent.id(), number(event, "sid"));
+        intentService.submit(hostIntent);
     }
 
     // Sends traffic message.
@@ -314,8 +353,8 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
      * @return formatted link string
      */
     public static String compactLinkString(Link link) {
-        return String.format(COMPACT, link.src().deviceId(), link.src().port(),
-                             link.dst().deviceId(), link.dst().port());
+        return String.format(COMPACT, link.src().elementId(), link.src().port(),
+                             link.dst().elementId(), link.dst().port());
     }
 
 
@@ -337,11 +376,7 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         // Add labels, props and stuff the payload into envelope.
         payload.set("labels", labels);
         payload.set("props", props(device.annotations()));
-
-        ObjectNode meta = metaUi.get(device.id().toString());
-        if (meta != null) {
-            payload.set("metaUi", meta);
-        }
+        addMetaUi(device.id(), payload);
 
         String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
                 ((event.type() == DEVICE_REMOVED) ? "removeDevice" : "updateDevice");
@@ -368,11 +403,30 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
     private ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
         ObjectNode payload = mapper.createObjectNode()
-                .put("id", host.id().toString());
+                .put("id", host.id().toString())
+                .put("ingress", compactLinkString(edgeLink(host, true)))
+                .put("egress", compactLinkString(edgeLink(host, false)));
         payload.set("cp", location(mapper, host.location()));
         payload.set("labels", labels(mapper, ip(host.ipAddresses()),
                                      host.mac().toString()));
-        return payload;
+        payload.set("props", props(host.annotations()));
+        addMetaUi(host.id(), payload);
+
+        String type = (event.type() == HOST_ADDED) ? "addHost" :
+                ((event.type() == HOST_REMOVED) ? "removeHost" : "updateHost");
+        return envelope(type, 0, payload);
+    }
+
+    private DefaultEdgeLink edgeLink(Host host, boolean ingress) {
+        return new DefaultEdgeLink(PID, new ConnectPoint(host.id(), portNumber(0)),
+                                   host.location(), ingress);
+    }
+
+    private void addMetaUi(ElementId id, ObjectNode payload) {
+        ObjectNode meta = metaUi.get(id.toString());
+        if (meta != null) {
+            payload.set("metaUi", meta);
+        }
     }
 
 
@@ -466,6 +520,23 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         @Override
         public void event(MastershipEvent event) {
 
+        }
+    }
+
+    private class InternalIntentListener implements IntentListener {
+        @Override
+        public void event(IntentEvent event) {
+            Intent intent = event.subject();
+            Long sid = intentsToMonitor.get(intent.id());
+            if (sid != null) {
+                List<Intent> installable = intentService.getInstallableIntents(intent.id());
+                if (installable != null && !installable.isEmpty()) {
+                    PathIntent pathIntent = (PathIntent) installable.iterator().next();
+                    Path path = pathIntent.path();
+                    ObjectNode payload = pathMessage(path).put("intentId", intent.id().toString());
+                    sendMessage(envelope("showPath", sid, payload));
+                }
+            }
         }
     }
 }
