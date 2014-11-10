@@ -41,6 +41,8 @@ public class MapDBLog implements Log {
     private static final String LOG_NAME = "log";
     private static final String SIZE_FIELD_NAME = "size";
 
+    private int cacheSize = 256;
+
     public MapDBLog(String dbFileName, StoreSerializer serializer) {
         this.dbFile = new File(dbFileName);
         this.serializer = serializer;
@@ -50,6 +52,8 @@ public class MapDBLog implements Log {
     public void open() throws IOException {
         txMaker = DBMaker
                 .newFileDB(dbFile)
+                .cacheLRUEnable()
+                .cacheSize(cacheSize)
                 .makeTxMaker();
     }
 
