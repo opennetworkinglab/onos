@@ -27,18 +27,24 @@
         data = [ 'foo', 'bar', 'baz' ];
 
     // invoked only the first time the view is loaded
-    function preload(view, ctx) {
+    //  - used to initialize the view contents
+    function preload(view, ctx, flags) {
         // NOTE: view.$div is a D3 selection of the view's div
         list = view.$div.append('ul');
+        // ... further code to initialize the SVG view ...
+
     }
 
     // invoked just prior to loading the view
-    function reset(view) {
+    //  - used to clear the view of stale data
+    function reset(view, ctx, flags) {
 
     }
 
     // invoked when the view is loaded
-    function load(view, ctx) {
+    //  - used to load data into the view,
+    //     when the view is shown
+    function load(view, ctx, flags) {
         list.selectAll('li')
             .data(data)
             .enter()
@@ -46,20 +52,56 @@
             .text(function (d) { return d; })
     }
 
-    // invoked when the view is resized
-    function resize(view, ctx) {
+    // invoked when the view is unloaded
+    //  - used to clean up data that should be removed,
+    //     when the view is hidden
+    function unload(view, ctx, flags) {
 
     }
 
+    // invoked when the view is resized
+    //  - used to reconfigure elements to the new view size
+    function resize(view, ctx, flags) {
+        var w = view.width(),
+            h = view.height();
+
+    }
+
+    // invoked when the framework needs to alert the view of an error
+    //  - (EXPERIMENTAL -- not currently used)
+    function error(view, ctx, flags) {
+
+    }
+
+    // ================================================================
     // == register the view here, with links to lifecycle callbacks
 
-    onos.ui.addView('myViewId', {
+    // A typical setup that initializes the view once, then reacts to
+    // load and resize events would look like this:
+
+    onos.ui.addView('myDivViewId', {
         preload: preload,
-        reset: reset,
         load: load,
-        // unload: unload,
-        // error: error
         resize: resize
     });
+
+    // A minimum setup that builds the view every time it is loaded
+    // would look like this:
+    //
+    //  onos.ui.addView('myViewId', {
+    //      reset: true,    // clear view contents on reset
+    //      load: load
+    //  });
+
+    // The complete gamut of callbacks would look like this:
+    //
+    //  onos.ui.addView('myViewId', {
+    //      preload: preload,
+    //      reset: reset,
+    //      load: load,
+    //      unload: unload,
+    //      resize: resize,
+    //      error: error
+    //  });
 
 }(ONOS));
