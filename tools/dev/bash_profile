@@ -19,13 +19,13 @@ fi
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.2.2}
 
 export KARAF_VERSION=${KARAF_VERSION:-3.0.2}
-export KARAF=${KARAF:-~/Applications/apache-karaf-$KARAF_VERSION}
-export KARAF_LOG=$KARAF/data/log/karaf.log
+export KARAF_HOME=${KARAF:-~/Applications/apache-karaf-$KARAF_VERSION}
+export KARAF_LOG=$KARAF_HOME/data/log/karaf.log
 
 # Setup a path
 export PATH="$PATH:$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/build"
-export PATH="$PATH:$MAVEN/bin:$KARAF/bin"
+export PATH="$PATH:$MAVEN/bin:$KARAF_HOME/bin"
 
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
