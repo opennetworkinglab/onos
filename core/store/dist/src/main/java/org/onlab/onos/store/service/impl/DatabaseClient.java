@@ -39,7 +39,12 @@ public class DatabaseClient {
                         Arrays.asList(tableName));
         CompletableFuture<SubmitResponse> future = client.submit(request);
         try {
-            return (boolean) future.get().result();
+            final SubmitResponse submitResponse = future.get();
+            if (submitResponse.status() == Status.OK) {
+                return (boolean) submitResponse.result();
+            } else {
+                throw new DatabaseException(submitResponse.error());
+            }
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
@@ -54,7 +59,7 @@ public class DatabaseClient {
                         Arrays.asList(tableName));
         CompletableFuture<SubmitResponse> future = client.submit(request);
         try {
-            if (future.get().status() == Status.OK) {
+            if (future.get().status() != Status.OK) {
                 throw new DatabaseException(future.get().toString());
             }
 
@@ -90,7 +95,12 @@ public class DatabaseClient {
                         Arrays.asList());
         CompletableFuture<SubmitResponse> future = client.submit(request);
         try {
-            return (List<String>) future.get().result();
+            final SubmitResponse submitResponse = future.get();
+            if (submitResponse.status() == Status.OK) {
+                return (List<String>) submitResponse.result();
+            } else {
+                throw new DatabaseException(submitResponse.error());
+            }
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
@@ -106,8 +116,12 @@ public class DatabaseClient {
 
         CompletableFuture<SubmitResponse> future = client.submit(request);
         try {
-            List<InternalReadResult> internalReadResults = (List<InternalReadResult>) future.get().result();
-            return internalReadResults;
+            final SubmitResponse submitResponse = future.get();
+            if (submitResponse.status() == Status.OK) {
+                return (List<InternalReadResult>) submitResponse.result();
+            } else {
+                throw new DatabaseException(submitResponse.error());
+            }
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
@@ -123,8 +137,12 @@ public class DatabaseClient {
 
         CompletableFuture<SubmitResponse> future = client.submit(request);
         try {
-            List<InternalWriteResult> internalWriteResults = (List<InternalWriteResult>) future.get().result();
-            return internalWriteResults;
+            final SubmitResponse submitResponse = future.get();
+            if (submitResponse.status() == Status.OK) {
+                return (List<InternalWriteResult>) submitResponse.result();
+            } else {
+                throw new DatabaseException(submitResponse.error());
+            }
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
