@@ -86,7 +86,7 @@
             linkDistance: {
                 direct: 100,
                 optical: 120,
-                hostLink: 20
+                hostLink: 5
             },
             linkStrength: {
                 direct: 1.0,
@@ -958,7 +958,7 @@
     // ==============================
     // View life-cycle callbacks
 
-    function preload(view, ctx) {
+    function preload(view, ctx, flags) {
         var w = view.width(),
             h = view.height(),
             idBg = view.uid('bg'),
@@ -1047,6 +1047,9 @@
     }
 
     function load(view, ctx, flags) {
+        // resize, in case the window was resized while we were not loaded
+        resize(view, ctx, flags);
+
         // cache the view token, so network topo functions can access it
         network.view = view;
         config.useLiveData = !flags.local;
@@ -1064,7 +1067,7 @@
         }
     }
 
-    function resize(view, ctx) {
+    function resize(view, ctx, flags) {
         setSize(svg, view);
         setSize(bgImg, view);
 

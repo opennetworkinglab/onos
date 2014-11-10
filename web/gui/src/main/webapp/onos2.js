@@ -566,6 +566,8 @@
                 }
             },
 
+            // == Life-cycle functions
+            // TODO: factor common code out of life-cycle
             preload: function (ctx, flags) {
                 var c = ctx || '',
                     fn = isF(this.cb.preload);
@@ -576,12 +578,13 @@
                 }
             },
 
-            reset: function () {
-                var fn = isF(this.cb.reset);
+            reset: function (ctx, flags) {
+                var c = ctx || '',
+                    fn = isF(this.cb.reset);
                 traceFn('View.reset', this.vid);
                 if (fn) {
                     trace('RESET cb for ' + this.vid);
-                    fn(this.token());
+                    fn(this.token(), c, flags);
                 } else if (this.cb.reset === true) {
                     // boolean true signifies "clear view"
                     trace('  [true] cleaing view...');
@@ -600,13 +603,14 @@
                 }
             },
 
-            unload: function () {
-                var fn = isF(this.cb.unload);
+            unload: function (ctx, flags) {
+                var c = ctx | '',
+                    fn = isF(this.cb.unload);
                 traceFn('View.unload', this.vid);
                 this.$div.classed('currentView', false);
                 if (fn) {
                     trace('UNLOAD cb for ' + this.vid);
-                    fn(this.token());
+                    fn(this.token(), c, flags);
                 }
             },
 
@@ -623,16 +627,17 @@
                 }
             },
 
-            error: function (ctx) {
+            error: function (ctx, flags) {
                 var c = ctx || '',
                     fn = isF(this.cb.error);
                 traceFn('View.error', this.vid + ', ' + c);
                 if (fn) {
                     trace('ERROR cb for ' + this.vid);
-                    fn(this.token(), c);
+                    fn(this.token(), c, flags);
                 }
             },
 
+            // == Token API functions
             width: function () {
                 return $(this.$div.node()).width();
             },
