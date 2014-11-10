@@ -42,6 +42,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
     public static final long RETRY_INTERVAL_MILLIS = 2000;
 
     private final ClusterCommunicationService clusterCommunicator;
+    private final ControllerNode localNode;
     private final ControllerNode remoteNode;
 
     // FIXME: Thread pool sizing.
@@ -50,8 +51,10 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
 
     public ClusterMessagingProtocolClient(
             ClusterCommunicationService clusterCommunicator,
+            ControllerNode localNode,
             ControllerNode remoteNode) {
         this.clusterCommunicator = clusterCommunicator;
+        this.localNode = localNode;
         this.remoteNode = remoteNode;
     }
 
@@ -117,7 +120,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
             this.request = request;
             this.message =
                     new ClusterMessage(
-                            null, // FIXME fill in proper sender
+                            localNode.id(),
                             messageType(request),
                             ClusterMessagingProtocol.SERIALIZER.encode(request));
             this.future = future;
@@ -132,18 +135,8 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 future.complete(ClusterMessagingProtocol.SERIALIZER.decode(response));
 
             } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
-//                if (message.subject().equals(ClusterMessagingProtocol.COPYCAT_SYNC) ||
-//                        message.subject().equals(ClusterMessagingProtocol.COPYCAT_PING)) {
-//                    log.warn("{} Request to {} failed. Will retry in {} ms",
-//                             message.subject(), remoteNode, RETRY_INTERVAL_MILLIS);
-//                    THREAD_POOL.schedule(
-//                            this,
-//                            RETRY_INTERVAL_MILLIS,
-//                            TimeUnit.MILLISECONDS);
-//                } else {
-                    log.warn("RPCTask for {} failed.", request, e);
-                    future.completeExceptionally(e);
-//                }
+                log.warn("RPCTask for {} failed.", request, e);
+                future.completeExceptionally(e);
             } catch (Exception e) {
                 log.warn("RPCTask for {} terribly failed.", request, e);
                 future.completeExceptionally(e);
