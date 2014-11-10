@@ -52,7 +52,6 @@ public class MapDBLog implements Log {
     public void open() throws IOException {
         txMaker = DBMaker
                 .newFileDB(dbFile)
-                .cacheLRUEnable()
                 .cacheSize(cacheSize)
                 .makeTxMaker();
     }
