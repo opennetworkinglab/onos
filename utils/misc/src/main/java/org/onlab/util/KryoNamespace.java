@@ -42,7 +42,7 @@ public final class KryoNamespace implements KryoFactory {
      *
      * @see #serialize(Object)
      */
-    public static final int DEFAULT_BUFFER_SIZE = 1 * 1000 * 1000;
+    public static final int DEFAULT_BUFFER_SIZE = 4096;
     public static final int MAX_BUFFER_SIZE = 100 * 1000 * 1000;
 
     private final ConcurrentLinkedQueue<Kryo> pool = new ConcurrentLinkedQueue<>();
@@ -171,7 +171,7 @@ public final class KryoNamespace implements KryoFactory {
     /**
      * Serializes given object to byte array using Kryo instance in pool.
      * <p>
-     * Note: Serialized bytes must be smaller than {@link #DEFAULT_BUFFER_SIZE}.
+     * Note: Serialized bytes must be smaller than {@link #MAX_BUFFER_SIZE}.
      *
      * @param obj Object to serialize
      * @return serialized bytes
