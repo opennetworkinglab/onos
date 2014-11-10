@@ -99,7 +99,8 @@ public class MapDBLog implements Log {
                 long nextIndex = log.isEmpty() ? 1 : log.lastKey() + 1;
                 long addedBytes = 0;
                 for (Entry entry : entries) {
-                    byte[] entryBytes = serializer.encode(entry);
+                    byte[] entryBytes = verifyNotNull(serializer.encode(entry),
+                                                      "Writing LogEntry %s failed", nextIndex);
                     log.put(nextIndex, entryBytes);
                     addedBytes += entryBytes.length;
                     indices.add(nextIndex);
@@ -144,7 +145,7 @@ public class MapDBLog implements Log {
         DB db = txMaker.makeTx();
         try {
             BTreeMap<Long, byte[]> log = getLogMap(db);
-            return log.isEmpty() ? null : serializer.decode(log.firstEntry().getValue());
+            return log.isEmpty() ? null : verifyNotNull(serializer.decode(log.firstEntry().getValue()));
         } finally {
             db.close();
         }
@@ -177,7 +178,7 @@ public class MapDBLog implements Log {
             }
             List<T> entries = new ArrayList<>((int) (to - from + 1));
             for (long i = from; i <= to; i++) {
-                T entry = serializer.decode(log.get(i));
+                T entry = verifyNotNull(serializer.decode(log.get(i)), "LogEntry %s was null", i);
                 entries.add(entry);
             }
             return entries;
@@ -193,7 +194,8 @@ public class MapDBLog implements Log {
         try {
             BTreeMap<Long, byte[]> log = getLogMap(db);
             byte[] entryBytes = log.get(index);
-            return entryBytes == null ? null : serializer.decode(entryBytes);
+            return entryBytes == null ? null : verifyNotNull(serializer.decode(entryBytes),
+                                                             "LogEntry %s was null", index);
         } finally {
             db.close();
         }
@@ -217,7 +219,7 @@ public class MapDBLog implements Log {
         DB db = txMaker.makeTx();
         try {
             BTreeMap<Long, byte[]> log = getLogMap(db);
-            return log.isEmpty() ? null : serializer.decode(log.lastEntry().getValue());
+            return log.isEmpty() ? null : verifyNotNull(serializer.decode(log.lastEntry().getValue()));
         } finally {
             db.close();
         }
