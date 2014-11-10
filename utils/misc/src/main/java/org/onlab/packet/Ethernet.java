@@ -37,6 +37,8 @@ public class Ethernet extends BasePacket {
     public static final short TYPE_LLDP = (short) 0x88cc;
     public static final short TYPE_BSN = (short) 0x8942;
     public static final short VLAN_UNTAGGED = (short) 0xffff;
+    public static final short MPLS_UNICAST = (short) 0x8847;
+    public static final short MPLS_MULTICAST = (short) 0x8848;
     public static final short DATALAYER_ADDRESS_LENGTH = 6; // bytes
     public static Map<Short, Class<? extends IPacket>> etherTypeClassMap;
 

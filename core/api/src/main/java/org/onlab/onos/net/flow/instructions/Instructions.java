@@ -17,6 +17,7 @@ package org.onlab.onos.net.flow.instructions;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.net.flow.instructions.L2ModificationInstruction.*;
 
 import java.util.Objects;
 
@@ -27,6 +28,8 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -87,7 +90,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Dst(MacAddress addr) {
         checkNotNull(addr, "Dst l2 address cannot be null");
-        return new L2ModificationInstruction.ModEtherInstruction(L2SubType.ETH_DST, addr);
+        return new ModEtherInstruction(L2SubType.ETH_DST, addr);
     }
 
     /**
@@ -97,7 +100,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modVlanId(VlanId vlanId) {
         checkNotNull(vlanId, "VLAN id cannot be null");
-        return new L2ModificationInstruction.ModVlanIdInstruction(vlanId);
+        return new ModVlanIdInstruction(vlanId);
     }
 
     /**
@@ -107,9 +110,18 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modVlanPcp(Byte vlanPcp) {
         checkNotNull(vlanPcp, "VLAN Pcp cannot be null");
-        return new L2ModificationInstruction.ModVlanPcpInstruction(vlanPcp);
+        return new ModVlanPcpInstruction(vlanPcp);
     }
 
+    /**
+     * Creates a MPLS label modification.
+     * @param mplsLabel to set.
+     * @return a L2 Modification
+     */
+    public static L2ModificationInstruction modMplsLabel(Integer mplsLabel) {
+        checkNotNull(mplsLabel, "MPLS label cannot be null");
+        return new ModMplsLabelInstruction(mplsLabel);
+    }
     /**
      * Creates a L3 src modification.
      * @param addr the ip address to modify to.
@@ -130,6 +142,23 @@ public final class Instructions {
         return new ModIPInstruction(L3SubType.IP_DST, addr);
     }
 
+    /**
+     * Creates a mpls header instruction.
+     * @return a L2 modification.
+     */
+    public static Instruction pushMpls() {
+        return new PushHeaderInstructions(L2SubType.MPLS_PUSH,
+                                          new Ethernet().setEtherType(Ethernet.MPLS_UNICAST));
+    }
+
+    /**
+     * Creates a mpls header instruction.
+     * @return a L2 modification.
+     */
+    public static Instruction popMpls() {
+        return new PushHeaderInstructions(L2SubType.MPLS_POP,
+                                          new Ethernet().setEtherType(Ethernet.MPLS_UNICAST));
+    }
 
     /*
      *  Output instructions

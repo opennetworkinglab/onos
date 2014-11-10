@@ -286,6 +286,10 @@ public class FlowEntryBuilder {
             case TCP_SRC:
                 builder.matchTcpSrc((short) match.get(MatchField.TCP_SRC).getPort());
                 break;
+            case MPLS_LABEL:
+                builder.matchMplsLabel((int) match.get(MatchField.MPLS_LABEL)
+                                            .getValue());
+                break;
             case OCH_SIGID:
                 builder.matchLambda(match.get(MatchField.OCH_SIGID).getChannelNumber());
                 break;
@@ -312,7 +316,6 @@ public class FlowEntryBuilder {
             case IP_DSCP:
             case IP_ECN:
             case METADATA:
-            case MPLS_LABEL:
             case MPLS_TC:
             case SCTP_DST:
             case SCTP_SRC:

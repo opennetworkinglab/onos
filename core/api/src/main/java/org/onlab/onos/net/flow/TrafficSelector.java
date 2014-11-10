@@ -146,6 +146,14 @@ public interface TrafficSelector {
          */
         public Builder matchTcpDst(Short tcpPort);
 
+
+        /**
+         * Matches on a MPLS label .
+         * @param mplsLabel a MPLS label.
+         * @return a selection builder
+         */
+        public Builder matchMplsLabel(Integer mplsLabel);
+
         /**
          * Matches an optical signal ID or lambda.
          *

@@ -19,6 +19,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -49,7 +50,22 @@ public abstract class L2ModificationInstruction implements Instruction {
         /**
          * VLAN priority modification.
          */
-        VLAN_PCP
+        VLAN_PCP,
+
+        /**
+         * MPLS Label modification.
+         */
+        MPLS_LABEL,
+
+        /**
+         * MPLS Push modification.
+         */
+        MPLS_PUSH,
+
+        /**
+         * MPLS Pop modification.
+         */
+        MPLS_POP
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory
@@ -113,6 +129,53 @@ public abstract class L2ModificationInstruction implements Instruction {
 
 
     }
+
+    public static final class PushHeaderInstructions extends
+            L2ModificationInstruction {
+
+        private final L2SubType subtype;
+        private final Ethernet ethernetType;
+
+        public PushHeaderInstructions(L2SubType subType, Ethernet ethernetType) {
+            this.subtype = subType;
+            this.ethernetType = ethernetType;
+        }
+
+        public Ethernet ethernetType() {
+            return ethernetType;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return this.subtype;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof PushHeaderInstructions) {
+                PushHeaderInstructions that = (PushHeaderInstructions) obj;
+                return  Objects.equals(this.type(), that.type()) &&
+                        Objects.equals(subtype, that.subtype);
+
+            }
+            return false;
+        }
+    }
+
+
 
     /**
      * Represents a VLAN id modification instruction.
@@ -212,4 +275,51 @@ public abstract class L2ModificationInstruction implements Instruction {
     }
 
 
+    /**
+     * Represents a MPLS label modification.
+     */
+    public static final class ModMplsLabelInstruction extends
+    L2ModificationInstruction {
+
+        private final Integer mplsLabel;
+
+        public ModMplsLabelInstruction(Integer mplsLabel) {
+            this.mplsLabel = mplsLabel;
+        }
+
+        public Integer label() {
+            return mplsLabel;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return L2SubType.MPLS_LABEL;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("mpls", mplsLabel.intValue()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(mplsLabel);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModMplsLabelInstruction) {
+                ModMplsLabelInstruction that = (ModMplsLabelInstruction) obj;
+                return Objects.equals(mplsLabel, that.mplsLabel) &&
+                        Objects.equals(this.type(), that.type());
+
+
+            }
+            return false;
+        }
+    }
 }

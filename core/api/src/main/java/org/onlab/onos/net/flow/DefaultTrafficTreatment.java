@@ -192,6 +192,22 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder pushMpls() {
+            return add(Instructions.pushMpls());
+        }
+
+        @Override
+        public Builder popMpls() {
+            return add(Instructions.popMpls());
+        }
+
+
+        @Override
+        public Builder setMpls(Integer mplsLabel) {
+            return add(Instructions.modMplsLabel(mplsLabel));
+        }
+
+        @Override
         public Builder setLambda(short lambda) {
             return add(Instructions.modL0Lambda(lambda));
         }

@@ -29,6 +29,8 @@ import org.onlab.onos.net.flow.instructions.L2ModificationInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
+import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction;
 import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onlab.packet.Ip4Address;
@@ -41,11 +43,13 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
+import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
@@ -201,25 +205,42 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         ModEtherInstruction eth;
         OFOxm<?> oxm = null;
         switch (l2m.subtype()) {
-        case ETH_DST:
-            eth = (ModEtherInstruction) l2m;
-            oxm = factory().oxms().ethDst(MacAddress.of(eth.mac().toLong()));
-            break;
-        case ETH_SRC:
-            eth = (ModEtherInstruction) l2m;
-            oxm = factory().oxms().ethSrc(MacAddress.of(eth.mac().toLong()));
-            break;
-        case VLAN_ID:
-            ModVlanIdInstruction vlanId = (ModVlanIdInstruction) l2m;
-            oxm = factory().oxms().vlanVid(OFVlanVidMatch.ofVlan(vlanId.vlanId().toShort()));
-            break;
-        case VLAN_PCP:
-            ModVlanPcpInstruction vlanPcp = (ModVlanPcpInstruction) l2m;
-            oxm = factory().oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
-            break;
-        default:
-            log.warn("Unimplemented action type {}.", l2m.subtype());
-            break;
+            case ETH_DST:
+                eth = (ModEtherInstruction) l2m;
+                oxm = factory().oxms().ethDst(MacAddress.of(eth.mac().toLong()));
+                break;
+            case ETH_SRC:
+                eth = (ModEtherInstruction) l2m;
+                oxm = factory().oxms().ethSrc(MacAddress.of(eth.mac().toLong()));
+                break;
+            case VLAN_ID:
+                ModVlanIdInstruction vlanId = (ModVlanIdInstruction) l2m;
+                oxm = factory().oxms().vlanVid(OFVlanVidMatch.ofVlan(vlanId.vlanId().toShort()));
+                break;
+            case VLAN_PCP:
+                ModVlanPcpInstruction vlanPcp = (ModVlanPcpInstruction) l2m;
+                oxm = factory().oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
+                break;
+            case MPLS_PUSH:
+                PushHeaderInstructions pushHeaderInstructions =
+                        (PushHeaderInstructions) l2m;
+                return factory().actions().pushMpls(EthType.of(pushHeaderInstructions
+                                                               .ethernetType().getEtherType()));
+            case MPLS_POP:
+                PushHeaderInstructions  popHeaderInstructions =
+                        (PushHeaderInstructions) l2m;
+                return factory().actions().popMpls(EthType.of(popHeaderInstructions
+                                                          .ethernetType().getEtherType()));
+            case MPLS_LABEL:
+                ModMplsLabelInstruction mplsLabel =
+                        (ModMplsLabelInstruction) l2m;
+                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label()
+                                                                  .longValue()));
+
+                break;
+            default:
+                log.warn("Unimplemented action type {}.", l2m.subtype());
+                break;
         }
 
         if (oxm != null) {

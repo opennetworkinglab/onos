@@ -47,6 +47,7 @@ import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TransportPort;
+import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
@@ -195,6 +196,11 @@ public abstract class FlowModBuilder {
                 tp = (TcpPortCriterion) c;
                 mBuilder.setExact(MatchField.TCP_SRC, TransportPort.of(tp.tcpPort()));
                 break;
+            case MPLS_LABEL:
+                Criteria.MplsCriterion mp = (Criteria.MplsCriterion) c;
+                mBuilder.setExact(MatchField.MPLS_LABEL,
+                                  U32.of(mp.label().intValue()));
+                break;
             case OCH_SIGID:
                 LambdaCriterion lc = (LambdaCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGID,
@@ -227,7 +233,6 @@ public abstract class FlowModBuilder {
             case IP_ECN:
             case METADATA:
             case MPLS_BOS:
-            case MPLS_LABEL:
             case MPLS_TC:
             case PBB_ISID:
             case SCTP_DST:

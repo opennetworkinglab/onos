@@ -149,6 +149,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on MPLS label.
+     * @param mplsLabel MPLS label
+     * @return match criterion
+     */
+
+    public static Criterion matchMplsLabel(Integer mplsLabel) {
+        return new MplsCriterion(mplsLabel);
+    }
+
+    /**
      * Creates a match on lambda field using the specified value.
      *
      * @param lambda lamda to match on
@@ -540,6 +550,52 @@ public final class Criteria {
             return false;
         }
     }
+
+    public static final class MplsCriterion implements Criterion {
+
+        private final Integer mplsLabel;
+
+        public MplsCriterion(Integer mplsLabel) {
+            this.mplsLabel = mplsLabel;
+        }
+
+        @Override
+        public Type type() {
+            return Type.MPLS_LABEL;
+        }
+
+        public Integer label() {
+            return mplsLabel;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("mpls", mplsLabel.intValue()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(mplsLabel, type());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof MplsCriterion) {
+                MplsCriterion that = (MplsCriterion) obj;
+                return Objects.equals(mplsLabel, that.mplsLabel) &&
+                        Objects.equals(this.type(), that.type());
+
+
+            }
+            return false;
+        }
+
+    }
+
 
     public static final class LambdaCriterion implements Criterion {
 

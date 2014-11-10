@@ -184,6 +184,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchMplsLabel(Integer mplsLabel) {
+            return add(Criteria.matchMplsLabel(mplsLabel));
+        }
+
+        @Override
         public Builder matchLambda(Short lambda) {
             return add(Criteria.matchLambda(lambda));
         }
@@ -191,7 +196,6 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchOpticalSignalType(Short signalType) {
             return add(Criteria.matchOpticalSignalType(signalType));
-
         }
 
         @Override

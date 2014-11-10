@@ -110,6 +110,25 @@ public interface TrafficTreatment {
         public Builder setIpDst(IpAddress addr);
 
         /**
+         * Push MPLS ether type.
+         * @return a treatment builder.
+         */
+        public Builder pushMpls();
+
+        /**
+         * Pops MPLS ether type.
+         * @return a treatment builder.
+         */
+        public Builder popMpls();
+
+        /**
+         * Sets the mpls label.
+         * @param mplsLabel MPLS label.
+         * @return a treatment builder.
+         */
+        public Builder setMpls(Integer mplsLabel);
+
+        /**
          * Sets the optical channel ID or lambda.
          *
          * @param lambda optical channel ID
