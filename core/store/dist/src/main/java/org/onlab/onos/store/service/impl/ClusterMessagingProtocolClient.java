@@ -1,6 +1,8 @@
 package org.onlab.onos.store.service.impl;
 
+import static com.google.common.base.Verify.verifyNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.SERIALIZER;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -122,7 +124,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                     new ClusterMessage(
                             localNode.id(),
                             messageType(request),
-                            ClusterMessagingProtocol.SERIALIZER.encode(request));
+                            verifyNotNull(SERIALIZER.encode(request)));
             this.future = future;
         }
 
@@ -132,7 +134,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 byte[] response = clusterCommunicator
                     .sendAndReceive(message, remoteNode.id())
                     .get(RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
-                future.complete(ClusterMessagingProtocol.SERIALIZER.decode(response));
+                future.complete(verifyNotNull(SERIALIZER.decode(response)));
 
             } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
                 log.warn("RPCTask for {} failed.", request, e);
