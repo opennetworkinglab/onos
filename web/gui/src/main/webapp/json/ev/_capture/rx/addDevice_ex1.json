@@ -1,0 +1,15 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000003",
+    "type": "switch",
+    "online": true,
+    "labels": [
+      "of:0000000000000003",
+      "3",
+      "",
+      null
+    ],
+    "props": {}
+  }
+}

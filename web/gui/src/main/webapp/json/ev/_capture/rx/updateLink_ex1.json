@@ -1,0 +1,12 @@
+{
+  "event": "updateLink",
+  "payload": {
+    "id": "of:0000000000000002/4-of:0000000000000001/1",
+    "type": "direct",
+    "linkWidth": 2,
+    "src": "of:0000000000000002",
+    "srcPort": "4",
+    "dst": "of:0000000000000001",
+    "dstPort": "1"
+  }
+}

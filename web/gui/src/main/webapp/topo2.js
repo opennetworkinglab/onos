@@ -24,7 +24,8 @@
     'use strict';
 
     // shorter names for library APIs
-    var d3u = onos.lib.d3util;
+    var d3u = onos.lib.d3util,
+        trace;
 
     // configuration data
     var config = {
@@ -241,8 +242,8 @@
     }
 
     function handleUiEvent(data) {
-        testDebug('handleUiEvent(): ' + data.event);
-        // TODO:
+        scenario.view.alert('UI Tx: ' + data.event + '\n\n' +
+            JSON.stringify(data));
     }
 
     function injectStartupEvents(view) {
@@ -259,32 +260,44 @@
         bgImg.style('visibility', (vis === 'hidden') ? 'visible' : 'hidden');
     }
 
+    function updateDeviceLabel(d) {
+        var label = niceLabel(deviceLabel(d)),
+            node = d.el,
+            box;
+
+        node.select('text')
+            .text(label)
+            .style('opacity', 0)
+            .transition()
+            .style('opacity', 1);
+
+        box = adjustRectToFitText(node);
+
+        node.select('rect')
+            .transition()
+            .attr(box);
+
+        node.select('image')
+            .transition()
+            .attr('x', box.x + config.icons.xoff)
+            .attr('y', box.y + config.icons.yoff);
+    }
+
+    function updateHostLabel(d) {
+        var label = hostLabel(d),
+            host = d.el;
+
+        host.select('text').text(label);
+    }
+
     function cycleLabels() {
-        deviceLabelIndex = (deviceLabelIndex === network.deviceLabelCount - 1) ? 0 : deviceLabelIndex + 1;
+        deviceLabelIndex = (deviceLabelIndex === network.deviceLabelCount - 1)
+            ? 0 : deviceLabelIndex + 1;
 
         network.nodes.forEach(function (d) {
-            if (d.class !== 'device') { return; }
-
-            var label = niceLabel(deviceLabel(d)),
-                node = d.el,
-                box;
-
-            node.select('text')
-                .text(label)
-                .style('opacity', 0)
-                .transition()
-                .style('opacity', 1);
-
-            box = adjustRectToFitText(node);
-
-            node.select('rect')
-                .transition()
-                .attr(box);
-
-            node.select('image')
-                .transition()
-                .attr('x', box.x + config.icons.xoff)
-                .attr('y', box.y + config.icons.yoff);
+            if (d.class === 'device') {
+                updateDeviceLabel(d);
+            }
         });
     }
 
@@ -348,15 +361,20 @@
     // ==============================
     // Event handlers for server-pushed events
 
+    function logicError(msg) {
+        // TODO, report logic error to server, via websock, so it can be logged
+        network.view.alert('Logic Error:\n\n' + msg);
+    }
+
     var eventDispatch = {
         addDevice: addDevice,
-        updateDevice: stillToImplement,
-        removeDevice: stillToImplement,
         addLink: addLink,
-        updateLink: stillToImplement,
-        removeLink: stillToImplement,
         addHost: addHost,
+        updateDevice: updateDevice,
+        updateLink: stillToImplement,
         updateHost: updateHost,
+        removeDevice: stillToImplement,
+        removeLink: stillToImplement,
         removeHost: stillToImplement,
         showPath: showPath
     };
@@ -364,8 +382,6 @@
     function addDevice(data) {
         var device = data.payload,
             nodeData = createDeviceNode(device);
-        note('addDevice', device.id);
-
         network.nodes.push(nodeData);
         network.lookup[nodeData.id] = nodeData;
         updateNodes();
@@ -375,10 +391,7 @@
     function addLink(data) {
         var link = data.payload,
             lnk = createLink(link);
-
         if (lnk) {
-            note('addLink', link.id);
-
             network.links.push(lnk);
             network.lookup[lnk.id] = lnk;
             updateLinks();
@@ -390,8 +403,6 @@
         var host = data.payload,
             node = createHostNode(host),
             lnk;
-        note('addHost', node.id);
-
         network.nodes.push(node);
         network.lookup[host.id] = node;
         updateNodes();
@@ -406,13 +417,28 @@
         network.force.start();
     }
 
+    function updateDevice(data) {
+        var device = data.payload,
+            id = device.id,
+            nodeData = network.lookup[id];
+        if (nodeData) {
+            $.extend(nodeData, device);
+            updateDeviceState(nodeData);
+        } else {
+            logicError('updateDevice lookup fail. ID = "' + id + '"');
+        }
+    }
+
     function updateHost(data) {
         var host = data.payload,
-            hostData = network.lookup[host.id];
-        note('updateHost', host.id);
-
-        $.extend(hostData, host);
-        updateNodes();
+            id = host.id,
+            hostData = network.lookup[id];
+        if (hostData) {
+            $.extend(hostData, host);
+            updateHostState(hostData);
+        } else {
+            logicError('updateHost lookup fail. ID = "' + id + '"');
+        }
     }
 
     function showPath(data) {
@@ -466,9 +492,8 @@
             lnk;
 
         if (!dstNode) {
-            // TODO: send warning message back to server on websocket
-            network.view.alert('switch not on map for link\n\n' +
-            'src = ' + src + '\ndst = ' + dst);
+            logicError('switch not on map for link\n\n' +
+                        'src = ' + src + '\ndst = ' + dst);
             return null;
         }
 
@@ -500,9 +525,8 @@
             dstNode = network.lookup[dst];
 
         if (!(srcNode && dstNode)) {
-            // TODO: send warning message back to server on websocket
-            network.view.alert('nodes not on map for link\n\n' +
-                'src = ' + src + '\ndst = ' + dst);
+            logicError('nodes not on map for link\n\n' +
+            'src = ' + src + '\ndst = ' + dst);
             return null;
         }
 
@@ -578,11 +602,12 @@
     function createDeviceNode(device) {
         // start with the object as is
         var node = device,
-            type = device.type;
+            type = device.type,
+            svgCls = type ? 'node device ' + type : 'node device';
 
         // Augment as needed...
         node.class = 'device';
-        node.svgClass = type ? 'node device ' + type : 'node device';
+        node.svgClass = device.online ? svgCls + ' online' : svgCls;
         positionNode(node);
 
         // cache label array length
@@ -669,15 +694,24 @@
         return (label && label.trim()) ? label : '.';
     }
 
+    function updateDeviceState(nodeData) {
+        nodeData.el.classed('online', nodeData.online);
+        updateDeviceLabel(nodeData);
+        // TODO: review what else might need to be updated
+    }
+
+    function updateHostState(hostData) {
+        updateHostLabel(hostData);
+        // TODO: review what else might need to be updated
+    }
+
+
     function updateNodes() {
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
 
         // operate on existing nodes, if necessary
         //  update host labels
-        node.filter('.host').select('text')
-            .text(hostLabel);
-
         //node .foo() .bar() ...
 
         // operate on entering nodes:
@@ -828,7 +862,7 @@
 
             webSock.ws.onmessage = function(m) {
                 if (m.data) {
-                    console.log(m.data);
+                    wsTraceRx(m.data);
                     handleServerEvent(JSON.parse(m.data));
                 }
             };
@@ -858,11 +892,28 @@
 
     function sendMessage(evType, payload) {
         var toSend = {
-            event: evType,
-            sid: ++sid,
-            payload: payload
-        };
-        webSock.send(JSON.stringify(toSend));
+                event: evType,
+                sid: ++sid,
+                payload: payload
+            },
+            asText = JSON.stringify(toSend);
+        wsTraceTx(asText);
+        webSock.send(asText);
+    }
+
+    function wsTraceTx(msg) {
+        wsTrace('tx', msg);
+    }
+    function wsTraceRx(msg) {
+        wsTrace('rx', msg);
+    }
+    function wsTrace(rxtx, msg) {
+
+        console.log('[' + rxtx + '] ' + msg);
+        // TODO: integrate with trace view
+        //if (trace) {
+        //    trace.output(rxtx, msg);
+        //}
     }
 
 
@@ -944,12 +995,19 @@
         sc.evNumber = 0;
 
         d3.json(urlSc, function(err, data) {
-            var p = data && data.params || {};
+            var p = data && data.params || {},
+                desc = data && data.description || null,
+                intro;
+
             if (err) {
                 view.alert('No scenario found:\n\n' + urlSc + '\n\n' + err);
             } else {
                 sc.params = p;
-                view.alert("Scenario loaded: " + ctx + '\n\n' + data.title);
+                intro = "Scenario loaded: " + ctx + '\n\n' + data.title;
+                if (desc) {
+                    intro += '\n\n  ' + desc.join('\n  ');
+                }
+                view.alert(intro);
             }
         });
 
@@ -966,6 +1024,9 @@
             fcfg = config.force,
             fpad = fcfg.pad,
             forceDim = [w - 2*fpad, h - 2*fpad];
+
+        // TODO: set trace api
+        //trace = onos.exported.webSockTrace;
 
         // NOTE: view.$div is a D3 selection of the view's div
         svg = view.$div.append('svg');

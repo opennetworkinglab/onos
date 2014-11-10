@@ -1,17 +1,18 @@
 {
-  "event": "addHost",
+  "event": "updateDevice",
   "payload": {
-    "id": "0E:2A:69:30:13:86/-1",
-    "ingress": "0E:2A:69:30:13:86/-1/0-of:0000ffffffff0003/2",
-    "egress": "of:0000ffffffff0003/2-0E:2A:69:30:13:86/-1/0",
-    "cp": {
-      "device": "of:0000ffffffff0003",
-      "port": 2
-    },
+    "id": "of:0000ffffffff0003",
+    "type": "switch",
+    "online": true,
     "labels": [
-      "unknown",
-      "0E:2A:69:30:13:86"
+      "0000ffffffff0003",
+      "FF:FF:FF:FF:00:03",
+      "sw-3-yo",
+      ""
     ],
-    "props": {}
+    "metaUi": {
+      "x": 800,
+      "y": 280
+    }
   }
 }

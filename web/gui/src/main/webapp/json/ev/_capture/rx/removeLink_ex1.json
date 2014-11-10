@@ -1,0 +1,12 @@
+{
+  "event": "removeLink",
+  "payload": {
+    "id": "of:0000000000000001/1-of:0000000000000002/4",
+    "type": "direct",
+    "linkWidth": 2,
+    "src": "of:0000000000000001",
+    "srcPort": "1",
+    "dst": "of:0000000000000002",
+    "dstPort": "4"
+  }
+}
