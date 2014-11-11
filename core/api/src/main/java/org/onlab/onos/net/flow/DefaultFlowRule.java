@@ -58,7 +58,7 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-            TrafficTreatment treatement, int priority, ApplicationId appId,
+            TrafficTreatment treatment, int priority, ApplicationId appId,
             int timeout, boolean permanent) {
 
         if (priority < FlowRule.MIN_PRIORITY) {
@@ -68,7 +68,7 @@ public class DefaultFlowRule implements FlowRule {
         this.deviceId = deviceId;
         this.priority = priority;
         this.selector = selector;
-        this.treatment = treatement;
+        this.treatment = treatment;
         this.appId = appId.id();
         this.timeout = timeout;
         this.permanent = permanent;
