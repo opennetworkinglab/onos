@@ -1,0 +1,166 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onlab.onos.net.flow;
+
+import org.junit.Test;
+import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.intent.IntentTestsMocks;
+
+import com.google.common.testing.EqualsTester;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
+import static org.onlab.onos.net.NetTestTools.did;
+import static org.onlab.onos.net.NetTestTools.APP_ID;
+
+/**
+ * Unit tests for the default flow rule class.
+ */
+public class DefaultFlowRuleTest {
+    private static final IntentTestsMocks.MockSelector SELECTOR =
+            new IntentTestsMocks.MockSelector();
+    private static final IntentTestsMocks.MockTreatment TREATMENT =
+            new IntentTestsMocks.MockTreatment();
+
+    final FlowRule flowRule1 = new MockFlowRule(1);
+    final FlowRule sameAsFlowRule1 = new MockFlowRule(1);
+    final FlowRule flowRule2 = new MockFlowRule(2);
+    final DefaultFlowRule defaultFlowRule1 = new DefaultFlowRule(flowRule1);
+    final DefaultFlowRule sameAsDefaultFlowRule1 = new DefaultFlowRule(sameAsFlowRule1);
+    final DefaultFlowRule defaultFlowRule2 = new DefaultFlowRule(flowRule2);
+
+    private static class MockFlowRule implements FlowRule {
+
+        int priority;
+        MockFlowRule(int priority) {
+            this.priority = priority;
+        }
+
+        @Override
+        public FlowId id() {
+            return FlowId.valueOf(1);
+        }
+
+        @Override
+        public short appId() {
+            return 0;
+        }
+
+        @Override
+        public int priority() {
+            return priority;
+        }
+
+        @Override
+        public DeviceId deviceId() {
+            return did("1");
+        }
+
+        @Override
+        public TrafficSelector selector() {
+            return SELECTOR;
+        }
+
+        @Override
+        public TrafficTreatment treatment() {
+            return TREATMENT;
+        }
+
+        @Override
+        public int timeout() {
+            return 0;
+        }
+
+        @Override
+        public boolean isPermanent() {
+            return false;
+        }
+
+
+    }
+
+    /**
+     * Checks that the DefaultFlowRule class is immutable but can be inherited
+     * from.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutableBaseClass(DefaultFlowRule.class);
+    }
+
+    /**
+     * Tests the equals, hashCode and toString methods using Guava EqualsTester.
+     */
+    @Test
+    public void testEquals() {
+        new EqualsTester()
+                .addEqualityGroup(defaultFlowRule1, sameAsDefaultFlowRule1)
+                .addEqualityGroup(defaultFlowRule2)
+                .testEquals();
+    }
+
+    /**
+     * Tests creation of a DefaultFlowRule using a FlowRule constructor.
+     */
+    @Test
+    public void testCreationFromFlowRule() {
+        assertThat(defaultFlowRule1.deviceId(), is(flowRule1.deviceId()));
+        assertThat(defaultFlowRule1.appId(), is(flowRule1.appId()));
+        assertThat(defaultFlowRule1.id(), is(flowRule1.id()));
+        assertThat(defaultFlowRule1.isPermanent(), is(flowRule1.isPermanent()));
+        assertThat(defaultFlowRule1.priority(), is(flowRule1.priority()));
+        assertThat(defaultFlowRule1.selector(), is(flowRule1.selector()));
+        assertThat(defaultFlowRule1.treatment(), is(flowRule1.treatment()));
+        assertThat(defaultFlowRule1.timeout(), is(flowRule1.timeout()));
+    }
+
+    /**
+     * Tests creation of a DefaultFlowRule using a FlowId constructor.
+     */
+    @Test
+    public void testCreationWithFlowId() {
+        final DefaultFlowRule rule =
+                new DefaultFlowRule(did("1"), SELECTOR,
+                        TREATMENT, 22, 33,
+                44, false);
+        assertThat(rule.deviceId(), is(did("1")));
+        assertThat(rule.id().value(), is(33L));
+        assertThat(rule.isPermanent(), is(false));
+        assertThat(rule.priority(), is(22));
+        assertThat(rule.selector(), is(SELECTOR));
+        assertThat(rule.treatment(), is(TREATMENT));
+        assertThat(rule.timeout(), is(44));
+    }
+
+    /**
+     * Tests the creation of a DefaultFlowRule using an AppId constructor.
+     */
+    @Test
+    public void testCreationWithAppId() {
+        final DefaultFlowRule rule =
+                new DefaultFlowRule(did("1"), SELECTOR,
+                        TREATMENT, 22, APP_ID,
+                        44, false);
+        assertThat(rule.deviceId(), is(did("1")));
+        assertThat(rule.isPermanent(), is(false));
+        assertThat(rule.priority(), is(22));
+        assertThat(rule.selector(), is(SELECTOR));
+        assertThat(rule.treatment(), is(TREATMENT));
+        assertThat(rule.timeout(), is(44));
+    }
+}

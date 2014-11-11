@@ -43,9 +43,9 @@ public class ImmutableClassChecker {
      * @param clazz the class to check
      * @return true if the given class is a properly specified immutable class.
      */
-    private boolean isImmutableClass(Class<?> clazz) {
+    private boolean isImmutableClass(Class<?> clazz, boolean allowNonFinalClass) {
         // class must be declared final
-        if (!Modifier.isFinal(clazz.getModifiers())) {
+        if (!allowNonFinalClass && !Modifier.isFinal(clazz.getModifiers())) {
             failureReason = "a class that is not final";
             return false;
         }
@@ -113,16 +113,16 @@ public class ImmutableClassChecker {
     }
 
     /**
-     * Assert that the given class adheres to the utility class rules.
+     * Assert that the given class adheres to the immutable class rules.
      *
      * @param clazz the class to check
      *
-     * @throws java.lang.AssertionError if the class is not a valid
-     *         utility class
+     * @throws java.lang.AssertionError if the class is not an
+     *         immutable class
      */
     public static void assertThatClassIsImmutable(Class<?> clazz) {
         final ImmutableClassChecker checker = new ImmutableClassChecker();
-        if (!checker.isImmutableClass(clazz)) {
+        if (!checker.isImmutableClass(clazz, false)) {
             final Description toDescription = new StringDescription();
             final Description mismatchDescription = new StringDescription();
 
@@ -132,6 +132,33 @@ public class ImmutableClassChecker {
                     "\n" +
                     "Expected: is \"" + toDescription.toString() + "\"\n" +
                     "    but : was \"" + mismatchDescription.toString() + "\"";
+
+            throw new AssertionError(reason);
+        }
+    }
+
+    /**
+     * Assert that the given class adheres to the immutable class rules, but
+     * is not declared final.  Classes that need to be inherited from cannot be
+     * declared final.
+     *
+     * @param clazz the class to check
+     *
+     * @throws java.lang.AssertionError if the class is not an
+     *         immutable class
+     */
+    public static void assertThatClassIsImmutableBaseClass(Class<?> clazz) {
+        final ImmutableClassChecker checker = new ImmutableClassChecker();
+        if (!checker.isImmutableClass(clazz, true)) {
+            final Description toDescription = new StringDescription();
+            final Description mismatchDescription = new StringDescription();
+
+            checker.describeTo(toDescription);
+            checker.describeMismatch(mismatchDescription);
+            final String reason =
+                    "\n" +
+                            "Expected: is \"" + toDescription.toString() + "\"\n" +
+                            "    but : was \"" + mismatchDescription.toString() + "\"";
 
             throw new AssertionError(reason);
         }
