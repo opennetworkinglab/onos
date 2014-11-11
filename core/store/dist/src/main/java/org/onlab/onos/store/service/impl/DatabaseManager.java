@@ -125,9 +125,6 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
 
         StateMachine stateMachine = new DatabaseStateMachine();
-        // Chronicle + OSGi issue
-        //Log consensusLog = new ChronicleLog(LOG_FILE_PREFIX + "_" + thisNode.id());
-        //Log consensusLog = new KryoRegisteredInMemoryLog();
         Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
                                         ClusterMessagingProtocol.SERIALIZER);
 
@@ -247,10 +244,11 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
                 break;
             case INSTANCE_DEACTIVATED:
             case INSTANCE_REMOVED:
-                log.info("{} was removed from the cluster", tcpMember);
-                synchronized (clusterConfig) {
-                    clusterConfig.removeRemoteMember(tcpMember);
-                }
+                // FIXME to be replaced with admin interface
+//                log.info("{} was removed from the cluster", tcpMember);
+//                synchronized (clusterConfig) {
+//                    clusterConfig.removeRemoteMember(tcpMember);
+//                }
                 break;
             default:
                 break;
