@@ -122,7 +122,7 @@ public class TopologyWebSocket
                 cancelTraffic(event);
             }
         } catch (Exception e) {
-            System.out.println("WTF?! " + data);
+            log.warn("Unable to parse GUI request {} due to {}", data, e);
             e.printStackTrace();
         }
     }
@@ -282,7 +282,8 @@ public class TopologyWebSocket
                 if (installable != null && !installable.isEmpty()) {
                     PathIntent pathIntent = (PathIntent) installable.iterator().next();
                     Path path = pathIntent.path();
-                    ObjectNode payload = pathMessage(path).put("intentId", intent.id().toString());
+                    ObjectNode payload = pathMessage(path, "host")
+                            .put("intentId", intent.id().toString());
                     sendMessage(envelope("showPath", sid, payload));
                 }
             }

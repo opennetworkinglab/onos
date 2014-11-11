@@ -3,6 +3,11 @@
     "id": "of:0000000000000001",
     "type": "roadm",
     "propOrder": [ "name", "type", "-", "dpid", "latitude", "longitude", "allowed" ],
+    "location": {
+        "type": "latlng",
+        "lat": 37.6,
+        "lng": 122.3
+    },
     "props": {
         "allowed": true,
         "latitude": 37.6,

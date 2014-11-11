@@ -3,6 +3,11 @@
     "id": "of:0000000000000004",
     "type": "switch",
     "propOrder": [ "name", "type", "dpid", "latitude", "longitude", "allowed" ],
+    "location": {
+        "type": "latlng",
+        "lat": 32.8,
+        "lng": 117.1
+    },
     "props": {
         "allowed": true,
         "latitude": 32.8,
