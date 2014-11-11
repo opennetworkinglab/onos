@@ -11,11 +11,8 @@
       null
     ],
     "props": {
-      "location": {
-        "type": "latlng",
-        "lat": 123.5,
-        "lng": 67.8
-      },
+      "latitude": 123.5,
+      "longitude": 67.8,
       "anotherProp": "foobar"
     },
     "metaUi": {
