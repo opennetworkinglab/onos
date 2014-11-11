@@ -352,7 +352,7 @@
         updateHost: updateHost,
         removeDevice: stillToImplement,
         removeLink: removeLink,
-        removeHost: stillToImplement,
+        removeHost: removeHost,
         showPath: showPath
     };
 
@@ -389,6 +389,7 @@
 
         lnk = createHostLink(host);
         if (lnk) {
+            node.linkData = lnk;    // cache ref on its host
             network.links.push(lnk);
             network.lookup[host.ingress] = lnk;
             network.lookup[host.egress] = lnk;
@@ -397,6 +398,7 @@
         network.force.start();
     }
 
+    // TODO: fold updateX(...) methods into one base method; remove duplication
     function updateDevice(data) {
         fnTrace('updateDevice', data.payload.id);
         var device = data.payload,
@@ -436,6 +438,7 @@
         }
     }
 
+    // TODO: fold removeX(...) methods into base method - remove dup code
     function removeLink(data) {
         fnTrace('removeLink', data.payload.id);
         var link = data.payload,
@@ -445,6 +448,18 @@
             removeLinkElement(linkData);
         } else {
             logicError('removeLink lookup fail. ID = "' + id + '"');
+        }
+    }
+
+    function removeHost(data) {
+        fnTrace('removeHost', data.payload.id);
+        var host = data.payload,
+            id = host.id,
+            hostData = network.lookup[id];
+        if (hostData) {
+            removeHostElement(hostData);
+        } else {
+            logicError('removeHost lookup fail. ID = "' + id + '"');
         }
     }
 
@@ -604,7 +619,6 @@
         //link .foo() .bar() ...
 
         // operate on exiting links:
-        // TODO: better transition (longer as a dashed, grey line)
         link.exit()
             .attr({
                 'stroke-dasharray': '3, 3'
@@ -873,11 +887,12 @@
         // TODO: figure out how to remove the node 'g' AND its children
         node.exit()
             .transition()
-            .duration(750)
+            .style('opacity', 0.4)
+            .attr('fill', '#888')
+            .transition()
+            .duration(2000)
             .attr({
                 opacity: 0,
-                cx: 0,
-                cy: 0,
                 r: 0
             })
             .remove();
@@ -897,11 +912,26 @@
         delete network.lookup[linkData.id];
         // remove from links array
         var idx = find(linkData.id, network.links);
-
         network.links.splice(idx, 1);
         // remove from SVG
         updateLinks();
+        network.force.resume();
     }
+
+    function removeHostElement(hostData) {
+        // first, remove associated hostLink...
+        removeLinkElement(hostData.linkData);
+
+        // remove from lookup cache
+        delete network.lookup[hostData.id];
+        // remove from nodes array
+        var idx = find(hostData.id, network.nodes);
+        network.nodes.splice(idx, 1);
+        // remove from SVG
+        updateNodes();
+        network.force.resume();
+    }
+
 
     function tick() {
         node.attr({
