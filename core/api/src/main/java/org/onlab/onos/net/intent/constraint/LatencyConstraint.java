@@ -43,7 +43,7 @@ public class LatencyConstraint implements Constraint {
         this.latency = latency;
     }
 
-    public Duration getLatency() {
+    public Duration latency() {
         return latency;
     }
 
