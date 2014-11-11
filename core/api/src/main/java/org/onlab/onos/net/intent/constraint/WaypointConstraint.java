@@ -17,7 +17,7 @@ package org.onlab.onos.net.intent.constraint;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import org.onlab.onos.net.ElementId;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.intent.Constraint;
@@ -35,20 +35,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class WaypointConstraint implements Constraint {
 
-    private final List<ElementId> waypoints;
+    private final List<DeviceId> waypoints;
 
     /**
      * Creates a new waypoint constraint.
      *
      * @param waypoints waypoints
      */
-    public WaypointConstraint(ElementId... waypoints) {
+    public WaypointConstraint(DeviceId... waypoints) {
         checkNotNull(waypoints, "waypoints cannot be null");
         checkArgument(waypoints.length > 0, "length of waypoints should be more than 0");
         this.waypoints = ImmutableList.copyOf(waypoints);
     }
 
-    public List<ElementId> waypoints() {
+    public List<DeviceId> waypoints() {
         return waypoints;
     }
 
@@ -60,8 +60,8 @@ public class WaypointConstraint implements Constraint {
 
     @Override
     public boolean validate(Path path, LinkResourceService resourceService) {
-        LinkedList<ElementId> waypoints = new LinkedList<>(this.waypoints);
-        ElementId current = waypoints.poll();
+        LinkedList<DeviceId> waypoints = new LinkedList<>(this.waypoints);
+        DeviceId current = waypoints.poll();
         // This is safe because Path class ensures the number of links are more than 0
         Link firstLink = path.links().get(0);
         if (firstLink.src().elementId().equals(current)) {
