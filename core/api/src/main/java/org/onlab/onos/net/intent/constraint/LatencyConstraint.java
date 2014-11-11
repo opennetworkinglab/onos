@@ -25,13 +25,12 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
+import static org.onlab.onos.net.AnnotationKeys.LATENCY;
+
 /**
  * Constraint that evaluates the latency through a path.
  */
 public class LatencyConstraint implements Constraint {
-
-    // TODO: formalize the key for latency all over the codes.
-    private static final String LATENCY_KEY = "latency";
 
     private final Duration latency;
 
@@ -49,7 +48,7 @@ public class LatencyConstraint implements Constraint {
 
     @Override
     public double cost(Link link, LinkResourceService resourceService) {
-        String value = link.annotations().value(LATENCY_KEY);
+        String value = link.annotations().value(LATENCY);
 
         double latencyInMicroSec;
         try {
