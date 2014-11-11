@@ -20,6 +20,26 @@
             <action class="org.onlab.onos.cli.SummaryCommand"/>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.TabletMemberCommand"/>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.TabletAddCommand"/>
+            <completers>
+                <ref component-id="nodeIdCompleter"/>
+                <null/>
+                <null/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onlab.onos.cli.TabletRemoveCommand"/>
+            <completers>
+                <ref component-id="nodeIdCompleter"/>
+                <null/>
+                <null/>
+            </completers>
+        </command>
+
+        <command>
             <action class="org.onlab.onos.cli.NodesListCommand"/>
         </command>
         <command>
