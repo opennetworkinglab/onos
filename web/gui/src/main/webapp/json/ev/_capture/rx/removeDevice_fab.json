@@ -1,0 +1,20 @@
+{
+  "__comments__": [
+    "fabricated event",
+    "not sure if this is the actual format",
+    "but we really only care about 'id' being in the payload"
+  ],
+  "event": "removeDevice",
+  "payload": {
+    "id": "of:0000000000000002",
+    "type": "switch",
+    "online": true,
+    "labels": [
+      "of:0000000000000002",
+      "2",
+      "",
+      null
+    ],
+    "props": {}
+  }
+}

@@ -33,7 +33,8 @@
         var uiApi,
             viewApi,
             navApi,
-            libApi;
+            libApi,
+            exported = {};
 
         var defaultOptions = {
             trace: false,
@@ -658,6 +659,7 @@
                 return makeUid(this, id);
             },
 
+            // TODO : add exportApi and importApi methods
             // TODO : implement custom dialogs
 
             // Consider enhancing alert mechanism to handle multiples
@@ -737,6 +739,7 @@
         // ..........................................................
         // View API
 
+        // TODO: deprecated
         viewApi = {
             /** @api view empty( )
              * Empties the current view.
@@ -802,7 +805,8 @@
             lib: libApi,
             //view: viewApi,
             nav: navApi,
-            buildUi: buildOnosUi
+            buildUi: buildOnosUi,
+            exported: exported
         };
     };
 

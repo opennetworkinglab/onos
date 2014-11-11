@@ -41,11 +41,16 @@
     stroke: #ccc;
 }
 
-#topo svg .node.device.switch {
+/* note: device is offline without the 'online' class */
+#topo svg .node.device {
+    fill: #777;
+}
+
+#topo svg .node.device.switch.online {
     fill: #17f;
 }
 
-#topo svg .node.device.roadm {
+#topo svg .node.device.roadm.online {
     fill: #03c;
 }
 
@@ -53,10 +58,15 @@
     fill: #846;
 }
 
+/* note: device is offline without the 'online' class */
 #topo svg .node.device text {
-    fill: white;
+    fill: #aaa;
     font: 10pt sans-serif;
     pointer-events: none;
+}
+
+#topo svg .node.device.online text {
+    fill: white;
 }
 
 #topo svg .node.host text {

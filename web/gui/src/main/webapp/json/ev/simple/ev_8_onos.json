@@ -1,5 +1,5 @@
 {
-  "event": "addHost",
+  "event": "updateHost",
   "payload": {
     "id": "0E:2A:69:30:13:86/-1",
     "ingress": "0E:2A:69:30:13:86/-1/0-of:0000ffffffff0003/2",
@@ -9,7 +9,7 @@
       "port": 2
     },
     "labels": [
-      "unknown",
+      "10.0.0.13",
       "0E:2A:69:30:13:86"
     ],
     "props": {}

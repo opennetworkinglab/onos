@@ -1,0 +1,8 @@
+{
+  "event": "requestPath",
+  "sid": 15,
+  "payload": {
+    "one": "62:4F:65:BF:FF:B3/-1",
+    "two": "CA:4B:EE:A4:B0:33/-1"
+  }
+}

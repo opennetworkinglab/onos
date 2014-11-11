@@ -1,0 +1,22 @@
+{
+  "__comments__": [
+    "fabricated event",
+    "not sure if this is the actual format",
+    "but we really only care about 'id' being in the payload"
+  ],
+  "event": "removeHost",
+  "payload": {
+    "id": "6A:40:24:F7:9C:2C/-1",
+    "ingress": "6A:40:24:F7:9C:2C/-1/0-of:0000000000000003/2",
+    "egress": "of:0000000000000003/2-6A:40:24:F7:9C:2C/-1/0",
+    "cp": {
+      "device": "of:0000000000000003",
+      "port": 2
+    },
+    "labels": [
+      "unknown",
+      "6A:40:24:F7:9C:2C"
+    ],
+    "props": {}
+  }
+}
