@@ -1,13 +1,16 @@
 package org.onlab.onos.store.service;
 
+/**
+ * Service interface for mutual exclusion primitives.
+ */
 public interface LockService {
 
     /**
-     * Create a new lock instance.
+     * Creates a new lock instance.
      * A successful return from this method does not mean the resource guarded by the path is locked.
-     * The caller is expect to call Lock.lock() to acquire the lock.
+     * The caller is expected to call Lock.lock() to acquire the lock.
      * @param path unique lock name.
-     * @return
+     * @return a Lock instance that can be used to acquire the lock.
      */
     Lock create(String path);
 

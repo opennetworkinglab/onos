@@ -24,7 +24,7 @@ public interface Lock {
      * @param leaseDurationMillis the number of milliseconds to hold the
      * lock after granting it, before automatically releasing it if it hasn't
      * already been released by invoking unlock(). Must be in the range
-     * (0, MAX_LEASE_MILLIS]
+     * (0, LockManager.MAX_LEASE_MILLIS]
      */
     void lock(long leaseDurationMillis);
 
@@ -33,7 +33,7 @@ public interface Lock {
      * @param leaseDurationMillis the number of milliseconds the must be
      * locked after it is granted, before automatically releasing it if it hasn't
      * already been released by an invocation of unlock(). Must be in the range
-     * (0, MAX_LEASE_MILLIS]
+     * (0, LockManager.MAX_LEASE_MILLIS]
      * @return true if the lock was acquired and false otherwise
      */
     boolean tryLock(long leaseDurationMillis);
@@ -45,7 +45,7 @@ public interface Lock {
      * @param leaseDurationMillis the number of milliseconds to hold the
      * lock after granting it, before automatically releasing it if it hasn't
      * already been released by invoking unlock(Object). Must be in the range
-     * (0, MAX_LEASE_MILLIS]
+     * (0, LockManager.MAX_LEASE_MILLIS]
      * @return true if the lock was acquired and false if the waiting time
      * elapsed before the lock was acquired
      */
@@ -63,16 +63,14 @@ public interface Lock {
     void unlock();
 
     /**
-     * Extends the lease for this lock.
-     * @param extensionDurationMillis is the amount of additional
-     * time to add to the end of the current expiration time. For example,
-     * if the lock is currently set to expire at time T, a successful call to
-     * extendLease with an argument of 5000 will cause the lock to
-     * now expire at 5 seconds past T.
-     * @return true if the extension is successful, false otherwise. Note
-     * that a failure to extend the lease does not result in unlocking. The lock
-     * will be released either by an explicit call to unlock or when previously
-     * acquired lease runs out.
+     * Extends the expiration time for a lock that is currently owned
+     * by a specified duration. The new expiration time is computed
+     * by adding the specified duration to the current time. If this point
+     * in time is earlier than the existing expiration time then this method
+     * has no effect.
+     * @param leaseDurationMillis extension duration.
+     * @return true if successfully extended expiration, false if attempt to
+     * extend expiration fails or if the path is currently not locked by this instance.
      */
-    boolean extendLease(long extensionDurationMillis);
+    boolean extendExpiration(long leaseDurationMillis);
 }
