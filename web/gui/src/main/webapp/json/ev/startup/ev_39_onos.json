@@ -1,5 +1,5 @@
 {
-  "event": "addLink",
+  "event": "removeLink",
   "payload": {
     "id": "of:0000ffffffffff04/27-of:0000ffffffffff08/10",
     "src": "of:0000ffffffffff04",

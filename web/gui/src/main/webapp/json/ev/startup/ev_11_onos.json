@@ -3,15 +3,15 @@
   "payload": {
     "id": "of:0000ffffffff000A",
     "type": "switch",
-    "online": false,
+    "online": true,
     "labels": [
       "0000ffffffff000A",
       "FF:FF:FF:FF:00:0A",
       "?"
     ],
     "metaUi": {
-      "Zx": 832,
-      "Zy": 223
+      "x": 832,
+      "y": 223
     }
   }
 }

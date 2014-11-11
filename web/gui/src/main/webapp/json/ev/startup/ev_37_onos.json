@@ -1,9 +1,9 @@
 {
-  "event": "addDevice",
+  "event": "updateDevice",
   "payload": {
     "id": "of:0000ffffffffff08",
     "type": "roadm",
-    "online": true,
+    "online": false,
     "labels": [
       "0000ffffffffff08",
       "FF:FF:FF:FF:FF:08",

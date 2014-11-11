@@ -1,14 +1,17 @@
 {
-  "event": "addLink",
+  "event": "updateDevice",
   "payload": {
-    "src": "of:0000ffffffff0003",
-    "srcPort": "2",
-    "dst": "of:0000ffffffffff03",
-    "dstPort": "1",
-    "type": "optical",
-    "linkWidth": 2,
-    "props" : {
-      "BW": "70 G"
+    "id": "of:0000ffffffffff06",
+    "type": "roadm",
+    "online": true,
+    "labels": [
+      "0000ffffffffff06",
+      "FF:FF:FF:FF:FF:06",
+      "?"
+    ],
+    "metaUi": {
+      "x": 336,
+      "y": 254
     }
   }
 }

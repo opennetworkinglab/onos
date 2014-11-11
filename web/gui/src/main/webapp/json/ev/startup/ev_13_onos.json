@@ -3,7 +3,7 @@
   "payload": {
     "id": "of:0000ffffffffff01",
     "type": "roadm",
-    "online": false,
+    "online": true,
     "labels": [
       "0000ffffffffff01",
       "FF:FF:FF:FF:FF:01",

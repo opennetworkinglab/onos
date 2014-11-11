@@ -30,6 +30,7 @@
     // configuration data
     var config = {
         useLiveData: true,
+        fnTrace: true,
         debugOn: false,
         debug: {
             showNodeXY: true,
@@ -180,6 +181,11 @@
         return config.debugOn && config.debug[what];
     }
 
+    function fnTrace(msg, id) {
+        if (config.fnTrace) {
+            console.log('FN: ' + msg + ' [' + id + ']');
+        }
+    }
 
     // ==============================
     // Key Callbacks
@@ -220,7 +226,7 @@
         var v = scenario.view,
             frame;
         if (stack.length === 0) {
-            v.alert('Error:\n\nNo event #' + evn + ' found.');
+            v.alert('Oops!\n\nNo event #' + evn + ' found.');
             return;
         }
         frame = stack.shift();
@@ -334,6 +340,7 @@
     function logicError(msg) {
         // TODO, report logic error to server, via websock, so it can be logged
         network.view.alert('Logic Error:\n\n' + msg);
+        console.warn(msg);
     }
 
     var eventDispatch = {
@@ -350,6 +357,7 @@
     };
 
     function addDevice(data) {
+        fnTrace('addDevice', data.payload.id);
         var device = data.payload,
             nodeData = createDeviceNode(device);
         network.nodes.push(nodeData);
@@ -359,6 +367,7 @@
     }
 
     function addLink(data) {
+        fnTrace('addLink', data.payload.id);
         var link = data.payload,
             lnk = createLink(link);
         if (lnk) {
@@ -370,6 +379,7 @@
     }
 
     function addHost(data) {
+        fnTrace('addHost', data.payload.id);
         var host = data.payload,
             node = createHostNode(host),
             lnk;
@@ -388,6 +398,7 @@
     }
 
     function updateDevice(data) {
+        fnTrace('updateDevice', data.payload.id);
         var device = data.payload,
             id = device.id,
             nodeData = network.lookup[id];
@@ -400,6 +411,7 @@
     }
 
     function updateLink(data) {
+        fnTrace('updateLink', data.payload.id);
         var link = data.payload,
             id = link.id,
             linkData = network.lookup[id];
@@ -412,6 +424,7 @@
     }
 
     function updateHost(data) {
+        fnTrace('updateHost', data.payload.id);
         var host = data.payload,
             id = host.id,
             hostData = network.lookup[id];
@@ -424,6 +437,7 @@
     }
 
     function removeLink(data) {
+        fnTrace('removeLink', data.payload.id);
         var link = data.payload,
             id = link.id,
             linkData = network.lookup[id];
@@ -435,6 +449,7 @@
     }
 
     function showPath(data) {
+        fnTrace('showPath', data.payload.id);
         var links = data.payload.links,
             s = [ data.event + "\n" + links.length ];
         links.forEach(function (d, i) {
@@ -883,7 +898,7 @@
         // remove from links array
         var idx = find(linkData.id, network.links);
 
-        network.links.splice(linkData.index, 1);
+        network.links.splice(idx, 1);
         // remove from SVG
         updateLinks();
     }
@@ -1058,13 +1073,12 @@
         d3.json(urlSc, function(err, data) {
             var p = data && data.params || {},
                 desc = data && data.description || null,
-                intro;
+                intro = data && data.title;
 
             if (err) {
                 view.alert('No scenario found:\n\n' + urlSc + '\n\n' + err);
             } else {
                 sc.params = p;
-                intro = "Scenario loaded: " + ctx + '\n\n' + data.title;
                 if (desc) {
                     intro += '\n\n  ' + desc.join('\n  ');
                 }

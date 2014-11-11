@@ -1,5 +1,5 @@
 {
-  "event": "addLink",
+  "event": "removeLink",
   "payload": {
     "id": "of:0000ffffffffff0A/10-of:0000ffffffffff08/30",
     "type": "optical",
