@@ -67,7 +67,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService resourceService;
 
-    private ApplicationId appId;
+    protected ApplicationId appId;
 
     @Activate
     public void activate() {
