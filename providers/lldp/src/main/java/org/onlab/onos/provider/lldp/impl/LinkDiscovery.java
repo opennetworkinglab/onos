@@ -241,6 +241,9 @@ public class LinkDiscovery implements TimerTask {
      */
     @Override
     public void run(final Timeout t) {
+        if (isStopped()) {
+            return;
+        }
         boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
         if (!isMaster) {
             if (!isStopped()) {
