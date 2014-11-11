@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.rest.exceptions;
-
-import org.onlab.util.ItemNotFoundException;
-
-import javax.ws.rs.core.Response;
 
 /**
- * Mapper for service not found exceptions to the NOT_FOUND response code.
+ * Cluster messaging and distributed store serializers.
  */
-public class EntityNotFoundMapper extends AbstractMapper<ItemNotFoundException> {
-    @Override
-    protected Response.Status responseStatus() {
-        return Response.Status.NOT_FOUND;
-    }
-}
+package org.onlab.onos.store.serializers.impl;

@@ -169,7 +169,9 @@ public class ClusterMessagingProtocol
     @Override
     public ProtocolClient createClient(TcpMember member) {
         ControllerNode remoteNode = getControllerNode(member.host(), member.port());
-        checkNotNull(remoteNode, "A valid controller node is expected");
+        checkNotNull(remoteNode,
+                     "A valid controller node is expected for %s:%s",
+                     member.host(), member.port());
         return new ClusterMessagingProtocolClient(
                 clusterCommunicator, clusterService.getLocalNode(), remoteNode);
     }

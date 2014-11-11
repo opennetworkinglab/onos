@@ -61,7 +61,13 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.impl:org.onlab.onos.cluster.impl:org.onlab.onos.net.device.impl:org.onlab.onos.net.link.impl:org.onlab.onos.net.host.impl:org.onlab.onos.net.topology.impl:org.onlab.onos.net.packet.impl:org.onlab.onos.net.flow.impl:org.onlab.onos.store.trivial.*:org.onlab.onos.net.*.impl:org.onlab.onos.event.impl:org.onlab.onos.store.*:org.onlab.onos.net.intent.impl:org.onlab.onos.net.proxyarp.impl:org.onlab.onos.mastership.impl:org.onlab.onos.json:org.onlab.onos.json.*:org.onlab.onos.provider.host.impl:org.onlab.onos.provider.lldp.impl:org.onlab.onos.net.statistic.impl
+                                org.onlab.onos.impl:org.onlab.onos.core.impl:org.onlab.onos.cluster.impl:org.onlab.onos.net.device.impl:org.onlab.onos.net.link.impl:org.onlab.onos.net.host.impl:org.onlab.onos.net.topology.impl:org.onlab.onos.net.packet.impl:org.onlab.onos.net.flow.impl:org.onlab.onos.net.*.impl:org.onlab.onos.event.impl:org.onlab.onos.net.intent.impl:org.onlab.onos.net.proxyarp.impl:org.onlab.onos.mastership.impl:org.onlab.onos.net.resource.impl:org.onlab.onos.json:org.onlab.onos.json.*:org.onlab.onos.provider.host.impl:org.onlab.onos.provider.lldp.impl:org.onlab.onos.net.statistic.impl
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Distributed Stores</title>
+                            <packages>
+                                org.onlab.onos.store.*
                             </packages>
                         </group>
                         <group>
@@ -92,12 +98,11 @@
                         <group>
                             <title>Test Instrumentation</title>
                             <packages>
-                                org.onlab.onos.metrics.*:org.onlab.onos.oecfg
+                                org.onlab.onos.metrics.*
                             </packages>
                         </group>
                     </groups>
-                    <excludePackageNames>org.onlab.thirdparty
-                    </excludePackageNames>
+                    <excludePackageNames>org.onlab.thirdparty:org.onlab.onos.oecfg</excludePackageNames>
                 </configuration>
             </plugin>
         </plugins>

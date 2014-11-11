@@ -17,7 +17,7 @@ package org.onlab.onos.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.api.ItemNotFoundException;
+import org.onlab.util.ItemNotFoundException;
 import org.onlab.onos.codec.CodecContext;
 import org.onlab.onos.codec.CodecService;
 import org.onlab.onos.codec.JsonCodec;
@@ -69,7 +69,7 @@ public class AbstractWebResource extends BaseResource implements CodecContext {
      * @param message not found message
      * @param <T>     item type
      * @return item if not null
-     * @throws org.onlab.api.ItemNotFoundException if item is null
+     * @throws org.onlab.util.ItemNotFoundException if item is null
      */
     protected <T> T nullIsNotFound(T item, String message) {
         if (item == null) {
