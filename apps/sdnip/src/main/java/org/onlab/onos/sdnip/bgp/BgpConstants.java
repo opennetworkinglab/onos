@@ -168,6 +168,12 @@ public final class BgpConstants {
             /** BGP UPDATE AS_PATH Type: AS_SEQUENCE. */
             public static final int AS_SEQUENCE = 2;
 
+            /** BGP UPDATE AS_PATH Type: AS_CONFED_SEQUENCE. */
+            public static final int AS_CONFED_SEQUENCE = 3;
+
+            /** BGP UPDATE AS_PATH Type: AS_CONFED_SET. */
+            public static final int AS_CONFED_SET = 4;
+
             /**
              * Gets the BGP AS_PATH type as a string.
              *
@@ -183,6 +189,12 @@ public final class BgpConstants {
                     break;
                 case AS_SEQUENCE:
                     typeString = "AS_SEQUENCE";
+                    break;
+                case AS_CONFED_SEQUENCE:
+                    typeString = "AS_CONFED_SEQUENCE";
+                    break;
+                case AS_CONFED_SET:
+                    typeString = "AS_CONFED_SET";
                     break;
                 default:
                     break;

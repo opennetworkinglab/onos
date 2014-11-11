@@ -28,30 +28,63 @@ import org.junit.Test;
  */
 public class AsPathTest {
     /**
+     * Generates Path Segments.
+     *
+     * @return the generated Path Segments
+     */
+    private ArrayList<BgpRouteEntry.PathSegment> generatePathSegments() {
+        ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
+        byte pathSegmentType;
+        ArrayList<Long> segmentAsNumbers;
+        BgpRouteEntry.PathSegment pathSegment;
+
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 1);
+        segmentAsNumbers.add((long) 2);
+        segmentAsNumbers.add((long) 3);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
+        //
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SET;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 4);
+        segmentAsNumbers.add((long) 5);
+        segmentAsNumbers.add((long) 6);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
+        //
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 7);
+        segmentAsNumbers.add((long) 8);
+        segmentAsNumbers.add((long) 9);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
+        //
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SET;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 10);
+        segmentAsNumbers.add((long) 11);
+        segmentAsNumbers.add((long) 12);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
+
+        return pathSegments;
+    }
+
+    /**
      * Generates an AS Path.
      *
      * @return a generated AS Path
      */
     private BgpRouteEntry.AsPath generateAsPath() {
-        ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
-        byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
-        ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
-        BgpRouteEntry.PathSegment pathSegment1 =
-            new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
-        pathSegments.add(pathSegment1);
-        //
-        byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
-        ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
-        BgpRouteEntry.PathSegment pathSegment2 =
-            new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
-        pathSegments.add(pathSegment2);
-        //
+        ArrayList<BgpRouteEntry.PathSegment> pathSegments =
+            generatePathSegments();
         BgpRouteEntry.AsPath asPath = new BgpRouteEntry.AsPath(pathSegments);
 
         return asPath;
@@ -65,9 +98,11 @@ public class AsPathTest {
         BgpRouteEntry.AsPath asPath = generateAsPath();
 
         String expectedString =
-            "AsPath{pathSegments=" +
-            "[PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
-            "PathSegment{type=AS_SET, segmentAsNumbers=[4, 5, 6]}]}";
+            "AsPath{pathSegments=[" +
+            "PathSegment{type=AS_CONFED_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
+            "PathSegment{type=AS_CONFED_SET, segmentAsNumbers=[4, 5, 6]}, " +
+            "PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[7, 8, 9]}, " +
+            "PathSegment{type=AS_SET, segmentAsNumbers=[10, 11, 12]}]}";
         assertThat(asPath.toString(), is(expectedString));
     }
 
@@ -86,24 +121,8 @@ public class AsPathTest {
     @Test
     public void testGetFields() {
         // Create the fields to compare against
-        ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
-        byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
-        ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
-        BgpRouteEntry.PathSegment pathSegment1 =
-            new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
-        pathSegments.add(pathSegment1);
-        //
-        byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
-        ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
-        BgpRouteEntry.PathSegment pathSegment2 =
-            new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
-        pathSegments.add(pathSegment2);
+        ArrayList<BgpRouteEntry.PathSegment> pathSegments =
+            generatePathSegments();
 
         // Generate the entry to test
         BgpRouteEntry.AsPath asPath = generateAsPath();
@@ -116,6 +135,11 @@ public class AsPathTest {
      */
     @Test
     public void testGetAsPathLength() {
+        //
+        // NOTE:
+        //  - AS_CONFED_SEQUENCE and AS_CONFED_SET are excluded
+        //  - AS_SET counts as a single hop
+        //
         BgpRouteEntry.AsPath asPath = generateAsPath();
         assertThat(asPath.getAsPathLength(), is(4));
 
@@ -145,23 +169,45 @@ public class AsPathTest {
 
         // Setup AS Path 2
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
-        byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
-        ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
-        BgpRouteEntry.PathSegment pathSegment1 =
-            new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
-        pathSegments.add(pathSegment1);
+        byte pathSegmentType;
+        ArrayList<Long> segmentAsNumbers;
+        BgpRouteEntry.PathSegment pathSegment;
+
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 1);
+        segmentAsNumbers.add((long) 2);
+        segmentAsNumbers.add((long) 3);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
         //
-        byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
-        ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 55);                       // Different
-        segmentAsNumbers2.add((long) 6);
-        BgpRouteEntry.PathSegment pathSegment2 =
-            new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
-        pathSegments.add(pathSegment2);
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SET;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 4);
+        segmentAsNumbers.add((long) 5);
+        segmentAsNumbers.add((long) 6);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
+        //
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 7);
+        segmentAsNumbers.add((long) 8);
+        segmentAsNumbers.add((long) 9);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
+        //
+        pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SET;
+        segmentAsNumbers = new ArrayList<>();
+        segmentAsNumbers.add((long) 10);
+        segmentAsNumbers.add((long) 111);                       // Different
+        segmentAsNumbers.add((long) 12);
+        pathSegment =
+            new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
+        pathSegments.add(pathSegment);
         //
         BgpRouteEntry.AsPath asPath2 = new BgpRouteEntry.AsPath(pathSegments);
 
@@ -176,9 +222,11 @@ public class AsPathTest {
         BgpRouteEntry.AsPath asPath = generateAsPath();
 
         String expectedString =
-            "AsPath{pathSegments=" +
-            "[PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
-            "PathSegment{type=AS_SET, segmentAsNumbers=[4, 5, 6]}]}";
+            "AsPath{pathSegments=[" +
+            "PathSegment{type=AS_CONFED_SEQUENCE, segmentAsNumbers=[1, 2, 3]}, " +
+            "PathSegment{type=AS_CONFED_SET, segmentAsNumbers=[4, 5, 6]}, " +
+            "PathSegment{type=AS_SEQUENCE, segmentAsNumbers=[7, 8, 9]}, " +
+            "PathSegment{type=AS_SET, segmentAsNumbers=[10, 11, 12]}]}";
         assertThat(asPath.toString(), is(expectedString));
     }
 }

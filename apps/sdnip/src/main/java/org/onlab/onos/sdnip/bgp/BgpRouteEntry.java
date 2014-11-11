@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import org.onlab.onos.sdnip.RouteEntry;
+import org.onlab.onos.sdnip.bgp.BgpConstants.Update;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 
@@ -35,8 +36,7 @@ public class BgpRouteEntry extends RouteEntry {
     private final byte origin;          // Route ORIGIN: IGP, EGP, INCOMPLETE
     private final AsPath asPath;        // The AS Path
     private final long localPref;       // The local preference for the route
-    private long multiExitDisc =
-        BgpConstants.Update.MultiExitDisc.LOWEST_MULTI_EXIT_DISC;
+    private long multiExitDisc = Update.MultiExitDisc.LOWEST_MULTI_EXIT_DISC;
 
     /**
      * Class constructor.
@@ -116,21 +116,33 @@ public class BgpRouteEntry extends RouteEntry {
      * Tests whether the route is originated from the local AS.
      * <p>
      * The route is considered originated from the local AS if the AS Path
-     * is empty or if it begins with an AS_SET.
+     * is empty or if it begins with an AS_SET (after skipping
+     * AS_CONFED_SEQUENCE and AS_CONFED_SET).
      * </p>
      *
      * @return true if the route is originated from the local AS, otherwise
      * false
      */
     boolean isLocalRoute() {
-        if (asPath.getPathSegments().isEmpty()) {
+        PathSegment firstPathSegment = null;
+
+        // Find the first Path Segment by ignoring the AS_CONFED_* segments
+        for (PathSegment pathSegment : asPath.getPathSegments()) {
+            if ((pathSegment.getType() == Update.AsPath.AS_SET) ||
+                (pathSegment.getType() == Update.AsPath.AS_SEQUENCE)) {
+                firstPathSegment = pathSegment;
+                break;
+            }
+        }
+        if (firstPathSegment == null) {
+            return true;                // Local route: no path segments
+        }
+        // If the first path segment is AS_SET, the route is considered local
+        if (firstPathSegment.getType() == Update.AsPath.AS_SET) {
             return true;
         }
-        PathSegment firstPathSegment = asPath.getPathSegments().get(0);
-        if (firstPathSegment.getType() == BgpConstants.Update.AsPath.AS_SET) {
-            return true;
-        }
-        return false;
+
+        return false;                   // The route is not local
     }
 
     /**
@@ -143,10 +155,25 @@ public class BgpRouteEntry extends RouteEntry {
      * @return the BGP Neighbor AS number the route was received from.
      */
     long getNeighborAs() {
+        PathSegment firstPathSegment = null;
+
         if (isLocalRoute()) {
             return BgpConstants.BGP_AS_0;
         }
-        PathSegment firstPathSegment = asPath.getPathSegments().get(0);
+
+        // Find the first Path Segment by ignoring the AS_CONFED_* segments
+        for (PathSegment pathSegment : asPath.getPathSegments()) {
+            if ((pathSegment.getType() == Update.AsPath.AS_SET) ||
+                (pathSegment.getType() == Update.AsPath.AS_SEQUENCE)) {
+                firstPathSegment = pathSegment;
+                break;
+            }
+        }
+        if (firstPathSegment == null) {
+            // NOTE: Shouldn't happen - should be captured by isLocalRoute()
+            return BgpConstants.BGP_AS_0;
+        }
+
         if (firstPathSegment.getSegmentAsNumbers().isEmpty()) {
             // TODO: Shouldn't happen. Should check during the parsing.
             return BgpConstants.BGP_AS_0;
@@ -211,18 +238,16 @@ public class BgpRouteEntry extends RouteEntry {
 
         // Compare the MED if the neighbor AS is same: larger is better
         medLabel: {
-            boolean thisIsLocalRoute = isLocalRoute();
-            if (thisIsLocalRoute != other.isLocalRoute()) {
-                break medLabel;                 // AS number is different
+            if (isLocalRoute() || other.isLocalRoute()) {
+                // Compare MEDs for non-local routes only
+                break medLabel;
             }
-            if (!thisIsLocalRoute) {
-                long thisNeighborAs = getNeighborAs();
-                if (thisNeighborAs != other.getNeighborAs()) {
-                    break medLabel;             // AS number is different
-                }
-                if (thisNeighborAs == BgpConstants.BGP_AS_0) {
-                    break medLabel;             // Invalid AS number
-                }
+            long thisNeighborAs = getNeighborAs();
+            if (thisNeighborAs != other.getNeighborAs()) {
+                break medLabel;             // AS number is different
+            }
+            if (thisNeighborAs == BgpConstants.BGP_AS_0) {
+                break medLabel;             // Invalid AS number
             }
 
             // Compare the MED
@@ -253,13 +278,16 @@ public class BgpRouteEntry extends RouteEntry {
      * A class to represent AS Path Segment.
      */
     public static class PathSegment {
-        private final byte type;        // Segment type: AS_SET, AS_SEQUENCE
+        // Segment type: AS_SET(1), AS_SEQUENCE(2), AS_CONFED_SEQUENCE(3),
+        // AS_CONFED_SET(4)
+        private final byte type;
         private final ArrayList<Long> segmentAsNumbers;   // Segment AS numbers
 
         /**
          * Constructor.
          *
-         * @param type the Path Segment Type: 1=AS_SET, 2=AS_SEQUENCE
+         * @param type the Path Segment Type: AS_SET(1), AS_SEQUENCE(2),
+         * AS_CONFED_SEQUENCE(3), AS_CONFED_SET(4)
          * @param segmentAsNumbers the Segment AS numbers
          */
         PathSegment(byte type, ArrayList<Long> segmentAsNumbers) {
@@ -268,9 +296,11 @@ public class BgpRouteEntry extends RouteEntry {
         }
 
         /**
-         * Gets the Path Segment Type: AS_SET, AS_SEQUENCE.
+         * Gets the Path Segment Type: AS_SET(1), AS_SEQUENCE(2),
+         * AS_CONFED_SEQUENCE(3), AS_CONFED_SET(4).
          *
-         * @return the Path Segment Type: AS_SET, AS_SEQUENCE
+         * @return the Path Segment Type: AS_SET(1), AS_SEQUENCE(2),
+         * AS_CONFED_SEQUENCE(3), AS_CONFED_SET(4)
          */
         public byte getType() {
             return type;
@@ -309,7 +339,7 @@ public class BgpRouteEntry extends RouteEntry {
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
-                .add("type", BgpConstants.Update.AsPath.typeToString(type))
+                .add("type", Update.AsPath.typeToString(type))
                 .add("segmentAsNumbers", this.segmentAsNumbers)
                 .toString();
         }
@@ -333,15 +363,27 @@ public class BgpRouteEntry extends RouteEntry {
              //
              // Precompute the AS Path Length:
              // - AS_SET counts as 1
+             // - AS_SEQUENCE counts how many AS numbers are included
+             // - AS_CONFED_SEQUENCE and AS_CONFED_SET are ignored
              //
              int pl = 0;
              for (PathSegment pathSegment : pathSegments) {
-                 if (pathSegment.getType() ==
-                     BgpConstants.Update.AsPath.AS_SET) {
-                     pl++;
-                     continue;
+                 switch (pathSegment.getType()) {
+                 case Update.AsPath.AS_SET:
+                     pl++;              // AS_SET counts as 1
+                     break;
+                 case Update.AsPath.AS_SEQUENCE:
+                     // Count each AS number
+                     pl += pathSegment.getSegmentAsNumbers().size();
+                     break;
+                 case Update.AsPath.AS_CONFED_SEQUENCE:
+                     break;             // Ignore
+                 case Update.AsPath.AS_CONFED_SET:
+                     break;             // Ignore
+                 default:
+                     // TODO: What to do if the Path Segment type is unknown?
+                     break;
                  }
-                 pl += pathSegment.getSegmentAsNumbers().size();
              }
              asPathLength = pl;
          }
@@ -444,7 +486,7 @@ public class BgpRouteEntry extends RouteEntry {
             .add("prefix", prefix())
             .add("nextHop", nextHop())
             .add("bgpId", bgpSession.getRemoteBgpId())
-            .add("origin", BgpConstants.Update.Origin.typeToString(origin))
+            .add("origin", Update.Origin.typeToString(origin))
             .add("asPath", asPath)
             .add("localPref", localPref)
             .add("multiExitDisc", multiExitDisc)

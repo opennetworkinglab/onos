@@ -975,6 +975,10 @@ public class BgpSession extends SimpleChannelHandler {
             case BgpConstants.Update.AsPath.AS_SET:
                 // FALLTHROUGH
             case BgpConstants.Update.AsPath.AS_SEQUENCE:
+                // FALLTHROUGH
+            case BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE:
+                // FALLTHROUGH
+            case BgpConstants.Update.AsPath.AS_CONFED_SET:
                 break;
             default:
                 // ERROR: Invalid Path Segment Type
