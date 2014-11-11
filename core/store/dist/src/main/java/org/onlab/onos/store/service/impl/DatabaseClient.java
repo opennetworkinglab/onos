@@ -1,15 +1,12 @@
 package org.onlab.onos.store.service.impl;
 
-import java.util.Arrays;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import net.kuujo.copycat.protocol.Response.Status;
-import net.kuujo.copycat.protocol.SubmitRequest;
-import net.kuujo.copycat.protocol.SubmitResponse;
-import net.kuujo.copycat.spi.protocol.ProtocolClient;
+import net.kuujo.copycat.Copycat;
 
 import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.ReadRequest;
@@ -20,31 +17,17 @@ import org.onlab.onos.store.service.WriteRequest;
  */
 public class DatabaseClient {
 
-    private final ProtocolClient client;
+    private final Copycat copycat;
 
-    public DatabaseClient(ProtocolClient client) {
-        this.client = client;
-    }
-
-    private static String nextId() {
-        return UUID.randomUUID().toString();
+    public DatabaseClient(Copycat copycat) {
+        this.copycat = checkNotNull(copycat);
     }
 
     public boolean createTable(String tableName) {
 
-        SubmitRequest request =
-                new SubmitRequest(
-                        nextId(),
-                        "createTable",
-                        Arrays.asList(tableName));
-        CompletableFuture<SubmitResponse> future = client.submit(request);
+        CompletableFuture<Boolean> future = copycat.submit("createTable", tableName);
         try {
-            final SubmitResponse submitResponse = future.get();
-            if (submitResponse.status() == Status.OK) {
-                return (boolean) submitResponse.result();
-            } else {
-                throw new DatabaseException(submitResponse.error());
-            }
+            return future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
@@ -52,17 +35,9 @@ public class DatabaseClient {
 
     public void dropTable(String tableName) {
 
-        SubmitRequest request =
-                new SubmitRequest(
-                        nextId(),
-                        "dropTable",
-                        Arrays.asList(tableName));
-        CompletableFuture<SubmitResponse> future = client.submit(request);
+        CompletableFuture<Void> future = copycat.submit("dropTable", tableName);
         try {
-            if (future.get().status() != Status.OK) {
-                throw new DatabaseException(future.get().toString());
-            }
-
+            future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
@@ -70,79 +45,39 @@ public class DatabaseClient {
 
     public void dropAllTables() {
 
-        SubmitRequest request =
-                new SubmitRequest(
-                        nextId(),
-                        "dropAllTables",
-                        Arrays.asList());
-        CompletableFuture<SubmitResponse> future = client.submit(request);
+        CompletableFuture<Void> future = copycat.submit("dropAllTables");
         try {
-            if (future.get().status() != Status.OK) {
-                throw new DatabaseException(future.get().toString());
-            }
+            future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     public List<String> listTables() {
 
-        SubmitRequest request =
-                new SubmitRequest(
-                        nextId(),
-                        "listTables",
-                        Arrays.asList());
-        CompletableFuture<SubmitResponse> future = client.submit(request);
+        CompletableFuture<List<String>> future = copycat.submit("listTables");
         try {
-            final SubmitResponse submitResponse = future.get();
-            if (submitResponse.status() == Status.OK) {
-                return (List<String>) submitResponse.result();
-            } else {
-                throw new DatabaseException(submitResponse.error());
-            }
+            return future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     public List<InternalReadResult> batchRead(List<ReadRequest> requests) {
 
-        SubmitRequest request = new SubmitRequest(
-                        nextId(),
-                        "read",
-                        Arrays.asList(requests));
-
-        CompletableFuture<SubmitResponse> future = client.submit(request);
+        CompletableFuture<List<InternalReadResult>> future = copycat.submit("read", requests);
         try {
-            final SubmitResponse submitResponse = future.get();
-            if (submitResponse.status() == Status.OK) {
-                return (List<InternalReadResult>) submitResponse.result();
-            } else {
-                throw new DatabaseException(submitResponse.error());
-            }
+            return future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     public List<InternalWriteResult> batchWrite(List<WriteRequest> requests) {
 
-        SubmitRequest request = new SubmitRequest(
-                        nextId(),
-                        "write",
-                        Arrays.asList(requests));
-
-        CompletableFuture<SubmitResponse> future = client.submit(request);
+        CompletableFuture<List<InternalWriteResult>> future = copycat.submit("write", requests);
         try {
-            final SubmitResponse submitResponse = future.get();
-            if (submitResponse.status() == Status.OK) {
-                return (List<InternalWriteResult>) submitResponse.result();
-            } else {
-                throw new DatabaseException(submitResponse.error());
-            }
+            return future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DatabaseException(e);
         }

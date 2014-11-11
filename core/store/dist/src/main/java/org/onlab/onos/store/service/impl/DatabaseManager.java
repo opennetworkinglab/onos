@@ -25,7 +25,6 @@ import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.log.InMemoryLog;
 import net.kuujo.copycat.log.Log;
 
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -53,7 +52,6 @@ import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 /**
  * Strongly consistent and durable state management service based on
@@ -125,28 +123,14 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
 
         final ControllerNode localNode = clusterService.getLocalNode();
-        TcpMember clientHandler = null;
         for (ControllerNode member : defaultMember) {
             final TcpMember tcpMember = new TcpMember(member.ip().toString(),
                                                       member.tcpPort());
             if (localNode.equals(member)) {
-                clientHandler = tcpMember;
                 clusterConfig.setLocalMember(tcpMember);
             } else {
                 clusterConfig.addRemoteMember(tcpMember);
             }
-        }
-
-        // TODO should be removed after DatabaseClient refactoring
-        if (clientHandler == null) {
-            Set<TcpMember> members = clusterConfig.getMembers();
-            if (members.isEmpty()) {
-                log.error("No member found in [{}] tablet configuration.",
-                          DEFAULT_TABLET);
-                throw new IllegalStateException("No member found in tablet configuration");
-            }
-            int position = RandomUtils.nextInt(0, members.size());
-            clientHandler = Iterables.get(members, position);
         }
 
         // note: from this point beyond, clusterConfig requires synchronization
@@ -182,8 +166,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
         copycat.start();
 
-        // FIXME Redo DatabaseClient. Needs fall back mechanism etc.
-        client = new DatabaseClient(copycatMessagingProtocol.createClient(clientHandler));
+        client = new DatabaseClient(copycat);
 
         log.info("Started.");
     }
