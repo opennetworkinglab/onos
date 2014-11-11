@@ -260,36 +260,6 @@
         bgImg.style('visibility', (vis === 'hidden') ? 'visible' : 'hidden');
     }
 
-    function updateDeviceLabel(d) {
-        var label = niceLabel(deviceLabel(d)),
-            node = d.el,
-            box;
-
-        node.select('text')
-            .text(label)
-            .style('opacity', 0)
-            .transition()
-            .style('opacity', 1);
-
-        box = adjustRectToFitText(node);
-
-        node.select('rect')
-            .transition()
-            .attr(box);
-
-        node.select('image')
-            .transition()
-            .attr('x', box.x + config.icons.xoff)
-            .attr('y', box.y + config.icons.yoff);
-    }
-
-    function updateHostLabel(d) {
-        var label = hostLabel(d),
-            host = d.el;
-
-        host.select('text').text(label);
-    }
-
     function cycleLabels() {
         deviceLabelIndex = (deviceLabelIndex === network.deviceLabelCount - 1)
             ? 0 : deviceLabelIndex + 1;
@@ -371,10 +341,10 @@
         addLink: addLink,
         addHost: addHost,
         updateDevice: updateDevice,
-        updateLink: stillToImplement,
+        updateLink: updateLink,
         updateHost: updateHost,
         removeDevice: stillToImplement,
-        removeLink: stillToImplement,
+        removeLink: removeLink,
         removeHost: stillToImplement,
         showPath: showPath
     };
@@ -429,6 +399,18 @@
         }
     }
 
+    function updateLink(data) {
+        var link = data.payload,
+            id = link.id,
+            linkData = network.lookup[id];
+        if (linkData) {
+            $.extend(linkData, link);
+            updateLinkState(linkData);
+        } else {
+            logicError('updateLink lookup fail. ID = "' + id + '"');
+        }
+    }
+
     function updateHost(data) {
         var host = data.payload,
             id = host.id,
@@ -438,6 +420,17 @@
             updateHostState(hostData);
         } else {
             logicError('updateHost lookup fail. ID = "' + id + '"');
+        }
+    }
+
+    function removeLink(data) {
+        var link = data.payload,
+            id = link.id,
+            linkData = network.lookup[id];
+        if (linkData) {
+            removeLinkElement(linkData);
+        } else {
+            logicError('removeLink lookup fail. ID = "' + id + '"');
         }
     }
 
@@ -483,73 +476,80 @@
         return 'translate(' + x + ',' + y + ')';
     }
 
+    function missMsg(what, id) {
+        return '\n[' + what + '] "' + id + '" missing ';
+    }
+
+    function linkEndPoints(srcId, dstId) {
+        var srcNode = network.lookup[srcId],
+            dstNode = network.lookup[dstId],
+            sMiss = !srcNode ? missMsg('src', srcId) : '',
+            dMiss = !dstNode ? missMsg('dst', dstId) : '';
+
+        if (sMiss || dMiss) {
+            logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
+            return null;
+        }
+        return {
+            source: srcNode,
+            target: dstNode,
+            x1: srcNode.x,
+            y1: srcNode.y,
+            x2: dstNode.x,
+            y2: dstNode.y
+        };
+    }
+
     function createHostLink(host) {
         var src = host.id,
             dst = host.cp.device,
             id = host.ingress,
-            srcNode = network.lookup[src],
-            dstNode = network.lookup[dst],
-            lnk;
+            lnk = linkEndPoints(src, dst);
 
-        if (!dstNode) {
-            logicError('switch not on map for link\n\n' +
-                        'src = ' + src + '\ndst = ' + dst);
+        if (!lnk) {
             return null;
         }
 
-        // Compose link ...
-        lnk = {
+        // Synthesize link ...
+        $.extend(lnk, {
             id: id,
-            source: srcNode,
-            target: dstNode,
             class: 'link',
             type: 'hostLink',
             svgClass: 'link hostLink',
-            x1: srcNode.x,
-            y1: srcNode.y,
-            x2: dstNode.x,
-            y2: dstNode.y,
-            width: 1
-        }
-        return lnk;
-    }
-
-    function createLink(link) {
-        // start with the link object as is
-        var lnk = link,
-            type = link.type,
-            src = link.src,
-            dst = link.dst,
-            w = link.linkWidth,
-            srcNode = network.lookup[src],
-            dstNode = network.lookup[dst];
-
-        if (!(srcNode && dstNode)) {
-            logicError('nodes not on map for link\n\n' +
-            'src = ' + src + '\ndst = ' + dst);
-            return null;
-        }
-
-        // Augment as needed...
-        $.extend(lnk, {
-            source: srcNode,
-            target: dstNode,
-            class: 'link',
-            svgClass: type ? 'link ' + type : 'link',
-            x1: srcNode.x,
-            y1: srcNode.y,
-            x2: dstNode.x,
-            y2: dstNode.y,
-            width: w
+            linkWidth: 1
         });
         return lnk;
     }
 
-    function linkWidth(w) {
-        // w is number of links between nodes. Scale appropriately.
-        // TODO: use a d3.scale (linear, log, ... ?)
-        return w * 1.2;
+    function createLink(link) {
+        var lnk = linkEndPoints(link.src, link.dst),
+            type = link.type;
+
+        if (!lnk) {
+            return null;
+        }
+
+        // merge in remaining data
+        $.extend(lnk, link, {
+            class: 'link',
+            svgClass: type ? 'link ' + type : 'link'
+        });
+        return lnk;
     }
+
+    var widthRatio = 1.4,
+        linkScale = d3.scale.linear()
+            .domain([1, 12])
+            .range([widthRatio, 12 * widthRatio])
+            .clamp(true);
+
+    function updateLinkWidth (d) {
+        // TODO: watch out for .showPath/.showTraffic classes
+        d.el.transition()
+            .duration(1000)
+            .attr('stroke-width', linkScale(d.linkWidth));
+    }
+
 
     function updateLinks() {
         link = linkG.selectAll('.link')
@@ -572,7 +572,7 @@
             })
             .transition().duration(1000)
             .attr({
-                'stroke-width': function (d) { return linkWidth(d.width); },
+                'stroke-width': function (d) { return linkScale(d.linkWidth); },
                 stroke: '#666'      // TODO: remove explicit stroke, rather...
             });
 
@@ -589,13 +589,20 @@
         //link .foo() .bar() ...
 
         // operate on exiting links:
-        // TODO: figure out how to remove the node 'g' AND its children
+        // TODO: better transition (longer as a dashed, grey line)
         link.exit()
-            .transition()
-            .duration(750)
             .attr({
-                opacity: 0
+                'stroke-dasharray': '3, 3'
             })
+            .style('opacity', 0.4)
+            .transition()
+            .duration(2000)
+            .attr({
+                'stroke-dasharray': '3, 12'
+            })
+            .transition()
+            .duration(1000)
+            .style('opacity', 0.0)
             .remove();
     }
 
@@ -650,7 +657,6 @@
         node.y = y || network.view.height() / 2;
     }
 
-
     function iconUrl(d) {
         return 'img/' + d.type + '.png';
     }
@@ -694,10 +700,46 @@
         return (label && label.trim()) ? label : '.';
     }
 
+    function updateDeviceLabel(d) {
+        var label = niceLabel(deviceLabel(d)),
+            node = d.el,
+            box;
+
+        node.select('text')
+            .text(label)
+            .style('opacity', 0)
+            .transition()
+            .style('opacity', 1);
+
+        box = adjustRectToFitText(node);
+
+        node.select('rect')
+            .transition()
+            .attr(box);
+
+        node.select('image')
+            .transition()
+            .attr('x', box.x + config.icons.xoff)
+            .attr('y', box.y + config.icons.yoff);
+    }
+
+    function updateHostLabel(d) {
+        var label = hostLabel(d),
+            host = d.el;
+
+        host.select('text').text(label);
+    }
+
     function updateDeviceState(nodeData) {
         nodeData.el.classed('online', nodeData.online);
         updateDeviceLabel(nodeData);
         // TODO: review what else might need to be updated
+    }
+
+    function updateLinkState(linkData) {
+        updateLinkWidth(linkData);
+        // TODO: review what else might need to be updated
+        //  update label, if showing
     }
 
     function updateHostState(hostData) {
@@ -826,6 +868,25 @@
             .remove();
     }
 
+    function find(id, array) {
+        for (var idx = 0, n = array.length; idx < n; idx++) {
+            if (array[idx].id === id) {
+                return idx;
+            }
+        }
+        return -1;
+    }
+
+    function removeLinkElement(linkData) {
+        // remove from lookup cache
+        delete network.lookup[linkData.id];
+        // remove from links array
+        var idx = find(linkData.id, network.links);
+
+        network.links.splice(linkData.index, 1);
+        // remove from SVG
+        updateLinks();
+    }
 
     function tick() {
         node.attr({
