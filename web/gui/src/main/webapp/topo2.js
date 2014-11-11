@@ -625,12 +625,12 @@
             })
             .style('opacity', 0.4)
             .transition()
-            .duration(2000)
+            .duration(1500)
             .attr({
                 'stroke-dasharray': '3, 12'
             })
             .transition()
-            .duration(1000)
+            .duration(500)
             .style('opacity', 0.0)
             .remove();
     }
@@ -884,18 +884,37 @@
         //node .foo() .bar() ...
 
         // operate on exiting nodes:
-        // TODO: figure out how to remove the node 'g' AND its children
-        node.exit()
-            .transition()
-            .style('opacity', 0.4)
-            .attr('fill', '#888')
+        // Note that the node is removed after 2 seconds.
+        // Sub element animations should be shorter than 2 seconds.
+        var exiting = node.exit()
             .transition()
             .duration(2000)
-            .attr({
-                opacity: 0,
-                r: 0
-            })
+            .style('opacity', 0)
             .remove();
+
+        // host node exits....
+        exiting.filter('.host').each(function (d) {
+            var node = d3.select(this);
+
+            node.select('text')
+                .style('opacity', 0.5)
+                .transition()
+                .duration(1000)
+                .style('opacity', 0);
+            // note, leave <g>.remove to remove this element
+
+            node.select('circle')
+                .style('stroke-fill', '#555')
+                .style('fill', '#888')
+                .style('opacity', 0.5)
+                .transition()
+                .duration(1500)
+                .attr('r', 0);
+            // note, leave <g>.remove to remove this element
+
+        });
+
+        // TODO: device node exits
     }
 
     function find(id, array) {
