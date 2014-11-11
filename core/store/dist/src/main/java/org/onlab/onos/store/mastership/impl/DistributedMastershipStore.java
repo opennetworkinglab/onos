@@ -47,7 +47,6 @@ import org.onlab.util.KryoNamespace;
 import com.google.common.base.Objects;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
-import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.MapEvent;
 
 import static org.onlab.onos.net.MastershipRole.*;
@@ -59,8 +58,8 @@ import static org.onlab.onos.net.MastershipRole.*;
 @Component(immediate = true)
 @Service
 public class DistributedMastershipStore
-extends AbstractHazelcastStore<MastershipEvent, MastershipStoreDelegate>
-implements MastershipStore {
+    extends AbstractHazelcastStore<MastershipEvent, MastershipStoreDelegate>
+    implements MastershipStore {
 
     //term number representing that master has never been chosen yet
     private static final Integer NOTHING = 0;
@@ -71,9 +70,6 @@ implements MastershipStore {
     protected SMap<DeviceId, RoleValue> roleMap;
     //devices to terms
     protected SMap<DeviceId, Integer> terms;
-    //last-known cluster size, used for tie-breaking when partitioning occurs
-    protected IAtomicLong clusterSize;
-
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -98,7 +94,6 @@ implements MastershipStore {
         roleMap = new SMap<>(theInstance.<byte[], byte[]>getMap("nodeRoles"), this.serializer);
         roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
         terms = new SMap<>(theInstance.<byte[], byte[]>getMap("terms"), this.serializer);
-        clusterSize = theInstance.getAtomicLong("clustersize");
 
         log.info("Started");
     }
