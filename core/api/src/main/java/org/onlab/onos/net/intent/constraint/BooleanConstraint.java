@@ -52,7 +52,7 @@ public abstract class BooleanConstraint implements Constraint {
     @Override
     public boolean validate(Path path, LinkResourceService resourceService) {
         for (Link link : path.links()) {
-            if (isValid(link, resourceService)) {
+            if (!isValid(link, resourceService)) {
                 return false;
             }
         }

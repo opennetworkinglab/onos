@@ -19,7 +19,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
 import org.onlab.onos.net.resource.LinkResourceService;
 
 import java.util.Objects;
@@ -46,17 +45,6 @@ public class ObstacleConstraint extends BooleanConstraint {
         DeviceId dst = link.dst().deviceId();
 
         return !(obstacles.contains(src) || obstacles.contains(dst));
-    }
-
-    @Override
-    public boolean validate(Path path, LinkResourceService resourceService) {
-        for (Link link : path.links()) {
-            if (!isValid(link, resourceService)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     @Override
