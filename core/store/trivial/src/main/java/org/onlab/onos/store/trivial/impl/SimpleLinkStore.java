@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -233,7 +234,11 @@ public class SimpleLinkStore
         final LinkKey key = linkKey(src, dst);
         Map<ProviderId, LinkDescription> descs = getOrCreateLinkDescriptions(key);
         synchronized (descs) {
-            Link link = links.remove(key);
+            Link link = links.get(key);
+            if (isDurable(link)) {
+                return null;
+            }
+            links.remove(key);
             descs.clear();
             if (link != null) {
                 srcLinks.remove(link.src().deviceId(), key);
@@ -242,6 +247,11 @@ public class SimpleLinkStore
             }
             return null;
         }
+    }
+
+    // Indicates if the link has been marked as durable via annotations.
+    private boolean isDurable(Link link) {
+        return link != null && Objects.equals(link.annotations().value("durable"), "true");
     }
 
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {

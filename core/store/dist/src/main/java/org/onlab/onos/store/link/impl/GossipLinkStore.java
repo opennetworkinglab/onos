@@ -65,6 +65,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -448,8 +449,12 @@ public class GossipLinkStore
                 // outdated remove request, ignore
                 return null;
             }
+            Link link = links.get(key);
+            if (isDurable(link)) {
+                return null;
+            }
             removedLinks.put(key, timestamp);
-            Link link = links.remove(key);
+            links.remove(key);
             linkDescriptions.clear();
             if (link != null) {
                 srcLinks.remove(link.src().deviceId(), key);
@@ -458,6 +463,11 @@ public class GossipLinkStore
             }
             return null;
         }
+    }
+
+    // Indicates if the link has been marked as durable via annotations.
+    private boolean isDurable(Link link) {
+        return link != null && Objects.equals(link.annotations().value("durable"), "true");
     }
 
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
