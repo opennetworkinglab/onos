@@ -1,1 +1,1 @@
-ONOS looks for these config files by default in $KARAF_LOG/config/
+ONOS looks for these config files by default in $KARAF_HOME/config/
