@@ -93,7 +93,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(mac, type(), subtype);
+            return Objects.hash(type(), subtype, mac);
         }
 
         @Override
@@ -142,7 +142,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanId, type(), subtype());
+            return Objects.hash(type(), subtype(), vlanId);
         }
 
         @Override
@@ -191,7 +191,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanPcp, type(), subtype());
+            return Objects.hash(type(), subtype(), vlanPcp);
         }
 
         @Override

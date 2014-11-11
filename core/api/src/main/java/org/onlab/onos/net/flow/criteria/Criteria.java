@@ -196,7 +196,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(port, type());
+            return Objects.hash(type(), port);
         }
 
         @Override
@@ -242,7 +242,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(mac, type);
+            return Objects.hash(type, mac);
         }
 
         @Override
@@ -288,7 +288,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(ethType, type());
+            return Objects.hash(type(), ethType);
         }
 
         @Override
@@ -336,7 +336,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(ip, type);
+            return Objects.hash(type, ip);
         }
 
         @Override
@@ -382,7 +382,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(proto, type());
+            return Objects.hash(type(), proto);
         }
 
         @Override
@@ -427,7 +427,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanPcp);
+            return Objects.hash(type(), vlanPcp);
         }
 
         @Override
@@ -474,7 +474,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(vlanId, type());
+            return Objects.hash(type(), vlanId);
         }
 
         @Override
@@ -522,7 +522,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(tcpPort, type);
+            return Objects.hash(type, tcpPort);
         }
 
         @Override
@@ -568,7 +568,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(lambda, type);
+            return Objects.hash(type, lambda);
         }
 
         @Override
@@ -612,7 +612,7 @@ public final class Criteria {
 
         @Override
         public int hashCode() {
-            return Objects.hash(signalType, type);
+            return Objects.hash(type, signalType);
         }
 
         @Override

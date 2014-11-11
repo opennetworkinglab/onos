@@ -18,7 +18,7 @@ package org.onlab.onos.net.flow;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.provider.Provider;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Abstraction of a flow rule provider.
@@ -58,6 +58,6 @@ public interface FlowRuleProvider extends Provider {
      * @param batch a batch of flow rules
      * @return a future indicating the status of this execution
      */
-    ListenableFuture<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
+    Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
 
 }

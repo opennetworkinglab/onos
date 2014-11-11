@@ -190,7 +190,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(port, type());
+            return Objects.hash(type(), port);
         }
 
         @Override
