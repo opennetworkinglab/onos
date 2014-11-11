@@ -15,103 +15,69 @@
  */
 package org.onlab.onos.gui;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
+import org.onlab.onos.cluster.ClusterEvent;
+import org.onlab.onos.cluster.ClusterEventListener;
+import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
 import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.Annotations;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultEdgeLink;
 import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.PathService;
 import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.IpAddress;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
-import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
-import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 
 /**
  * Web socket capable of interacting with the GUI topology view.
  */
-public class TopologyWebSocket implements WebSocket.OnTextMessage {
+public class TopologyWebSocket
+        extends TopologyMessages implements WebSocket.OnTextMessage {
 
     private static final String APP_ID = "org.onlab.onos.gui";
-    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
 
     private final ApplicationId appId;
-    private final ServiceDirectory directory;
-
-    private final ObjectMapper mapper = new ObjectMapper();
 
     private Connection connection;
 
-    private final DeviceService deviceService;
-    private final LinkService linkService;
-    private final HostService hostService;
-    private final MastershipService mastershipService;
-    private final IntentService intentService;
-
+    private final ClusterEventListener clusterListener = new InternalClusterListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
     private final HostListener hostListener = new InternalHostListener();
     private final MastershipListener mastershipListener = new InternalMastershipListener();
     private final IntentListener intentListener = new InternalIntentListener();
 
-    // TODO: extract into an external & durable state; good enough for now and demo
-    private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
-
     // Intents that are being monitored for the GUI
     private static Map<IntentId, Long> intentsToMonitor = new ConcurrentHashMap<>();
-
-    private static final String COMPACT = "%s/%s-%s/%s";
-
 
     /**
      * Creates a new web-socket for serving data to GUI topology view.
@@ -119,54 +85,24 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
      * @param directory service directory
      */
     public TopologyWebSocket(ServiceDirectory directory) {
-        this.directory = checkNotNull(directory, "Directory cannot be null");
-        deviceService = directory.get(DeviceService.class);
-        linkService = directory.get(LinkService.class);
-        hostService = directory.get(HostService.class);
-        mastershipService = directory.get(MastershipService.class);
-        intentService = directory.get(IntentService.class);
-
+        super(directory);
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }
 
     @Override
     public void onOpen(Connection connection) {
         this.connection = connection;
-        deviceService.addListener(deviceListener);
-        linkService.addListener(linkListener);
-        hostService.addListener(hostListener);
-        mastershipService.addListener(mastershipListener);
-        intentService.addListener(intentListener);
+        addListeners();
 
+        sendAllInstances();
         sendAllDevices();
         sendAllLinks();
         sendAllHosts();
     }
 
-    private void sendAllHosts() {
-        for (Host host : hostService.getHosts()) {
-            sendMessage(hostMessage(new HostEvent(HOST_ADDED, host)));
-        }
-    }
-
-    private void sendAllDevices() {
-        for (Device device : deviceService.getDevices()) {
-            sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
-        }
-    }
-
-    private void sendAllLinks() {
-        for (Link link : linkService.getLinks()) {
-            sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
-        }
-    }
-
     @Override
     public void onClose(int closeCode, String message) {
-        deviceService.removeListener(deviceListener);
-        linkService.removeListener(linkListener);
-        hostService.removeListener(hostListener);
-        mastershipService.removeListener(mastershipListener);
+        removeListeners();
     }
 
     @Override
@@ -177,7 +113,7 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
             if (type.equals("showDetails")) {
                 showDetails(event);
             } else if (type.equals("updateMeta")) {
-                updateMetaInformation(event);
+                updateMetaUi(event);
             } else if (type.equals("requestPath")) {
                 createHostIntent(event);
             } else if (type.equals("requestTraffic")) {
@@ -200,74 +136,32 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         }
     }
 
-    // Retrieves the payload from the specified event.
-    private ObjectNode payload(ObjectNode event) {
-        return (ObjectNode) event.path("payload");
-    }
-
-    // Returns the specified node property as a number
-    private long number(ObjectNode node, String name) {
-        return node.path(name).asLong();
-    }
-
-    // Returns the specified node property as a string.
-    private String string(ObjectNode node, String name) {
-        return node.path(name).asText();
-    }
-
-    // Returns the specified node property as a string.
-    private String string(ObjectNode node, String name, String defaultValue) {
-        return node.path(name).asText(defaultValue);
-    }
-
-    // Returns the specified set of IP addresses as a string.
-    private String ip(Set<IpAddress> ipAddresses) {
-        Iterator<IpAddress> it = ipAddresses.iterator();
-        return it.hasNext() ? it.next().toString() : "unknown";
-    }
-
-    // Encodes the specified host location into a JSON object.
-    private ObjectNode location(ObjectMapper mapper, HostLocation location) {
-        return mapper.createObjectNode()
-                .put("device", location.deviceId().toString())
-                .put("port", location.port().toLong());
-    }
-
-    // Encodes the specified list of labels a JSON array.
-    private ArrayNode labels(ObjectMapper mapper, String... labels) {
-        ArrayNode json = mapper.createArrayNode();
-        for (String label : labels) {
-            json.add(label);
+    // Sends all controller nodes to the client as node-added messages.
+    private void sendAllInstances() {
+        for (ControllerNode node : clusterService.getNodes()) {
+            sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node)));
         }
-        return json;
     }
 
-    // Produces JSON structure from annotations.
-    private JsonNode props(Annotations annotations) {
-        ObjectNode props = mapper.createObjectNode();
-        for (String key : annotations.keys()) {
-            props.put(key, annotations.value(key));
+    // Sends all devices to the client as device-added messages.
+    private void sendAllDevices() {
+        for (Device device : deviceService.getDevices()) {
+            sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
         }
-        return props;
     }
 
-    // Produces a log message event bound to the client.
-    private ObjectNode message(String severity, long id, String message) {
-        return envelope("message", id,
-                        mapper.createObjectNode()
-                                .put("severity", severity)
-                                .put("message", message));
-    }
-
-    // Puts the payload into an envelope and returns it.
-    private ObjectNode envelope(String type, long sid, ObjectNode payload) {
-        ObjectNode event = mapper.createObjectNode();
-        event.put("event", type);
-        if (sid > 0) {
-            event.put("sid", sid);
+    // Sends all links to the client as link-added messages.
+    private void sendAllLinks() {
+        for (Link link : linkService.getLinks()) {
+            sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
         }
-        event.set("payload", payload);
-        return event;
+    }
+
+    // Sends all hosts to the client as host-added messages.
+    private void sendAllHosts() {
+        for (Host host : hostService.getHosts()) {
+            sendMessage(hostMessage(new HostEvent(HOST_ADDED, host)));
+        }
     }
 
     // Sends back device or host details.
@@ -281,12 +175,6 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
             sendMessage(hostDetails(hostId(string(payload, "id")),
                                     number(event, "sid")));
         }
-    }
-
-    // Updates device/host meta information.
-    private void updateMetaInformation(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        metaUi.put(string(payload, "id"), payload);
     }
 
     // Creates host-to-host intent.
@@ -314,7 +202,7 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
             payload.put("traffic", true);
             sendMessage(envelope("showPath", id, payload));
         } else {
-            sendMessage(message("warn", id, "No path found"));
+            sendMessage(warning(id, "No path found"));
         }
     }
 
@@ -323,178 +211,35 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         // TODO: implement this
     }
 
-    // Finds the path between the specified devices.
-    private ObjectNode findPath(DeviceId one, DeviceId two) {
-        PathService pathService = directory.get(PathService.class);
-        Set<Path> paths = pathService.getPaths(one, two);
-        if (paths.isEmpty()) {
-            return null;
-        } else {
-            return pathMessage(paths.iterator().next());
+
+    // Adds all internal listeners.
+    private void addListeners() {
+        clusterService.addListener(clusterListener);
+        deviceService.addListener(deviceListener);
+        linkService.addListener(linkListener);
+        hostService.addListener(hostListener);
+        mastershipService.addListener(mastershipListener);
+        intentService.addListener(intentListener);
+    }
+
+    // Removes all internal listeners.
+    private void removeListeners() {
+        clusterService.removeListener(clusterListener);
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
+        hostService.removeListener(hostListener);
+        mastershipService.removeListener(mastershipListener);
+    }
+
+    // Cluster event listener.
+    private class InternalClusterListener implements ClusterEventListener {
+        @Override
+        public void event(ClusterEvent event) {
+            sendMessage(instanceMessage(event));
         }
     }
 
-    // Produces a path message to the client.
-    private ObjectNode pathMessage(Path path) {
-        ObjectNode payload = mapper.createObjectNode();
-        ArrayNode links = mapper.createArrayNode();
-        for (Link link : path.links()) {
-            links.add(compactLinkString(link));
-        }
-
-        payload.set("links", links);
-        return payload;
-    }
-
-    /**
-     * Returns a compact string representing the given link.
-     *
-     * @param link infrastructure link
-     * @return formatted link string
-     */
-    public static String compactLinkString(Link link) {
-        return String.format(COMPACT, link.src().elementId(), link.src().port(),
-                             link.dst().elementId(), link.dst().port());
-    }
-
-
-    // Produces a link event message to the client.
-    private ObjectNode deviceMessage(DeviceEvent event) {
-        Device device = event.subject();
-        ObjectNode payload = mapper.createObjectNode()
-                .put("id", device.id().toString())
-                .put("type", device.type().toString().toLowerCase())
-                .put("online", deviceService.isAvailable(device.id()));
-
-        // Generate labels: id, chassis id, no-label, optional-name
-        ArrayNode labels = mapper.createArrayNode();
-        labels.add(device.id().toString());
-        labels.add(device.chassisId().toString());
-        labels.add(""); // compact no-label view
-        labels.add(device.annotations().value("name"));
-
-        // Add labels, props and stuff the payload into envelope.
-        payload.set("labels", labels);
-        payload.set("props", props(device.annotations()));
-        addMetaUi(device.id(), payload);
-
-        String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
-                ((event.type() == DEVICE_REMOVED) ? "removeDevice" : "updateDevice");
-        return envelope(type, 0, payload);
-    }
-
-    // Produces a link event message to the client.
-    private ObjectNode linkMessage(LinkEvent event) {
-        Link link = event.subject();
-        ObjectNode payload = mapper.createObjectNode()
-                .put("id", compactLinkString(link))
-                .put("type", link.type().toString().toLowerCase())
-                .put("linkWidth", 2)
-                .put("src", link.src().deviceId().toString())
-                .put("srcPort", link.src().port().toString())
-                .put("dst", link.dst().deviceId().toString())
-                .put("dstPort", link.dst().port().toString());
-        String type = (event.type() == LINK_ADDED) ? "addLink" :
-                ((event.type() == LINK_REMOVED) ? "removeLink" : "updateLink");
-        return envelope(type, 0, payload);
-    }
-
-    // Produces a host event message to the client.
-    private ObjectNode hostMessage(HostEvent event) {
-        Host host = event.subject();
-        ObjectNode payload = mapper.createObjectNode()
-                .put("id", host.id().toString())
-                .put("ingress", compactLinkString(edgeLink(host, true)))
-                .put("egress", compactLinkString(edgeLink(host, false)));
-        payload.set("cp", location(mapper, host.location()));
-        payload.set("labels", labels(mapper, ip(host.ipAddresses()),
-                                     host.mac().toString()));
-        payload.set("props", props(host.annotations()));
-        addMetaUi(host.id(), payload);
-
-        String type = (event.type() == HOST_ADDED) ? "addHost" :
-                ((event.type() == HOST_REMOVED) ? "removeHost" : "updateHost");
-        return envelope(type, 0, payload);
-    }
-
-    private DefaultEdgeLink edgeLink(Host host, boolean ingress) {
-        return new DefaultEdgeLink(PID, new ConnectPoint(host.id(), portNumber(0)),
-                                   host.location(), ingress);
-    }
-
-    private void addMetaUi(ElementId id, ObjectNode payload) {
-        ObjectNode meta = metaUi.get(id.toString());
-        if (meta != null) {
-            payload.set("metaUi", meta);
-        }
-    }
-
-
-    // Returns device details response.
-    private ObjectNode deviceDetails(DeviceId deviceId, long sid) {
-        Device device = deviceService.getDevice(deviceId);
-        Annotations annot = device.annotations();
-        int portCount = deviceService.getPorts(deviceId).size();
-        return envelope("showDetails", sid,
-                        json(deviceId.toString(),
-                             device.type().toString().toLowerCase(),
-                             new Prop("Name", annot.value("name")),
-                             new Prop("Vendor", device.manufacturer()),
-                             new Prop("H/W Version", device.hwVersion()),
-                             new Prop("S/W Version", device.swVersion()),
-                             new Prop("Serial Number", device.serialNumber()),
-                             new Separator(),
-                             new Prop("Latitude", annot.value("latitude")),
-                             new Prop("Longitude", annot.value("longitude")),
-                             new Prop("Ports", Integer.toString(portCount))));
-    }
-
-    // Returns host details response.
-    private ObjectNode hostDetails(HostId hostId, long sid) {
-        Host host = hostService.getHost(hostId);
-        Annotations annot = host.annotations();
-        return envelope("showDetails", sid,
-                        json(hostId.toString(), "host",
-                             new Prop("MAC", host.mac().toString()),
-                             new Prop("IP", host.ipAddresses().toString()),
-                             new Separator(),
-                             new Prop("Latitude", annot.value("latitude")),
-                             new Prop("Longitude", annot.value("longitude"))));
-    }
-
-    // Produces JSON property details.
-    private ObjectNode json(String id, String type, Prop... props) {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode result = mapper.createObjectNode()
-                .put("id", id).put("type", type);
-        ObjectNode pnode = mapper.createObjectNode();
-        ArrayNode porder = mapper.createArrayNode();
-        for (Prop p : props) {
-            porder.add(p.key);
-            pnode.put(p.key, p.value);
-        }
-        result.set("propOrder", porder);
-        result.set("props", pnode);
-        return result;
-    }
-
-    // Auxiliary key/value carrier.
-    private class Prop {
-        private final String key;
-        private final String value;
-
-        protected Prop(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
-
-    private class Separator extends Prop {
-        protected Separator() {
-            super("-", "");
-        }
-    }
-
+    // Device event listener.
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
@@ -502,6 +247,7 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         }
     }
 
+    // Link event listener.
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
@@ -509,6 +255,7 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         }
     }
 
+    // Host event listener.
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
@@ -516,13 +263,15 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
         }
     }
 
+    // Mastership event listener.
     private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-
+            // TODO: Is DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED the same?
         }
     }
 
+    // Intent event listener.
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
@@ -539,5 +288,6 @@ public class TopologyWebSocket implements WebSocket.OnTextMessage {
             }
         }
     }
+
 }
 
