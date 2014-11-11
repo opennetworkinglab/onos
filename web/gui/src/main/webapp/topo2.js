@@ -1154,16 +1154,18 @@
             d.fixed = true;
             d3.select(self).classed('fixed', true);
             if (config.useLiveData) {
-                tellServerCoords(d);
+                sendUpdateMeta(d);
             }
         }
 
-        function tellServerCoords(d) {
+        function sendUpdateMeta(d) {
             sendMessage('updateMeta', {
                 id: d.id,
                 'class': d.class,
-                x: Math.floor(d.x),
-                y: Math.floor(d.y)
+                'memento': {
+                    x: Math.floor(d.x),
+                    y: Math.floor(d.y)
+                }
             });
         }
 

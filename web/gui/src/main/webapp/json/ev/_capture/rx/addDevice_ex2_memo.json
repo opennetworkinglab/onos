@@ -17,6 +17,11 @@
         "lng": 67.8
       },
       "anotherProp": "foobar"
+    },
+    "metaUi": {
+      "xpc": 57.3,
+      "ypc": 24.86,
+      "and": "other properties the UI wishes to remember..."
     }
   }
 }
