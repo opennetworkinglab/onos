@@ -3,10 +3,7 @@
 # Launches ONOS GUI on the specified node.
 # -----------------------------------------------------------------------------
 
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-. $ONOS_ROOT/tools/build/envDefaults
-
 host=${1:-$OCI}
 host=${host:-localhost}
 
-open http://$host:8181/onos/tvue
+open http://$host:8181/onos/ui
