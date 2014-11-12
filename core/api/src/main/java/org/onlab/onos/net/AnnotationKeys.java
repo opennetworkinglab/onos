@@ -28,4 +28,23 @@ public final class AnnotationKeys {
      * Annotation key for latency.
      */
     public static final String LATENCY = "latency";
+
+    /**
+     * Returns the value annotated object for the specified annotation key.
+     * The annotated value is expected to be String that can be parsed as double.
+     * If parsing fails, the returned value will be 1.0.
+     *
+     * @param annotated annotated object whose annotated value is obtained
+     * @param key key of annotation
+     * @return double value of annotated object for the specified key
+     */
+    public static double getAnnotatedValue(Annotated annotated, String key) {
+        double value;
+        try {
+            value = Double.parseDouble(annotated.annotations().value(key));
+        } catch (NumberFormatException e) {
+            value = 1.0;
+        }
+        return value;
+    }
 }

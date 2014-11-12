@@ -21,6 +21,8 @@ import org.onlab.onos.net.resource.LinkResourceService;
 
 import java.util.Objects;
 
+import static org.onlab.onos.net.AnnotationKeys.getAnnotatedValue;
+
 /**
  * Constraint that evaluates an arbitrary link annotated value is under the specified threshold.
  */
@@ -63,25 +65,6 @@ public class AnnotationConstraint extends BooleanConstraint {
         double value = getAnnotatedValue(link, key);
 
         return value <= threshold;
-    }
-
-    /**
-     * Returns the annotated value of the specified link. The annotated value
-     * is expected to be String that can be parsed as double. If parsing fails,
-     * the returned value will be 1.0.
-     *
-     * @param link link whose annotated value is obtained
-     * @param key key of link annotation
-     * @return double value of link annotation for the specified key
-     */
-    private double getAnnotatedValue(Link link, String key) {
-        double value;
-        try {
-            value = Double.parseDouble(link.annotations().value(key));
-        } catch (NumberFormatException e) {
-            value = 1.0;
-        }
-        return value;
     }
 
     @Override
