@@ -70,7 +70,7 @@ public abstract class L0ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(lambda, type(), subtype);
+            return Objects.hash(type(), subtype, lambda);
         }
 
         @Override
