@@ -45,11 +45,15 @@ import org.onlab.onos.store.serializers.ImmutableListSerializer;
 import org.onlab.onos.store.serializers.ImmutableMapSerializer;
 import org.onlab.onos.store.serializers.ImmutableSetSerializer;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.service.BatchReadRequest;
+import org.onlab.onos.store.service.BatchWriteRequest;
 import org.onlab.onos.store.service.ReadRequest;
 import org.onlab.onos.store.service.ReadResult;
+import org.onlab.onos.store.service.ReadStatus;
 import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
+import org.onlab.onos.store.service.WriteStatus;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
@@ -112,6 +116,10 @@ public class ClusterMessagingProtocol
             .register(InternalReadResult.Status.class)
             .register(WriteResult.class)
             .register(ReadResult.class)
+            .register(BatchReadRequest.class)
+            .register(BatchWriteRequest.class)
+            .register(ReadStatus.class)
+            .register(WriteStatus.class)
             .register(InternalWriteResult.Status.class)
             .register(VersionedValue.class)
             .build();
