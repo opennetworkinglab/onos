@@ -151,6 +151,7 @@
             debug: false
         },
         webSock,
+        sid = 0,
         deviceLabelIndex = 0,
         hostLabelIndex = 0,
         detailPane,
@@ -169,7 +170,8 @@
         nodeG,
         linkG,
         node,
-        link;
+        link,
+        mask;
 
     // ==============================
     // For Debugging / Development
@@ -193,10 +195,6 @@
 
     function testMe(view) {
         view.alert('test');
-        detailPane.show();
-        setTimeout(function () {
-            detailPane.hide();
-        }, 3000);
     }
 
     function abortIfLive() {
@@ -1059,6 +1057,7 @@
             webSock.ws = new WebSocket(webSockUrl());
 
             webSock.ws.onopen = function() {
+                noWebSock(false);
             };
 
             webSock.ws.onmessage = function(m) {
@@ -1070,6 +1069,7 @@
 
             webSock.ws.onclose = function(m) {
                 webSock.ws = null;
+                noWebSock(true);
             };
         },
 
@@ -1089,7 +1089,9 @@
 
     };
 
-    var sid = 0;
+    function noWebSock(b) {
+        mask.style('display',b ? 'block' : 'none');
+    }
 
     // TODO: use cache of pending messages (key = sid) to reconcile responses
 
@@ -1273,6 +1275,11 @@
 
     }
 
+
+    function para(sel, text) {
+        sel.append('p').text(text);
+    }
+
     // ==============================
     // View life-cycle callbacks
 
@@ -1367,6 +1374,12 @@
             .on('tick', tick);
 
         network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
+
+        // create mask layer for when we lose connection to server.
+        mask = view.$div.append('div').attr('id','topo-mask');
+        para(mask, 'Oops!');
+        para(mask, 'Web-socket connection to server closed...');
+        para(mask, 'Try refreshing the page.');
     }
 
     function load(view, ctx, flags) {

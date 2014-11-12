@@ -22,6 +22,7 @@ public class ReadResult {
 
     /**
      * Returns the status of the read operation.
+     * @return read operation status
      */
     public ReadStatus status() {
         return status;

@@ -146,3 +146,24 @@
     border: 0;
 }
 
+/* Web Socket Closed Mask (starts hidden) */
+
+#topo-mask {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10000px;
+    height: 8000px;
+    z-index: 5000;
+    background-color: rgba(0,0,0,0.75);
+    padding: 60px;
+}
+
+#topo-mask p {
+    margin: 8px 20px;
+    color: #ddd;
+    font-size: 14pt;
+    font-style: italic;
+}
+

@@ -157,7 +157,9 @@ public class FooComponent {
             final String someTable = "admin";
             final String someKey = "long";
 
-            dbAdminService.createTable(someTable);
+            if (!dbAdminService.listTables().contains(someTable)) {
+                dbAdminService.createTable(someTable);
+            }
 
             VersionedValue vv = dbService.get(someTable, someKey);
             if (vv == null) {

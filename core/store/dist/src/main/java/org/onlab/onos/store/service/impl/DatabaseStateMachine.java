@@ -237,8 +237,8 @@ public class DatabaseStateMachine implements StateMachine {
                     WriteResult putResult = new WriteResult(WriteStatus.OK, previousValue);
                     results.add(putResult);
                     tableModificationEvent = (previousValue == null) ?
-                            TableModificationEvent.rowAdded(request.tableName(), request.key()) :
-                            TableModificationEvent.rowUpdated(request.tableName(), request.key());
+                            TableModificationEvent.rowAdded(request.tableName(), request.key(), newValue) :
+                            TableModificationEvent.rowUpdated(request.tableName(), request.key(), newValue);
                     break;
 
                 case REMOVE:
@@ -249,7 +249,7 @@ public class DatabaseStateMachine implements StateMachine {
                     results.add(removeResult);
                     if (removedValue != null) {
                         tableModificationEvent =
-                                TableModificationEvent.rowDeleted(request.tableName(), request.key());
+                                TableModificationEvent.rowDeleted(request.tableName(), request.key(), removedValue);
                     }
                     break;
 

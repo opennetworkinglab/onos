@@ -269,7 +269,7 @@ implements MastershipService, MastershipAdminService {
 
         @Override
         public void notify(MastershipEvent event) {
-            log.info("dispatching mastership event {}", event);
+            log.trace("dispatching mastership event {}", event);
             eventDispatcher.post(event);
         }
 

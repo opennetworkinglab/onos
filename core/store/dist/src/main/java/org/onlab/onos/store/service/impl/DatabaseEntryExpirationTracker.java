@@ -20,11 +20,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//import net.jodah.expiringmap.ExpiringMap;
-//import net.jodah.expiringmap.ExpiringMap.ExpirationListener;
-//import net.jodah.expiringmap.ExpiringMap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
+import net.jodah.expiringmap.ExpiringMap.ExpirationListener;
+import net.jodah.expiringmap.ExpiringMap.ExpirationPolicy;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
@@ -34,19 +35,22 @@ import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.service.DatabaseService;
+import org.onlab.onos.store.service.VersionedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Database update event handler.
+ * Plugs into the database update stream and track the TTL of entries added to
+ * the database. For tables with pre-configured finite TTL, this class has
+ * mechanisms for expiring (deleting) old, expired entries from the database.
  */
-public class DatabaseUpdateEventHandler implements
-    DatabaseUpdateEventListener, EventHandler<LeaderElectEvent> {
+public class DatabaseEntryExpirationTracker implements
+        DatabaseUpdateEventListener, EventHandler<LeaderElectEvent> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public static final MessageSubject DATABASE_UPDATES =
-            new MessageSubject("database-update-event");
+    public static final MessageSubject DATABASE_UPDATES = new MessageSubject(
+            "database-update-event");
 
     private DatabaseService databaseService;
     private ClusterService cluster;
@@ -54,29 +58,32 @@ public class DatabaseUpdateEventHandler implements
 
     private final Member localMember;
     private final AtomicBoolean isLocalMemberLeader = new AtomicBoolean(false);
-    private final Map<String, Map<DatabaseRow, Void>> tableEntryExpirationMap = new HashMap<>();
-    //private final ExpirationListener<DatabaseRow, Void> expirationObserver = new ExpirationObserver();
 
-    DatabaseUpdateEventHandler(Member localMember) {
+    private final Map<String, Map<DatabaseRow, VersionedValue>> tableEntryExpirationMap = new HashMap<>();
+
+    private final ExpirationListener<DatabaseRow, VersionedValue> expirationObserver = new ExpirationObserver();
+
+    DatabaseEntryExpirationTracker(Member localMember) {
         this.localMember = localMember;
     }
 
     @Override
     public void tableModified(TableModificationEvent event) {
         DatabaseRow row = new DatabaseRow(event.tableName(), event.key());
-        Map<DatabaseRow, Void> map = tableEntryExpirationMap.get(event.tableName());
+        Map<DatabaseRow, VersionedValue> map = tableEntryExpirationMap
+                .get(event.tableName());
 
         switch (event.type()) {
         case ROW_DELETED:
             if (isLocalMemberLeader.get()) {
                 try {
-                    clusterCommunicator.broadcast(
-                            new ClusterMessage(
-                                    cluster.getLocalNode().id(),
-                                    DATABASE_UPDATES,
-                                    DatabaseStateMachine.SERIALIZER.encode(event)));
+                    clusterCommunicator.broadcast(new ClusterMessage(cluster
+                            .getLocalNode().id(), DATABASE_UPDATES,
+                            DatabaseStateMachine.SERIALIZER.encode(event)));
                 } catch (IOException e) {
-                    log.error("Failed to broadcast a database table modification event.", e);
+                    log.error(
+                            "Failed to broadcast a database table modification event.",
+                            e);
                 }
             }
             break;
@@ -94,15 +101,11 @@ public class DatabaseUpdateEventHandler implements
         // make this explicit instead of relying on a negative value
         // to indicate no expiration.
         if (expirationTimeMillis > 0) {
-            tableEntryExpirationMap.put(tableName, null);
-            /*
-            ExpiringMap.builder()
+            tableEntryExpirationMap.put(tableName, ExpiringMap.builder()
                     .expiration(expirationTimeMillis, TimeUnit.SECONDS)
                     .expirationListener(expirationObserver)
                     // FIXME: make the expiration policy configurable.
-                    .expirationPolicy(ExpirationPolicy.CREATED)
-                    .build());
-                    */
+                    .expirationPolicy(ExpirationPolicy.CREATED).build());
         }
     }
 
@@ -111,27 +114,40 @@ public class DatabaseUpdateEventHandler implements
         tableEntryExpirationMap.remove(tableName);
     }
 
-    /*
-    private class ExpirationObserver implements ExpirationListener<DatabaseRow, Void> {
+    private class ExpirationObserver implements
+            ExpirationListener<DatabaseRow, VersionedValue> {
         @Override
-        public void expired(DatabaseRow key, Void value) {
+        public void expired(DatabaseRow key, VersionedValue value) {
             try {
-                // TODO: The safety of this check needs to be verified.
-                // Couple of issues:
-                // 1. It is very likely that only one member should attempt deletion of the entry from database.
-                // 2. A potential race condition exists where the entry expires, but before its can be deleted
-                // from the database, a new entry is added or existing entry is updated.
-                // That means ttl and expiration should be for a given version.
                 if (isLocalMemberLeader.get()) {
-                    databaseService.remove(key.tableName, key.key);
+                    if (!databaseService.removeIfVersionMatches(key.tableName,
+                            key.key, value.version())) {
+                        log.info("Entry in the database changed before right its TTL expiration.");
+                    }
+                } else {
+                    // If this node is not the current leader, we should never
+                    // let the expiring entries drop off
+                    // Under stable conditions (i.e no leadership switch) the
+                    // current leader will initiate
+                    // a database remove and this instance will get notified
+                    // of a tableModification event causing it to remove from
+                    // the map.
+                    Map<DatabaseRow, VersionedValue> map = tableEntryExpirationMap
+                            .get(key.tableName);
+                    if (map != null) {
+                        map.put(key, value);
+                    }
                 }
+
             } catch (Exception e) {
-                log.warn("Failed to delete entry from the database after ttl expiration. Will retry eviction", e);
-                tableEntryExpirationMap.get(key.tableName).put(new DatabaseRow(key.tableName, key.key), null);
+                log.warn(
+                        "Failed to delete entry from the database after ttl expiration. Will retry eviction",
+                        e);
+                tableEntryExpirationMap.get(key.tableName).put(
+                        new DatabaseRow(key.tableName, key.key), value);
             }
         }
     }
-    */
 
     @Override
     public void handle(LeaderElectEvent event) {
@@ -140,6 +156,9 @@ public class DatabaseUpdateEventHandler implements
         }
     }
 
+    /**
+     * Wrapper class for a database row identifier.
+     */
     private class DatabaseRow {
 
         String tableName;
@@ -160,8 +179,8 @@ public class DatabaseUpdateEventHandler implements
             }
             DatabaseRow that = (DatabaseRow) obj;
 
-            return Objects.equals(this.tableName, that.tableName) &&
-                   Objects.equals(this.key, that.key);
+            return Objects.equals(this.tableName, that.tableName)
+                    && Objects.equals(this.key, that.key);
         }
 
         @Override

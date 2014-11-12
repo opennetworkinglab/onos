@@ -67,6 +67,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DatabaseProtocolService copycatMessagingProtocol;
 
+    // FIXME: point to appropriate path
     public static final String LOG_FILE_PREFIX = "/tmp/onos-copy-cat-log_";
 
     // Current working dir seems to be /opt/onos/apache-karaf-3.0.2

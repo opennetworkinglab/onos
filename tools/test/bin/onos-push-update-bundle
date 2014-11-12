@@ -13,6 +13,8 @@ jar=$(find org/onlab -type f -name '*.jar' | grep -e $1 | grep -v -e -tests | he
 
 bundle=$(echo $(basename $jar .jar) | sed 's/-[0-9].*//g')
 
+echo "pushing bundle: $bundle"
+
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 for node in $nodes; do
     scp -q $jar $ONOS_USER@$node:.m2/repository/$jar
