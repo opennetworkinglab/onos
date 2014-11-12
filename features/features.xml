@@ -227,4 +227,12 @@
         <bundle>mvn:org.onlab.onos/onos-app-metrics-topology/1.0.0-SNAPSHOT</bundle>
     </feature>
 
+    <feature name="onos-app-demo" version="1.0.0"
+             description="ONOS demo applications">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-demo/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+
+
 </features>
