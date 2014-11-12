@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service.impl;
 
+import org.onlab.onos.store.service.VersionedValue;
+
 /**
  * A table modification event.
  */
@@ -17,41 +19,46 @@ public final class TableModificationEvent {
 
     private final String tableName;
     private final String key;
+    private final VersionedValue value;
     private final Type type;
 
     /**
      * Creates a new row deleted table modification event.
      * @param tableName table name.
      * @param key row key
+     * @param value value associated with the key when it was deleted.
      * @return table modification event.
      */
-    public static TableModificationEvent rowDeleted(String tableName, String key) {
-        return new TableModificationEvent(tableName, key, Type.ROW_DELETED);
+    public static TableModificationEvent rowDeleted(String tableName, String key, VersionedValue value) {
+        return new TableModificationEvent(tableName, key, value, Type.ROW_DELETED);
     }
 
     /**
      * Creates a new row added table modification event.
      * @param tableName table name.
      * @param key row key
+     * @param value value associated with the key
      * @return table modification event.
      */
-    public static TableModificationEvent rowAdded(String tableName, String key) {
-        return new TableModificationEvent(tableName, key, Type.ROW_ADDED);
+    public static TableModificationEvent rowAdded(String tableName, String key, VersionedValue value) {
+        return new TableModificationEvent(tableName, key, value, Type.ROW_ADDED);
     }
 
     /**
      * Creates a new row updated table modification event.
      * @param tableName table name.
      * @param key row key
+     * @param newValue value
      * @return table modification event.
      */
-    public static TableModificationEvent rowUpdated(String tableName, String key) {
-        return new TableModificationEvent(tableName, key, Type.ROW_UPDATED);
+    public static TableModificationEvent rowUpdated(String tableName, String key, VersionedValue newValue) {
+        return new TableModificationEvent(tableName, key, newValue, Type.ROW_UPDATED);
     }
 
-    private TableModificationEvent(String tableName, String key, Type type) {
+    private TableModificationEvent(String tableName, String key, VersionedValue value, Type type) {
         this.tableName = tableName;
         this.key = key;
+        this.value = value;
         this.type = type;
     }
 
@@ -69,6 +76,15 @@ public final class TableModificationEvent {
      */
     public String key() {
         return key;
+    }
+
+    /**
+     * Returns the value associated with the key. If the event for a deletion, this
+     * method returns value that was deleted.
+     * @return row value
+     */
+    public VersionedValue value() {
+        return value;
     }
 
     /**

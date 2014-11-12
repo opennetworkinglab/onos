@@ -29,15 +29,14 @@ public interface DatabaseUpdateEventListener {
 
     /**
      * Notifies listeners of a table created event.
-     * @param tableName
-     * @param expirationTimeMillis
+     * @param tableName name of the table created
+     * @param expirationTimeMillis TTL for entries added to the table (measured since last update time)
      */
     public void tableCreated(String tableName, int expirationTimeMillis);
 
     /**
      * Notifies listeners of a table deleted event.
-     * @param tableName
+     * @param tableName name of the table deleted
      */
     public void tableDeleted(String tableName);
-
 }
