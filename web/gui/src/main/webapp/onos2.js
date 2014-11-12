@@ -115,7 +115,6 @@
         }
 
         function doError(msg) {
-            errorCount++;
             console.error(msg);
             doAlert(msg);
         }

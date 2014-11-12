@@ -127,7 +127,8 @@
         P: togglePorts,
         U: unpin,
 
-        Z: requestPath,
+        W: requestTraffic,  // bag of selections
+        Z: requestPath,     // host-to-host intent (and monitor)
         X: cancelMonitor
     };
 
@@ -199,7 +200,7 @@
 
     function abortIfLive() {
         if (config.useLiveData) {
-            scenario.view.alert("Sorry, currently using live data..");
+            network.view.alert("Sorry, currently using live data..");
             return true;
         }
         return false;
@@ -342,14 +343,18 @@
         addDevice: addDevice,
         addLink: addLink,
         addHost: addHost,
+
         updateDevice: updateDevice,
         updateLink: updateLink,
         updateHost: updateHost,
+
         removeDevice: stillToImplement,
         removeLink: removeLink,
         removeHost: removeHost,
+
         showDetails: showDetails,
-        showPath: showPath
+        showPath: showPath,
+        showTraffic: showTraffic
     };
 
     function addDevice(data) {
@@ -462,6 +467,7 @@
     function showDetails(data) {
         fnTrace('showDetails', data.payload.id);
         populateDetails(data.payload);
+        // TODO: Add single-select actions ...
         detailPane.show();
     }
 
@@ -484,6 +490,10 @@
         // TODO: add selection-highlite lines to links
     }
 
+    function showTraffic(data) {
+        network.view.alert("showTraffic() -- TODO")
+    }
+
     // ...............................
 
     function stillToImplement(data) {
@@ -504,24 +514,58 @@
     // ==============================
     // Out-going messages...
 
+    function userFeedback(msg) {
+        // for now, use the alert pane as is. Maybe different alert style in
+        // the future (centered on view; dismiss button?)
+        network.view.alert(msg);
+    }
+
+    function nSel() {
+        return selectOrder.length;
+    }
     function getSel(idx) {
         return selections[selectOrder[idx]];
     }
+    function getSelId(idx) {
+        return getSel(idx).obj.id;
+    }
+    function allSelectionsClass(cls) {
+        for (var i=0, n=nSel(); i<n; i++) {
+            if (getSel(i).obj.class !== cls) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-    // for now, just a host-to-host intent, (and implicit start-monitoring)
+    function requestTraffic() {
+        if (nSel() > 0) {
+            sendMessage('requestTraffic', {
+                ids: selectOrder
+            });
+        } else {
+            userFeedback('Request-Traffic requires one or\n' +
+                         'more items to be selected.');
+        }
+    }
+
     function requestPath() {
-        var payload = {
-                one: getSel(0).obj.id,
-                two: getSel(1).obj.id
-            };
-        sendMessage('requestPath', payload);
+        if (nSel() === 2 && allSelectionsClass('host')) {
+            sendMessage('requestPath', {
+                one: getSelId(0),
+                two: getSelId(1)
+            });
+        } else {
+            userFeedback('Request-Path requires two\n' +
+                'hosts to be selected.');
+        }
     }
 
     function cancelMonitor() {
-        var payload = {
-                id: "need_the_intent_id"  // FIXME: where are we storing this?
-            };
-        sendMessage('cancelMonitor', payload);
+        // FIXME: from where do we get the intent id(s) to send to the server?
+        sendMessage('cancelMonitor', {
+            ids: ["need_the_intent_id"]
+        });
     }
 
     // request details for the selected element
@@ -1200,12 +1244,43 @@
 
     function singleSelect() {
         requestDetails();
-        // NOTE: detail pane will be shown from showDetails event.
+        // NOTE: detail pane will be shown from showDetails event callback
     }
 
     function multiSelect() {
-        // TODO: use detail pane for multi-select view.
-        //detailPane.show();
+        populateMultiSelect();
+        // TODO: Add multi-select actions ...
+    }
+
+    function addSep(tbody) {
+        var tr = tbody.append('tr');
+        $('<hr>').appendTo(tr.append('td').attr('colspan', 2));
+    }
+
+    function addProp(tbody, label, value) {
+        var tr = tbody.append('tr');
+
+        tr.append('td')
+            .attr('class', 'label')
+            .text(label + ' :');
+
+        tr.append('td')
+            .attr('class', 'value')
+            .text(value);
+    }
+
+    function populateMultiSelect() {
+        detailPane.empty();
+
+        var title = detailPane.append("h2"),
+            table = detailPane.append("table"),
+            tbody = table.append("tbody");
+
+        title.text('Multi-Select...');
+
+        selectOrder.forEach(function (d, i) {
+            addProp(tbody, i+1, d);
+        });
     }
 
     function populateDetails(data) {
@@ -1225,23 +1300,6 @@
                 addProp(tbody, p, data.props[p]);
             }
         });
-
-        function addSep(tbody) {
-            var tr = tbody.append('tr');
-            $('<hr>').appendTo(tr.append('td').attr('colspan', 2));
-        }
-
-        function addProp(tbody, label, value) {
-            var tr = tbody.append('tr');
-
-            tr.append('td')
-                .attr('class', 'label')
-                .text(label + ' :');
-
-            tr.append('td')
-                .attr('class', 'value')
-                .text(value);
-        }
     }
 
     // ==============================
