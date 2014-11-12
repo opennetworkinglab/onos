@@ -24,12 +24,31 @@
     opacity: 0.5;
 }
 
+
 /* NODES */
 
-#topo svg .node.device {
-    stroke: none;
-    stroke-width: 1.5px;
+#topo svg .node {
     cursor: pointer;
+}
+
+#topo svg .node.selected rect,
+#topo svg .node.selected circle {
+    filter: url(#blue-glow);
+}
+
+/* for debugging */
+#topo svg .node circle.debug {
+    fill: white;
+    stroke: red;
+}
+
+#topo svg .node text {
+    pointer-events: none;
+}
+
+/* Device Nodes */
+
+#topo svg .node.device {
 }
 
 #topo svg .node.device rect {
@@ -54,31 +73,28 @@
     fill: #03c;
 }
 
-#topo svg .node.host {
-    fill: #846;
-}
-
 /* note: device is offline without the 'online' class */
 #topo svg .node.device text {
     fill: #aaa;
     font: 10pt sans-serif;
-    pointer-events: none;
 }
 
 #topo svg .node.device.online text {
     fill: white;
 }
 
+
+/* Host Nodes */
+
+#topo svg .node.host {
+    fill: #846;
+}
+
 #topo svg .node.host text {
     fill: #846;
     font: 9pt sans-serif;
-    pointer-events: none;
 }
 
-#topo svg .node.selected rect,
-#topo svg .node.selected circle {
-    filter: url(#blue-glow);
-}
 
 /* LINKS */
 
@@ -91,19 +107,12 @@
     stroke-width: 6px;
 }
 
-/* for debugging */
-#topo svg .node circle.debug {
-    fill: white;
-    stroke: red;
-}
 
-
-/* detail topo-detail pane */
+/* Fly-in details pane */
 
 #topo-detail {
 /* gets base CSS from .fpanel in floatPanel.css */
 }
-
 
 #topo-detail h2 {
     margin: 8px 4px;
@@ -128,7 +137,6 @@
 }
 
 #topo-detail td.value {
-
 }
 
 #topo-detail hr {

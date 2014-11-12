@@ -127,7 +127,8 @@
         P: togglePorts,
         U: unpin,
 
-        X: requestPath
+        Z: requestPath,
+        X: cancelMonitor
     };
 
     // state variables
@@ -518,6 +519,13 @@
         sendMessage('requestPath', payload);
     }
 
+    function cancelMonitor() {
+        var payload = {
+                id: "need_the_intent_id"  // FIXME: where are we storing this?
+            };
+        sendMessage('cancelMonitor', payload);
+    }
+
     // request details for the selected element
     function requestDetails() {
         var data = getSel(0).obj,
@@ -701,18 +709,57 @@
 
     function positionNode(node) {
         var meta = node.metaUi,
-            x = 0,
-            y = 0;
+            x = meta && meta.x,
+            y = meta && meta.y,
+            xy;
 
-        if (meta) {
-            x = meta.x;
-            y = meta.y;
-        }
+        // If we have [x,y] already, use that...
         if (x && y) {
             node.fixed = true;
+            node.x = x;
+            node.y = y;
+            return;
         }
-        node.x = x || network.view.width() / 2;
-        node.y = y || network.view.height() / 2;
+
+        // Note: Placing incoming unpinned nodes at exactly the same point
+        //        (center of the view) causes them to explode outwards when
+        //        the force layout kicks in. So, we spread them out a bit
+        //        initially, to provide a more serene layout convergence.
+        //       Additionally, if the node is a host, we place it near
+        //        the device it is connected to.
+
+        function spread(s) {
+            return Math.floor((Math.random() * s) - s/2);
+        }
+
+        function randDim(dim) {
+            return dim / 2 + spread(dim * 0.7071);
+        }
+
+        function rand() {
+            return {
+                x: randDim(network.view.width()),
+                y: randDim(network.view.height())
+            };
+        }
+
+        function near(node) {
+            var min = 12,
+                dx = spread(12),
+                dy = spread(12);
+            return {
+                x: node.x + min + dx,
+                y: node.y + min + dy
+            };
+        }
+
+        function getDevice(cp) {
+            var d = network.lookup[cp.device];
+            return d || rand();
+        }
+
+        xy = (node.class === 'host') ? near(getDevice(node.cp)) : rand();
+        $.extend(node, xy);
     }
 
     function iconUrl(d) {
