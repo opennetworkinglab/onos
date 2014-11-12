@@ -29,6 +29,11 @@
         <password>rocks</password>
     </group>
     <management-center enabled="false">http://localhost:8080/mancenter</management-center>
+    <properties>
+        <property name="hazelcast.max.no.heartbeat.seconds">30</property>
+        <property name="hazelcast.merge.first.run.delay.seconds">30</property>
+        <property name="hazelcast.merge.next.run.delay.seconds">30</property>
+    </properties> 
     <network>
         <port auto-increment="true" port-count="100">5701</port>
         <outbound-ports>
@@ -177,7 +182,6 @@
             com.hazelcast.map.merge.LatestUpdateMapMergePolicy ; entry with the latest update wins.
         -->
         <merge-policy>com.hazelcast.map.merge.PutIfAbsentMapMergePolicy</merge-policy>
-
     </map>
 
     <multimap name="default">
