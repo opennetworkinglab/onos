@@ -35,6 +35,16 @@ public class DatabaseClient {
         }
     }
 
+    public boolean createTable(String tableName, int ttlMillis) {
+
+        CompletableFuture<Boolean> future = copycat.submit("createTable", tableName, ttlMillis);
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
     public void dropTable(String tableName) {
 
         CompletableFuture<Void> future = copycat.submit("dropTable", tableName);

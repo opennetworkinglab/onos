@@ -30,12 +30,14 @@ import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
 
-import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.VersionedValue;
+import org.onlab.onos.store.service.impl.DatabaseStateMachine.State;
+import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,23 +54,34 @@ public class DatabaseEntryExpirationTracker implements
     public static final MessageSubject DATABASE_UPDATES = new MessageSubject(
             "database-update-event");
 
-    private DatabaseService databaseService;
-    private ClusterService cluster;
-    private ClusterCommunicationService clusterCommunicator;
+    private final DatabaseService databaseService;
+    private final ClusterCommunicationService clusterCommunicator;
 
     private final Member localMember;
+    private final ControllerNode localNode;
     private final AtomicBoolean isLocalMemberLeader = new AtomicBoolean(false);
 
     private final Map<String, Map<DatabaseRow, VersionedValue>> tableEntryExpirationMap = new HashMap<>();
 
     private final ExpirationListener<DatabaseRow, VersionedValue> expirationObserver = new ExpirationObserver();
 
-    DatabaseEntryExpirationTracker(Member localMember) {
+    DatabaseEntryExpirationTracker(
+            Member localMember,
+            ControllerNode localNode,
+            ClusterCommunicationService clusterCommunicator,
+            DatabaseService databaseService) {
         this.localMember = localMember;
+        this.localNode = localNode;
+        this.clusterCommunicator = clusterCommunicator;
+        this.databaseService = databaseService;
     }
 
     @Override
     public void tableModified(TableModificationEvent event) {
+        if (!tableEntryExpirationMap.containsKey(event.tableName())) {
+            return;
+        }
+
         DatabaseRow row = new DatabaseRow(event.tableName(), event.key());
         Map<DatabaseRow, VersionedValue> map = tableEntryExpirationMap
                 .get(event.tableName());
@@ -77,8 +90,8 @@ public class DatabaseEntryExpirationTracker implements
         case ROW_DELETED:
             if (isLocalMemberLeader.get()) {
                 try {
-                    clusterCommunicator.broadcast(new ClusterMessage(cluster
-                            .getLocalNode().id(), DATABASE_UPDATES,
+                    clusterCommunicator.broadcast(new ClusterMessage(
+                            localNode.id(), DATABASE_UPDATES,
                             DatabaseStateMachine.SERIALIZER.encode(event)));
                 } catch (IOException e) {
                     log.error(
@@ -97,12 +110,10 @@ public class DatabaseEntryExpirationTracker implements
     }
 
     @Override
-    public void tableCreated(String tableName, int expirationTimeMillis) {
-        // make this explicit instead of relying on a negative value
-        // to indicate no expiration.
-        if (expirationTimeMillis > 0) {
-            tableEntryExpirationMap.put(tableName, ExpiringMap.builder()
-                    .expiration(expirationTimeMillis, TimeUnit.SECONDS)
+    public void tableCreated(TableMetadata metadata) {
+        if (metadata.expireOldEntries()) {
+            tableEntryExpirationMap.put(metadata.tableName(), ExpiringMap.builder()
+                    .expiration(metadata.ttlMillis(), TimeUnit.SECONDS)
                     .expirationListener(expirationObserver)
                     // FIXME: make the expiration policy configurable.
                     .expirationPolicy(ExpirationPolicy.CREATED).build());
@@ -186,6 +197,30 @@ public class DatabaseEntryExpirationTracker implements
         @Override
         public int hashCode() {
             return Objects.hash(tableName, key);
+        }
+    }
+
+    @Override
+    public void snapshotInstalled(State state) {
+        if (!tableEntryExpirationMap.isEmpty()) {
+            return;
+        }
+        for (String tableName : state.getTableNames()) {
+
+            TableMetadata metadata = state.getTableMetadata(tableName);
+            if (!metadata.expireOldEntries()) {
+                continue;
+            }
+
+            Map<DatabaseRow, VersionedValue> tableExpirationMap = ExpiringMap.builder()
+                    .expiration(metadata.ttlMillis(), TimeUnit.MILLISECONDS)
+                    .expirationListener(expirationObserver)
+                    .expirationPolicy(ExpirationPolicy.CREATED).build();
+            for (Map.Entry<String, VersionedValue> entry : state.getTable(tableName).entrySet()) {
+                tableExpirationMap.put(new DatabaseRow(tableName, entry.getKey()), entry.getValue());
+            }
+
+            tableEntryExpirationMap.put(tableName, tableExpirationMap);
         }
     }
 }

@@ -14,7 +14,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import net.kuujo.copycat.Copycat;
-import net.kuujo.copycat.StateMachine;
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.cluster.TcpCluster;
@@ -34,6 +33,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.service.BatchReadRequest;
 import org.onlab.onos.store.service.BatchReadResult;
 import org.onlab.onos.store.service.BatchWriteRequest;
@@ -63,6 +63,9 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterCommunicationService clusterCommunicator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DatabaseProtocolService copycatMessagingProtocol;
@@ -158,7 +161,13 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         log.info("Starting cluster: {}", cluster);
 
 
-        StateMachine stateMachine = new DatabaseStateMachine();
+        DatabaseStateMachine stateMachine = new DatabaseStateMachine();
+        stateMachine.addEventListener(
+                new DatabaseEntryExpirationTracker(
+                    clusterConfig.getLocalMember(),
+                    clusterService.getLocalNode(),
+                    clusterCommunicator,
+                    this));
         Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
                                         ClusterMessagingProtocol.SERIALIZER);
 
@@ -180,6 +189,11 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     @Override
     public boolean createTable(String name) {
         return client.createTable(name);
+    }
+
+    @Override
+    public boolean createTable(String name, int ttlMillis) {
+        return client.createTable(name, ttlMillis);
     }
 
     @Override

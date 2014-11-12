@@ -30,9 +30,10 @@ import org.onlab.onos.store.service.WriteStatus;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
 /**
@@ -57,6 +58,7 @@ public class DatabaseStateMachine implements StateMachine {
             serializerPool = KryoNamespace.newBuilder()
                     .register(VersionedValue.class)
                     .register(State.class)
+                    .register(TableMetadata.class)
                     .register(BatchReadRequest.class)
                     .register(BatchWriteRequest.class)
                     .register(ReadStatus.class)
@@ -69,7 +71,7 @@ public class DatabaseStateMachine implements StateMachine {
         }
     };
 
-    private final List<DatabaseUpdateEventListener> listeners = Lists.newLinkedList();
+    private final Set<DatabaseUpdateEventListener> listeners = Sets.newIdentityHashSet();
 
     // durable internal state of the database.
     private State state = new State();
@@ -78,34 +80,31 @@ public class DatabaseStateMachine implements StateMachine {
 
     @Command
     public boolean createTable(String tableName) {
-        Map<String, VersionedValue> existingTable =
-                state.getTables().putIfAbsent(tableName, Maps.newHashMap());
-        if (existingTable == null) {
-            for (DatabaseUpdateEventListener listener : listeners) {
-                listener.tableCreated(tableName, Integer.MAX_VALUE);
-            }
-            return true;
-        }
-        return false;
+        TableMetadata metadata = new TableMetadata(tableName);
+        return createTable(metadata);
     }
 
     @Command
-    public boolean createTable(String tableName, int expirationTimeMillis) {
-        Map<String, VersionedValue> existingTable =
-                state.getTables().putIfAbsent(tableName, Maps.newHashMap());
-        if (existingTable == null) {
-            for (DatabaseUpdateEventListener listener : listeners) {
-                listener.tableCreated(tableName, expirationTimeMillis);
-            }
-            return true;
+    public boolean createTable(String tableName, int ttlMillis) {
+        TableMetadata metadata = new TableMetadata(tableName, ttlMillis);
+        return createTable(metadata);
+    }
+
+    private boolean createTable(TableMetadata metadata) {
+        Map<String, VersionedValue> existingTable = state.getTable(metadata.tableName());
+        if (existingTable != null) {
+            return false;
         }
-        return false;
+        state.createTable(metadata);
+        for (DatabaseUpdateEventListener listener : listeners) {
+            listener.tableCreated(metadata);
+        }
+        return true;
     }
 
     @Command
     public boolean dropTable(String tableName) {
-        Map<String, VersionedValue> table = state.getTables().remove(tableName);
-        if (table != null) {
+        if (state.removeTable(tableName)) {
             for (DatabaseUpdateEventListener listener : listeners) {
                 listener.tableDeleted(tableName);
             }
@@ -116,8 +115,8 @@ public class DatabaseStateMachine implements StateMachine {
 
     @Command
     public boolean dropAllTables() {
-        Set<String> tableNames = state.getTables().keySet();
-        state.getTables().clear();
+        Set<String> tableNames = state.getTableNames();
+        state.removeAllTables();
         for (DatabaseUpdateEventListener listener : listeners) {
             for (String tableName : tableNames) {
                 listener.tableDeleted(tableName);
@@ -127,15 +126,15 @@ public class DatabaseStateMachine implements StateMachine {
     }
 
     @Query
-    public List<String> listTables() {
-        return ImmutableList.copyOf(state.getTables().keySet());
+    public Set<String> listTables() {
+        return ImmutableSet.copyOf(state.getTableNames());
     }
 
     @Query
     public List<ReadResult> read(BatchReadRequest batchRequest) {
         List<ReadResult> results = new ArrayList<>(batchRequest.batchSize());
         for (ReadRequest request : batchRequest.getAsList()) {
-            Map<String, VersionedValue> table = state.getTables().get(request.tableName());
+            Map<String, VersionedValue> table = state.getTable(request.tableName());
             if (table == null) {
                 results.add(new ReadResult(ReadStatus.NO_SUCH_TABLE, request.tableName(), request.key(), null));
                 continue;
@@ -186,7 +185,7 @@ public class DatabaseStateMachine implements StateMachine {
         boolean abort = false;
         List<WriteStatus> validationResults = new ArrayList<>(batchRequest.batchSize());
         for (WriteRequest request : batchRequest.getAsList()) {
-            Map<String, VersionedValue> table = state.getTables().get(request.tableName());
+            Map<String, VersionedValue> table = state.getTable(request.tableName());
             if (table == null) {
                 validationResults.add(WriteStatus.NO_SUCH_TABLE);
                 abort = true;
@@ -218,7 +217,7 @@ public class DatabaseStateMachine implements StateMachine {
 
         // apply changes
         for (WriteRequest request : batchRequest.getAsList()) {
-            Map<String, VersionedValue> table = state.getTables().get(request.tableName());
+            Map<String, VersionedValue> table = state.getTable(request.tableName());
 
             TableModificationEvent tableModificationEvent = null;
             // FIXME: If this method could be called by multiple thread,
@@ -274,18 +273,77 @@ public class DatabaseStateMachine implements StateMachine {
         return results;
     }
 
-    public class State {
+    public static class State {
 
-        private final Map<String, Map<String, VersionedValue>> tables =
-                Maps.newHashMap();
+        private final Map<String, TableMetadata> tableMetadata = Maps.newHashMap();
+        private final Map<String, Map<String, VersionedValue>> tableData = Maps.newHashMap();
         private long versionCounter = 1;
 
-        Map<String, Map<String, VersionedValue>> getTables() {
-            return tables;
+        public Map<String, VersionedValue> getTable(String tableName) {
+            return tableData.get(tableName);
+        }
+
+        void createTable(TableMetadata metadata) {
+            tableMetadata.put(metadata.tableName, metadata);
+            tableData.put(metadata.tableName, Maps.newHashMap());
+        }
+
+        TableMetadata getTableMetadata(String tableName) {
+            return tableMetadata.get(tableName);
         }
 
         long nextVersion() {
             return versionCounter++;
+        }
+
+        Set<String> getTableNames() {
+            return ImmutableSet.copyOf(tableMetadata.keySet());
+        }
+
+
+        boolean removeTable(String tableName) {
+            if (!tableMetadata.containsKey(tableName)) {
+                return false;
+            }
+            tableMetadata.remove(tableName);
+            tableData.remove(tableName);
+            return true;
+        }
+
+        void removeAllTables() {
+            tableMetadata.clear();
+            tableData.clear();
+        }
+    }
+
+    public static class TableMetadata {
+        private final String tableName;
+        private final boolean expireOldEntries;
+        private final int ttlMillis;
+
+        public TableMetadata(String tableName) {
+            this.tableName = tableName;
+            this.expireOldEntries = false;
+            this.ttlMillis = Integer.MAX_VALUE;
+
+        }
+
+        public TableMetadata(String tableName, int ttlMillis) {
+            this.tableName = tableName;
+            this.expireOldEntries = true;
+            this.ttlMillis = ttlMillis;
+        }
+
+        public String tableName() {
+            return tableName;
+        }
+
+        public boolean expireOldEntries() {
+            return expireOldEntries;
+        }
+
+        public int ttlMillis() {
+            return ttlMillis;
         }
     }
 
@@ -319,13 +377,30 @@ public class DatabaseStateMachine implements StateMachine {
             } else {
                 this.state = SERIALIZER.decode(data);
             }
+
+            // FIXME: synchronize.
+            for (DatabaseUpdateEventListener listener : listeners) {
+                listener.snapshotInstalled(state);
+            }
         } catch (Exception e) {
             log.error("Failed to install from snapshot", e);
             throw new SnapshotException(e);
         }
     }
 
+    /**
+     * Adds specified DatabaseUpdateEventListener.
+     * @param listener listener to add
+     */
     public void addEventListener(DatabaseUpdateEventListener listener) {
         listeners.add(listener);
+    }
+
+    /**
+     * Removes specified DatabaseUpdateEventListener.
+     * @param listener listener to remove
+     */
+    public void removeEventListener(DatabaseUpdateEventListener listener) {
+        listeners.remove(listener);
     }
 }
