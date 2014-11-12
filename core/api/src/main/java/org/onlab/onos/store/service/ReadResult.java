@@ -11,11 +11,20 @@ public class ReadResult {
     private final String tableName;
     private final String key;
     private final VersionedValue value;
+    private final ReadStatus status;
 
-    public ReadResult(String tableName, String key, VersionedValue value) {
+    public ReadResult(ReadStatus status, String tableName, String key, VersionedValue value) {
+    	this.status = status;
         this.tableName = tableName;
         this.key = key;
         this.value = value;
+    }
+    
+    /**
+     * Returns the status of the read operation.
+     */
+    public ReadStatus status() {
+    	return status;
     }
 
     /**

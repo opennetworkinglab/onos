@@ -1,7 +1,5 @@
 package org.onlab.onos.store.service;
 
-import java.util.List;
-
 /**
  * Service interface for a strongly consistent and durable
  * key value data store.
@@ -9,46 +7,93 @@ import java.util.List;
 public interface DatabaseService {
 
     /**
-     * Performs a read on the database.
-     * @param request read request.
-     * @return ReadResult
-     * @throws DatabaseException if there is a failure in executing read.
+     * Reads the specified key.
+     * @param tableName name of the table associated with this operation.
+     * @return key key to read.
+     * @returns value (and version) associated with this key. This calls returns null if the key does not exist.
      */
-    ReadResult read(ReadRequest request);
-
+    VersionedValue get(String tableName, String key);
+    
     /**
-     * Performs a batch read operation on the database.
-     * The main advantage of batch read operation is parallelization.
-     * @param batch batch of read requests to execute.
-     * @return batch read result.
+     * Associate the key with a value.
+     * @param tableName table name in which this key/value resides.
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return the previous value associated with the specified key, or null if there was no mapping for the key.
      */
-    List<OptionalResult<ReadResult, DatabaseException>> batchRead(List<ReadRequest> batch);
-
-    // FIXME Give me a better name
+    VersionedValue put(String tableName, String key, byte[] value);
+    
     /**
-     * Performs a write operation on the database.
-     * @param request write request
-     * @return write result.
-     * @throws DatabaseException if there is failure in execution write.
+     * If the specified key is not already associated with a value, associate it with the given value.
+     * @param tableName table name in which this key/value resides.
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return true if put was successful, false if there is already a value associated with this key
      */
-    OptionalResult<WriteResult, DatabaseException> writeNothrow(WriteRequest request);
-
+    boolean putIfAbsent(String tableName, String key, byte[] value);
+    
     /**
-     * Performs a write operation on the database.
-     * @param request write request
-     * @return write result.
-     * @throws OptimisticLockException FIXME define conditional failure
-     * @throws PreconditionFailedException FIXME define conditional failure
-     * @throws DatabaseException if there is failure in execution write.
+     * Sets the key to the specified value if the version in the database (for that key)
+     * matches the specified version.
+     * @param tableName name of table associated with this operation.
+     * @param key key
+     * @param value value
+     * @param version version that should present in the database for the put to be successful.
+     * @return true if put was successful, false if there version in database is different from what is specified.
      */
-    WriteResult write(WriteRequest request)/* throws OptimisticLockException, PreconditionFailedException*/;
-
+    boolean putIfVersionMatches(String tableName, String key, byte[] value, long version);
+    
     /**
-     * Performs a batch write operation on the database.
-     * Batch write provides transactional semantics. Either all operations
-     * succeed or none of them do.
-     * @param batch batch of write requests to execute as a transaction.
-     * @return result of executing the batch write operation.
+     * Replaces the entry for a key only if currently mapped to a given value.
+     * @param tableName name of table associated with this operation.
+     * @param key with which the specified value is associated
+     * @param oldValue value expected to be associated with the specified key
+     * @param newValue value to be associated with the specified key
+     * @return true if put was successful, false if there version in database is different from what is specified.
      */
-    List<OptionalResult<WriteResult, DatabaseException>> batchWrite(List<WriteRequest> batch);
+    boolean putIfValueMatches(String tableName, String key, byte[] oldValue, byte[] newValue);
+    
+    /**
+     * Removes the key (and associated value).
+     * @param tableName name of table associated with this operation.
+     * @param key key to remove
+     * @return value previously associated with the key. This call returns null if the key does not exist.
+     */
+    VersionedValue remove(String tableName, String key);
+    
+    /**
+     * Removes the key (and associated value) if the version in the database matches specified version.
+     * @param tableName name of table associated with this operation.
+     * @param key key to remove
+     * @param version version that should present in the database for the remove to be successful.
+     * @return true if remove was successful, false if there version in database is different from what is specified.
+     */
+    boolean removeIfVersionMatches(String tableName, String key, long version);
+    
+    /**
+     * Removes the key (and associated value) if the value in the database matches specified value.
+     * @param tableName name of table associated with this operation.
+     * @param key key to remove
+     * @param value value that should present in the database for the remove to be successful.
+     * @return true if remove was successful, false if there value in database is different from what is specified.
+     */
+    boolean removeIfValueMatches(String tableName, String key, byte[] value);
+    
+    /**
+     * Performs a batch read operation and returns the results.
+     * @param batchRequest batch request.
+     * @return result of the batch operation.
+     */
+    BatchReadResult batchRead(BatchReadRequest batchRequest);
+    
+    /**
+     * Performs a batch write operation and returns the results.
+     * This method provides transactional semantics. Either all writes succeed or none do.
+     * Even a single write failure would cause the entire batch to be aborted.
+     * In the case of unsuccessful operation, the batch result can be inspected to determine
+     * which operation(s) caused the batch to fail.
+     * @param batchRequest batch request.
+     * @return result of the batch operation.
+     */
+    BatchWriteResult batchWrite(BatchWriteRequest batchRequest);
 }

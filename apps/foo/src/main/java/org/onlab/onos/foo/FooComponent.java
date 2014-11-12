@@ -15,8 +15,13 @@
  */
 package org.onlab.onos.foo;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -37,19 +42,9 @@ import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.store.service.DatabaseAdminService;
-import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.OptionalResult;
-import org.onlab.onos.store.service.PreconditionFailedException;
-import org.onlab.onos.store.service.ReadRequest;
-import org.onlab.onos.store.service.ReadResult;
-import org.onlab.onos.store.service.WriteRequest;
-import org.onlab.onos.store.service.WriteResult;
+import org.onlab.onos.store.service.VersionedValue;
 import org.slf4j.Logger;
-
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-import static java.util.concurrent.Executors.newScheduledThreadPool;
 
 /**
  * Playground app component.
@@ -97,9 +92,9 @@ public class FooComponent {
             log.info("Couldn't find DB service");
         } else {
             log.info("Found DB service");
-//            longIncrementor();
-//            executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
-//            executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
+            longIncrementor();
+            executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
         }
         log.info("Started");
     }
@@ -164,44 +159,33 @@ public class FooComponent {
 
             dbAdminService.createTable(someTable);
 
-            ReadResult read = dbService.read(ReadRequest.get(someTable, someKey));
-            if (!read.valueExists()) {
+            VersionedValue vv = dbService.get(someTable, someKey);
+            if (vv == null) {
                 ByteBuffer zero = ByteBuffer.allocate(Long.BYTES).putLong(0);
-                try {
-                    dbService.write(WriteRequest
-                                    .putIfAbsent(someTable,
-                                                 someKey,
-                                                 zero.array()));
-                    log.info("Wrote initial value");
-                    read = dbService.read(ReadRequest.get(someTable, someKey));
-                } catch (PreconditionFailedException e) {
-                    log.info("Concurrent write detected.", e);
-
-                    // concurrent write detected, read and fall through
-                    read = dbService.read(ReadRequest.get(someTable, someKey));
-                    if (!read.valueExists()) {
-                        log.error("Shouldn't reach here");
-                    }
+                if (dbService.putIfAbsent(someTable, someKey, zero.array())) {
+                	log.info("Wrote initial value");
+                	vv = dbService.get(someTable, someKey);
+                } else {
+                	log.info("Concurrent write detected.");
+                	// concurrent write detected, read and fall through
+                	vv = dbService.get(someTable, someKey);
+                	if (vv == null) {
+                		log.error("Shouldn't reach here");
+                	}
                 }
             }
             int retry = 5;
             do {
-                ByteBuffer prev = ByteBuffer.wrap(read.value().value());
+                ByteBuffer prev = ByteBuffer.wrap(vv.value());
                 long next = prev.getLong() + 1;
                 byte[] newValue = ByteBuffer.allocate(Long.BYTES).putLong(next).array();
-                OptionalResult<WriteResult, DatabaseException> result
-                = dbService.writeNothrow(WriteRequest
-                                         .putIfVersionMatches(someTable,
-                                                              someKey,
-                                                              newValue,
-                                                              read.value().version()));
-                if (result.hasValidResult()) {
-                    log.info("Write success {} -> {}", result.get().previousValue(), next);
+                if (dbService.putIfVersionMatches(someTable, someKey, newValue, vv.version())) {
+                    log.info("Write success. New value: {}", next);
                     break;
                 } else {
                     log.info("Write failed trying to write {}", next);
-                    read = dbService.read(ReadRequest.get(someTable, someKey));
-                    if (!read.valueExists()) {
+                    vv = dbService.get(someTable, someKey);
+                    if (vv == null) {
                         log.error("Shouldn't reach here");
                     }
                 }

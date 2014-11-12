@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -15,16 +16,21 @@ import net.kuujo.copycat.Command;
 import net.kuujo.copycat.Query;
 import net.kuujo.copycat.StateMachine;
 
+import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onlab.onos.store.service.BatchReadRequest;
+import org.onlab.onos.store.service.BatchWriteRequest;
 import org.onlab.onos.store.service.ReadRequest;
 import org.onlab.onos.store.service.ReadResult;
+import org.onlab.onos.store.service.ReadStatus;
 import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
-import org.onlab.onos.store.service.impl.InternalWriteResult.Status;
+import org.onlab.onos.store.service.WriteStatus;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
+import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
@@ -40,6 +46,10 @@ public class DatabaseStateMachine implements StateMachine {
 
     private final Logger log = getLogger(getClass());
 
+    // message subject for database update notifications.
+    public static MessageSubject DATABASE_UPDATE_EVENTS =
+            new MessageSubject("database-update-events");
+
     // serializer used for snapshot
     public static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
@@ -47,29 +57,72 @@ public class DatabaseStateMachine implements StateMachine {
             serializerPool = KryoNamespace.newBuilder()
                     .register(VersionedValue.class)
                     .register(State.class)
+                    .register(BatchReadRequest.class)
+                    .register(BatchWriteRequest.class)
+                    .register(ReadStatus.class)
+                    .register(WriteStatus.class)
+                    // TODO: Move this out ?
+                    .register(TableModificationEvent.class)
                     .register(ClusterMessagingProtocol.COMMON)
                     .build()
                     .populate(1);
         }
     };
 
+    private final List<DatabaseUpdateEventListener> listeners = Lists.newLinkedList();
+
+    // durable internal state of the database.
     private State state = new State();
 
     private boolean compressSnapshot = false;
 
     @Command
     public boolean createTable(String tableName) {
-        return state.getTables().putIfAbsent(tableName, Maps.newHashMap()) == null;
+        Map<String, VersionedValue> existingTable =
+                state.getTables().putIfAbsent(tableName, Maps.newHashMap());
+        if (existingTable == null) {
+            for (DatabaseUpdateEventListener listener : listeners) {
+                listener.tableCreated(tableName, Integer.MAX_VALUE);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Command
+    public boolean createTable(String tableName, int expirationTimeMillis) {
+        Map<String, VersionedValue> existingTable =
+                state.getTables().putIfAbsent(tableName, Maps.newHashMap());
+        if (existingTable == null) {
+            for (DatabaseUpdateEventListener listener : listeners) {
+                listener.tableCreated(tableName, expirationTimeMillis);
+            }
+            return true;
+        }
+        return false;
     }
 
     @Command
     public boolean dropTable(String tableName) {
-        return state.getTables().remove(tableName) != null;
+        Map<String, VersionedValue> table = state.getTables().remove(tableName);
+        if (table != null) {
+            for (DatabaseUpdateEventListener listener : listeners) {
+                listener.tableDeleted(tableName);
+            }
+            return true;
+        }
+        return false;
     }
 
     @Command
     public boolean dropAllTables() {
+        Set<String> tableNames = state.getTables().keySet();
         state.getTables().clear();
+        for (DatabaseUpdateEventListener listener : listeners) {
+            for (String tableName : tableNames) {
+                listener.tableDeleted(tableName);
+            }
+        }
         return true;
     }
 
@@ -79,96 +132,95 @@ public class DatabaseStateMachine implements StateMachine {
     }
 
     @Query
-    public List<InternalReadResult> read(List<ReadRequest> requests) {
-        List<InternalReadResult> results = new ArrayList<>(requests.size());
-        for (ReadRequest request : requests) {
+    public List<ReadResult> read(BatchReadRequest batchRequest) {
+        List<ReadResult> results = new ArrayList<>(batchRequest.batchSize());
+        for (ReadRequest request : batchRequest.getAsList()) {
             Map<String, VersionedValue> table = state.getTables().get(request.tableName());
             if (table == null) {
-                results.add(new InternalReadResult(InternalReadResult.Status.NO_SUCH_TABLE, null));
+                results.add(new ReadResult(ReadStatus.NO_SUCH_TABLE, request.tableName(), request.key(), null));
                 continue;
             }
             VersionedValue value = VersionedValue.copy(table.get(request.key()));
-            results.add(new InternalReadResult(
-                    InternalReadResult.Status.OK,
-                    new ReadResult(
-                            request.tableName(),
-                            request.key(),
-                            value)));
+            results.add(new ReadResult(ReadStatus.OK, request.tableName(), request.key(), value));
         }
         return results;
     }
 
-    InternalWriteResult.Status checkIfApplicable(WriteRequest request,
-                                                 VersionedValue value) {
+    WriteStatus checkIfApplicable(WriteRequest request,
+                                        VersionedValue value) {
 
         switch (request.type()) {
         case PUT:
-            return InternalWriteResult.Status.OK;
+            return WriteStatus.OK;
 
         case PUT_IF_ABSENT:
             if (value == null) {
-                return InternalWriteResult.Status.OK;
+                return WriteStatus.OK;
             }
-            return InternalWriteResult.Status.PREVIOUS_VALUE_MISMATCH;
+            return WriteStatus.PRECONDITION_VIOLATION;
         case PUT_IF_VALUE:
         case REMOVE_IF_VALUE:
             if (value != null && Arrays.equals(value.value(), request.oldValue())) {
-                return InternalWriteResult.Status.OK;
+                return WriteStatus.OK;
             }
-            return InternalWriteResult.Status.PREVIOUS_VALUE_MISMATCH;
+            return WriteStatus.PRECONDITION_VIOLATION;
         case PUT_IF_VERSION:
         case REMOVE_IF_VERSION:
             if (value != null && request.previousVersion() == value.version()) {
-                return InternalWriteResult.Status.OK;
+                return WriteStatus.OK;
             }
-            return InternalWriteResult.Status.PREVIOUS_VERSION_MISMATCH;
+            return WriteStatus.PRECONDITION_VIOLATION;
         case REMOVE:
-            return InternalWriteResult.Status.OK;
+            return WriteStatus.OK;
         default:
             break;
         }
         log.error("Should never reach here {}", request);
-        return InternalWriteResult.Status.ABORTED;
+        return WriteStatus.ABORTED;
     }
 
     @Command
-    public List<InternalWriteResult> write(List<WriteRequest> requests) {
+    public List<WriteResult> write(BatchWriteRequest batchRequest) {
 
         // applicability check
         boolean abort = false;
-        List<InternalWriteResult.Status> validationResults = new ArrayList<>(requests.size());
-        for (WriteRequest request : requests) {
+        List<WriteStatus> validationResults = new ArrayList<>(batchRequest.batchSize());
+        for (WriteRequest request : batchRequest.getAsList()) {
             Map<String, VersionedValue> table = state.getTables().get(request.tableName());
             if (table == null) {
-                validationResults.add(InternalWriteResult.Status.NO_SUCH_TABLE);
+                validationResults.add(WriteStatus.NO_SUCH_TABLE);
                 abort = true;
                 continue;
             }
             final VersionedValue value = table.get(request.key());
-            Status result = checkIfApplicable(request, value);
+            WriteStatus result = checkIfApplicable(request, value);
             validationResults.add(result);
-            if (result != Status.OK) {
+            if (result != WriteStatus.OK) {
                 abort = true;
             }
         }
 
-        List<InternalWriteResult> results = new ArrayList<>(requests.size());
+        List<WriteResult> results = new ArrayList<>(batchRequest.batchSize());
 
         if (abort) {
-            for (InternalWriteResult.Status validationResult : validationResults) {
-                if (validationResult == InternalWriteResult.Status.OK) {
+            for (WriteStatus validationResult : validationResults) {
+                if (validationResult == WriteStatus.OK) {
                     // aborted due to applicability check failure on other request
-                    results.add(new InternalWriteResult(InternalWriteResult.Status.ABORTED, null));
+                    results.add(new WriteResult(WriteStatus.ABORTED, null));
                 } else {
-                    results.add(new InternalWriteResult(validationResult, null));
+                    results.add(new WriteResult(validationResult, null));
                 }
             }
             return results;
         }
 
+        List<TableModificationEvent> tableModificationEvents = Lists.newLinkedList();
+
         // apply changes
-        for (WriteRequest request : requests) {
+        for (WriteRequest request : batchRequest.getAsList()) {
             Map<String, VersionedValue> table = state.getTables().get(request.tableName());
+
+            TableModificationEvent tableModificationEvent = null;
             // FIXME: If this method could be called by multiple thread,
             // synchronization scope is wrong.
             // Whole function including applicability check needs to be protected.
@@ -182,16 +234,23 @@ public class DatabaseStateMachine implements StateMachine {
                 case PUT_IF_VERSION:
                     VersionedValue newValue = new VersionedValue(request.newValue(), state.nextVersion());
                     VersionedValue previousValue = table.put(request.key(), newValue);
-                    WriteResult putResult = new WriteResult(request.tableName(), request.key(), previousValue);
-                    results.add(InternalWriteResult.ok(putResult));
+                    WriteResult putResult = new WriteResult(WriteStatus.OK, previousValue);
+                    results.add(putResult);
+                    tableModificationEvent = (previousValue == null) ?
+                            TableModificationEvent.rowAdded(request.tableName(), request.key()) :
+                            TableModificationEvent.rowUpdated(request.tableName(), request.key());
                     break;
 
                 case REMOVE:
                 case REMOVE_IF_VALUE:
                 case REMOVE_IF_VERSION:
                     VersionedValue removedValue = table.remove(request.key());
-                    WriteResult removeResult = new WriteResult(request.tableName(), request.key(), removedValue);
-                    results.add(InternalWriteResult.ok(removeResult));
+                    WriteResult removeResult = new WriteResult(WriteStatus.OK, removedValue);
+                    results.add(removeResult);
+                    if (removedValue != null) {
+                        tableModificationEvent =
+                                TableModificationEvent.rowDeleted(request.tableName(), request.key());
+                    }
                     break;
 
                 default:
@@ -199,7 +258,19 @@ public class DatabaseStateMachine implements StateMachine {
                     break;
                 }
             }
+
+            if (tableModificationEvent != null) {
+                tableModificationEvents.add(tableModificationEvent);
+            }
         }
+
+        // notify listeners of table mod events.
+        for (DatabaseUpdateEventListener listener : listeners) {
+            for (TableModificationEvent tableModificationEvent : tableModificationEvents) {
+                listener.tableModified(tableModificationEvent);
+            }
+        }
+
         return results;
     }
 
@@ -252,5 +323,9 @@ public class DatabaseStateMachine implements StateMachine {
             log.error("Failed to install from snapshot", e);
             throw new SnapshotException(e);
         }
+    }
+
+    public void addEventListener(DatabaseUpdateEventListener listener) {
+        listeners.add(listener);
     }
 }

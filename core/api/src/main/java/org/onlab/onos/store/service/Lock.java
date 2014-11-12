@@ -9,6 +9,12 @@ package org.onlab.onos.store.service;
  */
 public interface Lock {
 
+	/**
+	 * Returns the path this lock will be used to guard from concurrent access.
+	 * @return path.
+	 */
+	String path();
+
     /**
      * Acquires the lock.
      * If the lock is not available then the caller thread becomes
@@ -26,7 +32,7 @@ public interface Lock {
      * already been released by invoking unlock(). Must be in the range
      * (0, LockManager.MAX_LEASE_MILLIS]
      */
-    void lock(long leaseDurationMillis);
+    void lock(int leaseDurationMillis);
 
     /**
      * Acquires the lock only if it is free at the time of invocation.
@@ -36,7 +42,7 @@ public interface Lock {
      * (0, LockManager.MAX_LEASE_MILLIS]
      * @return true if the lock was acquired and false otherwise
      */
-    boolean tryLock(long leaseDurationMillis);
+    boolean tryLock(int leaseDurationMillis);
 
     /**
      * Acquires the lock if it is free within the given waiting
@@ -49,7 +55,7 @@ public interface Lock {
      * @return true if the lock was acquired and false if the waiting time
      * elapsed before the lock was acquired
      */
-    boolean tryLock(long waitTimeMillis, long leaseDurationMillis);
+    boolean tryLock(long waitTimeMillis, int leaseDurationMillis);
 
     /**
      * Returns true if this Lock instance currently holds the lock.
@@ -72,5 +78,5 @@ public interface Lock {
      * @return true if successfully extended expiration, false if attempt to
      * extend expiration fails or if the path is currently not locked by this instance.
      */
-    boolean extendExpiration(long leaseDurationMillis);
+    boolean extendExpiration(int leaseDurationMillis);
 }

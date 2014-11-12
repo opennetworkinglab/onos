@@ -75,5 +75,4 @@ public class ReadRequest {
         return Objects.equals(this.key, other.key) &&
                 Objects.equals(this.tableName, other.tableName);
     }
-
 }

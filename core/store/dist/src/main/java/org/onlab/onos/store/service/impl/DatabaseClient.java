@@ -8,9 +8,11 @@ import java.util.concurrent.ExecutionException;
 
 import net.kuujo.copycat.Copycat;
 
+import org.onlab.onos.store.service.BatchReadRequest;
+import org.onlab.onos.store.service.BatchWriteRequest;
 import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.ReadRequest;
-import org.onlab.onos.store.service.WriteRequest;
+import org.onlab.onos.store.service.ReadResult;
+import org.onlab.onos.store.service.WriteResult;
 
 /**
  * Client for interacting with the Copycat Raft cluster.
@@ -63,9 +65,9 @@ public class DatabaseClient {
         }
     }
 
-    public List<InternalReadResult> batchRead(List<ReadRequest> requests) {
+    public List<ReadResult> batchRead(BatchReadRequest batchRequest) {
 
-        CompletableFuture<List<InternalReadResult>> future = copycat.submit("read", requests);
+        CompletableFuture<List<ReadResult>> future = copycat.submit("read", batchRequest);
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -73,9 +75,9 @@ public class DatabaseClient {
         }
     }
 
-    public List<InternalWriteResult> batchWrite(List<WriteRequest> requests) {
+    public List<WriteResult> batchWrite(BatchWriteRequest batchRequest) {
 
-        CompletableFuture<List<InternalWriteResult>> future = copycat.submit("write", requests);
+        CompletableFuture<List<WriteResult>> future = copycat.submit("write", batchRequest);
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {

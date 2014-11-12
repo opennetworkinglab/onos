@@ -7,34 +7,27 @@ import com.google.common.base.MoreObjects;
  * Database write result.
  */
 public class WriteResult {
-
-    private final String tableName;
-    private final String key;
+	
+    private final WriteStatus status;
     private final VersionedValue previousValue;
-
-    public WriteResult(String tableName, String key, VersionedValue previousValue) {
-        this.tableName = tableName;
-        this.key = key;
+    
+    public WriteResult(WriteStatus status, VersionedValue previousValue) {
+    	this.status = status;
         this.previousValue = previousValue;
-    }
-
-    public String tableName() {
-        return tableName;
-    }
-
-    public String key() {
-        return key;
     }
 
     public VersionedValue previousValue() {
         return previousValue;
     }
+    
+    public WriteStatus status() {
+    	return status;
+    }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("tableName", tableName)
-                .add("key", key)
+        		.add("status", status)
                 .add("previousValue", previousValue)
                 .toString();
     }
