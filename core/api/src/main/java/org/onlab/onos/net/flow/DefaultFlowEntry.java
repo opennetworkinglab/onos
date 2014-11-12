@@ -80,6 +80,7 @@ public class DefaultFlowEntry extends DefaultFlowRule
         this.state = FlowEntryState.FAILED;
         this.errType = errType;
         this.errCode = errCode;
+        this.lastSeen = System.currentTimeMillis();
     }
 
     @Override
