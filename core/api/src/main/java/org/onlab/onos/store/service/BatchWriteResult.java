@@ -1,7 +1,8 @@
 package org.onlab.onos.store.service;
 
-import java.util.Collections;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Result of a batch write operation.
@@ -11,7 +12,7 @@ public class BatchWriteResult {
     private final List<WriteResult> writeResults;
 
     public BatchWriteResult(List<WriteResult> writeResults) {
-        this.writeResults = Collections.unmodifiableList(writeResults);
+        this.writeResults = ImmutableList.copyOf(writeResults);
     }
 
     /**

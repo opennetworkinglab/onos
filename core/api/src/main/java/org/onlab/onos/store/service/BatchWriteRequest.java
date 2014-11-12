@@ -1,8 +1,8 @@
 package org.onlab.onos.store.service;
 
-import java.util.Collections;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -22,7 +22,7 @@ public final class BatchWriteRequest {
     }
 
     private BatchWriteRequest(List<WriteRequest> writeRequests) {
-        this.writeRequests = Collections.unmodifiableList(writeRequests);
+        this.writeRequests = ImmutableList.copyOf(writeRequests);
     }
 
     /**
