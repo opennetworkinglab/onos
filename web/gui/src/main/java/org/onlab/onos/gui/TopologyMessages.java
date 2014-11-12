@@ -313,7 +313,7 @@ public abstract class TopologyMessages {
     // Updates meta UI information for the specified object.
     protected void updateMetaUi(ObjectNode event) {
         ObjectNode payload = payload(event);
-        metaUi.put(string(payload, "id"), payload);
+        metaUi.put(string(payload, "id"), (ObjectNode) payload.path("memento"));
     }
 
     // Returns device details response.
