@@ -61,14 +61,6 @@
             "ports": [ { "port": 30, "speed": 0, "type": "FIBER" }, { "port": 31, "speed": 0, "type": "FIBER" } ]
         },
         {
-            "uri": "of:0000ffffffffff06", "mac": "ffffffffffff06", "type": "ROADM",
-            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "DFW-M10",
-            "annotations": { "latitude": 32.8, "longitude": 97.1, "optical.regens": 3 },
-            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" }, { "port": 31, "speed": 0, "type": "FIBER" } ]
-        },
-
-
-        {
             "uri": "of:0000ffffffff0001", "mac": "ffffffffff0001", "type": "SWITCH",
             "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?", "name": "SFO-R10",
             "annotations": { "latitude": 37.6, "longitude": 122.3 },
