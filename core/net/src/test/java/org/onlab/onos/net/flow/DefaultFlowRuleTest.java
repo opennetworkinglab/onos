@@ -17,7 +17,6 @@
 package org.onlab.onos.net.flow;
 
 import org.junit.Test;
-import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 
 import com.google.common.testing.EqualsTester;
@@ -25,8 +24,8 @@ import com.google.common.testing.EqualsTester;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
-import static org.onlab.onos.net.NetTestTools.did;
 import static org.onlab.onos.net.NetTestTools.APP_ID;
+import static org.onlab.onos.net.NetTestTools.did;
 
 /**
  * Unit tests for the default flow rule class.
@@ -37,62 +36,12 @@ public class DefaultFlowRuleTest {
     private static final IntentTestsMocks.MockTreatment TREATMENT =
             new IntentTestsMocks.MockTreatment();
 
-    final FlowRule flowRule1 = new MockFlowRule(1);
-    final FlowRule sameAsFlowRule1 = new MockFlowRule(1);
-    final FlowRule flowRule2 = new MockFlowRule(2);
+    final FlowRule flowRule1 = new IntentTestsMocks.MockFlowRule(1);
+    final FlowRule sameAsFlowRule1 = new IntentTestsMocks.MockFlowRule(1);
+    final FlowRule flowRule2 = new IntentTestsMocks.MockFlowRule(2);
     final DefaultFlowRule defaultFlowRule1 = new DefaultFlowRule(flowRule1);
     final DefaultFlowRule sameAsDefaultFlowRule1 = new DefaultFlowRule(sameAsFlowRule1);
     final DefaultFlowRule defaultFlowRule2 = new DefaultFlowRule(flowRule2);
-
-    private static class MockFlowRule implements FlowRule {
-
-        int priority;
-        MockFlowRule(int priority) {
-            this.priority = priority;
-        }
-
-        @Override
-        public FlowId id() {
-            return FlowId.valueOf(1);
-        }
-
-        @Override
-        public short appId() {
-            return 0;
-        }
-
-        @Override
-        public int priority() {
-            return priority;
-        }
-
-        @Override
-        public DeviceId deviceId() {
-            return did("1");
-        }
-
-        @Override
-        public TrafficSelector selector() {
-            return SELECTOR;
-        }
-
-        @Override
-        public TrafficTreatment treatment() {
-            return TREATMENT;
-        }
-
-        @Override
-        public int timeout() {
-            return 0;
-        }
-
-        @Override
-        public boolean isPermanent() {
-            return false;
-        }
-
-
-    }
 
     /**
      * Checks that the DefaultFlowRule class is immutable but can be inherited
