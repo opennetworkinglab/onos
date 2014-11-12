@@ -9,11 +9,11 @@ package org.onlab.onos.store.service;
  */
 public interface Lock {
 
-	/**
-	 * Returns the path this lock will be used to guard from concurrent access.
-	 * @return path.
-	 */
-	String path();
+    /**
+     * Returns the path this lock will be used to guard from concurrent access.
+     * @return path.
+     */
+    String path();
 
     /**
      * Acquires the lock.

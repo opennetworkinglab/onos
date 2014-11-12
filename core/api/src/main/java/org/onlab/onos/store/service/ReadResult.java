@@ -14,17 +14,17 @@ public class ReadResult {
     private final ReadStatus status;
 
     public ReadResult(ReadStatus status, String tableName, String key, VersionedValue value) {
-    	this.status = status;
+        this.status = status;
         this.tableName = tableName;
         this.key = key;
         this.value = value;
     }
-    
+
     /**
      * Returns the status of the read operation.
      */
     public ReadStatus status() {
-    	return status;
+        return status;
     }
 
     /**
