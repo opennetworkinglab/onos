@@ -163,15 +163,15 @@ public class FooComponent {
             if (vv == null) {
                 ByteBuffer zero = ByteBuffer.allocate(Long.BYTES).putLong(0);
                 if (dbService.putIfAbsent(someTable, someKey, zero.array())) {
-                	log.info("Wrote initial value");
-                	vv = dbService.get(someTable, someKey);
+                    log.info("Wrote initial value");
+                    vv = dbService.get(someTable, someKey);
                 } else {
-                	log.info("Concurrent write detected.");
-                	// concurrent write detected, read and fall through
-                	vv = dbService.get(someTable, someKey);
-                	if (vv == null) {
-                		log.error("Shouldn't reach here");
-                	}
+                    log.info("Concurrent write detected.");
+                    // concurrent write detected, read and fall through
+                    vv = dbService.get(someTable, someKey);
+                    if (vv == null) {
+                        log.error("Shouldn't reach here");
+                    }
                 }
             }
             int retry = 5;
