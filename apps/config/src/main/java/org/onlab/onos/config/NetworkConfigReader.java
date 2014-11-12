@@ -50,7 +50,10 @@ public class NetworkConfigReader {
 
     private final Logger log = getLogger(getClass());
 
-    private static final String DEFAULT_CONFIG_FILE = "config/addresses.json";
+    // Current working dir seems to be /opt/onos/apache-karaf-3.0.2
+    // TODO: Set the path to /opt/onos/config
+    private static final String CONFIG_DIR = "../config";
+    private static final String DEFAULT_CONFIG_FILE = "addresses.json";
     private String configFileName = DEFAULT_CONFIG_FILE;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -60,52 +63,9 @@ public class NetworkConfigReader {
     protected void activate() {
         log.info("Started network config reader");
 
-        log.info("Config file set to {}", configFileName);
-
         AddressConfiguration config = readNetworkConfig();
-
         if (config != null) {
-            for (AddressEntry entry : config.getAddresses()) {
-
-                ConnectPoint cp = new ConnectPoint(
-                        DeviceId.deviceId(dpidToUri(entry.getDpid())),
-                        PortNumber.portNumber(entry.getPortNumber()));
-
-                Set<InterfaceIpAddress> interfaceIpAddresses = new HashSet<>();
-
-                for (String strIp : entry.getIpAddresses()) {
-                    // Get the IP address and the subnet mask length
-                    try {
-                        String[] splits = strIp.split("/");
-                        if (splits.length != 2) {
-                            throw new IllegalArgumentException("Invalid IP address and prefix length format");
-                        }
-                        // NOTE: IpPrefix will mask-out the bits after the prefix length.
-                        IpPrefix subnet = IpPrefix.valueOf(strIp);
-                        IpAddress addr = IpAddress.valueOf(splits[0]);
-                        InterfaceIpAddress ia =
-                            new InterfaceIpAddress(addr, subnet);
-                        interfaceIpAddresses.add(ia);
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Bad format for IP address in config: {}", strIp);
-                    }
-                }
-
-                MacAddress macAddress = null;
-                if (entry.getMacAddress() != null) {
-                    try {
-                        macAddress = MacAddress.valueOf(entry.getMacAddress());
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Bad format for MAC address in config: {}",
-                                entry.getMacAddress());
-                    }
-                }
-
-                PortAddresses addresses = new PortAddresses(cp,
-                        interfaceIpAddresses, macAddress);
-
-                hostAdminService.bindAddressesToPort(addresses);
-            }
+            applyNetworkConfig(config);
         }
     }
 
@@ -114,12 +74,17 @@ public class NetworkConfigReader {
         log.info("Stopped");
     }
 
+    /**
+     * Reads the network configuration.
+     *
+     * @return the network configuration on success, otherwise null
+     */
     private AddressConfiguration readNetworkConfig() {
-        File configFile = new File(configFileName);
-
+        File configFile = new File(CONFIG_DIR, configFileName);
         ObjectMapper mapper = new ObjectMapper();
 
         try {
+            log.info("Loading config: {}", configFile.getAbsolutePath());
             AddressConfiguration config =
                     mapper.readValue(configFile, AddressConfiguration.class);
 
@@ -127,10 +92,56 @@ public class NetworkConfigReader {
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
         } catch (IOException e) {
-            log.error("Unable to read config from file:", e);
+            log.error("Error loading configuration", e);
         }
 
         return null;
+    }
+
+    /**
+     * Applies the network configuration.
+     *
+     * @param config the network configuration to apply
+     */
+    private void applyNetworkConfig(AddressConfiguration config) {
+        for (AddressEntry entry : config.getAddresses()) {
+            ConnectPoint cp = new ConnectPoint(
+                        DeviceId.deviceId(dpidToUri(entry.getDpid())),
+                        PortNumber.portNumber(entry.getPortNumber()));
+
+            Set<InterfaceIpAddress> interfaceIpAddresses = new HashSet<>();
+            for (String strIp : entry.getIpAddresses()) {
+                // Get the IP address and the subnet mask length
+                try {
+                    String[] splits = strIp.split("/");
+                    if (splits.length != 2) {
+                        throw new IllegalArgumentException("Invalid IP address and prefix length format");
+                    }
+                    // NOTE: IpPrefix will mask-out the bits after the prefix length.
+                    IpPrefix subnet = IpPrefix.valueOf(strIp);
+                    IpAddress addr = IpAddress.valueOf(splits[0]);
+                    InterfaceIpAddress ia =
+                        new InterfaceIpAddress(addr, subnet);
+                    interfaceIpAddresses.add(ia);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Bad format for IP address in config: {}", strIp);
+                }
+            }
+
+            MacAddress macAddress = null;
+            if (entry.getMacAddress() != null) {
+                try {
+                    macAddress = MacAddress.valueOf(entry.getMacAddress());
+                } catch (IllegalArgumentException e) {
+                    log.warn("Bad format for MAC address in config: {}",
+                             entry.getMacAddress());
+                }
+            }
+
+            PortAddresses addresses = new PortAddresses(cp,
+                        interfaceIpAddresses, macAddress);
+            hostAdminService.bindAddressesToPort(addresses);
+        }
     }
 
     private static String dpidToUri(String dpid) {

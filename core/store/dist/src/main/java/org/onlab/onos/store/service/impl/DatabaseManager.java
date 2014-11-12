@@ -72,7 +72,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     public static final String LOG_FILE_PREFIX = "/tmp/onos-copy-cat-log_";
 
     // Current working dir seems to be /opt/onos/apache-karaf-3.0.2
-    // TODO: Get the path to /opt/onos/config
+    // TODO: Set the path to /opt/onos/config
     private static final String CONFIG_DIR = "../config";
 
     private static final String DEFAULT_MEMBER_FILE = "tablets.json";

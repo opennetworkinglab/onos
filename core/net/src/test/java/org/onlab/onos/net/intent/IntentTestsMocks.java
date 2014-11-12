@@ -16,6 +16,7 @@
 package org.onlab.onos.net.intent;
 
 import static org.onlab.onos.net.NetTestTools.createPath;
+import static org.onlab.onos.net.NetTestTools.did;
 import static org.onlab.onos.net.NetTestTools.link;
 
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
+import org.onlab.onos.net.flow.FlowId;
+import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -270,5 +273,61 @@ public class IntentTestsMocks {
             return null;
         }
     }
+
+    private static final IntentTestsMocks.MockSelector SELECTOR =
+            new IntentTestsMocks.MockSelector();
+    private static final IntentTestsMocks.MockTreatment TREATMENT =
+            new IntentTestsMocks.MockTreatment();
+
+    public static class MockFlowRule implements FlowRule {
+
+        int priority;
+        public MockFlowRule(int priority) {
+            this.priority = priority;
+        }
+
+        @Override
+        public FlowId id() {
+            return FlowId.valueOf(1);
+        }
+
+        @Override
+        public short appId() {
+            return 0;
+        }
+
+        @Override
+        public int priority() {
+            return priority;
+        }
+
+        @Override
+        public DeviceId deviceId() {
+            return did("1");
+        }
+
+        @Override
+        public TrafficSelector selector() {
+            return SELECTOR;
+        }
+
+        @Override
+        public TrafficTreatment treatment() {
+            return TREATMENT;
+        }
+
+        @Override
+        public int timeout() {
+            return 0;
+        }
+
+        @Override
+        public boolean isPermanent() {
+            return false;
+        }
+
+
+    }
+
 
 }
