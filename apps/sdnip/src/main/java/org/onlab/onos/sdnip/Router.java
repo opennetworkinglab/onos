@@ -598,7 +598,7 @@ public class Router implements RouteListener {
         Set<ConnectPoint> ingressPorts = new HashSet<>();
 
         for (Interface intf : interfaceService.getInterfaces()) {
-            if (!intf.equals(egressInterface)) {
+            if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
                 ConnectPoint srcPort = intf.connectPoint();
                 ingressPorts.add(srcPort);
             }
