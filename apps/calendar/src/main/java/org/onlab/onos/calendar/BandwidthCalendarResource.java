@@ -16,14 +16,24 @@
 package org.onlab.onos.calendar;
 
 import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentEvent;
+import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
 import org.onlab.rest.BaseResource;
+
 import javax.ws.rs.POST;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
@@ -31,10 +41,15 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
+
 import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
+import static org.onlab.onos.net.intent.IntentState.FAILED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
+
 import org.slf4j.Logger;
 
 /**
@@ -44,6 +59,7 @@ import org.slf4j.Logger;
 public class BandwidthCalendarResource extends BaseResource {
 
     private static final Logger log = getLogger(BandwidthCalendarResource.class);
+    private static final long TIMEOUT = 5; // seconds
 
     @javax.ws.rs.Path("/{src}/{dst}/{srcPort}/{dstPort}/{bandwidth}")
     @POST
@@ -55,7 +71,7 @@ public class BandwidthCalendarResource extends BaseResource {
 
         log.info("Receiving Create Intent request...");
         log.info("Path Constraints: Src = {} SrcPort = {} Dest = {} DestPort = {} BW = {}",
-                src, srcPort, dst, dstPort, bandwidth);
+                 src, srcPort, dst, dstPort, bandwidth);
 
         IntentService service = get(IntentService.class);
 
@@ -66,36 +82,50 @@ public class BandwidthCalendarResource extends BaseResource {
         TrafficTreatment treatment = builder().build();
 
         PointToPointIntent intentP2P =
-                        new PointToPointIntent(appId(), selector, treatment,
-                                               srcPoint, dstPoint);
-        service.submit(intentP2P);
-        log.info("Submitted Calendar App intent: src = " + src + "dest = " + dst
-                + "srcPort = " + srcPort + "destPort" + dstPort + "intentID = " + intentP2P.id().toString());
-        String reply =  intentP2P.id().toString() + "\n";
+                new PointToPointIntent(appId(), selector, treatment,
+                                       srcPoint, dstPoint);
 
-        return Response.ok(reply).build();
+        CountDownLatch latch = new CountDownLatch(1);
+        InternalIntentListener listener = new InternalIntentListener(intentP2P, service, latch);
+        service.addListener(listener);
+        service.submit(intentP2P);
+        try {
+            if (latch.await(TIMEOUT, TimeUnit.SECONDS)) {
+                log.info("Submitted Calendar App intent: src = {}; dst = {}; " +
+                                 "srcPort = {}; dstPort = {}; intentID = {}",
+                         src, dst, srcPort, dstPort, intentP2P.id());
+                String reply = intentP2P.id() + " " + listener.getState() + "\n";
+                return Response.ok(reply).build();
+            }
+        } catch (InterruptedException e) {
+            log.warn("Interrupted while waiting for intent {} status", intentP2P.id());
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
 
     @javax.ws.rs.Path("/cancellation/{intentId}")
     @DELETE
     public Response withdrawIntent(@PathParam("intentId") String intentId) {
-
-        log.info("Receiving Teardown request...");
-        log.info("Withdraw intentId = {} ", intentId);
-
-        String reply =  "ok\n";
-        return Response.ok(reply).build();
+        log.info("Receiving Teardown request for {}", intentId);
+        IntentService service = get(IntentService.class);
+        Intent intent = service.getIntent(IntentId.valueOf(Long.parseLong(intentId)));
+        if (intent != null) {
+            service.withdraw(intent);
+            String reply = "ok\n";
+            return Response.ok(reply).build();
+        }
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @javax.ws.rs.Path("/modification/{intentId}/{bandwidth}")
     @POST
     public Response modifyBandwidth(@PathParam("intentId") String intentId,
-                                 @PathParam("bandwidth") String bandwidth) {
+                                    @PathParam("bandwidth") String bandwidth) {
 
         log.info("Receiving Modify request...");
         log.info("Modify bw for intentId = {} with new bandwidth = {}", intentId, bandwidth);
 
-        String reply =  "ok\n";
+        String reply = "ok\n";
         return Response.ok(reply).build();
     }
 
@@ -114,5 +144,35 @@ public class BandwidthCalendarResource extends BaseResource {
 
     protected ApplicationId appId() {
         return get(CoreService.class).registerApplication("org.onlab.onos.calendar");
+    }
+
+    // Auxiliary listener to wait until the given intent reaches the installed or failed states.
+    private final class InternalIntentListener implements IntentListener {
+        private final Intent intent;
+        private final IntentService service;
+        private final CountDownLatch latch;
+        private IntentState state;
+
+        private InternalIntentListener(Intent intent, IntentService service,
+                                       CountDownLatch latch) {
+            this.intent = intent;
+            this.service = service;
+            this.latch = latch;
+        }
+
+        @Override
+        public void event(IntentEvent event) {
+            if (event.subject().equals(intent)) {
+                state = service.getIntentState(intent.id());
+                if (state == INSTALLED || state == FAILED || state == WITHDRAWN) {
+                    latch.countDown();
+                }
+                service.removeListener(this);
+            }
+        }
+
+        public IntentState getState() {
+            return state;
+        }
     }
 }
