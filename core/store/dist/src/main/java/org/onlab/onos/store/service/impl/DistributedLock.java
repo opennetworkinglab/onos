@@ -69,7 +69,7 @@ public class DistributedLock implements Lock {
     public boolean tryLock(
             long waitTimeMillis,
             int leaseDurationMillis) {
-        if (tryLock(leaseDurationMillis) == false) {
+        if (!tryLock(leaseDurationMillis)) {
             CompletableFuture<Void> future =
                     lockManager.lockIfAvailable(this, waitTimeMillis, leaseDurationMillis);
             try {

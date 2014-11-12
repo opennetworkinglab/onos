@@ -38,11 +38,16 @@ import org.onlab.onos.store.service.DatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DatabaseUpdateEventHandler implements DatabaseUpdateEventListener, EventHandler<LeaderElectEvent> {
+/**
+ * Database update event handler.
+ */
+public class DatabaseUpdateEventHandler implements
+    DatabaseUpdateEventListener, EventHandler<LeaderElectEvent> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public final static MessageSubject DATABASE_UPDATES = new MessageSubject("database-update-event");
+    public static final MessageSubject DATABASE_UPDATES =
+            new MessageSubject("database-update-event");
 
     private DatabaseService databaseService;
     private ClusterService cluster;

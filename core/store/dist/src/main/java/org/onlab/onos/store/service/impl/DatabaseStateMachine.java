@@ -47,7 +47,7 @@ public class DatabaseStateMachine implements StateMachine {
     private final Logger log = getLogger(getClass());
 
     // message subject for database update notifications.
-    public static MessageSubject DATABASE_UPDATE_EVENTS =
+    public static final MessageSubject DATABASE_UPDATE_EVENTS =
             new MessageSubject("database-update-events");
 
     // serializer used for snapshot

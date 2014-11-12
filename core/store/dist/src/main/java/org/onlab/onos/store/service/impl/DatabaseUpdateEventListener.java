@@ -16,23 +16,26 @@
 
 package org.onlab.onos.store.service.impl;
 
+/**
+ * Interface of database update event listeners.
+ */
 public interface DatabaseUpdateEventListener {
-    
+
     /**
-     * 
-     * @param event
+     * Notifies listeners of a table modified event.
+     * @param event table modification event.
      */
     public void tableModified(TableModificationEvent event);
-    
+
     /**
-     * 
+     * Notifies listeners of a table created event.
      * @param tableName
      * @param expirationTimeMillis
      */
     public void tableCreated(String tableName, int expirationTimeMillis);
-    
+
     /**
-     * 
+     * Notifies listeners of a table deleted event.
      * @param tableName
      */
     public void tableDeleted(String tableName);

@@ -80,7 +80,10 @@ public class DistributedLockManager implements LockService {
         throw new UnsupportedOperationException();
     }
 
-    protected CompletableFuture<Void> lockIfAvailable(Lock lock, long waitTimeMillis, int leaseDurationMillis) {
+    protected CompletableFuture<Void> lockIfAvailable(
+            Lock lock,
+            long waitTimeMillis,
+            int leaseDurationMillis) {
         CompletableFuture<Void> future = new CompletableFuture<>();
         locksToAcquire.put(
                 lock.path(),
@@ -103,7 +106,9 @@ public class DistributedLockManager implements LockService {
 
             if (event.type() == TableModificationEvent.Type.ROW_DELETED) {
                 List<LockRequest> existingRequests = locksToAcquire.get(path);
-                if (existingRequests == null) return;
+                if (existingRequests == null) {
+                    return;
+                }
 
                 Iterator<LockRequest> existingRequestIterator = existingRequests.iterator();
                 while (existingRequestIterator.hasNext()) {
@@ -111,7 +116,7 @@ public class DistributedLockManager implements LockService {
                     if (request.expirationTime().isAfter(DateTime.now())) {
                         existingRequestIterator.remove();
                     } else {
-                        if (request.lock().tryLock(request.leaseDurationMillis()) == true) {
+                        if (request.lock().tryLock(request.leaseDurationMillis())) {
                             request.future().complete(null);
                             existingRequests.remove(0);
                         }

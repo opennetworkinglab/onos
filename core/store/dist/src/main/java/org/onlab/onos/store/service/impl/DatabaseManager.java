@@ -228,76 +228,89 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Override
     public boolean putIfAbsent(String tableName, String key, byte[] value) {
-        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder().putIfAbsent(tableName, key, value).build();
+        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder()
+                    .putIfAbsent(tableName, key, value).build();
         WriteResult writeResult = batchWrite(batchRequest).getAsList().get(0);
         if (writeResult.status().equals(WriteStatus.OK)) {
             return true;
         } else if (writeResult.status().equals(WriteStatus.PRECONDITION_VIOLATION)) {
             return false;
         }
-        throw new DatabaseException("putIfAbsent failed due to status: " + writeResult.status());
+        throw new DatabaseException("putIfAbsent failed due to status: "
+                    + writeResult.status());
     }
 
     @Override
     public boolean putIfVersionMatches(String tableName, String key,
             byte[] value, long version) {
-        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder().putIfVersionMatches(tableName, key, value, version).build();
+        BatchWriteRequest batchRequest =
+                new BatchWriteRequest.Builder()
+                    .putIfVersionMatches(tableName, key, value, version).build();
         WriteResult writeResult = batchWrite(batchRequest).getAsList().get(0);
         if (writeResult.status().equals(WriteStatus.OK)) {
             return true;
         } else if (writeResult.status().equals(WriteStatus.PRECONDITION_VIOLATION)) {
             return false;
         }
-        throw new DatabaseException("putIfVersionMatches failed due to status: " + writeResult.status());
+        throw new DatabaseException("putIfVersionMatches failed due to status: "
+                    + writeResult.status());
     }
 
     @Override
     public boolean putIfValueMatches(String tableName, String key,
             byte[] oldValue, byte[] newValue) {
-        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder().putIfValueMatches(tableName, key, oldValue, newValue).build();
+        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder()
+                    .putIfValueMatches(tableName, key, oldValue, newValue).build();
         WriteResult writeResult = batchWrite(batchRequest).getAsList().get(0);
         if (writeResult.status().equals(WriteStatus.OK)) {
             return true;
         } else if (writeResult.status().equals(WriteStatus.PRECONDITION_VIOLATION)) {
             return false;
         }
-        throw new DatabaseException("putIfValueMatches failed due to status: " + writeResult.status());
+        throw new DatabaseException("putIfValueMatches failed due to status: "
+                    + writeResult.status());
     }
 
     @Override
     public VersionedValue remove(String tableName, String key) {
-        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder().remove(tableName, key).build();
+        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder()
+                    .remove(tableName, key).build();
         WriteResult writeResult = batchWrite(batchRequest).getAsList().get(0);
         if (writeResult.status().equals(WriteStatus.OK)) {
             return writeResult.previousValue();
         }
-        throw new DatabaseException("remove failed due to status: " + writeResult.status());
+        throw new DatabaseException("remove failed due to status: "
+                    + writeResult.status());
     }
 
     @Override
     public boolean removeIfVersionMatches(String tableName, String key,
             long version) {
-        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder().removeIfVersionMatches(tableName, key, version).build();
+        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder()
+                    .removeIfVersionMatches(tableName, key, version).build();
         WriteResult writeResult = batchWrite(batchRequest).getAsList().get(0);
         if (writeResult.status().equals(WriteStatus.OK)) {
             return true;
         } else if (writeResult.status().equals(WriteStatus.PRECONDITION_VIOLATION)) {
             return false;
         }
-        throw new DatabaseException("removeIfVersionMatches failed due to status: " + writeResult.status());
+        throw new DatabaseException("removeIfVersionMatches failed due to status: "
+                    + writeResult.status());
     }
 
     @Override
     public boolean removeIfValueMatches(String tableName, String key,
             byte[] value) {
-        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder().removeIfValueMatches(tableName, key, value).build();
+        BatchWriteRequest batchRequest = new BatchWriteRequest.Builder()
+                    .removeIfValueMatches(tableName, key, value).build();
         WriteResult writeResult = batchWrite(batchRequest).getAsList().get(0);
         if (writeResult.status().equals(WriteStatus.OK)) {
             return true;
         } else if (writeResult.status().equals(WriteStatus.PRECONDITION_VIOLATION)) {
             return false;
         }
-        throw new DatabaseException("removeIfValueMatches failed due to status: " + writeResult.status());
+        throw new DatabaseException("removeIfValueMatches failed due to status: "
+                    + writeResult.status());
     }
 
     @Override
