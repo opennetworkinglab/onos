@@ -20,19 +20,56 @@ import org.eclipse.jetty.websocket.WebSocketServlet;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Web socket servlet capable of creating various sockets for the user interface.
  */
 public class GuiWebSocketServlet extends WebSocketServlet {
 
+    private static final long PING_DELAY_MS = 5000;
+
     private ServiceDirectory directory = new DefaultServiceDirectory();
+
+    private final Set<TopologyWebSocket> sockets = new HashSet<>();
+    private final Timer timer = new Timer();
+    private final TimerTask pruner = new Pruner();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        timer.schedule(pruner, PING_DELAY_MS, PING_DELAY_MS);
+    }
 
     @Override
     public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
-
-        return new TopologyWebSocket(directory);
+        TopologyWebSocket socket = new TopologyWebSocket(directory);
+        synchronized (sockets) {
+            sockets.add(socket);
+        }
+        return socket;
     }
 
+    // Task for pruning web-sockets that are idle.
+    private class Pruner extends TimerTask {
+        @Override
+        public void run() {
+            synchronized (sockets) {
+                Iterator<TopologyWebSocket> it = sockets.iterator();
+                while (it.hasNext()) {
+                    TopologyWebSocket socket = it.next();
+                    if (socket.isIdle()) {
+                        it.remove();
+                        socket.close();
+                    }
+                }
+            }
+        }
+    }
 }

@@ -61,13 +61,21 @@ import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
  * Web socket capable of interacting with the GUI topology view.
  */
 public class TopologyWebSocket
-        extends TopologyMessages implements WebSocket.OnTextMessage {
+        extends TopologyMessages
+        implements WebSocket.OnTextMessage, WebSocket.OnControl {
+
+    private static final long MAX_AGE_MS = 15000;
+
+    private static final byte PING = 0x9;
+    private static final byte PONG = 0xA;
+    private static final byte[] PING_DATA = new byte[]{(byte) 0xde, (byte) 0xad};
 
     private static final String APP_ID = "org.onlab.onos.gui";
 
     private final ApplicationId appId;
 
     private Connection connection;
+    private FrameConnection control;
 
     private final ClusterEventListener clusterListener = new InternalClusterListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
@@ -79,6 +87,8 @@ public class TopologyWebSocket
     // Intents that are being monitored for the GUI
     private static Map<IntentId, Long> intentsToMonitor = new ConcurrentHashMap<>();
 
+    private long lastActive = System.currentTimeMillis();
+
     /**
      * Creates a new web-socket for serving data to GUI topology view.
      *
@@ -89,9 +99,37 @@ public class TopologyWebSocket
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }
 
+    /**
+     * Issues a close on the connection.
+     */
+    synchronized void close() {
+        if (connection.isOpen()) {
+            removeListeners();
+            connection.close();
+        }
+    }
+
+    /**
+     * Indicates if this connection is idle.
+     */
+    synchronized boolean isIdle() {
+        boolean idle = (System.currentTimeMillis() - lastActive) > MAX_AGE_MS;
+        if (idle || !connection.isOpen()) {
+            return true;
+        }
+        try {
+            control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
+        } catch (IOException e) {
+            log.warn("Unable to send ping message due to: ", e);
+        }
+        return false;
+    }
+
     @Override
     public void onOpen(Connection connection) {
+        log.info("GUI client connected");
         this.connection = connection;
+        this.control = (FrameConnection) connection;
         addListeners();
 
         sendAllInstances();
@@ -101,12 +139,22 @@ public class TopologyWebSocket
     }
 
     @Override
-    public void onClose(int closeCode, String message) {
-        removeListeners();
+    public synchronized void onClose(int closeCode, String message) {
+        if (connection.isOpen()) {
+            removeListeners();
+        }
+        log.info("GUI client disconnected");
+    }
+
+    @Override
+    public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
+        lastActive = System.currentTimeMillis();
+        return true;
     }
 
     @Override
     public void onMessage(String data) {
+        lastActive = System.currentTimeMillis();
         try {
             ObjectNode event = (ObjectNode) mapper.reader().readTree(data);
             String type = string(event, "event", "unknown");
@@ -123,16 +171,17 @@ public class TopologyWebSocket
             }
         } catch (Exception e) {
             log.warn("Unable to parse GUI request {} due to {}", data, e);
-            e.printStackTrace();
         }
     }
 
     // Sends the specified data to the client.
-    private void sendMessage(ObjectNode data) {
+    private synchronized void sendMessage(ObjectNode data) {
         try {
-            connection.sendMessage(data.toString());
+            if (connection.isOpen()) {
+                connection.sendMessage(data.toString());
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Unable to send message {} to GUI due to {}", data, e);
         }
     }
 
@@ -229,6 +278,7 @@ public class TopologyWebSocket
         linkService.removeListener(linkListener);
         hostService.removeListener(hostListener);
         mastershipService.removeListener(mastershipListener);
+        intentService.removeListener(intentListener);
     }
 
     // Cluster event listener.
@@ -268,6 +318,7 @@ public class TopologyWebSocket
         @Override
         public void event(MastershipEvent event) {
             // TODO: Is DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED the same?
+
         }
     }
 
