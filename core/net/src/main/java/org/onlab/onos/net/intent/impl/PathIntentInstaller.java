@@ -138,9 +138,6 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
      * @return allocated resources if any are required, null otherwise
      */
     private LinkResourceAllocations allocateResources(PathIntent intent) {
-        if (intent.constraints() == null) {
-            return null;
-        }
         LinkResourceRequest.Builder builder =
                 DefaultLinkResourceRequest.builder(intent.id(), intent.path().links());
         for (Constraint constraint : intent.constraints()) {
