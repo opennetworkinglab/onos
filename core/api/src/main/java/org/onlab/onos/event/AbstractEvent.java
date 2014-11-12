@@ -26,7 +26,7 @@ public class AbstractEvent<T extends Enum, S extends Object> implements Event<T,
 
     private final long time;
     private final T type;
-    private S subject;
+    private final S subject;
 
     /**
      * Creates an event of a given type and for the specified subject and the
