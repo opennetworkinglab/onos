@@ -1,0 +1,9 @@
+{
+  "event": "requestDetails",
+  "sid": 15,
+  "payload": {
+    "id": "of:0000000000000003",
+    "class": "device"
+  }
+}
+

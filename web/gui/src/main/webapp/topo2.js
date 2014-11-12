@@ -152,7 +152,7 @@
         webSock,
         deviceLabelIndex = 0,
         hostLabelIndex = 0,
-
+        detailPane,
         selectOrder = [],
         selections = {},
 
@@ -192,6 +192,10 @@
 
     function testMe(view) {
         view.alert('test');
+        detailPane.show();
+        setTimeout(function () {
+            detailPane.hide();
+        }, 3000);
     }
 
     function abortIfLive() {
@@ -285,14 +289,6 @@
         view.alert('unpin() callback')
     }
 
-    function requestPath(view) {
-        var payload = {
-            one: selections[selectOrder[0]].obj.id,
-            two: selections[selectOrder[1]].obj.id
-        }
-        sendMessage('requestPath', payload);
-    }
-
     // ==============================
     // Radio Button Callbacks
 
@@ -353,6 +349,7 @@
         removeDevice: stillToImplement,
         removeLink: removeLink,
         removeHost: removeHost,
+        showDetails: showDetails,
         showPath: showPath
     };
 
@@ -463,6 +460,12 @@
         }
     }
 
+    function showDetails(data) {
+        fnTrace('showDetails', data.payload.id);
+        populateDetails(data.payload);
+        detailPane.show();
+    }
+
     function showPath(data) {
         fnTrace('showPath', data.payload.id);
         var links = data.payload.links,
@@ -497,6 +500,32 @@
     function handleServerEvent(data) {
         var fn = eventDispatch[data.event] || unknownEvent;
         fn(data);
+    }
+
+    // ==============================
+    // Out-going messages...
+
+    function getSel(idx) {
+        return selections[selectOrder[idx]];
+    }
+
+    // for now, just a host-to-host intent, (and implicit start-monitoring)
+    function requestPath() {
+        var payload = {
+                one: getSel(0).obj.id,
+                two: getSel(1).obj.id
+            };
+        sendMessage('requestPath', payload);
+    }
+
+    // request details for the selected element
+    function requestDetails() {
+        var data = getSel(0).obj,
+            payload = {
+                id: data.id,
+                class: data.class
+            };
+        sendMessage('requestDetails', payload);
     }
 
     // ==============================
@@ -1015,6 +1044,8 @@
 
     var sid = 0;
 
+    // TODO: use cache of pending messages (key = sid) to reconcile responses
+
     function sendMessage(evType, payload) {
         var toSend = {
                 event: evType,
@@ -1033,7 +1064,6 @@
         wsTrace('rx', msg);
     }
     function wsTrace(rxtx, msg) {
-
         console.log('[' + rxtx + '] ' + msg);
         // TODO: integrate with trace view
         //if (trace) {
@@ -1062,7 +1092,7 @@
 
         if (meta && n.classed('selected')) {
             deselectObject(obj.id);
-            //flyinPane(null);
+            updateDetailPane();
             return;
         }
 
@@ -1074,17 +1104,16 @@
         selectOrder.push(obj.id);
 
         n.classed('selected', true);
-        //flyinPane(obj);
+        updateDetailPane();
     }
 
     function deselectObject(id) {
         var obj = selections[id];
         if (obj) {
             d3.select(obj.el).classed('selected', false);
-            selections[id] = null;
-            // TODO: use splice to remove element
+            delete selections[id];
         }
-        //flyinPane(null);
+        updateDetailPane();
     }
 
     function deselectAll() {
@@ -1092,10 +1121,10 @@
         node.classed('selected', false);
         selections = {};
         selectOrder = [];
-        //flyinPane(null);
+        updateDetailPane();
     }
 
-    // TODO: this click handler does not get unloaded when the view does
+    // FIXME: this click handler does not get unloaded when the view does
     $('#view').on('click', function(e) {
         if (!$(e.target).closest('.node').length) {
             if (!e.metaKey) {
@@ -1104,6 +1133,66 @@
         }
     });
 
+    // update the state of the detail pane, based on current selections
+    function updateDetailPane() {
+        var nSel = selectOrder.length;
+        if (!nSel) {
+            detailPane.hide();
+        } else if (nSel === 1) {
+            singleSelect();
+        } else {
+            multiSelect();
+        }
+    }
+
+    function singleSelect() {
+        requestDetails();
+        // NOTE: detail pane will be shown from showDetails event.
+    }
+
+    function multiSelect() {
+        // TODO: use detail pane for multi-select view.
+        //detailPane.show();
+    }
+
+    function populateDetails(data) {
+        detailPane.empty();
+
+        var title = detailPane.append("h2"),
+            table = detailPane.append("table"),
+            tbody = table.append("tbody");
+
+        $('<img src="img/' + data.type + '.png">').appendTo(title);
+        $('<span>').attr('class', 'icon').text(data.id).appendTo(title);
+
+        data.propOrder.forEach(function(p) {
+            if (p === '-') {
+                addSep(tbody);
+            } else {
+                addProp(tbody, p, data.props[p]);
+            }
+        });
+
+        function addSep(tbody) {
+            var tr = tbody.append('tr');
+            $('<hr>').appendTo(tr.append('td').attr('colspan', 2));
+        }
+
+        function addProp(tbody, label, value) {
+            var tr = tbody.append('tr');
+
+            tr.append('td')
+                .attr('class', 'label')
+                .text(label + ' :');
+
+            tr.append('td')
+                .attr('class', 'value')
+                .text(value);
+        }
+    }
+
+    // ==============================
+    // Test harness code
 
     function prepareScenario(view, ctx, dbg) {
         var sc = scenario,
@@ -1271,5 +1360,7 @@
         load: load,
         resize: resize
     });
+
+    detailPane = onos.ui.addFloatingPanel('topo-detail');
 
 }(ONOS));

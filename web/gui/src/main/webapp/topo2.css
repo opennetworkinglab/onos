@@ -96,3 +96,45 @@
     fill: white;
     stroke: red;
 }
+
+
+/* detail topo-detail pane */
+
+#topo-detail {
+/* gets base CSS from .fpanel in floatPanel.css */
+}
+
+
+#topo-detail h2 {
+    margin: 8px 4px;
+    color: black;
+    vertical-align: middle;
+}
+
+#topo-detail h2 img {
+    height: 32px;
+    padding-right: 8px;
+    vertical-align: middle;
+}
+
+#topo-detail p, table {
+    margin: 4px 4px;
+}
+
+#topo-detail td.label {
+    font-style: italic;
+    color: #777;
+    padding-right: 12px;
+}
+
+#topo-detail td.value {
+
+}
+
+#topo-detail hr {
+    height: 1px;
+    color: #ccc;
+    background-color: #ccc;
+    border: 0;
+}
+

@@ -50,6 +50,7 @@
 
         // internal state
         var views = {},
+            fpanels = {},
             current = {
                 view: null,
                 ctx: '',
@@ -57,7 +58,7 @@
                 theme: settings.theme
             },
             built = false,
-            errorCount = 0,
+            buildErrors = [],
             keyHandler = {
                 globalKeys: {},
                 maskedKeys: {},
@@ -70,7 +71,11 @@
             };
 
         // DOM elements etc.
-        var $view,
+        // TODO: verify existence of following elements...
+        var $view = d3.select('#view'),
+            $floatPanels = d3.select('#floatPanels'),
+            $alerts = d3.select('#alerts'),
+            // note, following elements added programmatically...
             $mastRadio;
 
 
@@ -241,10 +246,22 @@
             setView(view, hash, t);
         }
 
+        function buildError(msg) {
+            buildErrors.push(msg);
+        }
+
         function reportBuildErrors() {
             traceFn('reportBuildErrors');
-            // TODO: validate registered views / nav-item linkage etc.
-            console.log('(no build errors)');
+            var nerr = buildErrors.length,
+                errmsg;
+            if (!nerr) {
+                console.log('(no build errors)');
+            } else {
+                errmsg = 'Build errors: ' + nerr + ' found...\n\n' +
+                    buildErrors.join('\n');
+                doAlert(errmsg);
+                console.error(errmsg);
+            }
         }
 
         // returns the reference if it is a function, null otherwise
@@ -449,22 +466,20 @@
         }
 
         function createAlerts() {
-            var al = d3.select('#alerts')
-                .style('display', 'block');
-            al.append('span')
+            $alerts.style('display', 'block');
+            $alerts.append('span')
                 .attr('class', 'close')
                 .text('X')
                 .on('click', closeAlerts);
-            al.append('pre');
-            al.append('p').attr('class', 'footnote')
+            $alerts.append('pre');
+            $alerts.append('p').attr('class', 'footnote')
                 .text('Press ESCAPE to close');
             alerts.open = true;
             alerts.count = 0;
         }
 
         function closeAlerts() {
-            d3.select('#alerts')
-                .style('display', 'none')
+            $alerts.style('display', 'none')
                 .html('');
             alerts.open = false;
         }
@@ -474,7 +489,7 @@
                 oldContent;
 
             if (alerts.count) {
-                oldContent = d3.select('#alerts pre').html();
+                oldContent = $alerts.select('pre').html();
             }
 
             lines = msg.split('\n');
@@ -485,7 +500,7 @@
                 lines += '\n----\n' + oldContent;
             }
 
-            d3.select('#alerts pre').html(lines);
+            $alerts.select('pre').html(lines);
             alerts.count++;
         }
 
@@ -691,6 +706,53 @@
                 libApi[libName] = api;
             },
 
+            // TODO: implement floating panel as a class
+            // TODO: parameterize position (currently hard-coded to TopRight)
+            /*
+             * Creates div in floating panels block, with the given id.
+             * Returns panel token used to interact with the panel
+             */
+            addFloatingPanel: function (id, position) {
+                var pos = position || 'TR',
+                    el,
+                    fp;
+
+                if (fpanels[id]) {
+                    buildError('Float panel with id "' + id + '" already exists.');
+                    return null;
+                }
+
+                el = $floatPanels.append('div')
+                    .attr('id', id)
+                    .attr('class', 'fpanel');
+
+                fp = {
+                    id: id,
+                    el: el,
+                    pos: pos,
+                    show: function () {
+                        console.log('show pane: ' + id);
+                        el.transition().duration(750)
+                            .style('right', '20px')
+                            .style('opacity', 1);
+                    },
+                    hide: function () {
+                        console.log('hide pane: ' + id);
+                        el.transition().duration(750)
+                            .style('right', '-320px')
+                            .style('opacity', 0);
+                    },
+                    empty: function () {
+                        return el.html('');
+                    },
+                    append: function (what) {
+                        return el.append(what);
+                    }
+                };
+                fpanels[id] = fp;
+                return fp;
+            },
+
             // TODO: it remains to be seen whether we keep this style of docs
             /** @api ui addView( vid, nid, cb )
              * Adds a view to the UI.
@@ -782,7 +844,6 @@
             }
             built = true;
 
-            $view = d3.select('#view');
             $mastRadio = d3.select('#mastRadio');
 
             $(window).on('hashchange', hash);

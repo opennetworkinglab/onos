@@ -1,0 +1,8 @@
+{
+  "event": "requestDetails",
+  "sid": 9,
+  "payload": {
+    "id": "CA:4B:EE:A4:B0:33/-1",
+    "class": "host"
+  }
+}

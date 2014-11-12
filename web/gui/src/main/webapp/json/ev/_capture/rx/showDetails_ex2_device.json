@@ -1,0 +1,33 @@
+{
+  "event": "showDetails",
+  "sid": 37,
+  "payload": {
+    "id": "of:000000000000000a",
+    "type": "switch",
+    "propOrder": [
+      "Name",
+      "Vendor",
+      "H/W Version",
+      "S/W Version",
+      "Serial Number",
+      "-",
+      "Latitude",
+      "Longitude",
+      "Ports",
+      "-",
+      "Master"
+    ],
+    "props": {
+      "Name": null,
+      "Vendor": "Nicira, Inc.",
+      "H/W Version": "Open vSwitch",
+      "S/W Version": "2.0.1",
+      "Serial Number": "None",
+      "-": "",
+      "Latitude": null,
+      "Longitude": null,
+      "Ports": "5",
+      "Master":"local"
+    }
+  }
+}
