@@ -1,2 +1,2 @@
-onos-config command will copy files contained in this directory to ONOS instances according to cell definition
-
+The onos-config command will copy files contained in this directory to ONOS
+instances according to cell definition.
