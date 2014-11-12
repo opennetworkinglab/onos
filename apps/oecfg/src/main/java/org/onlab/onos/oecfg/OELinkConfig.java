@@ -51,8 +51,8 @@ public final class OELinkConfig {
     private JsonNode convert(InputStream input) throws IOException {
         JsonNode json = mapper.readTree(input);
         ObjectNode result = mapper.createObjectNode();
-        result.set("opticalSwitches", opticalSwitches(json));
-        result.set("opticalLinks", opticalLinks(json));
+        result.set("switchConfig", opticalSwitches(json));
+        result.set("linkConfig", opticalLinks(json));
         return result;
     }
 
