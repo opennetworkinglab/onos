@@ -42,6 +42,7 @@ class ONOS( Controller ):
         # add default modules
         # TODO: consider an ordered set
         self.features = Set([ 'webconsole',
+                              'onos-rest',
                               'onos-api',
                               'onos-cli',
                               'onos-openflow' ])
@@ -63,6 +64,8 @@ class ONOS( Controller ):
         if self.inNamespace:
             instanceOpts = ( '-furl mvn:org.onlab.onos/onos-features/1.0.0-SNAPSHOT/xml/features '
                              '-s 8101' )
+            if self.ip is not None:
+                instanceOpts += (' -a %s' % self.IP() )
             self.userCmd( self.karafDir + 'bin/instance create %s %s' % ( instanceOpts, self.name ) )
             self.instanceDir = self.karafDir + 'instances/%s/' % self.name
         else:
