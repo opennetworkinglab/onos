@@ -8,5 +8,6 @@
 .checkstyle
 target
 *.iml
+*.pyc
 dependency-reduced-pom.xml
 .idea
