@@ -43,6 +43,12 @@ public class AnnotationConstraint extends BooleanConstraint {
         this.threshold = threshold;
     }
 
+    // Constructor for serialization
+    private AnnotationConstraint() {
+        this.key = "";
+        this.threshold = 0;
+    }
+
     /**
      * Returns the key of link annotation this constraint designates.
      * @return key of link annotation

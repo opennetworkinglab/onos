@@ -23,6 +23,7 @@ import org.onlab.onos.net.Path;
 import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.resource.LinkResourceService;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +47,11 @@ public class WaypointConstraint implements Constraint {
         checkNotNull(waypoints, "waypoints cannot be null");
         checkArgument(waypoints.length > 0, "length of waypoints should be more than 0");
         this.waypoints = ImmutableList.copyOf(waypoints);
+    }
+
+    // Constructor for serialization
+    private WaypointConstraint() {
+        this.waypoints = Collections.emptyList();
     }
 
     public List<DeviceId> waypoints() {

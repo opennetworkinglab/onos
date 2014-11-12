@@ -43,6 +43,11 @@ public class LatencyConstraint implements Constraint {
         this.latency = latency;
     }
 
+    // Constructor for serialization
+    private LatencyConstraint() {
+        this.latency = Duration.ZERO;
+    }
+
     public Duration latency() {
         return latency;
     }
