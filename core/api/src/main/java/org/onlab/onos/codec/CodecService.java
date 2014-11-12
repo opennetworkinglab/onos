@@ -43,6 +43,7 @@ public interface CodecService {
      *
      * @param entityClass entity class
      * @param codec       JSON codec
+     * @param <T>         entity type
      */
     <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec);
 

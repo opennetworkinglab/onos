@@ -34,7 +34,7 @@ public final class DeviceId extends ElementId {
     // Public construction is prohibited
     private DeviceId(URI uri) {
         this.uri = uri;
-        this.str = uri.toString();
+        this.str = uri.toString().toLowerCase();
     }
 
 

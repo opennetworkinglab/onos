@@ -15,15 +15,15 @@
  */
 package org.onlab.onos.cli.net;
 
-import java.util.List;
-import java.util.SortedSet;
-
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.device.DeviceService;
+
+import java.util.List;
+import java.util.SortedSet;
 
 /**
  * ConnectPoint completer.
@@ -40,9 +40,10 @@ public class ConnectPointCompleter implements Completer {
         // Generate the device ID/port number identifiers
         for (Device device : service.getDevices()) {
             SortedSet<String> strings = delegate.getStrings();
-
             for (Port port : service.getPorts(device.id())) {
-                strings.add(device.id().toString() + "/" + port.number());
+                if (!port.number().isLogical()) {
+                    strings.add(device.id().toString() + "/" + port.number());
+                }
             }
         }
 

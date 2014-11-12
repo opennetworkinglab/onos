@@ -9,8 +9,8 @@ public interface DatabaseService {
     /**
      * Reads the specified key.
      * @param tableName name of the table associated with this operation.
-     * @return key key to read.
-     * @returns value (and version) associated with this key. This calls returns null if the key does not exist.
+     * @param key key to read.
+     * @return value (and version) associated with this key. This calls returns null if the key does not exist.
      */
     VersionedValue get(String tableName, String key);
 

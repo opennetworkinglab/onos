@@ -247,8 +247,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest paths between source and
      * destination devices.
      *
-     * @param src source device
-     * @param dst destination device
+     * @param src    source device
+     * @param dst    destination device
+     * @param weight edge weight function
      * @return set of shortest paths
      */
     Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
