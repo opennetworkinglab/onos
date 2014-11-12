@@ -103,12 +103,6 @@
           <artifactId>hazelcast</artifactId>
         </dependency>
 
-        <dependency>
-          <groupId>net.jodah</groupId>
-          <artifactId>expiringmap</artifactId>
-          <version>0.3.1</version>
-        </dependency>
-
         <!-- for shaded copycat -->
         <dependency>
           <groupId>org.onlab.onos</groupId>

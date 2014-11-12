@@ -20,12 +20,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.jodah.expiringmap.ExpiringMap;
-import net.jodah.expiringmap.ExpiringMap.ExpirationListener;
-import net.jodah.expiringmap.ExpiringMap.ExpirationPolicy;
+//import net.jodah.expiringmap.ExpiringMap;
+//import net.jodah.expiringmap.ExpiringMap.ExpirationListener;
+//import net.jodah.expiringmap.ExpiringMap.ExpirationPolicy;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
@@ -56,7 +55,7 @@ public class DatabaseUpdateEventHandler implements
     private final Member localMember;
     private final AtomicBoolean isLocalMemberLeader = new AtomicBoolean(false);
     private final Map<String, Map<DatabaseRow, Void>> tableEntryExpirationMap = new HashMap<>();
-    private final ExpirationListener<DatabaseRow, Void> expirationObserver = new ExpirationObserver();
+    //private final ExpirationListener<DatabaseRow, Void> expirationObserver = new ExpirationObserver();
 
     DatabaseUpdateEventHandler(Member localMember) {
         this.localMember = localMember;
@@ -95,12 +94,15 @@ public class DatabaseUpdateEventHandler implements
         // make this explicit instead of relying on a negative value
         // to indicate no expiration.
         if (expirationTimeMillis > 0) {
-            tableEntryExpirationMap.put(tableName, ExpiringMap.builder()
+            tableEntryExpirationMap.put(tableName, null);
+            /*
+            ExpiringMap.builder()
                     .expiration(expirationTimeMillis, TimeUnit.SECONDS)
                     .expirationListener(expirationObserver)
                     // FIXME: make the expiration policy configurable.
                     .expirationPolicy(ExpirationPolicy.CREATED)
                     .build());
+                    */
         }
     }
 
@@ -109,6 +111,7 @@ public class DatabaseUpdateEventHandler implements
         tableEntryExpirationMap.remove(tableName);
     }
 
+    /*
     private class ExpirationObserver implements ExpirationListener<DatabaseRow, Void> {
         @Override
         public void expired(DatabaseRow key, Void value) {
@@ -128,6 +131,7 @@ public class DatabaseUpdateEventHandler implements
             }
         }
     }
+    */
 
     @Override
     public void handle(LeaderElectEvent event) {
