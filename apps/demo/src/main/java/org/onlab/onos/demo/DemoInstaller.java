@@ -31,6 +31,7 @@ import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
@@ -113,14 +114,14 @@ public class DemoInstaller implements DemoAPI {
         public void run() {
             TrafficSelector selector = DefaultTrafficSelector.builder().build();
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
-
+            List<Constraint> constraint = Lists.newArrayList();
             List<Host> hosts = Lists.newArrayList(hostService.getHosts());
             while (!hosts.isEmpty()) {
                 Host src = hosts.remove(0);
                 for (Host dst : hosts) {
                     HostToHostIntent intent = new HostToHostIntent(appId, src.id(), dst.id(),
                                                                    selector, treatment,
-                                                                   null);
+                                                                   constraint);
                     existingIntents.add(intent);
                     intentService.submit(intent);
                 }
