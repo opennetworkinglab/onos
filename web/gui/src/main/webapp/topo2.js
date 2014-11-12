@@ -1149,7 +1149,7 @@
             deselectAll();
         }
 
-        selections[obj.id] = { obj: obj, el  : el};
+        selections[obj.id] = { obj: obj, el: el };
         selectOrder.push(obj.id);
 
         n.classed('selected', true);
@@ -1157,12 +1157,16 @@
     }
 
     function deselectObject(id) {
-        var obj = selections[id];
+        var obj = selections[id],
+            idx;
         if (obj) {
             d3.select(obj.el).classed('selected', false);
             delete selections[id];
+            idx = $.inArray(id, selectOrder);
+            if (idx >= 0) {
+                selectOrder.splice(idx, 1);
+            }
         }
-        updateDetailPane();
     }
 
     function deselectAll() {
