@@ -22,6 +22,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +52,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 TrafficTreatment treatment,
                                 Set<Link> links,
                                 ConnectPoint egressPoint) {
-        this(appId, selector , treatment, links, egressPoint, null);
+        this(appId, selector , treatment, links, egressPoint, Collections.emptyList());
     }
 
     /**
