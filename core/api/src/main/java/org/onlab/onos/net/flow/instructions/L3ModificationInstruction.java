@@ -85,7 +85,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(ip, type(), subtype());
+            return Objects.hash(type(), subtype(), ip);
         }
 
         @Override
