@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -54,6 +55,7 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -389,14 +391,21 @@ public class FlowRuleManager
                 futureService.submit(new Runnable() {
                     @Override
                     public void run() {
-                        CompletedBatchOperation res = null;
+                        CompletedBatchOperation res;
                         try {
                             res = result.get(TIMEOUT, TimeUnit.MILLISECONDS);
+                            store.batchOperationComplete(FlowRuleBatchEvent.completed(request, res));
                         } catch (TimeoutException | InterruptedException | ExecutionException e) {
                             log.warn("Something went wrong with the batch operation {}",
-                                     request.batchId());
+                                     request.batchId(), e);
+
+                            Set<FlowRule> failures = new HashSet<>(batchOperation.size());
+                            for (FlowRuleBatchEntry op : batchOperation.getOperations()) {
+                                failures.add(op.getTarget());
+                            }
+                            res = new CompletedBatchOperation(false, failures);
+                            store.batchOperationComplete(FlowRuleBatchEvent.completed(request, res));
                         }
-                        store.batchOperationComplete(FlowRuleBatchEvent.completed(request, res));
                     }
                 });
                 break;

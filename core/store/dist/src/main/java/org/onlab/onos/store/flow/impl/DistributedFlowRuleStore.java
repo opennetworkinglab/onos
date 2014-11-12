@@ -85,6 +85,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -132,8 +134,7 @@ public class DistributedFlowRuleStore
     private Cache<Integer, SettableFuture<CompletedBatchOperation>> pendingFutures =
             CacheBuilder.newBuilder()
                 .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
-                // TODO Explicitly fail the future if expired?
-                //.removalListener(listener)
+                .removalListener(new TimeoutFuture())
                 .build();
 
     // Cache of SMaps used for backup data.  each SMap contain device flow table
@@ -541,6 +542,17 @@ public class DistributedFlowRuleStore
         log.debug("removedFromPrimary {}", removed);
     }
 
+    private static final class TimeoutFuture
+        implements RemovalListener<Integer, SettableFuture<CompletedBatchOperation>> {
+        @Override
+        public void onRemoval(RemovalNotification<Integer, SettableFuture<CompletedBatchOperation>> notification) {
+            // wrapping in ExecutionException to support Future.get
+            notification.getValue()
+                .setException(new ExecutionException("Timed out",
+                                                     new TimeoutException()));
+        }
+    }
+
     private final class OnStoreBatch implements ClusterMessageHandler {
         private final NodeId local;
 
@@ -580,7 +592,18 @@ public class DistributedFlowRuleStore
 
                 @Override
                 public void run() {
-                     CompletedBatchOperation result = Futures.getUnchecked(f);
+                    CompletedBatchOperation result;
+                    try {
+                        result = f.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        log.error("Batch operation failed", e);
+                        // create everything failed response
+                        Set<FlowRule> failures = new HashSet<>(operation.size());
+                        for (FlowRuleBatchEntry op : operation.getOperations()) {
+                            failures.add(op.getTarget());
+                        }
+                        result = new CompletedBatchOperation(false, failures);
+                    }
                     try {
                         message.respond(SERIALIZER.encode(result));
                     } catch (IOException e) {

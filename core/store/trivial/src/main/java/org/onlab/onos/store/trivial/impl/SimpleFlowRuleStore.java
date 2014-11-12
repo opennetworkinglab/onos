@@ -18,6 +18,8 @@ package org.onlab.onos.store.trivial.impl;
 import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.FluentIterable;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
@@ -53,8 +55,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
@@ -86,8 +90,7 @@ public class SimpleFlowRuleStore
     private Cache<Integer, SettableFuture<CompletedBatchOperation>> pendingFutures =
             CacheBuilder.newBuilder()
                 .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
-                // TODO Explicitly fail the future if expired?
-                //.removalListener(listener)
+                .removalListener(new TimeoutFuture())
                 .build();
 
     @Activate
@@ -302,5 +305,16 @@ public class SimpleFlowRuleStore
             pendingFutures.invalidate(batchId);
         }
         notifyDelegate(event);
+    }
+
+    private static final class TimeoutFuture
+        implements RemovalListener<Integer, SettableFuture<CompletedBatchOperation>> {
+        @Override
+        public void onRemoval(RemovalNotification<Integer, SettableFuture<CompletedBatchOperation>> notification) {
+            // wrapping in ExecutionException to support Future.get
+            notification.getValue()
+                .setException(new ExecutionException("Timed out",
+                                                     new TimeoutException()));
+        }
     }
 }
