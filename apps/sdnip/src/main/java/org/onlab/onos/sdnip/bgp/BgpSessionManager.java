@@ -223,11 +223,6 @@ public class BgpSessionManager {
         synchronized void routeUpdates(BgpSession bgpSession,
                         Collection<BgpRouteEntry> addedBgpRouteEntries,
                         Collection<BgpRouteEntry> deletedBgpRouteEntries) {
-            //
-            // TODO: Merge the updates from different BGP Peers,
-            // by choosing the best route.
-            //
-
             // Process the deleted route entries
             for (BgpRouteEntry bgpRouteEntry : deletedBgpRouteEntries) {
                 processDeletedRoute(bgpSession, bgpRouteEntry);
