@@ -11,7 +11,6 @@ import org.joda.time.DateTime;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.Lock;
-import org.onlab.onos.store.service.OptimisticLockException;
 
 /**
  * A distributed lock implementation.
@@ -57,12 +56,10 @@ public class DistributedLock implements Lock {
 
     @Override
     public boolean tryLock(int leaseDurationMillis) {
-        try {
-            databaseService.putIfAbsent(DistributedLockManager.ONOS_LOCK_TABLE_NAME, path, lockId);
-            return true;
-        } catch (OptimisticLockException e) {
-            return false;
-        }
+        return databaseService.putIfAbsent(
+                DistributedLockManager.ONOS_LOCK_TABLE_NAME,
+                path,
+                lockId);
     }
 
     @Override

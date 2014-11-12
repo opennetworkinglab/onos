@@ -111,16 +111,12 @@ public class ClusterMessagingProtocol
             .register(ReadRequest.class)
             .register(WriteRequest.class)
             .register(WriteRequest.Type.class)
-            .register(InternalReadResult.class)
-            .register(InternalWriteResult.class)
-            .register(InternalReadResult.Status.class)
             .register(WriteResult.class)
             .register(ReadResult.class)
             .register(BatchReadRequest.class)
             .register(BatchWriteRequest.class)
             .register(ReadStatus.class)
             .register(WriteStatus.class)
-            .register(InternalWriteResult.Status.class)
             .register(VersionedValue.class)
             .build();
 
