@@ -60,6 +60,7 @@ public interface TrafficSelector {
 
         /**
          * Matches an inport.
+         *
          * @param port the inport
          * @return a selection builder
          */
@@ -67,6 +68,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a l2 src address.
+         *
          * @param addr a l2 address
          * @return a selection builder
          */
@@ -74,6 +76,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a l2 dst address.
+         *
          * @param addr a l2 address
          * @return a selection builder
          */
@@ -81,6 +84,7 @@ public interface TrafficSelector {
 
         /**
          * Matches the ethernet type.
+         *
          * @param ethType an ethernet type
          * @return a selection builder
          */
@@ -88,6 +92,7 @@ public interface TrafficSelector {
 
         /**
          * Matches the vlan id.
+         *
          * @param vlanId a vlan id
          * @return a selection builder
          */
@@ -95,6 +100,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a vlan priority.
+         *
          * @param vlanPcp a vlan priority
          * @return a selection builder
          */
@@ -102,6 +108,7 @@ public interface TrafficSelector {
 
         /**
          * Matches the l3 protocol.
+         *
          * @param proto a l3 protocol
          * @return a selection builder
          */
@@ -109,6 +116,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a l3 address.
+         *
          * @param ip a l3 address
          * @return a selection builder
          */
@@ -116,6 +124,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a l3 address.
+         *
          * @param ip a l3 address
          * @return a selection builder
          */
@@ -123,6 +132,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a TCP source port number.
+         *
          * @param tcpPort a TCP source port number
          * @return a selection builder
          */
@@ -130,6 +140,7 @@ public interface TrafficSelector {
 
         /**
          * Matches a TCP destination port number.
+         *
          * @param tcpPort a TCP destination port number
          * @return a selection builder
          */
@@ -137,6 +148,7 @@ public interface TrafficSelector {
 
         /**
          * Matches an optical signal ID or lambda.
+         *
          * @param lambda lamda
          * @return a selection builder
          */
@@ -144,6 +156,7 @@ public interface TrafficSelector {
 
         /**
          * Matches an optical Signal Type.
+         *
          * @param signalType signalType
          * @return a selection builder
          */

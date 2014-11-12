@@ -42,6 +42,7 @@ public interface TrafficTreatment {
 
         /**
          * Adds an instruction to the builder.
+         *
          * @param instruction an instruction
          * @return a treatment builder
          */
@@ -54,6 +55,7 @@ public interface TrafficTreatment {
 
         /**
          * Set the output port.
+         *
          * @param number the out port
          * @return a treatment builder
          */
@@ -61,6 +63,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the src l2 address.
+         *
          * @param addr a macaddress
          * @return a treatment builder
          */
@@ -68,6 +71,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the dst l2 address.
+         *
          * @param addr a macaddress
          * @return a treatment builder
          */
@@ -75,6 +79,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the vlan id.
+         *
          * @param id a vlanid
          * @return a treatment builder
          */
@@ -82,6 +87,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the vlan priority.
+         *
          * @param pcp a vlan priority
          * @return a treatment builder
          */
@@ -89,6 +95,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the src l3 address.
+         *
          * @param addr an ip
          * @return a treatment builder
          */
@@ -96,6 +103,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the dst l3 address.
+         *
          * @param addr an ip
          * @return a treatment builder
          */
@@ -103,6 +111,7 @@ public interface TrafficTreatment {
 
         /**
          * Sets the optical channel ID or lambda.
+         *
          * @param lambda optical channel ID
          * @return a treatment builder
          */
