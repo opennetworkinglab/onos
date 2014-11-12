@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.intent.impl;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -94,11 +96,19 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
     protected Path getPath(ConnectivityIntent intent,
                            ElementId one, ElementId two) {
         Set<Path> paths = pathService.getPaths(one, two, weight(intent.constraints()));
-        if (paths.isEmpty()) {
-            throw new PathNotFoundException("No packet path from " + one + " to " + two);
+        final List<Constraint> constraints = intent.constraints();
+        ImmutableList<Path> filtered = FluentIterable.from(paths)
+                .filter(new Predicate<Path>() {
+                    @Override
+                    public boolean apply(Path path) {
+                        return checkPath(path, constraints);
+                    }
+                }).toList();
+        if (filtered.isEmpty()) {
+            throw new PathNotFoundException("No packet path form " + one + " to " + two);
         }
         // TODO: let's be more intelligent about this eventually
-        return paths.iterator().next();
+        return filtered.iterator().next();
     }
 
     /**
