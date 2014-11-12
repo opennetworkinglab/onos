@@ -5,18 +5,18 @@ package org.onlab.onos.store.service;
  */
 public enum WriteStatus {
 
-	/**
-	 * Write completed successfully.
-	 */
+    /**
+     * Write completed successfully.
+     */
     OK,
 
     /**
-     * Write was aborted (ex: if one or more write operations in a batch fail, others are aborted)
+     * Write was aborted (ex: if one or more write operations in a batch fail, others are aborted).
      */
     ABORTED,
 
     /**
-     * Write failed due to pre-condition failure. (ex: version or value mis-match)
+     * Write failed due to pre-condition failure. (ex: version or value mis-match).
      */
     PRECONDITION_VIOLATION,
 

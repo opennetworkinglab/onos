@@ -5,10 +5,10 @@ package org.onlab.onos.store.service;
  */
 public enum ReadStatus {
 
-	/**
-	 * Read completed successfully.
-	 */
-	OK,
+    /**
+     * Read completed successfully.
+     */
+    OK,
 
     /**
      * Read failed due to an invalid table name being specified.
