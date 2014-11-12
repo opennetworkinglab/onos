@@ -10,6 +10,10 @@
       "",
       null
     ],
-    "props": {}
+    "props": {
+      "latitude": 123.5,
+      "longitude": 67.8,
+      "anotherProp": "foobar"
+    }
   }
 }

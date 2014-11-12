@@ -110,8 +110,8 @@ public class TopologyWebSocket
         try {
             ObjectNode event = (ObjectNode) mapper.reader().readTree(data);
             String type = string(event, "event", "unknown");
-            if (type.equals("showDetails")) {
-                showDetails(event);
+            if (type.equals("requestDetails")) {
+                requestDetails(event);
             } else if (type.equals("updateMeta")) {
                 updateMetaUi(event);
             } else if (type.equals("requestPath")) {
@@ -122,7 +122,7 @@ public class TopologyWebSocket
                 cancelTraffic(event);
             }
         } catch (Exception e) {
-            System.out.println("WTF?! " + data);
+            log.warn("Unable to parse GUI request {} due to {}", data, e);
             e.printStackTrace();
         }
     }
@@ -165,9 +165,9 @@ public class TopologyWebSocket
     }
 
     // Sends back device or host details.
-    private void showDetails(ObjectNode event) {
+    private void requestDetails(ObjectNode event) {
         ObjectNode payload = payload(event);
-        String type = string(payload, "type", "unknown");
+        String type = string(payload, "class", "unknown");
         if (type.equals("device")) {
             sendMessage(deviceDetails(deviceId(string(payload, "id")),
                                       number(event, "sid")));
@@ -282,7 +282,8 @@ public class TopologyWebSocket
                 if (installable != null && !installable.isEmpty()) {
                     PathIntent pathIntent = (PathIntent) installable.iterator().next();
                     Path path = pathIntent.path();
-                    ObjectNode payload = pathMessage(path).put("intentId", intent.id().toString());
+                    ObjectNode payload = pathMessage(path, "host")
+                            .put("intentId", intent.id().toString());
                     sendMessage(envelope("showPath", sid, payload));
                 }
             }

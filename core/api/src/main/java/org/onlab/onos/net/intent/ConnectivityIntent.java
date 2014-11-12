@@ -23,6 +23,7 @@ import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -61,7 +62,7 @@ public abstract class ConnectivityIntent extends Intent {
                                  Collection<NetworkResource> resources,
                                  TrafficSelector selector,
                                  TrafficTreatment treatment) {
-        this(id, appId, resources, selector, treatment, null);
+        this(id, appId, resources, selector, treatment, Collections.emptyList());
     }
 
     /**
@@ -87,7 +88,7 @@ public abstract class ConnectivityIntent extends Intent {
         super(id, appId, resources);
         this.selector = checkNotNull(selector);
         this.treatment = checkNotNull(treatment);
-        this.constraints = constraints;
+        this.constraints = checkNotNull(constraints);
     }
 
     /**
@@ -97,7 +98,7 @@ public abstract class ConnectivityIntent extends Intent {
         super();
         this.selector = null;
         this.treatment = null;
-        this.constraints = null;
+        this.constraints = Collections.emptyList();
     }
 
     /**

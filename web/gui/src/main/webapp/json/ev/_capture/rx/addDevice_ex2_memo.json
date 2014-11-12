@@ -1,0 +1,24 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000003",
+    "type": "switch",
+    "online": true,
+    "labels": [
+      "of:0000000000000003",
+      "3",
+      "",
+      null
+    ],
+    "props": {
+      "latitude": 123.5,
+      "longitude": 67.8,
+      "anotherProp": "foobar"
+    },
+    "metaUi": {
+      "xpc": 57.3,
+      "ypc": 24.86,
+      "and": "other properties the UI wishes to remember..."
+    }
+  }
+}

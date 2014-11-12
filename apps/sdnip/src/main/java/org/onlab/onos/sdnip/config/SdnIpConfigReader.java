@@ -37,24 +37,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class SdnIpConfigReader implements SdnIpConfigService {
 
-    private static final Logger log = LoggerFactory.getLogger(SdnIpConfigReader.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String DEFAULT_CONFIG_FILE = "config/sdnip.json";
+    // Current working dir seems to be /opt/onos/apache-karaf-3.0.2
+    // TODO: Set the path to /opt/onos/config
+    private static final String CONFIG_DIR = "../config";
+    private static final String DEFAULT_CONFIG_FILE = "sdnip.json";
     private String configFileName = DEFAULT_CONFIG_FILE;
+
     private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
     private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
 
     /**
-     * Reads the info contained in the configuration file.
+     * Reads SDN-IP related information contained in the configuration file.
      *
-     * @param configFilename The name of configuration file for SDN-IP application.
+     * @param configFilename the name of the configuration file for the SDN-IP
+     * application
      */
     private void readConfiguration(String configFilename) {
-        File gatewaysFile = new File(configFilename);
+        File configFile = new File(CONFIG_DIR, configFilename);
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            Configuration config = mapper.readValue(gatewaysFile, Configuration.class);
+            log.info("Loading config: {}", configFile.getAbsolutePath());
+            Configuration config = mapper.readValue(configFile,
+                                                    Configuration.class);
             for (BgpSpeaker speaker : config.getBgpSpeakers()) {
                 bgpSpeakers.put(speaker.name(), speaker);
             }
@@ -64,13 +71,11 @@ public class SdnIpConfigReader implements SdnIpConfigService {
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
         } catch (IOException e) {
-            log.error("Error reading JSON file", e);
+            log.error("Error loading configuration", e);
         }
     }
 
     public void init() {
-        log.debug("Config file set to {}", configFileName);
-
         readConfiguration(configFileName);
     }
 

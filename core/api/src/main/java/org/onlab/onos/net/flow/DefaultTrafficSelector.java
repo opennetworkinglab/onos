@@ -63,7 +63,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
     @Override
     public int hashCode() {
-        return Objects.hash(criteria);
+        return criteria.hashCode();
     }
 
     @Override

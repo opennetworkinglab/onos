@@ -21,6 +21,7 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -46,7 +47,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
     public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
                             TrafficSelector selector,
                             TrafficTreatment treatment) {
-        this(appId, one, two, selector, treatment, null);
+        this(appId, one, two, selector, treatment, Collections.emptyList());
     }
 
     /**

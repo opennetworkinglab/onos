@@ -37,6 +37,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.onlab.onos.net.AnnotationKeys.LATENCY;
 import static org.onlab.onos.net.DefaultLinkTest.cp;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.Link.Type.DIRECT;
@@ -51,7 +52,6 @@ public class LatencyConstraintTest {
     private static final PortNumber PN3 = PortNumber.portNumber(3);
     private static final PortNumber PN4 = PortNumber.portNumber(4);
     private static final ProviderId PROVIDER_ID = new ProviderId("of", "foo");
-    private static final String LATENCY_KEY = "latency";
     private static final String LATENCY1 = "3.0";
     private static final String LATENCY2 = "4.0";
 
@@ -66,8 +66,8 @@ public class LatencyConstraintTest {
     public void setUp() {
         linkResourceService = createMock(LinkResourceService.class);
 
-        Annotations annotations1 = DefaultAnnotations.builder().set(LATENCY_KEY, LATENCY1).build();
-        Annotations annotations2 = DefaultAnnotations.builder().set(LATENCY_KEY, LATENCY2).build();
+        Annotations annotations1 = DefaultAnnotations.builder().set(LATENCY, LATENCY1).build();
+        Annotations annotations2 = DefaultAnnotations.builder().set(LATENCY, LATENCY2).build();
 
         link1 = new DefaultLink(PROVIDER_ID, cp(DID1, PN1), cp(DID2, PN2), DIRECT, annotations1);
         link2 = new DefaultLink(PROVIDER_ID, cp(DID2, PN3), cp(DID3, PN4), DIRECT, annotations2);

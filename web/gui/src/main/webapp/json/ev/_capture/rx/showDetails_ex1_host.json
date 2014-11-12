@@ -1,0 +1,22 @@
+{
+  "event": "showDetails",
+  "sid": 9,
+  "payload": {
+    "id": "CA:4B:EE:A4:B0:33/-1",
+    "type": "host",
+    "propOrder": [
+      "MAC",
+      "IP",
+      "-",
+      "Latitude",
+      "Longitude"
+    ],
+    "props": {
+      "MAC": "CA:4B:EE:A4:B0:33",
+      "IP": "[10.0.0.1]",
+      "-": "",
+      "Latitude": null,
+      "Longitude": null
+    }
+  }
+}

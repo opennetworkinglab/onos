@@ -5,5 +5,9 @@
   "title": "Host Intent Scenario",
   "params": {
     "lastAuto": 0
-  }
+  },
+  "description": [
+    "Currently this is just a sketch of the event sequence,",
+    " but is NOT YET a runnable scenario."
+  ]
 }

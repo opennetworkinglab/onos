@@ -3,7 +3,7 @@
   "payload": {
     "id": "of:0000ffffffff0007",
     "type": "switch",
-    "online": false,
+    "online": true,
     "labels": [
       "0000ffffffff0007",
       "FF:FF:FF:FF:00:07",

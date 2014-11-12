@@ -44,6 +44,7 @@
         <module>optical</module>
         <module>metrics</module>
         <module>oecfg</module>
+        <module>demo</module>
     </modules>
 
     <properties>

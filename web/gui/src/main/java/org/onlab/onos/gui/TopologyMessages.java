@@ -24,6 +24,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.mastership.MastershipService;
+import org.onlab.onos.net.Annotated;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultEdgeLink;
@@ -45,6 +46,8 @@ import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -67,6 +70,8 @@ import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
  * Facility for creating messages bound for the topology viewer.
  */
 public abstract class TopologyMessages {
+
+    protected static final Logger log = LoggerFactory.getLogger(TopologyMessages.class);
 
     private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
@@ -195,7 +200,7 @@ public abstract class TopologyMessages {
                 .put("id", device.id().toString())
                 .put("type", device.type().toString().toLowerCase())
                 .put("online", deviceService.isAvailable(device.id()))
-                .put("master", mastershipService.getMasterFor(device.id()).toString());
+                .put("master", master(device.id()));
 
         // Generate labels: id, chassis id, no-label, optional-name
         ArrayNode labels = mapper.createArrayNode();
@@ -207,6 +212,7 @@ public abstract class TopologyMessages {
         // Add labels, props and stuff the payload into envelope.
         payload.set("labels", labels);
         payload.set("props", props(device.annotations()));
+        addGeoLocation(device, payload);
         addMetaUi(device.id().toString(), payload);
 
         String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
@@ -220,6 +226,7 @@ public abstract class TopologyMessages {
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
+                .put("online", true) // TODO: add link state field
                 .put("linkWidth", 2)
                 .put("src", link.src().deviceId().toString())
                 .put("srcPort", link.src().port().toString())
@@ -237,10 +244,11 @@ public abstract class TopologyMessages {
                 .put("id", host.id().toString())
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
-        payload.set("cp", location(mapper, host.location()));
+        payload.set("cp", hostConnect(mapper, host.location()));
         payload.set("labels", labels(mapper, ip(host.ipAddresses()),
                                      host.mac().toString()));
         payload.set("props", props(host.annotations()));
+        addGeoLocation(host, payload);
         addMetaUi(host.id().toString(), payload);
 
         String type = (event.type() == HOST_ADDED) ? "addHost" :
@@ -249,7 +257,7 @@ public abstract class TopologyMessages {
     }
 
     // Encodes the specified host location into a JSON object.
-    private ObjectNode location(ObjectMapper mapper, HostLocation location) {
+    private ObjectNode hostConnect(ObjectMapper mapper, HostLocation location) {
         return mapper.createObjectNode()
                 .put("device", location.deviceId().toString())
                 .put("port", location.port().toLong());
@@ -262,6 +270,12 @@ public abstract class TopologyMessages {
             json.add(label);
         }
         return json;
+    }
+
+    // Returns the name of the master node for the specified device id.
+    private String master(DeviceId deviceId) {
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        return master != null ? master.toString() : "";
     }
 
     // Generates an edge link from the specified host location.
@@ -278,10 +292,28 @@ public abstract class TopologyMessages {
         }
     }
 
+    // Adds a geo location JSON to the specified payload object.
+    private void addGeoLocation(Annotated annotated, ObjectNode payload) {
+        Annotations annotations = annotated.annotations();
+        String slat = annotations.value("latitude");
+        String slng = annotations.value("longitude");
+        try {
+            if (slat != null && slng != null && !slat.isEmpty() && !slng.isEmpty()) {
+                double lat = Double.parseDouble(slat);
+                double lng = Double.parseDouble(slng);
+                ObjectNode loc = mapper.createObjectNode()
+                        .put("type", "latlng").put("lat", lat).put("lng", lng);
+                payload.set("location", loc);
+            }
+        } catch (NumberFormatException e) {
+            log.warn("Invalid geo data latitude={}; longiture={}", slat, slng);
+        }
+    }
+
     // Updates meta UI information for the specified object.
     protected void updateMetaUi(ObjectNode event) {
         ObjectNode payload = payload(event);
-        metaUi.put(string(payload, "id"), payload);
+        metaUi.put(string(payload, "id"), (ObjectNode) payload.path("memento"));
     }
 
     // Returns device details response.
@@ -289,7 +321,6 @@ public abstract class TopologyMessages {
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
         int portCount = deviceService.getPorts(deviceId).size();
-        NodeId master = mastershipService.getMasterFor(device.id());
         return envelope("showDetails", sid,
                         json(deviceId.toString(),
                              device.type().toString().toLowerCase(),
@@ -303,7 +334,7 @@ public abstract class TopologyMessages {
                              new Prop("Longitude", annot.value("longitude")),
                              new Prop("Ports", Integer.toString(portCount)),
                              new Separator(),
-                             new Prop("Master", master.toString())));
+                             new Prop("Master", master(deviceId))));
     }
 
     // Returns host details response.
@@ -319,16 +350,15 @@ public abstract class TopologyMessages {
                              new Prop("Longitude", annot.value("longitude"))));
     }
 
-
     // Produces a path message to the client.
-    protected ObjectNode pathMessage(Path path) {
+    protected ObjectNode pathMessage(Path path, String type) {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode links = mapper.createArrayNode();
         for (Link link : path.links()) {
             links.add(compactLinkString(link));
         }
 
-        payload.set("links", links);
+        payload.put("type", type).set("links", links);
         return payload;
     }
 

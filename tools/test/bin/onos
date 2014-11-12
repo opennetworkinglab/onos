@@ -10,4 +10,5 @@
 [ "$1" = "-w" ] && shift && onos-wait-for-start $1
 
 [ -n "$1" ] && OCI=$(find_node $1) && shift
+unset KARAF_HOME
 client -h $OCI -u karaf "$@" 2>/dev/null

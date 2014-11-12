@@ -4,7 +4,11 @@
   "payload": {
     "id": "62:4F:65:BF:FF:B3/-1",
     "class": "host",
-    "x": 197,
-    "y": 177
+    "memento": {
+      "xpc": 57.3,
+      "ypc": 24.86,
+      "and": "other properties the UI wishes to remember..."
+    }
   }
 }
+

@@ -197,6 +197,8 @@
     <feature name="onos-app-sdnip" version="1.0.0"
              description="SDN-IP peering application">
         <feature>onos-api</feature>
+        <feature>onos-app-proxyarp</feature>
+        <feature>onos-app-config</feature>
         <bundle>mvn:org.onlab.onos/onos-app-sdnip/1.0.0-SNAPSHOT</bundle>
     </feature>
 
@@ -224,5 +226,13 @@
         <feature>onos-api</feature>
         <bundle>mvn:org.onlab.onos/onos-app-metrics-topology/1.0.0-SNAPSHOT</bundle>
     </feature>
+
+    <feature name="onos-app-demo" version="1.0.0"
+             description="ONOS demo applications">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onos-app-demo/1.0.0-SNAPSHOT</bundle>
+    </feature>
+
+
 
 </features>

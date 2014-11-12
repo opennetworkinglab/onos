@@ -21,6 +21,7 @@ import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.resource.LinkResourceService;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
@@ -37,6 +38,11 @@ public class ObstacleConstraint extends BooleanConstraint {
      */
     public ObstacleConstraint(DeviceId... obstacles) {
         this.obstacles = ImmutableSet.copyOf(obstacles);
+    }
+
+    // Constructor for serialization
+    private ObstacleConstraint() {
+        this.obstacles = Collections.emptySet();
     }
 
     @Override

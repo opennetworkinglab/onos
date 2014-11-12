@@ -27,6 +27,7 @@ import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
 import org.onlab.onos.net.intent.constraint.LambdaConstraint;
 import org.onlab.onos.net.resource.Bandwidth;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -47,6 +48,26 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-t", aliases = "--ethType", description = "Ethernet Type",
             required = false, multiValued = false)
     private String ethTypeString = "";
+
+    @Option(name = "--ipProto", description = "IP Protocol",
+            required = false, multiValued = false)
+    private String ipProtoString = null;
+
+    @Option(name = "--ipSrc", description = "Source IP Address",
+            required = false, multiValued = false)
+    private String srcIpString = null;
+
+    @Option(name = "--ipDst", description = "Destination IP Address",
+            required = false, multiValued = false)
+    private String dstIpString = null;
+
+    @Option(name = "--tcpSrc", description = "Source TCP Port",
+            required = false, multiValued = false)
+    private String srcTcpString = null;
+
+    @Option(name = "--tcpDst", description = "Destination TCP Port",
+            required = false, multiValued = false)
+    private String dstTcpString = null;
 
     @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
             required = false, multiValued = false)
@@ -77,6 +98,26 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
         if (!isNullOrEmpty(dstMacString)) {
             selectorBuilder.matchEthDst(MacAddress.valueOf(dstMacString));
+        }
+
+        if (!isNullOrEmpty(ipProtoString)) {
+            selectorBuilder.matchIPProtocol((byte) Short.parseShort(ipProtoString));
+        }
+
+        if (!isNullOrEmpty(srcIpString)) {
+            selectorBuilder.matchIPSrc(IpPrefix.valueOf(srcIpString));
+        }
+
+        if (!isNullOrEmpty(dstIpString)) {
+            selectorBuilder.matchIPDst(IpPrefix.valueOf(dstIpString));
+        }
+
+        if (!isNullOrEmpty(srcTcpString)) {
+            selectorBuilder.matchTcpSrc((short) Integer.parseInt(srcTcpString));
+        }
+
+        if (!isNullOrEmpty(dstTcpString)) {
+            selectorBuilder.matchTcpSrc((short) Integer.parseInt(dstTcpString));
         }
 
         return selectorBuilder.build();

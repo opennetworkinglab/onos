@@ -4,6 +4,11 @@
     "id": "of:0000ffffffff0008",
     "type": "switch",
     "online": false,
+    "location": {
+      "type": "latlng",
+      "lat": 37.6,
+      "lng": 122.3
+    },
     "labels": [
       "0000ffffffff0008",
       "FF:FF:FF:FF:00:08",

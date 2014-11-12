@@ -25,13 +25,13 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
+import static org.onlab.onos.net.AnnotationKeys.LATENCY;
+import static org.onlab.onos.net.AnnotationKeys.getAnnotatedValue;
+
 /**
  * Constraint that evaluates the latency through a path.
  */
 public class LatencyConstraint implements Constraint {
-
-    // TODO: formalize the key for latency all over the codes.
-    private static final String LATENCY_KEY = "latency";
 
     private final Duration latency;
 
@@ -43,22 +43,18 @@ public class LatencyConstraint implements Constraint {
         this.latency = latency;
     }
 
+    // Constructor for serialization
+    private LatencyConstraint() {
+        this.latency = Duration.ZERO;
+    }
+
     public Duration latency() {
         return latency;
     }
 
     @Override
     public double cost(Link link, LinkResourceService resourceService) {
-        String value = link.annotations().value(LATENCY_KEY);
-
-        double latencyInMicroSec;
-        try {
-            latencyInMicroSec = Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            latencyInMicroSec = 1.0;
-        }
-
-        return latencyInMicroSec;
+        return getAnnotatedValue(link, LATENCY);
     }
 
     @Override

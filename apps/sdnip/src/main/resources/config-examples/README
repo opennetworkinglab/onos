@@ -1,1 +1,5 @@
-ONOS looks for these config files by default in $KARAF_LOG/config/
+The SDN-IP configuration files should be copied to directory
+  $ONOS_HOME/tools/package/config
+
+After deployment and starting up the ONOS cluster, ONOS looks for these
+configuration files in /opt/onos/config on each cluster member.
