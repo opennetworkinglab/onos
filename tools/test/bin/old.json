@@ -1,0 +1,387 @@
+{
+    "linkConfig": [
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:01",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:02",
+            "params": {
+                "nodeName1": "SFO-W10",
+                "nodeName2": "SJC-W10",
+                "numWaves": 80,
+                "port1": 50,
+                "port2": 30
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:02",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:03",
+            "params": {
+                "nodeName1": "SJC-W10",
+                "nodeName2": "LAX-W10",
+                "numWaves": 80,
+                "port1": 50,
+                "port2": 30
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:03",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:04",
+            "params": {
+                "nodeName1": "LAX-W10",
+                "nodeName2": "SDG-W10",
+                "numWaves": 80,
+                "port1": 50,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:01",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:05",
+            "params": {
+                "nodeName1": "SFO-W10",
+                "nodeName2": "MSP-M10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:02",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:05",
+            "params": {
+                "nodeName1": "SJC-W10",
+                "nodeName2": "MSP-M10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 20
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:03",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:06",
+            "params": {
+                "nodeName1": "LAX-W10",
+                "nodeName2": "DFW-M10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:04",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:06",
+            "params": {
+                "nodeName1": "SDG-W10",
+                "nodeName2": "DFW-M10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 20
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:05",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:06",
+            "params": {
+                "nodeName1": "MSP-M10",
+                "nodeName2": "DFW-M10",
+                "numWaves": 80,
+                "port1": 30,
+                "port2": 40
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:05",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:07",
+            "params": {
+                "nodeName1": "MSP-M10",
+                "nodeName2": "CHG-N10",
+                "numWaves": 80,
+                "port1": 40,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:06",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:08",
+            "params": {
+                "nodeName1": "DFW-M10",
+                "nodeName2": "IAD-M10",
+                "numWaves": 80,
+                "port1": 30,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:07",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:08",
+            "params": {
+                "nodeName1": "CHG-N10",
+                "nodeName2": "IAD-M10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 30
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:07",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:09",
+            "params": {
+                "nodeName1": "CHG-N10",
+                "nodeName2": "JFK-M10",
+                "numWaves": 80,
+                "port1": 30,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:08",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:0A",
+            "params": {
+                "nodeName1": "IAD-M10",
+                "nodeName2": "ATL-S10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 50
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:ff:09",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:0A",
+            "params": {
+                "nodeName1": "JFK-M10",
+                "nodeName2": "ATL-S10",
+                "numWaves": 80,
+                "port1": 20,
+                "port2": 20
+            },
+            "type": "wdmLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:00:01",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:01",
+            "params": {
+                "bandwidth": 100000,
+                "nodeName1": "SFO-R10",
+                "nodeName2": "SFO-W10",
+                "port1": 2,
+                "port2": 10
+            },
+            "type": "pktOptLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:00:02",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:04",
+            "params": {
+                "bandwidth": 100000,
+                "nodeName1": null,
+                "nodeName2": "SDG-W10",
+                "port1": 2,
+                "port2": 10
+            },
+            "type": "pktOptLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:00:03",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:06",
+            "params": {
+                "bandwidth": 100000,
+                "nodeName1": "LAX-R10",
+                "nodeName2": "DFW-M10",
+                "port1": 2,
+                "port2": 10
+            },
+            "type": "pktOptLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:00:04",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:07",
+            "params": {
+                "bandwidth": 100000,
+                "nodeName1": "SDG-R10",
+                "nodeName2": "CHG-N10",
+                "port1": 2,
+                "port2": 10
+            },
+            "type": "pktOptLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:00:05",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:09",
+            "params": {
+                "bandwidth": 100000,
+                "nodeName1": null,
+                "nodeName2": "JFK-M10",
+                "port1": 2,
+                "port2": 10
+            },
+            "type": "pktOptLink"
+        },
+        {
+            "allowed": true,
+            "nodeDpid1": "00:00:ff:ff:ff:ff:00:06",
+            "nodeDpid2": "00:00:ff:ff:ff:ff:ff:0A",
+            "params": {
+                "bandwidth": 100000,
+                "nodeName1": null,
+                "nodeName2": "ATL-S10",
+                "port1": 2,
+                "port2": 10
+            },
+            "type": "pktOptLink"
+        }
+    ],
+    "switchConfig": [
+        {
+            "allowed": true,
+            "latitude": 37.6,
+            "longitude": 122.3,
+            "name": "SFO-W10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:01",
+            "params": {
+                "numRegen": 0
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 37.3,
+            "longitude": 121.9,
+            "name": "SJC-W10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:02",
+            "params": {
+                "numRegen": 0
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 33.9,
+            "longitude": 118.4,
+            "name": "LAX-W10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:03",
+            "params": {
+                "numRegen": 0
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 32.8,
+            "longitude": 117.1,
+            "name": "SDG-W10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:04",
+            "params": {
+                "numRegen": 3
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 44.8,
+            "longitude": 93.1,
+            "name": "MSP-M10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:05",
+            "params": {
+                "numRegen": 3
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 32.8,
+            "longitude": 97.1,
+            "name": "DFW-M10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:06",
+            "params": {
+                "numRegen": 3
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 41.8,
+            "longitude": 120.1,
+            "name": "CHG-N10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:07",
+            "params": {
+                "numRegen": 3
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 38.8,
+            "longitude": 77.1,
+            "name": "IAD-M10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:08",
+            "params": {
+                "numRegen": 3
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 40.8,
+            "longitude": 73.1,
+            "name": "JFK-M10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:09",
+            "params": {
+                "numRegen": 0
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 33.8,
+            "longitude": 84.1,
+            "name": "ATL-S10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:0A",
+            "params": {
+                "numRegen": 0
+            },
+            "type": "Roadm"
+        },
+        {
+            "allowed": true,
+            "latitude": 32.8,
+            "longitude": 97.1,
+            "name": "DFW-M10",
+            "nodeDpid": "00:00:ff:ff:ff:ff:ff:06",
+            "params": {
+                "numRegen": 3
+            },
+            "type": "Roadm"
+        }
+    ]
+}
