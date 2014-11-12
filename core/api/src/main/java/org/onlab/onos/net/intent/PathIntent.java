@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.intent;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.MoreObjects;
@@ -42,9 +43,7 @@ public class PathIntent extends ConnectivityIntent {
      */
     public PathIntent(ApplicationId appId, TrafficSelector selector,
                       TrafficTreatment treatment, Path path) {
-        super(id(PathIntent.class, selector, treatment, path), appId,
-              resources(path.links()), selector, treatment);
-        this.path = path;
+        this(appId, selector, treatment, path, Collections.emptyList());
     }
 
     /**

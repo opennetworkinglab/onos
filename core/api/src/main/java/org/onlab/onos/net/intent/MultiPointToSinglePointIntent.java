@@ -22,6 +22,7 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -55,14 +56,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                                          TrafficTreatment treatment,
                                          Set<ConnectPoint> ingressPoints,
                                          ConnectPoint egressPoint) {
-        super(id(MultiPointToSinglePointIntent.class, selector, treatment,
-                 ingressPoints, egressPoint), appId, null, selector, treatment);
-
-        checkNotNull(ingressPoints);
-        checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");
-
-        this.ingressPoints = Sets.newHashSet(ingressPoints);
-        this.egressPoint = checkNotNull(egressPoint);
+        this(appId, selector, treatment, ingressPoints, egressPoint, Collections.emptyList());
     }
 
     /**
