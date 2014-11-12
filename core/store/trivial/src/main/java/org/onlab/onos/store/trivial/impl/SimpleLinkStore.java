@@ -19,20 +19,20 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.AnnotationKeys;
 import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkEvent;
@@ -46,22 +46,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.onlab.onos.net.DefaultAnnotations.union;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Verify.verifyNotNull;
+import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
+import static org.onlab.onos.net.DefaultAnnotations.union;
+import static org.onlab.onos.net.Link.State.ACTIVE;
+import static org.onlab.onos.net.Link.State.INACTIVE;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
-import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static com.google.common.base.Predicates.notNull;
-import static com.google.common.base.Verify.verifyNotNull;
 
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
@@ -77,7 +79,7 @@ public class SimpleLinkStore
 
     // Link inventory
     private final ConcurrentMap<LinkKey, Map<ProviderId, LinkDescription>>
-                    linkDescs = new ConcurrentHashMap<>();
+            linkDescs = new ConcurrentHashMap<>();
 
     // Link instance cache
     private final ConcurrentMap<LinkKey, Link> links = new ConcurrentHashMap<>();
@@ -116,9 +118,9 @@ public class SimpleLinkStore
         // lock for iteration
         synchronized (srcLinks) {
             return FluentIterable.from(srcLinks.get(deviceId))
-            .transform(lookupLink())
-            .filter(notNull())
-            .toSet();
+                    .transform(lookupLink())
+                    .filter(notNull())
+                    .toSet();
         }
     }
 
@@ -127,9 +129,9 @@ public class SimpleLinkStore
         // lock for iteration
         synchronized (dstLinks) {
             return FluentIterable.from(dstLinks.get(deviceId))
-            .transform(lookupLink())
-            .filter(notNull())
-            .toSet();
+                    .transform(lookupLink())
+                    .filter(notNull())
+                    .toSet();
         }
     }
 
@@ -178,11 +180,30 @@ public class SimpleLinkStore
         }
     }
 
+    @Override
+    public LinkEvent removeOrDownLink(ConnectPoint src, ConnectPoint dst) {
+        Link link = getLink(src, dst);
+        if (link == null) {
+            return null;
+        }
+
+        if (link.isDurable()) {
+            return link.state() == INACTIVE ? null :
+                    updateLink(linkKey(link.src(), link.dst()), link,
+                               new DefaultLink(link.providerId(),
+                                               link.src(), link.dst(),
+                                               link.type(), INACTIVE,
+                                               link.isDurable(),
+                                               link.annotations()));
+        }
+        return removeLink(src, dst);
+    }
+
     // Guarded by linkDescs value (=locking each Link)
     private LinkDescription createOrUpdateLinkDescription(
-                             Map<ProviderId, LinkDescription> descs,
-                             ProviderId providerId,
-                             LinkDescription linkDescription) {
+            Map<ProviderId, LinkDescription> descs,
+            ProviderId providerId,
+            LinkDescription linkDescription) {
 
         // merge existing attributes and merge
         LinkDescription oldDesc = descs.get(providerId);
@@ -196,11 +217,10 @@ public class SimpleLinkStore
                 newType = linkDescription.type();
             }
             SparseAnnotations merged = union(oldDesc.annotations(),
-                    linkDescription.annotations());
-            newDesc = new DefaultLinkDescription(
-                        linkDescription.src(),
-                        linkDescription.dst(),
-                        newType, merged);
+                                             linkDescription.annotations());
+            newDesc = new DefaultLinkDescription(linkDescription.src(),
+                                                 linkDescription.dst(),
+                                                 newType, merged);
         }
         return descs.put(providerId, newDesc);
     }
@@ -217,8 +237,9 @@ public class SimpleLinkStore
     // Updates, if necessary the specified link and returns the appropriate event.
     // Guarded by linkDescs value (=locking each Link)
     private LinkEvent updateLink(LinkKey key, Link oldLink, Link newLink) {
-        if ((oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
-            !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
+        if (oldLink.state() != newLink.state() ||
+                (oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
+                !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
 
             links.put(key, newLink);
             // strictly speaking following can be ommitted
@@ -234,11 +255,7 @@ public class SimpleLinkStore
         final LinkKey key = linkKey(src, dst);
         Map<ProviderId, LinkDescription> descs = getOrCreateLinkDescriptions(key);
         synchronized (descs) {
-            Link link = links.get(key);
-            if (isDurable(link)) {
-                return null;
-            }
-            links.remove(key);
+            Link link = links.remove(key);
             descs.clear();
             if (link != null) {
                 srcLinks.remove(link.src().deviceId(), key);
@@ -247,11 +264,6 @@ public class SimpleLinkStore
             }
             return null;
         }
-    }
-
-    // Indicates if the link has been marked as durable via annotations.
-    private boolean isDurable(Link link) {
-        return link != null && Objects.equals(link.annotations().value("durable"), "true");
     }
 
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
@@ -301,7 +313,10 @@ public class SimpleLinkStore
             annotations = merge(annotations, e.getValue().annotations());
         }
 
-        return new DefaultLink(primary , src, dst, type, annotations);
+        boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
+        boolean isActive = !Objects.equals(annotations.value(AnnotationKeys.INACTIVE), "true");
+        return new DefaultLink(primary, src, dst, type,
+                               isActive ? ACTIVE : INACTIVE, isDurable, annotations);
     }
 
     private Map<ProviderId, LinkDescription> getOrCreateLinkDescriptions(LinkKey key) {
@@ -321,6 +336,7 @@ public class SimpleLinkStore
     }
 
     private final Function<LinkKey, Link> lookupLink = new LookupLink();
+
     private Function<LinkKey, Link> lookupLink() {
         return lookupLink;
     }

@@ -25,6 +25,17 @@ public final class AnnotationKeys {
     private AnnotationKeys() {}
 
     /**
+     * Annotation key for durable links.
+     */
+    public static final String DURABLE = "durable";
+
+    /**
+     * Annotation key for active/inactive links. Links are implicitly
+     * considered active unless explicitly marked otherwise.
+     */
+    public static final String INACTIVE = "inactive";
+
+    /**
      * Annotation key for latency.
      */
     public static final String LATENCY = "latency";

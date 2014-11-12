@@ -49,6 +49,8 @@ import static com.google.common.collect.ImmutableSetMultimap.Builder;
 import static org.onlab.graph.GraphPathSearch.Result;
 import static org.onlab.graph.TarjanGraphSearch.SCCResult;
 import static org.onlab.onos.core.CoreService.CORE_PROVIDER_ID;
+import static org.onlab.onos.net.Link.State.ACTIVE;
+import static org.onlab.onos.net.Link.State.INACTIVE;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 
 /**
@@ -434,7 +436,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
         public double weight(TopologyEdge edge) {
             // To force preference to use direct paths first, make indirect
             // links as expensive as the linear vertex traversal.
-            return edge.link().type() == INDIRECT ? indirectLinkCost : 1;
+            return edge.link().state() == ACTIVE ?
+                    (edge.link().type() == INDIRECT ? indirectLinkCost : 1) : -1;
         }
     }
 
@@ -442,7 +445,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private static class NoIndirectLinksWeight implements LinkWeight {
         @Override
         public double weight(TopologyEdge edge) {
-            return edge.link().type() == INDIRECT ? -1 : 1;
+            return edge.link().state() == INACTIVE || edge.link().type() == INDIRECT ? -1 : 1;
         }
     }
 

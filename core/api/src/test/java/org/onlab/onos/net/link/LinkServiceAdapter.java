@@ -78,5 +78,4 @@ public class LinkServiceAdapter implements LinkService {
     public void removeListener(LinkListener listener) {
     }
 
-
 }

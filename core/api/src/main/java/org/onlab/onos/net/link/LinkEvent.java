@@ -33,7 +33,7 @@ public class LinkEvent extends AbstractEvent<LinkEvent.Type, Link> {
         LINK_ADDED,
 
         /**
-         * Signifies that a link has been updated.
+         * Signifies that a link has been updated or changed state.
          */
         LINK_UPDATED,
 

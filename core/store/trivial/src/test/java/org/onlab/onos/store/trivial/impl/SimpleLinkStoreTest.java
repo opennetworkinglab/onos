@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.onos.net.AnnotationKeys;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DeviceId;
@@ -80,6 +81,23 @@ public class SimpleLinkStoreTest {
             .set("B4", "b4")
             .build();
 
+    private static final SparseAnnotations DA1 = DefaultAnnotations.builder()
+            .set("A1", "a1")
+            .set("B1", "b1")
+            .set(AnnotationKeys.DURABLE, "true")
+            .build();
+    private static final SparseAnnotations DA2 = DefaultAnnotations.builder()
+            .set("A2", "a2")
+            .set("B2", "b2")
+            .set(AnnotationKeys.DURABLE, "true")
+            .build();
+    private static final SparseAnnotations NDA1 = DefaultAnnotations.builder()
+            .set("A1", "a1")
+            .set("B1", "b1")
+            .remove(AnnotationKeys.DURABLE)
+            .build();
+
+
 
     private SimpleLinkStore simpleLinkStore;
     private LinkStore linkStore;
@@ -105,17 +123,19 @@ public class SimpleLinkStoreTest {
     }
 
     private void putLink(DeviceId srcId, PortNumber srcNum,
-                         DeviceId dstId, PortNumber dstNum, Type type,
+                         DeviceId dstId, PortNumber dstNum,
+                         Type type, boolean isDurable,
                          SparseAnnotations... annotations) {
         ConnectPoint src = new ConnectPoint(srcId, srcNum);
         ConnectPoint dst = new ConnectPoint(dstId, dstNum);
-        linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type, annotations));
+        linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type,
+                                                                     annotations));
     }
 
     private void putLink(LinkKey key, Type type, SparseAnnotations... annotations) {
         putLink(key.src().deviceId(), key.src().port(),
                 key.dst().deviceId(), key.dst().port(),
-                type, annotations);
+                type, false, annotations);
     }
 
     private static void assertLink(DeviceId srcId, PortNumber srcNum,
@@ -138,9 +158,9 @@ public class SimpleLinkStoreTest {
     public final void testGetLinkCount() {
         assertEquals("initialy empty", 0, linkStore.getLinkCount());
 
-        putLink(DID1, P1, DID2, P2, DIRECT);
-        putLink(DID2, P2, DID1, P1, DIRECT);
-        putLink(DID1, P1, DID2, P2, DIRECT);
+        putLink(DID1, P1, DID2, P2, DIRECT, false);
+        putLink(DID2, P2, DID1, P1, DIRECT, false);
+        putLink(DID1, P1, DID2, P2, DIRECT, false);
 
         assertEquals("expecting 2 unique link", 2, linkStore.getLinkCount());
     }
@@ -360,6 +380,47 @@ public class SimpleLinkStoreTest {
 
 
     @Test
+    public final void testRemoveOrDownLink() {
+        removeOrDownLink(false);
+    }
+
+    @Test
+    public final void testRemoveOrDownLinkDurable() {
+        removeOrDownLink(true);
+    }
+
+    private void removeOrDownLink(boolean isDurable) {
+        final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
+        final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
+        LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
+        LinkKey linkId2 = LinkKey.linkKey(d2P2, d1P1);
+
+        putLink(linkId1, DIRECT, isDurable ? DA1 : A1);
+        putLink(linkId2, DIRECT, isDurable ? DA2 : A2);
+
+        // DID1,P1 => DID2,P2
+        // DID2,P2 => DID1,P1
+        // DID1,P2 => DID2,P3
+
+        LinkEvent event = linkStore.removeOrDownLink(d1P1, d2P2);
+        assertEquals(isDurable ? LINK_UPDATED : LINK_REMOVED, event.type());
+        assertAnnotationsEquals(event.subject().annotations(), isDurable ? DA1 : A1);
+        LinkEvent event2 = linkStore.removeOrDownLink(d1P1, d2P2);
+        assertNull(event2);
+
+        assertLink(linkId2, DIRECT, linkStore.getLink(d2P2, d1P1));
+        assertAnnotationsEquals(linkStore.getLink(d2P2, d1P1).annotations(),
+                                isDurable ? DA2 : A2);
+
+        // annotations, etc. should not survive remove
+        if (!isDurable) {
+            putLink(linkId1, DIRECT);
+            assertLink(linkId1, DIRECT, linkStore.getLink(d1P1, d2P2));
+            assertAnnotationsEquals(linkStore.getLink(d1P1, d2P2).annotations());
+        }
+    }
+
+    @Test
     public final void testRemoveLink() {
         final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
         final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
@@ -400,6 +461,30 @@ public class SimpleLinkStoreTest {
         // Ancillary only link should not be visible
         assertEquals(1, linkStore.getLinkCount());
         assertNotNull(linkStore.getLink(src, dst));
+    }
+
+    @Test
+    public void testDurableToNonDurable() {
+        final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
+        final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
+        LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
+
+        putLink(linkId1, DIRECT, DA1);
+        assertTrue("should be be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+        putLink(linkId1, DIRECT, NDA1);
+        assertFalse("should not be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+    }
+
+    @Test
+    public void testNonDurableToDurable() {
+        final ConnectPoint d1P1 = new ConnectPoint(DID1, P1);
+        final ConnectPoint d2P2 = new ConnectPoint(DID2, P2);
+        LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
+
+        putLink(linkId1, DIRECT, A1);
+        assertFalse("should not be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+        putLink(linkId1, DIRECT, DA1);
+        assertTrue("should be durable", linkStore.getLink(d1P1, d2P2).isDurable());
     }
 
     // If Delegates should be called only on remote events,
@@ -451,7 +536,7 @@ public class SimpleLinkStoreTest {
 
         linkStore.unsetDelegate(checkUpdate);
         linkStore.setDelegate(checkRemove);
-        linkStore.removeLink(d1P1, d2P2);
+        linkStore.removeOrDownLink(d1P1, d2P2);
         assertTrue("Remove event fired", removeLatch.await(1, TimeUnit.SECONDS));
     }
 }

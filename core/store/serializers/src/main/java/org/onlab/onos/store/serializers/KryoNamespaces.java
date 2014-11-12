@@ -164,6 +164,7 @@ public final class KryoNamespaces {
                     DefaultPortDescription.class,
                     Element.class,
                     Link.Type.class,
+                    Link.State.class,
                     Timestamp.class,
                     HostId.class,
                     HostDescription.class,

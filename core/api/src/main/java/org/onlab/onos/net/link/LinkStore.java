@@ -95,6 +95,16 @@ public interface LinkStore extends Store<LinkEvent, LinkStoreDelegate> {
                                         LinkDescription linkDescription);
 
     /**
+     * Removes the link, or marks it as inactive if the link is durable,
+     * based on the specified information.
+     *
+     * @param src link source
+     * @param dst link destination
+     * @return remove or update link event, or null if no change resulted
+     */
+    LinkEvent removeOrDownLink(ConnectPoint src, ConnectPoint dst);
+
+    /**
      * Removes the link based on the specified information.
      *
      * @param src link source
@@ -102,5 +112,6 @@ public interface LinkStore extends Store<LinkEvent, LinkStoreDelegate> {
      * @return remove link event, or null if no change resulted
      */
     LinkEvent removeLink(ConnectPoint src, ConnectPoint dst);
+
 
 }

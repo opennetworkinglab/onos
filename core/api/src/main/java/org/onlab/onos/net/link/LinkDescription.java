@@ -45,6 +45,5 @@ public interface LinkDescription extends Description {
      */
     Link.Type type();
 
-
     // Add further link attributes
 }

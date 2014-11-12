@@ -15,15 +15,15 @@
  */
 package org.onlab.onos.store.serializers;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.provider.ProviderId;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultLink;
+import org.onlab.onos.net.Link.State;
+import org.onlab.onos.net.Link.Type;
+import org.onlab.onos.net.provider.ProviderId;
 
 /**
  * Kryo Serializer for {@link DefaultLink}.
@@ -44,6 +44,8 @@ public class DefaultLinkSerializer extends Serializer<DefaultLink> {
         kryo.writeClassAndObject(output, object.src());
         kryo.writeClassAndObject(output, object.dst());
         kryo.writeClassAndObject(output, object.type());
+        kryo.writeClassAndObject(output, object.state());
+        kryo.writeClassAndObject(output, object.isDurable());
     }
 
     @Override
@@ -52,6 +54,8 @@ public class DefaultLinkSerializer extends Serializer<DefaultLink> {
         ConnectPoint src = (ConnectPoint) kryo.readClassAndObject(input);
         ConnectPoint dst = (ConnectPoint) kryo.readClassAndObject(input);
         Type linkType = (Type) kryo.readClassAndObject(input);
-        return new DefaultLink(providerId, src, dst, linkType);
+        State state = (State) kryo.readClassAndObject(input);
+        boolean isDurable = (boolean) kryo.readClassAndObject(input);
+        return new DefaultLink(providerId, src, dst, linkType, state, isDurable);
     }
 }

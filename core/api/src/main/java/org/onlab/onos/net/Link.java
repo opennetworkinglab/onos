@@ -55,6 +55,23 @@ public interface Link extends Annotated, Provided, NetworkResource {
     }
 
     /**
+     * Representation of the link state, which applies primarily only to
+     * configured durable links, i.e. those that need to remain present,
+     * but instead be marked as inactive.
+     */
+    public enum State {
+        /**
+         * Signifies that a link is currently active.
+         */
+        ACTIVE,
+
+        /**
+         * Signifies that a link is currently active.
+         */
+        INACTIVE
+    }
+
+    /**
      * Returns the link source connection point.
      *
      * @return link source connection point
@@ -74,5 +91,17 @@ public interface Link extends Annotated, Provided, NetworkResource {
      * @return link type
      */
     Type type();
+
+    /**
+     * Returns the link state.
+     */
+    State state();
+
+    /**
+     * Indicates if the link is to be considered durable.
+     *
+     * @return link state
+     */
+    boolean isDurable();
 
 }

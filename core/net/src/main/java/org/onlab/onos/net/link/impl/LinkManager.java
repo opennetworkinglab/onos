@@ -158,7 +158,7 @@ public class LinkManager
         if (deviceService.getRole(connectPoint.deviceId()) != MastershipRole.MASTER) {
             return;
         }
-        removeLinks(getLinks(connectPoint));
+        removeLinks(getLinks(connectPoint), false);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class LinkManager
         if (deviceService.getRole(deviceId) != MastershipRole.MASTER) {
             return;
         }
-        removeLinks(getDeviceLinks(deviceId));
+        removeLinks(getDeviceLinks(deviceId), false);
     }
 
     @Override
@@ -228,7 +228,7 @@ public class LinkManager
             ConnectPoint src = linkDescription.src();
             ConnectPoint dst = linkDescription.dst();
 
-            LinkEvent event = store.removeLink(src, dst);
+            LinkEvent event = store.removeOrDownLink(src, dst);
             if (event != null) {
                 log.info("Link {} vanished", linkDescription);
                 post(event);
@@ -242,7 +242,7 @@ public class LinkManager
 
             log.info("Links for connection point {} vanished", connectPoint);
             // FIXME: This will remove links registered by other providers
-            removeLinks(getLinks(connectPoint));
+            removeLinks(getLinks(connectPoint), true);
         }
 
         @Override
@@ -251,14 +251,16 @@ public class LinkManager
             checkValidity();
 
             log.info("Links for device {} vanished", deviceId);
-            removeLinks(getDeviceLinks(deviceId));
+            removeLinks(getDeviceLinks(deviceId), true);
         }
     }
 
     // Removes all links in the specified set and emits appropriate events.
-    private void removeLinks(Set<Link> links) {
+    private void removeLinks(Set<Link> links, boolean isSoftRemove) {
         for (Link link : links) {
-            LinkEvent event = store.removeLink(link.src(), link.dst());
+            LinkEvent event = isSoftRemove ?
+                    store.removeOrDownLink(link.src(), link.dst()) :
+                    store.removeLink(link.src(), link.dst());
             post(event);
         }
     }

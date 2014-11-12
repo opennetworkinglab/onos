@@ -34,9 +34,9 @@ public class DefaultLinkDescription extends AbstractDescription
     /**
      * Creates a link description using the supplied information.
      *
-     * @param src  link source
-     * @param dst  link destination
-     * @param type link type
+     * @param src         link source
+     * @param dst         link destination
+     * @param type        link type
      * @param annotations optional key/value annotations
      */
     public DefaultLinkDescription(ConnectPoint src, ConnectPoint dst,
@@ -64,9 +64,10 @@ public class DefaultLinkDescription extends AbstractDescription
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper("Link").add("src", src())
-                                .add("dst", dst())
-                                .add("type", type()).toString();
+        return MoreObjects.toStringHelper(this)
+                .add("src", src())
+                .add("dst", dst())
+                .add("type", type()).toString();
     }
 
 }

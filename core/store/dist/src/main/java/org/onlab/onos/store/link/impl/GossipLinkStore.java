@@ -21,7 +21,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -32,6 +31,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.net.AnnotationKeys;
 import org.onlab.onos.net.AnnotationsUtil;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -65,28 +65,30 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.onos.cluster.ControllerNodeToNodeId.toNodeId;
-import static org.onlab.onos.net.DefaultAnnotations.union;
 import static org.onlab.onos.net.DefaultAnnotations.merge;
+import static org.onlab.onos.net.DefaultAnnotations.union;
+import static org.onlab.onos.net.Link.State.ACTIVE;
+import static org.onlab.onos.net.Link.State.INACTIVE;
 import static org.onlab.onos.net.Link.Type.DIRECT;
 import static org.onlab.onos.net.Link.Type.INDIRECT;
 import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.*;
+import static org.onlab.onos.store.link.impl.GossipLinkStoreMessageSubjects.LINK_ANTI_ENTROPY_ADVERTISEMENT;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
-import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.notNull;
-import static org.onlab.onos.store.link.impl.GossipLinkStoreMessageSubjects.LINK_ANTI_ENTROPY_ADVERTISEMENT;
 
 /**
  * Manages inventory of infrastructure links in distributed data store
@@ -261,8 +263,6 @@ public class GossipLinkStore
             mergedDesc = map.get(providerId);
         }
 
-
-
         if (event != null) {
             log.info("Notifying peers of a link update topology event from providerId: "
                     + "{}  between src: {} and dst: {}",
@@ -276,6 +276,26 @@ public class GossipLinkStore
             }
         }
         return event;
+    }
+
+    @Override
+    public LinkEvent removeOrDownLink(ConnectPoint src, ConnectPoint dst) {
+        Link link = getLink(src, dst);
+        if (link == null) {
+            return null;
+        }
+
+        if (link.isDurable()) {
+            // FIXME: this is not the right thing to call for the gossip store; will not sync link state!!!
+            return link.state() == INACTIVE ? null :
+                    updateLink(linkKey(link.src(), link.dst()), link,
+                               new DefaultLink(link.providerId(),
+                                               link.src(), link.dst(),
+                                               link.type(), INACTIVE,
+                                               link.isDurable(),
+                                               link.annotations()));
+        }
+        return removeLink(src, dst);
     }
 
     private LinkEvent createOrUpdateLinkInternal(
@@ -333,7 +353,7 @@ public class GossipLinkStore
             }
             SparseAnnotations merged = union(existingLinkDescription.value().annotations(),
                     linkDescription.value().annotations());
-            newLinkDescription = new Timestamped<LinkDescription>(
+            newLinkDescription = new Timestamped<>(
                     new DefaultLinkDescription(
                         linkDescription.value().src(),
                         linkDescription.value().dst(),
@@ -357,7 +377,8 @@ public class GossipLinkStore
     private LinkEvent updateLink(LinkKey key, Link oldLink, Link newLink) {
         // Note: INDIRECT -> DIRECT transition only
         // so that BDDP discovered Link will not overwrite LDDP Link
-        if ((oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
+        if (oldLink.state() != newLink.state() ||
+            (oldLink.type() == INDIRECT && newLink.type() == DIRECT) ||
             !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
 
             links.put(key, newLink);
@@ -449,12 +470,8 @@ public class GossipLinkStore
                 // outdated remove request, ignore
                 return null;
             }
-            Link link = links.get(key);
-            if (isDurable(link)) {
-                return null;
-            }
             removedLinks.put(key, timestamp);
-            links.remove(key);
+            Link link = links.remove(key);
             linkDescriptions.clear();
             if (link != null) {
                 srcLinks.remove(link.src().deviceId(), key);
@@ -463,11 +480,6 @@ public class GossipLinkStore
             }
             return null;
         }
-    }
-
-    // Indicates if the link has been marked as durable via annotations.
-    private boolean isDurable(Link link) {
-        return link != null && Objects.equals(link.annotations().value("durable"), "true");
     }
 
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
@@ -518,7 +530,10 @@ public class GossipLinkStore
             annotations = merge(annotations, e.getValue().value().annotations());
         }
 
-        return new DefaultLink(baseProviderId, src, dst, type, annotations);
+        boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
+        boolean isActive = !Objects.equals(annotations.value(AnnotationKeys.INACTIVE), "true");
+        return new DefaultLink(baseProviderId, src, dst, type,
+                               isActive ? ACTIVE : INACTIVE, isDurable, annotations);
     }
 
     private Map<ProviderId, Timestamped<LinkDescription>> getOrCreateLinkDescriptions(LinkKey key) {
@@ -538,9 +553,11 @@ public class GossipLinkStore
     }
 
     private final Function<LinkKey, Link> lookupLink = new LookupLink();
+
     /**
      * Returns a Function to lookup Link instance using LinkKey from cache.
-     * @return
+     *
+     * @return lookup link function
      */
     private Function<LinkKey, Link> lookupLink() {
         return lookupLink;
