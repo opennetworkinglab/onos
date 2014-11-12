@@ -350,7 +350,6 @@ public abstract class TopologyMessages {
                              new Prop("Longitude", annot.value("longitude"))));
     }
 
-
     // Produces a path message to the client.
     protected ObjectNode pathMessage(Path path, String type) {
         ObjectNode payload = mapper.createObjectNode();
