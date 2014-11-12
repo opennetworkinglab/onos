@@ -1,6 +1,5 @@
 package org.onlab.onos.store.service.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
@@ -38,7 +37,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.serializers.ImmutableListSerializer;
@@ -172,20 +170,9 @@ public class ClusterMessagingProtocol
 
     @Override
     public ProtocolClient createClient(TcpMember member) {
-        ControllerNode remoteNode = getControllerNode(member.host(), member.port());
-        checkNotNull(remoteNode,
-                     "No matching ONOS Node for %s:%s",
-                     member.host(), member.port());
-        return new ClusterMessagingProtocolClient(
-                clusterCommunicator, clusterService.getLocalNode(), remoteNode);
-    }
-
-    private ControllerNode getControllerNode(String host, int port) {
-        for (ControllerNode node : clusterService.getNodes()) {
-            if (node.ip().toString().equals(host) && node.tcpPort() == port) {
-                return node;
-            }
-        }
-        return null;
+        return new ClusterMessagingProtocolClient(clusterService,
+                                                  clusterCommunicator,
+                                                  clusterService.getLocalNode(),
+                                                  member);
     }
 }

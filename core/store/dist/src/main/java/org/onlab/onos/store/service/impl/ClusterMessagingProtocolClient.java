@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.protocol.PingRequest;
 import net.kuujo.copycat.protocol.PingResponse;
 import net.kuujo.copycat.protocol.PollRequest;
@@ -23,6 +24,9 @@ import net.kuujo.copycat.protocol.SyncRequest;
 import net.kuujo.copycat.protocol.SyncResponse;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
 
+import org.onlab.onos.cluster.ClusterEvent;
+import org.onlab.onos.cluster.ClusterEventListener;
+import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
@@ -43,21 +47,30 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
 
     public static final long RETRY_INTERVAL_MILLIS = 2000;
 
+    private final ClusterService clusterService;
     private final ClusterCommunicationService clusterCommunicator;
     private final ControllerNode localNode;
-    private final ControllerNode remoteNode;
+    private final TcpMember remoteMember;
+    private ControllerNode remoteNode;
 
     // FIXME: Thread pool sizing.
     private static final ScheduledExecutorService THREAD_POOL =
             new ScheduledThreadPoolExecutor(10, THREAD_FACTORY);
 
+    private volatile CompletableFuture<Void> appeared;
+
+    private volatile InternalClusterEventListener listener;
+
     public ClusterMessagingProtocolClient(
+            ClusterService clusterService,
             ClusterCommunicationService clusterCommunicator,
             ControllerNode localNode,
-            ControllerNode remoteNode) {
+            TcpMember remoteMember) {
+
+        this.clusterService = clusterService;
         this.clusterCommunicator = clusterCommunicator;
         this.localNode = localNode;
-        this.remoteNode = remoteNode;
+        this.remoteMember = remoteMember;
     }
 
     @Override
@@ -81,13 +94,62 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
     }
 
     @Override
-    public CompletableFuture<Void> connect() {
-        return CompletableFuture.completedFuture(null);
+    public synchronized CompletableFuture<Void> connect() {
+        if (remoteNode != null) {
+            // done
+            return CompletableFuture.completedFuture(null);
+        }
+
+        remoteNode = getControllerNode(remoteMember);
+
+        if (remoteNode != null) {
+            // done
+            return CompletableFuture.completedFuture(null);
+        }
+
+        if (appeared != null) {
+            // already waiting for member to appear
+            return appeared;
+        }
+
+        appeared = new CompletableFuture<>();
+        listener = new InternalClusterEventListener();
+        clusterService.addListener(listener);
+
+        // wait for specified controller node to come up
+        return null;
     }
 
     @Override
-    public CompletableFuture<Void> close() {
+    public synchronized CompletableFuture<Void> close() {
+        if (listener != null) {
+            clusterService.removeListener(listener);
+            listener = null;
+        }
+        if (appeared != null) {
+            appeared.cancel(true);
+            appeared = null;
+        }
         return CompletableFuture.completedFuture(null);
+    }
+
+    private synchronized void checkIfMemberAppeared() {
+        final ControllerNode controllerNode = getControllerNode(remoteMember);
+        if (controllerNode == null) {
+            // still not there: no-op
+            return;
+        }
+
+        // found
+        remoteNode = controllerNode;
+        if (appeared != null) {
+            appeared.complete(null);
+        }
+
+        if (listener != null) {
+            clusterService.removeListener(listener);
+            listener = null;
+        }
     }
 
     private <I> MessageSubject messageType(I input) {
@@ -110,6 +172,30 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
         CompletableFuture<O> future = new CompletableFuture<>();
         THREAD_POOL.schedule(new RPCTask<I, O>(request, future), 0, TimeUnit.MILLISECONDS);
         return future;
+    }
+
+    private ControllerNode getControllerNode(TcpMember remoteMember) {
+        final String host = remoteMember.host();
+        final int port = remoteMember.port();
+        for (ControllerNode node : clusterService.getNodes()) {
+            if (node.ip().toString().equals(host) && node.tcpPort() == port) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private final class InternalClusterEventListener
+            implements ClusterEventListener {
+
+        public InternalClusterEventListener() {
+        }
+
+        @Override
+        public void event(ClusterEvent event) {
+            checkIfMemberAppeared();
+        }
+
     }
 
     private class RPCTask<I, O> implements Runnable {
