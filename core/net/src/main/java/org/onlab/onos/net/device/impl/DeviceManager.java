@@ -186,7 +186,7 @@ public class DeviceManager
         if (provider != null) {
             return provider.isReachable(deviceId);
         } else {
-            log.error("Provider not found for {}", deviceId);
+            log.debug("Provider not found for {}", deviceId);
             return false;
         }
     }
