@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -55,8 +56,8 @@ import org.onlab.onos.net.packet.PacketService;
 import org.onlab.onos.net.proxyarp.ProxyArpService;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
@@ -150,17 +151,22 @@ public class ProxyArpManager implements ProxyArpService {
         } else {
             // If the source address matches one of our external addresses
             // it could be a request from an internal host to an external
-            // address. Forward it over to the correct port.
+            // address. Forward it over to the correct ports.
             Ip4Address source =
                 Ip4Address.valueOf(arp.getSenderProtocolAddress());
-            PortAddresses sourceAddresses = findPortInSubnet(source);
-            if (sourceAddresses != null) {
-                for (InterfaceIpAddress ia : sourceAddresses.ipAddresses()) {
+            Set<PortAddresses> sourceAddresses = findPortsInSubnet(source);
+            boolean matched = false;
+            for (PortAddresses pa : sourceAddresses) {
+                for (InterfaceIpAddress ia : pa.ipAddresses()) {
                     if (ia.ipAddress().equals(source)) {
-                        sendTo(eth, sourceAddresses.connectPoint());
-                        return;
+                        matched = true;
+                        sendTo(eth, pa.connectPoint());
                     }
                 }
+            }
+
+            if (matched) {
+                return;
             }
         }
 
@@ -223,21 +229,21 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     /**
-     * Finds the port with an address in the subnet of the target address, if
-     * one exists.
+     * Finds ports with an address in the subnet of the target address.
      *
      * @param target the target address to find a matching port for
-     * @return a PortAddresses object if one was found, otherwise null
+     * @return a set of PortAddresses describing ports in the subnet
      */
-    private PortAddresses findPortInSubnet(Ip4Address target) {
+    private Set<PortAddresses> findPortsInSubnet(Ip4Address target) {
+        Set<PortAddresses> result = new HashSet<PortAddresses>();
         for (PortAddresses addresses : hostService.getAddressBindings()) {
             for (InterfaceIpAddress ia : addresses.ipAddresses()) {
                 if (ia.subnetAddress().contains(target)) {
-                    return addresses;
+                    result.add(addresses);
                 }
             }
         }
-        return null;
+        return result;
     }
 
     /**
