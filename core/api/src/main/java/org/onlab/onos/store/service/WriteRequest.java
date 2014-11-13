@@ -64,13 +64,13 @@ public class WriteRequest {
      *
      * @param tableName name of the table
      * @param key       key in the table
-     * @param newValue  value to write, must not be null
      * @param oldValue  previous value expected, must not be null
+     * @param newValue  value to write, must not be null
      * @return WriteRequest
      */
     public static WriteRequest putIfValueMatches(String tableName, String key,
-                                                 byte[] newValue,
-                                                 byte[] oldValue) {
+                                                 byte[] oldValue,
+                                                 byte[] newValue) {
         return new WriteRequest(PUT_IF_VALUE, tableName, key,
                                 checkNotNull(newValue), ANY_VERSION,
                                 checkNotNull(oldValue));

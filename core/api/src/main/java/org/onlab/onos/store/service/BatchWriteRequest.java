@@ -49,6 +49,10 @@ public final class BatchWriteRequest {
                 .toString();
     }
 
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
     /**
      * Builder for BatchWriteRequest.
      */

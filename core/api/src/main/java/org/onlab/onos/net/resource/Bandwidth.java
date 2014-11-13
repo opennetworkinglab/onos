@@ -17,6 +17,7 @@ package org.onlab.onos.net.resource;
 
 import java.util.Objects;
 
+// FIXME: Document what is the unit? Mbps?
 /**
  * Representation of bandwidth resource.
  */
