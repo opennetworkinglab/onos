@@ -91,3 +91,47 @@
     border: 1px solid #eee;
     color: #aaf;
 }
+
+/* Button Bar */
+
+#bb {
+    margin: 0 30px;
+    padding: 0 2px;
+}
+
+#bb .btn {
+    padding: 2px 6px;
+    font-size: 9pt;
+    cursor: pointer;
+}
+
+.light #bb .btn {
+    border: 1px solid #fff;
+    border-right-color: #444;
+    border-bottom-color: #444;
+    color: #222;
+}
+
+.light #bb .btn.active {
+    border: 1px solid #444;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    background-color: #888;
+    color: #ddf;
+}
+
+.dark #bb .btn {
+    border: 1px solid #888;
+    border-right-color: #111;
+    border-bottom-color: #111;
+    color: #888;
+}
+
+.dark #bb .btn.active {
+    border: 1px solid #111;
+    border-right-color: #888;
+    border-bottom-color: #888;
+    background-color: #555;
+    color: #bbd;
+}
+

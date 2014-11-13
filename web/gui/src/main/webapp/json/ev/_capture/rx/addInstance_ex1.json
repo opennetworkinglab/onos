@@ -1,0 +1,7 @@
+{
+  "event": "addInstance",
+  "payload": {
+    "id": "onos-1",
+    "online": "true"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "event": "removeInstance",
+  "payload": {
+    "id": "onos-1",
+    "online": "false"
+  }
+}
