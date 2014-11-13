@@ -29,6 +29,8 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.AnnotationKeys;
+import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.resource.Bandwidth;
@@ -74,12 +76,26 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
      * @return free resources
      */
     private synchronized Set<ResourceAllocation> readOriginalFreeResources(Link link) {
-        // TODO read capacity and lambda resources from topology
+        Annotations annotations = link.annotations();
         Set<ResourceAllocation> allocations = new HashSet<>();
-        for (int i = 1; i <= 100; i++) {
-            allocations.add(new LambdaResourceAllocation(Lambda.valueOf(i)));
+
+        try {
+            int waves = Integer.parseInt(annotations.value(AnnotationKeys.OPTICAL_WAVES));
+            for (int i = 1; i <= waves; i++) {
+                allocations.add(new LambdaResourceAllocation(Lambda.valueOf(i)));
+            }
+        } catch (NumberFormatException e) {
+            log.debug("No optical.wave annotation on link %s", link);
         }
-        allocations.add(new BandwidthResourceAllocation(Bandwidth.valueOf(1000000)));
+
+        try {
+            int bandwidth = Integer.parseInt(annotations.value(AnnotationKeys.BANDWIDTH));
+            allocations.add(
+                    new BandwidthResourceAllocation(Bandwidth.valueOf(bandwidth)));
+        } catch (NumberFormatException e) {
+            log.debug("No bandwidth annotation on link %s", link);
+        }
+
         return allocations;
     }
 
@@ -92,7 +108,8 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
      *         {@link BandwidthResourceAllocation} object with 0 bandwidth
      *
      */
-    private synchronized BandwidthResourceAllocation getBandwidth(Set<ResourceAllocation> freeRes) {
+    private synchronized BandwidthResourceAllocation getBandwidth(
+            Set<ResourceAllocation> freeRes) {
         for (ResourceAllocation res : freeRes) {
             if (res.type() == ResourceType.BANDWIDTH) {
                 return (BandwidthResourceAllocation) res;
@@ -107,7 +124,8 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
      * @param link the target link
      * @param allocations the resources to be subtracted
      */
-    private synchronized void subtractFreeResources(Link link, LinkResourceAllocations allocations) {
+    private synchronized void subtractFreeResources(Link link,
+            LinkResourceAllocations allocations) {
         // TODO Use lock or version for updating freeResources.
         checkNotNull(link);
         Set<ResourceAllocation> freeRes = new HashSet<>(getFreeResources(link));
@@ -141,7 +159,8 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
      * @param link the target link
      * @param allocations the resources to be added
      */
-    private synchronized void addFreeResources(Link link, LinkResourceAllocations allocations) {
+    private synchronized void addFreeResources(Link link,
+            LinkResourceAllocations allocations) {
         // TODO Use lock or version for updating freeResources.
         Set<ResourceAllocation> freeRes = new HashSet<>(getFreeResources(link));
         Set<ResourceAllocation> addRes = allocations.getResourceAllocation(link);

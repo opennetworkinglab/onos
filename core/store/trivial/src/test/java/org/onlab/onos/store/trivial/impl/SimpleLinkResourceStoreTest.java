@@ -28,7 +28,10 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.net.AnnotationKeys;
+import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.provider.ProviderId;
@@ -61,11 +64,15 @@ public class SimpleLinkResourceStoreTest {
      * @return created {@link Link} object
      */
     private Link newLink(String dev1, int port1, String dev2, int port2) {
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(AnnotationKeys.OPTICAL_WAVES, "80")
+                .set(AnnotationKeys.BANDWIDTH, "1000000")
+                .build();
         return new DefaultLink(
                 new ProviderId("of", "foo"),
                 new ConnectPoint(deviceId(dev1), portNumber(port1)),
                 new ConnectPoint(deviceId(dev2), portNumber(port2)),
-                DIRECT);
+                DIRECT, annotations);
     }
 
     @Before
@@ -158,6 +165,6 @@ public class SimpleLinkResourceStoreTest {
 
         final Set<LambdaResourceAllocation> res = getLambdaObjs(freeRes);
         assertNotNull(res);
-        assertEquals(100, res.size());
+        assertEquals(80, res.size());
     }
 }
