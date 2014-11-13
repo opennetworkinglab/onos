@@ -23,7 +23,7 @@
 (function (onos) {
     'use strict';
 
-    function createDragBehavior(force, selectCb, atDragEnd) {
+    function createDragBehavior(force, selectCb, atDragEnd, requireMeta) {
         var draggedThreshold = d3.scale.linear()
                 .domain([0, 0.1])
                 .range([5, 20])
@@ -51,29 +51,39 @@
         drag = d3.behavior.drag()
             .origin(function(d) { return d; })
             .on('dragstart', function(d) {
-                d.oldX = d.x;
-                d.oldY = d.y;
-                d.dragged = false;
-                d.fixed |= 2;
+                if (requireMeta ^ !d3.event.sourceEvent.metaKey) {
+                    d3.event.sourceEvent.stopPropagation();
+
+                    d.oldX = d.x;
+                    d.oldY = d.y;
+                    d.dragged = false;
+                    d.fixed |= 2;
+                    d.dragStarted = true;
+                }
             })
             .on('drag', function(d) {
-                d.px = d3.event.x;
-                d.py = d3.event.y;
-                if (dragged(d)) {
-                    if (!force.alpha()) {
-                        force.alpha(.025);
+                if (requireMeta ^ !d3.event.sourceEvent.metaKey) {
+                    d.px = d3.event.x;
+                    d.py = d3.event.y;
+                    if (dragged(d)) {
+                        if (!force.alpha()) {
+                            force.alpha(.025);
+                        }
                     }
                 }
             })
             .on('dragend', function(d) {
-                if (!dragged(d)) {
-                    // consider this the same as a 'click' (selection of node)
-                    selectCb(d, this); // TODO: set 'this' context instead of param
-                }
-                d.fixed &= ~6;
+                if (d.dragStarted) {
+                    d.dragStarted = false;
+                    if (!dragged(d)) {
+                        // consider this the same as a 'click' (selection of node)
+                        selectCb(d, this); // TODO: set 'this' context instead of param
+                    }
+                    d.fixed &= ~6;
 
-                // hook at the end of a drag gesture
-                atDragEnd(d, this); // TODO: set 'this' context instead of param
+                    // hook at the end of a drag gesture
+                    atDragEnd(d, this); // TODO: set 'this' context instead of param
+                }
             });
 
         return drag;

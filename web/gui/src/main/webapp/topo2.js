@@ -128,6 +128,7 @@
         L: cycleLabels,
         P: togglePorts,
         U: unpin,
+        R: resetZoomPan,
 
         W: requestTraffic,  // bag of selections
         X: cancelTraffic,
@@ -168,6 +169,7 @@
 
     // D3 selections
     var svg,
+        zoomPanContainer,
         bgImg,
         topoG,
         nodeG,
@@ -178,6 +180,9 @@
 
     // the projection for the map background
     var geoMapProjection;
+
+    // the zoom function
+    var zoom;
 
     // ==============================
     // For Debugging / Development
@@ -1358,6 +1363,33 @@
         });
     }
 
+    function zoomPan(scale, translate) {
+        zoomPanContainer.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+        // keep the map lines constant width while zooming
+        bgImg.style("stroke-width", 2.0 / scale + "px");
+    }
+
+    function resetZoomPan() {
+        zoomPan(1, [0,0]);
+        zoom.scale(1).translate([0,0]);
+    }
+
+    function setupZoomPan() {
+        function zoomed() {
+            if (!d3.event.sourceEvent.metaKey) {
+                zoomPan(d3.event.scale, d3.event.translate);
+            }
+        }
+
+        zoom = d3.behavior.zoom()
+            .translate([0, 0])
+            .scale(1)
+            .scaleExtent([1, 8])
+            .on("zoom", zoomed);
+
+        svg.call(zoom);
+    }
+
     // ==============================
     // Test harness code
 
@@ -1438,11 +1470,15 @@
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
+        zoomPanContainer = svg.append('g').attr('id', 'zoomPanContainer');
+
+        setupZoomPan();
+
         // add blue glow filter to svg layer
-        d3u.appendGlow(svg);
+        d3u.appendGlow(zoomPanContainer);
 
         // group for the topology
-        topoG = svg.append('g')
+        topoG = zoomPanContainer.append('g')
             .attr('id', 'topo-G')
             .attr('transform', fcfg.translate());
 
@@ -1501,7 +1537,7 @@
             .linkStrength(lstrg)
             .on('tick', tick);
 
-        network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd);
+        network.drag = d3u.createDragBehavior(network.force, selectCb, atDragEnd, true); // true=require meta
 
         // create mask layer for when we lose connection to server.
         mask = view.$div.append('div').attr('id','topo-mask');
@@ -1593,15 +1629,15 @@
 
         // [[x1,y1],[x2,y2]]
         var b = path.bounds(topoData);
-        // TODO: why 1.75?
-        var s = 1.75 / Math.max((b[1][0] - b[0][0]) / config.logicalSize, (b[1][1] - b[0][1]) / config.logicalSize);
+        // size map to 95% of minimum dimension to fill space
+        var s = .95 / Math.min((b[1][0] - b[0][0]) / config.logicalSize, (b[1][1] - b[0][1]) / config.logicalSize);
         var t = [(config.logicalSize - s * (b[1][0] + b[0][0])) / 2, (config.logicalSize - s * (b[1][1] + b[0][1])) / 2];
 
         geoMapProjection
             .scale(s)
             .translate(t);
 
-        bgImg = svg.insert("g", '#topo-G');
+        bgImg = zoomPanContainer.insert("g", '#topo-G');
         bgImg.attr('id', 'map').selectAll('path')
             .data(topoData.features)
             .enter()
