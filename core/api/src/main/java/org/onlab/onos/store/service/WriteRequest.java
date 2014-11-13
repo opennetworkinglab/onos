@@ -114,7 +114,7 @@ public class WriteRequest {
      */
     public static WriteRequest removeIfVersionMatches(String tableName, String key,
                                       long previousVersion) {
-        return new WriteRequest(REMOVE_IF_VALUE, tableName, key,
+        return new WriteRequest(REMOVE_IF_VERSION, tableName, key,
                                 null, previousVersion, null);
     }
 
@@ -129,7 +129,7 @@ public class WriteRequest {
      */
     public static WriteRequest removeIfValueMatches(String tableName, String key,
                                       byte[] oldValue) {
-        return new WriteRequest(Type.REMOVE_IF_VALUE, tableName, key,
+        return new WriteRequest(REMOVE_IF_VALUE, tableName, key,
                                 null, ANY_VERSION, checkNotNull(oldValue));
     }
 

@@ -38,6 +38,15 @@ public interface ClusterCommunicationService {
     boolean broadcast(ClusterMessage message) throws IOException;
 
     /**
+     * Broadcast a message to all controller nodes including self.
+     *
+     * @param message  message to send
+     * @return true if the message was sent successfully to all nodes; false otherwise.
+     * @throws IOException when I/O exception of some sort has occurred
+     */
+    boolean broadcastIncludeSelf(ClusterMessage message) throws IOException;
+
+    /**
      * Sends a message to the specified controller node.
      *
      * @param message  message to send

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -19,6 +18,7 @@ import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.cluster.TcpCluster;
 import net.kuujo.copycat.cluster.TcpClusterConfig;
 import net.kuujo.copycat.cluster.TcpMember;
+import net.kuujo.copycat.event.LeaderElectEvent;
 import net.kuujo.copycat.log.Log;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -160,18 +160,22 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
         log.info("Starting cluster: {}", cluster);
 
+        DatabaseEntryExpirationTracker expirationTracker =
+                new DatabaseEntryExpirationTracker(
+                        clusterConfig.getLocalMember(),
+                        clusterService.getLocalNode(),
+                        clusterCommunicator,
+                        this);
 
         DatabaseStateMachine stateMachine = new DatabaseStateMachine();
-        stateMachine.addEventListener(
-                new DatabaseEntryExpirationTracker(
-                    clusterConfig.getLocalMember(),
-                    clusterService.getLocalNode(),
-                    clusterCommunicator,
-                    this));
+        stateMachine.addEventListener(expirationTracker);
         Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
                                         ClusterMessagingProtocol.SERIALIZER);
 
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
+
+        copycat.event(LeaderElectEvent.class).registerHandler(expirationTracker);
+
         copycat.start();
 
         client = new DatabaseClient(copycat);
@@ -207,7 +211,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     }
 
     @Override
-    public List<String> listTables() {
+    public Set<String> listTables() {
         return client.listTables();
     }
 

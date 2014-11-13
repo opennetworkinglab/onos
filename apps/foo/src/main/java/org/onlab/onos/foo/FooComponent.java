@@ -21,7 +21,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+//import java.util.concurrent.TimeUnit;
+
+
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -43,6 +45,8 @@ import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.store.service.DatabaseAdminService;
 import org.onlab.onos.store.service.DatabaseService;
+import org.onlab.onos.store.service.Lock;
+import org.onlab.onos.store.service.LockService;
 import org.onlab.onos.store.service.VersionedValue;
 import org.slf4j.Logger;
 
@@ -72,6 +76,9 @@ public class FooComponent {
     @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
     protected DatabaseService dbService;
 
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    protected LockService lockService;
+
     private final ClusterEventListener clusterListener = new InnerClusterListener();
     private final DeviceListener deviceListener = new InnerDeviceListener();
     private final IntentListener intentListener = new InnerIntentListener();
@@ -92,9 +99,10 @@ public class FooComponent {
             log.info("Couldn't find DB service");
         } else {
             log.info("Found DB service");
-            longIncrementor();
-            executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
-            executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
+            //longIncrementor();
+            //lockUnlock();
+            //executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
+            //executor.scheduleAtFixedRate(new LongIncrementor(), 1, 10, TimeUnit.SECONDS);
         }
         log.info("Started");
     }
@@ -149,6 +157,31 @@ public class FooComponent {
             } else {
                 log.info("you have control {}", event);
             }
+        }
+    }
+
+    private void lockUnlock() {
+        try {
+            final String locksTable = "onos-locks";
+
+            if (!dbAdminService.listTables().contains(locksTable)) {
+                dbAdminService.createTable(locksTable, 10000);
+            }
+            Lock lock = lockService.create("foo-bar");
+            log.info("Requesting lock");
+            lock.lock(10000);
+            //try {
+                //Thread.sleep(5000);
+            //} catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                //e.printStackTrace();
+            //}
+            log.info("Acquired Lock");
+            log.info("Do I have the lock: {} ", lock.isLocked());
+            //lock.unlock();
+            log.info("Do I have the lock: {} ", lock.isLocked());
+        } finally {
+            log.info("Done");
         }
     }
 

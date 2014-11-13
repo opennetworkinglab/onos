@@ -1,7 +1,7 @@
 package org.onlab.onos.store.service;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 import org.onlab.onos.cluster.ControllerNode;
 
@@ -31,9 +31,9 @@ public interface DatabaseAdminService {
 
     /**
      * Lists all the tables in the database.
-     * @return list of table names.
+     * @return set of table names.
      */
-    public List<String> listTables();
+    public Set<String> listTables();
 
     /**
      * Deletes a table from the database.

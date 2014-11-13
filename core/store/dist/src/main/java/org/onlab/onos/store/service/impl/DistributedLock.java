@@ -80,6 +80,7 @@ public class DistributedLock implements Lock {
                 return false;
             }
         }
+        isLocked.set(true);
         lockExpirationTime = DateTime.now().plusMillis(leaseDurationMillis);
         return true;
     }
@@ -95,9 +96,11 @@ public class DistributedLock implements Lock {
             if (DateTime.now().isAfter(lockExpirationTime)) {
                 isLocked.set(false);
                 return false;
+            } else {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     @Override
@@ -105,6 +108,7 @@ public class DistributedLock implements Lock {
         if (!isLocked()) {
             return;
         } else {
+            isLocked.set(false);
             databaseService.removeIfValueMatches(DistributedLockManager.ONOS_LOCK_TABLE_NAME, path, lockId);
         }
     }

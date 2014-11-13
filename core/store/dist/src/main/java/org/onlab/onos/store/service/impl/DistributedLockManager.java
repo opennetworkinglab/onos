@@ -94,6 +94,8 @@ public class DistributedLockManager implements LockService {
                 return;
             }
 
+            log.info("Received a lock available event for path: {}", event.key());
+
             String path = event.key();
             if (!locksToAcquire.containsKey(path)) {
                 return;

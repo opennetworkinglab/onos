@@ -30,6 +30,7 @@ import org.onlab.onos.store.service.WriteStatus;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -65,6 +66,7 @@ public class DatabaseStateMachine implements StateMachine {
                     .register(WriteStatus.class)
                     // TODO: Move this out ?
                     .register(TableModificationEvent.class)
+                    .register(TableModificationEvent.Type.class)
                     .register(ClusterMessagingProtocol.COMMON)
                     .build()
                     .populate(1);
@@ -85,7 +87,8 @@ public class DatabaseStateMachine implements StateMachine {
     }
 
     @Command
-    public boolean createTable(String tableName, int ttlMillis) {
+    public boolean createTableWithExpiration(String tableName) {
+        int ttlMillis = 10000;
         TableMetadata metadata = new TableMetadata(tableName, ttlMillis);
         return createTable(metadata);
     }
@@ -266,6 +269,7 @@ public class DatabaseStateMachine implements StateMachine {
         // notify listeners of table mod events.
         for (DatabaseUpdateEventListener listener : listeners) {
             for (TableModificationEvent tableModificationEvent : tableModificationEvents) {
+                log.info("Publishing table modification event: {}", tableModificationEvent);
                 listener.tableModified(tableModificationEvent);
             }
         }
@@ -344,6 +348,15 @@ public class DatabaseStateMachine implements StateMachine {
 
         public int ttlMillis() {
             return ttlMillis;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("tableName", tableName)
+                    .add("expireOldEntries", expireOldEntries)
+                    .add("ttlMillis", ttlMillis)
+                    .toString();
         }
     }
 

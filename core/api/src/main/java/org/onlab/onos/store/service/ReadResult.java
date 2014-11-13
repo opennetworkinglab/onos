@@ -64,6 +64,7 @@ public class ReadResult {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
+                .add("status", status)
                 .add("tableName", tableName)
                 .add("key", key)
                 .add("value", value)

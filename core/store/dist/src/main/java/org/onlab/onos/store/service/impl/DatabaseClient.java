@@ -3,6 +3,7 @@ package org.onlab.onos.store.service.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -37,7 +38,7 @@ public class DatabaseClient {
 
     public boolean createTable(String tableName, int ttlMillis) {
 
-        CompletableFuture<Boolean> future = copycat.submit("createTable", tableName, ttlMillis);
+        CompletableFuture<Boolean> future = copycat.submit("createTableWithExpiration", tableName);
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -65,9 +66,9 @@ public class DatabaseClient {
         }
     }
 
-    public List<String> listTables() {
+    public Set<String> listTables() {
 
-        CompletableFuture<List<String>> future = copycat.submit("listTables");
+        CompletableFuture<Set<String>> future = copycat.submit("listTables");
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {

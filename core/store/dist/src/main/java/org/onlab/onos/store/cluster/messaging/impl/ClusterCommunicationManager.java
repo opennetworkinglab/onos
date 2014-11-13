@@ -116,6 +116,15 @@ public class ClusterCommunicationManager
     }
 
     @Override
+    public boolean broadcastIncludeSelf(ClusterMessage message) throws IOException {
+        boolean ok = true;
+        for (ControllerNode node : clusterService.getNodes()) {
+            ok = unicast(message, node.id()) && ok;
+        }
+        return ok;
+    }
+
+    @Override
     public boolean multicast(ClusterMessage message, Set<NodeId> nodes) throws IOException {
         boolean ok = true;
         final ControllerNode localNode = clusterService.getLocalNode();

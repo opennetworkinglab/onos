@@ -2,6 +2,7 @@ package org.onlab.onos.store.service;
 
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -39,6 +40,13 @@ public final class BatchWriteRequest {
      */
     public int batchSize() {
         return writeRequests.size();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("writeRequests", writeRequests)
+                .toString();
     }
 
     /**

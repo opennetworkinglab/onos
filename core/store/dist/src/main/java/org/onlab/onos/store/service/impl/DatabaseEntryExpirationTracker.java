@@ -33,7 +33,6 @@ import net.kuujo.copycat.event.LeaderElectEvent;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.impl.DatabaseStateMachine.State;
@@ -51,9 +50,6 @@ public class DatabaseEntryExpirationTracker implements
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public static final MessageSubject DATABASE_UPDATES = new MessageSubject(
-            "database-update-event");
-
     private final DatabaseService databaseService;
     private final ClusterCommunicationService clusterCommunicator;
 
@@ -61,9 +57,9 @@ public class DatabaseEntryExpirationTracker implements
     private final ControllerNode localNode;
     private final AtomicBoolean isLocalMemberLeader = new AtomicBoolean(false);
 
-    private final Map<String, Map<DatabaseRow, VersionedValue>> tableEntryExpirationMap = new HashMap<>();
+    private final Map<String, Map<DatabaseRow, Long>> tableEntryExpirationMap = new HashMap<>();
 
-    private final ExpirationListener<DatabaseRow, VersionedValue> expirationObserver = new ExpirationObserver();
+    private final ExpirationListener<DatabaseRow, Long> expirationObserver = new ExpirationObserver();
 
     DatabaseEntryExpirationTracker(
             Member localMember,
@@ -78,31 +74,38 @@ public class DatabaseEntryExpirationTracker implements
 
     @Override
     public void tableModified(TableModificationEvent event) {
+        log.debug("Received a table modification event {}", event);
+
         if (!tableEntryExpirationMap.containsKey(event.tableName())) {
             return;
         }
 
+        Map<DatabaseRow, Long> map = tableEntryExpirationMap.get(event.tableName());
         DatabaseRow row = new DatabaseRow(event.tableName(), event.key());
-        Map<DatabaseRow, VersionedValue> map = tableEntryExpirationMap
-                .get(event.tableName());
+        Long eventVersion = event.value().version();
 
         switch (event.type()) {
         case ROW_DELETED:
+            map.remove(row, eventVersion);
             if (isLocalMemberLeader.get()) {
                 try {
+                    // FIXME: The broadcast message should be sent to self.
                     clusterCommunicator.broadcast(new ClusterMessage(
-                            localNode.id(), DATABASE_UPDATES,
+                            localNode.id(), DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
                             DatabaseStateMachine.SERIALIZER.encode(event)));
                 } catch (IOException e) {
-                    log.error(
-                            "Failed to broadcast a database table modification event.",
-                            e);
+                    log.error("Failed to broadcast a database row deleted event.", e);
                 }
             }
             break;
         case ROW_ADDED:
         case ROW_UPDATED:
-            map.put(row, null);
+            // To account for potential reordering of notifications,
+            // check to make sure we are replacing an old version with a new version
+            Long currentVersion = map.get(row);
+            if (currentVersion == null || currentVersion < eventVersion) {
+                map.put(row, eventVersion);
+            }
             break;
         default:
             break;
@@ -111,60 +114,56 @@ public class DatabaseEntryExpirationTracker implements
 
     @Override
     public void tableCreated(TableMetadata metadata) {
+        log.debug("Received a table created event {}", metadata);
         if (metadata.expireOldEntries()) {
             tableEntryExpirationMap.put(metadata.tableName(), ExpiringMap.builder()
-                    .expiration(metadata.ttlMillis(), TimeUnit.SECONDS)
+                    .expiration(metadata.ttlMillis(), TimeUnit.MILLISECONDS)
                     .expirationListener(expirationObserver)
-                    // FIXME: make the expiration policy configurable.
+                    // TODO: make the expiration policy configurable.
+                    // Do we need to support expiration based on last access time?
                     .expirationPolicy(ExpirationPolicy.CREATED).build());
         }
     }
 
     @Override
     public void tableDeleted(String tableName) {
+        log.debug("Received a table deleted event for table ({})", tableName);
         tableEntryExpirationMap.remove(tableName);
     }
 
     private class ExpirationObserver implements
-            ExpirationListener<DatabaseRow, VersionedValue> {
+            ExpirationListener<DatabaseRow, Long> {
         @Override
-        public void expired(DatabaseRow key, VersionedValue value) {
+        public void expired(DatabaseRow row, Long version) {
+            Map<DatabaseRow, Long> map = tableEntryExpirationMap.get(row.tableName);
             try {
                 if (isLocalMemberLeader.get()) {
-                    if (!databaseService.removeIfVersionMatches(key.tableName,
-                            key.key, value.version())) {
-                        log.info("Entry in the database changed before right its TTL expiration.");
+                    if (!databaseService.removeIfVersionMatches(row.tableName,
+                            row.key, version)) {
+                        log.info("Entry in database was updated right before its expiration.");
+                    } else {
+                        log.info("Successfully expired old entry with key ({}) from table ({})",
+                                row.key, row.tableName);
                     }
                 } else {
-                    // If this node is not the current leader, we should never
-                    // let the expiring entries drop off
-                    // Under stable conditions (i.e no leadership switch) the
-                    // current leader will initiate
-                    // a database remove and this instance will get notified
-                    // of a tableModification event causing it to remove from
-                    // the map.
-                    Map<DatabaseRow, VersionedValue> map = tableEntryExpirationMap
-                            .get(key.tableName);
+                    // Only the current leader will expire keys from database.
+                    // Everyone else function as standby just in case they need to take over
                     if (map != null) {
-                        map.put(key, value);
+                        map.putIfAbsent(row, version);
                     }
                 }
 
             } catch (Exception e) {
-                log.warn(
-                        "Failed to delete entry from the database after ttl expiration. Will retry eviction",
-                        e);
-                tableEntryExpirationMap.get(key.tableName).put(
-                        new DatabaseRow(key.tableName, key.key), value);
+                log.warn("Failed to delete entry from the database after ttl "
+                        + "expiration. Operation will be retried.", e);
+                map.putIfAbsent(row, version);
             }
         }
     }
 
     @Override
     public void handle(LeaderElectEvent event) {
-        if (localMember.equals(event.leader())) {
-            isLocalMemberLeader.set(true);
-        }
+        isLocalMemberLeader.set(localMember.equals(event.leader()));
     }
 
     /**
@@ -212,12 +211,12 @@ public class DatabaseEntryExpirationTracker implements
                 continue;
             }
 
-            Map<DatabaseRow, VersionedValue> tableExpirationMap = ExpiringMap.builder()
+            Map<DatabaseRow, Long> tableExpirationMap = ExpiringMap.builder()
                     .expiration(metadata.ttlMillis(), TimeUnit.MILLISECONDS)
                     .expirationListener(expirationObserver)
                     .expirationPolicy(ExpirationPolicy.CREATED).build();
             for (Map.Entry<String, VersionedValue> entry : state.getTable(tableName).entrySet()) {
-                tableExpirationMap.put(new DatabaseRow(tableName, entry.getKey()), entry.getValue());
+                tableExpirationMap.put(new DatabaseRow(tableName, entry.getKey()), entry.getValue().version());
             }
 
             tableEntryExpirationMap.put(tableName, tableExpirationMap);

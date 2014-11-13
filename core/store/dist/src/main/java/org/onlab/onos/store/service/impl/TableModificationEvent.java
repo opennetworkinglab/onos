@@ -2,6 +2,8 @@ package org.onlab.onos.store.service.impl;
 
 import org.onlab.onos.store.service.VersionedValue;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * A table modification event.
  */
@@ -9,7 +11,6 @@ public final class TableModificationEvent {
 
     /**
      * Type of table modification event.
-     *
      */
     public enum Type {
         ROW_ADDED,
@@ -93,5 +94,15 @@ public final class TableModificationEvent {
      */
     public Type type() {
         return type;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("type", type)
+                .add("tableName", tableName)
+                .add("key", key)
+                .add("version", value.version())
+                .toString();
     }
 }

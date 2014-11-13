@@ -2,6 +2,7 @@ package org.onlab.onos.store.service;
 
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -29,5 +30,12 @@ public class BatchReadResult {
      */
     public int batchSize() {
         return readResults.size();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("readResults", readResults)
+                .toString();
     }
 }
