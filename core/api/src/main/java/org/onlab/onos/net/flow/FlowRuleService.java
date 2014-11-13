@@ -84,6 +84,15 @@ public interface FlowRuleService {
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
     /**
+     * Returns a list of rules filterd by application and group id.
+     *
+     * @param appId the application id to lookup
+     * @param groupId the groupid to lookup
+     * @return collection of flow rules
+     */
+    Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId);
+
+    /**
      * Applies a batch operation of FlowRules.
      *
      * @param batch batch operation to apply

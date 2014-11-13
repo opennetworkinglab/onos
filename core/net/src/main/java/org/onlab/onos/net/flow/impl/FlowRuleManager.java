@@ -166,6 +166,20 @@ public class FlowRuleManager
     }
 
     @Override
+    public Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId) {
+        Set<FlowRule> matches = Sets.newHashSet();
+        long toLookUp = ((long) appId.id() << 16) | groupId;
+        for (Device d : deviceService.getDevices()) {
+            for (FlowEntry flowEntry : store.getFlowEntries(d.id())) {
+                if ((flowEntry.id().value() >>> 32) == toLookUp) {
+                    matches.add(flowEntry);
+                }
+            }
+        }
+        return matches;
+    }
+
+    @Override
     public Future<CompletedBatchOperation> applyBatch(
             FlowRuleBatchOperation batch) {
         Multimap<DeviceId, FlowRuleBatchEntry> perDeviceBatches =
