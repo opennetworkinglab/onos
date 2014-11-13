@@ -1,0 +1,7 @@
+{
+  "event": "showTraffic",
+  "sid": 3,
+  "payload": {
+    "paths": []
+  }
+}

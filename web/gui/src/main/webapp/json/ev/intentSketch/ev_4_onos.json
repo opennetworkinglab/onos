@@ -2,12 +2,19 @@
   "event": "showPath",
   "sid": 2,
   "payload": {
-    "intentId": "0x1234",
-    "path": {
-      "links": [ "1-2", "2-3" ],
-      "traffic": true,
-      "srcLabel": "567 Mb",
-      "dstLabel": "6 Mb"
-    }
+    "paths": [
+      {
+        "intentId": "0x1234",
+        "links": [ "1-2", "2-3" ],
+        "class": "animated",
+        "labels": [ "9Gb", "9Gb" ]
+      },
+      {
+        "intentId": "0x4321",
+        "links": [ "5-6", "6-7" ],
+        "class": "animated",
+        "traffic": [ "4GB", "4GB" ]
+      }
+    ]
   }
 }

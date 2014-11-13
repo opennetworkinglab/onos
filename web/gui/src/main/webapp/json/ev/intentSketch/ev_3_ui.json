@@ -1,7 +1,7 @@
 {
-  "event": "monitorIntent",
+  "event": "requestTraffic",
   "sid": 2,
   "payload": {
-    "intentId": "0x1234"
+    "ids": [ "00:00:00:00:00:01/-1",  "00:00:00:00:00:02/-1" ]
   }
 }

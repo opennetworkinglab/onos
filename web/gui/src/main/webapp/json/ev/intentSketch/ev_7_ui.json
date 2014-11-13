@@ -1,7 +1,6 @@
 {
-  "event": "cancelMonitorIntent",
+  "event": "cancelTraffic",
   "sid": 3,
   "payload": {
-    "intentId": "0x1234"
   }
 }
