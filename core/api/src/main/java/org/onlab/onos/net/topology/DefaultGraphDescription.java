@@ -15,14 +15,18 @@
  */
 package org.onlab.onos.net.topology;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+
 import org.onlab.onos.net.AbstractDescription;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.SparseAnnotations;
+import org.slf4j.Logger;
 
 import java.util.Map;
 
@@ -31,6 +35,8 @@ import java.util.Map;
  */
 public class DefaultGraphDescription extends AbstractDescription
         implements GraphDescription {
+
+    private static final Logger log = getLogger(DefaultGraphDescription.class);
 
     private final long nanos;
     private final ImmutableSet<TopologyVertex> vertexes;
@@ -87,8 +93,12 @@ public class DefaultGraphDescription extends AbstractDescription
     private ImmutableSet<TopologyEdge> buildEdges(Iterable<Link> links) {
         ImmutableSet.Builder<TopologyEdge> edges = ImmutableSet.builder();
         for (Link link : links) {
-            edges.add(new DefaultTopologyEdge(vertexOf(link.src()),
-                                              vertexOf(link.dst()), link));
+            try {
+                edges.add(new DefaultTopologyEdge(vertexOf(link.src()),
+                                                  vertexOf(link.dst()), link));
+            } catch (IllegalArgumentException e) {
+                log.debug("Ignoring {}, missing vertex", link, e);
+            }
         }
         return edges.build();
     }

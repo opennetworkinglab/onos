@@ -48,7 +48,9 @@ public class DefaultTopologyEdgeTest {
 
     static final ProviderId PID = new ProviderId("foo", "bar");
 
+    /** D1:P1 -> D2:P1. */
     static final Link L1 = new DefaultLink(PID, CP1, CP2, Link.Type.INDIRECT);
+    /** D2:P1 -> D1:P2. */
     static final Link L2 = new DefaultLink(PID, CP3, CP4, Link.Type.INDIRECT);
 
     @Test

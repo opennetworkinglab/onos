@@ -16,6 +16,7 @@
 package org.onlab.onos.net.topology;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.junit.Test;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
@@ -47,9 +48,13 @@ public class DefaultGraphDescriptionTest {
         assertEquals("incorrect edge count", 2, desc.edges().size());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void missingVertex() {
-        new DefaultGraphDescription(4321L, ImmutableSet.of(DEV1, DEV3),
-                                    ImmutableSet.of(L1, L2));
+        GraphDescription desc = new DefaultGraphDescription(4321L,
+                                                            ImmutableSet.of(DEV1, DEV3),
+                                                            ImmutableSet.of(L1, L2));
+        assertEquals("incorrect time", 4321L, desc.timestamp());
+        assertEquals("incorrect vertex count", 2, desc.vertexes().size());
+        assertEquals("incorrect edge count", 0, desc.edges().size());
     }
 }

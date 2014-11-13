@@ -203,6 +203,7 @@ public class DefaultTopologyProvider extends AbstractProvider
                 buildTopology(reasons);
             } catch (Exception e) {
                 log.warn("Unable to compute topology due to: {}", e.getMessage());
+                log.debug("Unable to compute topology", e);
             }
         }
     }
