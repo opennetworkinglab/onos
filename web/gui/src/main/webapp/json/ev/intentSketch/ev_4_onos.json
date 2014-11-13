@@ -13,7 +13,7 @@
         "intentId": "0x4321",
         "links": [ "5-6", "6-7" ],
         "class": "animated",
-        "traffic": [ "4GB", "4GB" ]
+        "labels": [ "4GB", "4GB" ]
       }
     ]
   }

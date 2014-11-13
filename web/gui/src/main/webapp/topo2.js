@@ -160,9 +160,9 @@
         detailPane,
         selectOrder = [],
         selections = {},
+        hovered = null,
 
         highlighted = null,
-        hovered = null,
         viewMode = 'showAll',
         portLabelsOn = false;
 
@@ -290,8 +290,12 @@
         view.alert('togglePorts() callback')
     }
 
-    function unpin(view) {
-        view.alert('unpin() callback')
+    function unpin() {
+        if (hovered) {
+            hovered.fixed = false;
+            hovered.el.classed('fixed', false);
+            network.force.resume();
+        }
     }
 
     // ==============================
@@ -931,6 +935,21 @@
         // TODO: review what else might need to be updated
     }
 
+    function nodeMouseOver(d) {
+        console.log("Hover:", d);
+        hovered = d;
+        if (d.class === 'host') {
+            //requestTraffic(d);
+        }
+    }
+
+    function nodeMouseOut(d) {
+        console.log("Unhover:", d);
+        hovered = null;
+        if (d.class === 'host') {
+            //cancelTraffic(d);
+        }
+    }
 
     function updateNodes() {
         node = nodeG.selectAll('.node')
@@ -950,19 +969,8 @@
                 opacity: 0
             })
             .call(network.drag)
-            .on('mouseover', function (d) {
-                console.log(d);
-                if (d.class === 'host') {
-                    requestTraffic(d);
-                }
-            })
-            .on('mouseout', function (d) {
-                console.log(d);
-                if (d.class === 'host') {
-                    cancelTraffic(d);
-                }
-            })
-            //.on('mouseover', function (d) {})
+            .on('mouseover', nodeMouseOver)
+            .on('mouseout', nodeMouseOut)
             .transition()
             .attr('opacity', 1);
 
