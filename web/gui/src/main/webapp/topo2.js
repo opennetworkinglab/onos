@@ -1348,8 +1348,6 @@
     function preload(view, ctx, flags) {
         var w = view.width(),
             h = view.height(),
-            idBg = view.uid('bg'),
-            showBg = config.options.showBackground ? 'visible' : 'hidden',
             fcfg = config.force,
             fpad = fcfg.pad,
             forceDim = [w - 2*fpad, h - 2*fpad];
@@ -1364,20 +1362,9 @@
         // add blue glow filter to svg layer
         d3u.appendGlow(svg);
 
-        // load the background image
-        bgImg = svg.append('svg:image')
-            .attr({
-                id: idBg,
-                width: w,
-                height: h,
-                'xlink:href': config.backgroundUrl
-            })
-            .style({
-                visibility: showBg
-            });
-
         // group for the topology
         topoG = svg.append('g')
+            .attr('id', 'topo-G')
             .attr('transform', fcfg.translate());
 
         // subgroups for links and nodes
@@ -1460,14 +1447,78 @@
         view.setRadio(btnSet);
         view.setKeys(keyDispatch);
 
-        if (config.useLiveData) {
-            webSock.connect();
+        // Load map data asynchronously; complete startup after that..
+        loadGeoJsonData();
+    }
+
+    // TODO: move these to config/state portion of script
+    var geoJsonUrl = 'geoUsa.json',     // TODO: Paul
+        geoJson;
+
+    function loadGeoJsonData() {
+        d3.json(geoJsonUrl, function (err, data) {
+            if (err) {
+                // fall back to USA map background
+                loadStaticMap();
+            } else {
+                geoJson = data;
+                loadGeoMap();
+            }
+
+            // finally, connect to the server...
+            if (config.useLiveData) {
+                webSock.connect();
+            }
+        });
+    }
+
+    function showBg() {
+        return config.options.showBackground ? 'visible' : 'hidden';
+    }
+
+    function loadStaticMap() {
+        fnTrace('loadStaticMap', config.backgroundUrl);
+        var w = network.view.width(),
+            h = network.view.height();
+
+        // load the background image
+        bgImg = svg.insert('svg:image', '#topo-G')
+            .attr({
+                id: 'topo-bg',
+                width: w,
+                height: h,
+                'xlink:href': config.backgroundUrl
+            })
+            .style({
+                visibility: showBg()
+            });
+    }
+
+    function loadGeoMap() {
+        fnTrace('loadGeoMap', geoJsonUrl);
+        var w = network.view.width(),
+            h = network.view.height();
+
+        // TODO: load map layer from GeoJSON stored in 'geoJson' var...
+        // bgImg = svg.insert('<svg-element-type>', '#topo-G') ...
+
+        // TODO: Paul
+    }
+
+    function resizeBg(view) {
+        if (geoJson) {
+            // TODO : resize GeoJSON map
+
+            // TODO: Paul
+
+        } else if (bgImg) {
+            setSize(bgImg, view);
         }
     }
 
     function resize(view, ctx, flags) {
         setSize(svg, view);
-        setSize(bgImg, view);
+        resizeBg(view);
 
         // TODO: hook to recompute layout, perhaps? work with zoom/pan code
         // adjust force layout size
