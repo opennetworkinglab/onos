@@ -297,6 +297,11 @@ public class IntentTestsMocks {
         }
 
         @Override
+        public short groupId() {
+            return 0;
+        }
+
+        @Override
         public int priority() {
             return priority;
         }

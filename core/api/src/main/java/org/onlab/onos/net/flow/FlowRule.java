@@ -42,6 +42,13 @@ public interface FlowRule extends BatchOperationTarget {
     short appId();
 
     /**
+     * Returns the group id of this flow.
+     *
+     * @return an groupId
+     */
+    short groupId();
+
+    /**
      * Returns the flow rule priority given in natural order; higher numbers
      * mean higher priorities.
      *
