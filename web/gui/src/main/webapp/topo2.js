@@ -88,7 +88,7 @@
             linkDistance: {
                 direct: 100,
                 optical: 120,
-                hostLink: 5
+                hostLink: 3
             },
             linkStrength: {
                 direct: 1.0,
@@ -98,7 +98,7 @@
             note_for_nodes: 'node.class is used to differentiate',
             charge: {
                 device: -8000,
-                host: -300
+                host: -5000
             },
             pad: 20,
             translate: function() {
@@ -497,14 +497,16 @@
 
     function showTraffic(data) {
         fnTrace('showTraffic', data.payload.id);
-        data.payload.paths.forEach(function () {
-            var links = data.payload.links,
-                s = [ data.event + "\n" + links.length ];
-            links.forEach(function (d, i) {
-                s.push(d);
-            });
-            network.view.alert(s.join('\n'));
+        var paths = data.payload.paths;
 
+        // Revert any links hilighted previously.
+        network.links.forEach(function (d) {
+            d.el.classed('showPath', false);
+        });
+
+        // Now hilight all links in the paths payload.
+        paths.forEach(function (d) {
+            var links = d.links;
             links.forEach(function (d, i) {
                 var link = network.lookup[d];
                 if (link) {
@@ -559,10 +561,11 @@
         return true;
     }
 
-    function requestTraffic() {
-        if (nSel() > 0) {
+    function requestTraffic(hoverNode) {
+        if (nSel() > 0 || hoverNode) {
+            var nodes = hoverNode ? selectOrder.concat(hoverNode.id) : selectOrder;
             sendMessage('requestTraffic', {
-                ids: selectOrder
+                ids: nodes
             });
         } else {
             userFeedback('Request-Traffic requires one or\n' +
@@ -582,11 +585,15 @@
         }
     }
 
-    function cancelTraffic() {
-        // FIXME: from where do we get the intent id(s) to send to the server?
-        sendMessage('cancelTraffic', {
-            ids: ["need_the_intent_id"]
-        });
+    function cancelTraffic(hoverNode) {
+        if (hoverNode && selectOrder.length) {
+            requestTraffic();
+        } else {
+            // FIXME: from where do we get the intent id(s) to send to the server?
+            sendMessage('cancelTraffic', {
+                ids: ["need_the_intent_id"]
+            });
+        }
     }
 
     // request details for the selected element
@@ -943,7 +950,18 @@
                 opacity: 0
             })
             .call(network.drag)
-            //.on('mouseover', function (d) {})
+            .on('mouseover', function (d) {
+                console.log(d);
+                if (d.class === 'host') {
+                    requestTraffic(d);
+                }
+            })
+            .on('mouseout', function (d) {
+                console.log(d);
+                if (d.class === 'host') {
+                    cancelTraffic(d);
+                }
+            })
             //.on('mouseover', function (d) {})
             .transition()
             .attr('opacity', 1);

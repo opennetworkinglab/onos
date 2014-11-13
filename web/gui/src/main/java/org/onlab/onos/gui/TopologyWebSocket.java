@@ -91,7 +91,7 @@ public class TopologyWebSocket
     private final IntentListener intentListener = new InternalIntentListener();
 
     // Intents that are being monitored for the GUI
-    private static Map<Intent, Long> intentsToMonitor = new ConcurrentHashMap<>();
+    private Map<Intent, Long> intentsToMonitor = new ConcurrentHashMap<>();
 
     private long lastActive = System.currentTimeMillis();
     private boolean listenersRemoved = false;
@@ -118,6 +118,8 @@ public class TopologyWebSocket
 
     /**
      * Indicates if this connection is idle.
+     *
+     * @return true if idle or closed
      */
     synchronized boolean isIdle() {
         boolean idle = (System.currentTimeMillis() - lastActive) > MAX_AGE_MS;
@@ -293,6 +295,10 @@ public class TopologyWebSocket
     // Produces a set of intents that target all selected hosts or connect points.
     private Set<Intent> getIntents(Set<Host> hosts, Set<ConnectPoint> edgePoints) {
         Set<Intent> intents = new HashSet<>();
+        if (hosts.isEmpty()) {
+            return intents;
+        }
+
         for (Intent intent : intentService.getIntents()) {
             boolean isRelevant = false;
             if (intent instanceof HostToHostIntent) {
@@ -454,6 +460,7 @@ public class TopologyWebSocket
                     ObjectNode payload = pathMessage(path, "host")
                             .put("intentId", intent.id().toString());
                     sendMessage(envelope("showPath", sid, payload));
+                    sendMessage(trafficMessage(intentsToMonitor.keySet(), sid));
                 }
             }
         }
