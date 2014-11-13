@@ -1,0 +1,13 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Removes Raft logs on all instances
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+
+onos-service --cell stop
+
+for node in $nodes; do onos-ssh $node "rm -v /tmp/onos-copy-cat-log_*"; done
