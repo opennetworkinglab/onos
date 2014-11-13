@@ -20,6 +20,16 @@ public interface DatabaseAdminService {
     public boolean createTable(String name);
 
     /**
+     * Creates a new table where last update time will be used to track and expire old entries.
+     * Table creation is idempotent. Attempting to create a table
+     * that already exists will be a noop.
+     * @param name table name.
+     * @param ttlMillis total duration in millis since last update time when entries will be expired.
+     * @return true if the table was created by this call, false otherwise.
+     */
+    public boolean createTable(String name, int ttlMillis);
+
+    /**
      * Lists all the tables in the database.
      * @return list of table names.
      */

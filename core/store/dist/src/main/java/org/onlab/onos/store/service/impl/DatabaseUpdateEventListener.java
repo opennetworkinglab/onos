@@ -16,6 +16,8 @@
 
 package org.onlab.onos.store.service.impl;
 
+import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
+
 /**
  * Interface of database update event listeners.
  */
@@ -29,14 +31,19 @@ public interface DatabaseUpdateEventListener {
 
     /**
      * Notifies listeners of a table created event.
-     * @param tableName name of the table created
-     * @param expirationTimeMillis TTL for entries added to the table (measured since last update time)
+     * @param metadata metadata for the created table.
      */
-    public void tableCreated(String tableName, int expirationTimeMillis);
+    public void tableCreated(TableMetadata metadata);
 
     /**
      * Notifies listeners of a table deleted event.
      * @param tableName name of the table deleted
      */
     public void tableDeleted(String tableName);
+
+    /**
+     * Notifies listeners of a snapshot installation event.
+     * @param snapshotState installed snapshot state.
+     */
+    public void snapshotInstalled(DatabaseStateMachine.State snapshotState);
 }
