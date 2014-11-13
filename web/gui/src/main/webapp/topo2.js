@@ -106,7 +106,9 @@
                     config.force.pad + ',' +
                     config.force.pad + ')';
             }
-        }
+        },
+        // see below in creation of viewBox on main svg
+        logicalSize: 1000
     };
 
     // radio buttons
@@ -173,6 +175,9 @@
         node,
         link,
         mask;
+
+    // the projection for the map background
+    var geoMapProjection;
 
     // ==============================
     // For Debugging / Development
@@ -760,6 +765,15 @@
             node.fixed = true;
             node.x = x;
             node.y = y;
+            return;
+        }
+
+        var location = node.location;
+        if (location && location.type === 'latlng') {
+            var coord = geoMapProjection([location.lng, location.lat]);
+            node.fixed = true;
+            node.x = coord[0];
+            node.y = coord[1];
             return;
         }
 
@@ -1356,7 +1370,8 @@
         //trace = onos.exported.webSockTrace;
 
         // NOTE: view.$div is a D3 selection of the view's div
-        svg = view.$div.append('svg');
+        var viewBox = '0 0 ' + config.logicalSize + ' ' + config.logicalSize;
+        svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
         // add blue glow filter to svg layer
@@ -1452,7 +1467,7 @@
     }
 
     // TODO: move these to config/state portion of script
-    var geoJsonUrl = 'geoUsa.json',     // TODO: Paul
+    var geoJsonUrl = 'json/map/continental_us.json',     // TODO: Paul
         geoJson;
 
     function loadGeoJsonData() {
@@ -1496,29 +1511,38 @@
 
     function loadGeoMap() {
         fnTrace('loadGeoMap', geoJsonUrl);
-        var w = network.view.width(),
-            h = network.view.height();
 
-        // TODO: load map layer from GeoJSON stored in 'geoJson' var...
-        // bgImg = svg.insert('<svg-element-type>', '#topo-G') ...
+        // extracts the topojson data into geocoordinate-based geometry
+        var topoData = topojson.feature(geoJson, geoJson.objects.states);
 
-        // TODO: Paul
-    }
+        // see: http://bl.ocks.org/mbostock/4707858
+        geoMapProjection = d3.geo.mercator();
+        var path = d3.geo.path().projection(geoMapProjection);
 
-    function resizeBg(view) {
-        if (geoJson) {
-            // TODO : resize GeoJSON map
+        geoMapProjection
+            .scale(1)
+            .translate([0, 0]);
 
-            // TODO: Paul
+        // [[x1,y1],[x2,y2]]
+        var b = path.bounds(topoData);
+        // TODO: why 1.75?
+        var s = 1.75 / Math.max((b[1][0] - b[0][0]) / config.logicalSize, (b[1][1] - b[0][1]) / config.logicalSize);
+        var t = [(config.logicalSize - s * (b[1][0] + b[0][0])) / 2, (config.logicalSize - s * (b[1][1] + b[0][1])) / 2];
 
-        } else if (bgImg) {
-            setSize(bgImg, view);
-        }
+        geoMapProjection
+            .scale(s)
+            .translate(t);
+
+        bgImg = svg.insert("g", '#topo-G');
+        bgImg.attr('id', 'map').selectAll('path')
+            .data(topoData.features)
+            .enter()
+            .append('path')
+            .attr('d', path);
     }
 
     function resize(view, ctx, flags) {
         setSize(svg, view);
-        resizeBg(view);
 
         // TODO: hook to recompute layout, perhaps? work with zoom/pan code
         // adjust force layout size
