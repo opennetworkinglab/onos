@@ -52,6 +52,13 @@ import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.ResourceAllocation;
+import org.onlab.onos.net.intent.constraint.AnnotationConstraint;
+import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
+import org.onlab.onos.net.intent.constraint.LambdaConstraint;
+import org.onlab.onos.net.intent.constraint.LatencyConstraint;
+import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
+import org.onlab.onos.net.intent.constraint.ObstacleConstraint;
+import org.onlab.onos.net.intent.constraint.WaypointConstraint;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -66,6 +73,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.time.Duration;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
@@ -287,6 +295,40 @@ public class KryoSerializerTest {
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
 
+    @Test
+    public void testLambdaConstraint() {
+        testSerializable(new LambdaConstraint(Lambda.valueOf(1)));
+    }
+
+    @Test
+    public void testBandwidthConstraint() {
+        testSerializable(new BandwidthConstraint(Bandwidth.valueOf(1000.0)));
+    }
+
+    @Test
+    public void testLinkTypeConstraint() {
+        testSerializable(new LinkTypeConstraint(true, Link.Type.DIRECT));
+    }
+
+    @Test
+    public void testLatencyConstraint() {
+        testSerializable(new LatencyConstraint(Duration.ofSeconds(10)));
+    }
+
+    @Test
+    public void testWaypointConstraint() {
+        testSerializable(new WaypointConstraint(deviceId("of:1"), deviceId("of:2")));
+    }
+
+    @Test
+    public void testObstacleConstraint() {
+        testSerializable(new ObstacleConstraint(deviceId("of:1"), deviceId("of:2")));
+    }
+
+    @Test
+    public void testAnnotationConstraint() {
+        testSerializable(new AnnotationConstraint("distance", 100.0));
+    }
 
     @Test
     public void testAnnotations() {

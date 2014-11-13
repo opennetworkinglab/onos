@@ -16,6 +16,7 @@
 package org.onlab.onos.store.serializers;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -123,7 +124,8 @@ public final class KryoNamespaces {
                     HashMap.class,
                     HashSet.class,
                     LinkedList.class,
-                    byte[].class
+                    byte[].class,
+                    Duration.class
                     )
             .build();
 
