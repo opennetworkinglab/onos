@@ -8,4 +8,4 @@
 
 mkdir -p /tmp/onos
 mount -t smbfs smb://guest:@10.254.1.15/onos /tmp/onos
-cp /tmp/onos/*.ova ~/Downloads
+cp /tmp/onos/onos*.ova ~/Downloads
