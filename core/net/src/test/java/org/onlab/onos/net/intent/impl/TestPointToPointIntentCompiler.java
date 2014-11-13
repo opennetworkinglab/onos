@@ -16,10 +16,12 @@
 package org.onlab.onos.net.intent.impl;
 
 import org.hamcrest.Matchers;
-//import org.junit.Test;
 import org.junit.Test;
-import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Intent;
@@ -29,11 +31,15 @@ import org.onlab.onos.net.intent.PointToPointIntent;
 
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.NetTestTools.APP_ID;
 import static org.onlab.onos.net.NetTestTools.connectPoint;
+import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairMatcher.linksHasPath;
 
 /**
@@ -137,5 +143,29 @@ public class TestPointToPointIntentCompiler {
             assertThat(reversePathIntent.path().links(), linksHasPath("d7", "d6"));
             assertThat(reversePathIntent.path().links(), linksHasPath("d8", "d7"));
         }
+    }
+
+    /**
+     * Tests compilation of the intent which designates two different ports on the same switch.
+     */
+    @Test
+    public void testSameSwitchDifferentPortsIntentCompilation() {
+        ConnectPoint src = new ConnectPoint(deviceId("1"), portNumber(1));
+        ConnectPoint dst = new ConnectPoint(deviceId("1"), portNumber(2));
+        PointToPointIntent intent = new PointToPointIntent(APP_ID, selector, treatment, src, dst);
+
+        String[] hops = {"1"};
+        PointToPointIntentCompiler sut = makeCompiler(hops);
+
+        List<Intent> compiled = sut.compile(intent);
+
+        assertThat(compiled, hasSize(1));
+        assertThat(compiled.get(0), is(instanceOf(PathIntent.class)));
+        Path path = ((PathIntent) compiled.get(0)).path();
+
+        assertThat(path.links(), hasSize(1));
+        Link link = path.links().get(0);
+        assertThat(link.src(), is(src));
+        assertThat(link.dst(), is(dst));
     }
 }
