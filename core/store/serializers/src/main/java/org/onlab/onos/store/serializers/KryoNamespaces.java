@@ -87,7 +87,13 @@ import org.onlab.onos.net.link.DefaultLinkDescription;
 import org.onlab.onos.net.packet.DefaultOutboundPacket;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.resource.Bandwidth;
+import org.onlab.onos.net.resource.BandwidthResourceAllocation;
+import org.onlab.onos.net.resource.BandwidthResourceRequest;
+import org.onlab.onos.net.resource.DefaultLinkResourceAllocations;
+import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
 import org.onlab.onos.net.resource.Lambda;
+import org.onlab.onos.net.resource.LambdaResourceAllocation;
+import org.onlab.onos.net.resource.LambdaResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.store.Timestamp;
 import org.onlab.packet.ChassisId;
@@ -210,8 +216,14 @@ public final class KryoNamespaces {
                     OpticalConnectivityIntent.class,
                     OpticalPathIntent.class,
                     LinkResourceRequest.class,
+                    DefaultLinkResourceRequest.class,
+                    BandwidthResourceRequest.class,
+                    LambdaResourceRequest.class,
                     Lambda.class,
                     Bandwidth.class,
+                    DefaultLinkResourceAllocations.class,
+                    BandwidthResourceAllocation.class,
+                    LambdaResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,
                     BandwidthConstraint.class,

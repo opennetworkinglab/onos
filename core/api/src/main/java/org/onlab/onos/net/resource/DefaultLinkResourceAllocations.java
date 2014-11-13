@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.resource.impl;
+package org.onlab.onos.net.resource;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceRequest;
-import org.onlab.onos.net.resource.ResourceType;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -34,6 +35,7 @@ import java.util.Set;
  */
 public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
     private final LinkResourceRequest request;
+    // TODO: probably should be using LinkKey instead
     private final Map<Link, Set<ResourceAllocation>> allocations;
 
     /**
@@ -42,10 +44,15 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
      * @param request     requested resources
      * @param allocations allocated resources
      */
-    DefaultLinkResourceAllocations(LinkResourceRequest request,
+    public DefaultLinkResourceAllocations(LinkResourceRequest request,
                                    Map<Link, Set<ResourceAllocation>> allocations) {
-        this.request = request;
-        this.allocations = allocations;
+        this.request = checkNotNull(request);
+        ImmutableMap.Builder<Link, Set<ResourceAllocation>> builder
+            = ImmutableMap.builder();
+        for (Entry<Link, Set<ResourceAllocation>> e : allocations.entrySet()) {
+            builder.put(e.getKey(), ImmutableSet.copyOf(e.getValue()));
+        }
+        this.allocations = builder.build();
     }
 
     @Override

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -36,11 +37,21 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Link.Type;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.flow.FlowId;
+import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.resource.Bandwidth;
+import org.onlab.onos.net.resource.BandwidthResourceAllocation;
+import org.onlab.onos.net.resource.DefaultLinkResourceAllocations;
+import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
+import org.onlab.onos.net.resource.Lambda;
+import org.onlab.onos.net.resource.LambdaResourceAllocation;
+import org.onlab.onos.net.resource.LinkResourceRequest;
+import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -52,9 +63,12 @@ import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.PortNumber.portNumber;
 
@@ -109,7 +123,7 @@ public class KryoSerializerTest {
     public void tearDown() throws Exception {
     }
 
-    private <T> void testSerialized(T original) {
+    private <T> void testSerializedEquals(T original) {
         ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
         serializer.encode(original, buffer);
         buffer.flip();
@@ -122,127 +136,157 @@ public class KryoSerializerTest {
             .testEquals();
     }
 
+    private <T> void testSerializable(T original) {
+        byte[] bs = serializer.encode(original);
+        T copy = serializer.decode(bs);
+        assertNotNull(copy);
+    }
+
 
     @Test
     public void testConnectPoint() {
-        testSerialized(new ConnectPoint(DID1, P1));
+        testSerializedEquals(new ConnectPoint(DID1, P1));
     }
 
     @Test
     public void testDefaultLink() {
-        testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT));
-        testSerialized(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT, A1));
+        testSerializedEquals(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT));
+        testSerializedEquals(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT, A1));
     }
 
     @Test
     public void testDefaultPort() {
-        testSerialized(new DefaultPort(DEV1, P1, true));
-        testSerialized(new DefaultPort(DEV1, P1, true, A1_2));
+        testSerializedEquals(new DefaultPort(DEV1, P1, true));
+        testSerializedEquals(new DefaultPort(DEV1, P1, true, A1_2));
     }
 
     @Test
     public void testDeviceId() {
-        testSerialized(DID1);
+        testSerializedEquals(DID1);
     }
 
     @Test
     public void testImmutableMap() {
-        testSerialized(ImmutableMap.of(DID1, DEV1, DID2, DEV1));
-        testSerialized(ImmutableMap.of(DID1, DEV1));
-        testSerialized(ImmutableMap.of());
+        testSerializedEquals(ImmutableMap.of(DID1, DEV1, DID2, DEV1));
+        testSerializedEquals(ImmutableMap.of(DID1, DEV1));
+        testSerializedEquals(ImmutableMap.of());
     }
 
     @Test
     public void testImmutableSet() {
-        testSerialized(ImmutableSet.of(DID1, DID2));
-        testSerialized(ImmutableSet.of(DID1));
-        testSerialized(ImmutableSet.of());
+        testSerializedEquals(ImmutableSet.of(DID1, DID2));
+        testSerializedEquals(ImmutableSet.of(DID1));
+        testSerializedEquals(ImmutableSet.of());
     }
 
     @Test
     public void testImmutableList() {
-        testSerialized(ImmutableList.of(DID1, DID2));
-        testSerialized(ImmutableList.of(DID1));
-        testSerialized(ImmutableList.of());
+        testSerializedEquals(ImmutableList.of(DID1, DID2));
+        testSerializedEquals(ImmutableList.of(DID1));
+        testSerializedEquals(ImmutableList.of());
     }
 
     @Test
     public void testIpPrefix() {
-        testSerialized(IpPrefix.valueOf("192.168.0.1/24"));
+        testSerializedEquals(IpPrefix.valueOf("192.168.0.1/24"));
     }
 
     @Test
     public void testIp4Prefix() {
-        testSerialized(Ip4Prefix.valueOf("192.168.0.1/24"));
+        testSerializedEquals(Ip4Prefix.valueOf("192.168.0.1/24"));
     }
 
     @Test
     public void testIp6Prefix() {
-        testSerialized(Ip6Prefix.valueOf("1111:2222::/120"));
+        testSerializedEquals(Ip6Prefix.valueOf("1111:2222::/120"));
     }
 
     @Test
     public void testIpAddress() {
-        testSerialized(IpAddress.valueOf("192.168.0.1"));
+        testSerializedEquals(IpAddress.valueOf("192.168.0.1"));
     }
 
     @Test
     public void testIp4Address() {
-        testSerialized(Ip4Address.valueOf("192.168.0.1"));
+        testSerializedEquals(Ip4Address.valueOf("192.168.0.1"));
     }
 
     @Test
     public void testIp6Address() {
-        testSerialized(Ip6Address.valueOf("1111:2222::"));
+        testSerializedEquals(Ip6Address.valueOf("1111:2222::"));
     }
 
     @Test
     public void testMacAddress() {
-        testSerialized(MacAddress.valueOf("12:34:56:78:90:ab"));
+        testSerializedEquals(MacAddress.valueOf("12:34:56:78:90:ab"));
     }
 
     @Test
     public void testLinkKey() {
-        testSerialized(LinkKey.linkKey(CP1, CP2));
+        testSerializedEquals(LinkKey.linkKey(CP1, CP2));
     }
 
     @Test
     public void testNodeId() {
-        testSerialized(new NodeId("SomeNodeIdentifier"));
+        testSerializedEquals(new NodeId("SomeNodeIdentifier"));
     }
 
     @Test
     public void testPortNumber() {
-        testSerialized(P1);
+        testSerializedEquals(P1);
     }
 
     @Test
     public void testProviderId() {
-        testSerialized(PID);
-        testSerialized(PIDA);
+        testSerializedEquals(PID);
+        testSerializedEquals(PIDA);
     }
 
     @Test
     public void testMastershipTerm() {
-        testSerialized(MastershipTerm.of(new NodeId("foo"), 2));
-        testSerialized(MastershipTerm.of(null, 0));
+        testSerializedEquals(MastershipTerm.of(new NodeId("foo"), 2));
+        testSerializedEquals(MastershipTerm.of(null, 0));
     }
 
     @Test
     public void testHostLocation() {
-        testSerialized(new HostLocation(CP1, 1234L));
+        testSerializedEquals(new HostLocation(CP1, 1234L));
     }
 
     @Test
     public void testFlowId() {
-        testSerialized(FlowId.valueOf(0x12345678L));
+        testSerializedEquals(FlowId.valueOf(0x12345678L));
     }
 
     @Test
     public void testRoleInfo() {
-        testSerialized(new RoleInfo(new NodeId("master"),
+        testSerializedEquals(new RoleInfo(new NodeId("master"),
                             asList(new NodeId("stby1"), new NodeId("stby2"))));
     }
+
+    @Test
+    public void testDefaultLinkResourceRequest() {
+        testSerializable(DefaultLinkResourceRequest.builder(IntentId.valueOf(2501), ImmutableList.of())
+                       .addLambdaRequest()
+                       .addBandwidthRequest(32.195)
+                       .build()
+                       );
+    }
+
+    @Test
+    public void testDefaultLinkResourceAllocations() {
+        LinkResourceRequest request = DefaultLinkResourceRequest
+                    .builder(IntentId.valueOf(2501), ImmutableList.of())
+                        .addLambdaRequest()
+                        .addBandwidthRequest(32.195)
+                        .build();
+        Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
+        allocations.put(new DefaultLink(PID, CP1, CP2, Type.DIRECT),
+                        ImmutableSet.of(new BandwidthResourceAllocation(Bandwidth.valueOf(10.0)),
+                                        new LambdaResourceAllocation(Lambda.valueOf(1))));
+        testSerializable(new DefaultLinkResourceAllocations(request, allocations));
+    }
+
 
     @Test
     public void testAnnotations() {

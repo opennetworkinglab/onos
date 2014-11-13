@@ -36,6 +36,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.resource.BandwidthResourceAllocation;
 import org.onlab.onos.net.resource.BandwidthResourceRequest;
+import org.onlab.onos.net.resource.DefaultLinkResourceAllocations;
 import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LambdaResourceRequest;
