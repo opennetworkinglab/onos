@@ -40,7 +40,12 @@ import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.ConnectivityIntent;
+import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
+import org.onlab.onos.net.intent.LinkCollectionIntent;
+import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.ProviderId;
@@ -50,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -350,7 +356,7 @@ public abstract class TopologyMessages {
                              new Prop("Longitude", annot.value("longitude"))));
     }
 
-    // Produces a path message to the client.
+    // Produces a path payload to the client.
     protected ObjectNode pathMessage(Path path, String type) {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode links = mapper.createArrayNode();
@@ -360,6 +366,50 @@ public abstract class TopologyMessages {
 
         payload.put("type", type).set("links", links);
         return payload;
+    }
+
+
+    // Produces JSON message to trigger traffic visualization
+    protected ObjectNode trafficMessage(Set<Intent> intents, long sid) {
+        ObjectNode payload = mapper.createObjectNode();
+        ArrayNode paths = mapper.createArrayNode();
+        payload.set("paths", paths);
+
+        for (Intent intent : intents) {
+            List<Intent> installables = intentService.getInstallableIntents(intent.id());
+            IntentState state = intentService.getIntentState(intent.id());
+            String type = state == IntentState.FAILED ? "inactive" : "active";
+            for (Intent installable : installables) {
+                if (installable instanceof ConnectivityIntent) {
+                    addPathTraffic(paths, type, (ConnectivityIntent) installable);
+                }
+            }
+        }
+
+        return envelope("showTraffic", sid, payload);
+    }
+
+    // Adds the link segments (path or tree) associated with the specified
+    // connectivity intent
+    protected void addPathTraffic(ArrayNode paths, String type,
+                                  ConnectivityIntent installable) {
+        ObjectNode pathNode = mapper.createObjectNode();
+        ArrayNode linksNode = mapper.createArrayNode();
+
+        Iterable<Link> links;
+        if (installable instanceof PathIntent) {
+            links = ((PathIntent) installable).path().links();
+        } else if (installable instanceof LinkCollectionIntent) {
+            links = ((LinkCollectionIntent) installable).links();
+        } else {
+            return;
+        }
+
+        for (Link link : links) {
+            linksNode.add(compactLinkString(link));
+        }
+        pathNode.put("type", type).set("links", linksNode);
+        paths.add(pathNode);
     }
 
     // Produces compact string representation of a link.

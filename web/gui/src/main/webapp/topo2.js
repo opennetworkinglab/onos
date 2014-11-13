@@ -130,8 +130,8 @@
         U: unpin,
 
         W: requestTraffic,  // bag of selections
-        Z: requestPath,     // host-to-host intent (and monitor)
-        X: cancelMonitor
+        X: cancelTraffic,
+        Z: requestPath      // host-to-host intent (and monitor)
     };
 
     // state variables
@@ -496,7 +496,23 @@
     }
 
     function showTraffic(data) {
-        network.view.alert("showTraffic() -- TODO")
+        fnTrace('showTraffic', data.payload.id);
+        data.payload.paths.forEach(function () {
+            var links = data.payload.links,
+                s = [ data.event + "\n" + links.length ];
+            links.forEach(function (d, i) {
+                s.push(d);
+            });
+            network.view.alert(s.join('\n'));
+
+            links.forEach(function (d, i) {
+                var link = network.lookup[d];
+                if (link) {
+                    link.el.classed('showPath', true);
+                }
+            });
+        });
+        //network.view.alert("showTraffic() -- TODO")
     }
 
     // ...............................
@@ -566,9 +582,9 @@
         }
     }
 
-    function cancelMonitor() {
+    function cancelTraffic() {
         // FIXME: from where do we get the intent id(s) to send to the server?
-        sendMessage('cancelMonitor', {
+        sendMessage('cancelTraffic', {
             ids: ["need_the_intent_id"]
         });
     }

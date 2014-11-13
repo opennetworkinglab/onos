@@ -20,11 +20,13 @@ import java.util.List;
 
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.AbstractShellCommand;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
 import org.onlab.onos.net.intent.constraint.LambdaConstraint;
+import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
 import org.onlab.onos.net.resource.Bandwidth;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
@@ -142,6 +144,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         if (lambda) {
             constraints.add(new LambdaConstraint(null));
         }
+        constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
 
         return constraints;
     }

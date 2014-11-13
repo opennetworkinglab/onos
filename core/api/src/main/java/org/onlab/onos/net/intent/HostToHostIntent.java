@@ -16,12 +16,14 @@
 package org.onlab.onos.net.intent;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,7 +49,8 @@ public final class HostToHostIntent extends ConnectivityIntent {
     public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
                             TrafficSelector selector,
                             TrafficTreatment treatment) {
-        this(appId, one, two, selector, treatment, Collections.emptyList());
+        this(appId, one, two, selector, treatment,
+             ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)));
     }
 
     /**

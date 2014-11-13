@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.gui;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.onlab.onos.cluster.ClusterEvent;
@@ -24,6 +26,7 @@ import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
 import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipListener;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
@@ -38,16 +41,19 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentListener;
+import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
@@ -85,9 +91,10 @@ public class TopologyWebSocket
     private final IntentListener intentListener = new InternalIntentListener();
 
     // Intents that are being monitored for the GUI
-    private static Map<IntentId, Long> intentsToMonitor = new ConcurrentHashMap<>();
+    private static Map<Intent, Long> intentsToMonitor = new ConcurrentHashMap<>();
 
     private long lastActive = System.currentTimeMillis();
+    private boolean listenersRemoved = false;
 
     /**
      * Creates a new web-socket for serving data to GUI topology view.
@@ -103,8 +110,8 @@ public class TopologyWebSocket
      * Issues a close on the connection.
      */
     synchronized void close() {
+        removeListeners();
         if (connection.isOpen()) {
-            removeListeners();
             connection.close();
         }
     }
@@ -140,9 +147,7 @@ public class TopologyWebSocket
 
     @Override
     public synchronized void onClose(int closeCode, String message) {
-        if (connection.isOpen()) {
-            removeListeners();
-        }
+        removeListeners();
         log.info("GUI client disconnected");
     }
 
@@ -165,7 +170,7 @@ public class TopologyWebSocket
             } else if (type.equals("requestPath")) {
                 createHostIntent(event);
             } else if (type.equals("requestTraffic")) {
-                sendTraffic(event);
+                requestTraffic(event);
             } else if (type.equals("cancelTraffic")) {
                 cancelTraffic(event);
             }
@@ -217,12 +222,12 @@ public class TopologyWebSocket
     private void requestDetails(ObjectNode event) {
         ObjectNode payload = payload(event);
         String type = string(payload, "class", "unknown");
+        long sid = number(event, "sid");
+
         if (type.equals("device")) {
-            sendMessage(deviceDetails(deviceId(string(payload, "id")),
-                                      number(event, "sid")));
+            sendMessage(deviceDetails(deviceId(string(payload, "id")), sid));
         } else if (type.equals("host")) {
-            sendMessage(hostDetails(hostId(string(payload, "id")),
-                                    number(event, "sid")));
+            sendMessage(hostDetails(hostId(string(payload, "id")), sid));
         }
     }
 
@@ -237,27 +242,137 @@ public class TopologyWebSocket
         HostToHostIntent hostIntent = new HostToHostIntent(appId, one, two,
                                                            DefaultTrafficSelector.builder().build(),
                                                            DefaultTrafficTreatment.builder().build());
-        intentsToMonitor.put(hostIntent.id(), number(event, "sid"));
+        intentsToMonitor.put(hostIntent, number(event, "sid"));
         intentService.submit(hostIntent);
     }
 
     // Sends traffic message.
-    private void sendTraffic(ObjectNode event) {
+    private void requestTraffic(ObjectNode event) {
         ObjectNode payload = payload(event);
-        long id = number(event, "sid");
-        IntentId intentId = IntentId.valueOf(payload.path("intentId").asLong());
+        long sid = number(event, "sid");
+        Set<Intent> intents = findPathIntents(payload);
 
-        if (payload != null) {
-            payload.put("traffic", true);
-            sendMessage(envelope("showPath", id, payload));
-        } else {
-            sendMessage(warning(id, "No path found"));
+        // Add all those intents to the list of monitored intents & flows.
+        intentsToMonitor.clear();
+        for (Intent intent : intents) {
+            intentsToMonitor.put(intent, sid);
         }
+
+        // Send an initial message to highlight all links of all monitored intents.
+        sendMessage(trafficMessage(intents, sid));
     }
 
     // Cancels sending traffic messages.
     private void cancelTraffic(ObjectNode event) {
-        // TODO: implement this
+        ObjectNode payload = payload(event);
+        long sid = number(event, "sid");
+        Set<Intent> intents = findPathIntents(payload);
+
+        // Remove all those intents from the list of monitored intents & flows.
+        intentsToMonitor.clear(); // TODO: remove when ready
+        for (Intent intent : intents) {
+            intentsToMonitor.remove(intent.id());
+        }
+        sendMessage(trafficMessage(intents, sid));
+    }
+
+    // Finds all path (host-to-host or point-to-point) intents that pertains
+    // to the hosts indicated in the given event payload.
+    private Set<Intent> findPathIntents(ObjectNode payload) {
+        // Get the list of selected hosts.
+        Set<Host> hosts = getHosts((ArrayNode) payload.path("ids"));
+
+        // Derive from this the set of edge connect points.
+        Set<ConnectPoint> edgePoints = getEdgePoints(hosts);
+
+        // Iterate over all intents and produce a set that contains only those
+        // intents that target all selected hosts or derived edge connect points.
+        return getIntents(hosts, edgePoints);
+    }
+
+    // Produces a set of intents that target all selected hosts or connect points.
+    private Set<Intent> getIntents(Set<Host> hosts, Set<ConnectPoint> edgePoints) {
+        Set<Intent> intents = new HashSet<>();
+        for (Intent intent : intentService.getIntents()) {
+            boolean isRelevant = false;
+            if (intent instanceof HostToHostIntent) {
+                isRelevant = isIntentRelevant((HostToHostIntent) intent, hosts);
+            } else if (intent instanceof PointToPointIntent) {
+                isRelevant = isIntentRelevant((PointToPointIntent) intent, edgePoints);
+            } else if (intent instanceof MultiPointToSinglePointIntent) {
+                isRelevant = isIntentRelevant((MultiPointToSinglePointIntent) intent, edgePoints);
+            }
+            // TODO: add other intents, e.g. SinglePointToMultiPointIntent
+
+            if (isRelevant) {
+                intents.add(intent);
+            }
+        }
+        return intents;
+    }
+
+    // Indicates whether the specified intent involves all of the given hosts.
+    private boolean isIntentRelevant(HostToHostIntent intent, Set<Host> hosts) {
+        for (Host host : hosts) {
+            HostId id = host.id();
+            // Bail if intent does not involve this host.
+            if (!id.equals(intent.one()) && !id.equals(intent.two())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Indicates whether the specified intent involves all of the given edge points.
+    private boolean isIntentRelevant(PointToPointIntent intent,
+                                     Set<ConnectPoint> edgePoints) {
+        for (ConnectPoint point : edgePoints) {
+            // Bail if intent does not involve this edge point.
+            if (!point.equals(intent.egressPoint()) &&
+                    !point.equals(intent.ingressPoint())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Indicates whether the specified intent involves all of the given edge points.
+    private boolean isIntentRelevant(MultiPointToSinglePointIntent intent,
+                                     Set<ConnectPoint> edgePoints) {
+        for (ConnectPoint point : edgePoints) {
+            // Bail if intent does not involve this edge point.
+            if (!point.equals(intent.egressPoint()) &&
+                    !intent.ingressPoints().contains(point)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    // Produces a set of all host ids listed in the specified JSON array.
+    private Set<Host> getHosts(ArrayNode array) {
+        Set<Host> hosts = new HashSet<>();
+        for (JsonNode node : array) {
+            try {
+                Host host = hostService.getHost(hostId(node.asText()));
+                if (host != null) {
+                    hosts.add(host);
+                }
+            } catch (IllegalArgumentException e) {
+                log.debug("Skipping ID {}", node.asText());
+            }
+        }
+        return hosts;
+    }
+
+    // Produces a set of edge points from the specified set of hosts.
+    private Set<ConnectPoint> getEdgePoints(Set<Host> hosts) {
+        Set<ConnectPoint> edgePoints = new HashSet<>();
+        for (Host host : hosts) {
+            edgePoints.add(host.location());
+        }
+        return edgePoints;
     }
 
 
@@ -272,13 +387,16 @@ public class TopologyWebSocket
     }
 
     // Removes all internal listeners.
-    private void removeListeners() {
-        clusterService.removeListener(clusterListener);
-        deviceService.removeListener(deviceListener);
-        linkService.removeListener(linkListener);
-        hostService.removeListener(hostListener);
-        mastershipService.removeListener(mastershipListener);
-        intentService.removeListener(intentListener);
+    private synchronized void removeListeners() {
+        if (!listenersRemoved) {
+            listenersRemoved = true;
+            clusterService.removeListener(clusterListener);
+            deviceService.removeListener(deviceListener);
+            linkService.removeListener(linkListener);
+            hostService.removeListener(hostListener);
+            mastershipService.removeListener(mastershipListener);
+            intentService.removeListener(intentListener);
+        }
     }
 
     // Cluster event listener.
@@ -327,7 +445,7 @@ public class TopologyWebSocket
         @Override
         public void event(IntentEvent event) {
             Intent intent = event.subject();
-            Long sid = intentsToMonitor.get(intent.id());
+            Long sid = intentsToMonitor.get(intent);
             if (sid != null) {
                 List<Intent> installable = intentService.getInstallableIntents(intent.id());
                 if (installable != null && !installable.isEmpty()) {

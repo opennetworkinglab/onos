@@ -21,6 +21,8 @@ import org.onlab.onos.net.device.DeviceProviderRegistry;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.link.LinkProviderRegistry;
 import org.onlab.rest.BaseResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -31,6 +33,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
 /**
  * Resource that acts as an ancillary provider for uploading pre-configured
  * devices, ports and links.
@@ -38,17 +42,24 @@ import java.io.InputStream;
 @Path("config")
 public class ConfigResource extends BaseResource {
 
+    private static Logger log = LoggerFactory.getLogger(ConfigResource.class);
+
     @POST
     @Path("topology")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response topology(InputStream input) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode cfg = mapper.readTree(input);
-        new ConfigProvider(cfg, get(DeviceProviderRegistry.class),
-                           get(LinkProviderRegistry.class),
-                           get(HostProviderRegistry.class)).parse();
-        return Response.ok(mapper.createObjectNode().toString()).build();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode cfg = mapper.readTree(input);
+            new ConfigProvider(cfg, get(DeviceProviderRegistry.class),
+                               get(LinkProviderRegistry.class),
+                               get(HostProviderRegistry.class)).parse();
+            return Response.ok(mapper.createObjectNode().toString()).build();
+        } catch (Exception e) {
+            log.error("Unable to parse topology configuration", e);
+            return Response.status(INTERNAL_SERVER_ERROR).entity(e.toString()).build();
+        }
     }
 
 }

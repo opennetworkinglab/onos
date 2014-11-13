@@ -15,8 +15,6 @@
  */
 package org.onlab.onos.cli.net;
 
-import java.util.List;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.net.HostId;
@@ -27,6 +25,8 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.IntentService;
+
+import java.util.List;
 
 /**
  * Installs host-to-host connectivity intent.

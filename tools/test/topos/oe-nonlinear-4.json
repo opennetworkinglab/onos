@@ -3,37 +3,37 @@
         {
             "uri": "of:0000ffffffffff01", "mac": "ffffffffffff01", "type": "ROADM",
             "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM1",
-            "annotations": { "latitude": 37.6, "longitude": 122.3, "optical.regens": 0 },
-            "ports": [ { "port": 10, "speed": 100000, "type": "FIBER" }, { "port": 20, "speed": 0, "type": "FIBER" }, { "port": 22, "speed": 0, "type": "FIBER" }]
+            "annotations": { "latitude": 37.6, "longitude": -122.3, "optical.regens": 0 },
+            "ports": [ { "port": 10, "speed": 100000, "type": "FIBER" }, { "port": 20, "speed": 0, "type": "FIBER" }, { "port": 22, "speed": 0, "type": "FIBER" } ]
         },
         {
             "uri": "of:0000ffffffffff02", "mac": "ffffffffffff02", "type": "ROADM",
             "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM2",
-            "annotations": { "latitude": 37.3, "longitude": 121.9, "optical.regens": 0 },
-            "ports": [ { "port": 11, "speed": 100000, "type": "FIBER" }, { "port": 21, "speed": 0, "type": "FIBER" }, { "port": 22, "speed": 0, "type": "FIBER" }]
+            "annotations": { "latitude": 37.3, "longitude": -121.9, "optical.regens": 0 },
+            "ports": [ { "port": 11, "speed": 100000, "type": "FIBER" }, { "port": 21, "speed": 0, "type": "FIBER" }, { "port": 22, "speed": 0, "type": "FIBER" } ]
         },
         {
             "uri": "of:0000ffffffffff03", "mac": "ffffffffffff03", "type": "ROADM",
             "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM3",
-            "annotations": { "latitude": 33.9, "longitude": 118.4, "optical.regens": 2 },
-            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" }, { "port": 31, "speed": 0, "type": "FIBER" }]
+            "annotations": { "latitude": 33.9, "longitude": -118.4, "optical.regens": 2 },
+            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" }, { "port": 31, "speed": 0, "type": "FIBER" } ]
         },
-	{
+        {
             "uri": "of:0000ffffffffff04", "mac": "ffffffffffff04", "type":"ROADM",
             "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?", "name": "ROADM4",
-            "annotations": { "latitude": 39.9, "longitude": 119.4, "optical.regens": 2 },
-            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" }, { "port": 31, "speed": 0, "type": "FIBER" }]
+            "annotations": { "latitude": 39.9, "longitude": -119.4, "optical.regens": 2 },
+            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" }, { "port": 31, "speed": 0, "type": "FIBER" } ]
         },
         {
             "uri": "of:0000ffffffff0001", "mac": "ffffffffff0001", "type": "SWITCH",
             "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?", "name": "ROUTER1",
-            "annotations": { "latitude": 37.6, "longitude": 122.3 },
+            "annotations": { "latitude": 37.6, "longitude": -122.3 },
             "ports": [ { "port": 1, "speed": 10000, "type": "COPPER" }, { "port": 2, "speed": 100000, "type": "FIBER" } ]
         },
         {
             "uri": "of:0000ffffffff0002", "mac": "ffffffffff0002", "type": "SWITCH",
             "mfr": "Linc", "hw": "PK", "sw": "?", "serial": "?", "name": "ROUTER2",
-            "annotations": { "latitude": 37.3, "longitude": 121.9 },
+            "annotations": { "latitude": 37.3, "longitude": -121.9 },
             "ports": [ { "port": 1, "speed": 10000, "type": "COPPER" }, { "port": 2, "speed": 100000, "type": "FIBER" } ]
         }
     ],
@@ -49,3 +49,4 @@
     ]
 
 }
+
