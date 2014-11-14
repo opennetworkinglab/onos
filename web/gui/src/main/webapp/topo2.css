@@ -146,6 +146,26 @@
 }
 
 
+#topo-detail .actionBtn {
+    margin: 6px 12px;
+    padding: 2px 6px;
+    font-size: 9pt;
+    cursor: pointer;
+    width: 50%;
+    text-align: center;
+
+    /* theme specific... */
+    border: 1px solid #ddf;
+    color: #99f;
+}
+
+#topo-detail .actionBtn:hover {
+    /* theme specific... */
+    border: 1px solid #ddf;
+    background: #eef;
+    color: #77d;
+}
+
 
 #topo-detail hr {
     height: 1px;

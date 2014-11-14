@@ -129,11 +129,7 @@
         P: togglePorts,
         U: unpin,
         R: resetZoomPan,
-        esc: deselectAll,
-
-        W: requestTraffic,  // bag of selections
-        X: cancelTraffic,
-        Z: requestPath      // host-to-host intent (and monitor)
+        esc: deselectAll
     };
 
     // state variables
@@ -355,14 +351,17 @@
     }
 
     var eventDispatch = {
+        addInstance: stillToImplement,
         addDevice: addDevice,
         addLink: addLink,
         addHost: addHost,
 
+        updateInstance: stillToImplement,
         updateDevice: updateDevice,
         updateLink: updateLink,
         updateHost: updateHost,
 
+        removeInstance: stillToImplement,
         removeDevice: stillToImplement,
         removeLink: removeLink,
         removeHost: removeHost,
@@ -482,11 +481,11 @@
     function showDetails(data) {
         fnTrace('showDetails', data.payload.id);
         populateDetails(data.payload);
-        // TODO: Add single-select actions ...
         detailPane.show();
     }
 
     function showPath(data) {
+        // TODO: review - making sure we are handling the payload correctly.
         fnTrace('showPath', data.payload.id);
         var links = data.payload.links,
             s = [ data.event + "\n" + links.length ];
@@ -501,11 +500,11 @@
                 link.el.classed('showPath', true);
             }
         });
-
-        // TODO: add selection-highlite lines to links
     }
 
     function showTraffic(data) {
+        // TODO: review - making sure we are handling the payload correctly.
+        // TODO: handle 'class' of link: primary, secondary, animated...
         fnTrace('showTraffic', data.payload.id);
         var paths = data.payload.paths;
 
@@ -524,7 +523,6 @@
                 }
             });
         });
-        //network.view.alert("showTraffic() -- TODO")
     }
 
     // ...............................
@@ -571,42 +569,8 @@
         return true;
     }
 
-    function requestTraffic(hoverNode) {
-        if (nSel() > 0 || hoverNode) {
-            var nodes = hoverNode ? selectOrder.concat(hoverNode.id) : selectOrder;
-            sendMessage('requestTraffic', {
-                ids: nodes
-            });
-        } else {
-            userFeedback('Request-Traffic requires one or\n' +
-                         'more items to be selected.');
-        }
-    }
-
-    function requestPath() {
-        if (nSel() === 2 && allSelectionsClass('host')) {
-            sendMessage('requestPath', {
-                one: getSelId(0),
-                two: getSelId(1)
-            });
-        } else {
-            userFeedback('Request-Path requires two\n' +
-                'hosts to be selected.');
-        }
-    }
-
-    function cancelTraffic(hoverNode) {
-        if (hoverNode && selectOrder.length) {
-            requestTraffic();
-        } else {
-            // FIXME: from where do we get the intent id(s) to send to the server?
-            sendMessage('cancelTraffic', {
-                ids: ["need_the_intent_id"]
-            });
-        }
-    }
-
     // request details for the selected element
+    // invoked from selection of a single node.
     function requestDetails() {
         var data = getSel(0).obj,
             payload = {
@@ -615,6 +579,31 @@
             };
         sendMessage('requestDetails', payload);
     }
+
+    function addIntentAction() {
+        sendMessage('addHostIntent', {
+            one: getSelId(0),
+            two: getSelId(1)
+        });
+    }
+
+    function showTrafficAction() {
+        // if nothing is hovered over, and nothing selected, send cancel request
+        if (!hovered && nSel() === 0) {
+            sendMessage('cancelTraffic', {});
+            return;
+        }
+
+        // NOTE: hover is only populated if "show traffic on hover" is
+        //        toggled on, and the item hovered is a host...
+        var hoverId = (trafficHover() && hovered && hovered.class === 'host')
+                        ? hovered.id : '';
+        sendMessage('requestTraffic', {
+            ids: selectOrder,
+            hover: hoverId
+        });
+    }
+
 
     // ==============================
     // force layout modification functions
@@ -942,18 +931,16 @@
     }
 
     function nodeMouseOver(d) {
-        console.log("Hover:", d);
         hovered = d;
-        if (d.class === 'host') {
-            //requestTraffic(d);
+        if (trafficHover() && d.class === 'host') {
+            showTrafficAction();
         }
     }
 
     function nodeMouseOut(d) {
-        console.log("Unhover:", d);
         hovered = null;
-        if (d.class === 'host') {
-            //cancelTraffic(d);
+        if (trafficHover() && d.class === 'host') {
+            showTrafficAction();
         }
     }
 
@@ -1293,6 +1280,7 @@
         var nSel = selectOrder.length;
         if (!nSel) {
             detailPane.hide();
+            showTrafficAction();        // sends cancelTraffic event
         } else if (nSel === 1) {
             singleSelect();
         } else {
@@ -1307,7 +1295,6 @@
 
     function multiSelect() {
         populateMultiSelect();
-        // TODO: Add multi-select actions ...
     }
 
     function addSep(tbody) {
@@ -1339,6 +1326,8 @@
         selectOrder.forEach(function (d, i) {
             addProp(tbody, i+1, d);
         });
+
+        addMultiSelectActions();
     }
 
     function populateDetails(data) {
@@ -1358,7 +1347,33 @@
                 addProp(tbody, p, data.props[p]);
             }
         });
+
+        addSingleSelectActions();
     }
+
+    function addSingleSelectActions() {
+        detailPane.append('hr');
+        // always want to allow 'show traffic'
+        addAction('Show Traffic', showTrafficAction);
+    }
+
+    function addMultiSelectActions() {
+        detailPane.append('hr');
+        // always want to allow 'show traffic'
+        addAction('Show Traffic', showTrafficAction);
+        // if exactly two hosts are selected, also want 'add host intent'
+        if (nSel() === 2 && allSelectionsClass('host')) {
+            addAction('Add Host Intent', addIntentAction);
+        }
+    }
+
+    function addAction(text, cb) {
+        detailPane.append('div')
+            .classed('actionBtn', true)
+            .text(text)
+            .on('click', cb);
+    }
+
 
     function zoomPan(scale, translate) {
         zoomPanContainer.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
