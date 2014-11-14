@@ -39,12 +39,12 @@ class OpticalTopo(Topo):
         h5 = self.addHost('h5')
         h6 = self.addHost('h6')
 
-        s1 = self.addSwitch('s1',dpid="0000ffffffff0001")
-        s2 = self.addSwitch('s2',dpid="0000ffffffff0002")
-        s3 = self.addSwitch('s3',dpid="0000ffffffff0003")
-        s4 = self.addSwitch('s4',dpid="0000ffffffff0004")
-        s5 = self.addSwitch('s5',dpid="0000ffffffff0005")
-        s6 = self.addSwitch('s6',dpid="0000ffffffff0006")
+        s1 = self.addSwitch('s1', dpid="0000ffffffff0001")
+        s2 = self.addSwitch('s2', dpid="0000ffffffff0002")
+        s3 = self.addSwitch('s3', dpid="0000ffffffff0003")
+        s4 = self.addSwitch('s4', dpid="0000ffffffff0004")
+        s5 = self.addSwitch('s5', dpid="0000ffffffff0005")
+        s6 = self.addSwitch('s6', dpid="0000ffffffff0006")
 
 
         # Add links from hosts to OVS
@@ -55,44 +55,24 @@ class OpticalTopo(Topo):
         self.addLink(s5, h5)
         self.addLink(s6, h6)
 
-        # temporary packet link from s1 to s2 for testing
-        # self.addLink( s1, s2 )
-
         # add links from ovs to linc-oe
         # sorry about the syntax :(
-        self.addLink(s1, s1, intfName1='s1-eth0', intfName2='tap29')
-        self.addLink(s2, s2, intfName1='s2-eth0', intfName2='tap30')
-        self.addLink(s3, s3, intfName1='s3-eth0', intfName2='tap31')
-        self.addLink(s4, s4, intfName1='s4-eth0', intfName2='tap32')
-        self.addLink(s5, s5, intfName1='s5-eth0', intfName2='tap33')
-        self.addLink(s6, s6, intfName1='s6-eth0', intfName2='tap34')
+        self.addIntf(s1,'tap29')
+        self.addIntf(s2,'tap30')
+        self.addIntf(s3,'tap31')
+        self.addIntf(s4,'tap32')
+        self.addIntf(s5,'tap33')
+        self.addIntf(s6,'tap34')
 
-        #self.addLink(s1, s2, s3, s4, s5, s6)
-        #intfName1 = 'tap3', intfName\2 = 'tap4', intfName2 = 'tap5',
-        # intfName2 = 'tap6', intfName2 = 'tap7', intfName2 = 'tap8'
-
-    # if you use, sudo mn --custom custom/optical.py, then register the topo:
+        # if you use, sudo mn --custom custom/optical.py, then register the topo:
 topos = {'optical': ( lambda: OpticalTopo() )}
-
-def installStaticFlows(net):
-    for swName in ['s1', 's2', 's3', 's4', 's5', 's6']:
-        info('Adding flows to %s...' % swName)
-        sw = net[swName]
-        sw.dpctl('add-flow', 'in_port=1,actions=output=2')
-        sw.dpctl('add-flow', 'in_port=2,actions=output=1')
-        info(sw.dpctl('dump-flows'))
 
 
 def run():
-    c = RemoteController('c','10.1.8.147',6633)
-    net = Mininet( topo=OpticalTopo(),controller=None)
+    c = RemoteController('c','127.0.0.1',6633)
+    net = Mininet( topo=OpticalTopo(),controller=None,autoSetMacs=True)
     net.addController(c)
     net.start()
-
-    # intf1 = Intf( 'tap3', node=net.nameToNode['s1'] )
-    # intf2 = Intf( 'tap4', node=net.nameToNode['s2'] )
-    # net.nameToNode['s1'].attach( intf1 )
-    # net.nameToNode['s2'].attach( intf2 )
 
     #installStaticFlows( net )
     CLI( net )
