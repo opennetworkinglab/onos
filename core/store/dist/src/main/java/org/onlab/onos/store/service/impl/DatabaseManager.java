@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import net.kuujo.copycat.Copycat;
@@ -99,7 +100,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     private boolean autoAddMember = false;
 
     @Activate
-    public void activate() {
+    public void activate() throws InterruptedException, ExecutionException {
 
         // TODO: Not every node should be part of the consensus ring.
 
@@ -176,9 +177,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
         copycat.event(LeaderElectEvent.class).registerHandler(expirationTracker);
 
-        copycat.start();
+        copycat.start().get();
 
         client = new DatabaseClient(copycat);
+        client.waitForLeader();
 
         log.info("Started.");
     }
