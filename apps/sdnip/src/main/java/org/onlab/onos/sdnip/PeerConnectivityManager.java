@@ -136,7 +136,7 @@ public class PeerConnectivityManager {
                 if (bgpdAddress == null) {
                     log.debug("There is no interface IP address for bgpPeer: {}"
                                       + " on interface {}", bgpPeer, bgpPeer.connectPoint());
-                    return;
+                    continue;
                 }
 
                 IpAddress bgpdPeerAddress = bgpPeer.ipAddress();
@@ -270,7 +270,7 @@ public class PeerConnectivityManager {
                     log.debug("There is no IP address for bgpPeer: {} on "
                                       + "interface port: {}", bgpPeer,
                               bgpPeer.connectPoint());
-                    return;
+                    continue;
                 }
 
                 IpAddress bgpdPeerAddress = bgpPeer.ipAddress();
