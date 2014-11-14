@@ -40,11 +40,11 @@ import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.ConnectivityIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.OpticalConnectivityIntent;
+import org.onlab.onos.net.intent.OpticalPathIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkService;
@@ -384,9 +384,14 @@ public abstract class TopologyMessages {
                 if (installables != null) {
                     for (Intent installable : installables) {
                         String cls = isOptical ? trafficClass.type + " optical" : trafficClass.type;
-                        if (installable instanceof ConnectivityIntent) {
-                            addPathTraffic(paths, cls, (ConnectivityIntent) installable);
+                        if (installable instanceof PathIntent) {
+                            addPathTraffic(paths, cls, ((PathIntent) installable).path().links());
+                        } else if (installable instanceof LinkCollectionIntent) {
+                            addPathTraffic(paths, cls, ((LinkCollectionIntent) installable).links());
+                        } else if (installable instanceof OpticalPathIntent) {
+                            addPathTraffic(paths, cls, ((OpticalPathIntent) installable).path().links());
                         }
+
                     }
                 }
             }
@@ -397,12 +402,10 @@ public abstract class TopologyMessages {
 
     // Adds the link segments (path or tree) associated with the specified
     // connectivity intent
-    protected void addPathTraffic(ArrayNode paths, String type,
-                                  ConnectivityIntent installable) {
+    protected void addPathTraffic(ArrayNode paths, String type, Iterable<Link> links) {
         ObjectNode pathNode = mapper.createObjectNode();
         ArrayNode linksNode = mapper.createArrayNode();
 
-        Iterable<Link> links = pathLinks(installable);
         if (links != null) {
             ArrayNode labels = mapper.createArrayNode();
             boolean hasTraffic = true; // FIXME
@@ -421,15 +424,6 @@ public abstract class TopologyMessages {
             pathNode.set("labels", labels);
             paths.add(pathNode);
         }
-    }
-
-    private Iterable<Link> pathLinks(ConnectivityIntent intent) {
-        if (intent instanceof PathIntent) {
-            return ((PathIntent) intent).path().links();
-        } else if (intent instanceof LinkCollectionIntent) {
-            return ((LinkCollectionIntent) intent).links();
-        }
-        return null;
     }
 
     // Produces compact string representation of a link.

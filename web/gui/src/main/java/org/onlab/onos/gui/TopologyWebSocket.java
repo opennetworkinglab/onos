@@ -29,7 +29,6 @@ import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
@@ -378,19 +377,34 @@ public class TopologyWebSocket
     // Indicates whether the specified intent involves all of the given edge points.
     private boolean isIntentRelevant(OpticalConnectivityIntent opticalIntent,
                                      Set<Intent> intents) {
+        Link ccSrc = getFirstLink(opticalIntent.getSrcConnectPoint(), false);
+        Link ccDst = getFirstLink(opticalIntent.getDst(), true);
+
         for (Intent intent : intents) {
             List<Intent> installables = intentService.getInstallableIntents(intent.id());
             for (Intent installable : installables) {
                 if (installable instanceof PathIntent) {
-                    Path path = ((PathIntent) installable).path();
-                    if (opticalIntent.getSrcConnectPoint().equals(path.src()) &&
-                            opticalIntent.getDst().equals(path.dst())) {
-                        return true;
+                    List<Link> links = ((PathIntent) installable).path().links();
+                    if (links.size() == 3) {
+                        Link tunnel = links.get(1);
+                        if (tunnel.src().equals(ccSrc.src()) &&
+                                tunnel.dst().equals(ccDst.dst())) {
+                            return true;
+                        }
                     }
                 }
             }
         }
         return false;
+    }
+
+    private Link getFirstLink(ConnectPoint point, boolean ingress) {
+        for (Link link : linkService.getLinks(point)) {
+            if (point.equals(ingress ? link.src() : link.dst())) {
+                return link;
+            }
+        }
+        return null;
     }
 
     // Produces a set of all host ids listed in the specified JSON array.
