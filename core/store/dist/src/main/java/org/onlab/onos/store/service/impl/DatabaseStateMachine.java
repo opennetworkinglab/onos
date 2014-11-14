@@ -31,6 +31,7 @@ import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -147,6 +148,12 @@ public class DatabaseStateMachine implements StateMachine {
         }
         return results;
     }
+
+    @Query
+    public Map<String, VersionedValue> getAll(String tableName) {
+        return ImmutableMap.copyOf(state.getTable(tableName));
+    }
+
 
     WriteStatus checkIfApplicable(WriteRequest request,
                                         VersionedValue value) {

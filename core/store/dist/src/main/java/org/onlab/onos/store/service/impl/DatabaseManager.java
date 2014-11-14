@@ -226,6 +226,12 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     }
 
     @Override
+    public Map<String, VersionedValue> getAll(String tableName) {
+        return client.getAll(tableName);
+    }
+
+
+    @Override
     public BatchReadResult batchRead(BatchReadRequest batchRequest) {
         return new BatchReadResult(client.batchRead(batchRequest));
     }

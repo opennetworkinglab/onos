@@ -3,6 +3,7 @@ package org.onlab.onos.store.service.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +14,7 @@ import org.onlab.onos.store.service.BatchReadRequest;
 import org.onlab.onos.store.service.BatchWriteRequest;
 import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.ReadResult;
+import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteResult;
 
 /**
@@ -89,6 +91,15 @@ public class DatabaseClient {
     public List<WriteResult> batchWrite(BatchWriteRequest batchRequest) {
 
         CompletableFuture<List<WriteResult>> future = copycat.submit("write", batchRequest);
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    public Map<String, VersionedValue> getAll(String tableName) {
+        CompletableFuture<Map<String, VersionedValue>> future = copycat.submit("getAll", tableName);
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {

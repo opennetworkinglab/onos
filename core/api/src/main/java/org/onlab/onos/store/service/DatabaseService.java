@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import java.util.Map;
+
 /**
  * Service interface for a strongly consistent and durable
  * key value data store.
@@ -13,6 +15,14 @@ public interface DatabaseService {
      * @return value (and version) associated with this key. This calls returns null if the key does not exist.
      */
     VersionedValue get(String tableName, String key);
+
+    /**
+     * Reads the whole table.
+     *
+     * @param tableName name of the table associated with this operation.
+     * @return the whole table
+     */
+    Map<String, VersionedValue> getAll(String tableName);
 
     /**
      * Associate the key with a value.
