@@ -1,0 +1,16 @@
+{
+  "comments": [
+    "Developing ONOS instance visualization"
+  ],
+  "title": "ONOS Instance Scenario",
+  "params": {
+    "lastAuto": 17
+  },
+  "description": [
+    "Visualizing ONOS instances.",
+    "",
+    "Press 'S' to load initial events.",
+    "",
+    "Press spacebar to complete the scenario..."
+  ]
+}

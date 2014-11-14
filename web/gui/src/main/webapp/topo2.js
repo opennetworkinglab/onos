@@ -155,11 +155,14 @@
         sid = 0,
         deviceLabelIndex = 0,
         hostLabelIndex = 0,
-        detailPane,
-        selectOrder = [],
         selections = {},
+        selectOrder = [],
         hovered = null,
+        detailPane,
         antTimer = null,
+        onosInstances = {},
+        onosOrder = [],
+        oiBox,
 
         viewMode = 'showAll',
         portLabelsOn = false;
@@ -198,11 +201,19 @@
         }
     }
 
+    function evTrace(data) {
+        fnTrace(data.event, data.payload.id);
+    }
+
     // ==============================
     // Key Callbacks
 
     function testMe(view) {
-        view.alert('test');
+        //view.alert('test');
+        detailPane.show();
+        setTimeout(detailPane.hide, 2000);
+        oiBox.show();
+        setTimeout(oiBox.hide, 2000);
     }
 
     function abortIfLive() {
@@ -303,25 +314,61 @@
     // ==============================
     // Radio Button Callbacks
 
+    var layerLookup = {
+        host: {
+            endstation: 'pkt', // default, if host event does not define type
+            bgpSpeaker: 'pkt'
+        },
+        device: {
+            switch: 'pkt',
+            roadm: 'opt'
+        },
+        link: {
+            hostLink: 'pkt',
+            direct: 'pkt',
+            optical: 'opt'
+        }
+    };
+
+    function inLayer(d, layer) {
+        var look = layerLookup[d.class],
+            lyr = look && look[d.type];
+        return lyr === layer;
+    }
+
+    function unsuppressLayer(which) {
+        node.each(function (d) {
+            var node = d.el;
+            if (inLayer(d, which)) {
+                node.classed('suppressed', false);
+            }
+        });
+
+        link.each(function (d) {
+            var link = d.el;
+            if (inLayer(d, which)) {
+                link.classed('suppressed', false);
+            }
+        });
+    }
+
     function showAllLayers() {
-//        network.node.classed('inactive', false);
-//        network.link.classed('inactive', false);
+        node.classed('suppressed', false);
+        link.classed('suppressed', false);
 //        d3.selectAll('svg .port').classed('inactive', false);
 //        d3.selectAll('svg .portText').classed('inactive', false);
-        // TODO ...
-        network.view.alert('showAllLayers() callback');
     }
 
     function showPacketLayer() {
-        showAllLayers();
-        // TODO ...
-        network.view.alert('showPacketLayer() callback');
+        node.classed('suppressed', true);
+        link.classed('suppressed', true);
+        unsuppressLayer('pkt');
     }
 
     function showOpticalLayer() {
-        showAllLayers();
-        // TODO ...
-        network.view.alert('showOpticalLayer() callback');
+        node.classed('suppressed', true);
+        link.classed('suppressed', true);
+        unsuppressLayer('opt');
     }
 
     // ==============================
@@ -351,7 +398,7 @@
     }
 
     var eventDispatch = {
-        addInstance: stillToImplement,
+        addInstance: addInstance,
         addDevice: addDevice,
         addLink: addLink,
         addHost: addHost,
@@ -371,8 +418,21 @@
         showTraffic: showTraffic
     };
 
+    function addInstance(data) {
+        evTrace(data);
+        var inst = data.payload,
+            id = inst.id;
+        if (onosInstances[id]) {
+            logicError('ONOS instance already added: ' + id);
+            return;
+        }
+        onosInstances[id] = inst;
+        onosOrder.push(inst);
+        updateInstances();
+    }
+
     function addDevice(data) {
-        fnTrace('addDevice', data.payload.id);
+        evTrace(data);
         var device = data.payload,
             nodeData = createDeviceNode(device);
         network.nodes.push(nodeData);
@@ -382,7 +442,7 @@
     }
 
     function addLink(data) {
-        fnTrace('addLink', data.payload.id);
+        evTrace(data);
         var link = data.payload,
             lnk = createLink(link);
         if (lnk) {
@@ -394,7 +454,7 @@
     }
 
     function addHost(data) {
-        fnTrace('addHost', data.payload.id);
+        evTrace(data);
         var host = data.payload,
             node = createHostNode(host),
             lnk;
@@ -415,7 +475,7 @@
 
     // TODO: fold updateX(...) methods into one base method; remove duplication
     function updateDevice(data) {
-        fnTrace('updateDevice', data.payload.id);
+        evTrace(data);
         var device = data.payload,
             id = device.id,
             nodeData = network.lookup[id];
@@ -428,7 +488,7 @@
     }
 
     function updateLink(data) {
-        fnTrace('updateLink', data.payload.id);
+        evTrace(data);
         var link = data.payload,
             id = link.id,
             linkData = network.lookup[id];
@@ -441,7 +501,7 @@
     }
 
     function updateHost(data) {
-        fnTrace('updateHost', data.payload.id);
+        evTrace(data);
         var host = data.payload,
             id = host.id,
             hostData = network.lookup[id];
@@ -455,7 +515,7 @@
 
     // TODO: fold removeX(...) methods into base method - remove dup code
     function removeLink(data) {
-        fnTrace('removeLink', data.payload.id);
+        evTrace(data);
         var link = data.payload,
             id = link.id,
             linkData = network.lookup[id];
@@ -467,7 +527,7 @@
     }
 
     function removeHost(data) {
-        fnTrace('removeHost', data.payload.id);
+        evTrace(data);
         var host = data.payload,
             id = host.id,
             hostData = network.lookup[id];
@@ -479,14 +539,14 @@
     }
 
     function showDetails(data) {
-        fnTrace('showDetails', data.payload.id);
+        evTrace(data);
         populateDetails(data.payload);
         detailPane.show();
     }
 
     function showPath(data) {
         // TODO: review - making sure we are handling the payload correctly.
-        fnTrace('showPath', data.payload.id);
+        evTrace(data);
         var links = data.payload.links,
             s = [ data.event + "\n" + links.length ];
         links.forEach(function (d, i) {
@@ -503,7 +563,7 @@
     }
 
     function showTraffic(data) {
-        fnTrace('showTraffic', data.payload.id);
+        evTrace(data);
         var paths = data.payload.paths;
 
         // Revert any links hilighted previously.
@@ -600,6 +660,30 @@
         });
     }
 
+
+    // ==============================
+    // onos instance panel functions
+
+    function updateInstances() {
+        var onoses = oiBox.el.selectAll('.onosInst')
+            .data(onosOrder, function (d) { return d.id; });
+
+        // operate on existing onoses if necessary
+
+        var entering = onoses.enter()
+            .append('div')
+            .attr('class', 'onosInst')
+            .classed('online', function (d) { return d.online; })
+            .text(function (d) { return d.id; });
+
+        // operate on existing + new onoses here
+
+        // the departed...
+        var exiting = onoses.exit()
+            .transition()
+            .style('opacity', 0)
+            .remove();
+    }
 
     // ==============================
     // force layout modification functions
@@ -760,11 +844,9 @@
         // Augment as needed...
         node.class = 'host';
         if (!node.type) {
-            // TODO: perhaps type would be: {phone, tablet, laptop, endstation} ?
             node.type = 'endstation';
         }
         node.svgClass = 'node host';
-        // TODO: consider placing near its switch, if [x,y] not defined
         positionNode(node);
 
         // cache label array length
@@ -1352,21 +1434,21 @@
     function addSingleSelectActions() {
         detailPane.append('hr');
         // always want to allow 'show traffic'
-        addAction('Show Traffic', showTrafficAction);
+        addAction(detailPane, 'Show Traffic', showTrafficAction);
     }
 
     function addMultiSelectActions() {
         detailPane.append('hr');
         // always want to allow 'show traffic'
-        addAction('Show Traffic', showTrafficAction);
+        addAction(detailPane, 'Show Traffic', showTrafficAction);
         // if exactly two hosts are selected, also want 'add host intent'
         if (nSel() === 2 && allSelectionsClass('host')) {
-            addAction('Add Host Intent', addIntentAction);
+            addAction(detailPane, 'Add Host Intent', addIntentAction);
         }
     }
 
-    function addAction(text, cb) {
-        detailPane.append('div')
+    function addAction(panel, text, cb) {
+        panel.append('div')
             .classed('actionBtn', true)
             .text(text)
             .on('click', cb);
@@ -1441,39 +1523,52 @@
     // TODO: toggle button (and other widgets in the masthead) should be provided
     //  by the framework; not generated by the view.
 
-    var showTrafficOnHover,
-        doPanZoom;
+    var showInstances,
+        doPanZoom,
+        showTrafficOnHover;
 
     function addButtonBar(view) {
         var bb = d3.select('#mast')
             .append('span').classed('right', true).attr('id', 'bb');
 
-        doPanZoom = bb.append('span')
-            .classed('btn', true)
-            .text('Pan/Zoom')
-            .on('click', togglePanZoom);
+        function mkTogBtn(text, cb) {
+            return bb.append('span')
+                .classed('btn', true)
+                .text(text)
+                .on('click', cb);
+        }
 
-        showTrafficOnHover = bb.append('span')
-            .classed('btn', true)
-            .text('Show traffic on hover')
-            .on('click', toggleTrafficHover);
+        showInstances = mkTogBtn('Show Instances', toggleInst);
+        doPanZoom = mkTogBtn('Pan/Zoom', togglePanZoom);
+        showTrafficOnHover = mkTogBtn('Show traffic on hover', toggleTrafficHover);
     }
 
-    function toggleTrafficHover() {
-        showTrafficOnHover.classed('active', !trafficHover());
+    function instShown() {
+        return showInstances.classed('active');
     }
-
-    function trafficHover() {
-        return showTrafficOnHover.classed('active');
-    }
-
-    function togglePanZoom() {
-        doPanZoom.classed('active', !panZoom());
+    function toggleInst() {
+        showInstances.classed('active', !instShown());
+        if (instShown()) {
+            oiBox.show();
+        } else {
+            oiBox.hide();
+        }
     }
 
     function panZoom() {
         return doPanZoom.classed('active');
     }
+    function togglePanZoom() {
+        doPanZoom.classed('active', !panZoom());
+    }
+
+    function trafficHover() {
+        return showTrafficOnHover.classed('active');
+    }
+    function toggleTrafficHover() {
+        showTrafficOnHover.classed('active', !trafficHover());
+    }
+
 
     // ==============================
     // View life-cycle callbacks
@@ -1485,16 +1580,12 @@
             fpad = fcfg.pad,
             forceDim = [w - 2*fpad, h - 2*fpad];
 
-        // TODO: set trace api
-        //trace = onos.exported.webSockTrace;
-
         // NOTE: view.$div is a D3 selection of the view's div
         var viewBox = '0 0 ' + config.logicalSize + ' ' + config.logicalSize;
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
         zoomPanContainer = svg.append('g').attr('id', 'zoomPanContainer');
-
         setupZoomPan();
 
         // add blue glow filter to svg layer
@@ -1566,6 +1657,7 @@
             selectCb, atDragEnd, panZoom);
 
         // create mask layer for when we lose connection to server.
+        // TODO: this should be part of the framework
         mask = view.$div.append('div').attr('id','topo-mask');
         para(mask, 'Oops!');
         para(mask, 'Web-socket connection to server closed...');
@@ -1707,5 +1799,6 @@
     });
 
     detailPane = onos.ui.addFloatingPanel('topo-detail');
+    oiBox = onos.ui.addFloatingPanel('topo-oibox', 'TL');
 
 }(ONOS));

@@ -197,6 +197,39 @@
     border: 0;
 }
 
+/* ONOS instance stuff */
+
+#topo-oibox {
+    width: 80px;
+}
+
+#topo-oibox .onosInst {
+    margin: 6px 0;
+    padding: 3px;
+    width: 80%;
+    left: 10%;
+    height: 40px;
+    cursor: pointer;
+
+    /* theme-related */
+    color: #444;
+    background-color: #ccc;
+    border: 2px dashed #aaa;
+}
+
+
+#topo-oibox .onosInst.online {
+    /* theme-related */
+    color: #113;
+    background-color: #bbf;
+    border: 2px solid #555;
+}
+
+#topo svg .suppressed,
+#topo-oibox .suppressed {
+    opacity: 0.2;
+}
+
 /* Web Socket Closed Mask (starts hidden) */
 
 #topo-mask {

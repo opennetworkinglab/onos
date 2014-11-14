@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffff0008",
+    "type": "switch",
+    "online": true,
+    "master": "onos-3",
+    "labels": [
+      "0000ffffffff0008",
+      "FF:FF:FF:FF:00:08",
+      "sw-8"
+    ],
+    "metaUi": {
+      "x": 734,
+      "y": 477
+    }
+  }
+}

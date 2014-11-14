@@ -699,6 +699,16 @@
         // ..........................................................
         // UI API
 
+        var fpConfig = {
+            TR: {
+                side: 'right'
+
+            },
+            TL: {
+                side: 'left'
+            }
+        };
+
         uiApi = {
             addLib: function (libName, api) {
                 // TODO: validation of args
@@ -713,6 +723,7 @@
              */
             addFloatingPanel: function (id, position) {
                 var pos = position || 'TR',
+                    cfg = fpConfig[pos],
                     el,
                     fp;
 
@@ -723,22 +734,37 @@
 
                 el = $floatPanels.append('div')
                     .attr('id', id)
-                    .attr('class', 'fpanel');
+                    .attr('class', 'fpanel')
+                    .style('opacity', 0);
+
+                // has to be called after el is set.
+                el.style(cfg.side, pxHide());
+
+                function pxShow() {
+                    return '20px';
+                }
+                function pxHide() {
+                    return (-20 - widthVal()) + 'px';
+                }
+                function widthVal() {
+                    return el.style('width').replace(/px$/, '');
+                }
 
                 fp = {
                     id: id,
                     el: el,
                     pos: pos,
+
                     show: function () {
                         console.log('show pane: ' + id);
                         el.transition().duration(750)
-                            .style('right', '20px')
+                            .style(cfg.side, pxShow())
                             .style('opacity', 1);
                     },
                     hide: function () {
                         console.log('hide pane: ' + id);
                         el.transition().duration(750)
-                            .style('right', '-320px')
+                            .style(cfg.side, pxHide())
                             .style('opacity', 0);
                     },
                     empty: function () {
@@ -746,6 +772,12 @@
                     },
                     append: function (what) {
                         return el.append(what);
+                    },
+                    width: function (w) {
+                        if (w === undefined) {
+                            return widthVal();
+                        }
+                        el.style('width', w);
                     }
                 };
                 fpanels[id] = fp;
