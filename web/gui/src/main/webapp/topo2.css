@@ -108,9 +108,32 @@
     opacity: .7;
 }
 
-#topo svg .link.showPath {
-    stroke: #f00;
+#topo svg .link.primary {
+    stroke: #f11;
     stroke-width: 6px;
+}
+#topo svg .link.secondary {
+    stroke: rgba(255,100,100,0.5);
+    stroke-width: 4px;
+}
+#topo svg .link.animated {
+    stroke: #f11;
+    stroke-width: 10px;
+    stroke-dasharray: 8 8
+}
+
+#topo svg .link.primary.optical {
+    stroke: #74f;
+    stroke-width: 6px;
+}
+#topo svg .link.secondary.optical {
+    stroke: rgba(128,64,255,0.5);
+    stroke-width: 4px;
+}
+#topo svg .link.animated.optical {
+    stroke: #74f;
+    stroke-width: 10px;
+    stroke-dasharray: 8 8
 }
 
 

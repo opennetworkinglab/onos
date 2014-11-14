@@ -120,9 +120,9 @@
 
     // key bindings
     var keyDispatch = {
-        //M: testMe,                  // TODO: remove (testing only)
-        //S: injectStartupEvents,     // TODO: remove (testing only)
-        //space: injectTestEvent,     // TODO: remove (testing only)
+        M: testMe,                  // TODO: remove (testing only)
+        S: injectStartupEvents,     // TODO: remove (testing only)
+        space: injectTestEvent,     // TODO: remove (testing only)
 
         B: toggleBg,
         L: cycleLabels,
@@ -159,8 +159,8 @@
         selectOrder = [],
         selections = {},
         hovered = null,
+        antTimer = null,
 
-        highlighted = null,
         viewMode = 'showAll',
         portLabelsOn = false;
 
@@ -503,23 +503,19 @@
     }
 
     function showTraffic(data) {
-        // TODO: review - making sure we are handling the payload correctly.
-        // TODO: handle 'class' of link: primary, secondary, animated...
         fnTrace('showTraffic', data.payload.id);
         var paths = data.payload.paths;
 
         // Revert any links hilighted previously.
-        network.links.forEach(function (d) {
-            d.el.classed('showPath', false);
-        });
+        link.classed('primary secondary animated optical', false);
 
         // Now hilight all links in the paths payload.
-        paths.forEach(function (d) {
-            var links = d.links;
-            links.forEach(function (d, i) {
-                var link = network.lookup[d];
-                if (link) {
-                    link.el.classed('showPath', true);
+        paths.forEach(function (p) {
+            var cls = p.class;
+            p.links.forEach(function (id) {
+                var lnk = network.lookup[id];
+                if (lnk) {
+                    lnk.el.classed(cls, true);
                 }
             });
         });
@@ -1174,8 +1170,10 @@
         _send : function(message) {
             if (webSock.ws) {
                 webSock.ws.send(message);
-            } else {
+            } else if (config.useLiveData) {
                 network.view.alert('no web socket open\n\n' + message);
+            } else {
+                console.log('WS Send: ' + JSON.stringify(message));
             }
         }
 
@@ -1536,6 +1534,8 @@
             d3.select(self).classed('fixed', true);
             if (config.useLiveData) {
                 sendUpdateMeta(d);
+            } else {
+                console.log('Moving node ' + d.id + ' to [' + d.x + ',' + d.y + ']');
             }
         }
 
@@ -1599,6 +1599,21 @@
 
         // Load map data asynchronously; complete startup after that..
         loadGeoJsonData();
+
+        // start the and timer
+        var dashIdx = 0;
+        antTimer = setInterval(function () {
+            // TODO: figure out how to choose Src-->Dst and Dst-->Src, per link
+            dashIdx = dashIdx === 0 ? 14 : dashIdx - 2;
+            d3.selectAll('.animated').style('stroke-dashoffset', dashIdx);
+        }, 35);
+    }
+
+    function unload(view, ctx, flags) {
+        if (antTimer) {
+            clearInterval(antTimer);
+            antTimer = null;
+        }
     }
 
     // TODO: move these to config/state portion of script
@@ -1687,6 +1702,7 @@
     onos.ui.addView('topo', {
         preload: preload,
         load: load,
+        unload: unload,
         resize: resize
     });
 

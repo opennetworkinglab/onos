@@ -1,0 +1,16 @@
+{
+  "comments": [
+    "Stepping through showTraffic"
+  ],
+  "title": "Show Traffic Scenario",
+  "params": {
+    "lastAuto": 14
+  },
+  "description": [
+    "Figure out primary, secondary and animated link visualizations.",
+    "",
+    "Press 'S' to load initial events.",
+    "",
+    "Press spacebar to complete the scenario..."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffffff03",
+    "type": "roadm",
+    "online": true,
+    "labels": [
+      "0000ffffffffff03",
+      "FF:FF:FF:FF:FF:03",
+      "opt-3"
+    ],
+    "metaUi": {
+      "x": 282,
+      "y": 603
+    }
+  }
+}
