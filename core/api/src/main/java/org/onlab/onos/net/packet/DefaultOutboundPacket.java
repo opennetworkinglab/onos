@@ -16,6 +16,7 @@
 package org.onlab.onos.net.packet;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.TrafficTreatment;
@@ -25,7 +26,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Default implementation of an immutable outbound packet.
  */
-public class DefaultOutboundPacket implements OutboundPacket {
+public final class DefaultOutboundPacket implements OutboundPacket {
     private final DeviceId sendThrough;
     private final TrafficTreatment treatment;
     private final ByteBuffer data;
@@ -60,6 +61,24 @@ public class DefaultOutboundPacket implements OutboundPacket {
         return data;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(sendThrough, treatment, data);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof OutboundPacket) {
+            final DefaultOutboundPacket other = (DefaultOutboundPacket) obj;
+            return Objects.equals(this.sendThrough, other.sendThrough) &&
+                    Objects.equals(this.treatment, other.treatment) &&
+                    Objects.equals(this.data, other.data);
+        }
+        return false;
+    }
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)

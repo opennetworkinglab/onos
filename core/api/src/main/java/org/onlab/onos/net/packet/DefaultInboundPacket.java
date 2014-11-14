@@ -26,7 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Default implementation of an immutable inbound packet.
  */
-public class DefaultInboundPacket implements InboundPacket {
+public final class DefaultInboundPacket implements InboundPacket {
 
     private final ConnectPoint receivedFrom;
     private final Ethernet parsed;
