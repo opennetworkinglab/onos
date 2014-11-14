@@ -30,9 +30,15 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.Host;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.DefaultTrafficSelector;
+import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentExtensionService;
@@ -47,8 +53,11 @@ import org.onlab.onos.net.topology.Topology;
 import org.onlab.onos.net.topology.TopologyEdge;
 
 import org.onlab.onos.net.topology.TopologyService;
+import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * OpticalPathProvisioner listens event notifications from the Intent F/W.
@@ -83,6 +92,9 @@ public class OpticalPathProvisioner {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService resourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
 
     private ApplicationId appId;
 
@@ -125,7 +137,28 @@ public class OpticalPathProvisioner {
 
         private void setuplightpath(Intent intent) {
            // TODO support more packet intent types
-           if (!intent.getClass().equals(PointToPointIntent.class)) {
+
+           if (intent instanceof HostToHostIntent) {
+               HostToHostIntent hostToHostIntent = (HostToHostIntent) intent;
+               Host one = hostService.getHost(hostToHostIntent.one());
+               Host two = hostService.getHost(hostToHostIntent.two());
+
+               TrafficSelector selector = buildTrafficSelector();
+               TrafficTreatment treatment = builder().build();
+
+               PointToPointIntent intentOneToTwo =
+                       new PointToPointIntent(appId, selector, treatment,
+                                              one.location(), two.location());
+               intentService.submit(intentOneToTwo);
+               log.info("Submitting P2P intent {} ", intentOneToTwo);
+
+               PointToPointIntent intentTwoToOne =
+                       new PointToPointIntent(appId, selector, treatment,
+                                              two.location(), one.location());
+               intentService.submit(intentTwoToOne);
+               log.info("Submitting P2P intent for {} ", intentTwoToOne);
+               return;
+           } else if (!intent.getClass().equals(PointToPointIntent.class)) {
                return;
            }
 
@@ -162,7 +195,9 @@ public class OpticalPathProvisioner {
            Path firstPath = itrPath.next();
            log.info(firstPath.links().toString());
 
-           ArrayList<Map<ConnectPoint, ConnectPoint>> connectionList = new ArrayList<>();
+           ArrayList<Map<ConnectPoint, ConnectPoint>> connectionList =
+                   new ArrayList<>();
+
 
            Iterator<Link> itrLink = firstPath.links().iterator();
            while (itrLink.hasNext()) {
@@ -231,6 +266,15 @@ public class OpticalPathProvisioner {
 
         private void teardownLightpath(Intent intent) {
           // TODO: tear down the idle lightpath if the utilization is close to zero.
+        }
+
+        private TrafficSelector buildTrafficSelector() {
+            TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+            Short ethType = Ethernet.TYPE_IPV4;
+
+            selectorBuilder.matchEthType(ethType);
+
+            return selectorBuilder.build();
         }
 
     }

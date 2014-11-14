@@ -16,7 +16,7 @@ class NullIntf( Intf ):
 
 class NullLink( Link ):
     "A dummy link that doesn't touch either interface"
-    def makeIntfPair( cls, intf1, intf2 ):
+    def makeIntfPair( cls, intf1, intf2, *args, **kwargs ):
         pass
     def delete( self ):
         pass

@@ -174,7 +174,7 @@ public class TopologyWebSocket
                 requestDetails(event);
             } else if (type.equals("updateMeta")) {
                 updateMetaUi(event);
-            } else if (type.equals("requestPath")) {
+            } else if (type.equals("addHostIntent")) {
                 createHostIntent(event);
             } else if (type.equals("requestTraffic")) {
                 requestTraffic(event);
