@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import static org.onlab.util.HexString.toHexString;
+
 import java.util.Arrays;
 
 import com.google.common.base.MoreObjects;
@@ -64,7 +66,7 @@ public class VersionedValue {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("version", version)
-                .add("value", Arrays.toString(value))
+                .add("value", toHexString(value))
                 .toString();
     }
 }

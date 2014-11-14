@@ -3,6 +3,7 @@ package org.onlab.onos.store.service;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.onos.store.service.WriteRequest.Type.*;
+import static org.onlab.util.HexString.toHexString;
 
 import java.util.Objects;
 
@@ -189,9 +190,9 @@ public class WriteRequest {
                 .add("type", type)
                 .add("tableName", tableName)
                 .add("key", key)
-                .add("newValue", newValue)
+                .add("newValue", toHexString(newValue))
                 .add("previousVersion", previousVersion)
-                .add("oldValue", oldValue)
+                .add("oldValue", toHexString(oldValue))
                 .toString();
     }
 

@@ -85,7 +85,7 @@ public class ResourceAvailableCommand extends AbstractShellCommand {
             }
 
         } catch (Exception e) {
-            print("Invalid link", e.getMessage());
+            print("Invalid link %s", e.getMessage());
         }
     }
 }

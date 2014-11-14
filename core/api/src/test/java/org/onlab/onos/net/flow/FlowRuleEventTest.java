@@ -68,7 +68,7 @@ public class FlowRuleEventTest extends AbstractEventTest {
         final long time = System.currentTimeMillis();
         final FlowRule flowRule = new IntentTestsMocks.MockFlowRule(1);
         final FlowRuleEvent event =
-                new FlowRuleEvent(FlowRuleEvent.Type.RULE_UPDATED, flowRule);
+                new FlowRuleEvent(FlowRuleEvent.Type.RULE_UPDATED, flowRule, time);
         validateEvent(event, FlowRuleEvent.Type.RULE_UPDATED, flowRule, time);
     }
 }
