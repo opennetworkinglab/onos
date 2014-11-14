@@ -37,6 +37,9 @@
         if (!$.isFunction(atDragEnd)) {
             alert('d3util.createDragBehavior(): atDragEnd is not a function')
         }
+        if (!$.isFunction(requireMeta)) {
+            alert('d3util.createDragBehavior(): requireMeta is not a function')
+        }
 
         function dragged(d) {
             var threshold = draggedThreshold(force.alpha()),
@@ -51,7 +54,7 @@
         drag = d3.behavior.drag()
             .origin(function(d) { return d; })
             .on('dragstart', function(d) {
-                if (requireMeta ^ !d3.event.sourceEvent.metaKey) {
+                if (requireMeta() ^ !d3.event.sourceEvent.metaKey) {
                     d3.event.sourceEvent.stopPropagation();
 
                     d.oldX = d.x;
@@ -62,7 +65,7 @@
                 }
             })
             .on('drag', function(d) {
-                if (requireMeta ^ !d3.event.sourceEvent.metaKey) {
+                if (requireMeta() ^ !d3.event.sourceEvent.metaKey) {
                     d.px = d3.event.x;
                     d.py = d3.event.y;
                     if (dragged(d)) {

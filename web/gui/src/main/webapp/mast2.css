@@ -100,6 +100,7 @@
 }
 
 #bb .btn {
+    margin: 0 4px;
     padding: 2px 6px;
     font-size: 9pt;
     cursor: pointer;
