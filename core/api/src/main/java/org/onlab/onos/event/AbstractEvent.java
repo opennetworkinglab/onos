@@ -22,7 +22,7 @@ import org.joda.time.LocalDateTime;
 /**
  * Base event implementation.
  */
-public class AbstractEvent<T extends Enum, S extends Object> implements Event<T, S> {
+public class AbstractEvent<T extends Enum, S> implements Event<T, S> {
 
     private final long time;
     private final T type;
