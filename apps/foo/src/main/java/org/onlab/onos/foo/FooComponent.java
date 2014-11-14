@@ -210,7 +210,12 @@ public class FooComponent {
                 }
             }
             int retry = 5;
+
             do {
+                if (vv == null) {
+                    log.error("Shouldn't reach here - value is null");
+                    break;
+                }
                 ByteBuffer prev = ByteBuffer.wrap(vv.value());
                 long next = prev.getLong() + 1;
                 byte[] newValue = ByteBuffer.allocate(Long.BYTES).putLong(next).array();
