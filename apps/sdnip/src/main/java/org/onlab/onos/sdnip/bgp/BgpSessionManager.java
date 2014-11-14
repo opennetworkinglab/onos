@@ -32,6 +32,8 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.onos.sdnip.RouteListener;
 import org.onlab.onos.sdnip.RouteUpdate;
@@ -46,7 +48,10 @@ import org.slf4j.LoggerFactory;
 public class BgpSessionManager {
     private static final Logger log =
         LoggerFactory.getLogger(BgpSessionManager.class);
+    boolean isShutdown = true;
     private Channel serverChannel;     // Listener for incoming BGP connections
+    private ServerBootstrap serverBootstrap;
+    private ChannelGroup allChannels = new DefaultChannelGroup();
     private ConcurrentMap<SocketAddress, BgpSession> bgpSessions =
         new ConcurrentHashMap<>();
     private Ip4Address myBgpId;        // Same BGP ID for all peers
@@ -82,6 +87,24 @@ public class BgpSessionManager {
      */
     public Collection<BgpRouteEntry> getBgpRoutes() {
         return bgpRoutes.values();
+    }
+
+    /**
+     * Adds the channel for a BGP session.
+     *
+     * @param channel the channel to add
+     */
+    void addSessionChannel(Channel channel) {
+        allChannels.add(channel);
+    }
+
+    /**
+     * Removes the channel for a BGP session.
+     *
+     * @param channel the channel to remove
+     */
+    void removeSessionChannel(Channel channel) {
+        allChannels.remove(channel);
     }
 
     /**
@@ -160,6 +183,7 @@ public class BgpSessionManager {
      */
     public void startUp(int listenPortNumber) {
         log.debug("BGP Session Manager startUp()");
+        isShutdown = false;
 
         ChannelFactory channelFactory =
             new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
@@ -183,13 +207,14 @@ public class BgpSessionManager {
         InetSocketAddress listenAddress =
             new InetSocketAddress(listenPortNumber);
 
-        ServerBootstrap serverBootstrap = new ServerBootstrap(channelFactory);
+        serverBootstrap = new ServerBootstrap(channelFactory);
         // serverBootstrap.setOptions("reuseAddr", true);
         serverBootstrap.setOption("child.keepAlive", true);
         serverBootstrap.setOption("child.tcpNoDelay", true);
         serverBootstrap.setPipelineFactory(pipelineFactory);
         try {
             serverChannel = serverBootstrap.bind(listenAddress);
+            allChannels.add(serverChannel);
         } catch (ChannelException e) {
             log.debug("Exception binding to BGP port {}: ",
                       listenAddress.getPort(), e);
@@ -200,10 +225,9 @@ public class BgpSessionManager {
      * Shuts down the BGP Session Manager operation.
      */
     public void shutDown() {
-        // TODO: Complete the implementation: remove routes, etc.
-        if (serverChannel != null) {
-            serverChannel.close();
-        }
+        isShutdown = true;
+        allChannels.close().awaitUninterruptibly();
+        serverBootstrap.releaseExternalResources();
     }
 
     /**
@@ -223,6 +247,9 @@ public class BgpSessionManager {
         synchronized void routeUpdates(BgpSession bgpSession,
                         Collection<BgpRouteEntry> addedBgpRouteEntries,
                         Collection<BgpRouteEntry> deletedBgpRouteEntries) {
+            if (isShutdown) {
+                return;         // Ignore any leftover updates if shutdown
+            }
             // Process the deleted route entries
             for (BgpRouteEntry bgpRouteEntry : deletedBgpRouteEntries) {
                 processDeletedRoute(bgpSession, bgpRouteEntry);

@@ -167,8 +167,33 @@ public class Router implements RouteListener {
      * Shuts the router down.
      */
     public void shutdown() {
+        // Stop all threads
         bgpUpdatesExecutor.shutdownNow();
         bgpIntentsSynchronizerExecutor.shutdownNow();
+
+        synchronized (this) {
+            // Cleanup all local state
+            bgpRoutes = new ConcurrentInvertedRadixTree<>(
+                new DefaultByteArrayNodeFactory());
+            routeUpdates.clear();
+            routesWaitingOnArp.clear();
+            pushedRouteIntents.clear();
+
+            //
+            // Withdraw all SDN-IP intents
+            //
+            if (!isElectedLeader) {
+                return;         // Nothing to do: not the leader anymore
+            }
+            log.debug("Withdrawing all SDN-IP Route Intents...");
+            for (Intent intent : intentService.getIntents()) {
+                if (!(intent instanceof MultiPointToSinglePointIntent)
+                        || !intent.appId().equals(appId)) {
+                    continue;
+                }
+                intentService.withdraw(intent);
+            }
+        }
     }
 
     //@Override TODO hook this up to something

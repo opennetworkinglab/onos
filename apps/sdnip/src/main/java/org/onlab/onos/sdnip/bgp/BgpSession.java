@@ -237,6 +237,18 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     @Override
+    public void channelOpen(ChannelHandlerContext ctx,
+                            ChannelStateEvent channelEvent) {
+        bgpSessionManager.addSessionChannel(channelEvent.getChannel());
+    }
+
+    @Override
+    public void channelClosed(ChannelHandlerContext ctx,
+                            ChannelStateEvent channelEvent) {
+        bgpSessionManager.removeSessionChannel(channelEvent.getChannel());
+    }
+
+    @Override
     public void channelConnected(ChannelHandlerContext ctx,
                                  ChannelStateEvent channelEvent) {
         localAddress = ctx.getChannel().getLocalAddress();
