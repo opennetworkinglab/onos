@@ -28,24 +28,28 @@ public interface StatisticStore {
 
     /**
      * Lay the foundation for receiving flow stats for this rule.
+     *
      * @param rule a {@link org.onlab.onos.net.flow.FlowRule}
      */
     void prepareForStatistics(FlowRule rule);
 
     /**
      * Remove entries associated with this rule.
+     *
      * @param rule {@link org.onlab.onos.net.flow.FlowRule}
      */
     void removeFromStatistics(FlowRule rule);
 
     /**
      * Adds a stats observation for a flow rule.
+     *
      * @param rule a {@link org.onlab.onos.net.flow.FlowEntry}
      */
     void addOrUpdateStatistic(FlowEntry rule);
 
     /**
      * Fetches the current observed stats values.
+     *
      * @param connectPoint the port to fetch information for
      * @return set of current flow rules
      */
@@ -53,6 +57,7 @@ public interface StatisticStore {
 
     /**
      * Fetches the current observed stats values.
+     *
      * @param connectPoint the port to fetch information for
      * @return set of current values
      */

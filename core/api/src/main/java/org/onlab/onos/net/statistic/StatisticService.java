@@ -29,6 +29,7 @@ public interface StatisticService {
 
     /**
      * Obtain the load for a the ingress to the given link.
+     *
      * @param link the link to query.
      * @return a {@link org.onlab.onos.net.statistic.Load Load}
      */
@@ -36,6 +37,7 @@ public interface StatisticService {
 
     /**
      * Obtain the load for the given port.
+     *
      * @param connectPoint the port to query
      * @return a {@link org.onlab.onos.net.statistic.Load}
      */
@@ -43,6 +45,7 @@ public interface StatisticService {
 
     /**
      * Find the most loaded link along a path.
+     *
      * @param path the path to search in
      * @return the most loaded {@link org.onlab.onos.net.Link}.
      */
@@ -50,6 +53,7 @@ public interface StatisticService {
 
     /**
      * Find the least loaded link along a path.
+     *
      * @param path the path to search in
      * @return the least loaded {@link org.onlab.onos.net.Link}.
      */
@@ -58,6 +62,7 @@ public interface StatisticService {
     /**
      * Returns the highest hitter (a flow rule) for a given port, ie. the
      * flow rule which is generating the most load.
+     *
      * @param connectPoint the port
      * @return the flow rule
      */
