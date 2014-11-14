@@ -160,7 +160,7 @@ public class OpticalPathProvisioner {
            ConnectPoint dstWdmPoint = null;
            Iterator<Path> itrPath = paths.iterator();
            Path firstPath = itrPath.next();
-           log.info(firstPath.toString());
+           log.info(firstPath.links().toString());
 
            ArrayList<Map<ConnectPoint, ConnectPoint>> connectionList = new ArrayList<>();
 
@@ -181,14 +181,17 @@ public class OpticalPathProvisioner {
                    } else {
                        break;
                    }
+
+                   /*
                    if (itrLink.hasNext()) {
                        Link link3 = itrLink.next();
-                       if (!isOpticalLink(link3)) {
+                       if (isOpticalLink(link3)) {
                           break;
                        }
                    } else {
                        break;
-                   }
+                   }*/
+
                }
 
                Map<ConnectPoint, ConnectPoint> pair =
@@ -210,7 +213,8 @@ public class OpticalPathProvisioner {
 
                    intentService.submit(opticalIntent);
 
-                   log.info(opticalIntent.toString());
+                   log.info(srcWdmPoint.toString());
+                   log.info(dstWdmPoint.toString());
                }
            }
 
