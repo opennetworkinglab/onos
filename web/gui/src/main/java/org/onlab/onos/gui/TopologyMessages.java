@@ -43,7 +43,6 @@ import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.ConnectivityIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
@@ -232,7 +231,7 @@ public abstract class TopologyMessages {
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
-                .put("online", true) // TODO: add link state field
+                .put("online", true) // link.state()) TODO: add link state field
                 .put("linkWidth", 2)
                 .put("src", link.src().deviceId().toString())
                 .put("srcPort", link.src().port().toString())
@@ -370,18 +369,18 @@ public abstract class TopologyMessages {
 
 
     // Produces JSON message to trigger traffic visualization
-    protected ObjectNode trafficMessage(Set<Intent> intents, long sid) {
+    protected ObjectNode trafficMessage(long sid, TrafficClass... trafficClasses) {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode paths = mapper.createArrayNode();
         payload.set("paths", paths);
 
-        for (Intent intent : intents) {
-            List<Intent> installables = intentService.getInstallableIntents(intent.id());
-            IntentState state = intentService.getIntentState(intent.id());
-            String type = state == IntentState.FAILED ? "inactive" : "active";
-            for (Intent installable : installables) {
-                if (installable instanceof ConnectivityIntent) {
-                    addPathTraffic(paths, type, (ConnectivityIntent) installable);
+        for (TrafficClass trafficClass : trafficClasses) {
+            for (Intent intent : trafficClass.intents) {
+                List<Intent> installables = intentService.getInstallableIntents(intent.id());
+                for (Intent installable : installables) {
+                    if (installable instanceof ConnectivityIntent) {
+                        addPathTraffic(paths, trafficClass.type, (ConnectivityIntent) installable);
+                    }
                 }
             }
         }
@@ -449,6 +448,17 @@ public abstract class TopologyMessages {
     private class Separator extends Prop {
         protected Separator() {
             super("-", "");
+        }
+    }
+
+    // Auxiliary carrier of data for requesting traffic message.
+    protected class TrafficClass {
+        public final String type;
+        public final Set<Intent> intents;
+
+        TrafficClass(String type, Set<Intent> intents) {
+            this.type = type;
+            this.intents = intents;
         }
     }
 

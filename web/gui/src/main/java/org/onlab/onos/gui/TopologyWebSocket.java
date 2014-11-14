@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
@@ -252,38 +253,44 @@ public class TopologyWebSocket
     private void requestTraffic(ObjectNode event) {
         ObjectNode payload = payload(event);
         long sid = number(event, "sid");
-        Set<Intent> intents = findPathIntents(payload);
 
-        // Add all those intents to the list of monitored intents & flows.
-        intentsToMonitor.clear();
-        for (Intent intent : intents) {
-            intentsToMonitor.put(intent, sid);
+        // Get the set of selected hosts and their intents.
+        Set<Host> hosts = getHosts((ArrayNode) payload.path("ids"));
+        Set<Intent> intents = findPathIntents(hosts);
+
+        // If there is a hover node, include it in the hosts and find intents.
+        String hover = string(payload, "hover");
+        Set<Intent> hoverIntents;
+        if (!isNullOrEmpty(hover)) {
+            addHost(hosts, hostId(hover));
+            hoverIntents = findPathIntents(hosts);
+            intents.removeAll(hoverIntents);
+
+            // Send an initial message to highlight all links of all monitored intents.
+            sendMessage(trafficMessage(sid,
+                                       new TrafficClass("primary", hoverIntents),
+                                       new TrafficClass("secondary", intents)));
+
+        } else {
+            // Send an initial message to highlight all links of all monitored intents.
+            sendMessage(trafficMessage(sid, new TrafficClass("primary", intents)));
+
+            // Add all those intents to the list of monitored intents & flows.
+            intentsToMonitor.clear();
+            for (Intent intent : intents) {
+                intentsToMonitor.put(intent, sid);
+            }
         }
-
-        // Send an initial message to highlight all links of all monitored intents.
-        sendMessage(trafficMessage(intents, sid));
     }
 
     // Cancels sending traffic messages.
     private void cancelTraffic(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        long sid = number(event, "sid");
-        Set<Intent> intents = findPathIntents(payload);
-
-        // Remove all those intents from the list of monitored intents & flows.
-        intentsToMonitor.clear(); // TODO: remove when ready
-        for (Intent intent : intents) {
-            intentsToMonitor.remove(intent.id());
-        }
-        sendMessage(trafficMessage(intents, sid));
+        sendMessage(trafficMessage(number(event, "sid")));
     }
 
     // Finds all path (host-to-host or point-to-point) intents that pertains
-    // to the hosts indicated in the given event payload.
-    private Set<Intent> findPathIntents(ObjectNode payload) {
-        // Get the list of selected hosts.
-        Set<Host> hosts = getHosts((ArrayNode) payload.path("ids"));
-
+    // to the given hosts.
+    private Set<Intent> findPathIntents(Set<Host> hosts) {
         // Derive from this the set of edge connect points.
         Set<ConnectPoint> edgePoints = getEdgePoints(hosts);
 
@@ -359,17 +366,23 @@ public class TopologyWebSocket
     // Produces a set of all host ids listed in the specified JSON array.
     private Set<Host> getHosts(ArrayNode array) {
         Set<Host> hosts = new HashSet<>();
-        for (JsonNode node : array) {
-            try {
-                Host host = hostService.getHost(hostId(node.asText()));
-                if (host != null) {
-                    hosts.add(host);
+        if (array != null) {
+            for (JsonNode node : array) {
+                try {
+                    addHost(hosts, hostId(node.asText()));
+                } catch (IllegalArgumentException e) {
+                    log.debug("Skipping ID {}", node.asText());
                 }
-            } catch (IllegalArgumentException e) {
-                log.debug("Skipping ID {}", node.asText());
             }
         }
         return hosts;
+    }
+
+    private void addHost(Set<Host> hosts, HostId hostId) {
+        Host host = hostService.getHost(hostId);
+        if (host != null) {
+            hosts.add(host);
+        }
     }
 
     // Produces a set of edge points from the specified set of hosts.
@@ -460,7 +473,8 @@ public class TopologyWebSocket
                     ObjectNode payload = pathMessage(path, "host")
                             .put("intentId", intent.id().toString());
                     sendMessage(envelope("showPath", sid, payload));
-                    sendMessage(trafficMessage(intentsToMonitor.keySet(), sid));
+                    TrafficClass tc = new TrafficClass("animated", intentsToMonitor.keySet());
+                    sendMessage(trafficMessage(sid, tc));
                 }
             }
         }
