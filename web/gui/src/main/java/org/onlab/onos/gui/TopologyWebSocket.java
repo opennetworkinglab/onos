@@ -24,8 +24,6 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipListener;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
@@ -43,6 +41,7 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.net.intent.OpticalConnectivityIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.LinkEvent;
@@ -52,9 +51,9 @@ import org.onlab.osgi.ServiceDirectory;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
@@ -62,6 +61,7 @@ import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 
 /**
@@ -79,6 +79,8 @@ public class TopologyWebSocket
 
     private static final String APP_ID = "org.onlab.onos.gui";
 
+    private static final long TRAFFIC_FREQUENCY_SEC = 5000;
+
     private final ApplicationId appId;
 
     private Connection connection;
@@ -88,11 +90,12 @@ public class TopologyWebSocket
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
     private final HostListener hostListener = new InternalHostListener();
-    private final MastershipListener mastershipListener = new InternalMastershipListener();
     private final IntentListener intentListener = new InternalIntentListener();
 
     // Intents that are being monitored for the GUI
-    private Map<Intent, Long> intentsToMonitor = new ConcurrentHashMap<>();
+    private ObjectNode monitorRequest;
+    private final Timer timer = new Timer("intent-traffic-monitor");
+    private final TimerTask timerTask = new IntentTrafficMonitor();
 
     private long lastActive = System.currentTimeMillis();
     private boolean listenersRemoved = false;
@@ -141,6 +144,7 @@ public class TopologyWebSocket
         this.connection = connection;
         this.control = (FrameConnection) connection;
         addListeners();
+        timer.schedule(timerTask, TRAFFIC_FREQUENCY_SEC, TRAFFIC_FREQUENCY_SEC);
 
         sendAllInstances();
         sendAllDevices();
@@ -151,6 +155,7 @@ public class TopologyWebSocket
     @Override
     public synchronized void onClose(int closeCode, String message) {
         removeListeners();
+        timer.cancel();
         log.info("GUI client disconnected");
     }
 
@@ -245,14 +250,15 @@ public class TopologyWebSocket
         HostToHostIntent hostIntent = new HostToHostIntent(appId, one, two,
                                                            DefaultTrafficSelector.builder().build(),
                                                            DefaultTrafficTreatment.builder().build());
-        intentsToMonitor.put(hostIntent, number(event, "sid"));
+        monitorRequest = event;
         intentService.submit(hostIntent);
     }
 
     // Sends traffic message.
-    private void requestTraffic(ObjectNode event) {
+    private synchronized void requestTraffic(ObjectNode event) {
         ObjectNode payload = payload(event);
         long sid = number(event, "sid");
+        monitorRequest = event;
 
         // Get the set of selected hosts and their intents.
         Set<Host> hosts = getHosts((ArrayNode) payload.path("ids"));
@@ -274,18 +280,13 @@ public class TopologyWebSocket
         } else {
             // Send an initial message to highlight all links of all monitored intents.
             sendMessage(trafficMessage(sid, new TrafficClass("primary", intents)));
-
-            // Add all those intents to the list of monitored intents & flows.
-            intentsToMonitor.clear();
-            for (Intent intent : intents) {
-                intentsToMonitor.put(intent, sid);
-            }
         }
     }
 
     // Cancels sending traffic messages.
     private void cancelTraffic(ObjectNode event) {
         sendMessage(trafficMessage(number(event, "sid")));
+        monitorRequest = null;
     }
 
     // Finds all path (host-to-host or point-to-point) intents that pertains
@@ -306,18 +307,30 @@ public class TopologyWebSocket
             return intents;
         }
 
-        for (Intent intent : intentService.getIntents()) {
-            boolean isRelevant = false;
-            if (intent instanceof HostToHostIntent) {
-                isRelevant = isIntentRelevant((HostToHostIntent) intent, hosts);
-            } else if (intent instanceof PointToPointIntent) {
-                isRelevant = isIntentRelevant((PointToPointIntent) intent, edgePoints);
-            } else if (intent instanceof MultiPointToSinglePointIntent) {
-                isRelevant = isIntentRelevant((MultiPointToSinglePointIntent) intent, edgePoints);
-            }
-            // TODO: add other intents, e.g. SinglePointToMultiPointIntent
+        Set<OpticalConnectivityIntent> opticalIntents = new HashSet<>();
 
-            if (isRelevant) {
+        for (Intent intent : intentService.getIntents()) {
+            if (intentService.getIntentState(intent.id()) == INSTALLED) {
+                boolean isRelevant = false;
+                if (intent instanceof HostToHostIntent) {
+                    isRelevant = isIntentRelevant((HostToHostIntent) intent, hosts);
+                } else if (intent instanceof PointToPointIntent) {
+                    isRelevant = isIntentRelevant((PointToPointIntent) intent, edgePoints);
+                } else if (intent instanceof MultiPointToSinglePointIntent) {
+                    isRelevant = isIntentRelevant((MultiPointToSinglePointIntent) intent, edgePoints);
+                } else if (intent instanceof OpticalConnectivityIntent) {
+                    opticalIntents.add((OpticalConnectivityIntent) intent);
+                }
+                // TODO: add other intents, e.g. SinglePointToMultiPointIntent
+
+                if (isRelevant) {
+                    intents.add(intent);
+                }
+            }
+        }
+
+        for (OpticalConnectivityIntent intent : opticalIntents) {
+            if (isIntentRelevant(intent, intents)) {
                 intents.add(intent);
             }
         }
@@ -362,6 +375,23 @@ public class TopologyWebSocket
         return true;
     }
 
+    // Indicates whether the specified intent involves all of the given edge points.
+    private boolean isIntentRelevant(OpticalConnectivityIntent opticalIntent,
+                                     Set<Intent> intents) {
+        for (Intent intent : intents) {
+            List<Intent> installables = intentService.getInstallableIntents(intent.id());
+            for (Intent installable : installables) {
+                if (installable instanceof PathIntent) {
+                    Path path = ((PathIntent) installable).path();
+                    if (opticalIntent.getSrcConnectPoint().equals(path.src()) &&
+                            opticalIntent.getDst().equals(path.dst())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     // Produces a set of all host ids listed in the specified JSON array.
     private Set<Host> getHosts(ArrayNode array) {
@@ -401,7 +431,6 @@ public class TopologyWebSocket
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
         hostService.addListener(hostListener);
-        mastershipService.addListener(mastershipListener);
         intentService.addListener(intentListener);
     }
 
@@ -413,7 +442,6 @@ public class TopologyWebSocket
             deviceService.removeListener(deviceListener);
             linkService.removeListener(linkListener);
             hostService.removeListener(hostListener);
-            mastershipService.removeListener(mastershipListener);
             intentService.removeListener(intentListener);
         }
     }
@@ -450,35 +478,23 @@ public class TopologyWebSocket
         }
     }
 
-    // Mastership event listener.
-    private class InternalMastershipListener implements MastershipListener {
-        @Override
-        public void event(MastershipEvent event) {
-            // TODO: Is DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED the same?
-
-        }
-    }
-
     // Intent event listener.
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
-            Intent intent = event.subject();
-            Long sid = intentsToMonitor.get(intent);
-            if (sid != null) {
-                List<Intent> installable = intentService.getInstallableIntents(intent.id());
-                if (installable != null && !installable.isEmpty()) {
-                    PathIntent pathIntent = (PathIntent) installable.iterator().next();
-                    Path path = pathIntent.path();
-                    ObjectNode payload = pathMessage(path, "host")
-                            .put("intentId", intent.id().toString());
-                    sendMessage(envelope("showPath", sid, payload));
-                    TrafficClass tc = new TrafficClass("animated", intentsToMonitor.keySet());
-                    sendMessage(trafficMessage(sid, tc));
-                }
+            if (monitorRequest != null) {
+                requestTraffic(monitorRequest);
             }
         }
     }
 
+    private class IntentTrafficMonitor extends TimerTask {
+        @Override
+        public void run() {
+            if (monitorRequest != null) {
+                requestTraffic(monitorRequest);
+            }
+        }
+    }
 }
 

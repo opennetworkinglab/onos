@@ -44,6 +44,7 @@ import org.onlab.onos.net.intent.ConnectivityIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
+import org.onlab.onos.net.intent.OpticalConnectivityIntent;
 import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkService;
@@ -88,6 +89,7 @@ public abstract class TopologyMessages {
     protected final HostService hostService;
     protected final MastershipService mastershipService;
     protected final IntentService intentService;
+//    protected final StatisticService statService;
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
@@ -107,6 +109,7 @@ public abstract class TopologyMessages {
         hostService = directory.get(HostService.class);
         mastershipService = directory.get(MastershipService.class);
         intentService = directory.get(IntentService.class);
+//        statService = directory.get(StatisticService.class);
     }
 
     // Retrieves the payload from the specified event.
@@ -376,10 +379,14 @@ public abstract class TopologyMessages {
 
         for (TrafficClass trafficClass : trafficClasses) {
             for (Intent intent : trafficClass.intents) {
+                boolean isOptical = intent instanceof OpticalConnectivityIntent;
                 List<Intent> installables = intentService.getInstallableIntents(intent.id());
-                for (Intent installable : installables) {
-                    if (installable instanceof ConnectivityIntent) {
-                        addPathTraffic(paths, trafficClass.type, (ConnectivityIntent) installable);
+                if (installables != null) {
+                    for (Intent installable : installables) {
+                        String cls = isOptical ? trafficClass.type + " optical" : trafficClass.type;
+                        if (installable instanceof ConnectivityIntent) {
+                            addPathTraffic(paths, cls, (ConnectivityIntent) installable);
+                        }
                     }
                 }
             }
@@ -395,20 +402,34 @@ public abstract class TopologyMessages {
         ObjectNode pathNode = mapper.createObjectNode();
         ArrayNode linksNode = mapper.createArrayNode();
 
-        Iterable<Link> links;
-        if (installable instanceof PathIntent) {
-            links = ((PathIntent) installable).path().links();
-        } else if (installable instanceof LinkCollectionIntent) {
-            links = ((LinkCollectionIntent) installable).links();
-        } else {
-            return;
+        Iterable<Link> links = pathLinks(installable);
+        if (links != null) {
+            ArrayNode labels = mapper.createArrayNode();
+            boolean hasTraffic = true; // FIXME
+            for (Link link : links) {
+                linksNode.add(compactLinkString(link));
+//                Load load = statService.load(link);
+                String label = "";
+//                if (load.rate() > 0) {
+//                    label = load.toString();
+//                }
+                labels.add(label);
+            }
+            pathNode.put("class", hasTraffic ? type + " animated" : type);
+            pathNode.put("traffic", hasTraffic);
+            pathNode.set("links", linksNode);
+            pathNode.set("labels", labels);
+            paths.add(pathNode);
         }
+    }
 
-        for (Link link : links) {
-            linksNode.add(compactLinkString(link));
+    private Iterable<Link> pathLinks(ConnectivityIntent intent) {
+        if (intent instanceof PathIntent) {
+            return ((PathIntent) intent).path().links();
+        } else if (intent instanceof LinkCollectionIntent) {
+            return ((LinkCollectionIntent) intent).links();
         }
-        pathNode.put("type", type).set("links", linksNode);
-        paths.add(pathNode);
+        return null;
     }
 
     // Produces compact string representation of a link.
