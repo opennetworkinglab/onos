@@ -112,11 +112,17 @@
     };
 
     // radio buttons
-    var btnSet = [
-        { text: 'All Layers', cb: showAllLayers },
-        { text: 'Packet Only', cb: showPacketLayer },
-        { text: 'Optical Only', cb: showOpticalLayer }
-    ];
+    var layerButtons = [
+            { text: 'All Layers', id: 'all', cb: showAllLayers },
+            { text: 'Packet Only', id: 'pkt', cb: showPacketLayer },
+            { text: 'Optical Only', id: 'opt', cb: showOpticalLayer }
+        ],
+        layerBtnSet,
+        layerBtnDispatch = {
+            all: showAllLayers,
+            pkt: showPacketLayer,
+            opt: showOpticalLayer
+        };
 
     // key bindings
     var keyDispatch = {
@@ -129,7 +135,7 @@
         P: togglePorts,
         U: unpin,
         R: resetZoomPan,
-        esc: deselectAll
+        esc: handleEscape
     };
 
     // state variables
@@ -163,8 +169,8 @@
         onosInstances = {},
         onosOrder = [],
         oiBox,
+        oiShowMaster = false,
 
-        viewMode = 'showAll',
         portLabelsOn = false;
 
     // D3 selections
@@ -311,6 +317,14 @@
         }
     }
 
+    function handleEscape(view) {
+        if (oiShowMaster) {
+            cancelAffinity();
+        } else {
+            deselectAll();
+        }
+    }
+
     // ==============================
     // Radio Button Callbacks
 
@@ -352,11 +366,15 @@
         });
     }
 
-    function showAllLayers() {
-        node.classed('suppressed', false);
-        link.classed('suppressed', false);
+    function suppressLayers(b) {
+        node.classed('suppressed', b);
+        link.classed('suppressed', b);
 //        d3.selectAll('svg .port').classed('inactive', false);
 //        d3.selectAll('svg .portText').classed('inactive', false);
+    }
+
+    function showAllLayers() {
+        suppressLayers(false);
     }
 
     function showPacketLayer() {
@@ -369,6 +387,10 @@
         node.classed('suppressed', true);
         link.classed('suppressed', true);
         unsuppressLayer('opt');
+    }
+
+    function restoreLayerState() {
+        layerBtnDispatch[layerBtnSet.selected()]();
     }
 
     // ==============================
@@ -674,6 +696,7 @@
             .append('div')
             .attr('class', 'onosInst')
             .classed('online', function (d) { return d.online; })
+            .on('click', clickInst)
             .text(function (d) { return d.id; });
 
         // operate on existing + new onoses here
@@ -683,6 +706,38 @@
             .transition()
             .style('opacity', 0)
             .remove();
+    }
+
+    function clickInst(d) {
+        var el = d3.select(this),
+            aff = el.classed('affinity');
+        if (!aff) {
+            setAffinity(el, d);
+        } else {
+            cancelAffinity();
+        }
+    }
+
+    function setAffinity(el, d) {
+        d3.selectAll('.onosInst')
+            .classed('mastership', true)
+            .classed('affinity', false);
+        el.classed('affinity', true);
+
+        suppressLayers(true);
+        node.each(function (n) {
+             if (n.master === d.id) {
+                 n.el.classed('suppressed', false);
+             }
+        });
+        oiShowMaster = true;
+    }
+
+    function cancelAffinity() {
+        d3.selectAll('.onosInst')
+            .classed('mastership affinity', false);
+        restoreLayerState();
+        oiShowMaster = false;
     }
 
     // ==============================
@@ -1682,7 +1737,7 @@
         }
 
         // set our radio buttons and key bindings
-        view.setRadio(btnSet);
+        layerBtnSet = view.setRadio(layerButtons);
         view.setKeys(keyDispatch);
 
         // patch in our "button bar" for now

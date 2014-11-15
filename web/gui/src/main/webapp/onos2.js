@@ -347,7 +347,8 @@
 
         function setRadioButtons(vid, btnSet) {
             var view = views[vid],
-                btnG;
+                btnG,
+                api = {};
 
             // lazily create the buttons...
             if (!(btnG = view.radioButtons)) {
@@ -365,10 +366,12 @@
                         })
                         .text(txt);
 
+                    btn.id = bid;
                     btnG.buttonDef[uid] = btn;
 
                     if (i === 0) {
                         button.classed('active', true);
+                        btnG.selected = bid;
                     }
                 });
 
@@ -382,6 +385,7 @@
                         if (!act) {
                             btnG.selectAll('span').classed('active', false);
                             button.classed('active', true);
+                            btnG.selected = btn.id;
                             if (isF(btn.cb)) {
                                 btn.cb(view.token(), btn);
                             }
@@ -389,10 +393,16 @@
                     });
 
                 view.radioButtons = btnG;
+
+                api.selected = function () {
+                    return btnG.selected;
+                }
             }
 
             // attach the buttons to the masthead
             $mastRadio.node().appendChild(btnG.node());
+            // return an api for interacting with the button set
+            return api;
         }
 
         function setupGlobalKeys() {
@@ -662,7 +672,7 @@
             },
 
             setRadio: function (btnSet) {
-                setRadioButtons(this.vid, btnSet);
+                return setRadioButtons(this.vid, btnSet);
             },
 
             setKeys: function (keyArg) {

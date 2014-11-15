@@ -225,8 +225,15 @@
     border: 2px solid #555;
 }
 
-#topo svg .suppressed,
-#topo-oibox .suppressed {
+#topo-oibox .onosInst.mastership {
+    opacity: 0.3;
+}
+#topo-oibox .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+
+
+#topo svg .suppressed {
     opacity: 0.2;
 }
 
