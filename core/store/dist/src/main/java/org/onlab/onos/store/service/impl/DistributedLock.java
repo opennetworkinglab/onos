@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -11,11 +13,16 @@ import org.joda.time.DateTime;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.Lock;
+import org.slf4j.Logger;
 
 /**
  * A distributed lock implementation.
  */
 public class DistributedLock implements Lock {
+
+    private final Logger log = getLogger(getClass());
+
+    private static final long MAX_WAIT_TIME_MS = 100000000L;
 
     private final DistributedLockManager lockManager;
     private final DatabaseService databaseService;
@@ -44,54 +51,60 @@ public class DistributedLock implements Lock {
 
     @Override
     public void lock(int leaseDurationMillis) {
-
         if (isLocked() && lockExpirationTime.isAfter(DateTime.now().plusMillis(leaseDurationMillis))) {
             // Nothing to do.
             // Current expiration time is beyond what is requested.
             return;
         } else {
-            tryLock(Long.MAX_VALUE, leaseDurationMillis);
+            tryLock(MAX_WAIT_TIME_MS, leaseDurationMillis);
         }
     }
 
     @Override
     public boolean tryLock(int leaseDurationMillis) {
-        return databaseService.putIfAbsent(
+        if (databaseService.putIfAbsent(
                 DistributedLockManager.ONOS_LOCK_TABLE_NAME,
                 path,
-                lockId);
+                lockId)) {
+            isLocked.set(true);
+            lockExpirationTime = DateTime.now().plusMillis(leaseDurationMillis);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean tryLock(
             long waitTimeMillis,
             int leaseDurationMillis) {
-        if (!tryLock(leaseDurationMillis)) {
-            CompletableFuture<Void> future =
-                    lockManager.lockIfAvailable(this, waitTimeMillis, leaseDurationMillis);
-            try {
-                future.get(waitTimeMillis, TimeUnit.MILLISECONDS);
-            } catch (ExecutionException | InterruptedException e) {
-                // TODO: ExecutionException could indicate something
-                // wrong with the backing database.
-                // Throw an exception?
-                return false;
-            } catch (TimeoutException e) {
-                return false;
-            }
+        if (tryLock(leaseDurationMillis)) {
+            return true;
         }
-        isLocked.set(true);
-        lockExpirationTime = DateTime.now().plusMillis(leaseDurationMillis);
-        return true;
+
+        CompletableFuture<DateTime> future =
+                lockManager.lockIfAvailable(this, waitTimeMillis, leaseDurationMillis);
+        try {
+            lockExpirationTime = future.get(waitTimeMillis, TimeUnit.MILLISECONDS);
+            return true;
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Encountered an exception trying to acquire lock for " + path, e);
+            // TODO: ExecutionException could indicate something
+            // wrong with the backing database.
+            // Throw an exception?
+            return false;
+        } catch (TimeoutException e) {
+            log.debug("Timed out waiting to acquire lock for {}", path);
+            return false;
+        }
     }
 
     @Override
     public boolean isLocked() {
         if (isLocked.get()) {
             // We rely on local information to check
-            // if the expired.
+            // if the lock expired.
             // This should should make this call
-            // light weight, which still retaining the same
+            // light weight, while still retaining the
             // safety guarantees.
             if (DateTime.now().isAfter(lockExpirationTime)) {
                 isLocked.set(false);
@@ -108,17 +121,30 @@ public class DistributedLock implements Lock {
         if (!isLocked()) {
             return;
         } else {
-            isLocked.set(false);
-            databaseService.removeIfValueMatches(DistributedLockManager.ONOS_LOCK_TABLE_NAME, path, lockId);
+            if (databaseService.removeIfValueMatches(DistributedLockManager.ONOS_LOCK_TABLE_NAME, path, lockId)) {
+                isLocked.set(false);
+            }
         }
     }
 
     @Override
     public boolean extendExpiration(int leaseDurationMillis) {
-        if (isLocked() && lockExpirationTime.isAfter(DateTime.now().plusMillis(leaseDurationMillis))) {
+        if (!isLocked()) {
+            log.warn("Ignoring request to extend expiration for lock {}."
+                    + " ExtendExpiration must be called for locks that are already acquired.", path);
+        }
+
+        if (databaseService.putIfValueMatches(
+                DistributedLockManager.ONOS_LOCK_TABLE_NAME,
+                path,
+                lockId,
+                lockId)) {
+            lockExpirationTime = DateTime.now().plusMillis(leaseDurationMillis);
+            log.debug("Succeeded in extending lock {} expiration time to {}", lockExpirationTime);
             return true;
         } else {
-            return tryLock(leaseDurationMillis);
+            log.info("Failed to extend expiration for {}", path);
+            return false;
         }
     }
 }

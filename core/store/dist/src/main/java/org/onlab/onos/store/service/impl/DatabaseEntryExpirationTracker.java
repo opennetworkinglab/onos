@@ -16,10 +16,14 @@
 
 package org.onlab.onos.store.service.impl;
 
+import static org.onlab.util.Tools.namedThreads;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,6 +44,8 @@ import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Plugs into the database update stream and track the TTL of entries added to
  * the database. For tables with pre-configured finite TTL, this class has
@@ -47,6 +53,9 @@ import org.slf4j.LoggerFactory;
  */
 public class DatabaseEntryExpirationTracker implements
         DatabaseUpdateEventListener, EventHandler<LeaderElectEvent> {
+
+    private static final ExecutorService THREAD_POOL =
+            Executors.newCachedThreadPool(namedThreads("database-stale-entry-expirer-%d"));
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -74,7 +83,7 @@ public class DatabaseEntryExpirationTracker implements
 
     @Override
     public void tableModified(TableModificationEvent event) {
-        log.debug("Received a table modification event {}", event);
+        log.debug("{}: Received {}", localNode.id(), event);
 
         if (!tableEntryExpirationMap.containsKey(event.tableName())) {
             return;
@@ -89,8 +98,8 @@ public class DatabaseEntryExpirationTracker implements
             map.remove(row, eventVersion);
             if (isLocalMemberLeader.get()) {
                 try {
-                    // FIXME: The broadcast message should be sent to self.
-                    clusterCommunicator.broadcast(new ClusterMessage(
+                    log.debug("Broadcasting {} to the entire cluster", event);
+                    clusterCommunicator.broadcastIncludeSelf(new ClusterMessage(
                             localNode.id(), DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
                             DatabaseStateMachine.SERIALIZER.encode(event)));
                 } catch (IOException e) {
@@ -119,8 +128,6 @@ public class DatabaseEntryExpirationTracker implements
             tableEntryExpirationMap.put(metadata.tableName(), ExpiringMap.builder()
                     .expiration(metadata.ttlMillis(), TimeUnit.MILLISECONDS)
                     .expirationListener(expirationObserver)
-                    // TODO: make the expiration policy configurable.
-                    // Do we need to support expiration based on last access time?
                     .expirationPolicy(ExpirationPolicy.CREATED).build());
         }
     }
@@ -135,6 +142,23 @@ public class DatabaseEntryExpirationTracker implements
             ExpirationListener<DatabaseRow, Long> {
         @Override
         public void expired(DatabaseRow row, Long version) {
+            THREAD_POOL.submit(new ExpirationTask(row, version));
+        }
+    }
+
+    private class ExpirationTask implements Runnable {
+
+        private final DatabaseRow row;
+        private final Long version;
+
+        public ExpirationTask(DatabaseRow row, Long version) {
+            this.row = row;
+            this.version = version;
+        }
+
+        @Override
+        public void run() {
+            log.debug("Received an expiration event for {}, version: {}", row, version);
             Map<DatabaseRow, Long> map = tableEntryExpirationMap.get(row.tableName);
             try {
                 if (isLocalMemberLeader.get()) {
@@ -142,7 +166,7 @@ public class DatabaseEntryExpirationTracker implements
                             row.key, version)) {
                         log.info("Entry in database was updated right before its expiration.");
                     } else {
-                        log.info("Successfully expired old entry with key ({}) from table ({})",
+                        log.debug("Successfully expired old entry with key ({}) from table ({})",
                                 row.key, row.tableName);
                     }
                 } else {
@@ -164,6 +188,9 @@ public class DatabaseEntryExpirationTracker implements
     @Override
     public void handle(LeaderElectEvent event) {
         isLocalMemberLeader.set(localMember.equals(event.leader()));
+        if (isLocalMemberLeader.get()) {
+            log.info("{} is now the leader of Raft cluster", localNode.id());
+        }
     }
 
     /**
@@ -177,6 +204,14 @@ public class DatabaseEntryExpirationTracker implements
         public DatabaseRow(String tableName, String key) {
             this.tableName = tableName;
             this.key = key;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                .add("tableName", tableName)
+                .add("key", key)
+                .toString();
         }
 
         @Override
@@ -204,6 +239,7 @@ public class DatabaseEntryExpirationTracker implements
         if (!tableEntryExpirationMap.isEmpty()) {
             return;
         }
+        log.debug("Received a snapshot installed notification");
         for (String tableName : state.getTableNames()) {
 
             TableMetadata metadata = state.getTableMetadata(tableName);

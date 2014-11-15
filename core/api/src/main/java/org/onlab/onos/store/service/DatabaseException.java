@@ -19,4 +19,18 @@ public class DatabaseException extends RuntimeException {
 
     public DatabaseException() {
     };
+
+    public static class Timeout extends DatabaseException {
+        public Timeout(String message, Throwable t) {
+            super(message, t);
+        }
+
+        public Timeout(String message) {
+            super(message);
+        }
+
+        public Timeout(Throwable t) {
+            super(t);
+        }
+    }
 }

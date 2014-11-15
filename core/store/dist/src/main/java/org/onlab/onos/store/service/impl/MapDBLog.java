@@ -86,7 +86,7 @@ public class MapDBLog implements Log {
     }
 
     @Override
-    public List<Long> appendEntries(List<Entry> entries) {
+    public synchronized List<Long> appendEntries(List<Entry> entries) {
         assertIsOpen();
         checkArgument(entries != null, "expecting non-null entries");
         final List<Long> indices = new ArrayList<>(entries.size());

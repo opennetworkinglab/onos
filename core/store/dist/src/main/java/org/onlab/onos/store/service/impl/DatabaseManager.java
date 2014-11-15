@@ -173,13 +173,16 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
                                         ClusterMessagingProtocol.SERIALIZER);
 
+        client = new DatabaseClient(copycatMessagingProtocol);
+
         copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
 
+        copycat.event(LeaderElectEvent.class).registerHandler(client);
         copycat.event(LeaderElectEvent.class).registerHandler(expirationTracker);
 
         copycat.start().get();
 
-        client = new DatabaseClient(copycat);
+        client = new DatabaseClient(copycatMessagingProtocol);
         client.waitForLeader();
 
         log.info("Started.");
