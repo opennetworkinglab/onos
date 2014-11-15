@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
  */
 public interface FlowRuleProvider extends Provider {
 
-    static final int POLL_INTERVAL = 5;
+    static final int POLL_INTERVAL = 1;
 
     /**
      * Instructs the provider to apply the specified flow rules to their

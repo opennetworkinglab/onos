@@ -37,7 +37,7 @@ public class GuiWebSocketServlet extends WebSocketServlet {
 
     private ServiceDirectory directory = new DefaultServiceDirectory();
 
-    private final Set<TopologyWebSocket> sockets = new HashSet<>();
+    private final Set<TopologyViewWebSocket> sockets = new HashSet<>();
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
 
@@ -49,7 +49,7 @@ public class GuiWebSocketServlet extends WebSocketServlet {
 
     @Override
     public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
-        TopologyWebSocket socket = new TopologyWebSocket(directory);
+        TopologyViewWebSocket socket = new TopologyViewWebSocket(directory);
         synchronized (sockets) {
             sockets.add(socket);
         }
@@ -61,9 +61,9 @@ public class GuiWebSocketServlet extends WebSocketServlet {
         @Override
         public void run() {
             synchronized (sockets) {
-                Iterator<TopologyWebSocket> it = sockets.iterator();
+                Iterator<TopologyViewWebSocket> it = sockets.iterator();
                 while (it.hasNext()) {
-                    TopologyWebSocket socket = it.next();
+                    TopologyViewWebSocket socket = it.next();
                     if (socket.isIdle()) {
                         it.remove();
                         socket.close();

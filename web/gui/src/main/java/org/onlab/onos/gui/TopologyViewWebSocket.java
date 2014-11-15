@@ -66,8 +66,8 @@ import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 /**
  * Web socket capable of interacting with the GUI topology view.
  */
-public class TopologyWebSocket
-        extends TopologyMessages
+public class TopologyViewWebSocket
+        extends TopologyViewMessages
         implements WebSocket.OnTextMessage, WebSocket.OnControl {
 
     private static final long MAX_AGE_MS = 15000;
@@ -78,7 +78,7 @@ public class TopologyWebSocket
 
     private static final String APP_ID = "org.onlab.onos.gui";
 
-    private static final long TRAFFIC_FREQUENCY_SEC = 5000;
+    private static final long TRAFFIC_FREQUENCY_SEC = 1000;
 
     private final ApplicationId appId;
 
@@ -104,7 +104,7 @@ public class TopologyWebSocket
      *
      * @param directory service directory
      */
-    public TopologyWebSocket(ServiceDirectory directory) {
+    public TopologyViewWebSocket(ServiceDirectory directory) {
         super(directory);
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }

@@ -49,6 +49,8 @@ import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.net.statistic.Load;
+import org.onlab.onos.net.statistic.StatisticService;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
@@ -75,9 +77,9 @@ import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
 /**
  * Facility for creating messages bound for the topology viewer.
  */
-public abstract class TopologyMessages {
+public abstract class TopologyViewMessages {
 
-    protected static final Logger log = LoggerFactory.getLogger(TopologyMessages.class);
+    protected static final Logger log = LoggerFactory.getLogger(TopologyViewMessages.class);
 
     private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
@@ -89,7 +91,7 @@ public abstract class TopologyMessages {
     protected final HostService hostService;
     protected final MastershipService mastershipService;
     protected final IntentService intentService;
-//    protected final StatisticService statService;
+    protected final StatisticService statService;
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
@@ -101,7 +103,7 @@ public abstract class TopologyMessages {
      *
      * @param directory service directory
      */
-    protected TopologyMessages(ServiceDirectory directory) {
+    protected TopologyViewMessages(ServiceDirectory directory) {
         this.directory = checkNotNull(directory, "Directory cannot be null");
         clusterService = directory.get(ClusterService.class);
         deviceService = directory.get(DeviceService.class);
@@ -109,7 +111,7 @@ public abstract class TopologyMessages {
         hostService = directory.get(HostService.class);
         mastershipService = directory.get(MastershipService.class);
         intentService = directory.get(IntentService.class);
-//        statService = directory.get(StatisticService.class);
+        statService = directory.get(StatisticService.class);
     }
 
     // Retrieves the payload from the specified event.
@@ -408,14 +410,15 @@ public abstract class TopologyMessages {
 
         if (links != null) {
             ArrayNode labels = mapper.createArrayNode();
-            boolean hasTraffic = true; // FIXME
+            boolean hasTraffic = false;
             for (Link link : links) {
                 linksNode.add(compactLinkString(link));
-//                Load load = statService.load(link);
+                Load load = statService.load(link);
                 String label = "";
-//                if (load.rate() > 0) {
-//                    label = load.toString();
-//                }
+                if (load.rate() > 0) {
+                    hasTraffic = true;
+                    label = load.toString();
+                }
                 labels.add(label);
             }
             pathNode.put("class", hasTraffic ? type + " animated" : type);
