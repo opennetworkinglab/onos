@@ -25,7 +25,7 @@ if [ -n "${1}" ]; then
     cell="${1}"
 else
     if [ -z "${ONOS_CELL}" ]; then
-        echo "Environmental variable 'ONOS_CELL' is not defiled"
+        echo "Environmental variable 'ONOS_CELL' is not defined"
         exit 1
     else
         cell="${ONOS_CELL}"

@@ -46,6 +46,7 @@ alias op='onos-package'
 alias ot='onos-test'
 alias ol='onos-log'
 alias ow='onos-watch'
+alias oi='setPrimaryInstance'
 alias go='ob && ot && onos -w'
 alias pub='onos-push-update-bundle'
 
@@ -97,6 +98,12 @@ function cells {
             "$([ $cell = $ONOS_CELL ] && echo $cell '*' || echo $cell)" \
             "$(grep '^#' $ONOS_ROOT/tools/test/cells/$cell | head -n 1)"
     done
+}
+
+# Sets the primary instance to the specified instance number.
+function setPrimaryInstance {
+    export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
+    echo $OCI
 }
 
 # Miscellaneous
