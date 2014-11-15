@@ -89,9 +89,6 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
     }
 
     @Override
-//    @edu.umd.cs.findbugs.annotations.SuppressWarnings
-//            (value="NP_NONNULL_PARAM_VIOLATION",
-//             justification="False positives on completedFuture call, passing null as a parameter is allowed")
     public synchronized CompletableFuture<Void> connect() {
         if (remoteNode != null) {
             // done
