@@ -155,8 +155,7 @@ public class DatabaseStateMachine implements StateMachine {
     }
 
 
-    WriteStatus checkIfApplicable(WriteRequest request,
-                                        VersionedValue value) {
+    WriteStatus checkIfApplicable(WriteRequest request, VersionedValue value) {
 
         switch (request.type()) {
         case PUT:
@@ -167,20 +166,24 @@ public class DatabaseStateMachine implements StateMachine {
                 return WriteStatus.OK;
             }
             return WriteStatus.PRECONDITION_VIOLATION;
+
         case PUT_IF_VALUE:
         case REMOVE_IF_VALUE:
             if (value != null && Arrays.equals(value.value(), request.oldValue())) {
                 return WriteStatus.OK;
             }
             return WriteStatus.PRECONDITION_VIOLATION;
+
         case PUT_IF_VERSION:
         case REMOVE_IF_VERSION:
             if (value != null && request.previousVersion() == value.version()) {
                 return WriteStatus.OK;
             }
             return WriteStatus.PRECONDITION_VIOLATION;
+
         case REMOVE:
             return WriteStatus.OK;
+
         default:
             break;
         }
@@ -193,31 +196,27 @@ public class DatabaseStateMachine implements StateMachine {
 
         // applicability check
         boolean abort = false;
-        List<WriteStatus> validationResults = new ArrayList<>(batchRequest.batchSize());
+        List<WriteResult> results = new ArrayList<>(batchRequest.batchSize());
+
         for (WriteRequest request : batchRequest.getAsList()) {
             Map<String, VersionedValue> table = state.getTable(request.tableName());
             if (table == null) {
-                validationResults.add(WriteStatus.NO_SUCH_TABLE);
+                results.add(new WriteResult(WriteStatus.NO_SUCH_TABLE, null));
                 abort = true;
                 continue;
             }
             final VersionedValue value = table.get(request.key());
             WriteStatus result = checkIfApplicable(request, value);
-            validationResults.add(result);
+            results.add(new WriteResult(result, value));
             if (result != WriteStatus.OK) {
                 abort = true;
             }
         }
 
-        List<WriteResult> results = new ArrayList<>(batchRequest.batchSize());
-
         if (abort) {
-            for (WriteStatus validationResult : validationResults) {
-                if (validationResult == WriteStatus.OK) {
-                    // aborted due to applicability check failure on other request
-                    results.add(new WriteResult(WriteStatus.ABORTED, null));
-                } else {
-                    results.add(new WriteResult(validationResult, null));
+            for (int i = 0; i < results.size(); ++i) {
+                if (results.get(i).status() == WriteStatus.OK) {
+                    results.set(i, new WriteResult(WriteStatus.ABORTED, null));
                 }
             }
             return results;
