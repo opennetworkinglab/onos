@@ -86,7 +86,7 @@ public interface LinkResourceService {
      * @param allocations allocations to be included as available
      * @return available resources for the target link
      */
-    ResourceRequest getAvailableResources(Link link,
+    Iterable<ResourceRequest> getAvailableResources(Link link,
                                           LinkResourceAllocations allocations);
 
 }

@@ -156,8 +156,8 @@ public class LinkResourceManager implements LinkResourceService {
     @Override
     public LinkResourceAllocations updateResources(LinkResourceRequest req,
             LinkResourceAllocations oldAllocations) {
-        // TODO
-        return null;
+         releaseResources(oldAllocations);
+         return requestResources(req);
     }
 
     @Override
@@ -196,10 +196,13 @@ public class LinkResourceManager implements LinkResourceService {
     }
 
     @Override
-    public ResourceRequest getAvailableResources(Link link,
+    public Iterable<ResourceRequest> getAvailableResources(Link link,
             LinkResourceAllocations allocations) {
-        // TODO
-        return null;
+        Set<ResourceRequest> result = new HashSet<>();
+        Set<ResourceAllocation> allocatedRes = allocations.getResourceAllocation(link);
+        result = (Set<ResourceRequest>) getAvailableResources(link);
+        result.addAll(allocatedRes);
+        return result;
     }
 
 }

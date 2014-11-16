@@ -269,7 +269,7 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public ResourceRequest getAvailableResources(Link link, LinkResourceAllocations allocations) {
+        public Iterable<ResourceRequest> getAvailableResources(Link link, LinkResourceAllocations allocations) {
             return null;
         }
     }
