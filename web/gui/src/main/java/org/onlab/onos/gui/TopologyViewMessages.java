@@ -143,8 +143,10 @@ public abstract class TopologyViewMessages {
     // Produces JSON structure from annotations.
     private JsonNode props(Annotations annotations) {
         ObjectNode props = mapper.createObjectNode();
-        for (String key : annotations.keys()) {
-            props.put(key, annotations.value(key));
+        if (annotations != null) {
+            for (String key : annotations.keys()) {
+                props.put(key, annotations.value(key));
+            }
         }
         return props;
     }
@@ -306,6 +308,10 @@ public abstract class TopologyViewMessages {
     // Adds a geo location JSON to the specified payload object.
     private void addGeoLocation(Annotated annotated, ObjectNode payload) {
         Annotations annotations = annotated.annotations();
+        if (annotations == null) {
+            return;
+        }
+
         String slat = annotations.value("latitude");
         String slng = annotations.value("longitude");
         try {
