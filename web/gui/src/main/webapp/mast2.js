@@ -30,7 +30,7 @@
     var api = onos.api;
 
     // Config variables
-    var guiTitle = 'Open Networking Operating System';
+    var guiTitle = 'Open Network Operating System';
 
     // DOM elements and the like
     var mast = d3.select('#mast');

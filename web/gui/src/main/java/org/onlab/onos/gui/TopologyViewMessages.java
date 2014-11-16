@@ -188,7 +188,8 @@ public abstract class TopologyViewMessages {
         ControllerNode node = event.subject();
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", node.id().toString())
-                .put("online", clusterService.getState(node.id()) == ACTIVE);
+                .put("online", clusterService.getState(node.id()) == ACTIVE)
+                .put("uiAttached", event.subject().equals(clusterService.getLocalNode()));
 
         ArrayNode labels = mapper.createArrayNode();
         labels.add(node.id().toString());
@@ -236,7 +237,7 @@ public abstract class TopologyViewMessages {
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
-                .put("online", true) // link.state()) TODO: add link state field
+                .put("online", link.state() == Link.State.ACTIVE)
                 .put("linkWidth", 2)
                 .put("src", link.src().deviceId().toString())
                 .put("srcPort", link.src().port().toString())

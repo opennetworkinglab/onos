@@ -82,6 +82,7 @@ public class DevicesListCommand extends AbstractShellCommand {
         if (device != null) {
             result.put("id", device.id().toString())
                     .put("available", service.isAvailable(device.id()))
+                    .put("type", device.type().toString())
                     .put("role", service.getRole(device.id()).toString())
                     .put("mfr", device.manufacturer())
                     .put("hw", device.hwVersion())

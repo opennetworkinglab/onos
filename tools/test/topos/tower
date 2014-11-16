@@ -1,0 +1,2 @@
+#!/bin/bash
+cd ~/topos && sudo mn --custom tower.py --topo tower --controller remote,${1:-192.168.56.101} --mac

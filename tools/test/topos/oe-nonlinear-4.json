@@ -39,13 +39,13 @@
     ],
 
     "links" : [
-        { "src": "of:0000ffffffffff01/20", "dst": "of:0000ffffffffff03/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true" } },
-        { "src": "of:0000ffffffffff02/21", "dst": "of:0000ffffffffff03/31", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true" } },
-        { "src": "of:0000ffffffffff01/22", "dst": "of:0000ffffffffff04/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true" } },
-        { "src": "of:0000ffffffffff04/31", "dst": "of:0000ffffffffff02/22", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true" } },
+        { "src": "of:0000ffffffffff01/20", "dst": "of:0000ffffffffff03/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true", "inactive": "true" } },
+        { "src": "of:0000ffffffffff02/21", "dst": "of:0000ffffffffff03/31", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true", "inactive": "true" } },
+        { "src": "of:0000ffffffffff01/22", "dst": "of:0000ffffffffff04/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true", "inactive": "true" } },
+        { "src": "of:0000ffffffffff04/31", "dst": "of:0000ffffffffff02/22", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "durable": "true", "inactive": "true" } },
 
-        { "src": "of:0000ffffffff0001/2", "dst": "of:0000ffffffffff01/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0002/2", "dst": "of:0000ffffffffff02/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } }
+        { "src": "of:0000ffffffff0001/2", "dst": "of:0000ffffffffff01/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true", "inactive": "true" } },
+        { "src": "of:0000ffffffff0002/2", "dst": "of:0000ffffffffff02/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true", "inactive": "true" } }
     ]
 
 }

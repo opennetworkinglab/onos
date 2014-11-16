@@ -826,7 +826,7 @@
         // merge in remaining data
         $.extend(lnk, link, {
             class: 'link',
-            svgClass: type ? 'link ' + type : 'link'
+            svgClass: (type ? 'link ' + type : 'link') + ' ' + (link.online ? 'active' : 'inactive')
         });
         return lnk;
     }

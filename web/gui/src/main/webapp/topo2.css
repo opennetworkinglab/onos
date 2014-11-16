@@ -108,6 +108,11 @@
     opacity: .7;
 }
 
+#topo svg .link.inactive {
+    opacity: .2;
+    stroke-dasharray: 8 4;
+}
+
 #topo svg .link.primary {
     stroke: #f11;
     stroke-width: 6px;
