@@ -15,20 +15,6 @@
  */
 package org.onlab.onos.optical.cfg;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -56,6 +42,16 @@ import org.onlab.packet.ChassisId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.onlab.onos.net.DeviceId.deviceId;
+
 /**
  * OpticalConfigProvider emulates the SB network provider for optical switches,
  * optical links and any other state that needs to be configured for correct network
@@ -75,10 +71,10 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
             "config/demo-3-roadm-2-ps.json";
     private String configFileName = DEFAULT_CONFIG_FILE;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry linkProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry deviceProviderRegistry;
 
     private static final String OPTICAL_ANNOTATION = "optical.";
@@ -101,7 +97,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
                 ".opticalConfig"));
     }
 
-    @Activate
+//    @Activate
     protected void activate() {
         linkProviderService = linkProviderRegistry.register(this);
         deviceProviderService = deviceProviderRegistry.register(this);
@@ -113,7 +109,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
         publishOpticalConfig();
     }
 
-    @Deactivate
+//    @Deactivate
     protected void deactivate() {
         linkProviderRegistry.unregister(this);
         linkProviderService = null;

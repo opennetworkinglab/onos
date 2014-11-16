@@ -32,7 +32,7 @@ class AttMplsTopo( Topo ):
         WASH = self.addSwitch( 's7' )  // 38.906696, -77.035509
         NSVL = self.addSwitch( 's8' )  // 36.166410, -86.787305
         STLS = self.addSwitch( 's9' )  // 38.626418, -90.198143
-        NWOR = self.addSwitch( 's10' ) //
+        NWOR = self.addSwitch( 's10' ) // 29.951475, -90.078434
         HSTN = self.addSwitch( 's11' ) // 29.763249, -95.368332
         SNAN = self.addSwitch( 's12' ) // 29.424331, -98.491745
         DLLS = self.addSwitch( 's13' ) // 32.777665, -96.802064

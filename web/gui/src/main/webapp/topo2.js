@@ -825,7 +825,7 @@
         // merge in remaining data
         $.extend(lnk, link, {
             class: 'link',
-            svgClass: (type ? 'link ' + type : 'link') + ' ' + (link.online ? 'active' : 'inactive')
+            svgClass: (type ? 'link ' + type : 'link')
         });
         return lnk;
     }
@@ -863,6 +863,7 @@
                 stroke: config.topo.linkInColor,
                 'stroke-width': config.topo.linkInWidth
             })
+            .classed('inactive', function(d) { return !d.online; })
             .transition().duration(1000)
             .attr({
                 'stroke-width': function (d) { return linkScale(d.linkWidth); },
@@ -1076,6 +1077,7 @@
 
     function updateLinkState(linkData) {
         updateLinkWidth(linkData);
+        linkData.el.classed('inactive', !linkData.online);
         // TODO: review what else might need to be updated
         //  update label, if showing
     }

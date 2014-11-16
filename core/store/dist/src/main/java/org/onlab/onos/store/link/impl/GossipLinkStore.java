@@ -531,9 +531,7 @@ public class GossipLinkStore
         }
 
         boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
-        boolean isActive = !Objects.equals(annotations.value(AnnotationKeys.INACTIVE), "true");
-        return new DefaultLink(baseProviderId, src, dst, type,
-                               isActive ? ACTIVE : INACTIVE, isDurable, annotations);
+        return new DefaultLink(baseProviderId, src, dst, type, ACTIVE, isDurable, annotations);
     }
 
     private Map<ProviderId, Timestamped<LinkDescription>> getOrCreateLinkDescriptions(LinkKey key) {

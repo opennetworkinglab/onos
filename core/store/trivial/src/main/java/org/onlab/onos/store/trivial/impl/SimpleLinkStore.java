@@ -314,9 +314,7 @@ public class SimpleLinkStore
         }
 
         boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
-        boolean isActive = !Objects.equals(annotations.value(AnnotationKeys.INACTIVE), "true");
-        return new DefaultLink(primary, src, dst, type,
-                               isActive ? ACTIVE : INACTIVE, isDurable, annotations);
+        return new DefaultLink(primary, src, dst, type, ACTIVE, isDurable, annotations);
     }
 
     private Map<ProviderId, LinkDescription> getOrCreateLinkDescriptions(LinkKey key) {
