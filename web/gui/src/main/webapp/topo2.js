@@ -25,6 +25,7 @@
 
     // shorter names for library APIs
     var d3u = onos.lib.d3util,
+        gly = onos.lib.glyphs,
         trace;
 
     // configuration data
@@ -36,6 +37,7 @@
             showNodeXY: true,
             showKeyHandler: false
         },
+        birdDim: 400,
         options: {
             layering: true,
             collisionPrevention: true,
@@ -216,10 +218,7 @@
 
     function testMe(view) {
         //view.alert('test');
-        detailPane.show();
-        setTimeout(detailPane.hide, 2000);
-        oiBox.show();
-        setTimeout(oiBox.hide, 2000);
+        noWebSock(true);
     }
 
     function abortIfLive() {
@@ -1663,6 +1662,9 @@
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
+        var defs = svg.append('defs');
+        gly.defBird(defs);
+
         zoomPanContainer = svg.append('g').attr('id', 'zoomPanContainer');
         setupZoomPan();
 
@@ -1740,6 +1742,23 @@
         para(mask, 'Oops!');
         para(mask, 'Web-socket connection to server closed...');
         para(mask, 'Try refreshing the page.');
+
+        mask.append('svg')
+            .attr({
+                id: 'mask-bird',
+                width: w,
+                height: h
+            })
+            .append('g')
+            .attr('transform', birdTranslate(w, h))
+            .style('opacity', 0.3)
+            .append('use')
+                .attr({
+                    'xlink:href': '#bird',
+                    width: config.birdDim,
+                    height: config.birdDim,
+                    fill: '#111'
+                })
     }
 
     function para(sel, text) {
@@ -1862,9 +1881,19 @@
     }
 
     function resize(view, ctx, flags) {
+        var w = view.width(),
+            h = view.height();
+
         setSize(svg, view);
+
+        d3.select('#mask-bird').attr({ width: w, height: h})
+            .select('g').attr('transform', birdTranslate(w, h));
     }
 
+    function birdTranslate(w, h) {
+        var bdim = config.birdDim;
+        return 'translate('+((w-bdim)*.4)+','+((h-bdim)*.1)+')';
+    }
 
     // ==============================
     // View registration
