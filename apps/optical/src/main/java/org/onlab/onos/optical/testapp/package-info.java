@@ -15,7 +15,6 @@
  */
 
 /**
- * Sample application that provides simple form of reactive forwarding
- * using the intent service.
+ * Packet/Optical sample forwarding applications.
  */
-package org.onlab.onos.ifwd;
+package org.onlab.onos.optical.testapp;

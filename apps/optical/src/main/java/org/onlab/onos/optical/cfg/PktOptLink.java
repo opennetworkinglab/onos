@@ -18,6 +18,7 @@ package org.onlab.onos.optical.cfg;
 /**
  * Packet-optical link Java data object.
  */
+@Deprecated
 class PktOptLink {
     private String srcNodeName;
     private String snkNodeName;

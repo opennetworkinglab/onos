@@ -23,6 +23,7 @@ import org.onlab.util.HexString;
 /**
  * Public class corresponding to JSON described data model.
  */
+@Deprecated
 public class OpticalSwitchDescription {
     protected String name;
     protected long dpid;

@@ -15,6 +15,6 @@
  */
 
 /**
- * Trivial application that provides simple form of reactive forwarding.
+ * Sample application that provides simple form of end-station host mobility.
  */
 package org.onlab.onos.mobility;

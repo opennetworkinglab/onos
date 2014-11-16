@@ -58,7 +58,7 @@ import static org.onlab.onos.net.DeviceId.deviceId;
  * operations.
  *
  */
-
+@Deprecated
 @JsonIgnoreProperties(ignoreUnknown = true)
 //@Component(immediate = true)
 public class OpticalConfigProvider extends AbstractProvider implements DeviceProvider, LinkProvider {

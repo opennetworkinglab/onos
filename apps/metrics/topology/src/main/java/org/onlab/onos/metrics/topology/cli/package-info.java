@@ -15,7 +15,6 @@
  */
 
 /**
- * Sample application that provides simple form of reactive forwarding
- * using the intent service.
+ * Topology metrics command-line handlers.
  */
-package org.onlab.onos.ifwd;
+package org.onlab.onos.metrics.topology.cli;

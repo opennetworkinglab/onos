@@ -18,6 +18,7 @@ package org.onlab.onos.optical.cfg;
 /**
  * WDM Link Java data object converted from a JSON file.
  */
+@Deprecated
 class WdmLink {
     private String srcNodeName;
     private String snkNodeName;

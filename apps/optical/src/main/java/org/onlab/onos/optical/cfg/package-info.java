@@ -15,7 +15,7 @@
  */
 
 /**
- * Sample application that provides simple form of reactive forwarding
- * using the intent service.
+ * Packet/Optical configuration.
  */
-package org.onlab.onos.ifwd;
+@Deprecated
+package org.onlab.onos.optical.cfg;

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Public class corresponding to JSON described data model.
  */
+@Deprecated
 public class OpticalNetworkConfig {
     protected static final Logger log = LoggerFactory.getLogger(OpticalNetworkConfig.class);
 

@@ -94,13 +94,15 @@ public interface Link extends Annotated, Provided, NetworkResource {
 
     /**
      * Returns the link state.
+     *
+     * @return link state
      */
     State state();
 
     /**
      * Indicates if the link is to be considered durable.
      *
-     * @return link state
+     * @return true if the link is durable
      */
     boolean isDurable();
 

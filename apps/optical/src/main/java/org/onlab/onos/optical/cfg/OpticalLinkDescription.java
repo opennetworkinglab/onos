@@ -22,6 +22,7 @@ import org.onlab.util.HexString;
 /**
  * Public class corresponding to JSON described data model.
  */
+@Deprecated
 public class OpticalLinkDescription {
     protected String type;
     protected Boolean allowed;

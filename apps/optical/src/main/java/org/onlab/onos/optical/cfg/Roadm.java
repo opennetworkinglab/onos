@@ -18,6 +18,7 @@ package org.onlab.onos.optical.cfg;
 /**
  * ROADM java data object converted from a JSON file.
  */
+@Deprecated
 class Roadm {
     private String name;
     private String nodeID;
