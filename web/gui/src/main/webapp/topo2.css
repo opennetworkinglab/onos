@@ -204,25 +204,52 @@
 }
 
 #topo-oibox .onosInst {
-    margin: 6px 0;
-    padding: 3px;
+    position: relative;
     width: 80%;
     left: 10%;
-    height: 40px;
+    height: 80px;
+    margin: 4px 0;
     cursor: pointer;
 
     /* theme-related */
     color: #444;
     background-color: #ccc;
-    border: 2px dashed #aaa;
+    border: 2px solid #aaa;
 }
-
 
 #topo-oibox .onosInst.online {
     /* theme-related */
     color: #113;
     background-color: #bbf;
     border: 2px solid #555;
+}
+
+#topo-oibox .onosInst .onosTitle {
+    text-align: center;
+    font-size: 11pt;
+    margin-top: 6px;
+    color: #888;
+}
+
+#topo-oibox .onosInst.online .onosTitle {
+    color: black;
+}
+
+#topo-oibox .onosInst img {
+    opacity: 0.5;
+}
+
+#topo-oibox .onosInst.online img {
+    opacity: 1.0;
+}
+
+#topo-oibox .onosInst img.ui {
+    opacity: 1;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
 }
 
 #topo-oibox .onosInst.mastership {

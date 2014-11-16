@@ -696,8 +696,31 @@
             .append('div')
             .attr('class', 'onosInst')
             .classed('online', function (d) { return d.online; })
-            .on('click', clickInst)
-            .text(function (d) { return d.id; });
+            .on('click', clickInst);
+
+        entering.each(function (d, i) {
+            var el = d3.select(this),
+                img;
+
+            $('<img src="img/host.png">').appendTo(el);
+            img = el.select('img')
+                .attr({
+                    width: 40,
+                    top: -10,
+                    left: -10
+                })
+                .style({
+                });
+
+            $('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
+
+            // is the UI attached to this instance?
+            // TODO: need uiAttached boolean in instance data
+            //if (d.uiAttached) {
+            if (i === 0) {
+                $('<img src="img/ui.png">').attr('class','ui').appendTo(el);
+            }
+        });
 
         // operate on existing + new onoses here
 
