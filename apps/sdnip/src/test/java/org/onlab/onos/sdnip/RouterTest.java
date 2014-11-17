@@ -102,6 +102,7 @@ public class RouterTest {
         }
     };
 
+    private IntentSynchronizer intentSynchronizer;
     private Router router;
 
     @Before
@@ -113,7 +114,8 @@ public class RouterTest {
 
         intentService = createMock(IntentService.class);
 
-        router = new Router(APPID, intentService,
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
+        router = new Router(APPID, intentSynchronizer,
                 hostService, sdnIpConfigService, interfaceService);
     }
 
@@ -258,15 +260,15 @@ public class RouterTest {
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteAdd(routeEntry);
 
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntry));
-        assertEquals(router.getPushedRouteIntents().size(), 1);
-        assertEquals(router.getPushedRouteIntents().iterator().next(),
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 1);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().iterator().next(),
                 intent);
         verify(intentService);
     }
@@ -338,15 +340,15 @@ public class RouterTest {
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteAdd(routeEntryUpdate);
 
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntryUpdate));
-        assertEquals(router.getPushedRouteIntents().size(), 1);
-        assertEquals(router.getPushedRouteIntents().iterator().next(),
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 1);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().iterator().next(),
                 intentNew);
         verify(intentService);
     }
@@ -389,13 +391,13 @@ public class RouterTest {
         replay(intentService);
 
         // Call route deleting method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteDelete(routeEntry);
 
         // Verify
         assertEquals(router.getRoutes().size(), 0);
-        assertEquals(router.getPushedRouteIntents().size(), 0);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 0);
         verify(intentService);
     }
 
@@ -416,14 +418,14 @@ public class RouterTest {
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteAdd(routeEntry);
 
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntry));
-        assertEquals(router.getPushedRouteIntents().size(), 0);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 0);
         verify(intentService);
     }
 }

@@ -181,8 +181,8 @@ public class BgpSessionManager {
      * @param listenPortNumber the port number to listen on. By default
      * it should be BgpConstants.BGP_PORT (179)
      */
-    public void startUp(int listenPortNumber) {
-        log.debug("BGP Session Manager startUp()");
+    public void start(int listenPortNumber) {
+        log.debug("BGP Session Manager start.");
         isShutdown = false;
 
         ChannelFactory channelFactory =
@@ -222,9 +222,9 @@ public class BgpSessionManager {
     }
 
     /**
-     * Shuts down the BGP Session Manager operation.
+     * Stops the BGP Session Manager operation.
      */
-    public void shutDown() {
+    public void stop() {
         isShutdown = true;
         allChannels.close().awaitUninterruptibly();
         serverBootstrap.releaseExternalResources();

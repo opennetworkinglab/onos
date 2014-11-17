@@ -66,6 +66,7 @@ public class SdnIpTest {
     private static final int MIN_PREFIX_LENGTH = 1;
     private static final int MAX_PREFIX_LENGTH = 32;
 
+    private IntentSynchronizer intentSynchronizer;
     static Router router;
 
     private SdnIpConfigService sdnIpConfigService;
@@ -111,7 +112,8 @@ public class SdnIpTest {
         intentService = createMock(IntentService.class);
         random = new Random();
 
-        router = new Router(APPID, intentService, hostService,
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
+        router = new Router(APPID, intentSynchronizer, hostService,
                 sdnIpConfigService, interfaceService);
     }
 
@@ -228,8 +230,8 @@ public class SdnIpTest {
 
         replay(intentService);
 
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 
         // Add route updates
         for (RouteUpdate update : routeUpdates) {
@@ -239,7 +241,8 @@ public class SdnIpTest {
         latch.await(5000, TimeUnit.MILLISECONDS);
 
         assertEquals(router.getRoutes().size(), numRoutes);
-        assertEquals(router.getPushedRouteIntents().size(), numRoutes);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(),
+                     numRoutes);
 
         verify(intentService);
     }
@@ -295,8 +298,8 @@ public class SdnIpTest {
 
         replay(intentService);
 
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 
         // Send the add updates first
         for (RouteUpdate update : routeUpdates) {
@@ -314,7 +317,7 @@ public class SdnIpTest {
         deleteCount.await(5000, TimeUnit.MILLISECONDS);
 
         assertEquals(0, router.getRoutes().size());
-        assertEquals(0, router.getPushedRouteIntents().size());
+        assertEquals(0, intentSynchronizer.getPushedRouteIntents().size());
         verify(intentService);
     }
 

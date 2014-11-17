@@ -95,7 +95,7 @@ public class BgpSessionManagerTest {
         //
         bgpSessionManager = new BgpSessionManager(dummyRouteListener);
         // NOTE: We use port 0 to bind on any available port
-        bgpSessionManager.startUp(0);
+        bgpSessionManager.start(0);
 
         // Get the port number the BGP Session Manager is listening on
         Channel serverChannel = TestUtils.getField(bgpSessionManager,
@@ -136,7 +136,7 @@ public class BgpSessionManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        bgpSessionManager.shutDown();
+        bgpSessionManager.stop();
         bgpSessionManager = null;
     }
 

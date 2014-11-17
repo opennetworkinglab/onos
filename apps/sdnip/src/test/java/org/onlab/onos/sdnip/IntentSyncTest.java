@@ -54,7 +54,8 @@ import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 
 /**
- * This class tests the intent synchronization function in Router class.
+ * This class tests the intent synchronization function in the
+ * IntentSynchronizer class.
  */
 public class IntentSyncTest {
 
@@ -74,6 +75,7 @@ public class IntentSyncTest {
             DeviceId.deviceId("of:0000000000000003"),
             PortNumber.portNumber(1));
 
+    private IntentSynchronizer intentSynchronizer;
     private Router router;
 
     private static final ApplicationId APPID = new ApplicationId() {
@@ -94,7 +96,8 @@ public class IntentSyncTest {
         setUpHostService();
         intentService = createMock(IntentService.class);
 
-        router = new Router(APPID, intentService,
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
+        router = new Router(APPID, intentSynchronizer,
                 hostService, null, interfaceService);
     }
 
@@ -260,7 +263,7 @@ public class IntentSyncTest {
         // Compose a intent, which is equal to intent5 but the id is different.
         MultiPointToSinglePointIntent intent5New =
                 staticIntentBuilder(intent5, routeEntry5, "00:00:00:00:00:01");
-        assertTrue(TestUtils.callMethod(router,
+        assertTrue(TestUtils.callMethod(intentSynchronizer,
                 "compareMultiPointToSinglePointIntents",
                 new Class<?>[] {MultiPointToSinglePointIntent.class,
                 MultiPointToSinglePointIntent.class},
@@ -296,7 +299,8 @@ public class IntentSyncTest {
         pushedRouteIntents.put(routeEntry5.prefix(), intent5New);
         pushedRouteIntents.put(routeEntry6.prefix(), intent6);
         pushedRouteIntents.put(routeEntry7.prefix(), intent7);
-        TestUtils.setField(router, "pushedRouteIntents", pushedRouteIntents);
+        TestUtils.setField(intentSynchronizer, "pushedRouteIntents",
+                           pushedRouteIntents);
 
         // Set up expectation
         reset(intentService);
@@ -327,8 +331,9 @@ public class IntentSyncTest {
         replay(intentService);
 
         // Start the test
-        router.leaderChanged(true);
-        TestUtils.callMethod(router, "syncIntents", new Class<?>[] {});
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.callMethod(intentSynchronizer, "syncIntents",
+                             new Class<?>[] {});
 
         // Verify
         assertEquals(router.getRoutes().size(), 6);
@@ -338,12 +343,12 @@ public class IntentSyncTest {
         assertTrue(router.getRoutes().contains(routeEntry5));
         assertTrue(router.getRoutes().contains(routeEntry6));
 
-        assertEquals(router.getPushedRouteIntents().size(), 6);
-        assertTrue(router.getPushedRouteIntents().contains(intent1));
-        assertTrue(router.getPushedRouteIntents().contains(intent3));
-        assertTrue(router.getPushedRouteIntents().contains(intent4Update));
-        assertTrue(router.getPushedRouteIntents().contains(intent5));
-        assertTrue(router.getPushedRouteIntents().contains(intent6));
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 6);
+        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent1));
+        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent3));
+        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent4Update));
+        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent5));
+        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent6));
 
         verify(intentService);
     }

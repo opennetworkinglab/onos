@@ -16,21 +16,16 @@
 package org.onlab.onos.sdnip;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Host;
@@ -38,15 +33,9 @@ import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
-import org.onlab.onos.net.flow.criteria.Criterion;
-import org.onlab.onos.net.flow.criteria.Criterion.Type;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
@@ -59,7 +48,6 @@ import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -76,100 +64,81 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 public class Router implements RouteListener {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
+    // For routes announced by local BGP daemon in SDN network,
+    // the next hop will be 0.0.0.0.
+    private static final Ip4Address LOCAL_NEXT_HOP =
+        Ip4Address.valueOf("0.0.0.0");
 
     // Store all route updates in a radix tree.
     // The key in this tree is the binary string of prefix of the route.
     private InvertedRadixTree<RouteEntry> bgpRoutes;
 
     // Stores all incoming route updates in a queue.
-    private BlockingQueue<RouteUpdate> routeUpdates;
+    private final BlockingQueue<RouteUpdate> routeUpdates;
 
     // The Ip4Address is the next hop address of each route update.
-    private SetMultimap<Ip4Address, RouteEntry> routesWaitingOnArp;
-    private ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent> pushedRouteIntents;
-
-    private IntentService intentService;
-    private HostService hostService;
-    private SdnIpConfigService configService;
-    private InterfaceService interfaceService;
-
-    private ExecutorService bgpUpdatesExecutor;
-    private ExecutorService bgpIntentsSynchronizerExecutor;
+    private final SetMultimap<Ip4Address, RouteEntry> routesWaitingOnArp;
 
     private final ApplicationId appId;
-
-    //
-    // State to deal with SDN-IP Leader election and pushing Intents
-    //
-    private Semaphore intentsSynchronizerSemaphore = new Semaphore(0);
-    private volatile boolean isElectedLeader = false;
-    private volatile boolean isActivatedLeader = false;
-
-    // For routes announced by local BGP daemon in SDN network,
-    // the next hop will be 0.0.0.0.
-    public static final Ip4Address LOCAL_NEXT_HOP =
-        Ip4Address.valueOf("0.0.0.0");
+    private final IntentSynchronizer intentSynchronizer;
+    private final HostService hostService;
+    private final SdnIpConfigService configService;
+    private final InterfaceService interfaceService;
+    private final ExecutorService bgpUpdatesExecutor;
+    private final HostListener hostListener;
 
     /**
      * Class constructor.
      *
      * @param appId             the application ID
-     * @param intentService     the intent service
+     * @param intentSynchronizer the intent synchronizer
      * @param hostService       the host service
      * @param configService     the configuration service
      * @param interfaceService  the interface service
      */
-    public Router(ApplicationId appId, IntentService intentService,
+    public Router(ApplicationId appId, IntentSynchronizer intentSynchronizer,
                   HostService hostService, SdnIpConfigService configService,
                   InterfaceService interfaceService) {
         this.appId = appId;
-        this.intentService = intentService;
+        this.intentSynchronizer = intentSynchronizer;
         this.hostService = hostService;
         this.configService = configService;
         this.interfaceService = interfaceService;
+
+        this.hostListener = new InternalHostListener();
 
         bgpRoutes = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
         routeUpdates = new LinkedBlockingQueue<>();
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
                 HashMultimap.<Ip4Address, RouteEntry>create());
-        pushedRouteIntents = new ConcurrentHashMap<>();
 
         bgpUpdatesExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder().setNameFormat("bgp-updates-%d").build());
-        bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
-                new ThreadFactoryBuilder()
-                        .setNameFormat("bgp-intents-synchronizer-%d").build());
-
-        this.hostService.addListener(new InternalHostListener());
     }
 
     /**
      * Starts the router.
      */
     public void start() {
+        this.hostService.addListener(hostListener);
+
         bgpUpdatesExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 doUpdatesThread();
             }
         });
-
-        bgpIntentsSynchronizerExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                doIntentSynchronizationThread();
-            }
-        });
     }
 
     /**
-     * Shuts the router down.
+     * Stops the router.
      */
-    public void shutdown() {
-        // Stop all threads
+    public void stop() {
+        this.hostService.removeListener(hostListener);
+
+        // Stop the thread(s)
         bgpUpdatesExecutor.shutdownNow();
-        bgpIntentsSynchronizerExecutor.shutdownNow();
 
         synchronized (this) {
             // Cleanup all local state
@@ -177,41 +146,7 @@ public class Router implements RouteListener {
                 new DefaultByteArrayNodeFactory());
             routeUpdates.clear();
             routesWaitingOnArp.clear();
-            pushedRouteIntents.clear();
-
-            //
-            // Withdraw all SDN-IP intents
-            //
-            if (!isElectedLeader) {
-                return;         // Nothing to do: not the leader anymore
-            }
-            log.debug("Withdrawing all SDN-IP Route Intents...");
-            for (Intent intent : intentService.getIntents()) {
-                if (!(intent instanceof MultiPointToSinglePointIntent)
-                        || !intent.appId().equals(appId)) {
-                    continue;
-                }
-                intentService.withdraw(intent);
-            }
         }
-    }
-
-    //@Override TODO hook this up to something
-    public void leaderChanged(boolean isLeader) {
-        log.debug("Leader changed: {}", isLeader);
-
-        if (!isLeader) {
-            this.isElectedLeader = false;
-            this.isActivatedLeader = false;
-            return;                     // Nothing to do
-        }
-        this.isActivatedLeader = false;
-        this.isElectedLeader = true;
-
-        //
-        // Tell the Intents Synchronizer thread to start the synchronization
-        //
-        intentsSynchronizerSemaphore.release();
     }
 
     @Override
@@ -223,35 +158,6 @@ public class Router implements RouteListener {
         } catch (InterruptedException e) {
             log.debug("Interrupted while putting on routeUpdates queue", e);
             Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * Thread for Intent Synchronization.
-     */
-    private void doIntentSynchronizationThread() {
-        boolean interrupted = false;
-        try {
-            while (!interrupted) {
-                try {
-                    intentsSynchronizerSemaphore.acquire();
-                    //
-                    // Drain all permits, because a single synchronization is
-                    // sufficient.
-                    //
-                    intentsSynchronizerSemaphore.drainPermits();
-                } catch (InterruptedException e) {
-                    log.debug("Interrupted while waiting to become " +
-                                      "Intent Synchronization leader");
-                    interrupted = true;
-                    break;
-                }
-                syncIntents();
-            }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
         }
     }
 
@@ -290,194 +196,6 @@ public class Router implements RouteListener {
     }
 
     /**
-     * Performs Intents Synchronization between the internally stored Route
-     * Intents and the installed Route Intents.
-     */
-    private void syncIntents() {
-        synchronized (this) {
-            if (!isElectedLeader) {
-                return;         // Nothing to do: not the leader anymore
-            }
-            log.debug("Syncing SDN-IP Route Intents...");
-
-            Map<Ip4Prefix, MultiPointToSinglePointIntent> fetchedIntents =
-                    new HashMap<>();
-
-            //
-            // Fetch all intents, and classify the Multi-Point-to-Point Intents
-            // based on the matching prefix.
-            //
-            for (Intent intent : intentService.getIntents()) {
-
-                if (!(intent instanceof MultiPointToSinglePointIntent)
-                        || !intent.appId().equals(appId)) {
-                    continue;
-                }
-                MultiPointToSinglePointIntent mp2pIntent =
-                        (MultiPointToSinglePointIntent) intent;
-
-                Criterion c = mp2pIntent.selector().getCriterion(Type.IPV4_DST);
-                if (c != null && c instanceof IPCriterion) {
-                    IPCriterion ipCriterion = (IPCriterion) c;
-                    Ip4Prefix ip4Prefix = ipCriterion.ip().getIp4Prefix();
-                    if (ip4Prefix == null) {
-                        // TODO: For now we support only IPv4
-                        continue;
-                    }
-                    fetchedIntents.put(ip4Prefix, mp2pIntent);
-                } else {
-                    log.warn("No IPV4_DST criterion found for intent {}",
-                            mp2pIntent.id());
-                }
-
-            }
-
-            //
-            // Compare for each prefix the local IN-MEMORY Intents with the
-            // FETCHED Intents:
-            //  - If the IN-MEMORY Intent is same as the FETCHED Intent, store
-            //    the FETCHED Intent in the local memory (i.e., override the
-            //    IN-MEMORY Intent) to preserve the original Intent ID
-            //  - if the IN-MEMORY Intent is not same as the FETCHED Intent,
-            //    delete the FETCHED Intent, and push/install the IN-MEMORY
-            //    Intent.
-            //  - If there is an IN-MEMORY Intent for a prefix, but no FETCHED
-            //    Intent for same prefix, then push/install the IN-MEMORY
-            //    Intent.
-            //  - If there is a FETCHED Intent for a prefix, but no IN-MEMORY
-            //    Intent for same prefix, then delete/withdraw the FETCHED
-            //    Intent.
-            //
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
-                    storeInMemoryIntents = new LinkedList<>();
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
-                    addIntents = new LinkedList<>();
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
-                    deleteIntents = new LinkedList<>();
-            for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
-                    pushedRouteIntents.entrySet()) {
-                Ip4Prefix prefix = entry.getKey();
-                MultiPointToSinglePointIntent inMemoryIntent =
-                        entry.getValue();
-                MultiPointToSinglePointIntent fetchedIntent =
-                        fetchedIntents.get(prefix);
-
-                if (fetchedIntent == null) {
-                    //
-                    // No FETCHED Intent for same prefix: push the IN-MEMORY
-                    // Intent.
-                    //
-                    addIntents.add(Pair.of(prefix, inMemoryIntent));
-                    continue;
-                }
-
-                IntentState state = intentService.getIntentState(fetchedIntent.id());
-                if (state == IntentState.WITHDRAWING ||
-                        state == IntentState.WITHDRAWN) {
-                    // The intent has been withdrawn but according to our route
-                    // table it should be installed. We'll reinstall it.
-                    addIntents.add(Pair.of(prefix, inMemoryIntent));
-                }
-
-                //
-                // If IN-MEMORY Intent is same as the FETCHED Intent,
-                // store the FETCHED Intent in the local memory.
-                //
-                if (compareMultiPointToSinglePointIntents(inMemoryIntent,
-                                                          fetchedIntent)) {
-                    storeInMemoryIntents.add(Pair.of(prefix, fetchedIntent));
-                } else {
-                    //
-                    // The IN-MEMORY Intent is not same as the FETCHED Intent,
-                    // hence delete the FETCHED Intent, and install the
-                    // IN-MEMORY Intent.
-                    //
-                    deleteIntents.add(Pair.of(prefix, fetchedIntent));
-                    addIntents.add(Pair.of(prefix, inMemoryIntent));
-                }
-                fetchedIntents.remove(prefix);
-            }
-
-            //
-            // Any remaining FETCHED Intents have to be deleted/withdrawn
-            //
-            for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
-                    fetchedIntents.entrySet()) {
-                Ip4Prefix prefix = entry.getKey();
-                MultiPointToSinglePointIntent fetchedIntent = entry.getValue();
-                deleteIntents.add(Pair.of(prefix, fetchedIntent));
-            }
-
-            //
-            // Perform the actions:
-            // 1. Store in memory fetched intents that are same. Can be done
-            //    even if we are not the leader anymore
-            // 2. Delete intents: check if the leader before each operation
-            // 3. Add intents: check if the leader before each operation
-            //
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
-                    storeInMemoryIntents) {
-                Ip4Prefix prefix = pair.getLeft();
-                MultiPointToSinglePointIntent intent = pair.getRight();
-                log.debug("Intent synchronization: updating in-memory " +
-                                  "Intent for prefix: {}", prefix);
-                pushedRouteIntents.put(prefix, intent);
-            }
-            //
-            isActivatedLeader = true;           // Allow push of Intents
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
-                    deleteIntents) {
-                Ip4Prefix prefix = pair.getLeft();
-                MultiPointToSinglePointIntent intent = pair.getRight();
-                if (!isElectedLeader) {
-                    isActivatedLeader = false;
-                    return;
-                }
-                log.debug("Intent synchronization: deleting Intent for " +
-                                  "prefix: {}", prefix);
-                intentService.withdraw(intent);
-            }
-            //
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
-                    addIntents) {
-                Ip4Prefix prefix = pair.getLeft();
-                MultiPointToSinglePointIntent intent = pair.getRight();
-                if (!isElectedLeader) {
-                    isActivatedLeader = false;
-                    return;
-                }
-                log.debug("Intent synchronization: adding Intent for " +
-                                  "prefix: {}", prefix);
-                intentService.submit(intent);
-            }
-            if (!isElectedLeader) {
-                isActivatedLeader = false;
-            }
-            log.debug("Syncing SDN-IP routes completed.");
-        }
-    }
-
-    /**
-     * Compares two Multi-point to Single Point Intents whether they represent
-     * same logical intention.
-     *
-     * @param intent1 the first Intent to compare
-     * @param intent2 the second Intent to compare
-     * @return true if both Intents represent same logical intention, otherwise
-     * false
-     */
-    private boolean compareMultiPointToSinglePointIntents(
-            MultiPointToSinglePointIntent intent1,
-            MultiPointToSinglePointIntent intent2) {
-
-        return Objects.equal(intent1.appId(), intent2.appId()) &&
-                Objects.equal(intent1.selector(), intent2.selector()) &&
-                Objects.equal(intent1.treatment(), intent2.treatment()) &&
-                Objects.equal(intent1.ingressPoints(), intent2.ingressPoints()) &&
-                Objects.equal(intent1.egressPoint(), intent2.egressPoint());
-    }
-
-    /**
      * Processes adding a route entry.
      * <p>
      * Put new route entry into the radix tree. If there was an existing
@@ -488,7 +206,7 @@ public class Router implements RouteListener {
      *
      * @param routeEntry the route entry to add
      */
-    protected void processRouteAdd(RouteEntry routeEntry) {
+    void processRouteAdd(RouteEntry routeEntry) {
         synchronized (this) {
             log.debug("Processing route add: {}", routeEntry);
 
@@ -610,17 +328,8 @@ public class Router implements RouteListener {
         log.debug("Adding intent for prefix {}, next hop mac {}",
                   prefix, nextHopMacAddress);
 
-        MultiPointToSinglePointIntent pushedIntent =
-                pushedRouteIntents.get(prefix);
-
-        // Just for testing.
-        if (pushedIntent != null) {
-            log.error("There should not be a pushed intent: {}", pushedIntent);
-        }
-
-        ConnectPoint egressPort = egressInterface.connectPoint();
-
         Set<ConnectPoint> ingressPorts = new HashSet<>();
+        ConnectPoint egressPort = egressInterface.connectPoint();
 
         for (Interface intf : interfaceService.getInterfaces()) {
             if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
@@ -644,14 +353,7 @@ public class Router implements RouteListener {
                 new MultiPointToSinglePointIntent(appId, selector, treatment,
                                                   ingressPorts, egressPort);
 
-        if (isElectedLeader && isActivatedLeader) {
-            log.debug("Intent installation: adding Intent for prefix: {}",
-                      prefix);
-            intentService.submit(intent);
-        }
-
-        // Maintain the Intent
-        pushedRouteIntents.put(prefix, intent);
+        intentSynchronizer.submitRouteIntent(prefix, intent);
     }
 
     /**
@@ -663,7 +365,7 @@ public class Router implements RouteListener {
      *
      * @param routeEntry the route entry to delete
      */
-    protected void processRouteDelete(RouteEntry routeEntry) {
+    void processRouteDelete(RouteEntry routeEntry) {
         synchronized (this) {
             log.debug("Processing route delete: {}", routeEntry);
             Ip4Prefix prefix = routeEntry.prefix();
@@ -691,21 +393,7 @@ public class Router implements RouteListener {
     private void executeRouteDelete(RouteEntry routeEntry) {
         log.debug("Executing route delete: {}", routeEntry);
 
-        Ip4Prefix prefix = routeEntry.prefix();
-
-        MultiPointToSinglePointIntent intent =
-                pushedRouteIntents.remove(prefix);
-
-        if (intent == null) {
-            log.debug("There is no intent in pushedRouteIntents to delete " +
-                              "for prefix: {}", prefix);
-        } else {
-            if (isElectedLeader && isActivatedLeader) {
-                log.debug("Intent installation: deleting Intent for prefix: {}",
-                          prefix);
-                intentService.withdraw(intent);
-            }
-        }
+        intentSynchronizer.withdrawRouteIntent(routeEntry.prefix());
     }
 
     /**
@@ -771,21 +459,6 @@ public class Router implements RouteListener {
         }
 
         return routes;
-    }
-
-    /**
-     * Gets the pushed route intents.
-     *
-     * @return the pushed route intents
-     */
-    public Collection<MultiPointToSinglePointIntent> getPushedRouteIntents() {
-        List<MultiPointToSinglePointIntent> pushedIntents = new LinkedList<>();
-
-        for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
-            pushedRouteIntents.entrySet()) {
-            pushedIntents.add(entry.getValue());
-        }
-        return pushedIntents;
     }
 
     /**

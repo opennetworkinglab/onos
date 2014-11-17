@@ -96,6 +96,13 @@ public class PeerConnectivityManager {
     }
 
     /**
+     * Stops the peer connectivity manager.
+     */
+    public void stop() {
+        // TODO: Implement it
+    }
+
+    /**
      * Sets up paths to establish connectivity between all internal
      * {@link BgpSpeaker}s and all external {@link BgpPeer}s.
      */

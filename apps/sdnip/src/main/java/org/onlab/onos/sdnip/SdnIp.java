@@ -55,6 +55,7 @@ public class SdnIp implements SdnIpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigReader config;
     private PeerConnectivityManager peerConnectivity;
     private Router router;
@@ -64,35 +65,41 @@ public class SdnIp implements SdnIpService {
     protected void activate() {
         log.debug("SDN-IP started");
 
+        ApplicationId appId = coreService.registerApplication(SDN_IP_APP);
         config = new SdnIpConfigReader();
         config.init();
 
-        InterfaceService interfaceService = new HostToInterfaceAdaptor(hostService);
+        InterfaceService interfaceService =
+            new HostToInterfaceAdaptor(hostService);
 
-        ApplicationId appId = coreService.registerApplication(SDN_IP_APP);
+        intentSynchronizer = new IntentSynchronizer(appId, intentService);
+        intentSynchronizer.start();
 
         peerConnectivity = new PeerConnectivityManager(appId, config,
                 interfaceService, intentService);
         peerConnectivity.start();
 
-        router = new Router(appId, intentService, hostService, config, interfaceService);
+        router = new Router(appId, intentSynchronizer, hostService, config,
+                            interfaceService);
         router.start();
 
-        // Manually set the router as the leader to allow testing
+        // Manually set the instance as the leader to allow testing
         // TODO change this when we get a leader election
-        router.leaderChanged(true);
+        intentSynchronizer.leaderChanged(true);
 
         bgpSessionManager = new BgpSessionManager(router);
-        bgpSessionManager.startUp(2000); // TODO
+        // TODO: the local BGP listen port number should be configurable
+        bgpSessionManager.start(2000);
 
         // TODO need to disable link discovery on external ports
-
     }
 
     @Deactivate
     protected void deactivate() {
-        bgpSessionManager.shutDown();
-        router.shutdown();
+        bgpSessionManager.stop();
+        router.stop();
+        peerConnectivity.stop();
+        intentSynchronizer.stop();
 
         log.info("Stopped");
     }
@@ -114,7 +121,7 @@ public class SdnIp implements SdnIpService {
 
     @Override
     public void modifyPrimary(boolean isPrimary) {
-        router.leaderChanged(isPrimary);
+        intentSynchronizer.leaderChanged(isPrimary);
     }
 
     static String dpidToUri(String dpid) {

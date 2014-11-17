@@ -92,6 +92,7 @@ public class RouterTestWithAsyncArp {
             DeviceId.deviceId("of:0000000000000003"),
             PortNumber.portNumber(1));
 
+    private IntentSynchronizer intentSynchronizer;
     private Router router;
     private InternalHostListener internalHostListener;
 
@@ -114,7 +115,8 @@ public class RouterTestWithAsyncArp {
         hostService = createMock(HostService.class);
         intentService = createMock(IntentService.class);
 
-        router = new Router(APPID, intentService,
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
+        router = new Router(APPID, intentSynchronizer,
                 hostService, sdnIpConfigService, interfaceService);
         internalHostListener = router.new InternalHostListener();
     }
@@ -211,8 +213,8 @@ public class RouterTestWithAsyncArp {
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteAdd(routeEntry);
 
         Host host = new DefaultHost(ProviderId.NONE, HostId.NONE,
@@ -227,9 +229,9 @@ public class RouterTestWithAsyncArp {
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntry));
-        assertEquals(router.getPushedRouteIntents().size(), 1);
-        assertEquals(router.getPushedRouteIntents().iterator().next(),
-                intent);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 1);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().iterator().next(),
+                     intent);
         verify(intentService);
         verify(hostService);
 
@@ -294,8 +296,8 @@ public class RouterTestWithAsyncArp {
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteAdd(routeEntryUpdate);
 
         Host host = new DefaultHost(ProviderId.NONE, HostId.NONE,
@@ -310,8 +312,8 @@ public class RouterTestWithAsyncArp {
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntryUpdate));
-        assertEquals(router.getPushedRouteIntents().size(), 1);
-        assertEquals(router.getPushedRouteIntents().iterator().next(),
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 1);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().iterator().next(),
                 intentNew);
         verify(intentService);
         verify(hostService);
@@ -342,13 +344,13 @@ public class RouterTestWithAsyncArp {
         replay(intentService);
 
         // Call route deleting method in Router class
-        router.leaderChanged(true);
-        TestUtils.setField(router, "isActivatedLeader", true);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
         router.processRouteDelete(routeEntry);
 
         // Verify
         assertEquals(router.getRoutes().size(), 0);
-        assertEquals(router.getPushedRouteIntents().size(), 0);
+        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 0);
         verify(intentService);
     }
 
