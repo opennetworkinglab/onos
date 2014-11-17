@@ -182,7 +182,6 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
         copycat.start().get();
 
-        client = new DatabaseClient(copycatMessagingProtocol);
         client.waitForLeader();
 
         log.info("Started.");
