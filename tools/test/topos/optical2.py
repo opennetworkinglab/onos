@@ -64,12 +64,19 @@ class OpticalTopo(Topo):
         self.addIntf(s5,'tap33')
         self.addIntf(s6,'tap34')
 
+        self.addIntf(s1,'tap35')
+        self.addIntf(s2,'tap36')
+        self.addIntf(s3,'tap37')
+        self.addIntf(s4,'tap38')
+        self.addIntf(s5,'tap39')
+        self.addIntf(s6,'tap40')
+
         # if you use, sudo mn --custom custom/optical.py, then register the topo:
 topos = {'optical': ( lambda: OpticalTopo() )}
 
 
 def run():
-    c = RemoteController('c','127.0.0.1',6633)
+    c = RemoteController('c','192.168.56.101',6633)
     net = Mininet( topo=OpticalTopo(),controller=None,autoSetMacs=True)
     net.addController(c)
     net.start()
