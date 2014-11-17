@@ -154,7 +154,7 @@ public class SimpleStatisticStore implements StatisticStore {
     private ConnectPoint buildConnectPoint(FlowRule rule) {
         PortNumber port = getOutput(rule);
         if (port == null) {
-            log.warn("Rule {} has no output.", rule);
+            log.debug("Rule {} has no output.", rule);
             return null;
         }
         ConnectPoint cp = new ConnectPoint(rule.deviceId(), port);
