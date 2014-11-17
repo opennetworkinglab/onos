@@ -119,7 +119,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(dstTcpString)) {
-            selectorBuilder.matchTcpSrc((short) Integer.parseInt(dstTcpString));
+            selectorBuilder.matchTcpDst((short) Integer.parseInt(dstTcpString));
         }
 
         return selectorBuilder.build();
