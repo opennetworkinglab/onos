@@ -67,12 +67,12 @@ public class DefaultTopologyProviderTest {
         provider.deviceService = deviceService;
         provider.linkService = linkService;
         provider.providerRegistry = topologyService;
-        provider.activate();
+        provider.activate(null);
     }
 
     @After
     public void tearDown() {
-        provider.deactivate();
+        provider.deactivate(null);
         provider.providerRegistry = null;
         provider.deviceService = null;
         provider.linkService = null;
