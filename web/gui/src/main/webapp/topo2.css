@@ -31,6 +31,11 @@
 }
 
 
+#topo svg .glyph {
+    fill: white;
+    stroke: none;
+}
+
 /* NODES */
 
 #topo svg .node {
@@ -93,14 +98,22 @@
 /* Host Nodes */
 
 #topo svg .node.host {
-    fill: #846;
+    stroke: #000;
 }
 
 #topo svg .node.host text {
     fill: #846;
+    stroke: none;
     font: 9pt sans-serif;
 }
 
+svg .node.host circle {
+    fill: #c96;
+}
+
+#topo svg .node.host.bgpSpeaker circle {
+    fill: #853;
+}
 
 /* LINKS */
 
@@ -262,7 +275,7 @@
 }
 #topo-oibox .onosInst.mastership.affinity {
     opacity: 1.0;
-    box-shadow: 0px 2px 8px #33e;
+    box-shadow: 0 2px 8px #33e;
 }
 
 

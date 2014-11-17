@@ -101,12 +101,6 @@ svg g.portLayer text {
 
 
 
-svg .node.host circle {
-    fill: #c96;
-    stroke: #000;
-}
-
-
 /* for debugging */
 svg .node circle.debug {
     fill: white;

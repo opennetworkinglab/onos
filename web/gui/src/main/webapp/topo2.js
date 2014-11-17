@@ -1060,7 +1060,7 @@
         if (!node.type) {
             node.type = 'endstation';
         }
-        node.svgClass = 'node host';
+        node.svgClass = 'node host ' + node.type;
         positionNode(node);
 
         // cache label array length
@@ -1237,6 +1237,18 @@
         }
     }
 
+    function addHostIcon(node, radius, iconId) {
+        var dim = radius * 1.5,
+            xlate = -dim / 2;
+
+        node.append('use')
+            .classed('glyph', true)
+            .attr('transform', translate(xlate,xlate))
+            .attr('xlink:href', '#' + iconId)
+            .attr('width', dim)
+            .attr('height', dim);
+    }
+
     function updateNodes() {
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -1310,20 +1322,36 @@
             }
         });
 
+        // TODO: better place for this configuration state
+        var defaultHostRadius = 9,
+            hostRadius = {
+                bgpSpeaker: 20
+            },
+            hostIcon = {
+                bgpSpeaker: 'bullhorn'
+            };
+
+
         // augment host nodes...
         entering.filter('.host').each(function (d) {
             var node = d3.select(this),
-                box;
+                r = hostRadius[d.type] || defaultHostRadius,
+                textDy = r + 10,
+                icon = hostIcon[d.type];
 
             // provide ref to element from backing data....
             d.el = node;
 
             node.append('circle')
-                .attr('r', 8);     // TODO: define host circle radius
+                .attr('r', r);
+
+            if (icon) {
+                addHostIcon(node, r, icon);
+            }
 
             node.append('text')
                 .text(hostLabel)
-                .attr('dy', '1.3em')
+                .attr('dy', textDy)
                 .attr('text-anchor', 'middle');
 
             // debug function to show the modelled x,y coordinates of nodes...
@@ -1786,6 +1814,11 @@
         showTrafficOnHover.classed('active', !trafficHover());
     }
 
+    function loadGlyphs(svg) {
+        var defs = svg.append('defs');
+        gly.defBird(defs);
+        gly.defBullhorn(defs);
+    }
 
     // ==============================
     // View life-cycle callbacks
@@ -1802,8 +1835,7 @@
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
-        var defs = svg.append('defs');
-        gly.defBird(defs);
+        loadGlyphs(svg);
 
         zoomPanContainer = svg.append('g').attr('id', 'zoomPanContainer');
         setupZoomPan();

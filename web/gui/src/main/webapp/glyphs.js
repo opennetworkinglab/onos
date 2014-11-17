@@ -24,6 +24,8 @@
 (function (onos) {
     'use strict';
 
+    // TODO: refactor this library...
+
     var birdData = "M427.7,300.4 c-6.9,0.6-13.1,5-19.2,7.1" +
         "c-18.1,6.2-33.9,9.1-56.5,4.7c24.6,17.2,36.6,13,63.7,0.1" +
         "c-0.5,0.6-0.7,1.3-1.3,1.9c1.4-0.4,2.4-1.7,3.4-2.2" +
@@ -39,7 +41,6 @@
         "c-2-11.2-8.4-21.5-19.7-24.8c-1-0.3-1.1-0.3-0.9,0" +
         "c9.6,17.1,7.2,38.3,3.1,54.2C429.9,285.5,426.7,293.2,427.7,300.4z";
 
-
     function defBird(defs) {
         defs.append('symbol')
             .attr({
@@ -49,9 +50,25 @@
             .append('path').attr('d', birdData);
     }
 
+    var bullhornData = "M0,13c0,3.733,2.561,6.148,6.019,6.809 " +
+        "C6.013,19.873,6,19.935,6,20v8 c0,1.105,0.895,2,2,2h3 " +
+        "c1.105,0,2-0.896,2-2v-8h3V6H8C3.582,6,0,8.582,0,13z " +
+        "M18,20h3V6h-3V20z M30,0l-7,4.667v16.667L30,26 c1.105,0,2-0.895,2-2" +
+        "V2 C32,0.896,31.105,0,30,0z";
+
+    function defBullhorn(defs) {
+        defs.append('symbol')
+            .attr({
+                id: 'bullhorn',
+                viewBox: '-4 -5 40 40'
+            })
+            .append('path').attr('d', bullhornData);
+    }
+
     // === register the functions as a library
     onos.ui.addLib('glyphs', {
-        defBird: defBird
+        defBird: defBird,
+        defBullhorn: defBullhorn
     });
 
 }(ONOS));

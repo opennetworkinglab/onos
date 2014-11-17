@@ -1,0 +1,18 @@
+{
+  "event": "addHost",
+  "payload": {
+    "id": "0E:2A:69:30:BB:BB/-1",
+    "type": "bgpSpeaker",
+    "ingress": "0E:2A:69:30:BB:BB/-1/0-of:0000ffffffff0007/2",
+    "egress": "of:0000ffffffff0007/2-0E:2A:69:30:BB:BB/-1/0",
+    "cp": {
+      "device": "of:0000ffffffff0007",
+      "port": 2
+    },
+    "labels": [
+      "BGP",
+      "0E:2A:69:30:BB:BB"
+    ],
+    "props": {}
+  }
+}
