@@ -275,7 +275,7 @@ public class DatabaseStateMachine implements StateMachine {
         // notify listeners of table mod events.
         for (DatabaseUpdateEventListener listener : listeners) {
             for (TableModificationEvent tableModificationEvent : tableModificationEvents) {
-                log.info("Publishing table modification event: {}", tableModificationEvent);
+                log.trace("Publishing table modification event: {}", tableModificationEvent);
                 listener.tableModified(tableModificationEvent);
             }
         }
