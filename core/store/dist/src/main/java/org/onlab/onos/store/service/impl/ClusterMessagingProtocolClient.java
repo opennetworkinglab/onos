@@ -217,10 +217,12 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 future.complete(verifyNotNull(SERIALIZER.decode(response)));
 
             } catch (IOException | ExecutionException | TimeoutException e) {
-                log.warn("RPCTask for {} failed.", request, e);
+                log.warn("RPCTask for {} failed: {}", request, e.getMessage());
+                log.debug("RPCTask for {} failed.", request, e);
                 future.completeExceptionally(e);
             } catch (InterruptedException e) {
-                log.warn("RPCTask for {} was interrupted.", request, e);
+                log.warn("RPCTask for {} was interrupted: {}", request, e.getMessage());
+                log.debug("RPCTask for {} was interrupted.", request, e);
                 future.completeExceptionally(e);
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
