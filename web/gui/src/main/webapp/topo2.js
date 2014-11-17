@@ -339,13 +339,16 @@
         link: {
             hostLink: 'pkt',
             direct: 'pkt',
+            indirect: '',
+            tunnel: '',
             optical: 'opt'
         }
     };
 
     function inLayer(d, layer) {
-        var look = layerLookup[d.class],
-            lyr = look && look[d.type];
+        var type = d.class === 'link' ? d.type() : d.type,
+            look = layerLookup[d.class],
+            lyr = look && look[type];
         return lyr === layer;
     }
 
@@ -408,6 +411,115 @@
         });
     }
 
+    function makeNodeKey(d, what) {
+        var port = what + 'Port';
+        return d[what] + '/' + d[port];
+    }
+
+    function makeLinkKey(d, flipped) {
+        var one = flipped ? makeNodeKey(d, 'dst') : makeNodeKey(d, 'src'),
+            two = flipped ? makeNodeKey(d, 'src') : makeNodeKey(d, 'dst');
+        return one + '-' + two;
+    }
+
+    function findLink(linkData, op) {
+        var key = makeLinkKey(linkData),
+            keyrev = makeLinkKey(linkData, 1),
+            link = network.lookup[key],
+            linkRev = network.lookup[keyrev],
+            result = {},
+            ldata = link || linkRev,
+            rawLink;
+
+        if (op === 'add') {
+            if (link) {
+                // trying to add a link that we already know about
+                result.ldata = link;
+                result.badLogic = 'addLink: link already added';
+
+            } else if (linkRev) {
+                // we found the reverse of the link to be added
+                result.ldata = linkRev;
+                if (linkRev.fromTarget) {
+                    result.badLogic = 'addLink: link already added';
+                }
+            }
+        } else if (op === 'update') {
+            if (!ldata) {
+                result.badLogic = 'updateLink: link not found';
+            } else {
+                rawLink = link ? ldata.fromSource : ldata.fromTarget;
+                result.updateWith = function (data) {
+                    $.extend(rawLink, data);
+                    restyleLinkElement(ldata);
+                }
+            }
+        } else if (op === 'remove') {
+            if (!ldata) {
+                result.badLogic = 'removeLink: link not found';
+            } else {
+                rawLink = link ? ldata.fromSource : ldata.fromTarget;
+
+                if (!rawLink) {
+                    result.badLogic = 'removeLink: link not found';
+
+                } else {
+                    result.removeRawLink = function () {
+                        if (link) {
+                            // remove fromSource
+                            ldata.fromSource = null;
+                            if (ldata.fromTarget) {
+                                // promote target into source position
+                                ldata.fromSource = ldata.fromTarget;
+                                ldata.fromTarget = null;
+                                ldata.key = keyrev;
+                                delete network.lookup[key];
+                                network.lookup[keyrev] = ldata;
+                            }
+                        } else {
+                            // remove fromTarget
+                            ldata.fromTarget = null;
+                        }
+                        if (ldata.fromSource) {
+                            restyleLinkElement(ldata);
+                        } else {
+                            removeLinkElement(ldata);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    function addLinkUpdate(ldata, link) {
+        // add link event, but we already have the reverse link installed
+        ldata.fromTarget = link;
+        restyleLinkElement(ldata);
+    }
+
+    var allLinkTypes = 'direct indirect optical tunnel',
+        defaultLinkType = 'direct';
+
+    function restyleLinkElement(ldata) {
+        // this fn's job is to look at raw links and decide what svg classes
+        // need to be applied to the line element in the DOM
+        var el = ldata.el,
+            type = ldata.type(),
+            lw = ldata.linkWidth(),
+            online = ldata.online();
+
+        el.classed('link', true);
+        el.classed('inactive', !online);
+        el.classed(allLinkTypes, false);
+        if (type) {
+            el.classed(type, true);
+        }
+        el.transition()
+            .duration(1000)
+            .attr('stroke-width', linkScale(lw))
+            .attr('stroke', '#666');  // TODO: remove explicit stroke (use CSS)
+    }
 
     // ==============================
     // Event handlers for server-pushed events
@@ -465,10 +577,26 @@
     function addLink(data) {
         evTrace(data);
         var link = data.payload,
-            lnk = createLink(link);
-        if (lnk) {
-            network.links.push(lnk);
-            network.lookup[lnk.id] = lnk;
+            result = findLink(link, 'add'),
+            bad = result.badLogic,
+            ldata = result.ldata;
+
+        if (bad) {
+            logicError(bad + ': ' + link.id);
+            return;
+        }
+
+        if (ldata) {
+            // we already have a backing store link for src/dst nodes
+            addLinkUpdate(ldata, link);
+            return;
+        }
+
+        // no backing store link yet
+        ldata = createLink(link);
+        if (ldata) {
+            network.links.push(ldata);
+            network.lookup[ldata.key] = ldata;
             updateLinks();
             network.force.start();
         }
@@ -511,14 +639,13 @@
     function updateLink(data) {
         evTrace(data);
         var link = data.payload,
-            id = link.id,
-            linkData = network.lookup[id];
-        if (linkData) {
-            $.extend(linkData, link);
-            updateLinkState(linkData);
-        } else {
-            logicError('updateLink lookup fail. ID = "' + id + '"');
+            result = findLink(link, 'update'),
+            bad = result.badLogic;
+        if (bad) {
+            logicError(bad + ': ' + link.id);
+            return;
         }
+        result.updateWith(link);
     }
 
     function updateHost(data) {
@@ -538,13 +665,13 @@
     function removeLink(data) {
         evTrace(data);
         var link = data.payload,
-            id = link.id,
-            linkData = network.lookup[id];
-        if (linkData) {
-            removeLinkElement(linkData);
-        } else {
-            logicError('removeLink lookup fail. ID = "' + id + '"');
+            result = findLink(link, 'remove'),
+            bad = result.badLogic;
+        if (bad) {
+            logicError(bad + ': ' + link.id);
+            return;
         }
+        result.removeRawLink();
     }
 
     function removeHost(data) {
@@ -805,11 +932,13 @@
 
         // Synthesize link ...
         $.extend(lnk, {
-            id: id,
+            key: id,
             class: 'link',
-            type: 'hostLink',
-            svgClass: 'link hostLink',
-            linkWidth: 1
+
+            type: function () { return 'hostLink'; },
+            // TODO: ideally, we should see if our edge switch is online...
+            online: function () { return true; },
+            linkWidth: function () { return 1; }
         });
         return lnk;
     }
@@ -822,10 +951,29 @@
             return null;
         }
 
-        // merge in remaining data
-        $.extend(lnk, link, {
+        $.extend(lnk, {
+            key: link.id,
             class: 'link',
-            svgClass: (type ? 'link ' + type : 'link')
+            fromSource: link,
+
+            // functions to aggregate dual link state
+            type: function () {
+                var s = lnk.fromSource,
+                    t = lnk.fromTarget;
+                return (s && s.type) || (t && t.type) || defaultLinkType;
+            },
+            online: function () {
+                var s = lnk.fromSource,
+                    t = lnk.fromTarget;
+                return (s && s.online) || (t && t.online);
+            },
+            linkWidth: function () {
+                var s = lnk.fromSource,
+                    t = lnk.fromTarget,
+                    ws = (s && s.linkWidth) || 0,
+                    wt = (t && t.linkWidth) || 0;
+                return Math.max(ws, wt);
+            }
         });
         return lnk;
     }
@@ -836,17 +984,9 @@
             .range([widthRatio, 12 * widthRatio])
             .clamp(true);
 
-    function updateLinkWidth (d) {
-        // TODO: watch out for .showPath/.showTraffic classes
-        d.el.transition()
-            .duration(1000)
-            .attr('stroke-width', linkScale(d.linkWidth));
-    }
-
-
     function updateLinks() {
         link = linkG.selectAll('.link')
-            .data(network.links, function (d) { return d.id; });
+            .data(network.links, function (d) { return d.key; });
 
         // operate on existing links, if necessary
         // link .foo() .bar() ...
@@ -855,19 +995,12 @@
         var entering = link.enter()
             .append('line')
             .attr({
-                class: function (d) { return d.svgClass; },
                 x1: function (d) { return d.x1; },
                 y1: function (d) { return d.y1; },
                 x2: function (d) { return d.x2; },
                 y2: function (d) { return d.y2; },
                 stroke: config.topo.linkInColor,
                 'stroke-width': config.topo.linkInWidth
-            })
-            .classed('inactive', function(d) { return !d.online; })
-            .transition().duration(1000)
-            .attr({
-                'stroke-width': function (d) { return linkScale(d.linkWidth); },
-                stroke: '#666'      // TODO: remove explicit stroke, rather...
             });
 
         // augment links
@@ -875,6 +1008,7 @@
             var link = d3.select(this);
             // provide ref to element selection from backing data....
             d.el = link;
+            restyleLinkElement(d);
 
             // TODO: add src/dst port labels etc.
         });
@@ -1240,9 +1374,9 @@
         // TODO: device node exits
     }
 
-    function find(id, array) {
+    function find(key, array) {
         for (var idx = 0, n = array.length; idx < n; idx++) {
-            if (array[idx].id === id) {
+            if (array[idx].key === key) {
                 return idx;
             }
         }
@@ -1250,14 +1384,16 @@
     }
 
     function removeLinkElement(linkData) {
-        // remove from lookup cache
-        delete network.lookup[linkData.id];
-        // remove from links array
-        var idx = find(linkData.id, network.links);
-        network.links.splice(idx, 1);
-        // remove from SVG
-        updateLinks();
-        network.force.resume();
+        var idx = find(linkData.key, network.links),
+            removed;
+        if (idx >=0) {
+            // remove from links array
+            removed = network.links.splice(idx, 1);
+            // remove from lookup cache
+            delete network.lookup[removed[0].key];
+            updateLinks();
+            network.force.resume();
+        }
     }
 
     function removeHostElement(hostData) {

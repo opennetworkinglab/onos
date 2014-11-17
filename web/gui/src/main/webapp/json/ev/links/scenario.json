@@ -1,0 +1,16 @@
+{
+  "comments": [
+    "Stepping through link events"
+  ],
+  "title": "Process Link Events Scenario",
+  "params": {
+    "lastAuto": 13
+  },
+  "description": [
+    "Develop link event handling.",
+    "",
+    "Press 'S' to load initial events.",
+    "",
+    "Press spacebar to complete the scenario..."
+  ]
+}

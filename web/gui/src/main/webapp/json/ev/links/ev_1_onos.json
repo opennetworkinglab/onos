@@ -1,0 +1,11 @@
+{
+  "event": "addInstance",
+  "payload": {
+    "id": "local",
+    "online": true,
+    "labels": [
+      "local",
+      "127.0.0.1"
+    ]
+  }
+}

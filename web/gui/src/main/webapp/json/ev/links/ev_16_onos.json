@@ -1,0 +1,15 @@
+{
+  "event": "removeLink",
+  "payload": {
+    "id": "of:0000ffffffff0007/20-of:0000ffffffff0003/10",
+    "type": "direct",
+    "linkWidth": 2,
+    "src": "of:0000ffffffff0007",
+    "srcPort": "20",
+    "dst": "of:0000ffffffff0003",
+    "dstPort": "10",
+    "props" : {
+      "BW": "90 Gb"
+    }
+  }
+}

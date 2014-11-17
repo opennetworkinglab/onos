@@ -1,0 +1,17 @@
+{
+  "event": "updateLink",
+  "payload": {
+    "id": "of:0000ffffffff0007/10-of:0000ffffffff0008/20",
+    "src": "of:0000ffffffff0007",
+    "srcPort": "10",
+    "dst": "of:0000ffffffff0008",
+    "dstPort": "20",
+
+    "type": "direct",
+    "linkWidth": 2,
+    "online": true,
+    "props" : {
+      "BW": "90 Gb"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "event": "addHost",
+  "payload": {
+    "id": "0E:2A:69:30:13:89/-1",
+    "ingress": "0E:2A:69:30:13:89/-1/0-of:0000ffffffff0007/1",
+    "egress": "of:0000ffffffff0007/1-0E:2A:69:30:13:89/-1/0",
+    "cp": {
+      "device": "of:0000ffffffff0007",
+      "port": 1
+    },
+    "labels": [
+      "Host-B",
+      "0E:2A:69:30:13:89"
+    ],
+    "props": {}
+  }
+}

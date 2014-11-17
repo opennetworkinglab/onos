@@ -262,6 +262,7 @@
 }
 #topo-oibox .onosInst.mastership.affinity {
     opacity: 1.0;
+    box-shadow: 0px 2px 8px #33e;
 }
 
 
