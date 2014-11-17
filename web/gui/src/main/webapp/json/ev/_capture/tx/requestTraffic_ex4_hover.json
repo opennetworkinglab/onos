@@ -1,0 +1,8 @@
+{
+  "event": "requestTraffic",
+  "sid": 48,
+  "payload": {
+    "ids": [],
+    "hover": "9E:0B:E0:38:98:DE/-1"
+  }
+}

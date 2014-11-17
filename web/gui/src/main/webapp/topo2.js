@@ -526,7 +526,7 @@
 
     function logicError(msg) {
         // TODO, report logic error to server, via websock, so it can be logged
-        network.view.alert('Logic Error:\n\n' + msg);
+        //network.view.alert('Logic Error:\n\n' + msg);
         console.warn(msg);
     }
 
