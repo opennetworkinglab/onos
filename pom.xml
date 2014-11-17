@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+ <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -428,12 +428,6 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.0</version>
-                </plugin>
-
-                <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-scr-plugin</artifactId>
                     <version>1.20.0</version>
@@ -451,6 +445,22 @@
                             <supportedProjectType>war</supportedProjectType>
                         </supportedProjectTypes>
                     </configuration>
+                </plugin>
+                <plugin>
+                  <groupId>org.codehaus.mojo</groupId>
+                  <artifactId>findbugs-maven-plugin</artifactId>
+                  <version>3.0.0</version>
+                  <dependencies>
+                    <dependency>
+                      <groupId>org.onlab.tools</groupId>
+                      <artifactId>onos-build-conf</artifactId>
+                      <version>1.0</version>
+                    </dependency>
+                  </dependencies>
+                  <configuration>
+                    <effort>Max</effort>
+                    <excludeFilterFile>onos/findbugs-suppressions.xml</excludeFilterFile>
+                  </configuration>
                 </plugin>
 
                 <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
@@ -586,7 +596,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.12.1</version>
                 <configuration>
-                    <configLocation>onos/checkstyle.xml</configLocation>
+                    <!-- <configLocation>onos/checkstyle.xml</configLocation> -->
                 </configuration>
             </plugin>
 
@@ -598,9 +608,24 @@
                     <excludes>
                     </excludes>
                     <rulesets>
-                        <ruleset>onos/pmd.xml</ruleset>
+                        <!-- <ruleset>onos/pmd.xml</ruleset> -->
                     </rulesets>
                 </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>findbugs-maven-plugin</artifactId>
+              <version>3.0.0</version>
+              <configuration>
+                <effort>$Max</effort>
+                <!-- <excludeFilterFile>${findbugs.excludeFilterFile}</excludeFilterFile> -->
+                <reportPlugins>
+                  <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                  </plugin>
+                </reportPlugins>
+              </configuration>
             </plugin>
         </plugins>
     </reporting>

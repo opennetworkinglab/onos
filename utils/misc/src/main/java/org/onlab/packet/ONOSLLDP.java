@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  *  ONOS LLDP containing organizational TLV for ONOS device dicovery.
@@ -141,7 +142,7 @@ public class ONOSLLDP extends LLDP {
     public String getNameString() {
         LLDPOrganizationalTLV tlv = getNameTLV();
         if (tlv != null) {
-            return new String(tlv.getInfoString());
+            return new String(tlv.getInfoString(), StandardCharsets.UTF_8);
         }
         return null;
     }
@@ -149,7 +150,7 @@ public class ONOSLLDP extends LLDP {
     public String getDeviceString() {
         LLDPOrganizationalTLV tlv = getDeviceTLV();
         if (tlv != null) {
-            return new String(tlv.getInfoString());
+            return new String(tlv.getInfoString(), StandardCharsets.UTF_8);
         }
         return null;
     }

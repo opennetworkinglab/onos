@@ -32,10 +32,10 @@ public class IPv4 extends BasePacket {
     public static final byte PROTOCOL_ICMP = 0x1;
     public static final byte PROTOCOL_TCP = 0x6;
     public static final byte PROTOCOL_UDP = 0x11;
-    public static Map<Byte, Class<? extends IPacket>> protocolClassMap;
+    public static Map<Byte, Class<? extends IPacket>> protocolClassMap =
+            new HashMap<>();
 
     static {
-        IPv4.protocolClassMap = new HashMap<Byte, Class<? extends IPacket>>();
         IPv4.protocolClassMap.put(IPv4.PROTOCOL_ICMP, ICMP.class);
         IPv4.protocolClassMap.put(IPv4.PROTOCOL_TCP, TCP.class);
         IPv4.protocolClassMap.put(IPv4.PROTOCOL_UDP, UDP.class);

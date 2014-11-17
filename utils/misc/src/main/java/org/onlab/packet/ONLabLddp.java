@@ -16,6 +16,7 @@
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,7 +69,7 @@ public class ONLabLddp extends LLDP {
     // Contents of full name TLV
     private static final byte[] NAME_TLV = ByteBuffer.allocate(NAME_TLV_SIZE + 2)
             .putShort(NAME_TLV_HEADER).put(ONLAB_OUI).put(NAME_TLV_SUBTYPE)
-            .put(OVX_NAME.getBytes()).array();
+            .put(OVX_NAME.getBytes(StandardCharsets.UTF_8)).array();
 
     private static final byte DPID_TLV_TYPE = 127;
     private static final byte DPID_TLV_SIZE = (byte) (12); // 12 = OUI (3) + subtype
@@ -203,7 +204,7 @@ public class ONLabLddp extends LLDP {
         this.bb = ByteBuffer.wrap(ouiName);
         this.bb.put(ONLabLddp.ONLAB_OUI);
         this.bb.put(NAME_TLV_SUBTYPE);
-        this.bb.put(name.getBytes());
+        this.bb.put(name.getBytes(StandardCharsets.UTF_8));
 
         this.ouiNameTLV.setLength(NAME_TLV_SIZE);
         this.ouiNameTLV.setType(NAME_TLV_TYPE);

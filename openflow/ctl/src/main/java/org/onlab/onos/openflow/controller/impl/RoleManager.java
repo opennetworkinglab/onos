@@ -216,7 +216,7 @@ class RoleManager implements RoleHandler {
                     + "Switch: {}. "
                     + "This controller has no current role for this sw. "
                     + "Ignoring ...", new Object[] {rri,
-                            sw.getStringId(), });
+                            sw == null ? "(null)" : sw.getStringId(), });
             return RoleRecvStatus.OTHER_EXPECTATION;
         }
 

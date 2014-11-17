@@ -27,18 +27,18 @@ import java.util.Map;
  */
 
 public class UDP extends BasePacket {
-    public static Map<Short, Class<? extends IPacket>> decodeMap;
+    public static final Map<Short, Class<? extends IPacket>> DECODE_MAP =
+            new HashMap<>();
     public static final short DHCP_SERVER_PORT = (short) 67;
     public static final short DHCP_CLIENT_PORT = (short) 68;
 
     static {
-        UDP.decodeMap = new HashMap<Short, Class<? extends IPacket>>();
         /*
          * Disable DHCP until the deserialize code is hardened to deal with
          * garbage input
          */
-        UDP.decodeMap.put(UDP.DHCP_SERVER_PORT, DHCP.class);
-        UDP.decodeMap.put(UDP.DHCP_CLIENT_PORT, DHCP.class);
+        UDP.DECODE_MAP.put(UDP.DHCP_SERVER_PORT, DHCP.class);
+        UDP.DECODE_MAP.put(UDP.DHCP_CLIENT_PORT, DHCP.class);
 
     }
 
@@ -231,16 +231,16 @@ public class UDP extends BasePacket {
         this.length = bb.getShort();
         this.checksum = bb.getShort();
 
-        if (UDP.decodeMap.containsKey(this.destinationPort)) {
+        if (UDP.DECODE_MAP.containsKey(this.destinationPort)) {
             try {
-                this.payload = UDP.decodeMap.get(this.destinationPort)
+                this.payload = UDP.DECODE_MAP.get(this.destinationPort)
                         .getConstructor().newInstance();
             } catch (final Exception e) {
                 throw new RuntimeException("Failure instantiating class", e);
             }
-        } else if (UDP.decodeMap.containsKey(this.sourcePort)) {
+        } else if (UDP.DECODE_MAP.containsKey(this.sourcePort)) {
             try {
-                this.payload = UDP.decodeMap.get(this.sourcePort)
+                this.payload = UDP.DECODE_MAP.get(this.sourcePort)
                         .getConstructor().newInstance();
             } catch (final Exception e) {
                 throw new RuntimeException("Failure instantiating class", e);

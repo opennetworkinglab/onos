@@ -2,6 +2,7 @@ package org.onlab.onos.store.service.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -41,7 +42,9 @@ public class DistributedLock implements Lock {
         this.databaseService = databaseService;
         this.lockManager = lockManager;
         this.lockId =
-                (UUID.randomUUID().toString() + "::" + clusterService.getLocalNode().id().toString()).getBytes();
+                (UUID.randomUUID().toString() + "::" +
+                        clusterService.getLocalNode().id().toString()).
+                        getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

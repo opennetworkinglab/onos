@@ -155,7 +155,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void processDriverHandshakeMessage(OFMessage m) {
-        if (!startDriverHandshakeCalled || !startDriverHandshakeCalled) {
+        if (!startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeNotStarted();
         }
         if (driverHandshakeComplete.get()) {

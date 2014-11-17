@@ -259,10 +259,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             ip = (ModIPInstruction) i;
             ip4 = ip.ip().getIp4Address();
             oxm = factory().oxms().ipv4Dst(IPv4Address.of(ip4.toInt()));
+            break;
         case IP_SRC:
             ip = (ModIPInstruction) i;
             ip4 = ip.ip().getIp4Address();
             oxm = factory().oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
+            break;
         default:
             log.warn("Unimplemented action type {}.", l3m.subtype());
             break;
