@@ -787,7 +787,8 @@
     function addIntentAction() {
         sendMessage('addHostIntent', {
             one: getSelId(0),
-            two: getSelId(1)
+            two: getSelId(1),
+            ids: [ getSelId(0), getSelId(1) ]
         });
     }
 
