@@ -101,14 +101,19 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
     @Override
     public List<FlowRuleBatchOperation> uninstall(OpticalPathIntent intent) {
         LinkResourceAllocations allocations = resourceService.getAllocations(intent.id());
-        return generateRules(intent, allocations, FlowRuleOperation.REMOVE);
+        List<FlowRuleBatchOperation> rules = generateRules(intent, allocations, FlowRuleOperation.REMOVE);
+        log.info("uninstall rules: {}", rules);
+        return rules;
     }
 
     @Override
-    public List<FlowRuleBatchOperation> replace(OpticalPathIntent intent,
+    public List<FlowRuleBatchOperation> replace(OpticalPathIntent oldIntent,
                                                 OpticalPathIntent newIntent) {
         // FIXME: implement this
-        return null;
+        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
+        batches.addAll(uninstall(oldIntent));
+        batches.addAll(install(newIntent));
+        return batches;
     }
 
     private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {

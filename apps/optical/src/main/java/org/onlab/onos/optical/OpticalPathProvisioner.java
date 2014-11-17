@@ -15,13 +15,7 @@
  */
 package org.onlab.onos.optical;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -33,31 +27,25 @@ import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentListener;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
+import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.OpticalConnectivityIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.resource.LinkResourceService;
 import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.Topology;
+import org.onlab.onos.net.topology.PathService;
 import org.onlab.onos.net.topology.TopologyEdge;
-
-import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * OpticalPathProvisioner listens event notifications from the Intent F/W.
@@ -76,22 +64,10 @@ public class OpticalPathProvisioner {
     private IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private IntentExtensionService intentExtensionService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
+    protected PathService pathService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -124,7 +100,7 @@ public class OpticalPathProvisioner {
                     break;
                 case FAILED:
                     log.info("packet intent {} failed, calling optical path provisioning APP.", event.subject());
-                    setuplightpath(event.subject());
+                    setupLightpath(event.subject());
                     break;
                 case WITHDRAWN:
                     log.info("intent {} withdrawn.", event.subject());
@@ -135,148 +111,107 @@ public class OpticalPathProvisioner {
             }
         }
 
-        private void setuplightpath(Intent intent) {
-           // TODO support more packet intent types
+        private void setupLightpath(Intent intent) {
+            // TODO support more packet intent types
+            List<Intent> intents = Lists.newArrayList();
+            if (intent instanceof HostToHostIntent) {
+                HostToHostIntent hostToHostIntent = (HostToHostIntent) intent;
+                Host one = hostService.getHost(hostToHostIntent.one());
+                Host two = hostService.getHost(hostToHostIntent.two());
+                // provision both directions
+                intents.addAll(getOpticalPaths(one.location(), two.location()));
+                intents.addAll(getOpticalPaths(two.location(), one.location()));
+            } else if (intent instanceof PointToPointIntent) {
+                PointToPointIntent p2pIntent = (PointToPointIntent) intent;
+                intents.addAll(getOpticalPaths(p2pIntent.ingressPoint(), p2pIntent.egressPoint()));
+            } else {
+                log.info("Unsupported intent type: {}", intent.getClass());
+            }
 
-           if (intent instanceof HostToHostIntent) {
-               HostToHostIntent hostToHostIntent = (HostToHostIntent) intent;
-               Host one = hostService.getHost(hostToHostIntent.one());
-               Host two = hostService.getHost(hostToHostIntent.two());
-
-               TrafficSelector selector = buildTrafficSelector();
-               TrafficTreatment treatment = builder().build();
-
-               PointToPointIntent intentOneToTwo =
-                       new PointToPointIntent(appId, selector, treatment,
-                                              one.location(), two.location());
-               intentService.submit(intentOneToTwo);
-               log.info("Submitting P2P intent {} ", intentOneToTwo);
-
-               PointToPointIntent intentTwoToOne =
-                       new PointToPointIntent(appId, selector, treatment,
-                                              two.location(), one.location());
-               intentService.submit(intentTwoToOne);
-               log.info("Submitting P2P intent for {} ", intentTwoToOne);
-               return;
-           } else if (!intent.getClass().equals(PointToPointIntent.class)) {
-               return;
-           }
-
-           PointToPointIntent pktIntent = (PointToPointIntent) intent;
-           if (pktIntent.ingressPoint() == null || pktIntent.egressPoint() == null) {
-               return;
-           }
-
-           Topology topology = topologyService.currentTopology();
-
-           LinkWeight weight = new LinkWeight() {
-               @Override
-               public double weight(TopologyEdge edge) {
-                   if (isOpticalLink(edge.link())) {
-                       return 1000.0;  // optical links
-                   } else {
-                       return 1.0;   // packet links
-                   }
-               }
-           };
-
-           Set<Path> paths = topologyService.getPaths(topology,
-                   pktIntent.ingressPoint().deviceId(),
-                   pktIntent.egressPoint().deviceId(),
-                   weight);
-
-           if (paths.isEmpty()) {
-               return;
-           }
-
-           ConnectPoint srcWdmPoint = null;
-           ConnectPoint dstWdmPoint = null;
-           Iterator<Path> itrPath = paths.iterator();
-           Path firstPath = itrPath.next();
-           log.info(firstPath.links().toString());
-
-           ArrayList<Map<ConnectPoint, ConnectPoint>> connectionList =
-                   new ArrayList<>();
-
-
-           Iterator<Link> itrLink = firstPath.links().iterator();
-           while (itrLink.hasNext()) {
-               Link link1 = itrLink.next();
-               if (!isOpticalLink(link1)) {
-                   continue;
-               } else {
-                   srcWdmPoint = link1.dst();
-                   dstWdmPoint = srcWdmPoint;
-               }
-
-               while (true) {
-                   if (itrLink.hasNext()) {
-                       Link link2 = itrLink.next();
-                       dstWdmPoint = link2.src();
-                   } else {
-                       break;
-                   }
-
-                   /*
-                   if (itrLink.hasNext()) {
-                       Link link3 = itrLink.next();
-                       if (isOpticalLink(link3)) {
-                          break;
-                       }
-                   } else {
-                       break;
-                   }*/
-
-               }
-
-               Map<ConnectPoint, ConnectPoint> pair =
-                       new HashMap<ConnectPoint, ConnectPoint>();
-               pair.put(srcWdmPoint, dstWdmPoint);
-
-               connectionList.add(pair);
-           }
-
-           for (Map<ConnectPoint, ConnectPoint> map : connectionList) {
-               for (Entry<ConnectPoint, ConnectPoint> entry : map.entrySet()) {
-
-                   ConnectPoint src = entry.getKey();
-                   ConnectPoint dst = entry.getValue();
-
-                   Intent opticalIntent = new OpticalConnectivityIntent(appId,
-                          srcWdmPoint,
-                          dstWdmPoint);
-
-                   intentService.submit(opticalIntent);
-
-                   log.info(srcWdmPoint.toString());
-                   log.info(dstWdmPoint.toString());
-               }
-           }
-
+            // Build the intent batch
+            IntentOperations.Builder ops = IntentOperations.builder();
+            for (Intent i : intents) {
+                // TODO: don't allow duplicate intents between the same points for now
+                // we may want to allow this carefully in future to increase capacity
+                Intent existing = intentService.getIntent(i.id());
+                if (existing == null ||
+                    !IntentState.WITHDRAWN.equals(intentService.getIntentState(i.id()))) {
+                    ops.addSubmitOperation(i);
+                }
+            }
+            intentService.execute(ops.build());
         }
 
-        private boolean isOpticalLink(Link link) {
-            boolean isOptical = false;
-            Link.Type lt = link.type();
-            if (lt == Link.Type.OPTICAL) {
-                isOptical = true;
+        private List<Intent> getOpticalPaths(ConnectPoint ingress, ConnectPoint egress) {
+            Set<Path> paths = pathService.getPaths(ingress.deviceId(),
+                                                   egress.deviceId(),
+                                                   new OpticalLinkWeight());
+
+            if (paths.isEmpty()) {
+                return Lists.newArrayList();
             }
-            return isOptical;
-          }
+
+            ConnectPoint srcWdmPoint = null;
+            ConnectPoint dstWdmPoint = null;
+            Iterator<Path> itrPath = paths.iterator();
+            Path firstPath = itrPath.next();
+            log.info(firstPath.links().toString());
+
+            List<Intent> connectionList = Lists.newArrayList();
+
+            Iterator<Link> itrLink = firstPath.links().iterator();
+            while (itrLink.hasNext()) {
+                Link link1 = itrLink.next();
+                if (!isOpticalLink(link1)) {
+                    continue;
+                } else {
+                    srcWdmPoint = link1.dst();
+                    dstWdmPoint = srcWdmPoint;
+                }
+
+                while (true) {
+                    if (itrLink.hasNext()) {
+                        Link link2 = itrLink.next();
+                        dstWdmPoint = link2.src();
+                    } else {
+                        break;
+                    }
+                }
+
+                Intent opticalIntent = new OpticalConnectivityIntent(appId,
+                                                                     srcWdmPoint,
+                                                                     dstWdmPoint);
+                log.info("Creating optical intent from {} to {}", srcWdmPoint, dstWdmPoint);
+                connectionList.add(opticalIntent);
+            }
+            return connectionList;
+        }
+
+
 
         private void teardownLightpath(Intent intent) {
           // TODO: tear down the idle lightpath if the utilization is close to zero.
         }
+    }
 
-        private TrafficSelector buildTrafficSelector() {
-            TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-            Short ethType = Ethernet.TYPE_IPV4;
-
-            selectorBuilder.matchEthType(ethType);
-
-            return selectorBuilder.build();
+    private static boolean isOpticalLink(Link link) {
+        boolean isOptical = false;
+        Link.Type lt = link.type();
+        if (lt == Link.Type.OPTICAL) {
+            isOptical = true;
         }
+        return isOptical;
+    }
 
+    private static class OpticalLinkWeight implements LinkWeight {
+        @Override
+        public double weight(TopologyEdge edge) {
+            if (isOpticalLink(edge.link())) {
+                return 1000.0;  // optical links
+            } else {
+                return 1.0;   // packet links
+            }
+        }
     }
 
 }
