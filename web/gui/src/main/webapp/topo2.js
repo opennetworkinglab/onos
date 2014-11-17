@@ -268,6 +268,7 @@
                 }
             } else {
                 testDebug('loaded: ' + frame.url);
+                wsTrace('test', JSON.stringify(data));
                 frame.cb(data);
             }
         });
