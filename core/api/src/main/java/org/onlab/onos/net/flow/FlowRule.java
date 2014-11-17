@@ -19,7 +19,7 @@ import org.onlab.onos.net.DeviceId;
 
 /**
  * Represents a generalized match &amp; action pair to be applied to
- * an infrastucture device.
+ * an infrastructure device.
  */
 public interface FlowRule extends BatchOperationTarget {
 
