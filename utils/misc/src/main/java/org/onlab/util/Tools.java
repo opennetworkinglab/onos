@@ -15,17 +15,19 @@
  */
 package org.onlab.util;
 
-import com.google.common.base.Strings;
-import com.google.common.primitives.UnsignedLongs;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
+
+import com.google.common.base.Strings;
+import com.google.common.primitives.UnsignedLongs;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public abstract class Tools {
 
@@ -94,7 +96,10 @@ public abstract class Tools {
      * @return file contents
      */
     public static List<String> slurp(File path) {
-        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        try {
+            BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
+
             List<String> lines = new ArrayList<>();
             String line;
             while ((line = br.readLine()) != null) {
