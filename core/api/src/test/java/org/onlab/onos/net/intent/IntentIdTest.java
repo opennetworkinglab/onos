@@ -17,6 +17,8 @@ package org.onlab.onos.net.intent;
 
 import org.junit.Test;
 
+import com.google.common.testing.EqualsTester;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
@@ -64,4 +66,30 @@ public class IntentIdTest {
         assertEquals("incorrect valueOf", id, IntentId.valueOf(0xdeadbeefL));
     }
 
+    /**
+     * Tests the equals(), hashCode() and toString() methods.
+     */
+    @Test
+    public void testEquals() {
+        final IntentId id1 = new IntentId(11111L);
+        final IntentId sameAsId1 = new IntentId(11111L);
+        final IntentId id2 = new IntentId(22222L);
+
+        new EqualsTester()
+                .addEqualityGroup(id1, sameAsId1)
+                .addEqualityGroup(id2)
+                .testEquals();
+    }
+
+    /**
+     * Tests construction of an IntentId object.
+     */
+    @Test
+    public void testConstruction() {
+        final IntentId id1 = new IntentId(987654321L);
+        assertEquals(id1.fingerprint(), 987654321L);
+
+        final IntentId emptyId = new IntentId();
+        assertEquals(emptyId.fingerprint(), 0L);
+    }
 }

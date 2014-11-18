@@ -23,7 +23,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Abstraction of an intent-related operation, e.g. add, remove, replace.
  */
-public class IntentOperation {
+public final class IntentOperation {
 
     private final Type type;
     private final IntentId intentId;

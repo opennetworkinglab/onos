@@ -15,14 +15,17 @@
  */
 package org.onlab.onos.net.intent;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 import java.util.Objects;
 
+import com.google.common.collect.ImmutableList;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.intent.IntentOperation.Type.*;
+import static org.onlab.onos.net.intent.IntentOperation.Type.REPLACE;
+import static org.onlab.onos.net.intent.IntentOperation.Type.SUBMIT;
+import static org.onlab.onos.net.intent.IntentOperation.Type.UPDATE;
+import static org.onlab.onos.net.intent.IntentOperation.Type.WITHDRAW;
 
 /**
  * Batch of intent submit/withdraw/replace operations.
