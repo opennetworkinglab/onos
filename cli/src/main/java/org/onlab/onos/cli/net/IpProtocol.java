@@ -15,67 +15,62 @@
  */
 package org.onlab.onos.cli.net;
 
-import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 
 /**
- * Allowed values for Ethernet types.  Used by the CLI completer for
- * connectivity based intent L2 parameters.
+ * Known protocol values for IP protocol field that can be supplied to the CLI.
  */
-public enum EthType {
-    /** ARP. */
-    ARP(Ethernet.TYPE_ARP),
-    /** RARP. */
-    RARP(Ethernet.TYPE_RARP),
-    /** IPV4. */
-    IPV4(Ethernet.TYPE_IPV4),
-    /** LLDP. */
-    LLDP(Ethernet.TYPE_LLDP),
-    /** BSN. */
-    BSN(Ethernet.TYPE_BSN);
+public enum IpProtocol {
+    /** ICMP. **/
+    ICMP(IPv4.PROTOCOL_ICMP),
+    /** TCP. **/
+    TCP(IPv4.PROTOCOL_TCP),
+    /** UDP. **/
+    UDP(IPv4.PROTOCOL_UDP);
 
     private short value;
 
     /**
-     * Constructs an EthType with the given value.
+     * Constructs an IpProtocol with the given value.
      *
-     * @param value value to use when this EthType is seen
+     * @param value value to use when this IpProtocol is seen
      */
-    private EthType(short value) {
+    private IpProtocol(short value) {
         this.value = value;
     }
 
     /**
-     * Gets the value to use for this EthType.
+     * Gets the value to use for this IpProtocol.
      *
-     * @return short value to use for this EthType
+     * @return short value to use for this IpProtocol
      */
     public short value() {
         return this.value;
     }
 
     /**
-     * Parse a string input that could contain an EthType value. The value
+     * Parse a string input that could contain an IpProtocol value. The value
      * may appear in the string either as a known protocol name (one of the
      * values of this enum), or a numeric protocol value.
      *
      * @param input the input string to parse
-     * @return the numeric value of the parsed Ethernet type
+     * @return the numeric value of the parsed IP protocol
      * @throws IllegalArgumentException if the input string does not contain a
-     * value that can be parsed into an Ethernet type
+     * value that can be parsed into an IP protocol
      */
     public static short parseFromString(String input) {
         try {
             return valueOf(input).value();
         } catch (IllegalArgumentException e) {
-            // The input is not a known Ethernet type name, let's see if it's an
-            // Ethernet type value (short). We parse with Integer to handle
-            // unsigned values correctly.
+            // The input is not a known IP protocol name, let's see if it's an IP
+            // protocol value (byte). We parse with Short to handle unsigned values
+            // correctly.
             try {
-                return (short) Integer.parseInt(input);
+                return Short.parseShort(input);
             } catch (NumberFormatException e1) {
                 throw new IllegalArgumentException(
-                        "EthType value must be either a string protocol name"
-                        + " or a 16-bit protocol value");
+                        "IpProtocol value must be either a string protocol name"
+                        + " or an 8-bit protocol value");
             }
         }
     }

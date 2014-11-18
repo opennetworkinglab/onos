@@ -133,6 +133,7 @@
             </completers>
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
+                <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -156,6 +157,7 @@
             </completers>
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
+                <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -236,5 +238,6 @@
     <bean id="connectPointCompleter" class="org.onlab.onos.cli.net.ConnectPointCompleter"/>
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
     <bean id="ethTypeCompleter" class="org.onlab.onos.cli.net.EthTypeCompleter"/>
+    <bean id="ipProtocolCompleter" class="org.onlab.onos.cli.net.IpProtocolCompleter"/>
 
 </blueprint>

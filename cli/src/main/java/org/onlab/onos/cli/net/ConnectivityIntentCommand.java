@@ -15,6 +15,9 @@
  */
 package org.onlab.onos.cli.net;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,12 +32,8 @@ import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
 import org.onlab.onos.net.intent.constraint.LambdaConstraint;
 import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
 import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Base class for command line operations for connectivity based intents.
@@ -99,11 +98,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      */
     protected TrafficSelector buildTrafficSelector() {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        Short ethType = Ethernet.TYPE_IPV4;
+        short ethType = EthType.IPV4.value();
 
         if (!isNullOrEmpty(ethTypeString)) {
-            EthType ethTypeParameter = EthType.valueOf(ethTypeString);
-            ethType = ethTypeParameter.value();
+            ethType = EthType.parseFromString(ethTypeString);
         }
         selectorBuilder.matchEthType(ethType);
 
@@ -116,7 +114,8 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(ipProtoString)) {
-            selectorBuilder.matchIPProtocol((byte) Short.parseShort(ipProtoString));
+            short ipProtoShort = IpProtocol.parseFromString(ipProtoString);
+            selectorBuilder.matchIPProtocol((byte) ipProtoShort);
         }
 
         if (!isNullOrEmpty(srcIpString)) {

@@ -22,17 +22,17 @@ import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 
 /**
- * Ethernet type completer.
+ * IP protocol completer.
  */
-public class EthTypeCompleter implements Completer {
+public class IpProtocolCompleter implements Completer {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
         SortedSet<String> strings = delegate.getStrings();
 
-        for (EthType eth : EthType.values()) {
-            strings.add(eth.toString());
+        for (IpProtocol ip : IpProtocol.values()) {
+            strings.add(ip.toString());
         }
 
         // Now let the completer do the work for figuring out what to offer.
