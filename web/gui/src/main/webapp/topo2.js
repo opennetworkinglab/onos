@@ -145,7 +145,8 @@
             view: null,     // view token reference
             nodes: [],
             links: [],
-            lookup: {}
+            lookup: {},
+            revLinkToKey: {}
         },
         scenario = {
             evDir: 'json/ev/',
@@ -423,6 +424,12 @@
         return one + '-' + two;
     }
 
+    function findLinkById(id) {
+        // check to see if this is a reverse lookup, else default to given id
+        var key = network.revLinkToKey[id] || id;
+            return key && network.lookup[key];
+    }
+
     function findLink(linkData, op) {
         var key = makeLinkKey(linkData),
             keyrev = makeLinkKey(linkData, 1),
@@ -476,10 +483,12 @@
                                 ldata.key = keyrev;
                                 delete network.lookup[key];
                                 network.lookup[keyrev] = ldata;
+                                delete network.revLinkToKey[keyrev];
                             }
                         } else {
                             // remove fromTarget
                             ldata.fromTarget = null;
+                            delete network.revLinkToKey[keyrev];
                         }
                         if (ldata.fromSource) {
                             restyleLinkElement(ldata);
@@ -496,6 +505,7 @@
     function addLinkUpdate(ldata, link) {
         // add link event, but we already have the reverse link installed
         ldata.fromTarget = link;
+        network.revLinkToKey[link.id] = ldata.key;
         restyleLinkElement(ldata);
     }
 
@@ -548,7 +558,6 @@
         removeHost: removeHost,
 
         showDetails: showDetails,
-        showPath: showPath,
         showTraffic: showTraffic
     };
 
@@ -693,24 +702,6 @@
         detailPane.show();
     }
 
-    function showPath(data) {
-        // TODO: review - making sure we are handling the payload correctly.
-        evTrace(data);
-        var links = data.payload.links,
-            s = [ data.event + "\n" + links.length ];
-        links.forEach(function (d, i) {
-            s.push(d);
-        });
-        network.view.alert(s.join('\n'));
-
-        links.forEach(function (d, i) {
-            var link = network.lookup[d];
-            if (link) {
-                link.el.classed('showPath', true);
-            }
-        });
-    }
-
     function showTraffic(data) {
         evTrace(data);
         var paths = data.payload.paths;
@@ -722,7 +713,7 @@
         paths.forEach(function (p) {
             var cls = p.class;
             p.links.forEach(function (id) {
-                var lnk = network.lookup[id];
+                var lnk = findLinkById(id);
                 if (lnk) {
                     lnk.el.classed(cls, true);
                 }
