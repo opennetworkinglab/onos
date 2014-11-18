@@ -596,7 +596,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.12.1</version>
                 <configuration>
-                    <!-- <configLocation>onos/checkstyle.xml</configLocation> -->
+                    <configLocation>onos/checkstyle.xml</configLocation>
                 </configuration>
             </plugin>
 
@@ -608,24 +608,9 @@
                     <excludes>
                     </excludes>
                     <rulesets>
-                        <!-- <ruleset>onos/pmd.xml</ruleset> -->
+                        <ruleset>onos/pmd.xml</ruleset>
                     </rulesets>
                 </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>findbugs-maven-plugin</artifactId>
-              <version>3.0.0</version>
-              <configuration>
-                <effort>$Max</effort>
-                <!-- <excludeFilterFile>${findbugs.excludeFilterFile}</excludeFilterFile> -->
-                <reportPlugins>
-                  <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
-                  </plugin>
-                </reportPlugins>
-              </configuration>
             </plugin>
         </plugins>
     </reporting>
