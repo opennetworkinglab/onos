@@ -377,7 +377,7 @@ public class TopologyViewWebSocket
     // Indicates whether the specified intent involves all of the given edge points.
     private boolean isIntentRelevant(OpticalConnectivityIntent opticalIntent,
                                      Set<Intent> intents) {
-        Link ccSrc = getFirstLink(opticalIntent.getSrcConnectPoint(), false);
+        Link ccSrc = getFirstLink(opticalIntent.getSrc(), false);
         Link ccDst = getFirstLink(opticalIntent.getDst(), true);
 
         for (Intent intent : intents) {

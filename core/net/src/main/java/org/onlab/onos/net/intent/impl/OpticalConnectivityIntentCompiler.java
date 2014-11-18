@@ -65,9 +65,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                                 List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
         // TODO: compute multiple paths using the K-shortest path algorithm
-        Path path = calculateOpticalPath(intent.getSrcConnectPoint(), intent.getDst());
+        Path path = calculateOpticalPath(intent.getSrc(), intent.getDst());
         Intent newIntent = new OpticalPathIntent(intent.appId(),
-                                                 intent.getSrcConnectPoint(),
+                                                 intent.getSrc(),
                                                  intent.getDst(),
                                                  path);
         return ImmutableList.of(newIntent);
