@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,6 +21,8 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onlab.onos.store.service.DatabaseAdminService;
+import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.Lock;
 import org.onlab.onos.store.service.LockEventListener;
@@ -41,11 +44,16 @@ public class DistributedLockManager implements LockService {
 
     public static final String ONOS_LOCK_TABLE_NAME = "onos-locks";
 
+    public static final int DEAD_LOCK_TIMEOUT_MS = 5000;
+
     private final ListMultimap<String, LockRequest> locksToAcquire =
                 Multimaps.synchronizedListMultimap(LinkedListMultimap.<String, LockRequest>create());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterCommunicationService clusterCommunicator;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private DatabaseAdminService databaseAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DatabaseService databaseService;
@@ -55,9 +63,22 @@ public class DistributedLockManager implements LockService {
 
     @Activate
     public void activate() {
+        try {
+            Set<String> tableNames = databaseAdminService.listTables();
+            if (!tableNames.contains(ONOS_LOCK_TABLE_NAME)) {
+                if (databaseAdminService.createTable(ONOS_LOCK_TABLE_NAME, DEAD_LOCK_TIMEOUT_MS)) {
+                    log.info("Created {} table.", ONOS_LOCK_TABLE_NAME);
+                }
+            }
+        } catch (DatabaseException e) {
+            log.error("DistributedLockManager#activate failed.", e);
+            throw e;
+        }
+
         clusterCommunicator.addSubscriber(
                 DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
                 new LockEventMessageListener());
+
         log.info("Started.");
 
     }
