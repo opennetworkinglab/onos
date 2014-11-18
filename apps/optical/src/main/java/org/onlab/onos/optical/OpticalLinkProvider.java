@@ -20,8 +20,11 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Port;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.device.DeviceService;
@@ -91,7 +94,9 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
             if (type == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
                     type == DeviceEvent.Type.DEVICE_ADDED ||
                     type == DeviceEvent.Type.DEVICE_UPDATED) {
-                processLinks(device);
+                processDeviceLinks(device);
+            } else if (type == DeviceEvent.Type.PORT_UPDATED) {
+                processPortLinks(device, event.port());
             }
         }
     }
@@ -109,7 +114,7 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
         }
     }
 
-    private void processLinks(Device device) {
+    private void processDeviceLinks(Device device) {
         for (Link link : linkService.getDeviceLinks(device.id())) {
             if (link.isDurable() && link.type() == OPTICAL) {
                 processLink(link);
@@ -117,9 +122,25 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
         }
     }
 
+    private void processPortLinks(Device device, Port port) {
+        ConnectPoint connectPoint = new ConnectPoint(device.id(), port.number());
+        for (Link link : linkService.getLinks(connectPoint)) {
+            if (link.isDurable() && link.type() == OPTICAL) {
+                processLink(link);
+            }
+        }
+    }
+
     private void processLink(Link link) {
-        boolean active = deviceService.isAvailable(link.src().deviceId()) &&
-                deviceService.isAvailable(link.dst().deviceId());
+        DeviceId srcId = link.src().deviceId();
+        DeviceId dstId = link.dst().deviceId();
+        Port srcPort = deviceService.getPort(srcId, link.src().port());
+        Port dstPort = deviceService.getPort(dstId, link.dst().port());
+
+        boolean active = deviceService.isAvailable(srcId) &&
+                deviceService.isAvailable(dstId) &&
+                srcPort.isEnabled() && dstPort.isEnabled();
+
         LinkDescription desc = new DefaultLinkDescription(link.src(), link.dst(), OPTICAL);
         if (active) {
             providerService.linkDetected(desc);

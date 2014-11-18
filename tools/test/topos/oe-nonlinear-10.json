@@ -144,13 +144,6 @@
         { "src": "of:0000ffffffff0003/2", "dst": "of:0000ffffffffff06/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
         { "src": "of:0000ffffffff0004/2", "dst": "of:0000ffffffffff07/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
         { "src": "of:0000ffffffff0005/2", "dst": "of:0000ffffffffff09/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0006/2", "dst": "of:0000ffffffffff0A/10",  "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-
-        { "src": "of:0000ffffffff0001/3", "dst": "of:0000ffffffffff01/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0002/3", "dst": "of:0000ffffffffff04/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0003/3", "dst": "of:0000ffffffffff06/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0004/3", "dst": "of:0000ffffffffff07/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0005/3", "dst": "of:0000ffffffffff09/11", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000ffffffff0006/3", "dst": "of:0000ffffffffff0A/11",  "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } }
+        { "src": "of:0000ffffffff0006/2", "dst": "of:0000ffffffffff0A/10",  "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } }
     ]
 }
