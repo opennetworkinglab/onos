@@ -22,7 +22,6 @@ import com.google.common.testing.EqualsTester;
  */
 public class MapDBLogTest {
 
-    private static final String DB_FILE_NAME = "mapdbTest";
     private static final StoreSerializer SERIALIZER = ClusterMessagingProtocol.SERIALIZER;
     private static final Entry TEST_ENTRY1 = new OperationEntry(1, "test1");
     private static final Entry TEST_ENTRY2 = new OperationEntry(2, "test12");
@@ -38,26 +37,31 @@ public class MapDBLogTest {
 
     private static final long TEST_SNAPSHOT_ENTRY_SIZE = SERIALIZER.encode(TEST_SNAPSHOT_ENTRY).length;
 
+    private String dbFileName;
+
+
     @Before
     public void setUp() throws Exception {
+        File logFile = File.createTempFile("mapdbTest", null);
+        dbFileName = logFile.getAbsolutePath();
     }
 
     @After
     public void tearDown() throws Exception {
-        Files.deleteIfExists(new File(DB_FILE_NAME).toPath());
-        Files.deleteIfExists(new File(DB_FILE_NAME + ".t").toPath());
-        Files.deleteIfExists(new File(DB_FILE_NAME + ".p").toPath());
+        Files.deleteIfExists(new File(dbFileName).toPath());
+        Files.deleteIfExists(new File(dbFileName + ".t").toPath());
+        Files.deleteIfExists(new File(dbFileName + ".p").toPath());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testAssertOpen() {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.size();
     }
 
     @Test
     public void testAppendEntry() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntry(TEST_ENTRY1);
         OperationEntry first = log.firstEntry();
@@ -72,7 +76,7 @@ public class MapDBLogTest {
 
     @Test
     public void testAppendEntries() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2, TEST_ENTRY3);
         OperationEntry first = log.firstEntry();
@@ -90,7 +94,7 @@ public class MapDBLogTest {
 
     @Test
     public void testDelete() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2);
         log.delete();
@@ -104,7 +108,7 @@ public class MapDBLogTest {
 
     @Test
     public void testGetEntries() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2, TEST_ENTRY3, TEST_ENTRY4);
         Assert.assertEquals(
@@ -123,7 +127,7 @@ public class MapDBLogTest {
 
     @Test
     public void testRemoveAfter() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2, TEST_ENTRY3, TEST_ENTRY4);
         log.removeAfter(1);
@@ -135,7 +139,7 @@ public class MapDBLogTest {
 
     @Test
     public void testAddAfterRemove() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2, TEST_ENTRY3, TEST_ENTRY4);
         log.removeAfter(1);
@@ -150,7 +154,7 @@ public class MapDBLogTest {
 
     @Test
     public void testClose() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         Assert.assertFalse(log.isOpen());
         log.open();
         Assert.assertTrue(log.isOpen());
@@ -160,7 +164,7 @@ public class MapDBLogTest {
 
     @Test
     public void testReopen() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2, TEST_ENTRY3, TEST_ENTRY4);
         log.close();
@@ -180,7 +184,7 @@ public class MapDBLogTest {
 
     @Test
     public void testCompact() throws IOException {
-        Log log = new MapDBLog(DB_FILE_NAME, SERIALIZER);
+        Log log = new MapDBLog(dbFileName, SERIALIZER);
         log.open();
         log.appendEntries(TEST_ENTRY1, TEST_ENTRY2, TEST_ENTRY3, TEST_ENTRY4);
         log.compact(3, TEST_SNAPSHOT_ENTRY);
