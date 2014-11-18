@@ -132,6 +132,7 @@ public class DistributedLock implements Lock {
         if (!isLocked()) {
             log.warn("Ignoring request to extend expiration for lock {}."
                     + " ExtendExpiration must be called for locks that are already acquired.", path);
+            return false;
         }
 
         if (databaseService.putIfValueMatches(
