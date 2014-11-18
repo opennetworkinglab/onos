@@ -1,0 +1,107 @@
+.theme_dark #topo {
+    background-color: #20201D;
+}
+
+.theme_dark #topo #map {
+    stroke: #444;
+}
+
+/* note: device is offline without the 'online' class */
+.theme_dark #topo svg .node.device {
+    fill: #777;
+}
+
+.theme_dark #topo .host {
+    fill: #000;
+    color: white;
+}
+
+
+.theme_dark #topo svg .node.device.switch.online {
+    fill: #000;
+}
+
+.theme_dark #topo svg .node.device.roadm.online {
+    fill: #03c;
+}
+
+/* note: device is offline without the 'online' class */
+.theme_dark #topo svg .node.device text {
+    fill: #aaa;
+}
+
+.theme_dark #topo svg .node.device.online {
+    color: white;
+}
+.theme_dark #topo svg .node.device.online text {
+    fill: currentColor;
+}
+
+.theme_dark #topo svg .glyph {
+    fill: white;
+}
+
+.theme_dark #topo-oibox .onosInst {
+    color: #444;
+    background-color: #ccc;
+    border-color: #aaa;
+}
+
+.theme_dark #topo-oibox .onosInst.online {
+    color: #113;
+    background-color: #bbf;
+    border-color: #555;
+}
+
+.theme_dark #topo-oibox .onosInst .onosTitle {
+    color: #888;
+}
+
+.theme_dark #topo svg .node.device.fixed.online rect {
+    stroke: #666;
+}
+
+.theme_dark #topo svg .node.host {
+    stroke: #000;
+}
+
+.theme_dark #topo-detail .actionBtn {
+    border-color: #ddf;
+    color: #99f;
+}
+
+.theme_dark #topo-detail .actionBtn:hover {
+    border-color: #ddf;
+    background: #eef;
+    color: #77d;
+}
+
+.theme_dark #topo svg .link.primary {
+    stroke: #f11;
+}
+
+.theme_dark #topo svg .link.secondary {
+    stroke: rgba(255,100,100,0.5);
+}
+
+.theme_dark #topo svg .link.animated {
+    stroke: #f11;
+}
+
+.theme_dark #topo svg .link.primary.optical {
+    stroke: #74f;
+}
+
+.theme_dark #topo svg .link.secondary.optical {
+    stroke: rgba(128,64,255,0.5);
+}
+
+.theme_dark #topo svg .link.animated.optical {
+    stroke: #74f;
+}
+
+/*.theme_dark #topo .link {
+    stroke: #666;
+}
+*/
+

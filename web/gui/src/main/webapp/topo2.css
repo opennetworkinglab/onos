@@ -25,14 +25,11 @@
 }
 
 #topo #map {
-    stroke-width: 2px;
-    stroke: #aaaaaa;
     fill: transparent;
 }
 
 
 #topo svg .glyph {
-    fill: white;
     stroke: none;
 }
 
@@ -68,38 +65,19 @@
 
 #topo svg .node.device.fixed rect {
     stroke-width: 1.5;
-    stroke: #ccc;
+}
+
+#topo .node text {
+    font-weight: 100;
 }
 
 /* note: device is offline without the 'online' class */
-#topo svg .node.device {
-    fill: #777;
-}
-
-#topo svg .node.device.switch.online {
-    fill: #17f;
-}
-
-#topo svg .node.device.roadm.online {
-    fill: #03c;
-}
-
 /* note: device is offline without the 'online' class */
 #topo svg .node.device text {
-    fill: #aaa;
     font: 10pt sans-serif;
 }
 
-#topo svg .node.device.online text {
-    fill: white;
-}
-
-
 /* Host Nodes */
-
-#topo svg .node.host {
-    stroke: #000;
-}
 
 #topo svg .node.host text {
     fill: #846;
@@ -127,29 +105,23 @@ svg .node.host circle {
 }
 
 #topo svg .link.primary {
-    stroke: #f11;
     stroke-width: 6px;
 }
 #topo svg .link.secondary {
-    stroke: rgba(255,100,100,0.5);
     stroke-width: 4px;
 }
 #topo svg .link.animated {
-    stroke: #f11;
     stroke-width: 10px;
     stroke-dasharray: 8 8
 }
 
 #topo svg .link.primary.optical {
-    stroke: #74f;
     stroke-width: 6px;
 }
 #topo svg .link.secondary.optical {
-    stroke: rgba(128,64,255,0.5);
     stroke-width: 4px;
 }
 #topo svg .link.animated.optical {
-    stroke: #74f;
     stroke-width: 10px;
     stroke-dasharray: 8 8
 }
@@ -205,17 +177,13 @@ svg .node.host circle {
     cursor: pointer;
     width: 50%;
     text-align: center;
-
-    /* theme specific... */
-    border: 1px solid #ddf;
-    color: #99f;
+    border-width: 1px;
+    borer-style: solid;
 }
 
 #topo-detail .actionBtn:hover {
-    /* theme specific... */
-    border: 1px solid #ddf;
-    background: #eef;
-    color: #77d;
+    border-width: 1px;
+    border-style: solid;
 }
 
 
@@ -239,29 +207,14 @@ svg .node.host circle {
     height: 80px;
     margin: 4px 0;
     cursor: pointer;
-
-    /* theme-related */
-    color: #444;
-    background-color: #ccc;
-    border: 2px solid #aaa;
-}
-
-#topo-oibox .onosInst.online {
-    /* theme-related */
-    color: #113;
-    background-color: #bbf;
-    border: 2px solid #555;
+    border-width: 2px;
+    border-style: solid;
 }
 
 #topo-oibox .onosInst .onosTitle {
     text-align: center;
     font-size: 11pt;
     margin-top: 6px;
-    color: #888;
-}
-
-#topo-oibox .onosInst.online .onosTitle {
-    color: black;
 }
 
 #topo-oibox .onosInst img {

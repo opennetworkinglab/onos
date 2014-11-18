@@ -70,23 +70,17 @@
             }
         },
         topo: {
-            linkBaseColor: '#666',
             linkInColor: '#66f',
-            linkInWidth: 14,
             linkOutColor: '#f00',
+            linkInWidth: 14,
             linkOutWidth: 30
         },
-        icons: {
-            w: 28,
-            h: 28,
-            xoff: -12,
-            yoff: -8
+        map: {
+            strokeWidth: 1
         },
-        iconUrl: {
-            device: 'img/device.png',
-            host: 'img/host.png',
-            pkt: 'img/pkt.png',
-            opt: 'img/opt.png'
+        icons: {
+            w: 100,
+            h: 100
         },
         force: {
             note_for_links: 'link.type is used to differentiate',
@@ -532,8 +526,7 @@
         }
         el.transition()
             .duration(1000)
-            .attr('stroke-width', linkScale(lw))
-            .attr('stroke', config.topo.linkBaseColor);
+            .attr('stroke-width', linkScale(lw));
     }
 
     // ==============================
@@ -1234,8 +1227,8 @@
         $.extend(node, xy);
     }
 
-    function iconUrl(d) {
-        return 'img/' + d.type + '.png';
+    function getIconUrl(d) {
+        return 'icons.svg#' + d.type;
     }
 
     // returns the newly computed bounding box of the rectangle
@@ -1277,6 +1270,29 @@
         return (label && label.trim()) ? label : '.';
     }
 
+    function updateDeviceIconAppearance(node, box, animate) {
+        var u = node.select('use');
+        var ubbox = u.node().getBBox();
+
+        var xoff = -ubbox.width/2 - box.width/2 - 4;
+        var yoff = -ubbox.height;
+        var iconTransform = 'translate(' + xoff + ',' + yoff + ')';
+        if (animate) {
+            node.select('use')
+                .transition()
+                .attr('transform', iconTransform);
+        } else {
+            node.select('use')
+                .attr('transform', iconTransform);
+        }
+
+        var computedStyle = window.getComputedStyle(node.node());
+        u.attr({
+            fill: computedStyle.fill,
+            color: computedStyle.color
+        });
+    }
+
     function updateDeviceLabel(d) {
         var label = niceLabel(deviceLabel(d)),
             node = d.el,
@@ -1294,10 +1310,7 @@
             .transition()
             .attr(box);
 
-        node.select('image')
-            .transition()
-            .attr('x', box.x + config.icons.xoff)
-            .attr('y', box.y + config.icons.yoff);
+        updateDeviceIconAppearance(node, box, true);
     }
 
     function updateHostLabel(d) {
@@ -1339,18 +1352,6 @@
         }
     }
 
-    function addHostIcon(node, radius, iconId) {
-        var dim = radius * 1.5,
-            xlate = -dim / 2;
-
-        node.append('use')
-            .classed('glyph', true)
-            .attr('transform', translate(xlate,xlate))
-            .attr('xlink:href', '#' + iconId)
-            .attr('width', dim)
-            .attr('height', dim);
-    }
-
     function updateNodes() {
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -1377,7 +1378,7 @@
         // augment device nodes...
         entering.filter('.device').each(function (d) {
             var node = d3.select(this),
-                icon = iconUrl(d),
+                iconUrl = getIconUrl(d),
                 label = niceLabel(deviceLabel(d)),
                 box;
 
@@ -1399,17 +1400,16 @@
             node.select('rect')
                 .attr(box);
 
-            if (icon) {
-                var cfg = config.icons;
-                node.append('svg:image')
+            if (iconUrl) {
+                node.append('svg:use')
                     .attr({
-                        x: box.x + config.icons.xoff,
-                        y: box.y + config.icons.yoff,
-                        width: cfg.w,
-                        height: cfg.h,
-                        'xlink:href': icon
+                        'xlink:href': iconUrl,
+                        width: config.icons.w,
+                        height: config.icons.h
                     });
             }
+
+            updateDeviceIconAppearance(node, box, false);
 
             // debug function to show the modelled x,y coordinates of nodes...
             if (debug('showNodeXY')) {
@@ -1424,36 +1424,43 @@
             }
         });
 
-        // TODO: better place for this configuration state
-        var defaultHostRadius = 9,
-            hostRadius = {
-                bgpSpeaker: 20
-            },
-            hostIcon = {
-                bgpSpeaker: 'bullhorn'
-            };
-
-
         // augment host nodes...
         entering.filter('.host').each(function (d) {
             var node = d3.select(this),
-                r = hostRadius[d.type] || defaultHostRadius,
-                textDy = r + 10,
-                icon = hostIcon[d.type];
+                iconUrl = getIconUrl(d);
 
             // provide ref to element from backing data....
             d.el = node;
 
-            node.append('circle')
-                .attr('r', r);
+            // var box = node.append('circle')
+            //     .attr('r', r).node().getBBox();
 
-            if (icon) {
-                addHostIcon(node, r, icon);
+            var textYOff = 0;
+            var textXOff = 0;
+            if (iconUrl) {
+                var computedStyle = window.getComputedStyle(node.node());
+                var u = node.append('svg:use')
+                    .attr({
+                        'xlink:href': iconUrl,
+                        width: config.icons.w,
+                        height: config.icons.h,
+                        fill: computedStyle.fill,
+                        color: computedStyle.color
+                    });
+
+                var ubbox = node.select('use').node().getBBox();
+                u.attr('y', -ubbox.height/2);
+                textYOff = ubbox.height/2 + 4; // pad by 4 pixels
+                textXOff = ubbox.width/2;
             }
+
+
 
             node.append('text')
                 .text(hostLabel)
-                .attr('dy', textDy)
+                .attr('alignment-baseline', 'text-before-edge')
+                .attr('x', textXOff)
+                .attr('y', textYOff)
                 .attr('text-anchor', 'middle');
 
             // debug function to show the modelled x,y coordinates of nodes...
@@ -1492,9 +1499,9 @@
                 .style('opacity', 0);
             // note, leave <g>.remove to remove this element
 
-            node.select('circle')
-                .style('stroke-fill', '#555')
-                .style('fill', '#888')
+            node.select('use')
+                .style('color', '#aaa')
+                .style('fill', '#000')
                 .style('opacity', 0.5)
                 .transition()
                 .duration(1500)
@@ -1817,7 +1824,7 @@
     function zoomPan(scale, translate) {
         zoomPanContainer.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
         // keep the map lines constant width while zooming
-        bgImg.style("stroke-width", 2.0 / scale + "px");
+        bgImg.attr("stroke-width", config.map.strokeWidth / scale + "px");
     }
 
     function resetZoomPan() {
@@ -1934,6 +1941,27 @@
         gly.defBullhorn(defs);
     }
 
+    // create references to bring these into cache so that getBBox() works when they
+    // are inserted later
+    function preloadIcons(svg) {
+        var icons = [
+            "router",
+            "switch",
+            "roadm",
+            "endstation",
+            "bgpSpeaker"
+        ];
+
+        var g = svg.append('g');
+        for (var icon in icons) {
+        g.append('use')
+                    .attr({
+                        'xlink:href': 'icons.svg#' + icon
+                    });
+        }
+        g.style('visibility', 'hidden');
+    }
+
     // ==============================
     // View life-cycle callbacks
 
@@ -1950,6 +1978,7 @@
         setSize(svg, view);
 
         loadGlyphs(svg);
+        preloadIcons(svg);
 
         zoomPanContainer = svg.append('g').attr('id', 'zoomPanContainer');
         setupZoomPan();
@@ -2046,7 +2075,7 @@
                     width: config.birdDim,
                     height: config.birdDim,
                     fill: '#111'
-                })
+                });
     }
 
     function para(sel, text) {
@@ -2161,11 +2190,13 @@
             .translate(t);
 
         bgImg = zoomPanContainer.insert("g", '#topo-G');
-        bgImg.attr('id', 'map').selectAll('path')
-            .data(topoData.features)
-            .enter()
-            .append('path')
-            .attr('d', path);
+        // pointer-events: none so that browser select tools don't pick up the map svg
+        bgImg.attr('id', 'map').attr('stroke-width', config.map.strokeWidth + 'px').style('pointer-events', 'none')
+            .selectAll('path')
+                .data(topoData.features)
+                .enter()
+                .append('path')
+                .attr('d', path);
     }
 
     function resize(view, ctx, flags) {
