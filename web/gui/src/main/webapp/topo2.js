@@ -70,8 +70,11 @@
             }
         },
         topo: {
+            linkBaseColor: '#666',
             linkInColor: '#66f',
-            linkInWidth: 14
+            linkInWidth: 14,
+            linkOutColor: '#f00',
+            linkOutWidth: 30
         },
         icons: {
             w: 28,
@@ -529,7 +532,7 @@
         el.transition()
             .duration(1000)
             .attr('stroke-width', linkScale(lw))
-            .attr('stroke', '#666');  // TODO: remove explicit stroke (use CSS)
+            .attr('stroke', config.topo.linkBaseColor);
     }
 
     // ==============================
@@ -1011,17 +1014,15 @@
 
         // operate on exiting links:
         link.exit()
-            .attr({
-                'stroke-dasharray': '3, 3'
-            })
-            .style('opacity', 0.4)
+            .attr('stroke-dasharray', '3, 3')
+            .style('opacity', 0.5)
             .transition()
             .duration(1500)
             .attr({
-                'stroke-dasharray': '3, 12'
+                'stroke-dasharray': '3, 12',
+                stroke: config.topo.linkOutColor,
+                'stroke-width': config.topo.linkOutWidth
             })
-            .transition()
-            .duration(500)
             .style('opacity', 0.0)
             .remove();
     }
