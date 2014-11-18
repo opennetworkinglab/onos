@@ -15,11 +15,13 @@
  */
 package org.onlab.onos.cli.net;
 
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.PortNumber.portNumber;
+
 import java.util.List;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
@@ -29,12 +31,6 @@ import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.packet.MacAddress;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -53,35 +49,6 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-    @Option(name = "--srcMacRewrite", description = "Source MAC address to rewrite",
-            required = false, multiValued = false)
-    private String rewriteSrcMacAddressString = null;
-
-    @Option(name = "--dstMacRewrite", description = "Destination MAC address to rewrite",
-            required = false, multiValued = false)
-    private String rewriteDstMacAddressString = null;
-
-
-    /**
-     * Generates a traffic treatment for this intent. If the mac address rewrite
-     * argument is specified the treatment is updated
-     * to implement the rewrite rule if necessary.
-     */
-    private TrafficTreatment buildTrafficTreatment() {
-        final TrafficTreatment.Builder builder = builder();
-
-        if (!isNullOrEmpty(rewriteSrcMacAddressString)) {
-            final MacAddress rewriteSrcMacAddress =
-                    MacAddress.valueOf(rewriteSrcMacAddressString);
-            builder.setEthSrc(rewriteSrcMacAddress);
-        }
-        if (!isNullOrEmpty(rewriteDstMacAddressString)) {
-            final MacAddress rewriteDstMacAddress =
-                    MacAddress.valueOf(rewriteDstMacAddressString);
-            builder.setEthDst(rewriteDstMacAddress);
-        }
-        return builder.build();
-    }
 
     @Override
     protected void execute() {

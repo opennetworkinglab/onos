@@ -23,6 +23,7 @@ import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
 import org.onlab.onos.net.intent.constraint.LambdaConstraint;
@@ -33,12 +34,14 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Base class for command line operations for connectivity based intents.
  */
 public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
+    // Selectors
     @Option(name = "-s", aliases = "--ethSrc", description = "Source MAC Address",
             required = false, multiValued = false)
     private String srcMacString = null;
@@ -78,6 +81,16 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-l", aliases = "--lambda", description = "Lambda",
             required = false, multiValued = false)
     private boolean lambda = false;
+
+
+    // Treatments
+    @Option(name = "--setEthSrc", description = "Rewrite Source MAC Address",
+            required = false, multiValued = false)
+    private String setEthSrcString = null;
+
+    @Option(name = "--setEthDst", description = "Rewrite Destination MAC Address",
+            required = false, multiValued = false)
+    private String setEthDstString = null;
 
     /**
      * Constructs a traffic selector based on the command line arguments
@@ -123,6 +136,26 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         return selectorBuilder.build();
+    }
+
+    /**
+     * Generates a traffic treatment for this intent based on command line
+     * arguments presented to the command.
+     *
+     * @return traffic treatment
+     */
+    protected TrafficTreatment buildTrafficTreatment() {
+        final TrafficTreatment.Builder builder = builder();
+
+        if (!isNullOrEmpty(setEthSrcString)) {
+            final MacAddress setEthSrc = MacAddress.valueOf(setEthSrcString);
+            builder.setEthSrc(setEthSrc);
+        }
+        if (!isNullOrEmpty(setEthDstString)) {
+            final MacAddress setEthDst = MacAddress.valueOf(setEthDstString);
+            builder.setEthDst(setEthDst);
+        }
+        return builder.build();
     }
 
     /**
