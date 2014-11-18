@@ -69,7 +69,7 @@ public class IntentSynchronizer {
 
         bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
-                        .setNameFormat("bgp-intents-synchronizer-%d").build());
+                .setNameFormat("sdnip-intents-synchronizer-%d").build());
     }
 
     /**

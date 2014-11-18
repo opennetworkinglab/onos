@@ -114,7 +114,8 @@ public class Router implements RouteListener {
                 HashMultimap.<Ip4Address, RouteEntry>create());
 
         bgpUpdatesExecutor = Executors.newSingleThreadExecutor(
-                new ThreadFactoryBuilder().setNameFormat("bgp-updates-%d").build());
+                new ThreadFactoryBuilder()
+                .setNameFormat("sdnip-bgp-updates-%d").build());
     }
 
     /**

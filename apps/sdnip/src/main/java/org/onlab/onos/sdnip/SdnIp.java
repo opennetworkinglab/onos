@@ -18,6 +18,8 @@ package org.onlab.onos.sdnip;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -33,7 +35,11 @@ import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
 import org.onlab.onos.sdnip.bgp.BgpSession;
 import org.onlab.onos.sdnip.bgp.BgpSessionManager;
 import org.onlab.onos.sdnip.config.SdnIpConfigReader;
+import org.onlab.onos.store.service.Lock;
+import org.onlab.onos.store.service.LockService;
 import org.slf4j.Logger;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Component for the SDN-IP peering application.
@@ -43,6 +49,9 @@ import org.slf4j.Logger;
 public class SdnIp implements SdnIpService {
 
     private static final String SDN_IP_APP = "org.onlab.onos.sdnip";
+    // NOTE: Must be 5s for now
+    private static final int LEASE_DURATION_MS = 5 * 1000;
+    private static final int LEASE_EXTEND_RETRY_MAX = 3;
 
     private final Logger log = getLogger(getClass());
 
@@ -55,15 +64,23 @@ public class SdnIp implements SdnIpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LockService lockService;
+
     private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigReader config;
     private PeerConnectivityManager peerConnectivity;
     private Router router;
     private BgpSessionManager bgpSessionManager;
 
+    private ExecutorService leaderElectionExecutor;
+    private Lock leaderLock;
+    private volatile boolean isShutdown = true;
+
     @Activate
     protected void activate() {
-        log.debug("SDN-IP started");
+        log.info("SDN-IP started");
+        isShutdown = false;
 
         ApplicationId appId = coreService.registerApplication(SDN_IP_APP);
         config = new SdnIpConfigReader();
@@ -83,9 +100,20 @@ public class SdnIp implements SdnIpService {
                             interfaceService);
         router.start();
 
+        leaderLock = lockService.create(SDN_IP_APP + "/sdnIpLeaderLock");
+        leaderElectionExecutor = Executors.newSingleThreadExecutor(
+                new ThreadFactoryBuilder()
+                .setNameFormat("sdnip-leader-election-%d").build());
+        leaderElectionExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    doLeaderElectionThread();
+                }
+            });
+
         // Manually set the instance as the leader to allow testing
         // TODO change this when we get a leader election
-        intentSynchronizer.leaderChanged(true);
+        // intentSynchronizer.leaderChanged(true);
 
         bgpSessionManager = new BgpSessionManager(router);
         // TODO: the local BGP listen port number should be configurable
@@ -96,10 +124,15 @@ public class SdnIp implements SdnIpService {
 
     @Deactivate
     protected void deactivate() {
+        isShutdown = true;
+
         bgpSessionManager.stop();
         router.stop();
         peerConnectivity.stop();
         intentSynchronizer.stop();
+
+        // Stop the thread(s)
+        leaderElectionExecutor.shutdownNow();
 
         log.info("Stopped");
     }
@@ -126,5 +159,67 @@ public class SdnIp implements SdnIpService {
 
     static String dpidToUri(String dpid) {
         return "of:" + dpid.replace(":", "");
+    }
+
+    /**
+     * Performs the leader election.
+     */
+    private void doLeaderElectionThread() {
+
+        //
+        // Try to acquire the lock and keep extending it until the instance
+        // is shutdown.
+        //
+        while (!isShutdown) {
+            log.debug("SDN-IP Leader Election begin");
+
+            // Block until it becomes the leader
+            leaderLock.lock(LEASE_DURATION_MS);
+
+            // This instance is the leader
+            log.info("SDN-IP Leader Elected");
+            intentSynchronizer.leaderChanged(true);
+
+            // Keep extending the expiration until shutdown
+            int extensionFailedCountdown = LEASE_EXTEND_RETRY_MAX - 1;
+
+            //
+            // Keep periodically extending the lock expiration.
+            // If there are multiple back-to-back failures to extend (with
+            // extra sleep time between retrials), then release the lock.
+            //
+            while (!isShutdown) {
+                try {
+                    Thread.sleep(LEASE_DURATION_MS / LEASE_EXTEND_RETRY_MAX);
+                    if (leaderLock.extendExpiration(LEASE_DURATION_MS)) {
+                        log.trace("SDN-IP Leader Extended");
+                        extensionFailedCountdown = LEASE_EXTEND_RETRY_MAX;
+                    } else {
+                        log.debug("SDN-IP Leader Cannot Extend Election");
+                        if (!leaderLock.isLocked()) {
+                            log.debug("SDN-IP Leader Lock Lost");
+                            intentSynchronizer.leaderChanged(false);
+                            break;              // Try again to get the lock
+                        }
+                        extensionFailedCountdown--;
+                        if (extensionFailedCountdown <= 0) {
+                            // Failed too many times to extend.
+                            // Release the lock.
+                            log.debug("SDN-IP Leader Lock Released");
+                            intentSynchronizer.leaderChanged(false);
+                            leaderLock.unlock();
+                            break;              // Try again to get the lock
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    // Thread interrupted. Time to shutdown
+                    log.debug("SDN-IP Leader Interrupted");
+                }
+            }
+        }
+
+        // If we reach here, the instance was shutdown
+        intentSynchronizer.leaderChanged(false);
+        leaderLock.unlock();
     }
 }
