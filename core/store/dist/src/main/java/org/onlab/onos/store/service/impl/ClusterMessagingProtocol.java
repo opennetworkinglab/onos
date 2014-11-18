@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import net.kuujo.copycat.cluster.TcpClusterConfig;
 import net.kuujo.copycat.cluster.TcpMember;
+import net.kuujo.copycat.event.LeaderElectEvent;
 import net.kuujo.copycat.internal.log.ConfigurationEntry;
 import net.kuujo.copycat.internal.log.CopycatEntry;
 import net.kuujo.copycat.internal.log.OperationEntry;
@@ -103,6 +104,7 @@ public class ClusterMessagingProtocol
             .register(OperationEntry.class)
             .register(TcpClusterConfig.class)
             .register(TcpMember.class)
+            .register(LeaderElectEvent.class)
             .build();
 
     private static final KryoNamespace DATABASE = KryoNamespace.newBuilder()
