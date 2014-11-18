@@ -112,7 +112,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
         clusterService.addListener(listener);
 
         // wait for specified controller node to come up
-        return null;
+        return appeared;
     }
 
     @Override

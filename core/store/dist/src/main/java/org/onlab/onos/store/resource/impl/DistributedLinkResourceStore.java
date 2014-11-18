@@ -39,6 +39,7 @@ import org.onlab.onos.store.service.BatchWriteRequest;
 import org.onlab.onos.store.service.BatchWriteRequest.Builder;
 import org.onlab.onos.store.service.BatchWriteResult;
 import org.onlab.onos.store.service.DatabaseAdminService;
+import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
@@ -108,13 +109,28 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
 
         serializer = new KryoSerializer();
 
-        Set<String> tables = databaseAdminService.listTables();
+        Set<String> tables = null;
+        int retries = 0;
+        do {
+            try {
+                tables = databaseAdminService.listTables();
+            } catch (DatabaseException e) {
+                log.debug("DatabaseException", e);
+                retries++;
+                if (retries > 10) {
+                    log.error("Failed to list tables, moving on", e);
+                    tables = new HashSet<>();
+                }
+            }
+        } while (tables == null);
+
         if (!tables.contains(LINK_RESOURCE_ALLOCATIONS)) {
             databaseAdminService.createTable(LINK_RESOURCE_ALLOCATIONS);
         }
         if (!tables.contains(INTENT_ALLOCATIONS)) {
             databaseAdminService.createTable(INTENT_ALLOCATIONS);
         }
+
 
         log.info("Started");
     }

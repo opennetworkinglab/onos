@@ -1,5 +1,6 @@
 package org.onlab.onos.store.service.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Arrays;
@@ -12,7 +13,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
@@ -40,23 +40,28 @@ public class DatabaseClient implements EventHandler<LeaderElectEvent> {
     private final Logger log = getLogger(getClass());
 
     private final DatabaseProtocolService protocol;
-    private volatile ProtocolClient copycat = null;
-    private volatile Member currentLeader = null;
+    private volatile ProtocolClient client = null;
+    private volatile TcpMember currentLeader = null;
+
 
     public DatabaseClient(DatabaseProtocolService protocol) {
-        this.protocol = protocol;
+        this.protocol = checkNotNull(protocol);
     }
 
+    // FIXME This handler relies on a fact that local node is part of Raft cluster
     @Override
     public void handle(LeaderElectEvent event) {
-        Member newLeader = event.leader();
+        final TcpMember newLeader = event.leader();
         if (newLeader != null && !newLeader.equals(currentLeader)) {
+            log.info("{} became the new leader", newLeader);
+            ProtocolClient prevClient = client;
+            ProtocolClient newclient = protocol.createClient(newLeader);
+            newclient.connect();
+            client = newclient;
             currentLeader = newLeader;
-            if (copycat != null) {
-                copycat.close();
+            if (prevClient != null) {
+                prevClient.close();
             }
-            copycat = protocol.createClient((TcpMember) currentLeader);
-            copycat.connect();
         }
     }
 
@@ -92,7 +97,7 @@ public class DatabaseClient implements EventHandler<LeaderElectEvent> {
         SubmitRequest request =
                 new SubmitRequest(nextRequestId(), operationName, Arrays.asList(args));
 
-        CompletableFuture<SubmitResponse> submitResponse = copycat.submit(request);
+        CompletableFuture<SubmitResponse> submitResponse = client.submit(request);
 
         log.debug("Sent {} to {}", request, currentLeader);
 

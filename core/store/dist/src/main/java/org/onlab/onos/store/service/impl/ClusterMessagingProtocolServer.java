@@ -81,7 +81,7 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
                     }
                 }
                 if (handler == null) {
-                    log.error("There was no handler for registered!");
+                    log.error("There was no handler registered!");
                     return;
                 }
             }
