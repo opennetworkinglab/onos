@@ -587,7 +587,8 @@
                     setRadio: this.setRadio,
                     setKeys: this.setKeys,
                     dataLoadError: this.dataLoadError,
-                    alert: this.alert
+                    alert: this.alert,
+                    theme: this.theme
                 }
             },
 
@@ -677,6 +678,10 @@
 
             setKeys: function (keyArg) {
                 setKeyBindings(keyArg);
+            },
+
+            theme: function () {
+                return current.theme;
             },
 
             uid: function (id) {

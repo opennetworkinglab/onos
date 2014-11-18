@@ -221,8 +221,7 @@
     // Key Callbacks
 
     function testMe(view) {
-        //view.alert('test');
-        noWebSock(true);
+        view.alert('Theme is ' + view.theme());
     }
 
     function abortIfLive() {
