@@ -26,9 +26,9 @@ export ONOS_STAGE=$ONOS_STAGE_ROOT/$ONOS_BITS
 export ONOS_TAR=$ONOS_STAGE.tar.gz
 
 # Defaults for ONOS testing using remote machines.
-if [ -n "${ONOS_CELL}" -a -f $ONOS_ROOT/tools/test/cells/${ONOS_CELL} ]; then
-   . $ONOS_ROOT/tools/test/cells/${ONOS_CELL}
-fi
+# if [ -n "${ONOS_CELL}" -a -f $ONOS_ROOT/tools/test/cells/${ONOS_CELL} ]; then
+#   . $ONOS_ROOT/tools/test/cells/${ONOS_CELL}
+# fi
 export ONOS_INSTALL_DIR="/opt/onos"     # Installation directory on remote
 export OCI="${OCI:-192.168.56.101}"     # ONOS Controller Instance
 export ONOS_USER="${ONOS_USER:-sdn}"    # ONOS user on remote system
