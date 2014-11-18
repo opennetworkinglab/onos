@@ -12,9 +12,9 @@
           "of:0000ffffffff0007/1-0E:2A:69:30:13:89/-1/0"
         ],
         "labels": [
-          "Load{rate=98, latest=38080}",
-          "Load{rate=98, latest=38080}",
-          "Load{rate=98, latest=38080}"
+          "Load{rate=20, latest=20000}",
+          "Load{rate=10, latest=20000}",
+          ""
         ]
       }
     ]

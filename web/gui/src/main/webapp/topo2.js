@@ -186,8 +186,10 @@
         topoG,
         nodeG,
         linkG,
+        linkLabelG,
         node,
         link,
+        linkLabel,
         mask;
 
     // the projection for the map background
@@ -710,17 +712,25 @@
 
         // Revert any links hilighted previously.
         link.classed('primary secondary animated optical', false);
+        // Remove all previous labels.
+        removeLinkLabels();
 
-        // Now hilight all links in the paths payload.
+        // Now hilight all links in the paths payload, and attach
+        //  labels to them, if they are defined.
         paths.forEach(function (p) {
-            var cls = p.class;
-            p.links.forEach(function (id) {
-                var lnk = findLinkById(id);
-                if (lnk) {
-                    lnk.el.classed(cls, true);
+            var n = p.links.length,
+                i,
+                ldata;
+
+            for (i=0; i<n; i++) {
+                ldata = findLinkById(p.links[i]);
+                if (ldata) {
+                    ldata.el.classed(p.class, true);
+                    ldata.label = p.labels[i];
                 }
-            });
+            }
         });
+        updateLinks();
     }
 
     // ...............................
@@ -891,6 +901,10 @@
         return 'translate(' + x + ',' + y + ')';
     }
 
+    function rotate(deg) {
+        return 'rotate(' + deg + ')';
+    }
+
     function missMsg(what, id) {
         return '\n[' + what + '] "' + id + '" missing ';
     }
@@ -973,6 +987,12 @@
         return lnk;
     }
 
+    function removeLinkLabels() {
+        network.links.forEach(function (d) {
+            d.label = '';
+        });
+    }
+
     var widthRatio = 1.4,
         linkScale = d3.scale.linear()
             .domain([1, 12])
@@ -1004,12 +1024,14 @@
             // provide ref to element selection from backing data....
             d.el = link;
             restyleLinkElement(d);
-
-            // TODO: add src/dst port labels etc.
         });
 
         // operate on both existing and new links, if necessary
         //link .foo() .bar() ...
+
+        // apply or remove labels
+        var labelData = getLabelData();
+        applyLinkLabels(labelData);
 
         // operate on exiting links:
         link.exit()
@@ -1024,6 +1046,95 @@
             })
             .style('opacity', 0.0)
             .remove();
+
+        // NOTE: invoke a single tick to force the labels to position
+        //        onto their links.
+        tick();
+    }
+
+    function getLabelData() {
+        // create the backing data for showing labels..
+        var data = [];
+        link.each(function (d) {
+            if (d.label) {
+                data.push({
+                    id: 'lab-' + d.key,
+                    key: d.key,
+                    label: d.label,
+                    ldata: d
+                });
+            }
+        });
+        return data;
+    }
+
+    var linkLabelOffset = '0.3em';
+
+    function applyLinkLabels(data) {
+        var entering;
+
+        linkLabel = linkLabelG.selectAll('.linkLabel')
+            .data(data, function (d) { return d.id; });
+
+        entering = linkLabel.enter().append('g')
+            .classed('linkLabel', true)
+            .attr('id', function (d) { return d.id; });
+
+        entering.each(function (d) {
+            var el = d3.select(this),
+                rect,
+                text,
+                parms = {
+                    x1: d.ldata.x1,
+                    y1: d.ldata.y1,
+                    x2: d.ldata.x2,
+                    y2: d.ldata.y2
+                };
+
+            d.el = el;
+            rect = el.append('rect');
+            text = el.append('text').text(d.label);
+            rect.attr(rectAroundText(el));
+            text.attr('dy', linkLabelOffset);
+
+            el.attr('transform', transformLabel(parms));
+        });
+
+        // Remove any links that are no longer required.
+        linkLabel.exit().remove();
+    }
+
+    function rectAroundText(el) {
+        var text = el.select('text'),
+            box = text.node().getBBox();
+
+        // translate the bbox so that it is centered on [x,y]
+        box.x = -box.width / 2;
+        box.y = -box.height / 2;
+
+        // add padding
+        box.x -= 1;
+        box.width += 2;
+        return box;
+    }
+
+    function transformLabel(p) {
+        var dx = p.x2 - p.x1,
+            dy = p.y2 - p.y1,
+            xMid = dx/2 + p.x1,
+            yMid = dy/2 + p.y1;
+        //length = Math.sqrt(dx*dx + dy*dy),
+        //rads = Math.asin(dy/length),
+        //degs = rads / (Math.PI*2) * 360;
+
+        return translate(xMid, yMid);
+
+        // TODO: consider making label parallel to line
+        //return [
+        //    translate(xMid, yMid),
+        //    rotate(degs),
+        //    translate(0, 8)
+        //].join('');
     }
 
     function createDeviceNode(device) {
@@ -1443,6 +1554,18 @@
             x2: function (d) { return d.target.x; },
             y2: function (d) { return d.target.y; }
         });
+
+        linkLabel.each(function (d) {
+            var el = d3.select(this);
+            var lnk = findLinkById(d.key),
+                parms = {
+                    x1: lnk.source.x,
+                    y1: lnk.source.y,
+                    x2: lnk.target.x,
+                    y2: lnk.target.y
+                };
+            el.attr('transform', transformLabel(parms));
+        });
     }
 
     // ==============================
@@ -1839,12 +1962,14 @@
             .attr('id', 'topo-G')
             .attr('transform', fcfg.translate());
 
-        // subgroups for links and nodes
+        // subgroups for links, link labels, and nodes
         linkG = topoG.append('g').attr('id', 'links');
+        linkLabelG = topoG.append('g').attr('id', 'linkLabels');
         nodeG = topoG.append('g').attr('id', 'nodes');
 
-        // selection of nodes and links
+        // selection of links, linkLabels, and nodes
         link = linkG.selectAll('.link');
+        linkLabel = linkLabelG.selectAll('.linkLabel');
         node = nodeG.selectAll('.node');
 
         function chrg(d) {

@@ -154,6 +154,17 @@ svg .node.host circle {
     stroke-dasharray: 8 8
 }
 
+#topo svg .linkLabel rect {
+    fill: #eef;
+    stroke: blue;
+    stroke-width: 0.3;
+}
+#topo svg .linkLabel text {
+    text-anchor: middle;
+    fill: #a13d11;
+    stroke: none;
+    font-size: 8pt;
+}
 
 /* Fly-in details pane */
 
