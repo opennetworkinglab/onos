@@ -294,6 +294,7 @@ public class SimpleMastershipStore
                 return new MastershipEvent(MASTER_CHANGED, deviceId,
                                            getNodes(deviceId));
             }
+
         case STANDBY:
         case NONE:
             boolean modified = addToBackup(deviceId, nodeId);
@@ -301,6 +302,8 @@ public class SimpleMastershipStore
                 return new MastershipEvent(BACKUPS_CHANGED, deviceId,
                                            getNodes(deviceId));
             }
+            break;
+
         default:
             log.warn("unknown Mastership Role {}", role);
         }
@@ -332,12 +335,17 @@ public class SimpleMastershipStore
             incrementTerm(deviceId);
             return new MastershipEvent(MASTER_CHANGED, deviceId,
                                        getNodes(deviceId));
+
         case STANDBY:
             if (removeFromBackups(deviceId, nodeId)) {
                 return new MastershipEvent(BACKUPS_CHANGED, deviceId,
                                            getNodes(deviceId));
             }
+            break;
+
         case NONE:
+            break;
+
         default:
             log.warn("unknown Mastership Role {}", role);
         }
