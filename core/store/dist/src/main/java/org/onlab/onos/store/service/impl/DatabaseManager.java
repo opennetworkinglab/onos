@@ -179,6 +179,11 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
 
         client.waitForLeader();
+
+        // Try and list the tables to verify database manager is
+        // in a state where it can serve requests.
+        tryTableListing();
+
         log.info("Started.");
     }
 
@@ -212,6 +217,24 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
                 log.info("Interrupted waiting for others", e);
             }
         }
+    }
+
+    private void tryTableListing() {
+        int retries = 0;
+        do {
+            try {
+                listTables();
+                return;
+            } catch (DatabaseException e) {
+                if (retries == 10) {
+                    log.error("Failed to listTables after multiple attempts. Giving up.", e);
+                    throw e;
+                } else {
+                    log.debug("Failed to listTables. Will retry...", e);
+                    retries++;
+                }
+            }
+        } while (true);
     }
 
     @Override

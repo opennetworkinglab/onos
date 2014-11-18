@@ -31,8 +31,9 @@ public interface Lock {
      * lock after granting it, before automatically releasing it if it hasn't
      * already been released by invoking unlock(). Must be in the range
      * (0, LockManager.MAX_LEASE_MILLIS]
+     * @throws InterruptedException if the thread is interrupted while waiting
      */
-    void lock(int leaseDurationMillis);
+    void lock(int leaseDurationMillis) throws InterruptedException;
 
     /**
      * Acquires the lock only if it is free at the time of invocation.
@@ -54,8 +55,9 @@ public interface Lock {
      * (0, LockManager.MAX_LEASE_MILLIS]
      * @return true if the lock was acquired and false if the waiting time
      * elapsed before the lock was acquired
+     * @throws InterruptedException if the thread is interrupted while waiting
      */
-    boolean tryLock(long waitTimeMillis, int leaseDurationMillis);
+    boolean tryLock(long waitTimeMillis, int leaseDurationMillis) throws InterruptedException;
 
     /**
      * Returns true if this Lock instance currently holds the lock.

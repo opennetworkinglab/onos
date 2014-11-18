@@ -105,11 +105,11 @@ public class SdnIp implements SdnIpService {
                 new ThreadFactoryBuilder()
                 .setNameFormat("sdnip-leader-election-%d").build());
         leaderElectionExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    doLeaderElectionThread();
-                }
-            });
+            @Override
+            public void run() {
+                doLeaderElectionThread();
+            }
+        });
 
         // Manually set the instance as the leader to allow testing
         // TODO change this when we get a leader election
@@ -174,22 +174,22 @@ public class SdnIp implements SdnIpService {
             log.debug("SDN-IP Leader Election begin");
 
             // Block until it becomes the leader
-            leaderLock.lock(LEASE_DURATION_MS);
+            try {
+                leaderLock.lock(LEASE_DURATION_MS);
 
-            // This instance is the leader
-            log.info("SDN-IP Leader Elected");
-            intentSynchronizer.leaderChanged(true);
+                // This instance is the leader
+                log.info("SDN-IP Leader Elected");
+                intentSynchronizer.leaderChanged(true);
 
-            // Keep extending the expiration until shutdown
-            int extensionFailedCountdown = LEASE_EXTEND_RETRY_MAX - 1;
+                // Keep extending the expiration until shutdown
+                int extensionFailedCountdown = LEASE_EXTEND_RETRY_MAX - 1;
 
-            //
-            // Keep periodically extending the lock expiration.
-            // If there are multiple back-to-back failures to extend (with
-            // extra sleep time between retrials), then release the lock.
-            //
-            while (!isShutdown) {
-                try {
+                //
+                // Keep periodically extending the lock expiration.
+                // If there are multiple back-to-back failures to extend (with
+                // extra sleep time between retrials), then release the lock.
+                //
+                while (!isShutdown) {
                     Thread.sleep(LEASE_DURATION_MS / LEASE_EXTEND_RETRY_MAX);
                     if (leaderLock.extendExpiration(LEASE_DURATION_MS)) {
                         log.trace("SDN-IP Leader Extended");
@@ -211,13 +211,12 @@ public class SdnIp implements SdnIpService {
                             break;              // Try again to get the lock
                         }
                     }
-                } catch (InterruptedException e) {
-                    // Thread interrupted. Time to shutdown
-                    log.debug("SDN-IP Leader Interrupted");
                 }
+            } catch (InterruptedException e) {
+                // Thread interrupted. Time to shutdown
+                log.debug("SDN-IP Leader Interrupted");
             }
         }
-
         // If we reach here, the instance was shutdown
         intentSynchronizer.leaderChanged(false);
         leaderLock.unlock();

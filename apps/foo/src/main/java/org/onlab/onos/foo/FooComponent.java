@@ -160,7 +160,7 @@ public class FooComponent {
         }
     }
 
-    private void lockUnlock() {
+    private void lockUnlock() throws InterruptedException {
         try {
             final String locksTable = "onos-locks";
 

@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joda.time.DateTime;
 import org.onlab.onos.cluster.ClusterService;
+import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.Lock;
 import org.slf4j.Logger;
@@ -22,8 +23,6 @@ import org.slf4j.Logger;
 public class DistributedLock implements Lock {
 
     private final Logger log = getLogger(getClass());
-
-    private static final long MAX_WAIT_TIME_MS = 100000000L;
 
     private final DistributedLockManager lockManager;
     private final DatabaseService databaseService;
@@ -53,13 +52,17 @@ public class DistributedLock implements Lock {
     }
 
     @Override
-    public void lock(int leaseDurationMillis) {
+    public void lock(int leaseDurationMillis) throws InterruptedException {
         if (isLocked() && lockExpirationTime.isAfter(DateTime.now().plusMillis(leaseDurationMillis))) {
-            // Nothing to do.
-            // Current expiration time is beyond what is requested.
             return;
         } else {
-            tryLock(MAX_WAIT_TIME_MS, leaseDurationMillis);
+            CompletableFuture<DateTime> future =
+                    lockManager.lockIfAvailable(this, leaseDurationMillis);
+            try {
+                lockExpirationTime = future.get();
+            } catch (ExecutionException e) {
+                throw new DatabaseException(e);
+            }
         }
     }
 
@@ -79,22 +82,17 @@ public class DistributedLock implements Lock {
     @Override
     public boolean tryLock(
             long waitTimeMillis,
-            int leaseDurationMillis) {
+            int leaseDurationMillis) throws InterruptedException {
         if (tryLock(leaseDurationMillis)) {
             return true;
         }
-
         CompletableFuture<DateTime> future =
                 lockManager.lockIfAvailable(this, waitTimeMillis, leaseDurationMillis);
         try {
             lockExpirationTime = future.get(waitTimeMillis, TimeUnit.MILLISECONDS);
             return true;
-        } catch (ExecutionException | InterruptedException e) {
-            log.error("Encountered an exception trying to acquire lock for " + path, e);
-            // TODO: ExecutionException could indicate something
-            // wrong with the backing database.
-            // Throw an exception?
-            return false;
+        } catch (ExecutionException e) {
+            throw new DatabaseException(e);
         } catch (TimeoutException e) {
             log.debug("Timed out waiting to acquire lock for {}", path);
             return false;

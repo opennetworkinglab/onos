@@ -64,23 +64,22 @@ public class DistributedLockManager implements LockService {
     @Activate
     public void activate() {
         try {
-            Set<String> tableNames = databaseAdminService.listTables();
-            if (!tableNames.contains(ONOS_LOCK_TABLE_NAME)) {
+            Set<String> tables = databaseAdminService.listTables();
+
+            if (!tables.contains(ONOS_LOCK_TABLE_NAME)) {
                 if (databaseAdminService.createTable(ONOS_LOCK_TABLE_NAME, DEAD_LOCK_TIMEOUT_MS)) {
                     log.info("Created {} table.", ONOS_LOCK_TABLE_NAME);
                 }
             }
         } catch (DatabaseException e) {
             log.error("DistributedLockManager#activate failed.", e);
-            throw e;
         }
 
-        clusterCommunicator.addSubscriber(
-                DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
-                new LockEventMessageListener());
+         clusterCommunicator.addSubscriber(
+                 DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
+                 new LockEventMessageListener());
 
-        log.info("Started.");
-
+         log.info("Started");
     }
 
     @Deactivate
@@ -119,7 +118,31 @@ public class DistributedLockManager implements LockService {
             long waitTimeMillis,
             int leaseDurationMillis) {
         CompletableFuture<DateTime> future = new CompletableFuture<>();
-        locksToAcquire.put(lock.path(), new LockRequest(lock, waitTimeMillis, leaseDurationMillis, future));
+        LockRequest request = new LockRequest(
+                lock,
+                leaseDurationMillis,
+                DateTime.now().plusMillis(leaseDurationMillis),
+                future);
+        locksToAcquire.put(lock.path(), request);
+        return future;
+    }
+
+    /**
+     * Attempts to acquire the lock as soon as it becomes available.
+     * @param lock lock to acquire.
+     * @param leaseDurationMillis the duration for which to acquire the lock initially.
+     * @return Future lease expiration date.
+     */
+    protected CompletableFuture<DateTime> lockIfAvailable(
+            Lock lock,
+            int leaseDurationMillis) {
+        CompletableFuture<DateTime> future = new CompletableFuture<>();
+        LockRequest request = new LockRequest(
+                lock,
+                leaseDurationMillis,
+                DateTime.now().plusYears(100),
+                future);
+        locksToAcquire.put(lock.path(), request);
         return future;
     }
 
@@ -182,11 +205,14 @@ public class DistributedLockManager implements LockService {
         private final int leaseDurationMillis;
         private final CompletableFuture<DateTime> future;
 
-        public LockRequest(Lock lock, long waitTimeMillis,
-                int leaseDurationMillis, CompletableFuture<DateTime> future) {
+        public LockRequest(
+                Lock lock,
+                int leaseDurationMillis,
+                DateTime requestExpirationTime,
+                CompletableFuture<DateTime> future) {
 
             this.lock = lock;
-            this.requestExpirationTime = DateTime.now().plusMillis((int) waitTimeMillis);
+            this.requestExpirationTime = requestExpirationTime;
             this.leaseDurationMillis = leaseDurationMillis;
             this.future = future;
         }
