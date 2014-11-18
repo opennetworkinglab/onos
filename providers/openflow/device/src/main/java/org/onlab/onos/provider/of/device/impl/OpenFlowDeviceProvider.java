@@ -92,7 +92,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         for (OpenFlowSwitch sw : controller.getSwitches()) {
-            listener.switchAdded(new Dpid(sw.getId()));
+            try {
+                listener.switchAdded(new Dpid(sw.getId()));
+            } catch (Exception e) {
+                LOG.warn("Failed initially adding {} : {}", sw.getStringId(), e.getMessage());
+                LOG.debug("Error details:", e);
+                // disconnect to trigger switch-add later
+                sw.disconnectSwitch();
+            }
         }
         LOG.info("Started");
     }
