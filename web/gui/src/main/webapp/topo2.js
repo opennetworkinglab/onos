@@ -557,7 +557,7 @@
         addLink: addLink,
         addHost: addHost,
 
-        updateInstance: stillToImplement,
+        updateInstance: updateInstance,
         updateDevice: updateDevice,
         updateLink: updateLink,
         updateHost: updateHost,
@@ -652,7 +652,6 @@
         if (instData) {
             $.extend(instData, inst);
             updateInstances();
-            //updateInstanceState(instData);
         } else {
             logicError('updateInstance lookup fail. ID = "' + id + '"');
         }
@@ -843,6 +842,7 @@
             .data(onosOrder, function (d) { return d.id; });
 
         // operate on existing onoses if necessary
+        onoses.classed('online', function (d) { return d.online; });
 
         var entering = onoses.enter()
             .append('div')
@@ -857,11 +857,7 @@
             $('<img src="img/host.png">').appendTo(el);
             img = el.select('img')
                 .attr({
-                    width: 40,
-                    top: -10,
-                    left: -10
-                })
-                .style({
+                    width: 30
                 });
 
             $('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);

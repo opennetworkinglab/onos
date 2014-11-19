@@ -273,10 +273,12 @@ svg .node.host circle {
 
 #topo-oibox .onosInst img {
     opacity: 0.5;
+    padding: 3px;
 }
 
 #topo-oibox .onosInst.online img {
     opacity: 1.0;
+    padding: 3px;
 }
 
 #topo-oibox .onosInst img.ui {
