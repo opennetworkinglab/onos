@@ -259,7 +259,7 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public void triggerProbe(Device device) {
+        public void triggerProbe(DeviceId deviceId) {
         }
 
         @Override

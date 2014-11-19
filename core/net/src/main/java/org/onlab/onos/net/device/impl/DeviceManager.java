@@ -182,6 +182,9 @@ public class DeviceManager
 
     // Check a device for control channel connectivity.
     private boolean isReachable(DeviceId deviceId) {
+        if (deviceId == null) {
+            return false;
+        }
         DeviceProvider provider = getProvider(deviceId);
         if (provider != null) {
             return provider.isReachable(deviceId);
@@ -370,7 +373,6 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                          "Port descriptions list cannot be null");
             checkValidity();
-
             if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
                 // Never been a master for this device
                 // any update will be ignored.
@@ -475,15 +477,7 @@ public class DeviceManager
             return true;
         }
 
-        Device device = store.getDevice(deviceId);
-        // FIXME: Device might not be there yet. (eventual consistent)
-        // FIXME relinquish role
-        if (device == null) {
-            log.warn("{} was not there. Cannot apply role {}", deviceId, newRole);
-            return false;
-        }
-
-        DeviceProvider provider = getProvider(device.providerId());
+        DeviceProvider provider = getProvider(deviceId);
         if (provider == null) {
             log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
             return false;
@@ -492,10 +486,7 @@ public class DeviceManager
 
         if (newRole.equals(MastershipRole.MASTER)) {
             // only trigger event when request was sent to provider
-            // TODO: consider removing this from Device event type?
-            post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
-
-            provider.triggerProbe(device);
+            provider.triggerProbe(deviceId);
         }
         return true;
     }

@@ -235,7 +235,10 @@ public class SimpleDeviceStore
                                          DeviceId deviceId,
                                          List<PortDescription> portDescriptions) {
         Device device = devices.get(deviceId);
-        checkArgument(device != null, DEVICE_NOT_FOUND, deviceId);
+        if (device == null) {
+            log.debug("Device {} doesn't exist or hasn't been initialized yet", deviceId);
+            return Collections.emptyList();
+        }
 
         Map<ProviderId, DeviceDescriptions> descsMap = deviceDescs.get(deviceId);
         checkArgument(descsMap != null, DEVICE_NOT_FOUND, deviceId);

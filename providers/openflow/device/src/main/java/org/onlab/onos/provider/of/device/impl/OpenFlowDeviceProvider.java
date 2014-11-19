@@ -127,17 +127,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     @Override
-    public void triggerProbe(Device device) {
-        final DeviceId deviceId = device.id();
+    public void triggerProbe(DeviceId deviceId) {
         LOG.info("Triggering probe on device {}", deviceId);
 
         final Dpid dpid = dpid(deviceId.uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
         if (sw == null || !sw.isConnected()) {
-            LOG.error("Failed to probe device {} on sw={}", device, sw);
+            LOG.error("Failed to probe device {} on sw={}", deviceId, sw);
             providerService.deviceDisconnected(deviceId);
         } else {
-            LOG.trace("Confirmed device {} connection", device);
+            LOG.trace("Confirmed device {} connection", deviceId);
             // FIXME require something like below to match javadoc description
             // but this starts infinite loop with current DeviceManager
 //            final ChassisId cId = new ChassisId(dpid.value());

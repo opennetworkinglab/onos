@@ -15,7 +15,6 @@
  */
 package org.onlab.onos.net.device;
 
-import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.provider.Provider;
@@ -35,9 +34,9 @@ public interface DeviceProvider extends Provider {
      * {@link org.onlab.onos.net.device.DeviceProviderService#deviceDisconnected}
      * at some later point in time.
      *
-     * @param device device to be probed
+     * @param deviceId ID of device to be probed
      */
-    void triggerProbe(Device device);
+    void triggerProbe(DeviceId deviceId);
 
     /**
      * Notifies the provider of a mastership role change for the specified

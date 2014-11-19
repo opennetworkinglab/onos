@@ -358,7 +358,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
     }
 
     @Override
-    public void triggerProbe(Device device) {
+    public void triggerProbe(DeviceId deviceId) {
         // TODO We may want to consider re-reading config files and publishing them based on this event.
     }
 

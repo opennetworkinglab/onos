@@ -57,7 +57,7 @@ class RoleManager implements RoleHandler {
 
     private static Logger log = LoggerFactory.getLogger(RoleManager.class);
 
-    // The time until cached XID is evicted. Arbitray for now.
+    // The time until cached XID is evicted. Arbitrary for now.
     private final int pendingXidTimeoutSeconds = 60;
 
     // The cache for pending expected RoleReplies keyed on expected XID
