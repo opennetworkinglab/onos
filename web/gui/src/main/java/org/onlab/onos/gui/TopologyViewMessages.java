@@ -429,7 +429,7 @@ public abstract class TopologyViewMessages {
                 String label = "";
                 if (load.rate() > 0) {
                     hasTraffic = true;
-                    label = load.toString();
+                    label = load.latest() + " bytes";
                 }
                 labels.add(label);
             }

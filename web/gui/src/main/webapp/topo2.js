@@ -140,6 +140,7 @@
         P: togglePorts,
         U: unpin,
         R: resetZoomPan,
+        H: toggleHover,
         esc: handleEscape
     };
 
@@ -176,7 +177,7 @@
         onosOrder = [],
         oiBox,
         oiShowMaster = false,
-
+        hoverEnabled = false,
         portLabelsOn = false;
 
     // D3 selections
@@ -308,6 +309,10 @@
                 updateDeviceLabel(d);
             }
         });
+    }
+
+    function toggleHover(view) {
+        hoverEnabled = !hoverEnabled;
     }
 
     function togglePorts(view) {
@@ -1076,6 +1081,8 @@
 
         linkLabel = linkLabelG.selectAll('.linkLabel')
             .data(data, function (d) { return d.id; });
+
+        linkLabel.text(function (d) { return d.label; });
 
         entering = linkLabel.enter().append('g')
             .classed('linkLabel', true)
@@ -1973,8 +1980,7 @@
     }
 
     function trafficHover() {
-        return false;
-        //return showTrafficOnHover.classed('active');
+        return hoverEnabled;
     }
     function toggleTrafficHover() {
         showTrafficOnHover.classed('active', !trafficHover());
