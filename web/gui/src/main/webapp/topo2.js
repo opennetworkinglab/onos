@@ -1631,8 +1631,6 @@
         mask.style('display',b ? 'block' : 'none');
     }
 
-    // TODO: use cache of pending messages (key = sid) to reconcile responses
-
     function sendMessage(evType, payload) {
         var toSend = {
                 event: evType,
@@ -1642,6 +1640,11 @@
             asText = JSON.stringify(toSend);
         wsTraceTx(asText);
         webSock.send(asText);
+
+        // Temporary measure for debugging UI behavior ...
+        if (!config.useLiveData) {
+            handleTestSend(toSend);
+        }
     }
 
     function wsTraceTx(msg) {
@@ -1652,12 +1655,43 @@
     }
     function wsTrace(rxtx, msg) {
         console.log('[' + rxtx + '] ' + msg);
-        // TODO: integrate with trace view
-        //if (trace) {
-        //    trace.output(rxtx, msg);
-        //}
     }
 
+    // NOTE: Temporary hardcoded example for showing detail pane
+    //       while we fine-
+    //       Probably should not merge this change...
+    function handleTestSend(msg) {
+        if (msg.event === 'requestDetails') {
+            showDetails({
+                event: 'showDetails',
+                sid: 1001,
+                payload: {
+                    "id": "of:0000ffffffffff09",
+                    "type": "roadm",
+                    "propOrder": [
+                        "Name",
+                        "Vendor",
+                        "H/W Version",
+                        "S/W Version",
+                        "-",
+                        "Latitude",
+                        "Longitude",
+                        "Ports"
+                    ],
+                    "props": {
+                        "Name": null,
+                        "Vendor": "Linc",
+                        "H/W Version": "OE",
+                        "S/W Version": "?",
+                        "-": "",
+                        "Latitude": "40.8",
+                        "Longitude": "73.1",
+                        "Ports": "2"
+                    }
+                }
+            });
+        }
+    }
 
     // ==============================
     // Selection stuff
