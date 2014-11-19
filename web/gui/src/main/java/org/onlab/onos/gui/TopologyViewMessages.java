@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
@@ -253,8 +254,10 @@ public abstract class TopologyViewMessages {
     // Produces a host event message to the client.
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
+        String hostType = host.annotations().value("type");
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", host.id().toString())
+                .put("type", isNullOrEmpty(hostType) ? "host" : hostType)
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
         payload.set("cp", hostConnect(mapper, host.location()));
@@ -358,8 +361,10 @@ public abstract class TopologyViewMessages {
     protected ObjectNode hostDetails(HostId hostId, long sid) {
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
+        String type = annot.value("type");
         return envelope("showDetails", sid,
-                        json(hostId.toString(), "host",
+                        json(hostId.toString(), isNullOrEmpty(type) ? "host" : type,
+                             new Prop("Name", annot.value("name")),
                              new Prop("MAC", host.mac().toString()),
                              new Prop("IP", host.ipAddresses().toString()),
                              new Separator(),

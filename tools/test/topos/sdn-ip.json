@@ -1,0 +1,13 @@
+{
+    "hosts" : [
+        { "mac": "00:00:00:00:00:01", "vlan": -1, "location": "of:0000000000000001/10", "ip": "0.0.0.0", "annotations": { "type": "bgpSpeaker" } },
+        { "mac": "00:00:00:00:00:02", "vlan": -1, "location": "of:0000000000000002/10", "ip": "0.0.0.0", "annotations": { "type": "bgpSpeaker" } },
+        { "mac": "00:00:00:00:00:03", "vlan": -1, "location": "of:0000000000000003/10", "ip": "0.0.0.0", "annotations": { "type": "bgpSpeaker" } },
+        { "mac": "00:00:00:00:01:01", "vlan": -1, "location": "of:0000000000000005/10", "ip": "0.0.0.0", "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:01:02", "vlan": -1, "location": "of:0000000000000006/10", "ip": "0.0.0.0", "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:02:01", "vlan": -1, "location": "of:0000000000000007/10", "ip": "0.0.0.0", "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:03:01", "vlan": -1, "location": "of:0000000000000008/10", "ip": "0.0.0.0", "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:04:01", "vlan": -1, "location": "of:0000000000000009/10", "ip": "0.0.0.0", "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:44:01", "vlan": -1, "location": "of:0000000000000010/10", "ip": "0.0.0.0", "annotations": { "type": "router" } }
+    ]
+}
