@@ -6,6 +6,8 @@ import static org.onlab.onos.store.service.WriteRequest.Type.*;
 
 import java.util.Objects;
 
+import org.onlab.util.ByteArraySizeHashPrinter;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -185,13 +187,13 @@ public class WriteRequest {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
+         return MoreObjects.toStringHelper(getClass())
                 .add("type", type)
                 .add("tableName", tableName)
                 .add("key", key)
-                .add("newValue", newValue != null ? "[" + newValue.length + " bytes]" : newValue)
+                .add("newValue", ByteArraySizeHashPrinter.orNull(newValue))
                 .add("previousVersion", previousVersion)
-                .add("oldValue", oldValue != null ? "[" + oldValue.length + " bytes]" : oldValue)
+                .add("oldValue", ByteArraySizeHashPrinter.orNull(oldValue))
                 .toString();
     }
 

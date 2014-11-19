@@ -2,6 +2,8 @@ package org.onlab.onos.store.service;
 
 import java.util.Arrays;
 
+import org.onlab.util.ByteArraySizeHashPrinter;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -64,7 +66,7 @@ public class VersionedValue {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("version", version)
-                .add("value", value != null ? "[" + value.length + " bytes]" : value)
+                .add("value", ByteArraySizeHashPrinter.orNull(value))
                 .toString();
     }
 }
