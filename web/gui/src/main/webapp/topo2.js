@@ -854,7 +854,7 @@
             var el = d3.select(this),
                 img;
 
-            $('<img src="img/host.png">').appendTo(el);
+            $('<img src="img/node.png">').appendTo(el);
             img = el.select('img')
                 .attr({
                     width: 30

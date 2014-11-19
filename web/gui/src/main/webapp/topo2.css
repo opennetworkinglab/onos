@@ -26,7 +26,7 @@
 
 #topo #map {
     stroke-width: 2px;
-    stroke: #aaaaaa;
+    stroke: #eee;
     fill: transparent;
 }
 
@@ -135,15 +135,15 @@ svg .node.host circle {
 
 #topo svg .link.primary {
     stroke: #f11;
-    stroke-width: 6px;
+    stroke-width: 4px;
 }
 #topo svg .link.secondary {
     stroke: rgba(255,100,100,0.5);
-    stroke-width: 4px;
+    stroke-width: 3px;
 }
 #topo svg .link.animated {
     stroke: #f11;
-    stroke-width: 10px;
+    stroke-width: 8px;
     stroke-dasharray: 8 8
 }
 

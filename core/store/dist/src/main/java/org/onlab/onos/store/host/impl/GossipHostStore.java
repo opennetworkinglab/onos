@@ -17,6 +17,7 @@ package org.onlab.onos.store.host.impl;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.onos.cluster.ControllerNodeToNodeId.toNodeId;
+import static org.onlab.onos.net.DefaultAnnotations.merge;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
@@ -47,6 +48,7 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.DefaultHost;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
@@ -237,15 +239,19 @@ public class GossipHostStore
             return new HostEvent(HOST_MOVED, host);
         }
 
-        if (host.ipAddresses().containsAll(descr.ipAddress())) {
+        if (host.ipAddresses().containsAll(descr.ipAddress()) &&
+                descr.annotations().keys().isEmpty()) {
             return null;
         }
 
         Set<IpAddress> addresses = new HashSet<>(host.ipAddresses());
         addresses.addAll(descr.ipAddress());
+        Annotations annotations = merge((DefaultAnnotations) host.annotations(),
+                                        descr.annotations());
         StoredHost updated = new StoredHost(providerId, host.id(),
                                             host.mac(), host.vlan(),
-                                            host.location, addresses);
+                                            host.location, addresses,
+                                            annotations);
         event = new HostEvent(HOST_UPDATED, updated);
         synchronized (this) {
             hosts.put(host.id(), updated);

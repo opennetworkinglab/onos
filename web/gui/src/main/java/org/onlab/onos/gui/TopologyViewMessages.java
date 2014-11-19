@@ -241,7 +241,7 @@ public abstract class TopologyViewMessages {
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
                 .put("online", link.state() == Link.State.ACTIVE)
-                .put("linkWidth", 2)
+                .put("linkWidth", 1.2)
                 .put("src", link.src().deviceId().toString())
                 .put("srcPort", link.src().port().toString())
                 .put("dst", link.dst().deviceId().toString())
