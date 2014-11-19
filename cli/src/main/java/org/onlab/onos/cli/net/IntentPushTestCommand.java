@@ -67,6 +67,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
     private IntentService service;
     private CountDownLatch latch;
     private long start, end;
+    private int count;
+    private boolean add;
 
     @Override
     protected void execute() {
@@ -80,14 +82,27 @@ public class IntentPushTestCommand extends AbstractShellCommand
         PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
+        count = Integer.parseInt(countString);
+
+        service.addListener(this);
+
+        add = true;
+        latch = new CountDownLatch(count);
+        IntentOperations operations = generateIntents(ingress, egress);
+        submitIntents(operations);
+
+        add = false;
+        latch = new CountDownLatch(count);
+        operations = generateIntents(ingress, egress);
+        submitIntents(operations);
+
+        service.removeListener(this);
+    }
+
+    private IntentOperations generateIntents(ConnectPoint ingress, ConnectPoint egress) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
-
-        int count = Integer.parseInt(countString);
-
-        service.addListener(this);
-        latch = new CountDownLatch(count);
 
         IntentOperations.Builder ops = IntentOperations.builder();
         for (int i = 1; i <= count; i++) {
@@ -96,27 +111,33 @@ public class IntentPushTestCommand extends AbstractShellCommand
                     .build();
             Intent intent = new PointToPointIntent(appId(), s, treatment,
                                                    ingress, egress);
-            ops.addSubmitOperation(intent);
+            if (add) {
+                ops.addSubmitOperation(intent);
+            } else {
+                ops.addWithdrawOperation(intent.id());
+            }
         }
-        IntentOperations operations = ops.build();
+        return ops.build();
+    }
+
+    private void submitIntents(IntentOperations ops) {
         start = System.currentTimeMillis();
-        service.execute(operations);
+        service.execute(ops);
         try {
             if (latch.await(10, TimeUnit.SECONDS)) {
                 printResults(count);
             } else {
-                print("I FAIL MISERABLY -> %d", latch.getCount());
+                print("Failure: %d intents not installed", latch.getCount());
             }
         } catch (InterruptedException e) {
             print(e.toString());
         }
-
-        service.removeListener(this);
     }
 
     private void printResults(int count) {
         long delta = end - start;
-        print("Time to install %d intents: %d ms", count, delta);
+        String text = add ? "install" : "withdraw";
+        print("Time to %s %d intents: %d ms", text, count, delta);
     }
 
     /**
@@ -149,7 +170,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
 
     @Override
     public void event(IntentEvent event) {
-        if (event.type() == Type.INSTALLED) {
+        Type expected = add ? Type.INSTALLED : Type.WITHDRAWN;
+        if (event.type() == expected) {
             end = event.time();
             if (latch != null) {
                 latch.countDown();
@@ -157,7 +179,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
                 log.warn("install event latch is null");
             }
         } else {
-            log.info("I FAIL -> {}", event);
+            log.info("Unexpected intent event: {}", event);
         }
     }
 }
