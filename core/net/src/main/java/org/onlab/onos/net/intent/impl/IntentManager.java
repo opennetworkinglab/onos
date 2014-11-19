@@ -155,6 +155,9 @@ public class IntentManager
 
     @Override
     public void execute(IntentOperations operations) {
+        if (operations.operations().isEmpty()) {
+            return;
+        }
         batchService.addIntentOperations(operations);
     }
 
