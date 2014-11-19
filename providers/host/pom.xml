@@ -26,7 +26,6 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-
     <artifactId>onos-host-provider</artifactId>
     <packaging>bundle</packaging>
 
@@ -38,8 +37,17 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-
 
 </project>

@@ -207,6 +207,13 @@
             <action class="org.onlab.onos.cli.net.HostsListCommand"/>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.HostRemoveCommand"/>
+            <completers>
+                <ref component-id="hostIdCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.AddressBindingsListCommand"/>
         </command>
 

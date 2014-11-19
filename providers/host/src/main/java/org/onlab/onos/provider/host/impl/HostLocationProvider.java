@@ -15,22 +15,27 @@
  */
 package org.onlab.onos.provider.host.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
+import org.onlab.onos.net.device.DeviceEvent;
+import org.onlab.onos.net.device.DeviceListener;
+import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.DefaultHostDescription;
 import org.onlab.onos.net.host.HostDescription;
 import org.onlab.onos.net.host.HostProvider;
 import org.onlab.onos.net.host.HostProviderRegistry;
 import org.onlab.onos.net.host.HostProviderService;
+import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.packet.PacketContext;
 import org.onlab.onos.net.packet.PacketProcessor;
 import org.onlab.onos.net.packet.PacketService;
@@ -42,7 +47,13 @@ import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.util.Dictionary;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -62,9 +73,20 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
     private HostProviderService providerService;
 
     private final InternalHostProvider processor = new InternalHostProvider();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+
+    @Property(name = "hostRemovalEnabled", boolValue = true,
+            label = "Enable host removal on port/device down events")
+    private boolean hostRemovalEnabled = true;
 
 
     /**
@@ -75,9 +97,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     }
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        modified(context);
         providerService = providerRegistry.register(this);
         pktService.addProcessor(processor, 1);
+        deviceService.addListener(deviceListener);
         log.info("Started");
     }
 
@@ -87,6 +111,20 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         pktService.removeProcessor(processor);
         providerService = null;
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary properties = context.getProperties();
+        try {
+            String flag = (String) properties.get("hostRemovalEnabled");
+            if (flag != null) {
+                hostRemovalEnabled = flag.equals("true");
+            }
+        } catch (Exception e) {
+            hostRemovalEnabled = true;
+        }
+        log.info("Host removal is {}", hostRemovalEnabled ? "enabled" : "disabled");
     }
 
     @Override
@@ -120,8 +158,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
                 IpAddress ip =
-                    IpAddress.valueOf(IpAddress.Version.INET,
-                                      arp.getSenderProtocolAddress());
+                        IpAddress.valueOf(IpAddress.Version.INET,
+                                          arp.getSenderProtocolAddress());
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
@@ -135,4 +173,37 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             }
         }
     }
+
+    // Auxiliary listener to device events.
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            if (!hostRemovalEnabled) {
+                return;
+            }
+
+            DeviceEvent.Type type = event.type();
+            DeviceId deviceId = event.subject().id();
+            if (type == DeviceEvent.Type.PORT_UPDATED) {
+                ConnectPoint point = new ConnectPoint(deviceId, event.port().number());
+                removeHosts(hostService.getConnectedHosts(point));
+
+            } else if (type == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED) {
+                if (!deviceService.isAvailable(deviceId)) {
+                    removeHosts(hostService.getConnectedHosts(deviceId));
+                }
+
+            } else if (type == DeviceEvent.Type.DEVICE_REMOVED) {
+                removeHosts(hostService.getConnectedHosts(deviceId));
+            }
+        }
+    }
+
+    // Signals host vanish for all specified hosts.
+    private void removeHosts(Set<Host> hosts) {
+        for (Host host : hosts) {
+            providerService.hostVanished(host.id());
+        }
+    }
+
 }
