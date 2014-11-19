@@ -55,6 +55,7 @@ public class MapDBLog implements Log {
                 .mmapFileEnableIfSupported()
                 .cacheSize(cacheSize)
                 .makeTxMaker();
+        log.info("Raft log file: {}", dbFile.getCanonicalPath());
     }
 
     @Override

@@ -34,6 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 
+// FIXME This is not distributed yet.
 @Component(immediate = true)
 @Service
 public class DistributedIntentBatchQueue implements IntentBatchService {

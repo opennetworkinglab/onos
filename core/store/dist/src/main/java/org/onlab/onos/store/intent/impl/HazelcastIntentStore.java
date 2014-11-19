@@ -16,12 +16,15 @@
 package org.onlab.onos.store.intent.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.hazelcast.core.EntryAdapter;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.EntryListener;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.Member;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
@@ -29,13 +32,10 @@ import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
-import org.onlab.onos.store.AbstractStore;
+import org.onlab.onos.store.hz.AbstractHazelcastStore;
+import org.onlab.onos.store.hz.SMap;
 import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.StoreSerializer;
-import org.onlab.onos.store.service.DatabaseAdminService;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.impl.CMap;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
@@ -49,10 +49,10 @@ import static com.google.common.base.Verify.verify;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = true)
+@Component(immediate = false, enabled = false)
 @Service
-public class DistributedIntentStore
-        extends AbstractStore<IntentEvent, IntentStoreDelegate>
+public class HazelcastIntentStore
+        extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>
         implements IntentStore {
 
     /** Valid parking state, which can transition to INSTALLED. */
@@ -64,29 +64,22 @@ public class DistributedIntentStore
     private final Logger log = getLogger(getClass());
 
     // Assumption: IntentId will not have synonyms
-    private CMap<IntentId, Intent> intents;
-    private CMap<IntentId, IntentState> states;
+    private SMap<IntentId, Intent> intents;
+    private SMap<IntentId, IntentState> states;
 
-    // TODO left behind transient state issue: ONOS-103
     // Map to store instance local intermediate state transition
     private transient Map<IntentId, IntentState> transientStates = new ConcurrentHashMap<>();
 
-    private CMap<IntentId, List<Intent>> installable;
+    private SMap<IntentId, List<Intent>> installable;
 
-    private StoreSerializer serializer;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DatabaseAdminService dbAdminService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DatabaseService dbService;
-
+    @Override
     @Activate
     public void activate() {
         // FIXME: We need a way to add serializer for intents which has been plugged-in.
         // As a short term workaround, relax Kryo config to
         // registrationRequired=false
-        serializer = new KryoSerializer() {
+        super.activate();
+        super.serializer = new KryoSerializer() {
 
             @Override
             protected void setupKryoPool() {
@@ -96,15 +89,24 @@ public class DistributedIntentStore
                         .build()
                         .populate(1);
             }
+
         };
 
-        intents = new CMap<>(dbAdminService, dbService, "intents", serializer);
+        // TODO: enable near cache, allow read from backup for this IMap
+        IMap<byte[], byte[]> rawIntents = super.theInstance.getMap("intents");
+        intents = new SMap<>(rawIntents , super.serializer);
 
-        states = new CMap<>(dbAdminService, dbService, "intent-states", serializer);
+        // TODO: disable near cache, disable read from backup for this IMap
+        IMap<byte[], byte[]> rawStates = super.theInstance.getMap("intent-states");
+        states = new SMap<>(rawStates , super.serializer);
+        EntryListener<IntentId, IntentState> listener = new RemoteIntentStateListener();
+        states.addEntryListener(listener , false);
 
         transientStates.clear();
 
-        installable = new CMap<>(dbAdminService, dbService, "installable-intents", serializer);
+        // TODO: disable near cache, disable read from backup for this IMap
+        IMap<byte[], byte[]> rawInstallables = super.theInstance.getMap("installable-intents");
+        installable = new SMap<>(rawInstallables , super.serializer);
 
         log.info("Started");
     }
@@ -116,8 +118,8 @@ public class DistributedIntentStore
 
     @Override
     public IntentEvent createIntent(Intent intent) {
-        boolean absent = intents.putIfAbsent(intent.id(), intent);
-        if (!absent) {
+        Intent existing = intents.putIfAbsent(intent.id(), intent);
+        if (existing != null) {
             // duplicate, ignore
             return null;
         } else {
@@ -171,47 +173,34 @@ public class DistributedIntentStore
         IntentEvent.Type type = null;
         final IntentState prevParking;
         boolean transientStateChangeOnly = false;
-        boolean updated;
 
         // parking state transition
         switch (state) {
         case SUBMITTED:
-            prevParking = states.get(id);
+            prevParking = states.putIfAbsent(id, SUBMITTED);
             verify(prevParking == null,
                    "Illegal state transition attempted from %s to SUBMITTED",
                    prevParking);
-            updated = states.putIfAbsent(id, SUBMITTED);
-            verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
             type = IntentEvent.Type.SUBMITTED;
             break;
-
         case INSTALLED:
-            prevParking = states.get(id);
+            prevParking = states.replace(id, INSTALLED);
             verify(PRE_INSTALLED.contains(prevParking),
                    "Illegal state transition attempted from %s to INSTALLED",
                    prevParking);
-            updated = states.replace(id, prevParking, INSTALLED);
-            verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALLED);
             type = IntentEvent.Type.INSTALLED;
             break;
-
         case FAILED:
-            prevParking = states.get(id);
-            updated = states.replace(id, prevParking, FAILED);
-            verify(updated, "Conditional replace %s => %s failed", prevParking, FAILED);
+            prevParking = states.replace(id, FAILED);
             type = IntentEvent.Type.FAILED;
             break;
-
         case WITHDRAWN:
-            prevParking = states.get(id);
+            prevParking = states.replace(id, WITHDRAWN);
             verify(PRE_WITHDRAWN.contains(prevParking),
                    "Illegal state transition attempted from %s to WITHDRAWN",
                    prevParking);
-            updated = states.replace(id, prevParking, WITHDRAWN);
-            verify(updated, "Conditional replace %s => %s failed", prevParking, WITHDRAWN);
             type = IntentEvent.Type.WITHDRAWN;
             break;
-
         default:
             transientStateChangeOnly = true;
             prevParking = null;
@@ -243,5 +232,23 @@ public class DistributedIntentStore
     @Override
     public void removeInstalledIntents(IntentId intentId) {
         installable.remove(intentId);
+    }
+
+    public final class RemoteIntentStateListener extends EntryAdapter<IntentId, IntentState> {
+
+        @Override
+        public void onEntryEvent(EntryEvent<IntentId, IntentState> event) {
+            final Member myself = theInstance.getCluster().getLocalMember();
+            if (!myself.equals(event.getMember())) {
+                // When Intent state was modified by remote node,
+                // clear local transient state.
+                final IntentId intentId = event.getKey();
+                IntentState oldState = transientStates.remove(intentId);
+                if (oldState != null) {
+                    log.debug("{} state updated remotely, removing transient state {}",
+                              intentId, oldState);
+                }
+            }
+        }
     }
 }

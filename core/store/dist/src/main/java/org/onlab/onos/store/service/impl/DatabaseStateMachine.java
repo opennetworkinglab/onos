@@ -321,7 +321,7 @@ public class DatabaseStateMachine implements StateMachine {
         private final Map<String, Map<String, VersionedValue>> tableData = Maps.newHashMap();
         private long versionCounter = 1;
 
-        public Map<String, VersionedValue> getTable(String tableName) {
+        Map<String, VersionedValue> getTable(String tableName) {
             return tableData.get(tableName);
         }
 
