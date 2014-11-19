@@ -26,6 +26,11 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.netty.Endpoint;
+import org.onlab.netty.Message;
+import org.onlab.netty.MessageHandler;
+import org.onlab.netty.MessagingService;
+import org.onlab.netty.NettyMessagingService;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
@@ -39,11 +44,6 @@ import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.impl.ClusterMessageSerializer;
 import org.onlab.onos.store.serializers.impl.MessageSubjectSerializer;
 import org.onlab.util.KryoNamespace;
-import org.onlab.netty.Endpoint;
-import org.onlab.netty.Message;
-import org.onlab.netty.MessageHandler;
-import org.onlab.netty.MessagingService;
-import org.onlab.netty.NettyMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +109,7 @@ public class ClusterCommunicationManager
         final ControllerNode localNode = clusterService.getLocalNode();
         for (ControllerNode node : clusterService.getNodes()) {
             if (!node.equals(localNode)) {
-                ok = unicast(message, node.id()) && ok;
+                ok = unicastUnchecked(message, node.id()) && ok;
             }
         }
         return ok;
@@ -119,7 +119,7 @@ public class ClusterCommunicationManager
     public boolean broadcastIncludeSelf(ClusterMessage message) throws IOException {
         boolean ok = true;
         for (ControllerNode node : clusterService.getNodes()) {
-            ok = unicast(message, node.id()) && ok;
+            ok = unicastUnchecked(message, node.id()) && ok;
         }
         return ok;
     }
