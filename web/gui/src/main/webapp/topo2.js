@@ -643,6 +643,21 @@
     }
 
     // TODO: fold updateX(...) methods into one base method; remove duplication
+
+    function updateInstance(data) {
+        evTrace(data);
+        var inst = data.payload,
+            id = inst.id,
+            instData = onosInstances[id];
+        if (instData) {
+            $.extend(instData, inst);
+            updateInstances();
+            //updateInstanceState(instData);
+        } else {
+            logicError('updateInstance lookup fail. ID = "' + id + '"');
+        }
+    }
+
     function updateDevice(data) {
         evTrace(data);
         var device = data.payload,
@@ -1082,7 +1097,15 @@
         linkLabel = linkLabelG.selectAll('.linkLabel')
             .data(data, function (d) { return d.id; });
 
-        linkLabel.text(function (d) { return d.label; });
+        // for elements already existing, we need to update the text
+        // and adjust the rectangle size to fit
+        linkLabel.each(function (d) {
+            var el = d3.select(this),
+                rect = el.select('rect'),
+                text = el.select('text');
+            text.text(d.label);
+            rect.attr(rectAroundText(el));
+        });
 
         entering = linkLabel.enter().append('g')
             .classed('linkLabel', true)
@@ -1302,10 +1325,15 @@
             .transition()
             .attr(box);
 
-        node.select('image')
+        node.select('rect.iconUnderlay')
             .transition()
             .attr('x', box.x + config.icons.xoff)
             .attr('y', box.y + config.icons.yoff);
+
+        node.select('image')
+            .transition()
+            .attr('x', box.x + config.icons.xoff + 2)
+            .attr('y', box.y + config.icons.yoff + 2);
     }
 
     function updateHostLabel(d) {
@@ -1410,6 +1438,7 @@
                 var cfg = config.icons;
                 node.append('rect')
                     .attr({
+                        class: 'iconUnderlay',
                         x: box.x + config.icons.xoff,
                         y: box.y + config.icons.yoff,
                         width: cfg.w,

@@ -12,9 +12,9 @@
           "of:0000ffffffff0007/1-0E:2A:69:30:13:89/-1/0"
         ],
         "labels": [
-          "",
-          "Load{rate=98, latest=38456}",
-          "Load{rate=98, latest=38789}"
+          "99997 bytes",
+          "200 bytes",
+          "3.1415926 bytes"
         ]
       }
     ]
