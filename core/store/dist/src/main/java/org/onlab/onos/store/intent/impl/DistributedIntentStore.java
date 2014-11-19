@@ -39,8 +39,10 @@ import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Verify.verify;
@@ -52,6 +54,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DistributedIntentStore
         extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>
         implements IntentStore {
+
+    /** Valid parking state, which can transition to INSTALLED. */
+    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, FAILED);
+
+    /** Valid parking state, which can transition to WITHDRAWN. */
+    private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
 
     private final Logger log = getLogger(getClass());
 
@@ -158,45 +166,52 @@ public class DistributedIntentStore
         return states.get(id);
     }
 
+
     @Override
     public IntentEvent setState(Intent intent, IntentState state) {
         final IntentId id = intent.id();
         IntentEvent.Type type = null;
-        IntentState prev = null;
+        final IntentState prevParking;
         boolean transientStateChangeOnly = false;
 
-        // TODO: enable sanity checking if Debug enabled, etc.
+        // parking state transition
         switch (state) {
         case SUBMITTED:
-            prev = states.putIfAbsent(id, SUBMITTED);
-            verify(prev == null, "Illegal state transition attempted from %s to SUBMITTED", prev);
+            prevParking = states.putIfAbsent(id, SUBMITTED);
+            verify(prevParking == null,
+                   "Illegal state transition attempted from %s to SUBMITTED",
+                   prevParking);
             type = IntentEvent.Type.SUBMITTED;
             break;
         case INSTALLED:
-            // parking state transition
-            prev = states.replace(id, INSTALLED);
-            verify(prev != null, "Illegal state transition attempted from non-SUBMITTED to INSTALLED");
+            prevParking = states.replace(id, INSTALLED);
+            verify(PRE_INSTALLED.contains(prevParking),
+                   "Illegal state transition attempted from %s to INSTALLED",
+                   prevParking);
             type = IntentEvent.Type.INSTALLED;
             break;
         case FAILED:
-            prev = states.replace(id, FAILED);
+            prevParking = states.replace(id, FAILED);
             type = IntentEvent.Type.FAILED;
             break;
         case WITHDRAWN:
-            prev = states.replace(id, WITHDRAWN);
-            verify(prev != null, "Illegal state transition attempted from non-WITHDRAWING to WITHDRAWN");
+            prevParking = states.replace(id, WITHDRAWN);
+            verify(PRE_WITHDRAWN.contains(prevParking),
+                   "Illegal state transition attempted from %s to WITHDRAWN",
+                   prevParking);
             type = IntentEvent.Type.WITHDRAWN;
             break;
         default:
             transientStateChangeOnly = true;
+            prevParking = null;
             break;
         }
         if (!transientStateChangeOnly) {
-            log.debug("Parking State change: {} {}=>{}",  id, prev, state);
+            log.debug("Parking State change: {} {}=>{}",  id, prevParking, state);
         }
         // Update instance local state, which includes non-parking state transition
-        prev = transientStates.put(id, state);
-        log.debug("Transient State change: {} {}=>{}", id, prev, state);
+        final IntentState prevTransient = transientStates.put(id, state);
+        log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
 
         if (type == null) {
             return null;
