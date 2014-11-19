@@ -1939,8 +1939,8 @@
         }
 
         showInstances = mkTogBtn('Show Instances', toggleInst);
-        doPanZoom = mkTogBtn('Pan/Zoom', togglePanZoom);
-        showTrafficOnHover = mkTogBtn('Show traffic on hover', toggleTrafficHover);
+        //doPanZoom = mkTogBtn('Pan/Zoom', togglePanZoom);
+        //showTrafficOnHover = mkTogBtn('Show traffic on hover', toggleTrafficHover);
     }
 
     function instShown() {
@@ -1956,14 +1956,16 @@
     }
 
     function panZoom() {
-        return doPanZoom.classed('active');
+        return false;
+        //return doPanZoom.classed('active');
     }
     function togglePanZoom() {
         doPanZoom.classed('active', !panZoom());
     }
 
     function trafficHover() {
-        return showTrafficOnHover.classed('active');
+        return false;
+        //return showTrafficOnHover.classed('active');
     }
     function toggleTrafficHover() {
         showTrafficOnHover.classed('active', !trafficHover());
