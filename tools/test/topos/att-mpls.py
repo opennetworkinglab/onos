@@ -22,31 +22,31 @@ class AttMplsTopo( Topo ):
         Topo.__init__( self )
 
         # add nodes, switches first...
-        NY54 = self.addSwitch( 's25' ) // 40.728270, -73.994483
-        CMBR = self.addSwitch( 's1' )  // 42.373730, -71.109734
-        CHCG = self.addSwitch( 's2' )  // 41.877461, -87.642892
-        CLEV = self.addSwitch( 's3' )  // 41.498928, -81.695217
-        RLGH = self.addSwitch( 's4' )  // 35.780150, -78.644026
-        ATLN = self.addSwitch( 's5' )  // 33.749017, -84.394168
-        PHLA = self.addSwitch( 's6' )  // 39.952906, -75.172278
-        WASH = self.addSwitch( 's7' )  // 38.906696, -77.035509
-        NSVL = self.addSwitch( 's8' )  // 36.166410, -86.787305
-        STLS = self.addSwitch( 's9' )  // 38.626418, -90.198143
-        NWOR = self.addSwitch( 's10' ) // 29.951475, -90.078434
-        HSTN = self.addSwitch( 's11' ) // 29.763249, -95.368332
-        SNAN = self.addSwitch( 's12' ) // 29.424331, -98.491745
-        DLLS = self.addSwitch( 's13' ) // 32.777665, -96.802064
-        ORLD = self.addSwitch( 's14' ) // 28.538641, -81.381110
-        DNVR = self.addSwitch( 's15' ) // 39.736623, -104.984887
-        KSCY = self.addSwitch( 's16' ) // 39.100725, -94.581228
-        SNFN = self.addSwitch( 's17' ) // 37.779751, -122.409791
-        SCRM = self.addSwitch( 's18' ) // 38.581001, -121.497844
-        PTLD = self.addSwitch( 's19' ) // 45.523317, -122.677768
-        STTL = self.addSwitch( 's20' ) // 47.607326, -122.331786
-        SLKC = self.addSwitch( 's21' ) // 40.759577, -111.895079
-        LA03 = self.addSwitch( 's22' ) // 34.056346, -118.235951
-        SNDG = self.addSwitch( 's23' ) // 32.714564, -117.153528
-        PHNX = self.addSwitch( 's24' ) // 33.448289, -112.076299
+        NY54 = self.addSwitch( 's25' ) # 40.728270, -73.994483
+        CMBR = self.addSwitch( 's1' )  # 42.373730, -71.109734
+        CHCG = self.addSwitch( 's2' )  # 41.877461, -87.642892
+        CLEV = self.addSwitch( 's3' )  # 41.498928, -81.695217
+        RLGH = self.addSwitch( 's4' )  # 35.780150, -78.644026
+        ATLN = self.addSwitch( 's5' )  # 33.749017, -84.394168
+        PHLA = self.addSwitch( 's6' )  # 39.952906, -75.172278
+        WASH = self.addSwitch( 's7' )  # 38.906696, -77.035509
+        NSVL = self.addSwitch( 's8' )  # 36.166410, -86.787305
+        STLS = self.addSwitch( 's9' )  # 38.626418, -90.198143
+        NWOR = self.addSwitch( 's10' ) # 29.951475, -90.078434
+        HSTN = self.addSwitch( 's11' ) # 29.763249, -95.368332
+        SNAN = self.addSwitch( 's12' ) # 29.424331, -98.491745
+        DLLS = self.addSwitch( 's13' ) # 32.777665, -96.802064
+        ORLD = self.addSwitch( 's14' ) # 28.538641, -81.381110
+        DNVR = self.addSwitch( 's15' ) # 39.736623, -104.984887
+        KSCY = self.addSwitch( 's16' ) # 39.100725, -94.581228
+        SNFN = self.addSwitch( 's17' ) # 37.779751, -122.409791
+        SCRM = self.addSwitch( 's18' ) # 38.581001, -121.497844
+        PTLD = self.addSwitch( 's19' ) # 45.523317, -122.677768
+        STTL = self.addSwitch( 's20' ) # 47.607326, -122.331786
+        SLKC = self.addSwitch( 's21' ) # 40.759577, -111.895079
+        LA03 = self.addSwitch( 's22' ) # 34.056346, -118.235951
+        SNDG = self.addSwitch( 's23' ) # 32.714564, -117.153528
+        PHNX = self.addSwitch( 's24' ) # 33.448289, -112.076299
 
         # ... and now hosts
         NY54_host = self.addHost( 'h25' )
