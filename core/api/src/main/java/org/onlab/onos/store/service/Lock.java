@@ -1,6 +1,6 @@
 package org.onlab.onos.store.service;
 
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A lock is a tool for controlling access to a shared resource by multiple processes.
@@ -43,7 +43,7 @@ public interface Lock {
      * will be reserved before it becomes available for others.
      * @return Future that can be used for blocking until lock is acquired.
      */
-    Future<Void> lockAsync(int leaseDurationMillis);
+    CompletableFuture<Void> lockAsync(int leaseDurationMillis);
 
     /**
      * Acquires the lock only if it is free at the time of invocation.

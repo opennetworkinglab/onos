@@ -15,44 +15,73 @@
  */
 package org.onlab.onos.cluster;
 
+import java.util.Objects;
+
 import org.onlab.onos.event.AbstractEvent;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Describes leadership-related event.
  */
-public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, ControllerNode> {
+public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leadership> {
 
     /**
      * Type of leadership-related events.
      */
     public enum Type {
         /**
-         * Signifies that the leader has changed. The event subject is the
+         * Signifies that the leader has been elected. The event subject is the
          * new leader.
          */
-        LEADER_CHANGED
+        LEADER_ELECTED,
+
+        /**
+         * Signifies that the leader has been re-elected. The event subject is the
+         * leader.
+         */
+        LEADER_REELECTED,
+
+        /**
+         * Signifies that the leader has been booted and lost leadership. The event subject is the
+         * former leader.
+         */
+        LEADER_BOOTED
     }
 
     /**
      * Creates an event of a given type and for the specified instance and the
      * current time.
      *
-     * @param type     leadership event type
-     * @param instance cluster device subject
+     * @param type       leadership event type
+     * @param leadership event subject
      */
-    public LeadershipEvent(Type type, ControllerNode instance) {
-        super(type, instance);
+    public LeadershipEvent(Type type, Leadership leadership) {
+        super(type, leadership);
     }
 
     /**
-     * Creates an event of a given type and for the specified device and time.
+     * Creates an event of a given type and for the specified subject and time.
      *
-     * @param type     device event type
-     * @param instance event device subject
+     * @param type     leadership event type
+     * @param leadership event subject
      * @param time     occurrence time
      */
-    public LeadershipEvent(Type type, ControllerNode instance, long time) {
-        super(type, instance, time);
+    public LeadershipEvent(Type type, Leadership leadership, long time) {
+        super(type, leadership, time);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(type(), subject(), time());
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this.getClass())
+            .add("type", type())
+            .add("subject", subject())
+            .add("time", time())
+            .toString();
+    }
 }

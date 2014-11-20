@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,7 +61,7 @@ public class DistributedLock implements Lock {
     }
 
     @Override
-    public Future<Void> lockAsync(int leaseDurationMillis) {
+    public CompletableFuture<Void> lockAsync(int leaseDurationMillis) {
         if (isLocked() || tryLock(leaseDurationMillis)) {
             return CompletableFuture.<Void>completedFuture(null);
         }

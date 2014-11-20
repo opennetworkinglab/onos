@@ -16,29 +16,35 @@
 package org.onlab.onos.cluster;
 
 /**
- * Service for obtaining information about the leader election.
+ * Service for leader election.
+ * Leadership contents are organized around topics. ONOS instance can join the
+ * leadership race for a topic or withdraw from a race it has previously joined
+ * Once in the race, the instance can get asynchronously notified
+ * of leadership election results.
  */
 public interface LeadershipService {
 
     /**
-     * Returns the current leader controller node.
-     *
-     * @return current leader controller node
+     * Joins the leadership contest.
+     * @param path topic for which this controller node wishes to be a leader.
      */
-    ControllerNode getLeader();
+    void runForLeadership(String path);
 
     /**
-     * Adds the specified leadership event listener.
-     *
-     * @param listener the leadership listener
+     * Withdraws from a leadership contest.
+     * @param path topic for which this controller node no longer wishes to be a leader.
+     */
+    void withdraw(String path);
+
+    /**
+     * Registers a event listener to be notified of leadership events.
+     * @param listener listener that will asynchronously notified of leadership events.
      */
     void addListener(LeadershipEventListener listener);
 
     /**
-     * Removes the specified leadership event listener.
-     *
-     * @param listener the leadership listener
+     * Unregisters a event listener for leadership events.
+     * @param listener listener to be removed.
      */
     void removeListener(LeadershipEventListener listener);
-
 }
