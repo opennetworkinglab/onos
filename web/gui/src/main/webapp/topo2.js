@@ -1244,7 +1244,7 @@
         // Augment as needed...
         node.class = 'host';
         if (!node.type) {
-            node.type = 'endstation';
+            node.type = 'host';
         }
         node.svgClass = 'node host ' + node.type;
         positionNode(node);
@@ -1451,15 +1451,17 @@
         }
     }
 
-    function addHostIcon(node, radius, iconId) {
+    function addHostIcon(node, radius, iid) {
         var dim = radius * 1.5,
             xlate = -dim / 2;
 
-        node.append('svg:image')
-            .attr('transform', translate(xlate,xlate))
-            .attr('xlink:href', 'img/' + iconId + '.png')
-            .attr('width', dim)
-            .attr('height', dim);
+        node.append('use').attr({
+            class: 'glyphIcon hostIcon',
+            transform: translate(xlate,xlate),
+            'xlink:href': iid,
+            width: dim,
+            height: dim
+        });
     }
 
     function updateNodes() {
@@ -1521,7 +1523,7 @@
                 router: 14,
                 host: 14
             },
-            hostIcon = {
+            hostGlyphId = {
                 bgpSpeaker: 'bgpSpeaker',
                 router: 'router',
                 host: 'host'
@@ -1533,7 +1535,7 @@
             var node = d3.select(this),
                 r = hostRadius[d.type] || defaultHostRadius,
                 textDy = r + 10,
-                icon = hostIcon[d.type];
+                iid = iconGlyphUrl(d);
 
             // provide ref to element from backing data....
             d.el = node;
@@ -1541,8 +1543,8 @@
             node.append('circle')
                 .attr('r', r);
 
-            if (icon) {
-                addHostIcon(node, r, icon);
+            if (iid) {
+                addHostIcon(node, r, iid);
             }
 
 
@@ -1617,7 +1619,8 @@
             dy = box.y + config.icons.yoff;
         }
 
-        g = node.append('g').attr('class', 'glyphIcon deviceIcon')
+        g = node.append('g')
+                .attr('class', 'glyphIcon deviceIcon')
                 .attr('transform', translate(dx, dy));
 
         g.append('rect').attr({

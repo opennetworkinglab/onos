@@ -119,16 +119,6 @@ svg .node.host circle {
     fill: #ddd;
 }
 
-#topo svg .node.host.bgpSpeaker circle {
-    stroke: #000;
-    fill: #ddd;
-}
-
-#topo svg .node.host.router circle {
-    stroke: #000;
-    fill: #ddd;
-}
-
 /* LINKS */
 
 #topo svg .link {
