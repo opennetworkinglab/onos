@@ -93,7 +93,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
-            TrafficTreatment treatment = builder()
+            TrafficTreatment treatment = builder(intent.treatment())
                     .setOutput(link.src().port()).build();
 
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
