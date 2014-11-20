@@ -127,6 +127,7 @@ svg .node.host circle {
 
 #topo svg .link {
     opacity: .7;
+    stroke-width: 1.2px;
 }
 
 #topo svg .link.inactive {
@@ -135,17 +136,17 @@ svg .node.host circle {
 }
 
 #topo svg .link.primary {
-    stroke: #f11;
+    stroke: #ffA300;
     stroke-width: 4px;
 }
 #topo svg .link.secondary {
-    stroke: rgba(255,100,100,0.5);
+    stroke: rgba(0,153,51,0.5);
     stroke-width: 3px;
 }
 #topo svg .link.animated {
-    stroke: #f11;
-    stroke-width: 6px;
-    stroke-dasharray: 8 8
+    stroke: #ffA300;
+    Xstroke-width: 6px;
+    Xstroke-dasharray: 8 8
 }
 
 #topo svg .link.primary.optical {
@@ -163,8 +164,8 @@ svg .node.host circle {
 }
 
 #topo svg .linkLabel rect {
-    stroke: #999;
-    stroke-width: 1.2px;
+    Xstroke: #ccc;
+    Xstroke-width: 2px;
     fill: #eee;
     stroke: none;
 }

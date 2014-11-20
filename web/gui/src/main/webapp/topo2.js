@@ -731,9 +731,17 @@
         var paths = data.payload.paths;
 
         // Revert any links hilighted previously.
-        link.classed('primary secondary animated optical', false);
+        link.attr('stroke-width', null)
+            .style('stroke-width', null)
+            .classed('primary secondary animated optical', false);
         // Remove all previous labels.
         removeLinkLabels();
+
+        if (paths.length && !antTimer) {
+            startAntTimer();
+        } else if (!paths.length && antTimer) {
+            stopAntTimer();
+        }
 
         // Now hilight all links in the paths payload, and attach
         //  labels to them, if they are defined.
@@ -2160,20 +2168,33 @@
         // Load map data asynchronously; complete startup after that..
         loadGeoJsonData();
 
-        // start the and timer
-        var dashIdx = 0;
-        antTimer = setInterval(function () {
-            // TODO: figure out how to choose Src-->Dst and Dst-->Src, per link
-            dashIdx = dashIdx === 0 ? 14 : dashIdx - 2;
-            d3.selectAll('.animated').style('stroke-dashoffset', dashIdx);
-        }, 35);
+        //var dashIdx = 0;
+        //antTimer = setInterval(function () {
+        //    // TODO: figure out how to choose Src-->Dst and Dst-->Src, per link
+        //    dashIdx = dashIdx === 0 ? 14 : dashIdx - 2;
+        //    d3.selectAll('.animated').style('stroke-dashoffset', dashIdx);
+        //}, 35);
     }
 
-    function unload(view, ctx, flags) {
+    function startAntTimer() {
+        var pulses = [ 5, 3, 1.2, 3 ],
+            pulse  = 0;
+        antTimer = setInterval(function () {
+            pulse = pulse + 1;
+            pulse = pulse === pulses.length ? 0 : pulse;
+            d3.selectAll('.animated').style('stroke-width', pulses[pulse]);
+        }, 200);
+    }
+
+    function stopAntTimer() {
         if (antTimer) {
             clearInterval(antTimer);
             antTimer = null;
         }
+    }
+
+    function unload(view, ctx, flags) {
+        stopAntTimer();
     }
 
     // TODO: move these to config/state portion of script
