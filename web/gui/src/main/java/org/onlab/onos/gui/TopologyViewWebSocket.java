@@ -15,7 +15,6 @@
  */
 package org.onlab.onos.gui;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
@@ -24,7 +23,6 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
@@ -39,17 +37,11 @@ import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.net.intent.OpticalConnectivityIntent;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -60,7 +52,6 @@ import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.intent.IntentState.INSTALLED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 
 /**
@@ -99,6 +90,8 @@ public class TopologyViewWebSocket
     private long lastActive = System.currentTimeMillis();
     private boolean listenersRemoved = false;
 
+    private TopologyViewIntentFilter intentFilter;
+
     /**
      * Creates a new web-socket for serving data to GUI topology view.
      *
@@ -106,6 +99,9 @@ public class TopologyViewWebSocket
      */
     public TopologyViewWebSocket(ServiceDirectory directory) {
         super(directory);
+
+        intentFilter = new TopologyViewIntentFilter(intentService, deviceService,
+                                                   hostService, linkService);
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }
 
@@ -168,21 +164,27 @@ public class TopologyViewWebSocket
     public void onMessage(String data) {
         lastActive = System.currentTimeMillis();
         try {
-            ObjectNode event = (ObjectNode) mapper.reader().readTree(data);
-            String type = string(event, "event", "unknown");
-            if (type.equals("requestDetails")) {
-                requestDetails(event);
-            } else if (type.equals("updateMeta")) {
-                updateMetaUi(event);
-            } else if (type.equals("addHostIntent")) {
-                createHostIntent(event);
-            } else if (type.equals("requestTraffic")) {
-                requestTraffic(event);
-            } else if (type.equals("cancelTraffic")) {
-                cancelTraffic(event);
-            }
+            processMessage((ObjectNode) mapper.reader().readTree(data));
         } catch (Exception e) {
             log.warn("Unable to parse GUI request {} due to {}", data, e);
+        }
+    }
+
+    // Processes the specified event.
+    private void processMessage(ObjectNode event) {
+        String type = string(event, "event", "unknown");
+        if (type.equals("requestDetails")) {
+            requestDetails(event);
+        } else if (type.equals("updateMeta")) {
+            updateMetaUi(event);
+        } else if (type.equals("addHostIntent")) {
+            createHostIntent(event);
+        } else if (type.equals("requestTraffic")) {
+            requestTraffic(event);
+        } else if (type.equals("requestAllTraffic")) {
+            requestAllTraffic(event);
+        } else if (type.equals("cancelTraffic")) {
+            cancelTraffic(event);
         }
     }
 
@@ -253,22 +255,36 @@ public class TopologyViewWebSocket
         intentService.submit(hostIntent);
     }
 
-    // Sends traffic message.
+    // Subscribes for host traffic messages.
+    private synchronized void requestAllTraffic(ObjectNode event) {
+        ObjectNode payload = payload(event);
+        long sid = number(event, "sid");
+        monitorRequest = event;
+        sendMessage(trafficSummaryMessage(sid));
+    }
+
+    // Subscribes for host traffic messages.
     private synchronized void requestTraffic(ObjectNode event) {
         ObjectNode payload = payload(event);
+        if (!payload.has("ids")) {
+            return;
+        }
+
         long sid = number(event, "sid");
         monitorRequest = event;
 
         // Get the set of selected hosts and their intents.
-        Set<Host> hosts = getHosts((ArrayNode) payload.path("ids"));
-        Set<Intent> intents = findPathIntents(hosts);
+        ArrayNode ids = (ArrayNode) payload.path("ids");
+        Set<Host> hosts = getHosts(ids);
+        Set<Device> devices = getDevices(ids);
+        Set<Intent> intents = intentFilter.findPathIntents(hosts, devices);
 
         // If there is a hover node, include it in the hosts and find intents.
         String hover = string(payload, "hover");
         Set<Intent> hoverIntents;
         if (!isNullOrEmpty(hover)) {
-            addHost(hosts, hostId(hover));
-            hoverIntents = findPathIntents(hosts);
+            addHover(hosts, devices, hover);
+            hoverIntents = intentFilter.findPathIntents(hosts, devices);
             intents.removeAll(hoverIntents);
 
             // Send an initial message to highlight all links of all monitored intents.
@@ -287,157 +303,6 @@ public class TopologyViewWebSocket
         sendMessage(trafficMessage(number(event, "sid")));
         monitorRequest = null;
     }
-
-    // Finds all path (host-to-host or point-to-point) intents that pertains
-    // to the given hosts.
-    private Set<Intent> findPathIntents(Set<Host> hosts) {
-        // Derive from this the set of edge connect points.
-        Set<ConnectPoint> edgePoints = getEdgePoints(hosts);
-
-        // Iterate over all intents and produce a set that contains only those
-        // intents that target all selected hosts or derived edge connect points.
-        return getIntents(hosts, edgePoints);
-    }
-
-    // Produces a set of intents that target all selected hosts or connect points.
-    private Set<Intent> getIntents(Set<Host> hosts, Set<ConnectPoint> edgePoints) {
-        Set<Intent> intents = new HashSet<>();
-        if (hosts.isEmpty()) {
-            return intents;
-        }
-
-        Set<OpticalConnectivityIntent> opticalIntents = new HashSet<>();
-
-        for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.id()) == INSTALLED) {
-                boolean isRelevant = false;
-                if (intent instanceof HostToHostIntent) {
-                    isRelevant = isIntentRelevant((HostToHostIntent) intent, hosts);
-                } else if (intent instanceof PointToPointIntent) {
-                    isRelevant = isIntentRelevant((PointToPointIntent) intent, edgePoints);
-                } else if (intent instanceof MultiPointToSinglePointIntent) {
-                    isRelevant = isIntentRelevant((MultiPointToSinglePointIntent) intent, edgePoints);
-                } else if (intent instanceof OpticalConnectivityIntent) {
-                    opticalIntents.add((OpticalConnectivityIntent) intent);
-                }
-                // TODO: add other intents, e.g. SinglePointToMultiPointIntent
-
-                if (isRelevant) {
-                    intents.add(intent);
-                }
-            }
-        }
-
-        for (OpticalConnectivityIntent intent : opticalIntents) {
-            if (isIntentRelevant(intent, intents)) {
-                intents.add(intent);
-            }
-        }
-        return intents;
-    }
-
-    // Indicates whether the specified intent involves all of the given hosts.
-    private boolean isIntentRelevant(HostToHostIntent intent, Set<Host> hosts) {
-        for (Host host : hosts) {
-            HostId id = host.id();
-            // Bail if intent does not involve this host.
-            if (!id.equals(intent.one()) && !id.equals(intent.two())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Indicates whether the specified intent involves all of the given edge points.
-    private boolean isIntentRelevant(PointToPointIntent intent,
-                                     Set<ConnectPoint> edgePoints) {
-        for (ConnectPoint point : edgePoints) {
-            // Bail if intent does not involve this edge point.
-            if (!point.equals(intent.egressPoint()) &&
-                    !point.equals(intent.ingressPoint())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Indicates whether the specified intent involves all of the given edge points.
-    private boolean isIntentRelevant(MultiPointToSinglePointIntent intent,
-                                     Set<ConnectPoint> edgePoints) {
-        for (ConnectPoint point : edgePoints) {
-            // Bail if intent does not involve this edge point.
-            if (!point.equals(intent.egressPoint()) &&
-                    !intent.ingressPoints().contains(point)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Indicates whether the specified intent involves all of the given edge points.
-    private boolean isIntentRelevant(OpticalConnectivityIntent opticalIntent,
-                                     Set<Intent> intents) {
-        Link ccSrc = getFirstLink(opticalIntent.getSrc(), false);
-        Link ccDst = getFirstLink(opticalIntent.getDst(), true);
-
-        for (Intent intent : intents) {
-            List<Intent> installables = intentService.getInstallableIntents(intent.id());
-            for (Intent installable : installables) {
-                if (installable instanceof PathIntent) {
-                    List<Link> links = ((PathIntent) installable).path().links();
-                    if (links.size() == 3) {
-                        Link tunnel = links.get(1);
-                        if (tunnel.src().equals(ccSrc.src()) &&
-                                tunnel.dst().equals(ccDst.dst())) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    private Link getFirstLink(ConnectPoint point, boolean ingress) {
-        for (Link link : linkService.getLinks(point)) {
-            if (point.equals(ingress ? link.src() : link.dst())) {
-                return link;
-            }
-        }
-        return null;
-    }
-
-    // Produces a set of all host ids listed in the specified JSON array.
-    private Set<Host> getHosts(ArrayNode array) {
-        Set<Host> hosts = new HashSet<>();
-        if (array != null) {
-            for (JsonNode node : array) {
-                try {
-                    addHost(hosts, hostId(node.asText()));
-                } catch (IllegalArgumentException e) {
-                    log.debug("Skipping ID {}", node.asText());
-                }
-            }
-        }
-        return hosts;
-    }
-
-    private void addHost(Set<Host> hosts, HostId hostId) {
-        Host host = hostService.getHost(hostId);
-        if (host != null) {
-            hosts.add(host);
-        }
-    }
-
-    // Produces a set of edge points from the specified set of hosts.
-    private Set<ConnectPoint> getEdgePoints(Set<Host> hosts) {
-        Set<ConnectPoint> edgePoints = new HashSet<>();
-        for (Host host : hosts) {
-            edgePoints.add(host.location());
-        }
-        return edgePoints;
-    }
-
 
     // Adds all internal listeners.
     private void addListeners() {
@@ -506,7 +371,12 @@ public class TopologyViewWebSocket
         @Override
         public void run() {
             if (monitorRequest != null) {
-                requestTraffic(monitorRequest);
+                String type = string(monitorRequest, "event", "unknown");
+                if (type.equals("requestAllTraffic")) {
+                    requestAllTraffic(monitorRequest);
+                } else {
+                    requestTraffic(monitorRequest);
+                }
             }
         }
     }

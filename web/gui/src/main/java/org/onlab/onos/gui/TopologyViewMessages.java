@@ -35,7 +35,6 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.host.HostEvent;
@@ -57,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +68,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.HostId.hostId;
 import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
@@ -94,6 +96,8 @@ public abstract class TopologyViewMessages {
     private static final String MB_UNIT = "MB";
     private static final String KB_UNIT = "KB";
     private static final String B_UNIT = "B";
+
+    private static final String ANIMATED = "animated";
 
     protected final ServiceDirectory directory;
     protected final ClusterService clusterService;
@@ -194,6 +198,64 @@ public abstract class TopologyViewMessages {
         }
         event.set("payload", payload);
         return event;
+    }
+
+    // Produces a set of all hosts listed in the specified JSON array.
+    protected Set<Host> getHosts(ArrayNode array) {
+        Set<Host> hosts = new HashSet<>();
+        if (array != null) {
+            for (JsonNode node : array) {
+                try {
+                    addHost(hosts, hostId(node.asText()));
+                } catch (IllegalArgumentException e) {
+                    log.debug("Skipping ID {}", node.asText());
+                }
+            }
+        }
+        return hosts;
+    }
+
+    // Adds the specified host to the set of hosts.
+    private void addHost(Set<Host> hosts, HostId hostId) {
+        Host host = hostService.getHost(hostId);
+        if (host != null) {
+            hosts.add(host);
+        }
+    }
+
+
+    // Produces a set of all devices listed in the specified JSON array.
+    protected Set<Device> getDevices(ArrayNode array) {
+        Set<Device> devices = new HashSet<>();
+        if (array != null) {
+            for (JsonNode node : array) {
+                try {
+                    addDevice(devices, deviceId(node.asText()));
+                } catch (IllegalArgumentException e) {
+                    log.debug("Skipping ID {}", node.asText());
+                }
+            }
+        }
+        return devices;
+    }
+
+    private void addDevice(Set<Device> devices, DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device != null) {
+            devices.add(device);
+        }
+    }
+
+    protected void addHover(Set<Host> hosts, Set<Device> devices, String hover) {
+        try {
+            addHost(hosts, hostId(hover));
+        } catch (IllegalArgumentException e) {
+            try {
+                addDevice(devices, deviceId(hover));
+            } catch (IllegalArgumentException ne) {
+                log.debug("Skipping ID {}", hover);
+            }
+        }
     }
 
     // Produces a cluster instance message to the client.
@@ -382,16 +444,18 @@ public abstract class TopologyViewMessages {
                              new Prop("Longitude", annot.value("longitude"))));
     }
 
-    // Produces a path payload to the client.
-    protected ObjectNode pathMessage(Path path, String type) {
-        ObjectNode payload = mapper.createObjectNode();
-        ArrayNode links = mapper.createArrayNode();
-        for (Link link : path.links()) {
-            links.add(compactLinkString(link));
-        }
 
-        payload.put("type", type).set("links", links);
-        return payload;
+    // Produces JSON message to trigger traffic overview visualization
+    protected ObjectNode trafficSummaryMessage(long sid) {
+        ObjectNode payload = mapper.createObjectNode();
+        ArrayNode paths = mapper.createArrayNode();
+        payload.set("paths", paths);
+        for (Link link : linkService.getLinks()) {
+            Set<Link> links = new HashSet<>();
+            links.add(link);
+            addPathTraffic(paths, "plain", "secondary", links);
+        }
+        return envelope("showTraffic", sid, payload);
     }
 
 
@@ -409,11 +473,14 @@ public abstract class TopologyViewMessages {
                     for (Intent installable : installables) {
                         String cls = isOptical ? trafficClass.type + " optical" : trafficClass.type;
                         if (installable instanceof PathIntent) {
-                            addPathTraffic(paths, cls, ((PathIntent) installable).path().links());
+                            addPathTraffic(paths, cls, ANIMATED,
+                                           ((PathIntent) installable).path().links());
                         } else if (installable instanceof LinkCollectionIntent) {
-                            addPathTraffic(paths, cls, ((LinkCollectionIntent) installable).links());
+                            addPathTraffic(paths, cls, ANIMATED,
+                                           ((LinkCollectionIntent) installable).links());
                         } else if (installable instanceof OpticalPathIntent) {
-                            addPathTraffic(paths, cls, ((OpticalPathIntent) installable).path().links());
+                            addPathTraffic(paths, cls, ANIMATED,
+                                           ((OpticalPathIntent) installable).path().links());
                         }
 
                     }
@@ -426,7 +493,8 @@ public abstract class TopologyViewMessages {
 
     // Adds the link segments (path or tree) associated with the specified
     // connectivity intent
-    protected void addPathTraffic(ArrayNode paths, String type, Iterable<Link> links) {
+    protected void addPathTraffic(ArrayNode paths, String type, String trafficType,
+                                  Iterable<Link> links) {
         ObjectNode pathNode = mapper.createObjectNode();
         ArrayNode linksNode = mapper.createArrayNode();
 
@@ -445,7 +513,7 @@ public abstract class TopologyViewMessages {
                     labels.add(label);
                 }
             }
-            pathNode.put("class", hasTraffic ? type + " animated" : type);
+            pathNode.put("class", hasTraffic ? type + " " + trafficType : type);
             pathNode.put("traffic", hasTraffic);
             pathNode.set("links", linksNode);
             pathNode.set("labels", labels);

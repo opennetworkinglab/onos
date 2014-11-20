@@ -141,6 +141,8 @@
         U: unpin,
         R: resetZoomPan,
         H: toggleHover,
+        V: showTrafficAction,
+        A: showAllTrafficAction,
         esc: handleEscape
     };
 
@@ -832,13 +834,18 @@
         }
 
         // NOTE: hover is only populated if "show traffic on hover" is
-        //        toggled on, and the item hovered is a host...
-        var hoverId = (trafficHover() && hovered && hovered.class === 'host')
+        //        toggled on, and the item hovered is a host or a device...
+        var hoverId = (trafficHover() && hovered &&
+                (hovered.class === 'host' || hovered.class === 'device'))
                         ? hovered.id : '';
         sendMessage('requestTraffic', {
             ids: selectOrder,
             hover: hoverId
         });
+    }
+
+    function showAllTrafficAction() {
+        sendMessage('requestAllTraffic', {});
     }
 
 
@@ -1367,14 +1374,14 @@
 
     function nodeMouseOver(d) {
         hovered = d;
-        if (trafficHover() && d.class === 'host') {
+        if (trafficHover() && (d.class === 'host' || d.class === 'device')) {
             showTrafficAction();
         }
     }
 
     function nodeMouseOut(d) {
         hovered = null;
-        if (trafficHover() && d.class === 'host') {
+        if (trafficHover() && (d.class === 'host' || d.class === 'device')) {
             showTrafficAction();
         }
     }
