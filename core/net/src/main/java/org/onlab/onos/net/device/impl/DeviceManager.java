@@ -16,7 +16,6 @@
 package org.onlab.onos.net.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_MASTERSHIP_CHANGED;
 import static org.onlab.onos.net.MastershipRole.*;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -315,8 +314,6 @@ public class DeviceManager
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
-            } else {
-                post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, store.getDevice(deviceId)));
             }
         }
 

@@ -441,7 +441,6 @@ public class ProxyArpManager implements ProxyArpService {
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
-                case DEVICE_MASTERSHIP_CHANGED:
                 case DEVICE_SUSPENDED:
                 case DEVICE_UPDATED:
                  // nothing to do in these cases; handled when links get reported

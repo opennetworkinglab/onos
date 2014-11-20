@@ -60,12 +60,6 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
         DEVICE_AVAILABILITY_CHANGED,
 
         /**
-         * Signifies that the current controller instance relationship has
-         * changed with respect to a device.
-         */
-        DEVICE_MASTERSHIP_CHANGED,
-
-        /**
          * Signifies that a port has been added.
          */
         PORT_ADDED,

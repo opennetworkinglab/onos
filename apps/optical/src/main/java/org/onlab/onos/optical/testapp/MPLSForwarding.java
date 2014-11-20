@@ -146,8 +146,6 @@ public class MPLSForwarding {
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
                     break;
-                case DEVICE_MASTERSHIP_CHANGED:
-                    break;
                 case DEVICE_REMOVED:
                     break;
                 case DEVICE_SUSPENDED:
