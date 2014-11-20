@@ -459,7 +459,7 @@ public class GossipHostStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received host update event from peer: {}", message.sender());
+            log.debug("Received host update event from peer: {}", message.sender());
             InternalHostEvent event = (InternalHostEvent) SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
@@ -475,7 +475,7 @@ public class GossipHostStore
         @Override
         public void handle(ClusterMessage message) {
 
-            log.info("Received host removed event from peer: {}", message.sender());
+            log.debug("Received host removed event from peer: {}", message.sender());
             InternalHostRemovedEvent event = (InternalHostRemovedEvent) SERIALIZER.decode(message.payload());
 
             HostId hostId = event.hostId();
@@ -503,7 +503,7 @@ public class GossipHostStore
                         .toList();
 
                 if (nodeIds.size() == 1 && nodeIds.get(0).equals(self)) {
-                    log.debug("No other peers in the cluster.");
+                    log.trace("No other peers in the cluster.");
                     return;
                 }
 
@@ -640,7 +640,7 @@ public class GossipHostStore
 
         @Override
         public void handle(ClusterMessage message) {
-            log.debug("Received Host Anti-Entropy advertisement from peer: {}", message.sender());
+            log.trace("Received Host Anti-Entropy advertisement from peer: {}", message.sender());
             HostAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
             handleAntiEntropyAdvertisement(advertisement);
         }

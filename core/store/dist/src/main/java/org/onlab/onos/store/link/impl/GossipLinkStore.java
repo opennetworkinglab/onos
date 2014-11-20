@@ -638,7 +638,7 @@ public class GossipLinkStore
                         .toList();
 
                 if (nodeIds.size() == 1 && nodeIds.get(0).equals(self)) {
-                    log.debug("No other peers in the cluster.");
+                    log.trace("No other peers in the cluster.");
                     return;
                 }
 
@@ -796,7 +796,7 @@ public class GossipLinkStore
 
         @Override
         public void handle(ClusterMessage message) {
-            log.debug("Received Link Anti-Entropy advertisement from peer: {}", message.sender());
+            log.trace("Received Link Anti-Entropy advertisement from peer: {}", message.sender());
             LinkAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
             handleAntiEntropyAdvertisement(advertisement);
         }

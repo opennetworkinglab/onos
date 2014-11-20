@@ -188,7 +188,7 @@ public class DistributedFlowRuleStore
             @Override
             public void handle(ClusterMessage message) {
                 FlowRule rule = SERIALIZER.decode(message.payload());
-                log.debug("received get flow entry request for {}", rule);
+                log.trace("received get flow entry request for {}", rule);
                 FlowEntry flowEntry = getFlowEntryInternal(rule);
                 try {
                     message.respond(SERIALIZER.encode(flowEntry));
@@ -203,7 +203,7 @@ public class DistributedFlowRuleStore
             @Override
             public void handle(ClusterMessage message) {
                 DeviceId deviceId = SERIALIZER.decode(message.payload());
-                log.debug("Received get flow entries request for {} from {}", deviceId, message.sender());
+                log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
                 Set<FlowEntry> flowEntries = getFlowEntriesInternal(deviceId);
                 try {
                     message.respond(SERIALIZER.encode(flowEntries));
@@ -255,7 +255,7 @@ public class DistributedFlowRuleStore
             return getFlowEntryInternal(rule);
         }
 
-        log.debug("Forwarding getFlowEntry to {}, which is the primary (master) for device {}",
+        log.trace("Forwarding getFlowEntry to {}, which is the primary (master) for device {}",
                 replicaInfo.master().orNull(), rule.deviceId());
 
         ClusterMessage message = new ClusterMessage(
@@ -301,7 +301,7 @@ public class DistributedFlowRuleStore
             return getFlowEntriesInternal(deviceId);
         }
 
-        log.debug("Forwarding getFlowEntries to {}, which is the primary (master) for device {}",
+        log.trace("Forwarding getFlowEntries to {}, which is the primary (master) for device {}",
                 replicaInfo.master().orNull(), deviceId);
 
         ClusterMessage message = new ClusterMessage(
@@ -359,7 +359,7 @@ public class DistributedFlowRuleStore
             return storeBatchInternal(operation);
         }
 
-        log.debug("Forwarding storeBatch to {}, which is the primary (master) for device {}",
+        log.trace("Forwarding storeBatch to {}, which is the primary (master) for device {}",
                 replicaInfo.master().orNull(), deviceId);
 
         ClusterMessage message = new ClusterMessage(
@@ -459,7 +459,7 @@ public class DistributedFlowRuleStore
             return addOrUpdateFlowRuleInternal(rule);
         }
 
-        log.error("Tried to update FlowRule {} state,"
+        log.warn("Tried to update FlowRule {} state,"
                 + " while the Node was not the master.", rule);
         return null;
     }
@@ -504,7 +504,7 @@ public class DistributedFlowRuleStore
             return removeFlowRuleInternal(rule);
         }
 
-        log.error("Tried to remove FlowRule {},"
+        log.warn("Tried to remove FlowRule {},"
                 + " while the Node was not the master.", rule);
         return null;
     }
@@ -542,14 +542,14 @@ public class DistributedFlowRuleStore
 
         flowEntriesLock.writeLock().lock();
         try {
-            log.info("Loading FlowRules for {} from backups", did);
+            log.debug("Loading FlowRules for {} from backups", did);
             SMap<FlowId, ImmutableList<StoredFlowEntry>> backupFlowTable = smaps.get(did);
             for (Entry<FlowId, ImmutableList<StoredFlowEntry>> e
                     : backupFlowTable.entrySet()) {
 
                 // TODO: should we be directly updating internal structure or
                 // should we be triggering event?
-                log.debug("loading {}", e.getValue());
+                log.trace("loading {}", e.getValue());
                 for (StoredFlowEntry entry : e.getValue()) {
                     flowEntries.remove(did, entry);
                     flowEntries.put(did, entry);
@@ -570,7 +570,7 @@ public class DistributedFlowRuleStore
         } finally {
             flowEntriesLock.writeLock().unlock();
         }
-        log.debug("removedFromPrimary {}", removed);
+        log.trace("removedFromPrimary {}", removed);
     }
 
     private static final class TimeoutFuture
@@ -594,7 +594,7 @@ public class DistributedFlowRuleStore
         @Override
         public void handle(final ClusterMessage message) {
             FlowRuleBatchOperation operation = SERIALIZER.decode(message.payload());
-            log.info("received batch request {}", operation);
+            log.debug("received batch request {}", operation);
 
             final DeviceId deviceId = operation.getOperations().get(0).getTarget().deviceId();
             ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
@@ -704,7 +704,7 @@ public class DistributedFlowRuleStore
         @Override
         public void run() {
             try {
-                log.debug("update backup {} +{} -{}", deviceId, toAdd, toRemove);
+                log.trace("update backup {} +{} -{}", deviceId, toAdd, toRemove);
                 final SMap<FlowId, ImmutableList<StoredFlowEntry>> backupFlowTable = smaps.get(deviceId);
                 // Following should be rewritten using async APIs
                 for (StoredFlowEntry entry : toAdd) {

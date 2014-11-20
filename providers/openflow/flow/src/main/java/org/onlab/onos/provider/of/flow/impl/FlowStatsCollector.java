@@ -49,12 +49,12 @@ public class FlowStatsCollector implements TimerTask {
 
     @Override
     public void run(Timeout timeout) throws Exception {
-        log.debug("Collecting stats for {}", this.sw.getStringId());
+        log.trace("Collecting stats for {}", this.sw.getStringId());
 
         sendFlowStatistics();
 
         if (!this.stopTimer) {
-            log.debug("Scheduling stats collection in {} seconds for {}",
+            log.trace("Scheduling stats collection in {} seconds for {}",
                     this.refreshInterval, this.sw.getStringId());
             timeout.getTimer().newTimeout(this, refreshInterval,
                     TimeUnit.SECONDS);

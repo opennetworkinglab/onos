@@ -1228,7 +1228,7 @@ public class GossipDeviceStore
                         .toList();
 
                 if (nodeIds.size() == 1 && nodeIds.get(0).equals(self)) {
-                    log.debug("No other peers in the cluster.");
+                    log.trace("No other peers in the cluster.");
                     return;
                 }
 
@@ -1358,7 +1358,7 @@ public class GossipDeviceStore
 
         @Override
         public void handle(ClusterMessage message) {
-            log.debug("Received Device Anti-Entropy advertisement from peer: {}", message.sender());
+            log.trace("Received Device Anti-Entropy advertisement from peer: {}", message.sender());
             DeviceAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
             handleAdvertisement(advertisement);
         }
