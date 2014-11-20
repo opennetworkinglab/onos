@@ -19,10 +19,15 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Abstraction of explicitly path specified connectivity intent.
@@ -61,6 +66,7 @@ public class PathIntent extends ConnectivityIntent {
                       TrafficTreatment treatment, Path path, List<Constraint> constraints) {
         super(id(PathIntent.class, selector, treatment, path, constraints), appId,
                 resources(path.links()), selector, treatment, constraints);
+        PathIntent.validate(path.links());
         this.path = path;
     }
 
@@ -70,6 +76,32 @@ public class PathIntent extends ConnectivityIntent {
     protected PathIntent() {
         super();
         this.path = null;
+    }
+
+    // NOTE: This methods takes linear time with the number of links.
+    /**
+     * Validates that source element ID and destination element ID of a link are
+     * different for the specified all links and that destination element ID of a link and source
+     * element ID of the next adjacent source element ID are same for the specified all links.
+     *
+     * @param links
+     */
+    public static void validate(List<Link> links) {
+        checkArgument(Iterables.all(links, new Predicate<Link>() {
+            @Override
+            public boolean apply(Link link) {
+                return !link.src().elementId().equals(link.dst().elementId());
+            }
+        }), "element of src and dst in a link must be different: {}", links);
+
+        boolean adjacentSame = true;
+        for (int i = 0; i < links.size() - 1; i++) {
+            if (!links.get(i).dst().elementId().equals(links.get(i + 1).src().elementId())) {
+                adjacentSame = false;
+                break;
+            }
+        }
+        checkArgument(adjacentSame, "adjacent links must share the same element: {}", links);
     }
 
     /**

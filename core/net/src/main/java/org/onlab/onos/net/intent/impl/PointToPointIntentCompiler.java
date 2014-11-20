@@ -19,8 +19,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultEdgeLink;
-import org.onlab.onos.net.DefaultLink;
 import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
@@ -35,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static org.onlab.onos.net.Link.Type.DIRECT;
+import static org.onlab.onos.net.DefaultEdgeLink.createEdgeLink;
 
 /**
  * An intent compiler for {@link org.onlab.onos.net.intent.PointToPointIntent}.
@@ -47,6 +45,8 @@ public class PointToPointIntentCompiler
     // TODO: use off-the-shell core provider ID
     private static final ProviderId PID =
             new ProviderId("core", "org.onlab.onos.core", true);
+    // TODO: consider whether the default cost is appropriate or not
+    public static final int DEFAULT_COST = 1;
 
     @Activate
     public void activate() {
@@ -66,17 +66,17 @@ public class PointToPointIntentCompiler
         ConnectPoint egressPoint = intent.egressPoint();
 
         if (ingressPoint.deviceId().equals(egressPoint.deviceId())) {
-            List<Link> links = asList(new DefaultLink(PID, ingressPoint, egressPoint, DIRECT));
-            return asList(createPathIntent(new DefaultPath(PID, links, 1), intent));
+            List<Link> links = asList(createEdgeLink(ingressPoint, true), createEdgeLink(egressPoint, false));
+            return asList(createPathIntent(new DefaultPath(PID, links, DEFAULT_COST), intent));
         }
 
         List<Link> links = new ArrayList<>();
         Path path = getPath(intent, ingressPoint.deviceId(),
                 egressPoint.deviceId());
 
-        links.add(DefaultEdgeLink.createEdgeLink(ingressPoint, true));
+        links.add(createEdgeLink(ingressPoint, true));
         links.addAll(path.links());
-        links.add(DefaultEdgeLink.createEdgeLink(egressPoint, false));
+        links.add(createEdgeLink(egressPoint, false));
 
         return asList(createPathIntent(new DefaultPath(PID, links, path.cost(),
                                                        path.annotations()), intent));

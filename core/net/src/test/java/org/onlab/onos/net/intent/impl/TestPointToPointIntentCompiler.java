@@ -36,6 +36,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.onos.net.DefaultEdgeLink.createEdgeLink;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.NetTestTools.APP_ID;
 import static org.onlab.onos.net.NetTestTools.connectPoint;
@@ -163,9 +164,10 @@ public class TestPointToPointIntentCompiler {
         assertThat(compiled.get(0), is(instanceOf(PathIntent.class)));
         Path path = ((PathIntent) compiled.get(0)).path();
 
-        assertThat(path.links(), hasSize(1));
-        Link link = path.links().get(0);
-        assertThat(link.src(), is(src));
-        assertThat(link.dst(), is(dst));
+        assertThat(path.links(), hasSize(2));
+        Link firstLink = path.links().get(0);
+        assertThat(firstLink, is(createEdgeLink(src, true)));
+        Link secondLink = path.links().get(1);
+        assertThat(secondLink, is(createEdgeLink(dst, false)));
     }
 }
