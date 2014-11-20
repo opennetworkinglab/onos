@@ -77,10 +77,10 @@
             linkOutWidth: 30
         },
         icons: {
-            w: 24,
-            h: 24,
-            xoff: -10,
-            yoff: -6
+            w: 30,
+            h: 30,
+            xoff: -16,
+            yoff: -14
         },
         iconUrl: {
             device: 'img/device.png',

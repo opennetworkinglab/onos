@@ -85,11 +85,13 @@
     background-color: #bbb;
     border: 1px solid #eee;
     color: #666;
+
 }
 .dark #mast span.radio.active {
     background-color: #222;
     border: 1px solid #eee;
-    color: #aaf;
+    Xcolor: #aaf;
+    color: #78a;
 }
 
 /* Button Bar */
@@ -119,6 +121,7 @@
     border-bottom-color: #fff;
     background-color: #888;
     color: #ddf;
+    font-weight: bold;
 }
 
 .dark #bb .btn {
@@ -133,6 +136,8 @@
     border-right-color: #888;
     border-bottom-color: #888;
     background-color: #555;
-    color: #bbd;
+    Xcolor: #bbd;
+    color: #78a;
+    font-weight: bold;
 }
 

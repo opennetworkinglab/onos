@@ -38,7 +38,7 @@
 
         var defaultOptions = {
             trace: false,
-            theme: 'light',
+            theme: 'dark',
             startVid: defaultVid
         };
 

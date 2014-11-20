@@ -44,6 +44,7 @@
 
 #topo svg .node.selected rect,
 #topo svg .node.selected circle {
+    fill: #ffA300;
     filter: url(#blue-glow);
 }
 
@@ -81,7 +82,7 @@
 }
 
 #topo svg .node.device.roadm.online {
-    fill: #03c;
+    fill: #335a9a;
 }
 
 /* note: device is offline without the 'online' class */

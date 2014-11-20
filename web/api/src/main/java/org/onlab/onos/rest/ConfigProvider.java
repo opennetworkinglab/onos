@@ -50,8 +50,10 @@ import org.onlab.packet.VlanId;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.onos.net.DeviceId.deviceId;
@@ -205,10 +207,15 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         HostId hostId = HostId.hostId(mac, vlanId);
         SparseAnnotations annotations = annotations(node.get("annotations"));
         HostLocation location = new HostLocation(connectPoint(get(node, "location")), 0);
-        IpAddress ip = IpAddress.valueOf(get(node, "ip"));
+
+        String[] ipStrings = get(node, "ip").split(",");
+        Set<IpAddress> ips = new HashSet<>();
+        for (String ip : ipStrings) {
+            ips.add(IpAddress.valueOf(ip.trim()));
+        }
 
         DefaultHostDescription desc =
-                new DefaultHostDescription(mac, vlanId, location, ip, annotations);
+                new DefaultHostDescription(mac, vlanId, location, ips, annotations);
         hps.hostDetected(hostId, desc);
     }
 
