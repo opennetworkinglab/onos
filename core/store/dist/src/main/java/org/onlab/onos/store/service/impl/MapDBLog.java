@@ -146,7 +146,7 @@ public class MapDBLog implements Log {
         DB db = txMaker.makeTx();
         try {
             BTreeMap<Long, byte[]> log = getLogMap(db);
-            return log.isEmpty() ? null : verifyNotNull(serializer.decode(log.firstEntry().getValue()));
+            return log.isEmpty() ? null : verifyNotNull(decodeEntry(log.firstEntry().getValue()));
         } finally {
             db.close();
         }
@@ -164,6 +164,13 @@ public class MapDBLog implements Log {
         }
     }
 
+    private <T extends Entry> T decodeEntry(final byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        return serializer.decode(bytes.clone());
+    }
+
     @Override
     public <T extends Entry> List<T> getEntries(long from, long to) {
         assertIsOpen();
@@ -179,7 +186,7 @@ public class MapDBLog implements Log {
             }
             List<T> entries = new ArrayList<>((int) (to - from + 1));
             for (long i = from; i <= to; i++) {
-                T entry = verifyNotNull(serializer.decode(log.get(i)), "LogEntry %s was null", i);
+                T entry = verifyNotNull(decodeEntry(log.get(i)), "LogEntry %s was null", i);
                 entries.add(entry);
             }
             return entries;
@@ -195,7 +202,7 @@ public class MapDBLog implements Log {
         try {
             BTreeMap<Long, byte[]> log = getLogMap(db);
             byte[] entryBytes = log.get(index);
-            return entryBytes == null ? null : verifyNotNull(serializer.decode(entryBytes),
+            return entryBytes == null ? null : verifyNotNull(decodeEntry(entryBytes),
                                                              "LogEntry %s was null", index);
         } finally {
             db.close();
@@ -220,7 +227,7 @@ public class MapDBLog implements Log {
         DB db = txMaker.makeTx();
         try {
             BTreeMap<Long, byte[]> log = getLogMap(db);
-            return log.isEmpty() ? null : verifyNotNull(serializer.decode(log.lastEntry().getValue()));
+            return log.isEmpty() ? null : verifyNotNull(decodeEntry(log.lastEntry().getValue()));
         } finally {
             db.close();
         }
