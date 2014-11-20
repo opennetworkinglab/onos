@@ -588,6 +588,7 @@
                     setKeys: this.setKeys,
                     dataLoadError: this.dataLoadError,
                     alert: this.alert,
+                    flash: this.flash,
                     theme: this.theme
                 }
             },
@@ -695,6 +696,10 @@
             // as individually closable.
             alert: function (msg) {
                 doAlert(msg);
+            },
+
+            flash: function (msg) {
+                libApi.feedback.flash(msg);
             },
 
             dataLoadError: function (err, url) {

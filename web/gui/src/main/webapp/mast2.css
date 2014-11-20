@@ -64,6 +64,8 @@
     font-size: 10pt;
     margin: 4px 2px;
     padding: 1px 6px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
     cursor: pointer;
 }
 
@@ -102,6 +104,8 @@
 #bb .btn {
     margin: 0 4px;
     padding: 2px 6px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
     font-size: 9pt;
     cursor: pointer;
 }

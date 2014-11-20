@@ -188,8 +188,13 @@ svg .node.host circle {
 
 #topo-detail h2 {
     position: absolute;
-    /*display: inline-block;*/
-    /*vertical-align: bottom;*/
+    margin: 0px 4px;
+    top: 20px;
+    left: 50px;
+    color: black;
+}
+
+#topo-detail h3 {
     margin: 0px 4px;
     top: 20px;
     left: 50px;

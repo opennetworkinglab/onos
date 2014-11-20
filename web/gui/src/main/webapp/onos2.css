@@ -24,6 +24,19 @@ html, body {
     height: 100%;
 }
 
+/* This is to ensure that the body does not expand to account for the
+   flyout details pane, that is positioned "off screen".
+ */
+body {
+    overflow: hidden;
+}
+
+#frame {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+}
+
 div.onosView {
     display: none;
 }
@@ -31,6 +44,7 @@ div.onosView {
 div.onosView.currentView {
     display: block;
 }
+
 
 #alerts {
     display: none;
@@ -42,6 +56,8 @@ div.onosView.currentView {
     top: 80px;
     left: 40px;
     padding: 3px 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
     box-shadow: 4px 6px 12px #777;
 }
 
@@ -67,90 +83,6 @@ div.onosView.currentView {
     color: #66d;
 }
 
-/*
- * ==============================================================
- * END OF NEW ONOS.JS file
- * ==============================================================
- */
-
-/*
- * === DEBUGGING ======
- */
-svg {
-    /*border: 1px dashed red;*/
-}
-
-svg #bg {
-    opacity: 0.5;
-}
-
-
-/*
- * Network Graph elements ======================================
- */
-
-
-svg g.portLayer rect.port {
-    fill: #ccc;
-}
-
-svg g.portLayer text {
-    font: 8pt sans-serif;
-    pointer-events: none;
-}
-
-
-
-/* for debugging */
-svg .node circle.debug {
-    fill: white;
-    stroke: red;
-}
-svg .node rect.debug {
-    fill: yellow;
-    stroke: red;
-    opacity: 0.35;
-}
-
-
-
-svg .link.inactive,
-svg .port.inactive,
-svg .portText.inactive,
-svg .node.inactive rect,
-svg .node.inactive circle,
-svg .node.inactive text,
-svg .node.inactive image {
-    opacity: .1;
-}
-
-svg .node.inactive.selected rect,
-svg .node.inactive.selected text,
-svg .node.inactive.selected image {
-    opacity: .6;
-}
-
-/*
- * =============================================================
- */
-
-/*
- * Specific structural elements
- */
-
-/* This is to ensure that the body does not expand to account for the
-   flyout details pane, that is positioned "off screen".
- */
-body {
-    overflow: hidden;
-}
-
-
-#frame {
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
-}
 
 #flyout {
     position: absolute;
@@ -200,4 +132,3 @@ body {
     background-color: #ccc;
     border: 0;
 }
-
