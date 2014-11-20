@@ -741,20 +741,14 @@
 
     function showTraffic(data) {
         evTrace(data);
-        var paths = data.payload.paths;
+        var paths = data.payload.paths,
+            hasTraffic = false;
 
         // Revert any links hilighted previously.
-        link.attr('stroke-width', null)
-            .style('stroke-width', null)
+        link.style('stroke-width', null)
             .classed('primary secondary animated optical', false);
         // Remove all previous labels.
         removeLinkLabels();
-
-        if (paths.length && !antTimer) {
-            startAntTimer();
-        } else if (!paths.length && antTimer) {
-            stopAntTimer();
-        }
 
         // Now hilight all links in the paths payload, and attach
         //  labels to them, if they are defined.
@@ -763,15 +757,23 @@
                 i,
                 ldata;
 
+            hasTraffic = hasTraffic || p.traffic;
             for (i=0; i<n; i++) {
                 ldata = findLinkById(p.links[i]);
-                if (ldata) {
+                if (ldata && ldata.el) {
                     ldata.el.classed(p.class, true);
                     ldata.label = p.labels[i];
                 }
             }
         });
+
         updateLinks();
+
+        if (hasTraffic && !antTimer) {
+            startAntTimer();
+        } else if (!hasTraffic && antTimer) {
+            stopAntTimer();
+        }
     }
 
     // ...............................
@@ -1736,14 +1738,17 @@
 
         linkLabel.each(function (d) {
             var el = d3.select(this);
-            var lnk = findLinkById(d.key),
-                parms = {
+            var lnk = findLinkById(d.key);
+
+            if (lnk) {
+                var parms = {
                     x1: lnk.source.x,
                     y1: lnk.source.y,
                     x2: lnk.target.x,
                     y2: lnk.target.y
                 };
-            el.attr('transform', transformLabel(parms));
+                el.attr('transform', transformLabel(parms));
+            }
         });
     }
 
@@ -1973,7 +1978,7 @@
             table = detailPane.append("table"),
             tbody = table.append("tbody");
 
-        title.text('Multi-Select...');
+        title.text('Selected Nodes');
 
         selectOrder.forEach(function (d, i) {
             addProp(tbody, i+1, d);
@@ -2000,22 +2005,26 @@
             }
         });
 
-        addSingleSelectActions();
+        addSingleSelectActions(data);
     }
 
-    function addSingleSelectActions() {
+    function addSingleSelectActions(data) {
         detailPane.append('hr');
         // always want to allow 'show traffic'
-        addAction(detailPane, 'Show Traffic', showTrafficAction);
+        addAction(detailPane, 'Show Related Traffic', showTrafficAction);
+
+        if (data.type === 'switch') {
+            addAction(detailPane, 'Show Device Flows', showDeviceLinkFlowsAction);
+        }
     }
 
     function addMultiSelectActions() {
         detailPane.append('hr');
         // always want to allow 'show traffic'
-        addAction(detailPane, 'Show Traffic', showTrafficAction);
+        addAction(detailPane, 'Show Related Traffic', showTrafficAction);
         // if exactly two hosts are selected, also want 'add host intent'
         if (nSel() === 2 && allSelectionsClass('host')) {
-            addAction(detailPane, 'Add Host Intent', addIntentAction);
+            addAction(detailPane, 'Add Host-to-Host Intent', addIntentAction);
         }
     }
 
@@ -2306,13 +2315,15 @@
     }
 
     function startAntTimer() {
-        var pulses = [ 5, 3, 1.2, 3 ],
-            pulse  = 0;
-        antTimer = setInterval(function () {
-            pulse = pulse + 1;
-            pulse = pulse === pulses.length ? 0 : pulse;
-            d3.selectAll('.animated').style('stroke-width', pulses[pulse]);
-        }, 200);
+        if (!antTimer) {
+            var pulses = [5, 3, 1.2, 3],
+                pulse = 0;
+            antTimer = setInterval(function () {
+                pulse = pulse + 1;
+                pulse = pulse === pulses.length ? 0 : pulse;
+                d3.selectAll('.animated').style('stroke-width', pulses[pulse]);
+            }, 200);
+        }
     }
 
     function stopAntTimer() {

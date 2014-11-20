@@ -164,16 +164,18 @@ public class TopologyViewIntentFilter {
 
     // Indicates whether the specified intent involves the given device.
     private boolean isIntentRelevantToDevice(List<Intent> installables, Device device) {
-        for (Intent installable : installables) {
-            if (installable instanceof PathIntent) {
-                PathIntent pathIntent = (PathIntent) installable;
-                if (pathContainsDevice(pathIntent.path().links(), device.id())) {
-                    return true;
-                }
-            } else if (installable instanceof LinkCollectionIntent) {
-                LinkCollectionIntent linksIntent = (LinkCollectionIntent) installable;
-                if (pathContainsDevice(linksIntent.links(), device.id())) {
-                    return true;
+        if (installables != null) {
+            for (Intent installable : installables) {
+                if (installable instanceof PathIntent) {
+                    PathIntent pathIntent = (PathIntent) installable;
+                    if (pathContainsDevice(pathIntent.path().links(), device.id())) {
+                        return true;
+                    }
+                } else if (installable instanceof LinkCollectionIntent) {
+                    LinkCollectionIntent linksIntent = (LinkCollectionIntent) installable;
+                    if (pathContainsDevice(linksIntent.links(), device.id())) {
+                        return true;
+                    }
                 }
             }
         }

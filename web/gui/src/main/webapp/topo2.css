@@ -124,7 +124,6 @@ svg .node.host circle {
 
 #topo svg .link {
     opacity: .7;
-    stroke-width: 1.2px;
 }
 
 #topo svg .link.inactive {
@@ -210,15 +209,17 @@ svg .node.host circle {
     text-align: center;
 
     /* theme specific... */
-    border: 1px solid #ddf;
-    color: #99f;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    color: #eee;
+    background: #888;
 }
 
 #topo-detail .actionBtn:hover {
     /* theme specific... */
-    border: 1px solid #ddf;
-    background: #eef;
-    color: #77d;
+    border: 2px solid #ddd;
+    color: #eee;
+    background: #444;
 }
 
 
