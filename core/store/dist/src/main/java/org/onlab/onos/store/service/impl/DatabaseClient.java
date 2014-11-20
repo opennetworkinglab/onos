@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.event.LeaderElectEvent;
+import net.kuujo.copycat.protocol.Response.Status;
 import net.kuujo.copycat.protocol.SubmitRequest;
 import net.kuujo.copycat.protocol.SubmitResponse;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
@@ -107,7 +108,11 @@ public class DatabaseClient implements ClusterMessageHandler {
         log.debug("Sent {} to {}", request, currentLeader);
 
         try {
-            return (T) submitResponse.get(TIMEOUT_MS, TimeUnit.MILLISECONDS).result();
+            final SubmitResponse response = submitResponse.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            if (response.status() != Status.OK) {
+                throw new DatabaseException(response.error());
+            }
+            return (T) response.result();
         } catch (ExecutionException | InterruptedException e) {
             throw new DatabaseException(e);
         } catch (TimeoutException e) {
