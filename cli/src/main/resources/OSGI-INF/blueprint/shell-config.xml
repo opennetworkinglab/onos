@@ -170,6 +170,13 @@
             </completers>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.net.RandomIntentCommand"/>
+            <completers>
+                <ref component-id="nullCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.net.ResourceAllocationsCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>

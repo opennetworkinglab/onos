@@ -74,6 +74,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     protected void execute() {
         service = get(IntentService.class);
 
+
         DeviceId ingressDeviceId = deviceId(getDeviceId(ingressDeviceString));
         PortNumber ingressPortNumber = portNumber(getPortNumber(ingressDeviceString));
         ConnectPoint ingress = new ConnectPoint(ingressDeviceId, ingressPortNumber);
