@@ -256,8 +256,19 @@ public class LinkManager
     }
 
     // Removes all links in the specified set and emits appropriate events.
-    private void removeLinks(Set<Link> links, boolean isSoftRemove) {
+    private void  removeLinks(Set<Link> links, boolean isSoftRemove) {
         for (Link link : links) {
+            if (!deviceService.getDevice(link.src().deviceId()).type().equals(
+                    deviceService.getDevice(link.dst().deviceId()).type())) {
+                //TODO this is aweful. need to be fixed so that we don't down
+                // configured links. perhaps add a mechanism to figure out the
+                // state of this link
+                log.info("Ignoring removal of link as device types are " +
+                                 "different {} {} ",
+                         link.src() ,
+                         link.dst());
+                continue;
+            }
             LinkEvent event = isSoftRemove ?
                     store.removeOrDownLink(link.src(), link.dst()) :
                     store.removeLink(link.src(), link.dst());

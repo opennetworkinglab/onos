@@ -37,7 +37,7 @@ public class OpticalPathIntent extends Intent {
             ConnectPoint src,
             ConnectPoint dst,
             Path path) {
-        super(id(OpticalPathIntent.class, src, dst),
+        super(id(OpticalPathIntent.class, src, dst, path),
               appId,
               ImmutableSet.<NetworkResource>copyOf(path.links()));
         this.src = src;
@@ -77,6 +77,7 @@ public class OpticalPathIntent extends Intent {
                 .add("path", path)
                 .toString();
     }
+
 
     public Collection<Link> requiredLinks() {
         return path.links();

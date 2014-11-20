@@ -206,6 +206,9 @@ public class OpticalPathProvisioner {
     private static class OpticalLinkWeight implements LinkWeight {
         @Override
         public double weight(TopologyEdge edge) {
+            if (edge.link().state() == Link.State.INACTIVE) {
+                return -1; // ignore inactive links
+            }
             if (isOpticalLink(edge.link())) {
                 return 1000.0;  // optical links
             } else {

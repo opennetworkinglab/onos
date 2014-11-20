@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
@@ -41,8 +42,10 @@ import org.onlab.onos.net.device.impl.DeviceManager;
 import org.onlab.onos.store.trivial.impl.SimpleLinkStore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -60,11 +63,17 @@ public class LinkManagerTest {
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final DeviceId DID3 = deviceId("of:goo");
+    private static final Device DEV1 = new DefaultDevice(
+            PID, DID1, Device.Type.SWITCH, "", "", "", "", null);
+    private static final Device DEV2 = new DefaultDevice(
+            PID, DID2, Device.Type.SWITCH, "", "", "", "", null);
+    private static final Device DEV3 = new DefaultDevice(
+            PID, DID2, Device.Type.SWITCH, "", "", "", "", null);
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
-
+    private static final Map<DeviceId, Device> DEVICEIDMAP = new HashMap<>();
 
     private LinkManager mgr;
 
@@ -76,6 +85,7 @@ public class LinkManagerTest {
     protected TestListener listener = new TestListener();
     protected DeviceManager devmgr = new TestDeviceManager();
 
+
     @Before
     public void setUp() {
         mgr = new LinkManager();
@@ -86,6 +96,10 @@ public class LinkManagerTest {
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.deviceService = devmgr;
         mgr.activate();
+
+        DEVICEIDMAP.put(DID1, DEV1);
+        DEVICEIDMAP.put(DID2, DEV2);
+        DEVICEIDMAP.put(DID3, DEV3);
 
         service.addListener(listener);
 
@@ -276,10 +290,17 @@ public class LinkManagerTest {
     }
 
     private static class TestDeviceManager extends DeviceManager {
+
         @Override
         public MastershipRole getRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
         }
+
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            return DEVICEIDMAP.get(deviceId);
+        }
+
     }
 
 }

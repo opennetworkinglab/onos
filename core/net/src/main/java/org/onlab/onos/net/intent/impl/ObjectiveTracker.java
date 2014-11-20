@@ -45,6 +45,7 @@ import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onlab.onos.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -152,13 +153,18 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 for (Event reason : event.reasons()) {
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
-                        if (linkEvent.type() == LINK_REMOVED) {
+                        if (linkEvent.type() == LINK_REMOVED
+                                || (linkEvent.type() == LINK_UPDATED &&
+                                        linkEvent.subject().isDurable())) {
                             final LinkKey linkKey = linkKey(linkEvent.subject());
                             Set<IntentId> intentIds = intentsByLink.get(linkKey);
                             log.debug("recompile triggered by LinkDown {} {}", linkKey, intentIds);
                             toBeRecompiled.addAll(intentIds);
                         }
-                        recompileOnly = recompileOnly && linkEvent.type() == LINK_REMOVED;
+                        recompileOnly = recompileOnly &&
+                                (linkEvent.type() == LINK_REMOVED ||
+                                (linkEvent.type() == LINK_UPDATED &&
+                                linkEvent.subject().isDurable()));
                     }
                 }
 

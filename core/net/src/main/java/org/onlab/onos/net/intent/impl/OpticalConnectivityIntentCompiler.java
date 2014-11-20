@@ -79,6 +79,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         LinkWeight weight = new LinkWeight() {
             @Override
             public double weight(TopologyEdge edge) {
+                if (edge.link().state() == Link.State.INACTIVE) {
+                    return -1;
+                }
                 return edge.link().type() == Link.Type.OPTICAL ? +1 : -1;
             }
         };
@@ -86,7 +89,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Set<Path> paths = topologyService.getPaths(topology, start.deviceId(),
                                                    end.deviceId(), weight);
         if (paths.isEmpty()) {
-            throw new PathNotFoundException("No fiber path from " + start + " to " + end);
+            throw new PathNotFoundException("No Optical path found from " +
+                                                    start + " to " + end);
         }
 
         // TODO: let's be more intelligent about this eventually
