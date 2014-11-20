@@ -74,7 +74,7 @@
             linkInColor: '#66f',
             linkInWidth: 14,
             linkOutColor: '#f00',
-            linkOutWidth: 30
+            linkOutWidth: 14
         },
         icons: {
             w: 30,
@@ -885,6 +885,9 @@
         });
     }
 
+    function stripPx(s) {
+        return s.replace(/px$/,'');
+    }
     // ==============================
     // onos instance panel functions
 
@@ -904,12 +907,29 @@
         entering.each(function (d, i) {
             var el = d3.select(this),
                 img;
+            var css = window.getComputedStyle(this),
+                w = stripPx(css.width),
+                h = stripPx(css.height) / 2;
 
-            $('<img src="img/node.png">').appendTo(el);
-            img = el.select('img')
-                .attr({
-                    width: 30
-                });
+            var svg = el.append('svg').attr({
+                width: w,
+                height: h
+            });
+            var dim = 30;
+            svg.append('use').attr({
+                class: 'glyphIcon',
+                transform: translate(2,2),
+                'xlink:href': '#node',
+                width: dim,
+                height: dim
+
+            });
+
+            //$('<img src="img/node.png">').appendTo(el);
+            //img = el.select('img')
+            //    .attr({
+            //        width: 30
+            //    });
 
             $('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
 

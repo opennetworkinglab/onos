@@ -32,6 +32,7 @@
 
 /* TODO: move glyphs into framework */
 
+#topo-oibox svg .glyphIcon,
 #topo svg .glyphIcon {
     fill: black;
     stroke: none;
@@ -269,10 +270,23 @@ svg .node.host circle {
     color: black;
 }
 
-#topo-oibox .onosInst img {
+#topo-oibox .onosInst svg .glyphIcon {
     opacity: 0.5;
-    padding: 3px;
+    fill: black;
+    stroke: none;
+    fill-rule: evenodd;
 }
+#topo-oibox .onosInst.online svg .glyphIcon {
+    opacity: 1;
+    fill: black;
+    stroke: none;
+    fill-rule: evenodd;
+}
+
+/*#topo-oibox .onosInst img {*/
+    /*opacity: 0.5;*/
+    /*padding: 3px;*/
+/*}*/
 
 #topo-oibox .onosInst.online img {
     opacity: 1.0;
