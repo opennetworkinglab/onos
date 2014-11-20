@@ -141,7 +141,8 @@ public class LinkCollectionIntentInstaller implements IntentInstaller<LinkCollec
                                    .build();
 
         FlowRule rule = new DefaultFlowRule(deviceId,
-                selector, treatment, 123, appId, 0, true);
+                selector, treatment, 123,
+                appId, (short) (intent.id().fingerprint() &  0xffff), 0, true);
 
         return new FlowRuleBatchEntry(operation, rule);
     }
