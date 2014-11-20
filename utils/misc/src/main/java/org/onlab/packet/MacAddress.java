@@ -188,7 +188,7 @@ public class MacAddress {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.address);
+        return Long.hashCode(toLong());
     }
 
     @Override
