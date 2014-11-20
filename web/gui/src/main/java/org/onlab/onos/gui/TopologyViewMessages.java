@@ -56,6 +56,7 @@ import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +85,15 @@ public abstract class TopologyViewMessages {
 
     private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
+
+    private static final double KB = 1024;
+    private static final double MB = 1024 * KB;
+    private static final double GB = 1024 * MB;
+
+    private static final String GB_UNIT = "GB";
+    private static final String MB_UNIT = "MB";
+    private static final String KB_UNIT = "KB";
+    private static final String B_UNIT = "B";
 
     protected final ServiceDirectory directory;
     protected final ClusterService clusterService;
@@ -424,14 +434,16 @@ public abstract class TopologyViewMessages {
             ArrayNode labels = mapper.createArrayNode();
             boolean hasTraffic = false;
             for (Link link : links) {
-                linksNode.add(compactLinkString(link));
-                Load load = statService.load(link);
-                String label = "";
-                if (load.rate() > 0) {
-                    hasTraffic = true;
-                    label = load.latest() + " bytes";
+                if (isInfrastructureEgress(link)) {
+                    linksNode.add(compactLinkString(link));
+                    Load load = statService.load(link);
+                    String label = "";
+                    if (load.rate() > 0) {
+                        hasTraffic = true;
+                        label = format(load);
+                    }
+                    labels.add(label);
                 }
-                labels.add(label);
             }
             pathNode.put("class", hasTraffic ? type + " animated" : type);
             pathNode.put("traffic", hasTraffic);
@@ -439,6 +451,32 @@ public abstract class TopologyViewMessages {
             pathNode.set("labels", labels);
             paths.add(pathNode);
         }
+    }
+
+    // Poor-mans formatting to get the labels with byte counts looking nice.
+    private String format(Load load) {
+        long bytes = load.latest();
+        String unit;
+        double value;
+        if (bytes > GB) {
+            value = bytes / GB;
+            unit = GB_UNIT;
+        } else if (bytes > MB) {
+            value = bytes / MB;
+            unit = MB_UNIT;
+        } else if (bytes > KB) {
+            value = bytes / KB;
+            unit = KB_UNIT;
+        } else {
+            value = bytes;
+            unit = B_UNIT;
+        }
+        DecimalFormat format = new DecimalFormat("#,###.##");
+        return format.format(value) +  " " + unit;
+    }
+
+    private boolean isInfrastructureEgress(Link link) {
+        return link.src().elementId() instanceof DeviceId;
     }
 
     // Produces compact string representation of a link.

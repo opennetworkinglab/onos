@@ -1,4 +1,17 @@
 {
+    "devices": [
+        { "alias":  "s1", "uri": "of:0000000000000001", "mac": "000000000001", "annotations": { "name": "DEN", "latitude": 39.739317, "longitude": -104.983791 }, "type": "SWITCH" },
+        { "alias":  "s2", "uri": "of:0000000000000002", "mac": "000000000002", "annotations": { "name": "ORD", "latitude": 41.880143, "longitude": -87.624257  }, "type": "SWITCH" },
+        { "alias":  "s3", "uri": "of:0000000000000003", "mac": "000000000003", "annotations": { "name": "ABQ", "latitude": 35.116541, "longitude": -106.604146 }, "type": "SWITCH" },
+        { "alias":  "s4", "uri": "of:0000000000000004", "mac": "000000000004", "annotations": { "name": "DFW", "latitude": 32.779501, "longitude": -96.801104  }, "type": "SWITCH" },
+        { "alias":  "s5", "uri": "of:0000000000000005", "mac": "000000000005", "annotations": { "name": "SEA", "latitude": 47.606126, "longitude": -122.332903 }, "type": "SWITCH" },
+        { "alias":  "s6", "uri": "of:0000000000000006", "mac": "000000000006", "annotations": { "name": "SFO", "latitude": 37.785286, "longitude": -122.406509 }, "type": "SWITCH" },
+        { "alias":  "s7", "uri": "of:0000000000000007", "mac": "000000000007", "annotations": { "name": "LAX", "latitude": 34.055604, "longitude": -118.248567 }, "type": "SWITCH" },
+        { "alias":  "s8", "uri": "of:0000000000000008", "mac": "000000000008", "annotations": { "name": "JFK", "latitude": 40.769487, "longitude": -73.972520  }, "type": "SWITCH" },
+        { "alias":  "s9", "uri": "of:0000000000000009", "mac": "000000000009", "annotations": { "name": "IAD", "latitude": 38.897676, "longitude": -77.036525  }, "type": "SWITCH" },
+        { "alias": "s10", "uri": "of:0000000000000010", "mac": "000000000010", "annotations": { "name": "ATL", "latitude": 33.756298, "longitude": -84.388507  }, "type": "SWITCH" }
+    ],
+
     "hosts" : [
         { "mac": "00:00:00:00:00:01", "vlan": -1, "location": "of:0000000000000001/10", "ip": "0.0.0.0", "annotations": { "type": "bgpSpeaker" } },
         { "mac": "00:00:00:00:00:02", "vlan": -1, "location": "of:0000000000000002/10", "ip": "0.0.0.0", "annotations": { "type": "bgpSpeaker" } },
