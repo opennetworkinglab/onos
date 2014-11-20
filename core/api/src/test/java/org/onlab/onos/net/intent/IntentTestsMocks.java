@@ -43,6 +43,7 @@ import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.resource.BandwidthResourceRequest;
 import org.onlab.onos.net.resource.LambdaResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceListener;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceService;
 import org.onlab.onos.net.resource.ResourceAllocation;
@@ -272,6 +273,16 @@ public class IntentTestsMocks {
         @Override
         public Iterable<ResourceRequest> getAvailableResources(Link link, LinkResourceAllocations allocations) {
             return null;
+        }
+
+        @Override
+        public void addListener(LinkResourceListener listener) {
+
+        }
+
+        @Override
+        public void removeListener(LinkResourceListener listener) {
+
         }
     }
 

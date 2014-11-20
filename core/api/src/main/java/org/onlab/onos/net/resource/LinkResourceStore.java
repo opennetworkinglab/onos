@@ -44,7 +44,7 @@ public interface LinkResourceStore {
      *
      * @param allocations resources to be released
      */
-    void releaseResources(LinkResourceAllocations allocations);
+    LinkResourceEvent releaseResources(LinkResourceAllocations allocations);
 
     /**
      * Returns resources allocated for an Intent.

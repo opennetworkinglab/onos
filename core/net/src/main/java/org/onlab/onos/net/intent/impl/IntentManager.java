@@ -15,10 +15,18 @@
  */
 package org.onlab.onos.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,22 +58,20 @@ import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.onos.net.intent.IntentState.*;
+import static org.onlab.onos.net.intent.IntentState.COMPILING;
+import static org.onlab.onos.net.intent.IntentState.FAILED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onlab.onos.net.intent.IntentState.INSTALLING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWING;
+import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -159,8 +165,8 @@ public class IntentManager
         checkNotNull(oldIntentId, INTENT_ID_NULL);
         checkNotNull(newIntent, INTENT_NULL);
         execute(IntentOperations.builder()
-                        .addReplaceOperation(oldIntentId, newIntent)
-                        .build());
+                .addReplaceOperation(oldIntentId, newIntent)
+                .build());
     }
 
     @Override
@@ -681,7 +687,7 @@ public class IntentManager
             // TODO: clean this up, or set to debug
             IntentState oldState = stateMap.get(intent);
             log.debug("intent id: {}, old state: {}, new state: {}",
-                     intent.id(), oldState, newState);
+                    intent.id(), oldState, newState);
 
             stateMap.put(intent, newState);
             IntentEvent event = store.setState(intent, newState);
@@ -845,4 +851,5 @@ public class IntentManager
             log.warn("NOT IMPLEMENTED -- Cancel operations: {}", operations);
         }
     }
+
 }

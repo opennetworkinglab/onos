@@ -89,4 +89,18 @@ public interface LinkResourceService {
     Iterable<ResourceRequest> getAvailableResources(Link link,
                                           LinkResourceAllocations allocations);
 
+    /**
+     * Adds a listener for resource related events.
+     *
+     * @param listener listener to add
+     */
+    void addListener(LinkResourceListener listener);
+
+    /**
+     * Removes a listener for resource related events.
+     *
+     * @param listener listener to remove.
+     */
+    void removeListener(LinkResourceListener listener);
+
 }

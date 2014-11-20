@@ -15,13 +15,10 @@
  */
 package org.onlab.onos.store.trivial.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,10 +35,17 @@ import org.onlab.onos.net.resource.BandwidthResourceAllocation;
 import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceEvent;
 import org.onlab.onos.net.resource.LinkResourceStore;
 import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.onos.net.resource.ResourceType;
 import org.slf4j.Logger;
+
+import com.google.common.collect.ImmutableList;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages link resources using trivial in-memory structures implementation.
@@ -51,6 +55,7 @@ import org.slf4j.Logger;
 public class SimpleLinkResourceStore implements LinkResourceStore {
     private static final int DEFAULT_BANDWIDTH = 1_000;
     private final Logger log = getLogger(getClass());
+
     private Map<IntentId, LinkResourceAllocations> linkResourceAllocationsMap;
     private Map<Link, Set<LinkResourceAllocations>> allocatedResources;
     private Map<Link, Set<ResourceAllocation>> freeResources;
@@ -213,7 +218,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public synchronized void releaseResources(LinkResourceAllocations allocations) {
+    public synchronized LinkResourceEvent releaseResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
         linkResourceAllocationsMap.remove(allocations.intendId());
         for (Link link : allocations.links()) {
@@ -226,6 +231,13 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
             }
             allocatedResources.put(link, linkAllocs);
         }
+
+        final List<LinkResourceAllocations> releasedResources =
+                ImmutableList.of(allocations);
+
+        return new LinkResourceEvent(
+                LinkResourceEvent.Type.ADDITIONAL_RESOURCES_AVAILABLE,
+                releasedResources);
     }
 
     @Override
@@ -248,5 +260,6 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
     public synchronized Iterable<LinkResourceAllocations> getAllocations() {
         return Collections.unmodifiableCollection(linkResourceAllocationsMap.values());
     }
+
 
 }

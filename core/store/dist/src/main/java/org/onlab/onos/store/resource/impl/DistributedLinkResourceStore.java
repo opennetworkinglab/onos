@@ -15,6 +15,14 @@
  */
 package org.onlab.onos.store.resource.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,6 +38,7 @@ import org.onlab.onos.net.resource.BandwidthResourceAllocation;
 import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceEvent;
 import org.onlab.onos.net.resource.LinkResourceStore;
 import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.onos.net.resource.ResourceType;
@@ -48,16 +57,9 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -98,7 +100,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
 
     // Link annotation key name to use as bandwidth
     private String bandwidthAnnotation = "bandwidth";
-    // Link annotation key name to use as max lamda
+    // Link annotation key name to use as max lambda
     private String wavesAnnotation = "optical.waves";
 
     private StoreSerializer serializer;
@@ -423,7 +425,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     @Override
-    public void releaseResources(LinkResourceAllocations allocations) {
+    public LinkResourceEvent releaseResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
 
         final IntentId intendId = allocations.intendId();
@@ -458,6 +460,14 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
             BatchWriteResult batchWrite = databaseService.batchWrite(tx.build());
             success = batchWrite.isSuccessful();
         } while (!success);
+
+        // Issue events to force recompilation of intents.
+
+        final List<LinkResourceAllocations> releasedResources =
+                ImmutableList.of(allocations);
+        return new LinkResourceEvent(
+                LinkResourceEvent.Type.ADDITIONAL_RESOURCES_AVAILABLE,
+                releasedResources);
     }
 
     @Override
@@ -565,5 +575,4 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
             })
             .filter(notNull());
     }
-
 }

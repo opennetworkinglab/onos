@@ -15,8 +15,11 @@
  */
 package org.onlab.onos.net.intent.impl;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,15 +32,16 @@ import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.link.LinkEvent;
+import org.onlab.onos.net.resource.LinkResourceEvent;
+import org.onlab.onos.net.resource.LinkResourceListener;
+import org.onlab.onos.net.resource.LinkResourceService;
 import org.onlab.onos.net.topology.TopologyEvent;
 import org.onlab.onos.net.topology.TopologyListener;
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -53,7 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Entity responsible for tracking installed flows and for monitoring topology
  * events to determine what flows are affected by topology changes.
  */
-@Component
+@Component(immediate = true)
 @Service
 public class ObjectiveTracker implements ObjectiveTrackerService {
 
@@ -65,21 +69,28 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkResourceService resourceManager;
+
     private ExecutorService executorService =
             newSingleThreadExecutor(namedThreads("onos-flowtracker"));
 
     private TopologyListener listener = new InternalTopologyListener();
+    private LinkResourceListener linkResourceListener =
+            new InternalLinkResourceListener();
     private TopologyChangeDelegate delegate;
 
     @Activate
     public void activate() {
         topologyService.addListener(listener);
+        resourceManager.addListener(linkResourceListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         topologyService.removeListener(listener);
+        resourceManager.removeListener(linkResourceListener);
         log.info("Stopped");
     }
 
@@ -172,5 +183,38 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             }
         }
     }
+
+    /**
+     * Internal re-actor to resource available events.
+     */
+    private class InternalLinkResourceListener implements LinkResourceListener {
+        @Override
+        public void event(LinkResourceEvent event) {
+            executorService.execute(new ResourceAvailableHandler(event));
+        }
+    }
+
+    /*
+     * Re-dispatcher of resource available events.
+     */
+    private class ResourceAvailableHandler implements Runnable {
+
+        private final LinkResourceEvent event;
+
+        ResourceAvailableHandler(LinkResourceEvent event) {
+            this.event = event;
+        }
+
+        @Override
+        public void run() {
+            // If there is no delegate, why bother? Just bail.
+            if (delegate == null) {
+                return;
+            }
+
+            delegate.triggerCompile(new HashSet<>(), true);
+        }
+    }
+
 
 }

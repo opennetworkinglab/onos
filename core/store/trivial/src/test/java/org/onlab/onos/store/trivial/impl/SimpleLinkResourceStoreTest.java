@@ -15,13 +15,6 @@
  */
 package org.onlab.onos.store.trivial.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.DIRECT;
-import static org.onlab.onos.net.PortNumber.portNumber;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,6 +35,13 @@ import org.onlab.onos.net.resource.LinkResourceAllocations;
 import org.onlab.onos.net.resource.LinkResourceStore;
 import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.onos.net.resource.ResourceType;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onlab.onos.net.Link.Type.DIRECT;
+import static org.onlab.onos.net.PortNumber.portNumber;
 
 /**
  * Test of the simple LinkResourceStore implementation.

@@ -32,6 +32,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.event.AbstractListenerRegistry;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.resource.BandwidthResourceAllocation;
@@ -41,9 +43,12 @@ import org.onlab.onos.net.resource.Lambda;
 import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LambdaResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onlab.onos.net.resource.LinkResourceEvent;
+import org.onlab.onos.net.resource.LinkResourceListener;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceService;
 import org.onlab.onos.net.resource.LinkResourceStore;
+import org.onlab.onos.net.resource.LinkResourceStoreDelegate;
 import org.onlab.onos.net.resource.ResourceAllocation;
 import org.onlab.onos.net.resource.ResourceRequest;
 import org.onlab.onos.net.resource.ResourceType;
@@ -58,11 +63,18 @@ public class LinkResourceManager implements LinkResourceService {
 
     private final Logger log = getLogger(getClass());
 
+    protected final AbstractListenerRegistry<LinkResourceEvent, LinkResourceListener>
+            listenerRegistry = new AbstractListenerRegistry<>();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private LinkResourceStore store;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
+
     @Activate
     public void activate() {
+        eventDispatcher.addSink(LinkResourceEvent.class, listenerRegistry);
         log.info("Started");
     }
 
@@ -150,7 +162,10 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public void releaseResources(LinkResourceAllocations allocations) {
-        store.releaseResources(allocations);
+        final LinkResourceEvent event = store.releaseResources(allocations);
+        if (event != null) {
+            post(event);
+        }
     }
 
     @Override
@@ -205,4 +220,32 @@ public class LinkResourceManager implements LinkResourceService {
         return result;
     }
 
+    @Override
+    public void addListener(LinkResourceListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(LinkResourceListener listener) {
+        listenerRegistry.removeListener(listener);
+    }
+
+    /**
+     * Posts the specified event to the local event dispatcher.
+     */
+    private void post(LinkResourceEvent event) {
+        if (event != null) {
+            eventDispatcher.post(event);
+        }
+    }
+
+    /**
+     * Store delegate to re-post events emitted from the store.
+     */
+    private class InternalStoreDelegate implements LinkResourceStoreDelegate {
+        @Override
+        public void notify(LinkResourceEvent event) {
+            post(event);
+        }
+    }
 }
