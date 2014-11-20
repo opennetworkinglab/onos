@@ -28,11 +28,11 @@
 
 .light #mast {
     background-color: #bbb;
-    box-shadow: 0px 2px 8px #777;
+    box-shadow: 0 2px 8px #777;
 }
 .dark #mast {
     background-color: #444;
-    box-shadow: 0px 2px 8px #777;
+    box-shadow: 0 2px 8px #777;
 }
 
 #mast img#logo {
@@ -78,7 +78,6 @@
 
 #mast span.radio.active {
     padding: 1px 6px;
-    font-weight: bold;
 }
 
 .light #mast span.radio.active {
@@ -90,7 +89,6 @@
 .dark #mast span.radio.active {
     background-color: #222;
     border: 1px solid #eee;
-    Xcolor: #aaf;
     color: #78a;
 }
 
@@ -121,7 +119,6 @@
     border-bottom-color: #fff;
     background-color: #888;
     color: #ddf;
-    font-weight: bold;
 }
 
 .dark #bb .btn {
@@ -136,8 +133,6 @@
     border-right-color: #888;
     border-bottom-color: #888;
     background-color: #555;
-    Xcolor: #bbd;
     color: #78a;
-    font-weight: bold;
 }
 
