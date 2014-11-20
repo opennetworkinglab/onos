@@ -42,6 +42,7 @@ import org.onlab.onos.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -167,6 +168,7 @@ public class TopologyViewWebSocket
             processMessage((ObjectNode) mapper.reader().readTree(data));
         } catch (Exception e) {
             log.warn("Unable to parse GUI request {} due to {}", data, e);
+            log.warn("Boom!!!!", e);
         }
     }
 
@@ -183,6 +185,8 @@ public class TopologyViewWebSocket
             requestTraffic(event);
         } else if (type.equals("requestAllTraffic")) {
             requestAllTraffic(event);
+        } else if (type.equals("requestDeviceLinkFlows")) {
+            requestDeviceLinkFlows(event);
         } else if (type.equals("cancelTraffic")) {
             cancelTraffic(event);
         }
@@ -262,6 +266,26 @@ public class TopologyViewWebSocket
         monitorRequest = event;
         sendMessage(trafficSummaryMessage(sid));
     }
+
+    private void requestDeviceLinkFlows(ObjectNode event) {
+        ObjectNode payload = payload(event);
+        long sid = number(event, "sid");
+        monitorRequest = event;
+
+        // Get the set of selected hosts and their intents.
+        ArrayNode ids = (ArrayNode) payload.path("ids");
+        Set<Host> hosts = new HashSet<>();
+        Set<Device> devices = getDevices(ids);
+
+        // If there is a hover node, include it in the hosts and find intents.
+        String hover = string(payload, "hover");
+        Set<Intent> hoverIntents;
+        if (!isNullOrEmpty(hover)) {
+            addHover(hosts, devices, hover);
+        }
+        sendMessage(flowSummaryMessage(sid, devices));
+    }
+
 
     // Subscribes for host traffic messages.
     private synchronized void requestTraffic(ObjectNode event) {
@@ -374,6 +398,8 @@ public class TopologyViewWebSocket
                 String type = string(monitorRequest, "event", "unknown");
                 if (type.equals("requestAllTraffic")) {
                     requestAllTraffic(monitorRequest);
+                } else if (type.equals("requestDeviceLinkFlows")) {
+                    requestDeviceLinkFlows(monitorRequest);
                 } else {
                     requestTraffic(monitorRequest);
                 }

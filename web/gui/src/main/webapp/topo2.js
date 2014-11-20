@@ -143,6 +143,7 @@
         H: toggleHover,
         V: showTrafficAction,
         A: showAllTrafficAction,
+        F: showDeviceLinkFlowsAction,
         esc: handleEscape
     };
 
@@ -179,7 +180,8 @@
         onosOrder = [],
         oiBox,
         oiShowMaster = false,
-        hoverEnabled = false,
+        hoverModes = [ 'none', 'intents', 'flows'],
+        hoverMode = 0,
         portLabelsOn = false;
 
     // D3 selections
@@ -314,7 +316,11 @@
     }
 
     function toggleHover(view) {
-        hoverEnabled = !hoverEnabled;
+        hoverMode++;
+        if (hoverMode === hoverModes.length) {
+            hoverMode = 0;
+        }
+        console.log('Hover Mode:' + hoverMode + ': ' + hoverModes[hoverMode]);
     }
 
     function togglePorts(view) {
@@ -827,6 +833,12 @@
     }
 
     function showTrafficAction() {
+        // force intents hover mode
+        hoverMode = 1;
+        showSelectTraffic();
+    }
+
+    function showSelectTraffic() {
         // if nothing is hovered over, and nothing selected, send cancel request
         if (!hovered && nSel() === 0) {
             sendMessage('cancelTraffic', {});
@@ -848,6 +860,25 @@
         sendMessage('requestAllTraffic', {});
     }
 
+    function showDeviceLinkFlowsAction() {
+        // force intents hover mode
+        hoverMode = 2;
+        showDeviceLinkFlows();
+    }
+
+    function showDeviceLinkFlows() {
+        // if nothing is hovered over, and nothing selected, send cancel request
+        if (!hovered && nSel() === 0) {
+            sendMessage('cancelTraffic', {});
+            return;
+        }
+        var hoverId = (flowsHover() && hovered && hovered.class === 'device') ?
+            hovered.id : '';
+        sendMessage('requestDeviceLinkFlows', {
+            ids: selectOrder,
+            hover: hoverId
+        });
+    }
 
     // ==============================
     // onos instance panel functions
@@ -1375,14 +1406,18 @@
     function nodeMouseOver(d) {
         hovered = d;
         if (trafficHover() && (d.class === 'host' || d.class === 'device')) {
-            showTrafficAction();
+            showSelectTraffic();
+        } else if (flowsHover() && (d.class === 'device')) {
+            showDeviceLinkFlows();
         }
     }
 
     function nodeMouseOut(d) {
         hovered = null;
         if (trafficHover() && (d.class === 'host' || d.class === 'device')) {
-            showTrafficAction();
+            showSelectTraffic();
+        } else if (flowsHover() && (d.class === 'device')) {
+            showDeviceLinkFlows();
         }
     }
 
@@ -2020,8 +2055,13 @@
     }
 
     function trafficHover() {
-        return hoverEnabled;
+        return hoverModes[hoverMode] === 'intents';
     }
+
+    function flowsHover() {
+        return hoverModes[hoverMode] === 'flows';
+    }
+
     function toggleTrafficHover() {
         showTrafficOnHover.classed('active', !trafficHover());
     }

@@ -35,10 +35,14 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
 import org.onlab.onos.net.flow.FlowEntry;
 import org.onlab.onos.net.flow.FlowRuleService;
+import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.flow.instructions.Instruction;
+import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.Intent;
@@ -58,6 +62,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -72,6 +78,7 @@ import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
+import static org.onlab.onos.net.PortNumber.P0;
 import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_REMOVED;
@@ -446,6 +453,49 @@ public abstract class TopologyViewMessages {
         return count;
     }
 
+    // Counts all entries that egress on the given device links.
+    protected Map<Link, Integer> getFlowCounts(DeviceId deviceId) {
+        List<FlowEntry> entries = new ArrayList<>();
+        Set<Link> links = new HashSet<>(linkService.getDeviceEgressLinks(deviceId));
+        Set<Host> hosts = hostService.getConnectedHosts(deviceId);
+        Iterator<FlowEntry> it = flowService.getFlowEntries(deviceId).iterator();
+        while (it.hasNext()) {
+            entries.add(it.next());
+        }
+
+        // Add all edge links to the set
+        if (hosts != null) {
+            for (Host host : hosts) {
+                links.add(new DefaultEdgeLink(host.providerId(),
+                                              new ConnectPoint(host.id(), P0),
+                                              host.location(), false));
+            }
+        }
+
+        Map<Link, Integer> counts = new HashMap<>();
+        for (Link link : links) {
+            counts.put(link, getEgressFlows(link, entries));
+        }
+        return counts;
+    }
+
+    // Counts all entries that egress on the link source port.
+    private Integer getEgressFlows(Link link, List<FlowEntry> entries) {
+        int count = 0;
+        PortNumber out = link.src().port();
+        for (FlowEntry entry : entries) {
+            TrafficTreatment treatment = entry.treatment();
+            for (Instruction instruction : treatment.instructions()) {
+                if (instruction.type() == Instruction.Type.OUTPUT &&
+                        ((OutputInstruction) instruction).port().equals(out)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+
     // Returns host details response.
     protected ObjectNode hostDetails(HostId hostId, long sid) {
         Host host = hostService.getHost(hostId);
@@ -476,6 +526,34 @@ public abstract class TopologyViewMessages {
             addPathTraffic(paths, "plain", "secondary", links);
         }
         return envelope("showTraffic", sid, payload);
+    }
+
+    // Produces JSON message to trigger flow overview visualization
+    protected ObjectNode flowSummaryMessage(long sid, Set<Device> devices) {
+        ObjectNode payload = mapper.createObjectNode();
+        ArrayNode paths = mapper.createArrayNode();
+        payload.set("paths", paths);
+
+        for (Device device : devices) {
+            Map<Link, Integer> counts = getFlowCounts(device.id());
+            for (Link link : counts.keySet()) {
+                addLinkFlows(link, paths, counts.get(link));
+            }
+        }
+        return envelope("showTraffic", sid, payload);
+    }
+
+    private void addLinkFlows(Link link, ArrayNode paths, Integer count) {
+        ObjectNode pathNode = mapper.createObjectNode();
+        ArrayNode linksNode = mapper.createArrayNode();
+        ArrayNode labels = mapper.createArrayNode();
+        boolean noFlows = count == null || count == 0;
+        pathNode.put("class", noFlows ? "secondary" : "primary");
+        pathNode.put("traffic", false);
+        pathNode.set("links", linksNode.add(compactLinkString(link)));
+        pathNode.set("labels", labels.add(noFlows ? "" : (count.toString() +
+                (count == 1 ? " flow" : " flows"))));
+        paths.add(pathNode);
     }
 
 
@@ -560,7 +638,7 @@ public abstract class TopologyViewMessages {
             unit = B_UNIT;
         }
         DecimalFormat format = new DecimalFormat("#,###.##");
-        return format.format(value) +  " " + unit;
+        return format.format(value) + " " + unit;
     }
 
     private boolean isInfrastructureEgress(Link link) {
