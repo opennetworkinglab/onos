@@ -37,6 +37,8 @@ import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.flow.FlowEntry;
+import org.onlab.onos.net.flow.FlowRuleService;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.Intent;
@@ -106,6 +108,7 @@ public abstract class TopologyViewMessages {
     protected final HostService hostService;
     protected final MastershipService mastershipService;
     protected final IntentService intentService;
+    protected final FlowRuleService flowService;
     protected final StatisticService statService;
 
     protected final ObjectMapper mapper = new ObjectMapper();
@@ -126,6 +129,7 @@ public abstract class TopologyViewMessages {
         hostService = directory.get(HostService.class);
         mastershipService = directory.get(MastershipService.class);
         intentService = directory.get(IntentService.class);
+        flowService = directory.get(FlowRuleService.class);
         statService = directory.get(StatisticService.class);
     }
 
@@ -412,11 +416,13 @@ public abstract class TopologyViewMessages {
     protected ObjectNode deviceDetails(DeviceId deviceId, long sid) {
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
+        String name = annot.value("name");
         int portCount = deviceService.getPorts(deviceId).size();
+        int flowCount = getFlowCount(deviceId);
         return envelope("showDetails", sid,
-                        json(deviceId.toString(),
+                        json(isNullOrEmpty(name) ? deviceId.toString() : name,
                              device.type().toString().toLowerCase(),
-                             new Prop("Name", annot.value("name")),
+                             new Prop("URI", deviceId.toString()),
                              new Prop("Vendor", device.manufacturer()),
                              new Prop("H/W Version", device.hwVersion()),
                              new Prop("S/W Version", device.swVersion()),
@@ -425,8 +431,19 @@ public abstract class TopologyViewMessages {
                              new Prop("Latitude", annot.value("latitude")),
                              new Prop("Longitude", annot.value("longitude")),
                              new Prop("Ports", Integer.toString(portCount)),
+                             new Prop("Flows", Integer.toString(flowCount)),
                              new Separator(),
                              new Prop("Master", master(deviceId))));
+    }
+
+    protected int getFlowCount(DeviceId deviceId) {
+        int count = 0;
+        Iterator<FlowEntry> it = flowService.getFlowEntries(deviceId).iterator();
+        while (it.hasNext()) {
+            count++;
+            it.next();
+        }
+        return count;
     }
 
     // Returns host details response.
@@ -434,11 +451,14 @@ public abstract class TopologyViewMessages {
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
         String type = annot.value("type");
+        String name = annot.value("name");
+        String vlan = host.vlan().toString();
         return envelope("showDetails", sid,
-                        json(hostId.toString(), isNullOrEmpty(type) ? "host" : type,
-                             new Prop("Name", annot.value("name")),
+                        json(isNullOrEmpty(name) ? hostId.toString() : name,
+                             isNullOrEmpty(type) ? "host" : type,
                              new Prop("MAC", host.mac().toString()),
-                             new Prop("IP", host.ipAddresses().toString()),
+                             new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
+                             new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
                              new Separator(),
                              new Prop("Latitude", annot.value("latitude")),
                              new Prop("Longitude", annot.value("longitude"))));
