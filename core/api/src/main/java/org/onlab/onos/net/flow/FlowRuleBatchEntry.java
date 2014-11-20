@@ -21,8 +21,20 @@ import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 public class FlowRuleBatchEntry
         extends BatchOperationEntry<FlowRuleOperation, FlowRule> {
 
+    private final Long id; // FIXME: consider using Optional<Long>
+
     public FlowRuleBatchEntry(FlowRuleOperation operator, FlowRule target) {
         super(operator, target);
+        this.id = null;
+    }
+
+    public FlowRuleBatchEntry(FlowRuleOperation operator, FlowRule target, Long id) {
+        super(operator, target);
+        this.id = id;
+    }
+
+    public Long id() {
+        return id;
     }
 
     public enum FlowRuleOperation {

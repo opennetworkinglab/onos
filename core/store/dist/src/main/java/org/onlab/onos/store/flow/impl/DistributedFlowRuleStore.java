@@ -340,7 +340,8 @@ public class DistributedFlowRuleStore
     public Future<CompletedBatchOperation> storeBatch(FlowRuleBatchOperation operation) {
 
         if (operation.getOperations().isEmpty()) {
-            return Futures.immediateFuture(new CompletedBatchOperation(true, Collections.<FlowRule>emptySet()));
+            return Futures.immediateFuture(new CompletedBatchOperation(true,
+                                                                       Collections.<FlowRule>emptySet()));
         }
 
         DeviceId deviceId = operation.getOperations().get(0).getTarget().deviceId();
@@ -379,8 +380,8 @@ public class DistributedFlowRuleStore
     private ListenableFuture<CompletedBatchOperation>
                         storeBatchInternal(FlowRuleBatchOperation operation) {
 
-        final List<StoredFlowEntry> toRemove = new ArrayList<>();
-        final List<StoredFlowEntry> toAdd = new ArrayList<>();
+        final List<FlowRuleBatchEntry> toRemove = new ArrayList<>();
+        final List<FlowRuleBatchEntry> toAdd = new ArrayList<>();
         DeviceId did = null;
 
 
@@ -396,14 +397,14 @@ public class DistributedFlowRuleStore
                     StoredFlowEntry entry = getFlowEntryInternal(flowRule);
                     if (entry != null) {
                         entry.setState(FlowEntryState.PENDING_REMOVE);
-                        toRemove.add(entry);
+                        toRemove.add(batchEntry);
                     }
                 } else if (op.equals(FlowRuleOperation.ADD)) {
                     StoredFlowEntry flowEntry = new DefaultFlowEntry(flowRule);
                     DeviceId deviceId = flowRule.deviceId();
                     if (!flowEntries.containsEntry(deviceId, flowEntry)) {
                         flowEntries.put(deviceId, flowEntry);
-                        toAdd.add(flowEntry);
+                        toAdd.add(batchEntry);
                     }
                 }
             }
@@ -427,8 +428,8 @@ public class DistributedFlowRuleStore
     }
 
     private void updateBackup(final DeviceId deviceId,
-                              final List<StoredFlowEntry> toAdd,
-                              final List<? extends FlowRule> list) {
+                              final List<FlowRuleBatchEntry> toAdd,
+                              final List<FlowRuleBatchEntry> list) {
 
         Future<?> submit = backupExecutors.submit(new UpdateBackup(deviceId, toAdd, list));
 
@@ -442,8 +443,9 @@ public class DistributedFlowRuleStore
         }
     }
 
-    private void updateBackup(DeviceId deviceId, List<StoredFlowEntry> toAdd) {
-        updateBackup(deviceId, toAdd, Collections.<FlowEntry>emptyList());
+    private void updateBackup(DeviceId deviceId, List<FlowRuleBatchEntry> toAdd) {
+
+        updateBackup(deviceId, toAdd, Collections.<FlowRuleBatchEntry>emptyList());
     }
 
     @Override
@@ -477,8 +479,9 @@ public class DistributedFlowRuleStore
                 stored.setPackets(rule.packets());
                 if (stored.state() == FlowEntryState.PENDING_ADD) {
                     stored.setState(FlowEntryState.ADDED);
-                    // update backup.
-                    updateBackup(did, Arrays.asList(stored));
+                    FlowRuleBatchEntry entry =
+                            new FlowRuleBatchEntry(FlowRuleOperation.ADD, stored);
+                    updateBackup(did, Arrays.asList(entry));
                     return new FlowRuleEvent(Type.RULE_ADDED, rule);
                 }
                 return new FlowRuleEvent(Type.RULE_UPDATED, rule);
@@ -515,7 +518,9 @@ public class DistributedFlowRuleStore
         try {
             // This is where one could mark a rule as removed and still keep it in the store.
             final boolean removed = flowEntries.remove(deviceId, rule);
-            updateBackup(deviceId, Collections.<StoredFlowEntry>emptyList(), Arrays.asList(rule));
+            FlowRuleBatchEntry entry =
+                    new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule);
+            updateBackup(deviceId, Collections.<FlowRuleBatchEntry>emptyList(), Arrays.asList(entry));
             if (removed) {
                 return new FlowRuleEvent(RULE_REMOVED, rule);
             } else {
@@ -687,15 +692,17 @@ public class DistributedFlowRuleStore
     }
 
     // Task to update FlowEntries in backup HZ store
+    // TODO: Should be refactored to contain only one list and not
+    //      toAdd and toRemove
     private final class UpdateBackup implements Runnable {
 
         private final DeviceId deviceId;
-        private final List<StoredFlowEntry> toAdd;
-        private final List<? extends FlowRule> toRemove;
+        private final List<FlowRuleBatchEntry> toAdd;
+        private final List<FlowRuleBatchEntry> toRemove;
 
         public UpdateBackup(DeviceId deviceId,
-                             List<StoredFlowEntry> toAdd,
-                             List<? extends FlowRule> list) {
+                             List<FlowRuleBatchEntry> toAdd,
+                             List<FlowRuleBatchEntry> list) {
             this.deviceId = checkNotNull(deviceId);
             this.toAdd = checkNotNull(toAdd);
             this.toRemove = checkNotNull(list);
@@ -707,7 +714,8 @@ public class DistributedFlowRuleStore
                 log.trace("update backup {} +{} -{}", deviceId, toAdd, toRemove);
                 final SMap<FlowId, ImmutableList<StoredFlowEntry>> backupFlowTable = smaps.get(deviceId);
                 // Following should be rewritten using async APIs
-                for (StoredFlowEntry entry : toAdd) {
+                for (FlowRuleBatchEntry bEntry : toAdd) {
+                    final FlowRule entry = bEntry.getTarget();
                     final FlowId id = entry.id();
                     ImmutableList<StoredFlowEntry> original = backupFlowTable.get(id);
                     List<StoredFlowEntry> list = new ArrayList<>();
@@ -715,8 +723,8 @@ public class DistributedFlowRuleStore
                         list.addAll(original);
                     }
 
-                    list.remove(entry);
-                    list.add(entry);
+                    list.remove(bEntry.getTarget());
+                    list.add((StoredFlowEntry) entry);
 
                     ImmutableList<StoredFlowEntry> newValue = ImmutableList.copyOf(list);
                     boolean success;
@@ -730,7 +738,8 @@ public class DistributedFlowRuleStore
                         log.error("Updating backup failed.");
                     }
                 }
-                for (FlowRule entry : toRemove) {
+                for (FlowRuleBatchEntry bEntry : toRemove) {
+                    final FlowRule entry = bEntry.getTarget();
                     final FlowId id = entry.id();
                     ImmutableList<StoredFlowEntry> original = backupFlowTable.get(id);
                     List<StoredFlowEntry> list = new ArrayList<>();
@@ -738,7 +747,7 @@ public class DistributedFlowRuleStore
                         list.addAll(original);
                     }
 
-                    list.remove(entry);
+                    list.remove(bEntry.getTarget());
 
                     ImmutableList<StoredFlowEntry> newValue = ImmutableList.copyOf(list);
                     boolean success;

@@ -15,6 +15,9 @@
  */
 package org.onlab.onos.net.flow;
 
+
+import java.util.Collections;
+
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -26,6 +29,21 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
 
     private final boolean success;
     private final Set<FlowRule> failures;
+    private final Set<Long> failedIds;
+
+    /**
+     * Creates a new batch completion result.
+     *
+     * @param success  indicates whether the completion is successful.
+     * @param failures set of any failures encountered
+     * @param failedIds (optional) set of failed operation ids
+     */
+    public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures,
+                                   Set<Long> failedIds) {
+        this.success = success;
+        this.failures = ImmutableSet.copyOf(failures);
+        this.failedIds = ImmutableSet.copyOf(failedIds);
+    }
 
     /**
      * Creates a new batch completion result.
@@ -36,7 +54,10 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
     public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures) {
         this.success = success;
         this.failures = ImmutableSet.copyOf(failures);
+        this.failedIds = Collections.emptySet();
     }
+
+
 
     @Override
     public boolean isSuccess() {
@@ -46,6 +67,10 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
     @Override
     public Set<FlowRule> failedItems() {
         return failures;
+    }
+
+    public Set<Long> failedIds() {
+        return failedIds;
     }
 
 }

@@ -18,38 +18,52 @@ package org.onlab.onos.net.flow;
 import java.util.Collections;
 import java.util.List;
 
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+
+
 
 import com.google.common.collect.Lists;
 
 public class FlowRuleBatchRequest {
 
     private final int batchId;
-    private final List<FlowRule> toAdd;
-    private final List<FlowRule> toRemove;
+    private final List<FlowRuleBatchEntry> toAdd;
+    private final List<FlowRuleBatchEntry> toRemove;
 
-    public FlowRuleBatchRequest(int batchId, List<? extends FlowRule> toAdd, List<? extends FlowRule> toRemove) {
+    public FlowRuleBatchRequest(int batchId, List<FlowRuleBatchEntry> toAdd,
+                                List<FlowRuleBatchEntry> toRemove) {
         this.batchId = batchId;
         this.toAdd = Collections.unmodifiableList(toAdd);
         this.toRemove = Collections.unmodifiableList(toRemove);
     }
 
     public List<FlowRule> toAdd() {
-        return toAdd;
+        return FluentIterable.from(toAdd).transform(
+                new Function<FlowRuleBatchEntry, FlowRule>() {
+
+            @Override
+            public FlowRule apply(FlowRuleBatchEntry input) {
+                return input.getTarget();
+            }
+        }).toList();
     }
 
     public List<FlowRule> toRemove() {
-        return toRemove;
+        return FluentIterable.from(toRemove).transform(
+                new Function<FlowRuleBatchEntry, FlowRule>() {
+
+                    @Override
+                    public FlowRule apply(FlowRuleBatchEntry input) {
+                        return input.getTarget();
+                    }
+                }).toList();
     }
 
     public FlowRuleBatchOperation asBatchOperation() {
         List<FlowRuleBatchEntry> entries = Lists.newArrayList();
-        for (FlowRule e : toAdd) {
-            entries.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, e));
-        }
-        for (FlowRule e : toRemove) {
-            entries.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, e));
-        }
+        entries.addAll(toAdd);
+        entries.addAll(toRemove);
         return new FlowRuleBatchOperation(entries);
     }
 

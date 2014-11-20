@@ -53,6 +53,8 @@ import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+
 /**
  * Builder for OpenFlow flow mods based on FlowRules.
  */
@@ -63,6 +65,7 @@ public abstract class FlowModBuilder {
     private final OFFactory factory;
     private final FlowRule flowRule;
     private final TrafficSelector selector;
+    protected final Long xid;
 
     /**
      * Creates a new flow mod builder.
@@ -71,12 +74,13 @@ public abstract class FlowModBuilder {
      * @param factory the OpenFlow factory to use to build the flow mod
      * @return the new flow mod builder
      */
-    public static FlowModBuilder builder(FlowRule flowRule, OFFactory factory) {
+    public static FlowModBuilder builder(FlowRule flowRule,
+                                         OFFactory factory, Optional<Long> xid) {
         switch (factory.getVersion()) {
         case OF_10:
-            return new FlowModBuilderVer10(flowRule, factory);
+            return new FlowModBuilderVer10(flowRule, factory, xid);
         case OF_13:
-            return new FlowModBuilderVer13(flowRule, factory);
+            return new FlowModBuilderVer13(flowRule, factory, xid);
         default:
             throw new UnsupportedOperationException(
                     "No flow mod builder for protocol version " + factory.getVersion());
@@ -89,10 +93,12 @@ public abstract class FlowModBuilder {
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
      */
-    protected FlowModBuilder(FlowRule flowRule, OFFactory factory) {
+    protected FlowModBuilder(FlowRule flowRule, OFFactory factory, Optional<Long> xid) {
         this.factory = factory;
         this.flowRule = flowRule;
         this.selector = flowRule.selector();
+        this.xid = xid.orElse((long) 0);
+
     }
 
     /**

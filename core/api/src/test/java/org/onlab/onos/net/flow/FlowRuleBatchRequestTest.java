@@ -21,6 +21,8 @@ import java.util.List;
 import org.junit.Test;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 
+import static org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -38,10 +40,10 @@ public class FlowRuleBatchRequestTest {
     public void testConstruction() {
         final FlowRule rule1 = new IntentTestsMocks.MockFlowRule(1);
         final FlowRule rule2 = new IntentTestsMocks.MockFlowRule(2);
-        final List<FlowRule> toAdd = new LinkedList<>();
-        toAdd.add(rule1);
-        final List<FlowRule> toRemove = new LinkedList<>();
-        toRemove.add(rule2);
+        final List<FlowRuleBatchEntry> toAdd = new LinkedList<>();
+        toAdd.add(new FlowRuleBatchEntry(ADD, rule1));
+        final List<FlowRuleBatchEntry> toRemove = new LinkedList<>();
+        toRemove.add(new FlowRuleBatchEntry(REMOVE, rule2));
 
 
         final FlowRuleBatchRequest request =

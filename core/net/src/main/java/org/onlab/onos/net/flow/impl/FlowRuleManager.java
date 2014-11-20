@@ -488,13 +488,14 @@ public class FlowRuleManager
 
             boolean success = true;
             Set<FlowRule> failed = Sets.newHashSet();
+            Set<Long> failedIds = Sets.newHashSet();
             CompletedBatchOperation completed;
             for (Future<CompletedBatchOperation> future : futures) {
                 completed = future.get();
-                success = validateBatchOperation(failed, completed);
+                success = validateBatchOperation(failed, failedIds, completed);
             }
 
-            return finalizeBatchOperation(success, failed);
+            return finalizeBatchOperation(success, failed, failedIds);
 
         }
 
@@ -508,22 +509,25 @@ public class FlowRuleManager
             }
             boolean success = true;
             Set<FlowRule> failed = Sets.newHashSet();
+            Set<Long> failedIds = Sets.newHashSet();
             CompletedBatchOperation completed;
             for (Future<CompletedBatchOperation> future : futures) {
                 completed = future.get(timeout, unit);
-                success = validateBatchOperation(failed, completed);
+                success = validateBatchOperation(failed, failedIds, completed);
             }
-            return finalizeBatchOperation(success, failed);
+            return finalizeBatchOperation(success, failed, failedIds);
         }
 
         private boolean validateBatchOperation(Set<FlowRule> failed,
-                CompletedBatchOperation completed) {
+                                               Set<Long> failedIds,
+                                               CompletedBatchOperation completed) {
 
             if (isCancelled()) {
                 throw new CancellationException();
             }
             if (!completed.isSuccess()) {
                 failed.addAll(completed.failedItems());
+                failedIds.addAll(completed.failedIds());
                 cleanUpBatch();
                 cancelAllSubBatches();
                 return false;
@@ -538,7 +542,8 @@ public class FlowRuleManager
         }
 
         private CompletedBatchOperation finalizeBatchOperation(boolean success,
-                Set<FlowRule> failed) {
+                                                               Set<FlowRule> failed,
+                                                               Set<Long> failedIds) {
             synchronized (this) {
                 if (!state.compareAndSet(BatchState.STARTED, BatchState.FINISHED)) {
                     if (state.get() == BatchState.FINISHED) {
@@ -546,7 +551,7 @@ public class FlowRuleManager
                     }
                     throw new CancellationException();
                 }
-                overall = new CompletedBatchOperation(success, failed);
+                overall = new CompletedBatchOperation(success, failed, failedIds);
                 return overall;
             }
         }

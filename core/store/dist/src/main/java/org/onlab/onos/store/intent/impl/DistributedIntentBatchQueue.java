@@ -25,7 +25,6 @@ import org.onlab.onos.net.intent.IntentBatchService;
 import org.onlab.onos.net.intent.IntentOperations;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
@@ -82,10 +81,17 @@ public class DistributedIntentBatchQueue implements IntentBatchService {
     }
 
     @Override
-    public Set<IntentOperations> getIntentOperations() {
-        Set<IntentOperations> set = Sets.newHashSet(currentBatches);
-        set.addAll((Collection) pendingBatches);
-        return set;
+    public Set<IntentOperations> getPendingOperations() {
+        synchronized (this) {
+            return Sets.newHashSet(pendingBatches);
+        }
+    }
+
+    @Override
+    public Set<IntentOperations> getCurrentOperations() {
+        synchronized (this) {
+            return Sets.newHashSet(currentBatches);
+        }
     }
 
     @Override

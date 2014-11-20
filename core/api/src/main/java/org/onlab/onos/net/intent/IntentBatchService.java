@@ -37,10 +37,16 @@ public interface IntentBatchService {
     void removeIntentOperations(IntentOperations operations);
 
     /**
-     * Returns the set of intent batches currently being tracked.
+     * Returns the set of intent batches that are pending.
      * @return set of batches
      */
-    Set<IntentOperations> getIntentOperations();
+    Set<IntentOperations> getPendingOperations();
+
+    /**
+     * Returns the set of intent batches currently being processed.
+     * @return set of batches
+     */
+    Set<IntentOperations> getCurrentOperations();
 
     /**
      * Sets the batch service delegate.

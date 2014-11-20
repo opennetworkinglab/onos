@@ -101,7 +101,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment, 123, //FIXME 123
                     appId, (short) (intent.id().fingerprint() & 0xffff), 0, true);
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule));
+            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule,
+                                             intent.id().fingerprint()));
             prev = link.dst();
         }
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
@@ -127,7 +128,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment,
                     123, appId, (short) (intent.id().fingerprint() & 0xffff), 0, true);
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule));
+            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule,
+                                             intent.id().fingerprint()));
             prev = link.dst();
         }
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));

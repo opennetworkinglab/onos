@@ -18,6 +18,7 @@ package org.onlab.onos.provider.of.flow.impl;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import org.onlab.onos.net.flow.FlowRule;
 import org.onlab.onos.net.flow.TrafficTreatment;
@@ -70,8 +71,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
      */
-    protected FlowModBuilderVer13(FlowRule flowRule, OFFactory factory) {
-        super(flowRule, factory);
+    protected FlowModBuilderVer13(FlowRule flowRule, OFFactory factory, Optional<Long> xid) {
+        super(flowRule, factory, xid);
 
         this.treatment = flowRule.treatment();
     }
@@ -93,7 +94,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
         OFFlowAdd fm = factory().buildFlowAdd()
-                .setXid(cookie)
+                .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
@@ -117,7 +118,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
         //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
         OFFlowMod fm = factory().buildFlowModify()
-                .setXid(cookie)
+                .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(actions)
@@ -140,7 +141,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         long cookie = flowRule().id().value();
 
         OFFlowDelete fm = factory().buildFlowDelete()
-                .setXid(cookie)
+                .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
                 //.setActions(actions) //FIXME do we want to send actions in flowdel?

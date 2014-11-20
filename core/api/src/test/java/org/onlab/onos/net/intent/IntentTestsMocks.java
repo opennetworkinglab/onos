@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.onos.net.DeviceId;
@@ -331,7 +332,22 @@ public class IntentTestsMocks {
             return false;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(priority);
+        }
 
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final MockFlowRule other = (MockFlowRule) obj;
+            return Objects.equals(this.priority, other.priority);
+        }
     }
 
 

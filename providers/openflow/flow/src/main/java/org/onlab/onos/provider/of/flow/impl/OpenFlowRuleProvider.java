@@ -19,7 +19,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.ExecutionList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -76,6 +75,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -122,7 +122,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
 
-    private final AtomicLong xidCounter = new AtomicLong(0);
+    private final AtomicLong xidCounter = new AtomicLong(1);
 
     /**
      * Creates an OpenFlow host provider.
@@ -164,7 +164,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void applyRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory()).buildFlowAdd());
+        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+                                          Optional.empty()).buildFlowAdd());
     }
 
 
@@ -178,7 +179,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory()).buildFlowDel());
+        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+                                          Optional.empty()).buildFlowDel());
     }
 
     @Override
@@ -211,7 +213,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 return failed;
             }
             sws.add(new Dpid(sw.getId()));
-            FlowModBuilder builder = FlowModBuilder.builder(flowRule, sw.factory());
+            Long flowModXid = xidCounter.getAndIncrement();
+            FlowModBuilder builder =
+                    FlowModBuilder.builder(flowRule, sw.factory(),
+                                           Optional.of(flowModXid));
             OFFlowMod mod = null;
             switch (fbe.getOperator()) {
                 case ADD:
@@ -228,7 +233,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
             if (mod != null) {
                 mods.put(mod, sw);
-                fmXids.put(xidCounter.getAndIncrement(), fbe);
+                fmXids.put(flowModXid, fbe);
             } else {
                 log.error("Conversion of flowrule {} failed.", flowRule);
             }
@@ -237,6 +242,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         for (Long xid : fmXids.keySet()) {
             pendingFMs.put(xid, installation);
         }
+
         pendingFutures.put(installation.xid(), installation);
         for (Map.Entry<OFFlowMod, OpenFlowSwitch> entry : mods.entrySet()) {
             OpenFlowSwitch sw = entry.getValue();
@@ -368,12 +374,12 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         private final AtomicBoolean ok = new AtomicBoolean(true);
         private final Map<Long, FlowRuleBatchEntry> fms;
 
+
         private final Set<FlowEntry> offendingFlowMods = Sets.newHashSet();
+        private Long failedId;
 
         private final CountDownLatch countDownLatch;
         private BatchState state;
-
-        private final ExecutionList executionList = new ExecutionList();
 
         public InstallationFuture(Set<Dpid> sws, Map<Long, FlowRuleBatchEntry> fmXids) {
             this.xid = xidCounter.getAndIncrement();
@@ -393,6 +399,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             removeRequirement(dpid);
             FlowEntry fe = null;
             FlowRuleBatchEntry fbe = fms.get(msg.getXid());
+            failedId = fbe.id();
             FlowRule offending = fbe.getTarget();
             //TODO handle specific error msgs
             switch (msg.getErrType()) {
@@ -492,8 +499,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         public CompletedBatchOperation get() throws InterruptedException, ExecutionException {
             countDownLatch.await();
             this.state = BatchState.FINISHED;
-            CompletedBatchOperation result = new CompletedBatchOperation(ok.get(), offendingFlowMods);
-            //FIXME do cleanup here
+            Set<Long> failedIds = (failedId != null) ?  Sets.newHashSet(failedId) : Collections.emptySet();
+            CompletedBatchOperation result =
+                    new CompletedBatchOperation(ok.get(), offendingFlowMods, failedIds);
+            //FIXME do cleanup here (moved by BOC)
+            cleanUp();
             return result;
         }
 
@@ -503,8 +513,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 TimeoutException {
             if (countDownLatch.await(timeout, unit)) {
                 this.state = BatchState.FINISHED;
-                CompletedBatchOperation result = new CompletedBatchOperation(ok.get(), offendingFlowMods);
-                // FIXME do cleanup here
+                Set<Long> failedIds = (failedId != null) ?  Sets.newHashSet(failedId) : Collections.emptySet();
+                CompletedBatchOperation result =
+                        new CompletedBatchOperation(ok.get(), offendingFlowMods, failedIds);
+                // FIXME do cleanup here (moved by BOC)
+                cleanUp();
                 return result;
             }
             throw new TimeoutException();
@@ -522,8 +535,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         private void removeRequirement(Dpid dpid) {
             countDownLatch.countDown();
             sws.remove(dpid);
-            //FIXME don't do cleanup here
-            cleanUp();
+            //FIXME don't do cleanup here (moved by BOC)
+            //cleanUp();
         }
     }
 

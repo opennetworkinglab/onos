@@ -67,6 +67,18 @@ public enum IntentState {
     RECOMPILING,
 
     /**
+     * TODO: Indicated that an intent will soon be recompiled.
+     */
+    //UPDATE,
+
+    /**
+     * TODO.
+     * Indicates that an application has requested that an intent be withdrawn.
+     * It will start withdrawing short, but not necessarily on this instance.
+     */
+    //WITHDRAW_REQ,
+
+    /**
      * Indicates that the intent is being withdrawn. This is a transitional
      * state, triggered by invocation of the
      * {@link IntentService#withdraw(Intent)} but one with only one outcome,
