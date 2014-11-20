@@ -49,7 +49,7 @@ import static com.google.common.base.Verify.verify;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = false, enabled = false)
+@Component(immediate = true, enabled = false)
 @Service
 public class HazelcastIntentStore
         extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>

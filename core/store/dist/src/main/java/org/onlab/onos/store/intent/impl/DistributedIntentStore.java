@@ -49,7 +49,7 @@ import static com.google.common.base.Verify.verify;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = true)
+@Component(immediate = false, enabled = false)
 @Service
 public class DistributedIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
