@@ -30,9 +30,15 @@
     fill: transparent;
 }
 
+/* TODO: move glyphs into framework */
 
-#topo svg .glyph {
-    fill: white;
+#topo svg .glyphIcon {
+    fill: black;
+    stroke: none;
+    fill-rule: evenodd;
+}
+#topo svg .glyphIcon rect {
+    fill: #ddd;
     stroke: none;
 }
 

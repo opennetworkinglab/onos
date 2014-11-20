@@ -80,7 +80,12 @@
             w: 30,
             h: 30,
             xoff: -16,
-            yoff: -14
+            yoff: -14,
+
+            device: {
+                dim: 30,
+                rx: 4
+            }
         },
         iconUrl: {
             device: 'img/device.png',
@@ -1214,7 +1219,10 @@
         // start with the object as is
         var node = device,
             type = device.type,
-            svgCls = type ? 'node device ' + type : 'node device';
+            svgCls = type ? 'node device ' + type : 'node device',
+            labels = device.labels || [];
+
+        labels.unshift(''); // add 'no-label' to front of cycle
 
         // Augment as needed...
         node.class = 'device';
@@ -1222,6 +1230,9 @@
         positionNode(node);
 
         // cache label array length
+        // TODO: need a uiConfig event from the server to set things
+        // like device labels count, host labels count, etc.
+        // The current method (here) is a little fragile
         network.deviceLabelCount = device.labels.length;
         return node;
     }
@@ -1311,6 +1322,11 @@
         return 'img/' + d.type + '.png';
     }
 
+    function iconGlyphUrl(d) {
+        var which = d.type || 'unknown';
+        return '#' + which;
+    }
+
     // returns the newly computed bounding box of the rectangle
     function adjustRectToFitText(n) {
         var text = n.select('text'),
@@ -1346,14 +1362,26 @@
         var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0;
         return d.labels[idx];
     }
-    function niceLabel(label) {
-        return (label && label.trim()) ? label : '.';
+    function trimLabel(label) {
+        return (label && label.trim()) || '';
+    }
+
+    function emptyBox() {
+        return {
+            x: -2,
+            y: -2,
+            width: 4,
+            height: 4
+        };
     }
 
     function updateDeviceLabel(d) {
-        var label = niceLabel(deviceLabel(d)),
+        var label = trimLabel(deviceLabel(d)),
+            noLabel = !label,
             node = d.el,
-            box;
+            box,
+            dx,
+            dy;
 
         node.select('text')
             .text(label)
@@ -1361,21 +1389,23 @@
             .transition()
             .style('opacity', 1);
 
-        box = adjustRectToFitText(node);
+        if (noLabel) {
+            box = emptyBox();
+            dx = -config.icons.device.dim/2;
+            dy = -config.icons.device.dim/2;
+        } else {
+            box = adjustRectToFitText(node);
+            dx = box.x + config.icons.xoff;
+            dy = box.y + config.icons.yoff;
+        }
 
         node.select('rect')
             .transition()
             .attr(box);
 
-        node.select('rect.iconUnderlay')
+        node.select('g.deviceIcon')
             .transition()
-            .attr('x', box.x + config.icons.xoff)
-            .attr('y', box.y + config.icons.yoff);
-
-        node.select('image')
-            .transition()
-            .attr('x', box.x + config.icons.xoff + 2)
-            .attr('y', box.y + config.icons.yoff + 2);
+            .attr('transform', translate(dx, dy));
     }
 
     function updateHostLabel(d) {
@@ -1436,7 +1466,7 @@
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
 
-        // operate on existing nodes, if necessary
+        // TODO: operate on existing nodes
         //  update host labels
         //node .foo() .bar() ...
 
@@ -1458,8 +1488,8 @@
         // augment device nodes...
         entering.filter('.device').each(function (d) {
             var node = d3.select(this),
-                icon = iconUrl(d),
-                label = niceLabel(deviceLabel(d)),
+                label = trimLabel(deviceLabel(d)),
+                noLabel = !label,
                 box;
 
             // provide ref to element from backing data....
@@ -1480,41 +1510,8 @@
             node.select('rect')
                 .attr(box);
 
-            if (icon) {
-                var cfg = config.icons;
-                node.append('rect')
-                    .attr({
-                        class: 'iconUnderlay',
-                        x: box.x + config.icons.xoff,
-                        y: box.y + config.icons.yoff,
-                        width: cfg.w,
-                        height: cfg.h,
-                        rx: 4
-                    }).style({
-                        stroke: '#000',
-                        fill: '#ddd'
-                    });
-                node.append('svg:image')
-                    .attr({
-                        x: box.x + config.icons.xoff + 2,
-                        y: box.y + config.icons.yoff + 2,
-                        width: cfg.w - 4,
-                        height: cfg.h - 4,
-                        'xlink:href': icon
-                    });
-            }
+            addDeviceIcon(node, box, noLabel, iconGlyphUrl(d));
 
-            // debug function to show the modelled x,y coordinates of nodes...
-            if (debug('showNodeXY')) {
-                node.select('rect').attr('fill-opacity', 0.5);
-                node.append('circle')
-                    .attr({
-                        class: 'debug',
-                        cx: 0,
-                        cy: 0,
-                        r: '3px'
-                    });
-            }
         });
 
         // TODO: better place for this configuration state
@@ -1603,6 +1600,67 @@
 
         // TODO: device node exits
     }
+
+    function addDeviceIcon(node, box, noLabel, iid) {
+        var cfg = config.icons.device,
+            dx,
+            dy,
+            g;
+
+        if (noLabel) {
+            box = emptyBox();
+            dx = -cfg.dim/2;
+            dy = -cfg.dim/2;
+        } else {
+            box = adjustRectToFitText(node);
+            dx = box.x + config.icons.xoff;
+            dy = box.y + config.icons.yoff;
+        }
+
+        g = node.append('g').attr('class', 'glyphIcon deviceIcon')
+                .attr('transform', translate(dx, dy));
+
+        g.append('rect').attr({
+            x: 0,
+            y: 0,
+            rx: cfg.rx,
+            width: cfg.dim,
+            height: cfg.dim
+        });
+
+        g.append('use').attr({
+            'xlink:href': iid,
+            width: cfg.dim,
+            height: cfg.dim
+        });
+
+/*
+        if (icon) {
+            node.append('rect')
+                .attr({
+                    class: 'iconUnderlay',
+                    x: box.x + config.icons.xoff,
+                    y: box.y + config.icons.yoff,
+                    width: cfg.w,
+                    height: cfg.h,
+                    rx: 4
+                }).style({
+                    stroke: '#000',
+                    fill: '#ddd'
+                });
+            node.append('svg:image')
+                .attr({
+                    x: box.x + config.icons.xoff + 2,
+                    y: box.y + config.icons.yoff + 2,
+                    width: cfg.w - 4,
+                    height: cfg.h - 4,
+                    'xlink:href': icon
+                });
+        }
+*/
+    }
+
+
 
     function find(key, array) {
         for (var idx = 0, n = array.length; idx < n; idx++) {
@@ -2070,6 +2128,7 @@
         var defs = svg.append('defs');
         gly.defBird(defs);
         gly.defBullhorn(defs);
+        gly.defGlyphs(defs);
     }
 
     // ==============================
