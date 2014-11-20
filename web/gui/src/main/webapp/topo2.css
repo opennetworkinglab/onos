@@ -174,16 +174,26 @@ svg .node.host circle {
 /* gets base CSS from .fpanel in floatPanel.css */
 }
 
-#topo-detail h2 {
-    margin: 8px 4px;
-    color: black;
-    vertical-align: middle;
+#topo-detail svg {
+    display: inline-block;
+    width: 42px;
+    height: 42px;
 }
 
-#topo-detail h2 img {
-    height: 32px;
-    padding-right: 8px;
-    vertical-align: middle;
+#topo-detail svg .glyphIcon {
+    fill: black;
+    stroke: none;
+    fill-rule: evenodd;
+}
+
+#topo-detail h2 {
+    position: absolute;
+    /*display: inline-block;*/
+    /*vertical-align: bottom;*/
+    margin: 0px 4px;
+    top: 20px;
+    left: 50px;
+    color: black;
 }
 
 #topo-detail p, table {
@@ -284,10 +294,6 @@ svg .node.host circle {
     fill-rule: evenodd;
 }
 
-/*#topo-oibox .onosInst img {*/
-    /*opacity: 0.5;*/
-    /*padding: 3px;*/
-/*}*/
 
 #topo-oibox .onosInst.online img {
     opacity: 1.0;
@@ -316,7 +322,7 @@ svg .node.host circle {
     opacity: 0.2;
 }
 
-/* Web Socket Closed Mask (starts hidden) */
+/* Death Mask (starts hidden) */
 
 #topo-mask {
     display: none;

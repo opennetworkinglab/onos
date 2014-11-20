@@ -33,6 +33,9 @@
     padding: 10px;
     color: black;
     font-size: 10pt;
+
+    -moz-border-radius: 6px;
+    border-radius: 6px;
     box-shadow: 2px 2px 16px #777;
 }
 

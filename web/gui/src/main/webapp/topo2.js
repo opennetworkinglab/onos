@@ -18,6 +18,7 @@
  ONOS network topology viewer - version 1.1
 
  @author Simon Hunt
+ @author Thomas Vachuska
  */
 
 (function (onos) {
@@ -25,8 +26,7 @@
 
     // shorter names for library APIs
     var d3u = onos.lib.d3util,
-        gly = onos.lib.glyphs,
-        trace;
+        gly = onos.lib.glyphs;
 
     // configuration data
     var config = {
@@ -887,9 +887,22 @@
         });
     }
 
+    // TODO: these should be moved out to utility module.
     function stripPx(s) {
         return s.replace(/px$/,'');
     }
+
+    function appendGlyph(svg, ox, oy, dim, iid) {
+        svg.append('use').attr({
+            class: 'glyphIcon',
+            transform: translate(ox,oy),
+            'xlink:href': iid,
+            width: dim,
+            height: dim
+
+        });
+    }
+
     // ==============================
     // onos instance panel functions
 
@@ -918,25 +931,13 @@
                 height: h
             });
             var dim = 30;
-            svg.append('use').attr({
-                class: 'glyphIcon',
-                transform: translate(2,2),
-                'xlink:href': '#node',
-                width: dim,
-                height: dim
-
-            });
-
-            //$('<img src="img/node.png">').appendTo(el);
-            //img = el.select('img')
-            //    .attr({
-            //        width: 30
-            //    });
+            appendGlyph(svg, 2, 2, 30, '#node');
 
             $('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
 
             // is the UI attached to this instance?
             // TODO: need uiAttached boolean in instance data
+            // TODO: use SVG glyph, not png..
             //if (d.uiAttached) {
             if (i === 0) {
                 $('<img src="img/ui.png">').attr('class','ui').appendTo(el);
@@ -1043,8 +1044,7 @@
     }
 
     function createLink(link) {
-        var lnk = linkEndPoints(link.src, link.dst),
-            type = link.type;
+        var lnk = linkEndPoints(link.src, link.dst);
 
         if (!lnk) {
             return null;
@@ -1223,18 +1223,7 @@
             dy = p.y2 - p.y1,
             xMid = dx/2 + p.x1,
             yMid = dy/2 + p.y1;
-        //length = Math.sqrt(dx*dx + dy*dy),
-        //rads = Math.asin(dy/length),
-        //degs = rads / (Math.PI*2) * 360;
-
         return translate(xMid, yMid);
-
-        // TODO: consider making label parallel to line
-        //return [
-        //    translate(xMid, yMid),
-        //    rotate(degs),
-        //    translate(0, 8)
-        //].join('');
     }
 
     function createDeviceNode(device) {
@@ -1437,17 +1426,11 @@
         host.select('text').text(label);
     }
 
+    // TODO: should be using updateNodes() to do the upates!
     function updateDeviceState(nodeData) {
         nodeData.el.classed('online', nodeData.online);
         updateDeviceLabel(nodeData);
         // TODO: review what else might need to be updated
-    }
-
-    function updateLinkState(linkData) {
-        updateLinkWidth(linkData);
-        linkData.el.classed('inactive', !linkData.online);
-        // TODO: review what else might need to be updated
-        //  update label, if showing
     }
 
     function updateHostState(hostData) {
@@ -1569,7 +1552,6 @@
                 addHostIcon(node, r, iid);
             }
 
-
             node.append('text')
                 .text(hostLabel)
                 .attr('dy', textDy)
@@ -1659,33 +1641,7 @@
             height: cfg.dim
         });
 
-/*
-        if (icon) {
-            node.append('rect')
-                .attr({
-                    class: 'iconUnderlay',
-                    x: box.x + config.icons.xoff,
-                    y: box.y + config.icons.yoff,
-                    width: cfg.w,
-                    height: cfg.h,
-                    rx: 4
-                }).style({
-                    stroke: '#000',
-                    fill: '#ddd'
-                });
-            node.append('svg:image')
-                .attr({
-                    x: box.x + config.icons.xoff + 2,
-                    y: box.y + config.icons.yoff + 2,
-                    width: cfg.w - 4,
-                    height: cfg.h - 4,
-                    'xlink:href': icon
-                });
-        }
-*/
     }
-
-
 
     function find(key, array) {
         for (var idx = 0, n = array.length; idx < n; idx++) {
@@ -1990,12 +1946,15 @@
     function populateDetails(data) {
         detailPane.empty();
 
+        var svg = detailPane.append('svg'),
+            iid = iconGlyphUrl(data);
+
         var title = detailPane.append("h2"),
             table = detailPane.append("table"),
             tbody = table.append("tbody");
 
-        $('<img src="img/' + data.type + '.png">').appendTo(title);
-        $('<span>').attr('class', 'icon').text(data.id).appendTo(title);
+        appendGlyph(svg, 0, 0, 40, iid);
+        title.text(data.id);
 
         data.propOrder.forEach(function(p) {
             if (p === '-') {
@@ -2120,8 +2079,6 @@
         }
 
         showInstances = mkTogBtn('Show Instances', toggleInst);
-        //doPanZoom = mkTogBtn('Pan/Zoom', togglePanZoom);
-        //showTrafficOnHover = mkTogBtn('Show traffic on hover', toggleTrafficHover);
     }
 
     function instShown() {
@@ -2138,10 +2095,6 @@
 
     function panZoom() {
         return false;
-        //return doPanZoom.classed('active');
-    }
-    function togglePanZoom() {
-        doPanZoom.classed('active', !panZoom());
     }
 
     function trafficHover() {
@@ -2150,10 +2103,6 @@
 
     function flowsHover() {
         return hoverModes[hoverMode] === 'flows';
-    }
-
-    function toggleTrafficHover() {
-        showTrafficOnHover.classed('active', !trafficHover());
     }
 
     function loadGlyphs(svg) {
@@ -2305,13 +2254,6 @@
 
         // Load map data asynchronously; complete startup after that..
         loadGeoJsonData();
-
-        //var dashIdx = 0;
-        //antTimer = setInterval(function () {
-        //    // TODO: figure out how to choose Src-->Dst and Dst-->Src, per link
-        //    dashIdx = dashIdx === 0 ? 14 : dashIdx - 2;
-        //    d3.selectAll('.animated').style('stroke-dashoffset', dashIdx);
-        //}, 35);
     }
 
     function startAntTimer() {
@@ -2338,7 +2280,7 @@
     }
 
     // TODO: move these to config/state portion of script
-    var geoJsonUrl = 'json/map/continental_us.json',     // TODO: Paul
+    var geoJsonUrl = 'json/map/continental_us.json',
         geoJson;
 
     function loadGeoJsonData() {
