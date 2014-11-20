@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 @Component(immediate = true)
 @Service
 public class SimpleLinkResourceStore implements LinkResourceStore {
+    private static final int DEFAULT_BANDWIDTH = 1_000;
     private final Logger log = getLogger(getClass());
     private Map<IntentId, LinkResourceAllocations> linkResourceAllocationsMap;
     private Map<Link, Set<LinkResourceAllocations>> allocatedResources;
@@ -88,14 +89,14 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
             log.debug("No optical.wave annotation on link %s", link);
         }
 
+        int bandwidth = DEFAULT_BANDWIDTH;
         try {
-            int bandwidth = Integer.parseInt(annotations.value(AnnotationKeys.BANDWIDTH));
-            allocations.add(
-                    new BandwidthResourceAllocation(Bandwidth.valueOf(bandwidth)));
+            bandwidth = Integer.parseInt(annotations.value(AnnotationKeys.BANDWIDTH));
         } catch (NumberFormatException e) {
             log.debug("No bandwidth annotation on link %s", link);
         }
-
+        allocations.add(
+                new BandwidthResourceAllocation(Bandwidth.valueOf(bandwidth)));
         return allocations;
     }
 
