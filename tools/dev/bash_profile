@@ -36,6 +36,8 @@ function o {
 
 # Short-hand for 'mvn clean install' for us lazy folk
 alias mci='mvn clean install'
+alias mcis='mvn clean install -DskipTests -Dcheckstyle.skip -U -T 1C'
+alias mis='mvn install -DskipTests -Dcheckstyle.skip -U -T 1C'
 
 # Short-hand for ONOS build, package and test.
 alias ob='onos-build'
