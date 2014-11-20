@@ -438,7 +438,7 @@ public class GossipDeviceStore
 
             return Collections.emptyList();
         }
-        log.info("timestamp for {} {}", deviceId, newTimestamp);
+        log.debug("timestamp for {} {}", deviceId, newTimestamp);
 
         final Timestamped<List<PortDescription>> timestampedInput
                 = new Timestamped<>(portDescriptions, newTimestamp);
@@ -461,7 +461,7 @@ public class GossipDeviceStore
             merged = new Timestamped<List<PortDescription>>(mergedList, newTimestamp);
         }
         if (!events.isEmpty()) {
-            log.info("Notifying peers of a port update topology event for providerId: {} and deviceId: {}",
+            log.info("Notifying peers of a ports update topology event for providerId: {} and deviceId: {}",
                     providerId, deviceId);
             try {
                 notifyPeers(new InternalPortEvent(providerId, deviceId, merged));
@@ -735,7 +735,7 @@ public class GossipDeviceStore
             if (myRole != MastershipRole.NONE) {
                 relinquishAtEnd = true;
             }
-            log.info("Temporarlily requesting role for {} to remove", deviceId);
+            log.debug("Temporarily requesting role for {} to remove", deviceId);
             mastershipService.requestRoleFor(deviceId);
             MastershipTermService termService = mastershipService.requestTermService();
             MastershipTerm term = termService.getMastershipTerm(deviceId);
@@ -745,7 +745,7 @@ public class GossipDeviceStore
         }
 
         if (!myId.equals(master)) {
-            log.info("{} has control of {}, forwarding remove request",
+            log.debug("{} has control of {}, forwarding remove request",
                      master, deviceId);
 
              ClusterMessage message = new ClusterMessage(
@@ -768,7 +768,7 @@ public class GossipDeviceStore
         Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         DeviceEvent event = removeDeviceInternal(deviceId, timestamp);
         if (event != null) {
-            log.info("Notifying peers of a device removed topology event for deviceId: {}",
+            log.debug("Notifying peers of a device removed topology event for deviceId: {}",
                     deviceId);
             try {
                 notifyPeers(new InternalDeviceRemovedEvent(deviceId, timestamp));
@@ -778,7 +778,7 @@ public class GossipDeviceStore
             }
         }
         if (relinquishAtEnd) {
-            log.info("Relinquishing temporary role acquired for {}", deviceId);
+            log.debug("Relinquishing temporary role acquired for {}", deviceId);
             mastershipService.relinquishMastership(deviceId);
         }
         return event;
@@ -1180,7 +1180,7 @@ public class GossipDeviceStore
             return;
         }
 
-        log.info("Need to sync {} {}", reqDevices, reqPorts);
+        log.debug("Need to sync {} {}", reqDevices, reqPorts);
 
         // 2-way Anti-Entropy for now
         try {
@@ -1215,7 +1215,7 @@ public class GossipDeviceStore
         @Override
         public void run() {
             if (Thread.currentThread().isInterrupted()) {
-                log.info("Interrupted, quitting");
+                log.debug("Interrupted, quitting");
                 return;
             }
 
@@ -1241,7 +1241,7 @@ public class GossipDeviceStore
                 DeviceAntiEntropyAdvertisement ad = createAdvertisement();
 
                 if (Thread.currentThread().isInterrupted()) {
-                    log.info("Interrupted, quitting");
+                    log.debug("Interrupted, quitting");
                     return;
                 }
 
@@ -1323,7 +1323,7 @@ public class GossipDeviceStore
             Timestamped<List<PortDescription>> portDescriptions = event.portDescriptions();
 
             if (getDevice(deviceId) == null) {
-                log.info("{} not found on this node yet, ignoring.", deviceId);
+                log.debug("{} not found on this node yet, ignoring.", deviceId);
                 // Note: dropped information will be recovered by anti-entropy
                 return;
             }
@@ -1344,7 +1344,7 @@ public class GossipDeviceStore
             Timestamped<PortDescription> portDescription = event.portDescription();
 
             if (getDevice(deviceId) == null) {
-                log.info("{} not found on this node yet, ignoring.", deviceId);
+                log.debug("{} not found on this node yet, ignoring.", deviceId);
                 // Note: dropped information will be recovered by anti-entropy
                 return;
             }

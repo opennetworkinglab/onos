@@ -185,7 +185,7 @@ public class GossipHostStore
         Timestamp timestamp = hostClockService.getTimestamp(hostId);
         HostEvent event = createOrUpdateHostInternal(providerId, hostId, hostDescription, timestamp);
         if (event != null) {
-            log.info("Notifying peers of a host topology event for providerId: "
+            log.debug("Notifying peers of a host topology event for providerId: "
                     + "{}; hostId: {}; hostDescription: {}", providerId, hostId, hostDescription);
             try {
                 notifyPeers(new InternalHostEvent(providerId, hostId, hostDescription, timestamp));
@@ -266,7 +266,7 @@ public class GossipHostStore
         Timestamp timestamp = hostClockService.getTimestamp(hostId);
         HostEvent event = removeHostInternal(hostId, timestamp);
         if (event != null) {
-            log.info("Notifying peers of a host removed topology event for hostId: {}", hostId);
+            log.debug("Notifying peers of a host removed topology event for hostId: {}", hostId);
             try {
                 notifyPeers(new InternalHostRemovedEvent(hostId, timestamp));
             } catch (IOException e) {

@@ -270,7 +270,7 @@ public class GossipLinkStore
             try {
                 notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
             } catch (IOException e) {
-                log.info("Failed to notify peers of a link update topology event from providerId: "
+                log.debug("Failed to notify peers of a link update topology event from providerId: "
                                  + "{}  between src: {} and dst: {}",
                          providerId, linkDescription.src(), linkDescription.dst());
             }
@@ -625,7 +625,7 @@ public class GossipLinkStore
         @Override
         public void run() {
             if (Thread.currentThread().isInterrupted()) {
-                log.info("Interrupted, quitting");
+                log.debug("Interrupted, quitting");
                 return;
             }
 
@@ -651,7 +651,7 @@ public class GossipLinkStore
                 LinkAntiEntropyAdvertisement ad = createAdvertisement();
 
                 if (Thread.currentThread().isInterrupted()) {
-                    log.info("Interrupted, quitting");
+                    log.debug("Interrupted, quitting");
                     return;
                 }
 
