@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,17 +54,19 @@ public class DistributedLock implements Lock {
 
     @Override
     public void lock(int leaseDurationMillis) throws InterruptedException {
-        if (isLocked() && lockExpirationTime.isAfter(DateTime.now().plusMillis(leaseDurationMillis))) {
-            return;
-        } else {
-            CompletableFuture<DateTime> future =
-                    lockManager.lockIfAvailable(this, leaseDurationMillis);
-            try {
-                lockExpirationTime = future.get();
-            } catch (ExecutionException e) {
-                throw new DatabaseException(e);
-            }
+        try {
+            lockAsync(leaseDurationMillis).get();
+        } catch (ExecutionException e) {
+            throw new DatabaseException(e);
         }
+    }
+
+    @Override
+    public Future<Void> lockAsync(int leaseDurationMillis) {
+        if (isLocked() || tryLock(leaseDurationMillis)) {
+            return CompletableFuture.<Void>completedFuture(null);
+        }
+        return lockManager.lockIfAvailable(this, leaseDurationMillis);
     }
 
     @Override
@@ -81,15 +84,16 @@ public class DistributedLock implements Lock {
 
     @Override
     public boolean tryLock(
-            long waitTimeMillis,
+            int waitTimeMillis,
             int leaseDurationMillis) throws InterruptedException {
-        if (tryLock(leaseDurationMillis)) {
+        if (isLocked() || tryLock(leaseDurationMillis)) {
             return true;
         }
-        CompletableFuture<DateTime> future =
+
+        CompletableFuture<Void> future =
                 lockManager.lockIfAvailable(this, waitTimeMillis, leaseDurationMillis);
         try {
-            lockExpirationTime = future.get(waitTimeMillis, TimeUnit.MILLISECONDS);
+            future.get(waitTimeMillis, TimeUnit.MILLISECONDS);
             return true;
         } catch (ExecutionException e) {
             throw new DatabaseException(e);

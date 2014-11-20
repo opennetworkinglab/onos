@@ -111,17 +111,17 @@ public class DistributedLockManager implements LockService {
      * @param lock lock to acquire.
      * @param waitTimeMillis maximum time to wait before giving up.
      * @param leaseDurationMillis the duration for which to acquire the lock initially.
-     * @return Future lease expiration date.
+     * @return Future that can be blocked on until lock becomes available.
      */
-    protected CompletableFuture<DateTime> lockIfAvailable(
+    protected CompletableFuture<Void> lockIfAvailable(
             Lock lock,
-            long waitTimeMillis,
+            int waitTimeMillis,
             int leaseDurationMillis) {
-        CompletableFuture<DateTime> future = new CompletableFuture<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
         LockRequest request = new LockRequest(
                 lock,
                 leaseDurationMillis,
-                DateTime.now().plusMillis(leaseDurationMillis),
+                DateTime.now().plusMillis(waitTimeMillis),
                 future);
         locksToAcquire.put(lock.path(), request);
         return future;
@@ -133,10 +133,10 @@ public class DistributedLockManager implements LockService {
      * @param leaseDurationMillis the duration for which to acquire the lock initially.
      * @return Future lease expiration date.
      */
-    protected CompletableFuture<DateTime> lockIfAvailable(
+    protected CompletableFuture<Void> lockIfAvailable(
             Lock lock,
             int leaseDurationMillis) {
-        CompletableFuture<DateTime> future = new CompletableFuture<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
         LockRequest request = new LockRequest(
                 lock,
                 leaseDurationMillis,
@@ -189,7 +189,7 @@ public class DistributedLockManager implements LockService {
                         existingRequestIterator.remove();
                     } else {
                         if (request.lock().tryLock(request.leaseDurationMillis())) {
-                            request.future().complete(DateTime.now().plusMillis(request.leaseDurationMillis()));
+                            request.future().complete(null);
                             existingRequestIterator.remove();
                         }
                     }
@@ -203,13 +203,13 @@ public class DistributedLockManager implements LockService {
         private final Lock lock;
         private final DateTime requestExpirationTime;
         private final int leaseDurationMillis;
-        private final CompletableFuture<DateTime> future;
+        private final CompletableFuture<Void> future;
 
         public LockRequest(
                 Lock lock,
                 int leaseDurationMillis,
                 DateTime requestExpirationTime,
-                CompletableFuture<DateTime> future) {
+                CompletableFuture<Void> future) {
 
             this.lock = lock;
             this.requestExpirationTime = requestExpirationTime;
@@ -229,7 +229,7 @@ public class DistributedLockManager implements LockService {
             return leaseDurationMillis;
         }
 
-        public CompletableFuture<DateTime> future() {
+        public CompletableFuture<Void> future() {
             return future;
         }
     }

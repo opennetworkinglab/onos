@@ -1,5 +1,7 @@
 package org.onlab.onos.store.service;
 
+import java.util.concurrent.Future;
+
 /**
  * A lock is a tool for controlling access to a shared resource by multiple processes.
  * Commonly, a lock provides exclusive access to a resource such as a network device
@@ -36,6 +38,14 @@ public interface Lock {
     void lock(int leaseDurationMillis) throws InterruptedException;
 
     /**
+     * Acquires the lock asynchronously.
+     * @param leaseDurationMillis leaseDurationMillis the number of milliseconds the lock
+     * will be reserved before it becomes available for others.
+     * @return Future that can be used for blocking until lock is acquired.
+     */
+    Future<Void> lockAsync(int leaseDurationMillis);
+
+    /**
      * Acquires the lock only if it is free at the time of invocation.
      * @param leaseDurationMillis the number of milliseconds the must be
      * locked after it is granted, before automatically releasing it if it hasn't
@@ -57,7 +67,7 @@ public interface Lock {
      * elapsed before the lock was acquired
      * @throws InterruptedException if the thread is interrupted while waiting
      */
-    boolean tryLock(long waitTimeMillis, int leaseDurationMillis) throws InterruptedException;
+    boolean tryLock(int waitTimeMillis, int leaseDurationMillis) throws InterruptedException;
 
     /**
      * Returns true if this Lock instance currently holds the lock.
