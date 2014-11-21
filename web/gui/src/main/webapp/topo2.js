@@ -841,12 +841,14 @@
             two: getSelId(1),
             ids: [ getSelId(0), getSelId(1) ]
         });
+        network.view.flash('Host-to-Host connectivity added');
     }
 
     function showTrafficAction() {
         // force intents hover mode
         hoverMode = 1;
         showSelectTraffic();
+        network.view.flash('Related Traffic');
     }
 
     function showSelectTraffic() {
@@ -869,12 +871,14 @@
 
     function showAllTrafficAction() {
         sendMessage('requestAllTraffic', {});
+        network.view.flash('All Traffic');
     }
 
     function showDeviceLinkFlowsAction() {
         // force intents hover mode
         hoverMode = 2;
         showDeviceLinkFlows();
+        network.view.flash('Device Flows');
     }
 
     function showDeviceLinkFlows() {
