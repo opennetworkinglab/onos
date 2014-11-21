@@ -56,7 +56,7 @@ public class DistributedIntentStore
         implements IntentStore {
 
     /** Valid parking state, which can transition to INSTALLED. */
-    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, FAILED);
+    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, INSTALLED, FAILED);
 
     /** Valid parking state, which can transition to WITHDRAWN. */
     private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
@@ -177,11 +177,16 @@ public class DistributedIntentStore
         switch (state) {
         case SUBMITTED:
             prevParking = states.get(id);
-            verify(prevParking == null,
-                   "Illegal state transition attempted from %s to SUBMITTED",
-                   prevParking);
-            updated = states.putIfAbsent(id, SUBMITTED);
-            verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+            if (prevParking == null) {
+                updated = states.putIfAbsent(id, SUBMITTED);
+                verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+            } else {
+                verify(prevParking == WITHDRAWN,
+                        "Illegal state transition attempted from %s to SUBMITTED",
+                        prevParking);
+                updated = states.replace(id, prevParking, SUBMITTED);
+                verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+            }
             type = IntentEvent.Type.SUBMITTED;
             break;
 

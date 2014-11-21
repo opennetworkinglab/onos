@@ -56,7 +56,7 @@ public class HazelcastIntentStore
         implements IntentStore {
 
     /** Valid parking state, which can transition to INSTALLED. */
-    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, FAILED);
+    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, INSTALLED, FAILED);
 
     /** Valid parking state, which can transition to WITHDRAWN. */
     private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
@@ -177,10 +177,17 @@ public class HazelcastIntentStore
         // parking state transition
         switch (state) {
         case SUBMITTED:
-            prevParking = states.putIfAbsent(id, SUBMITTED);
-            verify(prevParking == null,
-                   "Illegal state transition attempted from %s to SUBMITTED",
-                   prevParking);
+            prevParking = states.get(id);
+            if (prevParking == null) {
+                IntentState existing = states.putIfAbsent(id, SUBMITTED);
+                verify(existing != null, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+            } else {
+                verify(prevParking == WITHDRAWN,
+                        "Illegal state transition attempted from %s to SUBMITTED",
+                        prevParking);
+                boolean updated = states.replace(id, prevParking, SUBMITTED);
+                verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+            }
             type = IntentEvent.Type.SUBMITTED;
             break;
         case INSTALLED:
