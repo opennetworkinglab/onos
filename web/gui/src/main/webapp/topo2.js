@@ -355,7 +355,7 @@
 
     var layerLookup = {
         host: {
-            endstation: 'pkt', // default, if host event does not define type
+            host: 'pkt', // default, if host event does not define type
             router:     'pkt',
             bgpSpeaker: 'pkt'
         },

@@ -51,14 +51,8 @@
 
 #topo svg .node.selected rect,
 #topo svg .node.selected circle {
-    fill: #ffA300;
+    fill: #f90;
     filter: url(#blue-glow);
-}
-
-/* for debugging */
-#topo svg .node circle.debug {
-    fill: white;
-    stroke: red;
 }
 
 #topo svg .node text {
@@ -84,12 +78,8 @@
     fill: #777;
 }
 
-#topo svg .node.device.switch.online {
+#topo svg .node.device.online {
     fill: #17f;
-}
-
-#topo svg .node.device.roadm.online {
-    fill: #335a9a;
 }
 
 /* note: device is offline without the 'online' class */
@@ -100,6 +90,25 @@
 
 #topo svg .node.device.online text {
     fill: white;
+}
+
+#topo svg .node.device .glyphIcon rect {
+    fill: #aaa;
+}
+#topo svg .node.device .glyphIcon use {
+    fill: #777;
+}
+#topo svg .node.device.selected .glyphIcon rect {
+    fill: #f90;
+}
+#topo svg .node.device.online .glyphIcon rect {
+    fill: #8ab;
+}
+#topo svg .node.device.online .glyphIcon use {
+    fill: #000;
+}
+#topo svg .node.device.online.selected .glyphIcon rect {
+    fill: #f90;
 }
 
 
@@ -117,7 +126,7 @@
 
 svg .node.host circle {
     stroke: #000;
-    fill: #ddd;
+    fill: #edb;
 }
 
 /* LINKS */
