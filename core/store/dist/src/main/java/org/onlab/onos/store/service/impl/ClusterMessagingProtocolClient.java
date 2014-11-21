@@ -1,9 +1,9 @@
 package org.onlab.onos.store.service.impl;
 
 import static com.google.common.base.Verify.verifyNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.SERIALIZER;
 import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.protocol.PingRequest;
 import net.kuujo.copycat.protocol.PingResponse;
@@ -227,6 +228,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 future.completeExceptionally(e);
                 // Treating this client as disconnected
                 remoteNode = null;
+                appeared = null;
             } catch (ExecutionException e) {
                 log.warn("RPCTask execution for {} failed: {}", request, e.getMessage());
                 log.debug("RPCTask execution for {} failed.", request, e);
