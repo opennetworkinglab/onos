@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.store.intent.impl;
 
+import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
@@ -45,11 +46,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Verify.verify;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class HazelcastIntentStore
         extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>
@@ -71,6 +71,9 @@ public class HazelcastIntentStore
     private transient Map<IntentId, IntentState> transientStates = new ConcurrentHashMap<>();
 
     private SMap<IntentId, List<Intent>> installable;
+
+    // TODO make this configurable
+    private boolean onlyLogTransitionError = true;
 
     @Override
     @Activate
@@ -166,6 +169,15 @@ public class HazelcastIntentStore
         return states.get(id);
     }
 
+    private void verify(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
+        if (onlyLogTransitionError) {
+            if (!expression) {
+                log.error(errorMessageTemplate.replace("%s", "{}"), errorMessageArgs);
+            }
+        } else {
+            Verify.verify(expression, errorMessageTemplate, errorMessageArgs);
+        }
+    }
 
     @Override
     public IntentEvent setState(Intent intent, IntentState state) {

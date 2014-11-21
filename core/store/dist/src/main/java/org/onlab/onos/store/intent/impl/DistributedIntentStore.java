@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.store.intent.impl;
 
+import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableSet;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -45,11 +46,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Verify.verify;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = false, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class DistributedIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
@@ -80,6 +80,9 @@ public class DistributedIntentStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DatabaseService dbService;
+
+    // TODO make this configurable
+    private boolean onlyLogTransitionError = true;
 
     @Activate
     public void activate() {
@@ -164,6 +167,15 @@ public class DistributedIntentStore
         return states.get(id);
     }
 
+    private void verify(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
+        if (onlyLogTransitionError) {
+            if (!expression) {
+                log.error(errorMessageTemplate.replace("%s", "{}"), errorMessageArgs);
+            }
+        } else {
+            Verify.verify(expression, errorMessageTemplate, errorMessageArgs);
+        }
+    }
 
     @Override
     public IntentEvent setState(Intent intent, IntentState state) {
