@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.flow;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.onlab.onos.event.AbstractEventTest;
 import org.onlab.onos.net.intent.IntentTestsMocks;
@@ -68,7 +70,8 @@ public class FlowRuleEventTest extends AbstractEventTest {
         final long time = System.currentTimeMillis();
         final FlowRule flowRule = new IntentTestsMocks.MockFlowRule(1);
         final FlowRuleEvent event =
-                new FlowRuleEvent(FlowRuleEvent.Type.RULE_UPDATED, flowRule, time);
-        validateEvent(event, FlowRuleEvent.Type.RULE_UPDATED, flowRule, time);
+                new FlowRuleEvent(FlowRuleEvent.Type.RULE_UPDATED, flowRule);
+        validateEvent(event, FlowRuleEvent.Type.RULE_UPDATED, flowRule, time,
+                time + TimeUnit.SECONDS.toMillis(30));
     }
 }
