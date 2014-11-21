@@ -15,10 +15,10 @@
  */
 
 /*
- ONOS GUI -- Feedback layer
+ ONOS GUI -- Keymap Layer
 
- Defines the feedback layer for the UI. Used to give user visual feedback
- of choices, typically responding to keystrokes.
+ Defines the key-map layer for the UI. Used to give user a list of
+ key bindings; both global, and for the current view.
 
  @author Simon Hunt
  */
@@ -31,27 +31,17 @@
 
     // Config variables
     var w = '100%',
-        h = 200,
+        h = '80%',
         fade = 750,
-        showFor = 2000,
-        vb = '-200 -' + (h/2) + ' 400 ' + h,
+        vb = '-200 -200 400 400',
         xpad = 20,
         ypad = 10;
 
     // State variables
-    var timer = null,
-        data = [];
+    var data = [];
 
     // DOM elements and the like
-    var fb = d3.select('#feedback');
-
-    var svg;
-
-    //var svg = fb.append('svg').attr({
-    //    width: w,
-    //    height: h,
-    //    viewBox: vb
-    //});
+    var kmdiv = d3.select('#keymap');
 
     function computeBox(el) {
         var text = el.select('text'),
@@ -70,22 +60,14 @@
         return box;
     }
 
-    function updateFeedback() {
-        if (!svg) {
-            svg = fb.append('svg').attr({
-                width: w,
-                height: h,
-                viewBox: vb
-            });
-        }
-
-        var items = svg.selectAll('.feedbackItem')
+    function updateKeymap() {
+        var items = svg.selectAll('.bindingItem')
             .data(data);
 
         var entering = items.enter()
             .append('g')
             .attr({
-                class: 'feedbackItem',
+                class: 'bindingItem',
                 opacity: 0
             })
             .transition()
@@ -108,13 +90,6 @@
             .duration(fade)
             .attr({ opacity: 0})
             .remove();
-
-        if (svg && data.length === 0) {
-            svg.transition()
-                .delay(fade + 10)
-                .remove();
-            svg = null;
-        }
     }
 
     function clearFlash() {
@@ -141,7 +116,85 @@
         updateFeedback();
     }
 
-    onos.ui.addLib('feedback', {
-        flash: flash
+    // =====================================
+    var svg = kmdiv.select('svg');
+
+    function populateBindings(bindings) {
+        svg.append('g')
+            .attr({
+                class: 'keyBindings',
+                transform: 'translate(-200,-120)',
+                opacity: 0
+            })
+            .transition()
+            .duration(fade)
+            .attr('opacity', 1);
+
+        var g = svg.select('g');
+
+        g.append('rect')
+            .attr({
+                width: 400,
+                height: 240,
+                rx: 8
+            });
+
+        g.append('text')
+            .text('Key Bindings')
+            .attr({
+                x: 200,
+                y: 0,
+                dy: '1.4em',
+                class: 'title'
+            });
+
+        // TODO: append .keyItems to rectangle
+    }
+
+    function fadeBindings() {
+        svg.selectAll('g')
+            .transition()
+            .duration(fade)
+            .attr('opacity', 0);
+    }
+
+    function addSvg() {
+        svg = kmdiv.append('svg')
+            .attr({
+                width: w,
+                height: h,
+                viewBox: vb
+            });
+    }
+
+    function removeSvg() {
+        svg.transition()
+            .delay(fade + 20)
+            .remove();
+    }
+
+    function showKeyMap(bindings) {
+        svg = kmdiv.select('svg');
+        if (svg.empty()) {
+            addSvg();
+            populateBindings(bindings);
+            console.log("SHOW KEY MAP");
+        }
+    }
+
+    function hideKeyMap() {
+        svg = kmdiv.select('svg');
+        if (!svg.empty()) {
+            fadeBindings();
+            removeSvg();
+            console.log("HIDE KEY MAP");
+            return true;
+        }
+        return false;
+    }
+
+    onos.ui.addLib('keymap', {
+        show: showKeyMap,
+        hide: hideKeyMap
     });
 }(ONOS));

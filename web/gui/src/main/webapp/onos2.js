@@ -93,6 +93,7 @@
                 case 40: return 'downArrow';
                 case 91: return 'cmdLeft';
                 case 93: return 'cmdRight';
+                case 191: return 'slash';
                 default:
                     if ((code >= 48 && code <= 57) ||
                         (code >= 65 && code <= 90)) {
@@ -268,6 +269,11 @@
             return $.isFunction(f) ? f : null;
         }
 
+        // returns the reference if it is an array, null otherwise
+        function isA(a) {
+            return $.isArray(a) ? a : null;
+        }
+
         // ..........................................................
         // View life-cycle functions
 
@@ -407,17 +413,27 @@
 
         function setupGlobalKeys() {
             keyHandler.globalKeys = {
+                slash: keyMap,
                 esc: escapeKey,
                 T: toggleTheme
             };
             // Masked keys are global key handlers that always return true.
             // That is, the view will never see the event for that key.
             keyHandler.maskedKeys = {
+                slash: true,
                 T: true
             };
         }
 
+        function keyMap(view, key, code, ev) {
+            libApi.keymap.show(keyHandler);
+            return true;
+        }
+
         function escapeKey(view, key, code, ev) {
+            if (libApi.keymap.hide()) {
+                return true;
+            }
             if (alerts.open) {
                 closeAlerts();
                 return true;
@@ -461,7 +477,8 @@
                 keyCode = event.keyCode,
                 key = whatKey(keyCode),
                 gcb = isF(keyHandler.globalKeys[key]),
-                vcb = isF(keyHandler.viewKeys[key]) || isF(keyHandler.viewFn);
+                vk = keyHandler.viewKeys[key],
+                vcb = isF(vk) || (isA(vk) && isF(vk[0])) || isF(keyHandler.viewFn);
 
             // global callback?
             if (gcb && gcb(current.view.token(), key, keyCode, event)) {

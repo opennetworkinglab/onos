@@ -136,12 +136,13 @@
 
     // key bindings
     var keyDispatch = {
-        M: testMe,                  // TODO: remove (testing only)
-        S: injectStartupEvents,     // TODO: remove (testing only)
-        space: injectTestEvent,     // TODO: remove (testing only)
+        // TODO: remove these "development only" bindings
+        M: testMe,
+        S: injectStartupEvents,
+        space: injectTestEvent,
 
-        B: toggleBg,
-        L: cycleLabels,
+        B: [toggleBg, 'Toggle background image'],
+        L: [cycleLabels, 'Cycle Device labels'],
         P: togglePorts,
         U: unpin,
         R: resetZoomPan,
