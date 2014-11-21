@@ -15,10 +15,14 @@
  */
 package org.onlab.onos.net.statistic;
 
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.GroupId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.FlowRule;
+
+import java.util.Optional;
 
 /**
  * Service for obtaining statistic information about link in the system.
@@ -68,4 +72,14 @@ public interface StatisticService {
      */
     FlowRule highestHitter(ConnectPoint connectPoint);
 
+    /**
+     * Obtain the load for a the ingress to the given link used by
+     * the specified application ID and group ID.
+     *
+     * @param link    link to query
+     * @param appId   application ID to filter with
+     * @param groupId group ID to filter with
+     * @return {@link Load Load}
+     */
+    Load load(Link link, ApplicationId appId, Optional<GroupId> groupId);
 }
