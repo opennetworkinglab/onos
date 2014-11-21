@@ -66,10 +66,16 @@ public class DistributedLock implements Lock {
 
     @Override
     public CompletableFuture<Void> lockAsync(int leaseDurationMillis) {
-        if (isLocked() || tryLock(leaseDurationMillis)) {
-            return CompletableFuture.<Void>completedFuture(null);
+        try {
+            if (isLocked() || tryLock(leaseDurationMillis)) {
+                return CompletableFuture.<Void>completedFuture(null);
+            }
+            return lockManager.lockIfAvailable(this, leaseDurationMillis);
+        } catch (DatabaseException e) {
+            CompletableFuture<Void> lockFuture = new CompletableFuture<>();
+            lockFuture.completeExceptionally(e);
+            return lockFuture;
         }
-        return lockManager.lockIfAvailable(this, leaseDurationMillis);
     }
 
     @Override

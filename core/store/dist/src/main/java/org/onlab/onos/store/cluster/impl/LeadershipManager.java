@@ -58,7 +58,7 @@ public class LeadershipManager implements LeadershipService {
     private static final int WAIT_BEFORE_RETRY_MS = 2000;
 
     // TODO: Appropriate Thread pool sizing.
-    private static final ScheduledExecutorService THREAD_POOL =
+    private final ScheduledExecutorService threadPool =
             Executors.newScheduledThreadPool(25, namedThreads("leadership-manager-%d"));
 
     private static final MessageSubject LEADERSHIP_UPDATES =
@@ -113,7 +113,7 @@ public class LeadershipManager implements LeadershipService {
 
         clusterCommunicator.removeSubscriber(LEADERSHIP_UPDATES);
 
-        THREAD_POOL.shutdown();
+        threadPool.shutdown();
 
         log.info("Stopped.");
     }
@@ -180,7 +180,7 @@ public class LeadershipManager implements LeadershipService {
         verifyNotNull(lock, "Lock should not be null");
         lock.lockAsync(TERM_DURATION_MS).whenComplete((response, error) -> {
             if (error == null) {
-                THREAD_POOL.schedule(
+                threadPool.schedule(
                         new ReelectionTask(lock),
                         TERM_DURATION_MS / 2,
                         TimeUnit.MILLISECONDS);
@@ -216,7 +216,7 @@ public class LeadershipManager implements LeadershipService {
                         new LeadershipEvent(
                                 LeadershipEvent.Type.LEADER_REELECTED,
                                 new Leadership(lock.path(), localNode, lock.epoch())));
-                THREAD_POOL.schedule(this, TERM_DURATION_MS / 2, TimeUnit.MILLISECONDS);
+                threadPool.schedule(this, TERM_DURATION_MS / 2, TimeUnit.MILLISECONDS);
             } else {
                 if (openContests.containsKey(lock.path())) {
                     notifyListeners(
