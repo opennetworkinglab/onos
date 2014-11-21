@@ -66,6 +66,10 @@ import com.google.common.collect.ImmutableList;
 @Service
 public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
+    private static final int RETRY_MS = 500;
+
+    private static final int ACTIVATE_MAX_RETRIES = 100;
+
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -234,18 +238,23 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
     }
 
-    private void tryTableListing() {
+    private void tryTableListing() throws InterruptedException {
         int retries = 0;
         do {
             try {
                 listTables();
                 return;
+            } catch (DatabaseException.Timeout e) {
+                log.debug("Failed to listTables. Will retry...", e);
             } catch (DatabaseException e) {
-                if (retries == 10) {
-                    log.error("Failed to listTables after multiple attempts. Giving up.", e);
-                    throw e;
-                } else {
-                    log.debug("Failed to listTables. Will retry...", e);
+                log.debug("Failed to listTables. Will retry later...", e);
+                Thread.sleep(RETRY_MS);
+            } finally {
+                if (retries == ACTIVATE_MAX_RETRIES) {
+                    log.error("Failed to listTables after multiple attempts. Giving up.");
+                    // Exiting hoping things will be fixed by the time
+                    // others start using the service
+                    return;
                 }
             }
             retries++;
