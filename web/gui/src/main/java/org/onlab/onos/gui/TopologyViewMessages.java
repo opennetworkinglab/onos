@@ -300,11 +300,10 @@ public abstract class TopologyViewMessages {
                 .put("master", master(device.id()));
 
         // Generate labels: id, chassis id, no-label, optional-name
+        String name = device.annotations().value("name");
         ArrayNode labels = mapper.createArrayNode();
+        labels.add(isNullOrEmpty(name) ? device.id().toString() : name);
         labels.add(device.id().toString());
-        labels.add(device.chassisId().toString());
-        labels.add(""); // compact no-label view
-        labels.add(device.annotations().value("name"));
 
         // Add labels, props and stuff the payload into envelope.
         payload.set("labels", labels);
@@ -340,7 +339,7 @@ public abstract class TopologyViewMessages {
         String hostType = host.annotations().value("type");
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", host.id().toString())
-                .put("type", isNullOrEmpty(hostType) ? "host" : hostType)
+                .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
         payload.set("cp", hostConnect(mapper, host.location()));

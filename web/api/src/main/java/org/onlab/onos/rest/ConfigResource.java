@@ -55,7 +55,7 @@ public class ConfigResource extends BaseResource {
             new ConfigProvider(cfg, get(DeviceProviderRegistry.class),
                                get(LinkProviderRegistry.class),
                                get(HostProviderRegistry.class)).parse();
-            return Response.ok(mapper.createObjectNode().toString()).build();
+            return Response.ok().build();
         } catch (Exception e) {
             log.error("Unable to parse topology configuration", e);
             return Response.status(INTERNAL_SERVER_ERROR).entity(e.toString()).build();
