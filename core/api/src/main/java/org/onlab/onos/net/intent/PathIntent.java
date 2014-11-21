@@ -84,7 +84,7 @@ public class PathIntent extends ConnectivityIntent {
      * different for the specified all links and that destination element ID of a link and source
      * element ID of the next adjacent source element ID are same for the specified all links.
      *
-     * @param links
+     * @param links links to be validated
      */
     public static void validate(List<Link> links) {
         checkArgument(Iterables.all(links, new Predicate<Link>() {
