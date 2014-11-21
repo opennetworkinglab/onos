@@ -302,6 +302,7 @@ public abstract class TopologyViewMessages {
         // Generate labels: id, chassis id, no-label, optional-name
         String name = device.annotations().value("name");
         ArrayNode labels = mapper.createArrayNode();
+        labels.add("");
         labels.add(isNullOrEmpty(name) ? device.id().toString() : name);
         labels.add(device.id().toString());
 

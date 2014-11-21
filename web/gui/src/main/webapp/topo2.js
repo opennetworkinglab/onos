@@ -175,7 +175,7 @@
         },
         webSock,
         sid = 0,
-        deviceLabelCount = 2,
+        deviceLabelCount = 3,
         hostLabelCount = 2,
         deviceLabelIndex = 0,
         hostLabelIndex = 0,
@@ -314,7 +314,7 @@
     }
 
     function cycleLabels() {
-        deviceLabelIndex = (deviceLabelIndex === network.deviceLabelCount - 1)
+        deviceLabelIndex = (deviceLabelIndex === 2)
             ? 0 : deviceLabelIndex + 1;
 
         network.nodes.forEach(function (d) {
@@ -1237,8 +1237,6 @@
             svgCls = type ? 'node device ' + type : 'node device',
             labels = device.labels || [];
 
-        labels.unshift(''); // add 'no-label' to front of cycle
-
         // Augment as needed...
         node.class = 'device';
         node.svgClass = device.online ? svgCls + ' online' : svgCls;
@@ -1517,12 +1515,12 @@
             hostRadius = {
                 bgpSpeaker: 14,
                 router: 14,
-                host: 14
+                endstation: 14
             },
             hostGlyphId = {
                 bgpSpeaker: 'bgpSpeaker',
                 router: 'router',
-                host: 'host'
+                endstation: 'endstation'
             };
 
 
