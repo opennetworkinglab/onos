@@ -175,6 +175,8 @@
         },
         webSock,
         sid = 0,
+        deviceLabelCount = 2,
+        hostLabelCount = 2,
         deviceLabelIndex = 0,
         hostLabelIndex = 0,
         selections = {},
@@ -355,7 +357,7 @@
 
     var layerLookup = {
         host: {
-            host: 'pkt', // default, if host event does not define type
+            endstation: 'pkt', // default, if host event does not define type
             router:     'pkt',
             bgpSpeaker: 'pkt'
         },
@@ -1241,12 +1243,6 @@
         node.class = 'device';
         node.svgClass = device.online ? svgCls + ' online' : svgCls;
         positionNode(node);
-
-        // cache label array length
-        // TODO: need a uiConfig event from the server to set things
-        // like device labels count, host labels count, etc.
-        // The current method (here) is a little fragile
-        network.deviceLabelCount = device.labels.length;
         return node;
     }
 
@@ -1257,13 +1253,10 @@
         // Augment as needed...
         node.class = 'host';
         if (!node.type) {
-            node.type = 'host';
+            node.type = 'endstation';
         }
         node.svgClass = 'node host ' + node.type;
         positionNode(node);
-
-        // cache label array length
-        network.hostLabelCount = host.labels.length;
         return node;
     }
 

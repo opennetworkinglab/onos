@@ -32,7 +32,7 @@
     // Config variables
     var w = '100%',
         h = 200,
-        fade = 750,
+        fade = 500,
         showFor = 2000,
         vb = '-200 -' + (h/2) + ' 400 ' + h,
         xpad = 20,

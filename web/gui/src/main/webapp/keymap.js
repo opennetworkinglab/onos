@@ -32,7 +32,7 @@
     // Config variables
     var w = '100%',
         h = '80%',
-        fade = 750,
+        fade = 500,
         vb = '-220 -220 440 440',
         paneW = 400,
         paneH = 340,
