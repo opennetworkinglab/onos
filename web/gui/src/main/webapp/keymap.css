@@ -23,13 +23,41 @@
 #keymap svg {
     position: absolute;
     bottom: 40px;
-    opacity: 0.5;
+    opacity: 0.7;
+}
+
+#keymap svg g.pane {
+    fill: black;
 }
 
 #keymap svg text.title {
     font-size: 12pt;
     font-style: italic;
-    fill: #666;
     text-anchor: middle;
+    fill: #444;
+}
+
+#keymap svg g.keyItem {
+    fill: white;
+}
+
+#keymap svg g.keyItem line {
+    stroke: #444;
+    stroke-dasharray: 4 4;
+}
+
+#keymap svg text {
+    font-size: 10pt;
+    alignment-baseline: middle;
+}
+
+#keymap svg text.key {
+    font-size: 10pt;
+    fill: #8aa;
+}
+
+#keymap svg text.desc {
+    font-size: 10pt;
+    fill: #888;
 }
 

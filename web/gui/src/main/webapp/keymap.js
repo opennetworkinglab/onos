@@ -33,9 +33,14 @@
     var w = '100%',
         h = '80%',
         fade = 750,
-        vb = '-200 -200 400 400',
-        xpad = 20,
-        ypad = 10;
+        vb = '-220 -220 440 440',
+        paneW = 400,
+        paneH = 340,
+        offy = 65,
+        dy = 20,
+        offKey = 40,
+        offDesc = offKey + 50,
+        lineW = paneW - (2*offKey);
 
     // State variables
     var data = [];
@@ -43,104 +48,121 @@
     // DOM elements and the like
     var kmdiv = d3.select('#keymap');
 
-    function computeBox(el) {
-        var text = el.select('text'),
-            box = text.node().getBBox();
-
-        // center
-        box.x = -box.width / 2;
-        box.y = -box.height / 2;
-
-        // add some padding
-        box.x -= xpad;
-        box.width += xpad * 2;
-        box.y -= ypad;
-        box.height += ypad * 2;
-
-        return box;
+    function isA(a) {
+        return $.isArray(a) ? a : null;
     }
 
-    function updateKeymap() {
-        var items = svg.selectAll('.bindingItem')
+
+    var svg = kmdiv.select('svg'),
+        pane;
+
+    function updateKeyItems() {
+        var items = pane.selectAll('.keyItem')
             .data(data);
 
         var entering = items.enter()
             .append('g')
             .attr({
-                class: 'bindingItem',
-                opacity: 0
-            })
-            .transition()
-            .duration(fade)
-            .attr('opacity', 1);
+                id: function (d) { return d.id; },
+                class: 'keyItem'
+            });
 
-        entering.each(function (d) {
+        entering.each(function (d, i) {
             var el = d3.select(this),
-                box;
+                y = offy + dy * i;
 
-            d.el = el;
-            el.append('rect').attr({ rx: 10, ry: 10});
-            el.append('text').text(d.label);
-            box = computeBox(el);
-            el.select('rect').attr(box);
+            if (d.id === '_') {
+                el.append('line')
+                    .attr({
+                        class: 'sep',
+                        x1: offKey,
+                        y1: y,
+                        x2: offKey + lineW,
+                        y2: y
+                    });
+            } else {
+                el.append('text')
+                    .text(d.key)
+                    .attr({
+                        class: 'key',
+                        x: offKey,
+                        y: y
+                    });
+
+                el.append('text')
+                    .text(d.desc)
+                    .attr({
+                        class: 'desc',
+                        x: offDesc,
+                        y: y
+                    });
+            }
+        });
+    }
+
+    function aggregateData(bindings) {
+        var gmap = d3.map(bindings.globalKeys),
+            vmap = d3.map(bindings.viewKeys),
+            gkeys = gmap.keys(),
+            vkeys = vmap.keys();
+
+        gkeys.sort();
+        vkeys.sort();
+
+        data = [];
+        gkeys.forEach(function (k) {
+            addItem('global', k, gmap.get(k));
+        });
+        addItem('separator');
+        vkeys.forEach(function (k) {
+            addItem('view', k, vmap.get(k));
         });
 
-        items.exit()
-            .transition()
-            .duration(fade)
-            .attr({ opacity: 0})
-            .remove();
-    }
-
-    function clearFlash() {
-        if (timer) {
-            clearInterval(timer);
+        function addItem(type, k, d) {
+            var id = type + '-' + k,
+                a = isA(d),
+                desc = a && a[1];
+            if (desc) {
+                data.push(
+                    {
+                        id: id,
+                        type: type,
+                        key: k,
+                        desc: desc
+                    }
+                );
+            } else if (type === 'separator') {
+                data.push({
+                    id: '_',
+                    type: type
+                });
+            }
         }
-        data = [];
-        updateFeedback();
+
     }
-
-    // for now, simply display some text feedback
-    function flash(text) {
-        // cancel old scheduled event if there was one
-        if (timer) {
-            clearInterval(timer);
-        }
-        timer = setInterval(function () {
-            clearFlash();
-        }, showFor);
-
-        data = [{
-            label: text
-        }];
-        updateFeedback();
-    }
-
-    // =====================================
-    var svg = kmdiv.select('svg');
 
     function populateBindings(bindings) {
         svg.append('g')
             .attr({
                 class: 'keyBindings',
-                transform: 'translate(-200,-120)',
+                transform: 'translate(-200,-200)',
                 opacity: 0
             })
             .transition()
             .duration(fade)
             .attr('opacity', 1);
 
-        var g = svg.select('g');
+        pane = svg.select('g');
 
-        g.append('rect')
+        pane.append('rect')
             .attr({
-                width: 400,
-                height: 240,
+                width: paneW,
+                height: paneH,
                 rx: 8
             });
 
-        g.append('text')
-            .text('Key Bindings')
+        pane.append('text')
+            .text('Keyboard Shortcuts')
             .attr({
                 x: 200,
                 y: 0,
@@ -148,11 +170,12 @@
                 class: 'title'
             });
 
-        // TODO: append .keyItems to rectangle
+        aggregateData(bindings);
+        updateKeyItems();
     }
 
     function fadeBindings() {
-        svg.selectAll('g')
+        svg.selectAll('g.keyBindings')
             .transition()
             .duration(fade)
             .attr('opacity', 0);
@@ -178,7 +201,8 @@
         if (svg.empty()) {
             addSvg();
             populateBindings(bindings);
-            console.log("SHOW KEY MAP");
+        } else {
+            hideKeyMap();
         }
     }
 
@@ -187,7 +211,6 @@
         if (!svg.empty()) {
             fadeBindings();
             removeSvg();
-            console.log("HIDE KEY MAP");
             return true;
         }
         return false;

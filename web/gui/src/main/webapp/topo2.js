@@ -144,12 +144,12 @@
         B: [toggleBg, 'Toggle background image'],
         L: [cycleLabels, 'Cycle Device labels'],
         P: togglePorts,
-        U: unpin,
-        R: resetZoomPan,
-        H: toggleHover,
-        V: showTrafficAction,
-        A: showAllTrafficAction,
-        F: showDeviceLinkFlowsAction,
+        U: [unpin, 'Unpin node'],
+        R: [resetZoomPan, 'Reset zoom/pan'],
+        H: [cycleHoverMode, 'Cycle hover mode'],
+        V: [showTrafficAction, 'Show traffic'],
+        A: [showAllTrafficAction, 'Show all traffic'],
+        F: [showDeviceLinkFlowsAction, 'Show device link flows'],
         esc: handleEscape
     };
 
@@ -322,7 +322,7 @@
         });
     }
 
-    function toggleHover(view) {
+    function cycleHoverMode(view) {
         hoverMode++;
         if (hoverMode === hoverModes.length) {
             hoverMode = 0;

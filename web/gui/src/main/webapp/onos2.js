@@ -413,9 +413,9 @@
 
         function setupGlobalKeys() {
             keyHandler.globalKeys = {
-                slash: keyMap,
-                esc: escapeKey,
-                T: toggleTheme
+                slash: [keyMap, 'Show / hide keyboard shortcuts'],
+                esc: [escapeKey, 'Dismiss dialog or cancel selections'],
+                T: [toggleTheme, "Toggle theme"]
             };
             // Masked keys are global key handlers that always return true.
             // That is, the view will never see the event for that key.
@@ -476,7 +476,8 @@
             var event = d3.event,
                 keyCode = event.keyCode,
                 key = whatKey(keyCode),
-                gcb = isF(keyHandler.globalKeys[key]),
+                gk = keyHandler.globalKeys[key],
+                gcb = isF(gk) || (isA(gk) && isF(gk[0])),
                 vk = keyHandler.viewKeys[key],
                 vcb = isF(vk) || (isA(vk) && isF(vk[0])) || isF(keyHandler.viewFn);
 
