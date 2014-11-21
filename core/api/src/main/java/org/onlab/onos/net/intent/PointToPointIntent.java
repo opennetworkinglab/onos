@@ -26,6 +26,7 @@ import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -75,8 +76,14 @@ public class PointToPointIntent extends ConnectivityIntent {
         super(id(PointToPointIntent.class, selector, treatment,
                  ingressPoint, egressPoint, constraints),
               appId, null, selector, treatment, constraints);
-        this.ingressPoint = checkNotNull(ingressPoint);
-        this.egressPoint = checkNotNull(egressPoint);
+
+        checkNotNull(ingressPoint);
+        checkNotNull(egressPoint);
+        checkArgument(!ingressPoint.equals(egressPoint),
+                "ingress and egress should be different (ingress: %s, egress: %s)", ingressPoint, egressPoint);
+
+        this.ingressPoint = ingressPoint;
+        this.egressPoint = egressPoint;
     }
 
     /**

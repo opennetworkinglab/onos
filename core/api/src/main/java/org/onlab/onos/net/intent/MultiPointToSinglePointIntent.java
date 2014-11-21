@@ -86,9 +86,12 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
 
         checkNotNull(ingressPoints);
         checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");
+        checkNotNull(egressPoint);
+        checkArgument(!ingressPoints.contains(egressPoint),
+                "Set of ingresses should not contain egress (egress: %s)", egressPoint);
 
         this.ingressPoints = Sets.newHashSet(ingressPoints);
-        this.egressPoint = checkNotNull(egressPoint);
+        this.egressPoint = egressPoint;
     }
 
     /**

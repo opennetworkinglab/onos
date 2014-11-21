@@ -71,6 +71,8 @@ public final class HostToHostIntent extends ConnectivityIntent {
         super(id(HostToHostIntent.class, min(one, two), max(one, two),
                  selector, treatment, constraints),
               appId, null, selector, treatment, constraints);
+
+        // TODO: consider whether the case one and two are same is allowed
         this.one = checkNotNull(one);
         this.two = checkNotNull(two);
 
