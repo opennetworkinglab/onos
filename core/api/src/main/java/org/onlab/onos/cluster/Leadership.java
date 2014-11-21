@@ -11,12 +11,12 @@ public class Leadership {
 
     private final String topic;
     private final ControllerNode leader;
-    private final long term;
+    private final long epoch;
 
-    public Leadership(String topic, ControllerNode leader, long term) {
+    public Leadership(String topic, ControllerNode leader, long epoch) {
         this.topic = topic;
         this.leader = leader;
-        this.term = term;
+        this.epoch = epoch;
     }
 
     /**
@@ -36,16 +36,16 @@ public class Leadership {
     }
 
     /**
-     * The term number associated with this leadership.
-     * @return leadership term
+     * The epoch when the leadership was assumed.
+     * @return leadership epoch
      */
-    public long term() {
-        return term;
+    public long epoch() {
+        return epoch;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(topic, leader, term);
+        return Objects.hash(topic, leader, epoch);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class Leadership {
         return MoreObjects.toStringHelper(this.getClass())
             .add("topic", topic)
             .add("leader", leader)
-            .add("term", term)
+            .add("epoch", epoch)
             .toString();
     }
 }

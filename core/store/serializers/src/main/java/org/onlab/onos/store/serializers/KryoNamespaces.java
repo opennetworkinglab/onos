@@ -25,6 +25,8 @@ import java.util.LinkedList;
 
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
+import org.onlab.onos.cluster.Leadership;
+import org.onlab.onos.cluster.LeadershipEvent;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.core.DefaultApplicationId;
@@ -166,6 +168,9 @@ public final class KryoNamespaces {
                     Link.Type.class,
                     Link.State.class,
                     Timestamp.class,
+                    Leadership.class,
+                    LeadershipEvent.class,
+                    LeadershipEvent.Type.class,
                     HostId.class,
                     HostDescription.class,
                     DefaultHostDescription.class,

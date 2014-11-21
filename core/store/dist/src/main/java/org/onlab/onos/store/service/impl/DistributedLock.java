@@ -1,8 +1,10 @@
 package org.onlab.onos.store.service.impl;
 
+import static com.google.common.base.Verify.verify;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +17,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.Lock;
+import org.onlab.onos.store.service.VersionedValue;
 import org.slf4j.Logger;
 
 /**
@@ -29,6 +32,7 @@ public class DistributedLock implements Lock {
     private final String path;
     private DateTime lockExpirationTime;
     private AtomicBoolean isLocked = new AtomicBoolean(false);
+    private volatile long epoch = 0;
     private byte[] lockId;
 
     public DistributedLock(
@@ -74,6 +78,10 @@ public class DistributedLock implements Lock {
                 DistributedLockManager.ONOS_LOCK_TABLE_NAME,
                 path,
                 lockId)) {
+            VersionedValue vv =
+                    databaseService.get(DistributedLockManager.ONOS_LOCK_TABLE_NAME, path);
+            verify(Arrays.equals(vv.value(), lockId));
+            epoch = vv.version();
             isLocked.set(true);
             lockExpirationTime = DateTime.now().plusMillis(leaseDurationMillis);
             return true;
@@ -118,6 +126,11 @@ public class DistributedLock implements Lock {
             }
         }
         return false;
+    }
+
+    @Override
+    public long epoch() {
+        return epoch;
     }
 
     @Override

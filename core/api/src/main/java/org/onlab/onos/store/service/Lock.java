@@ -76,6 +76,15 @@ public interface Lock {
     boolean isLocked();
 
     /**
+     * Returns the epoch for this lock.
+     * If this lock is currently locked i.e. isLocked() returns true, epoch signifies the logical time
+     * when the lock was acquired. The concept of epoch lets one come up with a global ordering for all
+     * lock acquisition events
+     * @return epoch
+     */
+     long epoch();
+
+    /**
      * Releases the lock.
      */
     void unlock();
