@@ -168,9 +168,9 @@ public class DistributedIntentStore
     @Override
     public IntentEvent setState(Intent intent, IntentState state) {
         final IntentId id = intent.id();
-        IntentEvent.Type type = null;
+        IntentEvent.Type evtType = null;
         final IntentState prevParking;
-        boolean transientStateChangeOnly = false;
+        boolean transitionedToParking = true;
         boolean updated;
 
         // parking state transition
@@ -187,7 +187,7 @@ public class DistributedIntentStore
                 updated = states.replace(id, prevParking, SUBMITTED);
                 verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
             }
-            type = IntentEvent.Type.SUBMITTED;
+            evtType = IntentEvent.Type.SUBMITTED;
             break;
 
         case INSTALLED:
@@ -197,14 +197,14 @@ public class DistributedIntentStore
                    prevParking);
             updated = states.replace(id, prevParking, INSTALLED);
             verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALLED);
-            type = IntentEvent.Type.INSTALLED;
+            evtType = IntentEvent.Type.INSTALLED;
             break;
 
         case FAILED:
             prevParking = states.get(id);
             updated = states.replace(id, prevParking, FAILED);
             verify(updated, "Conditional replace %s => %s failed", prevParking, FAILED);
-            type = IntentEvent.Type.FAILED;
+            evtType = IntentEvent.Type.FAILED;
             break;
 
         case WITHDRAWN:
@@ -214,25 +214,28 @@ public class DistributedIntentStore
                    prevParking);
             updated = states.replace(id, prevParking, WITHDRAWN);
             verify(updated, "Conditional replace %s => %s failed", prevParking, WITHDRAWN);
-            type = IntentEvent.Type.WITHDRAWN;
+            evtType = IntentEvent.Type.WITHDRAWN;
             break;
 
         default:
-            transientStateChangeOnly = true;
+            transitionedToParking = false;
             prevParking = null;
             break;
         }
-        if (!transientStateChangeOnly) {
+        if (transitionedToParking) {
             log.debug("Parking State change: {} {}=>{}",  id, prevParking, state);
+            // remove instance local state
+            transientStates.remove(id);
+        } else {
+            // Update instance local state, which includes non-parking state transition
+            final IntentState prevTransient = transientStates.put(id, state);
+            log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
         }
-        // Update instance local state, which includes non-parking state transition
-        final IntentState prevTransient = transientStates.put(id, state);
-        log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
 
-        if (type == null) {
+        if (evtType == null) {
             return null;
         }
-        return new IntentEvent(type, intent);
+        return new IntentEvent(evtType, intent);
     }
 
     @Override
