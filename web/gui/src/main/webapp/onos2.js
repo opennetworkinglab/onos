@@ -821,7 +821,7 @@
                         if (w === undefined) {
                             return widthVal();
                         }
-                        el.style('width', w);
+                        el.style('width', w + 'px');
                     }
                 };
                 fpanels[id] = fp;

@@ -1,0 +1,24 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:000000000000000a",
+    "type": "switch",
+    "online": true,
+    "master": "local",
+    "labels": [
+      "",
+      "NWOR",
+      "of:000000000000000a"
+    ],
+    "props": {
+      "latitude": "29.951475",
+      "name": "NWOR",
+      "longitude": "-90.078434"
+    },
+    "location": {
+      "type": "latlng",
+      "lat": 29.951475,
+      "lng": -90.078434
+    }
+  }
+}

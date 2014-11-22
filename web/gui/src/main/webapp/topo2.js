@@ -946,64 +946,120 @@
         return s.replace(/px$/,'');
     }
 
-    function appendGlyph(svg, ox, oy, dim, iid) {
-        svg.append('use').attr({
-            class: 'glyphIcon',
+    function appendUse(svg, ox, oy, dim, iid, cls) {
+        var use = svg.append('use').attr({
             transform: translate(ox,oy),
             'xlink:href': iid,
             width: dim,
             height: dim
         });
+        if (cls) {
+            use.classed(cls, true);
+        }
+        return use;
+    }
+
+    function appendGlyph(svg, ox, oy, dim, iid, cls) {
+        appendUse(svg, ox, oy, dim, iid, cls).classed('glyphIcon', true);
+    }
+
+    function appendBadge(svg, ox, oy, dim, iid, cls) {
+        appendUse(svg, ox, oy, dim, iid,cls ).classed('badgeIcon', true);
+    }
+
+    function attachUiBadge(svg) {
+        appendBadge(svg, 12, 50, 30, '#uiAttached', 'uiBadge');
     }
 
     // ==============================
     // onos instance panel functions
+    var instW = 120;
+
+    function viewBox(w, h) {
+        return '0 0 ' + w + ' ' + h;
+    }
 
     function updateInstances() {
         var onoses = oiBox.el.selectAll('.onosInst')
-            .data(onosOrder, function (d) { return d.id; });
+                .data(onosOrder, function (d) { return d.id; }),
+            boxW = instW * onosOrder.length;
 
-        // operate on existing onoses if necessary
-        onoses.classed('online', function (d) { return d.online; });
+        // adjust the width of the panel based on number of instances...
+        oiBox.width(boxW);
 
+        // operate on existing onos instances if necessary
+        onoses.each(function (d) {
+            var el = d3.select(this),
+                svg = el.select('svg');
+
+            // update online state
+            el.classed('online', d.online);
+
+            // update ui-attached state
+            svg.select('use.uiBadge').remove();
+            if (d.uiAttached) {
+                attachUiBadge(svg);
+            }
+
+            // TODO: update title and property values
+        });
+
+
+        // operate on new onos instances
         var entering = onoses.enter()
             .append('div')
             .attr('class', 'onosInst')
             .classed('online', function (d) { return d.online; })
             .on('click', clickInst);
 
-        entering.each(function (d, i) {
+        entering.each(function (d) {
             var el = d3.select(this),
-                img;
-            var css = window.getComputedStyle(this),
+                css = window.getComputedStyle(this),
                 w = stripPx(css.width),
-                h = stripPx(css.height) / 2;
+                h = stripPx(css.height);
 
             var svg = el.append('svg').attr({
                 width: w,
-                height: h
+                height: h,
+                viewBox: viewBox(w, h)
             });
-            var dim = 30;
-            appendGlyph(svg, 2, 2, 30, '#node');
-            svg.append('use')
+
+            svg.append('rect')
                 .attr({
-                    class: 'birdBadge',
-                    transform: translate(8,10),
-                    'xlink:href': '#bird',
-                    width: 18,
-                    height: 18,
-                    fill: '#fff'
+                    x: 8,
+                    y: 8,
+                    width: 104,
+                    height: 84,
+                    rx: 12
                 });
 
-            $('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
+
+            appendGlyph(svg, 9, 9, 36, '#node');
+            appendBadge(svg, 17, 19, 21, '#bird');
+
+            if (d.uiAttached) {
+                attachUiBadge(svg);
+            }
+
+            //svg.append('use')
+            //    .attr({
+            //        class: 'birdBadge',
+            //        transform: translate(8,10),
+            //        'xlink:href': '#bird',
+            //        width: 18,
+            //        height: 18,
+            //        fill: '#fff'
+            //    });
+            //
+            //$('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
 
             // is the UI attached to this instance?
             // TODO: need uiAttached boolean in instance data
             // TODO: use SVG glyph, not png..
             //if (d.uiAttached) {
-            if (i === 0) {
-                $('<img src="img/ui.png">').attr('class','ui').appendTo(el);
-            }
+            //if (i === 0) {
+            //    $('<img src="img/ui.png">').attr('class','ui').appendTo(el);
+            //}
         });
 
         // operate on existing + new onoses here
@@ -2194,8 +2250,8 @@
     function loadGlyphs(svg) {
         var defs = svg.append('defs');
         gly.defBird(defs);
-        gly.defBullhorn(defs);
         gly.defGlyphs(defs);
+        gly.defBadges(defs);
     }
 
     // ==============================
@@ -2468,5 +2524,6 @@
     summaryPane = onos.ui.addFloatingPanel('topo-summary');
     detailPane = onos.ui.addFloatingPanel('topo-detail');
     oiBox = onos.ui.addFloatingPanel('topo-oibox', 'TL');
+    oiBox.width(20);
 
 }(ONOS));

@@ -2,11 +2,13 @@
   "event": "addInstance",
   "payload": {
     "id": "onos-2",
-    "uiAttached": true,
-    "online": false,
+    "ip": "192.168.0.2",
+    "online": true,
+    "uiAttached": false,
+    "switches": 3,
     "labels": [
       "onos-2",
-      "127.0.0.1"
+      "192.168.0.2"
     ]
   }
 }

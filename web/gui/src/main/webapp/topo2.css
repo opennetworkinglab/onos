@@ -32,7 +32,6 @@
 
 /* TODO: move glyphs into framework */
 
-#topo-oibox svg .glyphIcon,
 #topo svg .glyphIcon {
     fill: black;
     stroke: none;
@@ -42,6 +41,7 @@
     fill: #ddd;
     stroke: none;
 }
+
 
 /* NODES */
 
@@ -313,10 +313,59 @@ svg .node.host circle {
 /* ONOS instance stuff */
 
 #topo-oibox {
-    width: 120px;
+    height: 100px;
 }
 
-#topo-oibox .onosInst {
+#topo-oibox div.onosInst {
+    display: inline-block;
+    width: 120px;
+    height: 100px;
+}
+
+#topo-oibox svg rect {
+    fill: #ccc;
+    stroke: #aaa;
+    stroke-width: 3.5;
+}
+#topo-oibox .online svg rect {
+    opacity: 1;
+    fill: #9cf;
+    stroke: #357;
+}
+
+#topo-oibox svg .glyphIcon {
+    fill: #888;
+    fill-rule: evenodd;
+}
+#topo-oibox .online svg .glyphIcon {
+    fill: #000;
+}
+
+#topo-oibox svg .badgeIcon {
+    fill: #aaa;
+    fill-rule: evenodd;
+}
+
+#topo-oibox .online svg .badgeIcon {
+    fill: #fff;
+}
+
+
+#topo-oibox .onosInst.mastership {
+    opacity: 0.3;
+}
+#topo-oibox .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+#topo-oibox .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+
+/* ------------------------------------------------------ */
+/* ------------------------------------------------------ */
+/* ------------------------------------------------------ */
+
+#topo-oibox .onosInst_OLD {
     position: relative;
     width: 88%;
     left: 4%;
@@ -333,31 +382,24 @@ svg .node.host circle {
     border: 4px solid #aaa;
 }
 
-#topo-oibox .onosInst.online {
-    /* theme-related */
-    color: #113;
-    background-color: #9cf;
-    border: 4px solid #357;
-}
-
-#topo-oibox .onosInst .onosTitle {
+#topo-oibox .onosInst_OLD .onosTitle {
     text-align: center;
     font-size: 10pt;
     margin-top: 6px;
     color: #888;
 }
 
-#topo-oibox .onosInst.online .onosTitle {
+#topo-oibox .onosInst_OLD.online .onosTitle {
     color: black;
 }
 
-#topo-oibox .onosInst svg .glyphIcon {
+#topo-oibox .onosInst_OLD svg .glyphIcon {
     opacity: 0.5;
     fill: black;
     stroke: none;
     fill-rule: evenodd;
 }
-#topo-oibox .onosInst.online svg .glyphIcon {
+#topo-oibox .onosInst_OLD.online svg .glyphIcon {
     opacity: 1;
     fill: black;
     stroke: none;
@@ -365,26 +407,18 @@ svg .node.host circle {
 }
 
 
-#topo-oibox .onosInst.online img {
+#topo-oibox .onosInst_OLD.online img {
     opacity: 1.0;
     padding: 3px;
 }
 
-#topo-oibox .onosInst img.ui {
+#topo-oibox .onosInst_OLD img.ui {
     opacity: 1;
     position: absolute;
     top: 3px;
     right: 3px;
     width: 20px;
     height: 20px;
-}
-
-#topo-oibox .onosInst.mastership {
-    opacity: 0.3;
-}
-#topo-oibox .onosInst.mastership.affinity {
-    opacity: 1.0;
-    box-shadow: 0 2px 8px #33e;
 }
 
 
