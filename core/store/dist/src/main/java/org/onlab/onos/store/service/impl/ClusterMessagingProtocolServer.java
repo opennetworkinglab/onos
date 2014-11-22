@@ -66,7 +66,7 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
 
         @Override
         public void handle(ClusterMessage message) {
-            T request = ClusterMessagingProtocol.SERIALIZER.decode(message.payload());
+            T request = ClusterMessagingProtocol.DB_SERIALIZER.decode(message.payload());
             if (handler == null) {
                 // there is a slight window of time during state transition,
                 // where handler becomes null
@@ -117,7 +117,7 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
                 } else {
                     try {
                         log.trace("responding to {}", message.subject());
-                        message.respond(ClusterMessagingProtocol.SERIALIZER.encode(response));
+                        message.respond(ClusterMessagingProtocol.DB_SERIALIZER.encode(response));
                     } catch (Exception e) {
                         log.error("Failed to respond to " + response.getClass().getName(), e);
                     }

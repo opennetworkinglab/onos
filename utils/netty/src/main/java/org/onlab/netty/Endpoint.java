@@ -22,19 +22,10 @@ import com.google.common.base.MoreObjects;
 /**
  * Representation of a TCP/UDP communication end point.
  */
-public class Endpoint {
+public final class Endpoint {
 
     private final int port;
     private final String host;
-
-    /**
-     * Used for serialization.
-     */
-    @SuppressWarnings("unused")
-    private Endpoint() {
-        port = 0;
-        host = null;
-    }
 
     public Endpoint(String host, int port) {
         this.host = host;

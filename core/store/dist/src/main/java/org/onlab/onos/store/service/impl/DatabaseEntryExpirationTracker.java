@@ -101,7 +101,7 @@ public class DatabaseEntryExpirationTracker implements
                     log.debug("Broadcasting {} to the entire cluster", event);
                     clusterCommunicator.broadcastIncludeSelf(new ClusterMessage(
                             localNode.id(), DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
-                            DatabaseStateMachine.SERIALIZER.encode(event)));
+                            ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
                 } catch (IOException e) {
                     log.error("Failed to broadcast a database row deleted event.", e);
                 }

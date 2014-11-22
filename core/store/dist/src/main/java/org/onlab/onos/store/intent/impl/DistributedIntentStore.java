@@ -93,8 +93,8 @@ public class DistributedIntentStore
                 serializerPool = KryoNamespace.newBuilder()
                         .setRegistrationRequired(false)
                         .register(KryoNamespaces.API)
-                        .build()
-                        .populate(1);
+                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                        .build();
             }
         };
 

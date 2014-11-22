@@ -45,7 +45,7 @@ public class DefaultLinkSerializer extends Serializer<DefaultLink> {
         kryo.writeClassAndObject(output, object.dst());
         kryo.writeClassAndObject(output, object.type());
         kryo.writeClassAndObject(output, object.state());
-        kryo.writeClassAndObject(output, object.isDurable());
+        output.writeBoolean(object.isDurable());
     }
 
     @Override
@@ -55,7 +55,7 @@ public class DefaultLinkSerializer extends Serializer<DefaultLink> {
         ConnectPoint dst = (ConnectPoint) kryo.readClassAndObject(input);
         Type linkType = (Type) kryo.readClassAndObject(input);
         State state = (State) kryo.readClassAndObject(input);
-        boolean isDurable = (boolean) kryo.readClassAndObject(input);
+        boolean isDurable = input.readBoolean();
         return new DefaultLink(providerId, src, dst, linkType, state, isDurable);
     }
 }

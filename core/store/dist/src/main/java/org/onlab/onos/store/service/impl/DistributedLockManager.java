@@ -149,7 +149,7 @@ public class DistributedLockManager implements LockService {
     private class LockEventMessageListener implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
-            TableModificationEvent event = DatabaseStateMachine.SERIALIZER
+            TableModificationEvent event = ClusterMessagingProtocol.DB_SERIALIZER
                     .decode(message.payload());
             if (event.tableName().equals(ONOS_LOCK_TABLE_NAME) &&
                     event.type().equals(TableModificationEvent.Type.ROW_DELETED)) {

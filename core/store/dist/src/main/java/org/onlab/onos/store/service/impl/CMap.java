@@ -55,8 +55,8 @@ public class CMap<K, V> {
      * Creates a CMap instance.
      * It will create the table if necessary.
      *
-     * @param dbAdminService
-     * @param dbService
+     * @param dbAdminService DatabaseAdminService to use for this instance
+     * @param dbService DatabaseService to use for this instance
      * @param tableName table which this Map corresponds to
      * @param serializer Value serializer
      */

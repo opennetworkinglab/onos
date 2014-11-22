@@ -15,9 +15,13 @@
  */
 package org.onlab.onos.store.serializers;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.onlab.util.KryoNamespace;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * StoreSerializer implementation using Kryo.
@@ -36,8 +40,8 @@ public class KryoSerializer implements StoreSerializer {
     protected void setupKryoPool() {
         serializerPool = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .build()
-                .populate(1);
+                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                .build();
     }
 
     @Override
@@ -63,4 +67,20 @@ public class KryoSerializer implements StoreSerializer {
         return serializerPool.deserialize(buffer);
     }
 
+    @Override
+    public void encode(Object obj, OutputStream stream) {
+        serializerPool.serialize(obj, stream);
+    }
+
+    @Override
+    public <T> T decode(InputStream stream) {
+        return serializerPool.deserialize(stream);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("serializerPool", serializerPool)
+                .toString();
+    }
 }

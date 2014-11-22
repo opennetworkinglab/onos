@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.store.serializers;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 // TODO: To be replaced with SerializationService from IOLoop activity
@@ -40,6 +42,14 @@ public interface StoreSerializer {
     public void encode(final Object obj, ByteBuffer buffer);
 
     /**
+     * Serializes the specified object into bytes.
+     *
+     * @param obj object to be serialized
+     * @param stream to write serialized bytes
+     */
+    public void encode(final Object obj, final OutputStream stream);
+
+    /**
      * Deserializes the specified bytes into an object.
      *
      * @param bytes bytes to be deserialized
@@ -56,4 +66,13 @@ public interface StoreSerializer {
      * @param <T> decoded type
      */
     public <T> T decode(final ByteBuffer buffer);
+
+    /**
+     * Deserializes the specified bytes into an object.
+     *
+     * @param stream stream containing the bytes to be deserialized
+     * @return deserialized object
+     * @param <T> decoded type
+     */
+    public <T> T decode(final InputStream stream);
 }

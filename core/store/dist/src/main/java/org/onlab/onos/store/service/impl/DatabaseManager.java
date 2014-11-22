@@ -173,7 +173,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             DatabaseStateMachine stateMachine = new DatabaseStateMachine();
             stateMachine.addEventListener(expirationTracker);
             Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
-                    ClusterMessagingProtocol.SERIALIZER);
+                    ClusterMessagingProtocol.DB_SERIALIZER);
 
             copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
             copycat.event(LeaderElectEvent.class).registerHandler(new RaftLeaderElectionMonitor());
@@ -432,7 +432,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
                             new ClusterMessage(
                                     clusterService.getLocalNode().id(),
                                     RAFT_LEADER_ELECTION_EVENT,
-                                    ClusterMessagingProtocol.SERIALIZER.encode(event)));
+                                    ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
                 }
             } catch (Exception e) {
                 log.debug("LeaderAdvertiser failed with exception", e);
@@ -454,7 +454,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
                             new ClusterMessage(
                                     clusterService.getLocalNode().id(),
                                     RAFT_LEADER_ELECTION_EVENT,
-                                    ClusterMessagingProtocol.SERIALIZER.encode(event)));
+                                    ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
                 } else {
                     if (myLeaderEvent != null) {
                         log.debug("This node is no longer the Leader");

@@ -141,18 +141,17 @@ public class GossipDeviceStore
         @Override
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
-                    .register(DistributedStoreSerializers.COMMON)
-
-                    .register(InternalDeviceEvent.class, new InternalDeviceEventSerializer())
-                    .register(InternalDeviceOfflineEvent.class, new InternalDeviceOfflineEventSerializer())
+                    .register(DistributedStoreSerializers.STORE_COMMON)
+                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
+                    .register(new InternalDeviceEventSerializer(), InternalDeviceEvent.class)
+                    .register(new InternalDeviceOfflineEventSerializer(), InternalDeviceOfflineEvent.class)
                     .register(InternalDeviceRemovedEvent.class)
-                    .register(InternalPortEvent.class, new InternalPortEventSerializer())
-                    .register(InternalPortStatusEvent.class, new InternalPortStatusEventSerializer())
+                    .register(new InternalPortEventSerializer(), InternalPortEvent.class)
+                    .register(new InternalPortStatusEventSerializer(), InternalPortStatusEvent.class)
                     .register(DeviceAntiEntropyAdvertisement.class)
                     .register(DeviceFragmentId.class)
                     .register(PortFragmentId.class)
-                    .build()
-                    .populate(1);
+                    .build();
         }
     };
 

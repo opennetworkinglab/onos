@@ -22,7 +22,7 @@ import com.google.common.testing.EqualsTester;
  */
 public class MapDBLogTest {
 
-    private static final StoreSerializer SERIALIZER = ClusterMessagingProtocol.SERIALIZER;
+    private static final StoreSerializer SERIALIZER = ClusterMessagingProtocol.DB_SERIALIZER;
     private static final Entry TEST_ENTRY1 = new OperationEntry(1, "test1");
     private static final Entry TEST_ENTRY2 = new OperationEntry(2, "test12");
     private static final Entry TEST_ENTRY3 = new OperationEntry(3, "test123");

@@ -54,7 +54,7 @@ public class DatabaseClient implements ClusterMessageHandler {
     @Override
     public void handle(ClusterMessage message) {
         LeaderElectEvent event =
-                ClusterMessagingProtocol.SERIALIZER.decode(message.payload());
+                ClusterMessagingProtocol.DB_SERIALIZER.decode(message.payload());
         TcpMember newLeader = event.leader();
         long newLeaderTerm = event.term();
         if (newLeader != null && !newLeader.equals(currentLeader) && newLeaderTerm > currentLeaderTerm) {

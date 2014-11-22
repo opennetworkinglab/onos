@@ -19,6 +19,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -99,6 +100,15 @@ import org.onlab.onos.net.resource.LambdaResourceAllocation;
 import org.onlab.onos.net.resource.LambdaResourceRequest;
 import org.onlab.onos.net.resource.LinkResourceRequest;
 import org.onlab.onos.store.Timestamp;
+import org.onlab.onos.store.service.BatchReadRequest;
+import org.onlab.onos.store.service.BatchWriteRequest;
+import org.onlab.onos.store.service.ReadRequest;
+import org.onlab.onos.store.service.ReadResult;
+import org.onlab.onos.store.service.ReadStatus;
+import org.onlab.onos.store.service.VersionedValue;
+import org.onlab.onos.store.service.WriteRequest;
+import org.onlab.onos.store.service.WriteResult;
+import org.onlab.onos.store.service.WriteStatus;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -117,41 +127,62 @@ import com.google.common.collect.ImmutableSet;
 public final class KryoNamespaces {
 
     public static final KryoNamespace BASIC = KryoNamespace.newBuilder()
-            .register(ImmutableMap.class, new ImmutableMapSerializer())
-            .register(ImmutableList.class, new ImmutableListSerializer())
-            .register(ImmutableSet.class, new ImmutableSetSerializer())
-            .register(
-                    ArrayList.class,
-                    Arrays.asList().getClass(),
-                    HashMap.class,
-                    HashSet.class,
-                    LinkedList.class,
-                    byte[].class,
-                    Duration.class
-                    )
+            .nextId(KryoNamespace.FLOATING_ID)
+            .register(byte[].class)
+            .register(new ImmutableListSerializer(),
+                      ImmutableList.class,
+                      ImmutableList.of(1).getClass(),
+                      ImmutableList.of(1, 2).getClass())
+            .register(new ImmutableSetSerializer(),
+                      ImmutableSet.class,
+                      ImmutableSet.of().getClass(),
+                      ImmutableSet.of(1).getClass(),
+                      ImmutableSet.of(1, 2).getClass())
+            .register(new ImmutableMapSerializer(),
+                      ImmutableMap.class,
+                      ImmutableMap.of().getClass(),
+                      ImmutableMap.of("a", 1).getClass(),
+                      ImmutableMap.of("R", 2, "D", 2).getClass())
+            .register(HashMap.class)
+            .register(ArrayList.class,
+                      LinkedList.class,
+                      HashSet.class
+                      )
+            .register(new ArraysAsListSerializer(), Arrays.asList().getClass())
+            .register(Collections.singletonList(1).getClass())
+            .register(Duration.class)
             .build();
 
     /**
      * KryoNamespace which can serialize ON.lab misc classes.
      */
     public static final KryoNamespace MISC = KryoNamespace.newBuilder()
-            .register(IpPrefix.class, new IpPrefixSerializer())
-            .register(Ip4Prefix.class, new Ip4PrefixSerializer())
-            .register(Ip6Prefix.class, new Ip6PrefixSerializer())
-            .register(IpAddress.class, new IpAddressSerializer())
-            .register(Ip4Address.class, new Ip4AddressSerializer())
-            .register(Ip6Address.class, new Ip6AddressSerializer())
-            .register(MacAddress.class, new MacAddressSerializer())
+            .nextId(KryoNamespace.FLOATING_ID)
+            .register(new IpPrefixSerializer(), IpPrefix.class)
+            .register(new Ip4PrefixSerializer(), Ip4Prefix.class)
+            .register(new Ip6PrefixSerializer(), Ip6Prefix.class)
+            .register(new IpAddressSerializer(), IpAddress.class)
+            .register(new Ip4AddressSerializer(), Ip4Address.class)
+            .register(new Ip6AddressSerializer(), Ip6Address.class)
+            .register(new MacAddressSerializer(), MacAddress.class)
             .register(VlanId.class)
             .build();
+
+    /**
+     * Kryo registration Id for user custom registration.
+     */
+    public static final int BEGIN_USER_CUSTOM_ID = 300;
 
     // TODO: Populate other classes
     /**
      * KryoNamespace which can serialize API bundle classes.
      */
     public static final KryoNamespace API = KryoNamespace.newBuilder()
-            .register(MISC)
+            .nextId(KryoNamespace.INITIAL_ID)
             .register(BASIC)
+            .nextId(KryoNamespace.INITIAL_ID + 30)
+            .register(MISC)
+            .nextId(KryoNamespace.INITIAL_ID + 30 + 10)
             .register(
                     ControllerNode.State.class,
                     Device.Type.class,
@@ -242,19 +273,29 @@ public final class KryoNamespaces {
                     AnnotationConstraint.class,
                     BooleanConstraint.class
                     )
-            .register(DefaultApplicationId.class, new DefaultApplicationIdSerializer())
-            .register(URI.class, new URISerializer())
-            .register(NodeId.class, new NodeIdSerializer())
-            .register(ProviderId.class, new ProviderIdSerializer())
-            .register(DeviceId.class, new DeviceIdSerializer())
-            .register(PortNumber.class, new PortNumberSerializer())
-            .register(DefaultPort.class, new DefaultPortSerializer())
-            .register(LinkKey.class, new LinkKeySerializer())
-            .register(ConnectPoint.class, new ConnectPointSerializer())
-            .register(DefaultLink.class, new DefaultLinkSerializer())
-            .register(MastershipTerm.class, new MastershipTermSerializer())
-            .register(HostLocation.class, new HostLocationSerializer())
-            .register(DefaultOutboundPacket.class, new DefaultOutboundPacketSerializer())
+            .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
+            .register(new URISerializer(), URI.class)
+            .register(new NodeIdSerializer(), NodeId.class)
+            .register(new ProviderIdSerializer(), ProviderId.class)
+            .register(new DeviceIdSerializer(), DeviceId.class)
+            .register(new PortNumberSerializer(), PortNumber.class)
+            .register(new DefaultPortSerializer(), DefaultPort.class)
+            .register(new LinkKeySerializer(), LinkKey.class)
+            .register(new ConnectPointSerializer(), ConnectPoint.class)
+            .register(new DefaultLinkSerializer(), DefaultLink.class)
+            .register(new MastershipTermSerializer(), MastershipTerm.class)
+            .register(new HostLocationSerializer(), HostLocation.class)
+            .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
+            .register(ReadRequest.class)
+            .register(WriteRequest.class)
+            .register(WriteRequest.Type.class)
+            .register(WriteResult.class)
+            .register(ReadResult.class)
+            .register(BatchReadRequest.class)
+            .register(BatchWriteRequest.class)
+            .register(ReadStatus.class)
+            .register(WriteStatus.class)
+            .register(VersionedValue.class)
 
             .build();
 

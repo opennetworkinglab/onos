@@ -70,6 +70,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -121,8 +122,8 @@ public class KryoSerializerTest {
             protected void setupKryoPool() {
                 serializerPool = KryoNamespace.newBuilder()
                         .register(KryoNamespaces.API)
-                        .build()
-                        .populate(1);
+                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                        .build();
             }
         };
     }
@@ -323,6 +324,11 @@ public class KryoSerializerTest {
     @Test
     public void testObstacleConstraint() {
         testSerializable(new ObstacleConstraint(deviceId("of:1"), deviceId("of:2")));
+    }
+
+    @Test
+    public void testArraysAsList() {
+        testSerializedEquals(Arrays.asList(1, 2, 3));
     }
 
     @Test

@@ -23,13 +23,17 @@ import org.onlab.util.KryoNamespace;
 
 public final class DistributedStoreSerializers {
 
+
+    public static final int STORE_CUSTOM_BEGIN = KryoNamespaces.BEGIN_USER_CUSTOM_ID + 10;
+
     /**
      * KryoNamespace which can serialize ON.lab misc classes.
      */
-    public static final KryoNamespace COMMON = KryoNamespace.newBuilder()
+    public static final KryoNamespace STORE_COMMON = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
+            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
             .register(Timestamped.class)
-            .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
+            .register(new MastershipBasedTimestampSerializer(), MastershipBasedTimestamp.class)
             .register(WallClockTimestamp.class)
             .build();
 

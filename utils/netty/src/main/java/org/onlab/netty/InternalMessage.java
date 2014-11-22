@@ -34,6 +34,13 @@ public final class InternalMessage implements Message {
     // Must be created using the Builder.
     private InternalMessage() {}
 
+    InternalMessage(long id, Endpoint sender, String type, byte[] payload) {
+        this.id = id;
+        this.sender = sender;
+        this.type = type;
+        this.payload = payload;
+    }
+
     public long id() {
         return id;
     }

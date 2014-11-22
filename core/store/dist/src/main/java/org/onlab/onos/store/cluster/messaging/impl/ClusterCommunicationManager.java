@@ -34,7 +34,6 @@ import org.onlab.netty.NettyMessagingService;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.cluster.impl.ClusterMembershipEvent;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
@@ -67,12 +66,10 @@ public class ClusterCommunicationManager
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
-                    .register(ClusterMessage.class, new ClusterMessageSerializer())
-                    .register(ClusterMembershipEvent.class)
-                    .register(byte[].class)
-                    .register(MessageSubject.class, new MessageSubjectSerializer())
-                    .build()
-                    .populate(1);
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                    .register(new ClusterMessageSerializer(), ClusterMessage.class)
+                    .register(new MessageSubjectSerializer(), MessageSubject.class)
+                    .build();
         }
 
     };
@@ -194,11 +191,17 @@ public class ClusterCommunicationManager
 
         @Override
         public void handle(Message message) {
+            final ClusterMessage clusterMessage;
             try {
-                ClusterMessage clusterMessage = SERIALIZER.decode(message.payload());
+                clusterMessage = SERIALIZER.decode(message.payload());
+            } catch (Exception e) {
+                log.error("Failed decoding ClusterMessage", e);
+                throw e;
+            }
+            try {
                 handler.handle(new InternalClusterMessage(clusterMessage, message));
             } catch (Exception e) {
-                log.error("Exception caught during ClusterMessageHandler", e);
+                log.error("Exception caught handling {}", clusterMessage, e);
                 throw e;
             }
         }

@@ -1,7 +1,7 @@
 package org.onlab.onos.store.service.impl;
 
 import static com.google.common.base.Verify.verifyNotNull;
-import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.SERIALIZER;
+import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -139,7 +139,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                     new ClusterMessage(
                             localNode.id(),
                             messageType(request),
-                            verifyNotNull(SERIALIZER.encode(request)));
+                            verifyNotNull(DB_SERIALIZER.encode(request)));
             this.future = future;
         }
 
@@ -158,7 +158,8 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 if (!connectionOK.getAndSet(true)) {
                     log.info("Connectivity to {} restored", remoteNode);
                 }
-                future.complete(verifyNotNull(SERIALIZER.decode(response)));
+                future.complete(verifyNotNull(DB_SERIALIZER.decode(response)));
+
             } catch (IOException | TimeoutException e) {
                 if (connectionOK.getAndSet(false)) {
                     log.warn("Detected connectivity issues with {}. Reason: {}", remoteNode, e.getMessage());

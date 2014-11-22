@@ -2,6 +2,7 @@ package org.onlab.onos.store.service.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,7 +21,6 @@ import net.kuujo.copycat.Query;
 import net.kuujo.copycat.StateMachine;
 
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.service.BatchReadRequest;
 import org.onlab.onos.store.service.BatchWriteRequest;
 import org.onlab.onos.store.service.ReadRequest;
@@ -30,7 +30,6 @@ import org.onlab.onos.store.service.VersionedValue;
 import org.onlab.onos.store.service.WriteRequest;
 import org.onlab.onos.store.service.WriteResult;
 import org.onlab.onos.store.service.WriteStatus;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;
@@ -39,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.ByteStreams;
 
 /**
  * StateMachine whose transitions are coordinated/replicated
@@ -59,33 +57,13 @@ public class DatabaseStateMachine implements StateMachine {
     public static final MessageSubject DATABASE_UPDATE_EVENTS =
             new MessageSubject("database-update-events");
 
-    // serializer used for snapshot
-    public static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
-                    .register(VersionedValue.class)
-                    .register(State.class)
-                    .register(TableMetadata.class)
-                    .register(BatchReadRequest.class)
-                    .register(BatchWriteRequest.class)
-                    .register(ReadStatus.class)
-                    .register(WriteStatus.class)
-                    // TODO: Move this out ?
-                    .register(TableModificationEvent.class)
-                    .register(TableModificationEvent.Type.class)
-                    .register(ClusterMessagingProtocol.COMMON)
-                    .build()
-                    .populate(1);
-        }
-    };
-
     private final Set<DatabaseUpdateEventListener> listeners = Sets.newIdentityHashSet();
 
     // durable internal state of the database.
     private State state = new State();
 
-    private boolean compressSnapshot = false;
+    // TODO make this configurable
+    private boolean compressSnapshot = true;
 
     @Command
     public boolean createTable(String tableName) {
@@ -402,14 +380,14 @@ public class DatabaseStateMachine implements StateMachine {
     public byte[] takeSnapshot() {
         try {
             if (compressSnapshot) {
-                byte[] input = SERIALIZER.encode(state);
+                byte[] input = DB_SERIALIZER.encode(state);
                 ByteArrayOutputStream comp = new ByteArrayOutputStream(input.length);
                 DeflaterOutputStream compressor = new DeflaterOutputStream(comp);
                 compressor.write(input, 0, input.length);
                 compressor.close();
                 return comp.toByteArray();
             } else {
-                return SERIALIZER.encode(state);
+                return DB_SERIALIZER.encode(state);
             }
         } catch (Exception e) {
             log.error("Failed to take snapshot", e);
@@ -423,10 +401,9 @@ public class DatabaseStateMachine implements StateMachine {
             if (compressSnapshot) {
                 ByteArrayInputStream in = new ByteArrayInputStream(data);
                 InflaterInputStream decompressor = new InflaterInputStream(in);
-                ByteStreams.toByteArray(decompressor);
-                this.state = SERIALIZER.decode(ByteStreams.toByteArray(decompressor));
+                this.state = DB_SERIALIZER.decode(decompressor);
             } else {
-                this.state = SERIALIZER.decode(data);
+                this.state = DB_SERIALIZER.decode(data);
             }
 
             updatesExecutor.submit(new Runnable() {

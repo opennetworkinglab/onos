@@ -84,10 +84,9 @@ public class DistributedMastershipStore
             protected void setupKryoPool() {
                 serializerPool = KryoNamespace.newBuilder()
                         .register(KryoNamespaces.API)
-
-                        .register(RoleValue.class, new RoleValueSerializer())
-                        .build()
-                        .populate(1);
+                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                        .register(new RoleValueSerializer(), RoleValue.class)
+                        .build();
             }
         };
 

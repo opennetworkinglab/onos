@@ -129,13 +129,13 @@ public class GossipLinkStore
         @Override
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
-                    .register(DistributedStoreSerializers.COMMON)
+                    .register(DistributedStoreSerializers.STORE_COMMON)
+                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(InternalLinkEvent.class)
                     .register(InternalLinkRemovedEvent.class)
                     .register(LinkAntiEntropyAdvertisement.class)
                     .register(LinkFragmentId.class)
-                    .build()
-                    .populate(1);
+                    .build();
         }
     };
 

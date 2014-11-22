@@ -156,9 +156,9 @@ public class DistributedFlowRuleStore
         @Override
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
-                    .register(DistributedStoreSerializers.COMMON)
-                    .build()
-                    .populate(1);
+                    .register(DistributedStoreSerializers.STORE_COMMON)
+                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
+                    .build();
         }
     };
 

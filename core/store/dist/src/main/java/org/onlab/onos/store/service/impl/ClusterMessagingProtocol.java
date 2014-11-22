@@ -2,13 +2,6 @@ package org.onlab.onos.store.service.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Vector;
 
 import net.kuujo.copycat.cluster.TcpClusterConfig;
@@ -40,28 +33,13 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.serializers.ImmutableListSerializer;
-import org.onlab.onos.store.serializers.ImmutableMapSerializer;
-import org.onlab.onos.store.serializers.ImmutableSetSerializer;
+import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.service.BatchReadRequest;
-import org.onlab.onos.store.service.BatchWriteRequest;
-import org.onlab.onos.store.service.ReadRequest;
-import org.onlab.onos.store.service.ReadResult;
-import org.onlab.onos.store.service.ReadStatus;
-import org.onlab.onos.store.service.VersionedValue;
-import org.onlab.onos.store.service.WriteRequest;
-import org.onlab.onos.store.service.WriteResult;
-import org.onlab.onos.store.service.WriteStatus;
+import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onlab.onos.store.service.impl.DatabaseStateMachine.State;
+import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.serializers.CollectionSerializer;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * ONOS Cluster messaging based Copycat protocol.
@@ -88,7 +66,11 @@ public class ClusterMessagingProtocol
     public static final MessageSubject COPYCAT_SUBMIT =
             new MessageSubject("copycat-raft-consensus-submit");
 
-    private static final KryoNamespace COPYCAT = KryoNamespace.newBuilder()
+    static final int AFTER_COPYCAT = KryoNamespaces.BEGIN_USER_CUSTOM_ID + 50;
+
+    static final KryoNamespace COPYCAT = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
             .register(PingRequest.class)
             .register(PingResponse.class)
             .register(PollRequest.class)
@@ -105,53 +87,23 @@ public class ClusterMessagingProtocol
             .register(TcpClusterConfig.class)
             .register(TcpMember.class)
             .register(LeaderElectEvent.class)
-            .build();
-
-    private static final KryoNamespace DATABASE = KryoNamespace.newBuilder()
-            .register(ReadRequest.class)
-            .register(WriteRequest.class)
-            .register(WriteRequest.Type.class)
-            .register(WriteResult.class)
-            .register(ReadResult.class)
-            .register(BatchReadRequest.class)
-            .register(BatchWriteRequest.class)
-            .register(ReadStatus.class)
-            .register(WriteStatus.class)
-            .register(VersionedValue.class)
-            .build();
-
-    public static final KryoNamespace COMMON = KryoNamespace.newBuilder()
-            .register(Arrays.asList().getClass(), new CollectionSerializer() {
-                @Override
-                @SuppressWarnings("rawtypes")
-                protected Collection<?> create(Kryo kryo, Input input, Class<Collection> type) {
-                    return new ArrayList();
-                }
-            })
-            .register(ImmutableMap.class, new ImmutableMapSerializer())
-            .register(ImmutableList.class, new ImmutableListSerializer())
-            .register(ImmutableSet.class, new ImmutableSetSerializer())
-            .register(
-                    Vector.class,
-                    ArrayList.class,
-                    Arrays.asList().getClass(),
-                    HashMap.class,
-                    HashSet.class,
-                    LinkedList.class,
-                    Collections.singletonList("").getClass(),
-                    byte[].class)
+            .register(Vector.class)
             .build();
 
     // serializer used for CopyCat Protocol
-    public static final KryoSerializer SERIALIZER = new KryoSerializer() {
+    public static final StoreSerializer DB_SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
                     .register(COPYCAT)
-                    .register(COMMON)
-                    .register(DATABASE)
-                    .build()
-                    .populate(1);
+                    .nextId(AFTER_COPYCAT)
+                     // for snapshot
+                    .register(State.class)
+                    .register(TableMetadata.class)
+                    // TODO: Move this out ?
+                    .register(TableModificationEvent.class)
+                    .register(TableModificationEvent.Type.class)
+                    .build();
         }
     };
 

@@ -95,7 +95,7 @@ public class MastershipBasedTimestampTest {
     public final void testKryoSerializableWithHandcraftedSerializer() {
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
         final KryoNamespace kryos = KryoNamespace.newBuilder()
-                .register(MastershipBasedTimestamp.class, new MastershipBasedTimestampSerializer())
+                .register(new MastershipBasedTimestampSerializer(), MastershipBasedTimestamp.class)
                 .build();
 
         kryos.serialize(TS_1_2, buffer);

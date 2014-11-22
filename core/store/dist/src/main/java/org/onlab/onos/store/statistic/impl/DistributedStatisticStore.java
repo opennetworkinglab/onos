@@ -90,9 +90,9 @@ public class DistributedStatisticStore implements StatisticStore {
         protected void setupKryoPool() {
             serializerPool = KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                     // register this store specific classes here
-                    .build()
-                    .populate(1);
+                    .build();
         }
     };;
 

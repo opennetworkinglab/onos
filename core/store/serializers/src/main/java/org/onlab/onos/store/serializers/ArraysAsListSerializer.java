@@ -13,43 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onlab.onos.store.serializers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 
 /**
- * Creates {@link ImmutableList} serializer instance.
+ * Kryo Serializer for {@link java.util.Arrays#asList(Object...)}.
  */
-public class ImmutableListSerializer extends Serializer<ImmutableList<?>> {
+public final class ArraysAsListSerializer extends Serializer<List<?>> {
 
-    /**
-     * Creates {@link ImmutableList} serializer instance.
-     */
-    public ImmutableListSerializer() {
-        // non-null, immutable
-        super(false, true);
-    }
     @Override
-    public void write(Kryo kryo, Output output, ImmutableList<?> object) {
-        output.writeInt(object.size());
-        for (Object e : object) {
-            kryo.writeClassAndObject(output, e);
+    public void write(Kryo kryo, Output output, List<?> object) {
+        output.writeInt(object.size(), true);
+        for (Object elm : object) {
+            kryo.writeClassAndObject(output, elm);
         }
     }
 
     @Override
-    public ImmutableList<?> read(Kryo kryo, Input input,
-            Class<ImmutableList<?>> type) {
-        final int size = input.readInt();
-        Builder<Object> builder = ImmutableList.builder();
+    public List<?> read(Kryo kryo, Input input, Class<List<?>> type) {
+        final int size = input.readInt(true);
+        List<Object> list = new ArrayList<>(size);
         for (int i = 0; i < size; ++i) {
-            builder.add(kryo.readClassAndObject(input));
+            list.add(kryo.readClassAndObject(input));
         }
-        return builder.build();
+        return list;
     }
 }

@@ -18,9 +18,8 @@ package org.onlab.onos.store.serializers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.onlab.util.KryoNamespace.FamilySerializer;
-
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.CollectionSerializer;
@@ -29,7 +28,7 @@ import com.google.common.collect.ImmutableSet;
 /**
 * Kryo Serializer for {@link ImmutableSet}.
 */
-public class ImmutableSetSerializer extends FamilySerializer<ImmutableSet<?>> {
+public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
 
     private final CollectionSerializer serializer = new CollectionSerializer();
 
@@ -39,6 +38,7 @@ public class ImmutableSetSerializer extends FamilySerializer<ImmutableSet<?>> {
     public ImmutableSetSerializer() {
         // non-null, immutable
         super(false, true);
+        serializer.setElementsCanBeNull(false);
     }
 
     @Override
@@ -51,13 +51,5 @@ public class ImmutableSetSerializer extends FamilySerializer<ImmutableSet<?>> {
                                 Class<ImmutableSet<?>> type) {
         List<?> elms = kryo.readObject(input, ArrayList.class, serializer);
         return ImmutableSet.copyOf(elms);
-    }
-
-    @Override
-    public void registerFamilies(Kryo kryo) {
-        kryo.register(ImmutableSet.of().getClass(), this);
-        kryo.register(ImmutableSet.of(1).getClass(), this);
-        kryo.register(ImmutableSet.of(1, 2).getClass(), this);
-        // TODO register required ImmutableSet variants
     }
 }
