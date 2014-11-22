@@ -1,0 +1,12 @@
+{
+  "event": "addInstance",
+  "payload": {
+    "id": "onos-2",
+    "uiAttached": true,
+    "online": false,
+    "labels": [
+      "onos-2",
+      "127.0.0.1"
+    ]
+  }
+}

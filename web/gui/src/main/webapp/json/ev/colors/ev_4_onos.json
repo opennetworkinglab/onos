@@ -1,0 +1,11 @@
+{
+  "event": "addInstance",
+  "payload": {
+    "id": "onos-master",
+    "online": false,
+    "labels": [
+      "onos-master",
+      "127.0.0.1"
+    ]
+  }
+}

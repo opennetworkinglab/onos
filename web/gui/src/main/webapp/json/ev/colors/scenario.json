@@ -1,0 +1,12 @@
+{
+  "comments": [
+    "Tweaking Colors"
+  ],
+  "title": "Color-Tweaking Scenario",
+  "params": {
+    "lastAuto": 12
+  },
+  "description": [
+    "Press 'S' to load initial events."
+  ]
+}
