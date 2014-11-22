@@ -145,7 +145,8 @@ public abstract class TopologyViewMessages {
         statService = directory.get(StatisticService.class);
         topologyService = directory.get(TopologyService.class);
 
-        version = directory.get(CoreService.class).version().toString();
+        String ver = directory.get(CoreService.class).version().toString();
+        version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
     }
 
     // Retrieves the payload from the specified event.
@@ -280,10 +281,13 @@ public abstract class TopologyViewMessages {
     // Produces a cluster instance message to the client.
     protected ObjectNode instanceMessage(ClusterEvent event) {
         ControllerNode node = event.subject();
+        int switchCount = mastershipService.getDevicesOf(node.id()).size();
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", node.id().toString())
+                .put("ip", node.ip().toString())
                 .put("online", clusterService.getState(node.id()) == ACTIVE)
-                .put("uiAttached", event.subject().equals(clusterService.getLocalNode()));
+                .put("uiAttached", event.subject().equals(clusterService.getLocalNode()))
+                .put("switches", switchCount);
 
         ArrayNode labels = mapper.createArrayNode();
         labels.add(node.id().toString());
@@ -440,7 +444,7 @@ public abstract class TopologyViewMessages {
                              new Separator(),
                              new Prop("Intents", format(intentService.getIntentCount())),
                              new Prop("Flows", format(flowService.getFlowRuleCount())),
-                             new Prop("Version", version.replace(".SNAPSHOT", "*"))));
+                             new Prop("Version", version)));
     }
 
     // Returns device details response.
