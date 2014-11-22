@@ -177,10 +177,66 @@ svg .node.host circle {
     font-size: 9pt;
 }
 
+/* Fly-in summary pane */
+
+#topo-summary {
+    /* gets base CSS from .fpanel in floatPanel.css */
+    top: 64px;
+}
+
+#topo-summary svg {
+    display: inline-block;
+    width: 42px;
+    height: 42px;
+}
+
+#topo-summary svg .glyphIcon {
+    fill: black;
+    stroke: none;
+    fill-rule: evenodd;
+}
+
+#topo-summary h2 {
+    position: absolute;
+    margin: 0px 4px;
+    top: 20px;
+    left: 50px;
+    color: black;
+}
+
+#topo-summary h3 {
+    margin: 0px 4px;
+    top: 20px;
+    left: 50px;
+    color: black;
+}
+
+#topo-summary p, table {
+    margin: 4px 4px;
+}
+
+#topo-summary td.label {
+    font-style: italic;
+    color: #777;
+    padding-right: 12px;
+}
+
+#topo-summary td.value {
+}
+
+#topo-summary hr {
+    height: 1px;
+    color: #ccc;
+    background-color: #ccc;
+    border: 0;
+}
+
 /* Fly-in details pane */
 
 #topo-detail {
-/* gets base CSS from .fpanel in floatPanel.css */
+    /* gets base CSS from .fpanel in floatPanel.css */
+    top: 320px;
+
 }
 
 #topo-detail svg {

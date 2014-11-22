@@ -24,8 +24,8 @@
     position: absolute;
     z-index: 100;
     display: block;
-    top: 10%;
-    width: 280px;
+    top: 64px;
+    width: 260px;
     right: -300px;
     opacity: 0;
     background-color: rgba(255,255,255,0.8);

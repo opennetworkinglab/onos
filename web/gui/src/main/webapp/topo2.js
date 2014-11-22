@@ -141,6 +141,8 @@
         S: injectStartupEvents,
         space: injectTestEvent,
 
+        O: [toggleSummary, 'Toggle ONOS summary pane'],
+        I: [toggleInstances, 'Toggle ONOS instances pane'],
         B: [toggleBg, 'Toggle background image'],
         L: [cycleLabels, 'Cycle Device labels'],
         P: togglePorts,
@@ -182,6 +184,7 @@
         selections = {},
         selectOrder = [],
         hovered = null,
+        summaryPane,
         detailPane,
         antTimer = null,
         onosInstances = {},
@@ -329,7 +332,7 @@
         if (hoverMode === hoverModes.length) {
             hoverMode = 0;
         }
-        view.flash('Hover Mode: ' + hoverModes[hoverMode]);
+        view.flash('Mode: ' + hoverModes[hoverMode]);
     }
 
     function togglePorts(view) {
@@ -347,8 +350,12 @@
     function handleEscape(view) {
         if (oiShowMaster) {
             cancelAffinity();
-        } else {
+        } else if (detailPane.isVisible()) {
             deselectAll();
+        } else if (oiBox.isVisible()) {
+            oiBox.hide();
+        } else if (summaryPane.isVisible()) {
+            cancelSummary();
         }
     }
 
@@ -585,6 +592,7 @@
         removeHost: removeHost,
 
         showDetails: showDetails,
+        showSummary: showSummary,
         showTraffic: showTraffic
     };
 
@@ -737,6 +745,12 @@
         }
     }
 
+    function showSummary(data) {
+        evTrace(data);
+        populateSummary(data.payload);
+        summaryPane.show();
+    }
+
     function showDetails(data) {
         evTrace(data);
         populateDetails(data.payload);
@@ -824,6 +838,33 @@
         return true;
     }
 
+
+    function toggleInstances() {
+        if (!oiBox.isVisible()) {
+            oiBox.show();
+        } else {
+            oiBox.hide();
+        }
+    }
+
+    function toggleSummary() {
+        if (!summaryPane.isVisible()) {
+            requestSummary();
+        } else {
+            cancelSummary();
+        }
+    }
+
+    // request overall summary data
+    function requestSummary() {
+        sendMessage('requestSummary', {});
+    }
+
+    function cancelSummary() {
+        sendMessage('cancelSummary', {});
+        summaryPane.hide();
+    }
+
     // request details for the selected element
     // invoked from selection of a single node.
     function requestDetails() {
@@ -845,16 +886,20 @@
     }
 
     function showTrafficAction() {
-        // force intents hover mode
+        cancelTraffic();
         hoverMode = 1;
         showSelectTraffic();
         network.view.flash('Related Traffic');
     }
 
+    function cancelTraffic() {
+        sendMessage('cancelTraffic', {});
+    }
+
     function showSelectTraffic() {
         // if nothing is hovered over, and nothing selected, send cancel request
         if (!hovered && nSel() === 0) {
-            sendMessage('cancelTraffic', {});
+            cancelTraffic();
             return;
         }
 
@@ -870,12 +915,13 @@
     }
 
     function showAllTrafficAction() {
+        cancelTraffic();
         sendMessage('requestAllTraffic', {});
         network.view.flash('All Traffic');
     }
 
     function showDeviceLinkFlowsAction() {
-        // force intents hover mode
+        cancelTraffic();
         hoverMode = 2;
         showDeviceLinkFlows();
         network.view.flash('Device Flows');
@@ -884,7 +930,7 @@
     function showDeviceLinkFlows() {
         // if nothing is hovered over, and nothing selected, send cancel request
         if (!hovered && nSel() === 0) {
-            sendMessage('cancelTraffic', {});
+            cancelTraffic();
             return;
         }
         var hoverId = (flowsHover() && hovered && hovered.class === 'device') ?
@@ -907,7 +953,6 @@
             'xlink:href': iid,
             width: dim,
             height: dim
-
         });
     }
 
@@ -940,6 +985,15 @@
             });
             var dim = 30;
             appendGlyph(svg, 2, 2, 30, '#node');
+            svg.append('use')
+                .attr({
+                    class: 'birdBadge',
+                    transform: translate(8,10),
+                    'xlink:href': '#bird',
+                    width: 18,
+                    height: 18,
+                    fill: '#fff'
+                });
 
             $('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
 
@@ -1720,6 +1774,8 @@
 
             webSock.ws.onopen = function() {
                 noWebSock(false);
+                requestSummary();
+                oiBox.show();
             };
 
             webSock.ws.onmessage = function(m) {
@@ -1881,12 +1937,17 @@
         updateDetailPane();
     }
 
+    // update the state of the sumary pane
+    function updateSummaryPane() {
+
+    }
+
     // update the state of the detail pane, based on current selections
     function updateDetailPane() {
         var nSel = selectOrder.length;
         if (!nSel) {
             detailPane.hide();
-            showTrafficAction();        // sends cancelTraffic event
+            cancelTraffic();
         } else if (nSel === 1) {
             singleSelect();
         } else {
@@ -1934,6 +1995,40 @@
         });
 
         addMultiSelectActions();
+    }
+
+    // TODO: refactor to consolidate with populateDetails
+    function populateSummary(data) {
+        summaryPane.empty();
+
+        var svg = summaryPane.append('svg'),
+            iid = iconGlyphUrl(data);
+
+        var title = summaryPane.append('h2'),
+            table = summaryPane.append('table'),
+            tbody = table.append('tbody');
+
+        appendGlyph(svg, 0, 0, 40, iid);
+
+        svg.append('use')
+            .attr({
+                class: 'birdBadge',
+                transform: translate(8,12),
+                'xlink:href': '#bird',
+                width: 24,
+                height: 24,
+                fill: '#fff'
+            });
+
+        title.text('ONOS Summary');
+
+        data.propOrder.forEach(function(p) {
+            if (p === '-') {
+                addSep(tbody);
+            } else {
+                addProp(tbody, p, data.props[p]);
+            }
+        });
     }
 
     function populateDetails(data) {
@@ -2056,7 +2151,7 @@
     // TODO: toggle button (and other widgets in the masthead) should be provided
     //  by the framework; not generated by the view.
 
-    var showInstances;
+    //var showInstances;
 
     function addButtonBar(view) {
         var bb = d3.select('#mast')
@@ -2069,20 +2164,20 @@
                 .on('click', cb);
         }
 
-        showInstances = mkTogBtn('Show Instances', toggleInst);
+        //showInstances = mkTogBtn('Show Instances', toggleInst);
     }
 
-    function instShown() {
-        return showInstances.classed('active');
-    }
-    function toggleInst() {
-        showInstances.classed('active', !instShown());
-        if (instShown()) {
-            oiBox.show();
-        } else {
-            oiBox.hide();
-        }
-    }
+    //function instShown() {
+    //    return showInstances.classed('active');
+    //}
+    //function toggleInst() {
+    //    showInstances.classed('active', !instShown());
+    //    if (instShown()) {
+    //        oiBox.show();
+    //    } else {
+    //        oiBox.hide();
+    //    }
+    //}
 
     function panZoom() {
         return false;
@@ -2370,6 +2465,7 @@
         resize: resize
     });
 
+    summaryPane = onos.ui.addFloatingPanel('topo-summary');
     detailPane = onos.ui.addFloatingPanel('topo-detail');
     oiBox = onos.ui.addFloatingPanel('topo-oibox', 'TL');
 

@@ -35,9 +35,9 @@
         fade = 500,
         vb = '-220 -220 440 440',
         paneW = 400,
-        paneH = 340,
+        paneH = 280,
         offy = 65,
-        dy = 20,
+        dy = 14,
         offKey = 40,
         offDesc = offKey + 50,
         lineW = paneW - (2*offKey);

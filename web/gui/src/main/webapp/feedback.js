@@ -33,7 +33,7 @@
     var w = '100%',
         h = 200,
         fade = 200,
-        showFor = 500,
+        showFor = 1200,
         vb = '-200 -' + (h/2) + ' 400 ' + h,
         xpad = 20,
         ypad = 10;

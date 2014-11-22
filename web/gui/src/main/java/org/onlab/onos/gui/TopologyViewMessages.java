@@ -23,6 +23,7 @@ import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.Annotated;
 import org.onlab.onos.net.Annotations;
@@ -56,6 +57,8 @@ import org.onlab.onos.net.link.LinkService;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.net.statistic.Load;
 import org.onlab.onos.net.statistic.StatisticService;
+import org.onlab.onos.net.topology.Topology;
+import org.onlab.onos.net.topology.TopologyService;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
@@ -117,8 +120,10 @@ public abstract class TopologyViewMessages {
     protected final IntentService intentService;
     protected final FlowRuleService flowService;
     protected final StatisticService statService;
+    protected final TopologyService topologyService;
 
     protected final ObjectMapper mapper = new ObjectMapper();
+    private final String version;
 
     // TODO: extract into an external & durable state; good enough for now and demo
     private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
@@ -138,6 +143,9 @@ public abstract class TopologyViewMessages {
         intentService = directory.get(IntentService.class);
         flowService = directory.get(FlowRuleService.class);
         statService = directory.get(StatisticService.class);
+        topologyService = directory.get(TopologyService.class);
+
+        version = directory.get(CoreService.class).version().toString();
     }
 
     // Retrieves the payload from the specified event.
@@ -419,6 +427,22 @@ public abstract class TopologyViewMessages {
         metaUi.put(string(payload, "id"), (ObjectNode) payload.path("memento"));
     }
 
+    // Returns summary response.
+    protected ObjectNode summmaryMessage(long sid) {
+        Topology topology = topologyService.currentTopology();
+        return envelope("showSummary", sid,
+                        json("ONOS Summary", "node",
+                             new Prop("Devices", format(topology.deviceCount())),
+                             new Prop("Links", format(topology.linkCount())),
+                             new Prop("Hosts", format(hostService.getHostCount())),
+                             new Prop("Topology SCCs", format(topology.clusterCount())),
+                             new Prop("Paths", format(topology.pathCount())),
+                             new Separator(),
+                             new Prop("Intents", format(intentService.getIntentCount())),
+                             new Prop("Flows", format(flowService.getFlowRuleCount())),
+                             new Prop("Version", version.replace(".SNAPSHOT", "*"))));
+    }
+
     // Returns device details response.
     protected ObjectNode deviceDetails(DeviceId deviceId, long sid) {
         Device device = deviceService.getDevice(deviceId);
@@ -435,12 +459,12 @@ public abstract class TopologyViewMessages {
                              new Prop("S/W Version", device.swVersion()),
                              new Prop("Serial Number", device.serialNumber()),
                              new Separator(),
+                             new Prop("Master", master(deviceId)),
                              new Prop("Latitude", annot.value("latitude")),
                              new Prop("Longitude", annot.value("longitude")),
-                             new Prop("Ports", Integer.toString(portCount)),
-                             new Prop("Flows", Integer.toString(flowCount)),
                              new Separator(),
-                             new Prop("Master", master(deviceId))));
+                             new Prop("Ports", Integer.toString(portCount)),
+                             new Prop("Flows", Integer.toString(flowCount))));
     }
 
     protected int getFlowCount(DeviceId deviceId) {
@@ -639,6 +663,12 @@ public abstract class TopologyViewMessages {
         }
         DecimalFormat format = new DecimalFormat("#,###.##");
         return format.format(value) + " " + unit;
+    }
+
+    // Formats the given number into a string.
+    private String format(Number number) {
+        DecimalFormat format = new DecimalFormat("#,###");
+        return format.format(number);
     }
 
     private boolean isInfrastructureEgress(Link link) {

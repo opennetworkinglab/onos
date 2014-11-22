@@ -23,7 +23,7 @@
 #feedback svg {
     position: absolute;
     bottom: 0;
-    opacity: 0.5;
+    opacity: 0.8;
 }
 
 #feedback svg g.feedbackItem {
@@ -31,14 +31,11 @@
 }
 
 #feedback svg g.feedbackItem rect {
-    fill: #888;
-    stroke: #666;
-    stroke-width: 3;
-    opacity: 0.5
+    fill: #ccc;
 }
 
 #feedback svg g.feedbackItem text {
-    fill: #000;
+    fill: #333;
     stroke: none;
     text-anchor: middle;
     alignment-baseline: middle;

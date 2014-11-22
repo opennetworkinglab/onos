@@ -31,10 +31,10 @@
 }
 
 #keymap svg text.title {
-    font-size: 12pt;
+    font-size: 10pt;
     font-style: italic;
     text-anchor: middle;
-    fill: #444;
+    fill: #999;
 }
 
 #keymap svg g.keyItem {
@@ -47,17 +47,17 @@
 }
 
 #keymap svg text {
-    font-size: 10pt;
+    font-size: 7pt;
     alignment-baseline: middle;
 }
 
 #keymap svg text.key {
-    font-size: 10pt;
-    fill: #8aa;
+    font-size: 7pt;
+    fill: #add;
 }
 
 #keymap svg text.desc {
-    font-size: 10pt;
-    fill: #888;
+    font-size: 7pt;
+    fill: #aaa;
 }
 

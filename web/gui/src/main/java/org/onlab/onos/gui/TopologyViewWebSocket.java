@@ -42,7 +42,11 @@ import org.onlab.onos.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -70,7 +74,16 @@ public class TopologyViewWebSocket
 
     private static final String APP_ID = "org.onlab.onos.gui";
 
+    private static final long SUMMARY_FREQUENCY_SEC = 2000;
     private static final long TRAFFIC_FREQUENCY_SEC = 1000;
+
+    private static final Comparator<? super ControllerNode> NODE_COMPARATOR =
+            new Comparator<ControllerNode>() {
+                @Override
+                public int compare(ControllerNode o1, ControllerNode o2) {
+                    return o1.id().toString().compareTo(o2.id().toString());
+                }
+            };
 
     private final ApplicationId appId;
 
@@ -83,10 +96,14 @@ public class TopologyViewWebSocket
     private final HostListener hostListener = new InternalHostListener();
     private final IntentListener intentListener = new InternalIntentListener();
 
-    // Intents that are being monitored for the GUI
-    private ObjectNode monitorRequest;
-    private final Timer timer = new Timer("intent-traffic-monitor");
-    private final TimerTask timerTask = new IntentTrafficMonitor();
+    // Timers and objects being monitored
+    private final Timer timer = new Timer("topology-view");
+
+    private TimerTask trafficTask;
+    private ObjectNode trafficEvent;
+
+    private TimerTask summaryTask;
+    private ObjectNode summaryEvent;
 
     private long lastActive = System.currentTimeMillis();
     private boolean listenersRemoved = false;
@@ -140,7 +157,6 @@ public class TopologyViewWebSocket
         this.connection = connection;
         this.control = (FrameConnection) connection;
         addListeners();
-        timer.schedule(timerTask, TRAFFIC_FREQUENCY_SEC, TRAFFIC_FREQUENCY_SEC);
 
         sendAllInstances();
         sendAllDevices();
@@ -181,6 +197,7 @@ public class TopologyViewWebSocket
             updateMetaUi(event);
         } else if (type.equals("addHostIntent")) {
             createHostIntent(event);
+
         } else if (type.equals("requestTraffic")) {
             requestTraffic(event);
         } else if (type.equals("requestAllTraffic")) {
@@ -189,6 +206,11 @@ public class TopologyViewWebSocket
             requestDeviceLinkFlows(event);
         } else if (type.equals("cancelTraffic")) {
             cancelTraffic(event);
+
+        } else if (type.equals("requestSummary")) {
+            requestSummary(event);
+        } else if (type.equals("cancelSummary")) {
+            cancelSummary(event);
         }
     }
 
@@ -205,7 +227,9 @@ public class TopologyViewWebSocket
 
     // Sends all controller nodes to the client as node-added messages.
     private void sendAllInstances() {
-        for (ControllerNode node : clusterService.getNodes()) {
+        List<ControllerNode> nodes = new ArrayList<>(clusterService.getNodes());
+        Collections.sort(nodes, NODE_COMPARATOR);
+        for (ControllerNode node : nodes) {
             sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node)));
         }
     }
@@ -255,22 +279,37 @@ public class TopologyViewWebSocket
         HostToHostIntent hostIntent = new HostToHostIntent(appId, one, two,
                                                            DefaultTrafficSelector.builder().build(),
                                                            DefaultTrafficTreatment.builder().build());
-        monitorRequest = event;
+        trafficEvent = event;
         intentService.submit(hostIntent);
+    }
+
+    private synchronized long startMonitoring(ObjectNode event) {
+        if (trafficTask == null) {
+            trafficEvent = event;
+            trafficTask = new TrafficMonitor();
+            timer.schedule(trafficTask, TRAFFIC_FREQUENCY_SEC, TRAFFIC_FREQUENCY_SEC);
+        }
+        return number(event, "sid");
+    }
+
+    private synchronized void stopMonitoring() {
+        if (trafficTask != null) {
+            trafficTask.cancel();
+            trafficTask = null;
+            trafficEvent = null;
+        }
     }
 
     // Subscribes for host traffic messages.
     private synchronized void requestAllTraffic(ObjectNode event) {
         ObjectNode payload = payload(event);
-        long sid = number(event, "sid");
-        monitorRequest = event;
+        long sid = startMonitoring(event);
         sendMessage(trafficSummaryMessage(sid));
     }
 
     private void requestDeviceLinkFlows(ObjectNode event) {
         ObjectNode payload = payload(event);
-        long sid = number(event, "sid");
-        monitorRequest = event;
+        long sid = startMonitoring(event);
 
         // Get the set of selected hosts and their intents.
         ArrayNode ids = (ArrayNode) payload.path("ids");
@@ -294,8 +333,7 @@ public class TopologyViewWebSocket
             return;
         }
 
-        long sid = number(event, "sid");
-        monitorRequest = event;
+        long sid = startMonitoring(event);
 
         // Get the set of selected hosts and their intents.
         ArrayNode ids = (ArrayNode) payload.path("ids");
@@ -325,8 +363,29 @@ public class TopologyViewWebSocket
     // Cancels sending traffic messages.
     private void cancelTraffic(ObjectNode event) {
         sendMessage(trafficMessage(number(event, "sid")));
-        monitorRequest = null;
+        stopMonitoring();
     }
+
+
+    // Subscribes for summary messages.
+    private synchronized void requestSummary(ObjectNode event) {
+        if (summaryTask == null) {
+            summaryEvent = event;
+            summaryTask = new SummaryMonitor();
+            timer.schedule(summaryTask, SUMMARY_FREQUENCY_SEC, SUMMARY_FREQUENCY_SEC);
+        }
+        sendMessage(summmaryMessage(number(event, "sid")));
+    }
+
+    // Cancels sending summary messages.
+    private synchronized void cancelSummary(ObjectNode event) {
+        if (summaryTask != null) {
+            summaryTask.cancel();
+            summaryTask = null;
+            summaryEvent = null;
+        }
+    }
+
 
     // Adds all internal listeners.
     private void addListeners() {
@@ -385,26 +444,36 @@ public class TopologyViewWebSocket
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
-            if (monitorRequest != null) {
-                requestTraffic(monitorRequest);
+            if (trafficEvent != null) {
+                requestTraffic(trafficEvent);
             }
         }
     }
 
-    private class IntentTrafficMonitor extends TimerTask {
+    private class TrafficMonitor extends TimerTask {
         @Override
         public void run() {
-            if (monitorRequest != null) {
-                String type = string(monitorRequest, "event", "unknown");
+            if (trafficEvent != null) {
+                String type = string(trafficEvent, "event", "unknown");
                 if (type.equals("requestAllTraffic")) {
-                    requestAllTraffic(monitorRequest);
+                    requestAllTraffic(trafficEvent);
                 } else if (type.equals("requestDeviceLinkFlows")) {
-                    requestDeviceLinkFlows(monitorRequest);
+                    requestDeviceLinkFlows(trafficEvent);
                 } else {
-                    requestTraffic(monitorRequest);
+                    requestTraffic(trafficEvent);
                 }
             }
         }
     }
+
+    private class SummaryMonitor extends TimerTask {
+        @Override
+        public void run() {
+            if (summaryEvent != null) {
+                requestSummary(summaryEvent);
+            }
+        }
+    }
+
 }
 

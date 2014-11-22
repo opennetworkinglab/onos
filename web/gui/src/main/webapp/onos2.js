@@ -763,7 +763,8 @@
                 var pos = position || 'TR',
                     cfg = fpConfig[pos],
                     el,
-                    fp;
+                    fp,
+                    on = false;
 
                 if (fpanels[id]) {
                     buildError('Float panel with id "' + id + '" already exists.');
@@ -792,15 +793,20 @@
                     id: id,
                     el: el,
                     pos: pos,
+                    isVisible: function () {
+                        return on;
+                    },
 
                     show: function () {
                         console.log('show pane: ' + id);
+                        on = true;
                         el.transition().duration(750)
                             .style(cfg.side, pxShow())
                             .style('opacity', 1);
                     },
                     hide: function () {
                         console.log('hide pane: ' + id);
+                        on = false;
                         el.transition().duration(750)
                             .style(cfg.side, pxHide())
                             .style('opacity', 0);
