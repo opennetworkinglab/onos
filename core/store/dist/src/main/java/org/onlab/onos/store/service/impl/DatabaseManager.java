@@ -224,20 +224,16 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         clusterEventListener = new InternalClusterEventListener();
         clusterService.addListener(clusterEventListener);
 
-        final int raftClusterSize = clusterConfig.getMembers().size();
-        final int raftClusterQuorumSize = (int) (Math.floor(raftClusterSize / 2)) + 1;
-        if (clusterService.getNodes().size() < raftClusterQuorumSize) {
+        if (clusterService.getNodes().size() < clusterConfig.getMembers().size()) {
             // current cluster size smaller then expected
             try {
-                final int waitTimeSec = 120;
-                log.info("Waiting for a maximum of {}s for raft cluster quorum to boot up...", waitTimeSec);
-                if (!clusterEventLatch.await(waitTimeSec, TimeUnit.SECONDS)) {
+                if (!clusterEventLatch.await(120, TimeUnit.SECONDS)) {
                     log.info("Starting with {}/{} nodes cluster",
                              clusterService.getNodes().size(),
-                             raftClusterSize);
+                             clusterConfig.getMembers().size());
                 }
             } catch (InterruptedException e) {
-                log.info("Interrupted waiting for raft quorum.", e);
+                log.info("Interrupted waiting for others", e);
             }
         }
     }
