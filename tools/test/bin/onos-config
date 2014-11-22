@@ -20,6 +20,8 @@ echo "]}" >> $CDEF_FILE
 ssh $remote "
     sudo perl -pi.bak -e \"s/            <interface>.*</            <interface>${ONOS_NIC:-192.168.56.*}</g\" \
         $ONOS_INSTALL_DIR/$KARAF_DIST/etc/hazelcast.xml
+    sudo perl -pi -e \"s/        <name>onos</        <name>${ONOS_CELL:-onos}</g\" \
+        $ONOS_INSTALL_DIR/$KARAF_DIST/etc/hazelcast.xml
 
     echo \"onos.ip = \$(ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/system.properties
