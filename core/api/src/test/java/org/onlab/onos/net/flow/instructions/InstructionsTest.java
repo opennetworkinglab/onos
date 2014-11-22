@@ -22,8 +22,9 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
+import com.google.common.testing.EqualsTester;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -62,23 +63,15 @@ public class InstructionsTest {
      * @param c1 first object to compare
      * @param c1match object that should be equal to the first
      * @param c2 object that should be not equal to the first
-     * @param clazz Class object for the Criterion subclass
      * @param <T> type of the arguments
      */
     private <T extends Instruction> void checkEqualsAndToString(T c1, T c1match,
-                                                                T c2, Class clazz) {
-        assertThat(c1, instanceOf(clazz));
-        assertThat(c1match, instanceOf(clazz));
-        assertThat(c2, instanceOf(clazz));
+                                                                T c2) {
 
-        assertThat(c1, is(equalTo(c1match)));
-        assertThat(c1, is(not(equalTo(c2))));
-        assertThat(c1, is(not(equalTo(new Object()))));
-
-        // Make sure the toString() output is unique and correct.
-        assertThat(c1.toString(), containsString("{"));
-        assertThat(c1.toString(), equalTo(c1match.toString()));
-        assertThat(c1.toString(), not(equalTo(c2.toString())));
+        new EqualsTester()
+                .addEqualityGroup(c1, c1match)
+                .addEqualityGroup(c2)
+                .testEquals();
     }
 
     /**
@@ -165,8 +158,7 @@ public class InstructionsTest {
 
     @Test
     public void testOutputInstructionEquals() throws Exception {
-        checkEqualsAndToString(output1, sameAsOutput1, output2,
-                Instructions.OutputInstruction.class);
+        checkEqualsAndToString(output1, sameAsOutput1, output2);
     }
 
     /**
@@ -209,8 +201,7 @@ public class InstructionsTest {
     public void testModLambdaInstructionEquals() throws Exception {
         checkEqualsAndToString(lambdaInstruction1,
                                sameAsLambdaInstruction1,
-                               lambdaInstruction2,
-                               L0ModificationInstruction.ModLambdaInstruction.class);
+                               lambdaInstruction2);
     }
 
     /**
@@ -273,8 +264,7 @@ public class InstructionsTest {
     public void testModEtherInstructionEquals() throws Exception {
         checkEqualsAndToString(modEtherInstruction1,
                                sameAsModEtherInstruction1,
-                               modEtherInstruction2,
-                               L2ModificationInstruction.ModEtherInstruction.class);
+                               modEtherInstruction2);
     }
 
     /**
@@ -323,8 +313,7 @@ public class InstructionsTest {
     public void testModVlanIdInstructionEquals() throws Exception {
         checkEqualsAndToString(modVlanId1,
                                sameAsModVlanId1,
-                               modVlanId2,
-                               L2ModificationInstruction.ModVlanIdInstruction.class);
+                               modVlanId2);
     }
 
     /**
@@ -371,8 +360,7 @@ public class InstructionsTest {
     public void testModVlanPcpInstructionEquals() throws Exception {
         checkEqualsAndToString(modVlanPcp1,
                                sameAsModVlanPcp1,
-                               modVlanPcp2,
-                               L2ModificationInstruction.ModVlanPcpInstruction.class);
+                               modVlanPcp2);
     }
 
     /**
@@ -435,8 +423,7 @@ public class InstructionsTest {
     public void testModIPInstructionEquals() throws Exception {
         checkEqualsAndToString(modIPInstruction1,
                                sameAsModIPInstruction1,
-                               modIPInstruction2,
-                               L3ModificationInstruction.ModIPInstruction.class);
+                               modIPInstruction2);
     }
 
     /**
@@ -451,5 +438,35 @@ public class InstructionsTest {
                    is(not(equalTo(modIPInstruction2.hashCode()))));
     }
 
+    private Instruction modMplsLabelInstruction1 = Instructions.modMplsLabel(1);
+    private Instruction sameAsModMplsLabelInstruction1 = Instructions.modMplsLabel(1);
+    private Instruction modMplsLabelInstruction2 = Instructions.modMplsLabel(2);
+
+    /**
+     * Test the modMplsLabel method.
+     */
+    @Test
+    public void testModMplsMethod() {
+        final Instruction instruction = Instructions.modMplsLabel(33);
+        final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
+                checkAndConvert(instruction,
+                        Instruction.Type.L2MODIFICATION,
+                        L2ModificationInstruction.ModMplsLabelInstruction.class);
+        assertThat(modMplsLabelInstruction.label(), is(equalTo(33)));
+        assertThat(modMplsLabelInstruction.subtype(),
+                is(equalTo(L2ModificationInstruction.L2SubType.MPLS_LABEL)));
+    }
+
+    /**
+     * Test the equals(), hashCode and toString() methods of the
+     * ModMplsLabelInstruction class.
+     */
+
+    @Test
+    public void testModMplsLabelInstructionEquals() throws Exception {
+        checkEqualsAndToString(modMplsLabelInstruction1,
+                sameAsModMplsLabelInstruction1,
+                modMplsLabelInstruction2);
+    }
 
 }
