@@ -102,7 +102,9 @@ public class DeviceManagerTest {
         registry = mgr;
         mgr.store = new SimpleDeviceStore();
         mgr.eventDispatcher = new TestEventDispatcher();
-        mgr.mastershipService = new TestMastershipService();
+        TestMastershipManager mastershipManager = new TestMastershipManager();
+        mgr.mastershipService = mastershipManager;
+        mgr.termService = mastershipManager;
         mgr.clusterService = new TestClusterService();
         mgr.deviceClockProviderService = new TestClockProviderService();
         mgr.activate();
@@ -283,8 +285,8 @@ public class DeviceManagerTest {
         }
     }
 
-    private static class TestMastershipService
-            extends MastershipServiceAdapter {
+    private static class TestMastershipManager
+            extends MastershipServiceAdapter implements MastershipTermService {
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
@@ -301,14 +303,9 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public MastershipTermService requestTermService() {
-            return new MastershipTermService() {
-                @Override
-                public MastershipTerm getMastershipTerm(DeviceId deviceId) {
-                    // FIXME: just returning something not null
-                    return MastershipTerm.of(NID_LOCAL, 1);
-                }
-            };
+        public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+            // FIXME: just returning something not null
+            return MastershipTerm.of(NID_LOCAL, 1);
         }
     }
 

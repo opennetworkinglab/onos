@@ -50,7 +50,7 @@ import org.slf4j.Logger;
 @Component(immediate = true)
 @Service
 public class MastershipManager
-implements MastershipService, MastershipAdminService {
+    implements MastershipService, MastershipAdminService, MastershipTermService {
 
     private static final String NODE_ID_NULL = "Node ID cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -159,8 +159,8 @@ implements MastershipService, MastershipAdminService {
     }
 
     @Override
-    public MastershipTermService requestTermService() {
-        return new InternalMastershipTermService();
+    public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+        return store.getTermFor(deviceId);
     }
 
     @Override
@@ -184,14 +184,7 @@ implements MastershipService, MastershipAdminService {
         }
     }
 
-    private class InternalMastershipTermService implements MastershipTermService {
 
-        @Override
-        public MastershipTerm getMastershipTerm(DeviceId deviceId) {
-            return store.getTermFor(deviceId);
-        }
-
-    }
 
     //callback for reacting to cluster events
     private class InternalClusterEventListener implements ClusterEventListener {

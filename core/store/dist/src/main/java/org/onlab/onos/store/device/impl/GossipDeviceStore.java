@@ -137,6 +137,10 @@ public class GossipDeviceStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipTermService termService;
+
+
     protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
@@ -736,7 +740,6 @@ public class GossipDeviceStore
             }
             log.debug("Temporarily requesting role for {} to remove", deviceId);
             mastershipService.requestRoleFor(deviceId);
-            MastershipTermService termService = mastershipService.requestTermService();
             MastershipTerm term = termService.getMastershipTerm(deviceId);
             if (myId.equals(term.master())) {
                 master = myId;

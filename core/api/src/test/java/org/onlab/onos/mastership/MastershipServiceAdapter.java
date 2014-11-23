@@ -59,11 +59,6 @@ public class MastershipServiceAdapter implements MastershipService {
     }
 
     @Override
-    public MastershipTermService requestTermService() {
-        return null;
-    }
-
-    @Override
     public RoleInfo getNodesFor(DeviceId deviceId) {
         return null;
     }

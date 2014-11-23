@@ -100,6 +100,7 @@ public class DeviceManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -112,7 +113,6 @@ public class DeviceManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
         mastershipService.addListener(mastershipListener);
-        termService = mastershipService.requestTermService();
 
         backgroundService.scheduleWithFixedDelay(new Runnable() {
 

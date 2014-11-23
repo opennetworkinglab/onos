@@ -27,7 +27,6 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.mastership.MastershipListener;
 import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultDevice;
 import org.onlab.onos.net.DefaultPort;
@@ -478,11 +477,6 @@ public class LLDPLinkProviderTest {
 
         @Override
         public Set<DeviceId> getDevicesOf(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public MastershipTermService requestTermService() {
             return null;
         }
 

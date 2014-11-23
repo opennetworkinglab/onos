@@ -139,7 +139,7 @@ public class MastershipManagerTest {
 
     @Test
     public void termService() {
-        MastershipTermService ts = mgr.requestTermService();
+        MastershipTermService ts = mgr;
 
         //term = 1 for both
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
