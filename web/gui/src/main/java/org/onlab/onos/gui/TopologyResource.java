@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.rest.BaseResource;
+import org.slf4j.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,13 +27,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Topology viewer resource.
  */
 @Path("topology")
 public class TopologyResource extends BaseResource {
 
+    private static final Logger log = getLogger(TopologyResource.class);
+
     private final ObjectMapper mapper = new ObjectMapper();
+
 
     @Path("/geoloc")
     @GET
@@ -45,7 +51,7 @@ public class TopologyResource extends BaseResource {
         Map<String, ObjectNode> metaUi = TopologyViewMessages.getMetaUi();
         for (String id : metaUi.keySet()) {
             ObjectNode memento = metaUi.get(id);
-            if (id.charAt(12) == '/') {
+            if (id.charAt(17) == '/') {
                 addGeoData(hosts, "id", id, memento);
             } else {
                 addGeoData(devices, "uri", id, memento);
@@ -62,9 +68,13 @@ public class TopologyResource extends BaseResource {
         ObjectNode node = mapper.createObjectNode().put(idField, id);
         ObjectNode annot = mapper.createObjectNode();
         node.set("annotations", annot);
-        annot.put("latitude", memento.get("lat").asDouble())
-                .put("longitude", memento.get("lng").asDouble());
-        array.add(node);
+        try {
+            annot.put("latitude", memento.get("lat").asDouble())
+                    .put("longitude", memento.get("lng").asDouble());
+            array.add(node);
+        } catch (Exception e) {
+            log.debug("Skipping geo entry");
+        }
     }
 
 }
