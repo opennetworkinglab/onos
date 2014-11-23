@@ -6,6 +6,7 @@
     "online": false,
     "master": "onos-2",
     "labels": [
+      "",
       "opt-9",
       "0000ffffffffff09"
     ],

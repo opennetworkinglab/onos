@@ -6,6 +6,7 @@
     "online": true,
     "master": "192.168.56.101",
     "labels": [
+      "",
       "sw-3",
       "0000ffffffff0003"
     ],

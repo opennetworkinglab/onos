@@ -77,21 +77,20 @@
             linkOutWidth: 10
         },
         icons: {
-            w: 30,
-            h: 30,
-            xoff: -16,
-            yoff: -14,
-
             device: {
-                dim: 30,
-                rx: 4
+                dim: 36,
+                rx: 4,
+                xoff: -20,
+                yoff: -18
+            },
+            host: {
+                defaultRadius: 9,
+                radius: {
+                    endstation: 14,
+                    bgpSpeaker: 14,
+                    router: 14
+                }
             }
-        },
-        iconUrl: {
-            device: 'img/device.png',
-            host: 'img/host.png',
-            pkt: 'img/pkt.png',
-            opt: 'img/opt.png'
         },
         force: {
             note_for_links: 'link.type is used to differentiate',
@@ -335,6 +334,7 @@
 
     function unpin() {
         if (hovered) {
+            sendUpdateMeta(hovered);
             hovered.fixed = false;
             hovered.el.classed('fixed', false);
             network.force.resume();
@@ -684,7 +684,7 @@
         if (d) {
             $.extend(d, device);
             if (positionNode(d, true)) {
-                sendUpdateMeta(d);
+                sendUpdateMeta(d, true);
             }
             updateNodes();
         } else {
@@ -1596,7 +1596,8 @@
             node = d.el,
             box,
             dx,
-            dy;
+            dy,
+            cfg = config.icons.device;
 
         node.select('text')
             .text(label)
@@ -1606,12 +1607,12 @@
 
         if (noLabel) {
             box = emptyBox();
-            dx = -config.icons.device.dim/2;
-            dy = -config.icons.device.dim/2;
+            dx = -cfg.dim/2;
+            dy = -cfg.dim/2;
         } else {
             box = adjustRectToFitText(node);
-            dx = box.x + config.icons.xoff;
-            dy = box.y + config.icons.yoff;
+            dx = box.x + cfg.xoff;
+            dy = box.y + cfg.yoff;
         }
 
         node.select('rect')
@@ -1709,18 +1710,12 @@
             addDeviceIcon(node, box, noLabel, iconGlyphUrl(d));
         });
 
-        // TODO: better place for this configuration state
-        var defaultHostRadius = 9,
-            hostRadius = {
-                bgpSpeaker: 14,
-                router: 14,
-                endstation: 14
-            };
 
         // augment host nodes...
         entering.filter('.host').each(function (d) {
             var node = d3.select(this),
-                r = hostRadius[d.type] || defaultHostRadius,
+                cfg = config.icons.host,
+                r = cfg.radius[d.type] || cfg.defaultRadius,
                 textDy = r + 10,
                 iid = iconGlyphUrl(d);
 
@@ -1790,8 +1785,8 @@
             dy = -cfg.dim/2;
         } else {
             box = adjustRectToFitText(node);
-            dx = box.x + config.icons.xoff;
-            dy = box.y + config.icons.yoff;
+            dx = box.x + cfg.xoff;
+            dy = box.y + cfg.yoff;
         }
 
         g = node.append('g')
@@ -2314,14 +2309,19 @@
         gly.defBadges(defs);
     }
 
-    function sendUpdateMeta(d) {
-        var ll = geoMapProjection.invert([d.x, d.y]),
+    function sendUpdateMeta(d, store) {
+        var metaUi = {},
+            ll;
+
+        if (store) {
+            ll = geoMapProjection.invert([d.x, d.y]);
             metaUi = {
                 x: d.x,
                 y: d.y,
                 lng: ll[0],
                 lat: ll[1]
             };
+        }
         d.metaUi = metaUi;
         sendMessage('updateMeta', {
             id: d.id,
@@ -2388,7 +2388,7 @@
             d.fixed = true;
             d3.select(self).classed('fixed', true);
             if (config.useLiveData) {
-                sendUpdateMeta(d);
+                sendUpdateMeta(d, true);
             } else {
                 console.log('Moving node ' + d.id + ' to [' + d.x + ',' + d.y + ']');
             }

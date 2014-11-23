@@ -6,6 +6,7 @@
     "online": true,
     "master": "onos-2",
     "labels": [
+      "",
       "sw-8",
       "0000ffffffff0008"
     ],
