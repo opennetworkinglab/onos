@@ -136,9 +136,9 @@
     // key bindings
     var keyDispatch = {
         // TODO: remove these "development only" bindings
-        M: testMe,
-        S: injectStartupEvents,
-        space: injectTestEvent,
+        0: testMe,
+        equals: injectStartupEvents,
+        dash: injectTestEvent,
 
         O: [toggleSummary, 'Toggle ONOS summary pane'],
         I: [toggleInstances, 'Toggle ONOS instances pane'],
@@ -189,7 +189,8 @@
         onosOrder = [],
         oiBox,
         oiShowMaster = false,
-        portLabelsOn = false;
+        portLabelsOn = false,
+        cat7 = d3u.cat7();
 
     var hoverModeAll = 1,
         hoverModeFlows = 2,
@@ -240,8 +241,9 @@
     // Key Callbacks
 
     function testMe(view) {
-        //view.alert('Theme is ' + view.theme());
+        //view.alert('Theme is ' + view.getTheme());
         //view.flash('This is some text');
+        cat7.testCard(svg);
     }
 
     function abortIfLive() {
@@ -862,12 +864,17 @@
         return true;
     }
 
+    function colorAffinity(on) {
+        // FIXME: need to code this portion up.
+    }
 
     function toggleInstances() {
         if (!oiBox.isVisible()) {
             oiBox.show();
+            colorAffinity(true);
         } else {
             oiBox.hide();
+            colorAffinity(false);
         }
     }
 
@@ -1123,6 +1130,13 @@
         });
 
         // operate on existing + new onoses here
+        // set the affinity colors...
+        onoses.each(function (d) {
+            var el = d3.select(this),
+                rect = el.select('svg').select('rect'),
+                col = instColor(d.id, d.online);
+            rect.style('fill', col);
+        });
 
         // adjust the panel size appropriately...
         oiBox.width(instDim.w * onosOrder.length);
@@ -1130,6 +1144,10 @@
 
         // remove any outgoing instances
         onoses.exit().remove();
+    }
+
+    function instColor(id, online) {
+        return cat7.get(id, !online, network.view.getTheme());
     }
 
     function clickInst(d) {
@@ -2571,6 +2589,12 @@
             .select('g').attr('transform', birdTranslate(w, h));
     }
 
+    function theme(view, ctx, flags) {
+        updateInstances();
+        // TODO: update other theme-affected elements
+
+    }
+
     function birdTranslate(w, h) {
         var bdim = config.birdDim;
         return 'translate('+((w-bdim)*.4)+','+((h-bdim)*.1)+')';
@@ -2583,7 +2607,8 @@
         preload: preload,
         load: load,
         unload: unload,
-        resize: resize
+        resize: resize,
+        theme: theme
     });
 
     summaryPane = onos.ui.addFloatingPanel('topo-summary');

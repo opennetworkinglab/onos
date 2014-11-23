@@ -93,6 +93,8 @@
                 case 40: return 'downArrow';
                 case 91: return 'cmdLeft';
                 case 93: return 'cmdRight';
+                case 187: return 'equals';
+                case 189: return 'dash';
                 case 191: return 'slash';
                 default:
                     if ((code >= 48 && code <= 57) ||
@@ -446,6 +448,7 @@
             current.theme = (current.theme === 'light') ? 'dark' : 'light';
             body.classed('light dark', false);
             body.classed(current.theme, true);
+            theme(view);
             return true;
         }
 
@@ -546,6 +549,13 @@
             }
         }
 
+        function theme() {
+            // allow current view to react to theme event...
+            if (current.view) {
+                current.view.theme(current.ctx, current.flags);
+            }
+        }
+
         // ..........................................................
         // View class
         //   Captures state information about a view.
@@ -607,7 +617,7 @@
                     dataLoadError: this.dataLoadError,
                     alert: this.alert,
                     flash: this.flash,
-                    theme: this.theme
+                    getTheme: this.getTheme
                 }
             },
 
@@ -672,6 +682,16 @@
                 }
             },
 
+            theme: function (ctx, flags) {
+                var c = ctx | '',
+                    fn = isF(this.cb.theme);
+                traceFn('View.theme', this.vid);
+                if (fn) {
+                    trace('THEME cb for ' + this.vid);
+                    fn(this.token(), c, flags);
+                }
+            },
+
             error: function (ctx, flags) {
                 var c = ctx || '',
                     fn = isF(this.cb.error);
@@ -699,7 +719,7 @@
                 setKeyBindings(keyArg);
             },
 
-            theme: function () {
+            getTheme: function () {
                 return current.theme;
             },
 
