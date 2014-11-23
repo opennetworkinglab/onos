@@ -680,10 +680,13 @@
         evTrace(data);
         var device = data.payload,
             id = device.id,
-            nodeData = network.lookup[id];
-        if (nodeData) {
-            $.extend(nodeData, device);
-            updateDeviceState(nodeData);
+            d = network.lookup[id];
+        if (d) {
+            $.extend(d, device);
+            if (positionNode(d, true)) {
+                sendUpdateMeta(d);
+            }
+            updateNodes();
         } else {
             logicError('updateDevice lookup fail. ID = "' + id + '"');
         }
@@ -1460,7 +1463,7 @@
         return node;
     }
 
-    function positionNode(node) {
+    function positionNode(node, forUpdate) {
         var meta = node.metaUi,
             x = meta && meta.x,
             y = meta && meta.y,
@@ -1469,8 +1472,10 @@
         // If we have [x,y] already, use that...
         if (x && y) {
             node.fixed = true;
-            node.x = x;
-            node.y = y;
+            node.px = node.x = x;
+            node.py = node.y = y;
+            //node.px = x;
+            //node.py = y;
             return;
         }
 
@@ -1478,8 +1483,15 @@
         if (location && location.type === 'latlng') {
             var coord = geoMapProjection([location.lng, location.lat]);
             node.fixed = true;
-            node.x = coord[0];
-            node.y = coord[1];
+            node.px = node.x = coord[0];
+            node.py = node.y = coord[1];
+            //node.x = coord[0];
+            //node.y = coord[1];
+            return true;
+        }
+
+        // if this is a node update (not a node add).. skip randomizer
+        if (forUpdate) {
             return;
         }
 
@@ -1524,9 +1536,6 @@
         $.extend(node, xy);
     }
 
-    function iconUrl(d) {
-        return 'img/' + d.type + '.png';
-    }
 
     function iconGlyphUrl(d) {
         var which = d.type || 'unknown';
@@ -1621,16 +1630,9 @@
         host.select('text').text(label);
     }
 
-    // TODO: should be using updateNodes() to do the upates!
-    function updateDeviceState(nodeData) {
-        nodeData.el.classed('online', nodeData.online);
-        updateDeviceLabel(nodeData);
-        // TODO: review what else might need to be updated
-    }
-
+    // FIXME : fold this into updateNodes.
     function updateHostState(hostData) {
         updateHostLabel(hostData);
-        // TODO: review what else might need to be updated
     }
 
     function nodeMouseOver(d) {
@@ -1660,9 +1662,20 @@
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
 
-        // TODO: operate on existing nodes
-        //  update host labels
-        //node .foo() .bar() ...
+        // operate on existing nodes...
+        node.filter('.device').each(function (d) {
+            //var node = d3.select(this);
+            var node = d.el;
+            node.classed('online', d.online);
+            updateDeviceLabel(d);
+            positionNode(d, true);
+        });
+
+        node.filter('.host').each(function (d) {
+            //var node = d3.select(this);
+            var node = d.el;
+            // TODO: appropriate update of host visuals
+        });
 
         // operate on entering nodes:
         var entering = node.enter()
@@ -1689,16 +1702,8 @@
             // provide ref to element from backing data....
             d.el = node;
 
-            node.append('rect')
-                .attr({
-                    rx: 5,
-                    ry: 5
-                });
-
-            node.append('text')
-                .text(label)
-                .attr('dy', '1.1em');
-
+            node.append('rect').attr({ rx: 5, ry: 5 });
+            node.append('text').text(label).attr('dy', '1.1em');
             box = adjustRectToFitText(node);
             node.select('rect').attr(box);
             addDeviceIcon(node, box, noLabel, iconGlyphUrl(d));
@@ -1710,13 +1715,7 @@
                 bgpSpeaker: 14,
                 router: 14,
                 endstation: 14
-            },
-            hostGlyphId = {
-                bgpSpeaker: 'bgpSpeaker',
-                router: 'router',
-                endstation: 'endstation'
             };
-
 
         // augment host nodes...
         entering.filter('.host').each(function (d) {
@@ -1728,8 +1727,7 @@
             // provide ref to element from backing data....
             d.el = node;
 
-            node.append('circle')
-                .attr('r', r);
+            node.append('circle').attr('r', r);
 
             if (iid) {
                 addHostIcon(node, r, iid);
@@ -1739,18 +1737,6 @@
                 .text(hostLabel)
                 .attr('dy', textDy)
                 .attr('text-anchor', 'middle');
-
-            // debug function to show the modelled x,y coordinates of nodes...
-            if (debug('showNodeXY')) {
-                node.select('circle').attr('fill-opacity', 0.5);
-                node.append('circle')
-                    .attr({
-                        class: 'debug',
-                        cx: 0,
-                        cy: 0,
-                        r: '3px'
-                    });
-            }
         });
 
         // operate on both existing and new nodes, if necessary
@@ -1787,7 +1773,9 @@
 
         });
 
-        // TODO: device node exits
+        // TODO: device node exit animation
+
+        network.force.resume();
     }
 
     function addDeviceIcon(node, box, noLabel, iid) {
@@ -2315,18 +2303,6 @@
         //showInstances = mkTogBtn('Show Instances', toggleInst);
     }
 
-    //function instShown() {
-    //    return showInstances.classed('active');
-    //}
-    //function toggleInst() {
-    //    showInstances.classed('active', !instShown());
-    //    if (instShown()) {
-    //        oiBox.show();
-    //    } else {
-    //        oiBox.hide();
-    //    }
-    //}
-
     function panZoom() {
         return false;
     }
@@ -2336,6 +2312,22 @@
         gly.defBird(defs);
         gly.defGlyphs(defs);
         gly.defBadges(defs);
+    }
+
+    function sendUpdateMeta(d) {
+        var ll = geoMapProjection.invert([d.x, d.y]),
+            metaUi = {
+                x: d.x,
+                y: d.y,
+                lng: ll[0],
+                lat: ll[1]
+            };
+        d.metaUi = metaUi;
+        sendMessage('updateMeta', {
+            id: d.id,
+            'class': d.class,
+            'memento': metaUi
+        });
     }
 
     // ==============================
@@ -2400,17 +2392,6 @@
             } else {
                 console.log('Moving node ' + d.id + ' to [' + d.x + ',' + d.y + ']');
             }
-        }
-
-        function sendUpdateMeta(d) {
-            sendMessage('updateMeta', {
-                id: d.id,
-                'class': d.class,
-                'memento': {
-                    x: d.x,
-                    y: d.y
-                }
-            });
         }
 
         // set up the force layout
