@@ -132,11 +132,11 @@ svg .node.host circle {
 /* LINKS */
 
 #topo svg .link {
-    opacity: .7;
+    opacity: .9;
 }
 
 #topo svg .link.inactive {
-    opacity: .2;
+    opacity: .5;
     stroke-dasharray: 8 4;
 }
 
@@ -285,7 +285,7 @@ svg .node.host circle {
     padding: 2px 6px;
     font-size: 9pt;
     cursor: pointer;
-    width: 50%;
+    width: 200px;
     text-align: center;
 
     /* theme specific... */

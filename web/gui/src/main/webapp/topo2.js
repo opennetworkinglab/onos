@@ -72,9 +72,9 @@
         topo: {
             linkBaseColor: '#666',
             linkInColor: '#66f',
-            linkInWidth: 14,
+            linkInWidth: 12,
             linkOutColor: '#f00',
-            linkOutWidth: 14
+            linkOutWidth: 10
         },
         icons: {
             w: 30,
@@ -148,8 +148,7 @@
         P: togglePorts,
         U: [unpin, 'Unpin node'],
         R: [resetZoomPan, 'Reset zoom/pan'],
-        H: [cycleHoverMode, 'Cycle hover mode'],
-        V: [showTrafficAction, 'Show traffic'],
+        V: [showTrafficAction, 'Show related traffic'],
         A: [showAllTrafficAction, 'Show all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
         esc: handleEscape
@@ -191,9 +190,12 @@
         onosOrder = [],
         oiBox,
         oiShowMaster = false,
-        hoverModes = [ 'none', 'intents', 'flows'],
-        hoverMode = 0,
         portLabelsOn = false;
+
+    var hoverModeAll = 1,
+        hoverModeFlows = 2,
+        hoverModeIntents = 3,
+        hoverMode = hoverModeFlows;
 
     // D3 selections
     var svg,
@@ -325,14 +327,6 @@
                 updateDeviceLabel(d);
             }
         });
-    }
-
-    function cycleHoverMode(view) {
-        hoverMode++;
-        if (hoverMode === hoverModes.length) {
-            hoverMode = 0;
-        }
-        view.flash('Mode: ' + hoverModes[hoverMode]);
     }
 
     function togglePorts(view) {
@@ -829,6 +823,14 @@
     function getSelId(idx) {
         return getSel(idx).obj.id;
     }
+    function getSelIds(start, endOffset) {
+        var end = selectOrder.length - endOffset;
+        var ids = [];
+        selectOrder.slice(start, end).forEach(function (d) {
+            ids.push(getSelId(d));
+        });
+        return ids;
+    }
     function allSelectionsClass(cls) {
         for (var i=0, n=nSel(); i<n; i++) {
             if (getSel(i).obj.class !== cls) {
@@ -876,69 +878,92 @@
         sendMessage('requestDetails', payload);
     }
 
-    function addIntentAction() {
+    function addHostIntentAction() {
         sendMessage('addHostIntent', {
-            one: getSelId(0),
-            two: getSelId(1),
-            ids: [ getSelId(0), getSelId(1) ]
+            one: selectOrder[0],
+            two: selectOrder[1],
+            ids: selectOrder
         });
-        network.view.flash('Host-to-Host connectivity added');
+        network.view.flash('Host-to-Host flow added');
     }
 
-    function showTrafficAction() {
-        cancelTraffic();
-        hoverMode = 1;
-        showSelectTraffic();
-        network.view.flash('Related Traffic');
+    function addMultiSourceIntentAction() {
+        sendMessage('addMultiSourceIntent', {
+            src: selectOrder.slice(0, selectOrder.length - 1),
+            dst: selectOrder[selectOrder.length - 1],
+            ids: selectOrder
+        });
+        network.view.flash('Multi-Source flow added');
     }
+
 
     function cancelTraffic() {
         sendMessage('cancelTraffic', {});
     }
 
-    function showSelectTraffic() {
-        // if nothing is hovered over, and nothing selected, send cancel request
-        if (!hovered && nSel() === 0) {
-            cancelTraffic();
-            return;
+    function requestTrafficForMode() {
+        if (hoverMode === hoverModeAll) {
+            requestAllTraffic();
+        } else if (hoverMode === hoverModeFlows) {
+            requestDeviceLinkFlows();
+        } else if (hoverMode === hoverModeIntents) {
+            requestSelectTraffic();
         }
+    }
 
-        // NOTE: hover is only populated if "show traffic on hover" is
-        //        toggled on, and the item hovered is a host or a device...
-        var hoverId = (trafficHover() && hovered &&
-                (hovered.class === 'host' || hovered.class === 'device'))
+    function showTrafficAction() {
+        hoverMode = hoverModeIntents;
+        requestSelectTraffic();
+        network.view.flash('Related Traffic');
+    }
+
+    function requestSelectTraffic() {
+        if (validateSelectionContext()) {
+            var hoverId = (hoverMode === hoverModeIntents && hovered &&
+                    (hovered.class === 'host' || hovered.class === 'device'))
                         ? hovered.id : '';
-        sendMessage('requestTraffic', {
-            ids: selectOrder,
-            hover: hoverId
-        });
+            sendMessage('requestTraffic', {
+                ids: selectOrder,
+                hover: hoverId
+            });
+        }
     }
 
-    function showAllTrafficAction() {
-        cancelTraffic();
-        sendMessage('requestAllTraffic', {});
-        network.view.flash('All Traffic');
-    }
 
     function showDeviceLinkFlowsAction() {
-        cancelTraffic();
-        hoverMode = 2;
-        showDeviceLinkFlows();
+        hoverMode = hoverModeFlows;
+        requestDeviceLinkFlows();
         network.view.flash('Device Flows');
     }
 
-    function showDeviceLinkFlows() {
-        // if nothing is hovered over, and nothing selected, send cancel request
+    function requestDeviceLinkFlows() {
+        if (validateSelectionContext()) {
+            var hoverId = (hoverMode === hoverModeFlows && hovered &&
+                    (hovered.class === 'device')) ? hovered.id : '';
+            sendMessage('requestDeviceLinkFlows', {
+                ids: selectOrder,
+                hover: hoverId
+            });
+        }
+    }
+
+
+    function showAllTrafficAction() {
+        hoverMode = hoverModeAll;
+        requestAllTraffic();
+        network.view.flash('All Traffic');
+    }
+
+    function requestAllTraffic() {
+        sendMessage('requestAllTraffic', {});
+    }
+
+    function validateSelectionContext() {
         if (!hovered && nSel() === 0) {
             cancelTraffic();
-            return;
+            return false;
         }
-        var hoverId = (flowsHover() && hovered && hovered.class === 'device') ?
-            hovered.id : '';
-        sendMessage('requestDeviceLinkFlows', {
-            ids: selectOrder,
-            hover: hoverId
-        });
+        return true;
     }
 
     // TODO: these should be moved out to utility module.
@@ -1547,20 +1572,12 @@
 
     function nodeMouseOver(d) {
         hovered = d;
-        if (trafficHover() && (d.class === 'host' || d.class === 'device')) {
-            showSelectTraffic();
-        } else if (flowsHover() && (d.class === 'device')) {
-            showDeviceLinkFlows();
-        }
+        requestTrafficForMode();
     }
 
     function nodeMouseOut(d) {
         hovered = null;
-        if (trafficHover() && (d.class === 'host' || d.class === 'device')) {
-            showSelectTraffic();
-        } else if (flowsHover() && (d.class === 'device')) {
-            showDeviceLinkFlows();
-        }
+        requestTrafficForMode();
     }
 
     function addHostIcon(node, radius, iid) {
@@ -2002,22 +2019,29 @@
     function updateDetailPane() {
         var nSel = selectOrder.length;
         if (!nSel) {
-            detailPane.hide();
-            cancelTraffic();
+            emptySelect();
         } else if (nSel === 1) {
             singleSelect();
+            requestTrafficForMode();
         } else {
             multiSelect();
         }
     }
 
+    function emptySelect() {
+        detailPane.hide();
+        cancelTraffic();
+    }
+
     function singleSelect() {
+        // NOTE: detail is shown from showDetails event callback
         requestDetails();
-        // NOTE: detail pane will be shown from showDetails event callback
+        requestTrafficForMode();
     }
 
     function multiSelect() {
         populateMultiSelect();
+        requestTrafficForMode();
     }
 
     function addSep(tbody) {
@@ -2127,7 +2151,9 @@
         addAction(detailPane, 'Show Related Traffic', showTrafficAction);
         // if exactly two hosts are selected, also want 'add host intent'
         if (nSel() === 2 && allSelectionsClass('host')) {
-            addAction(detailPane, 'Add Host-to-Host Intent', addIntentAction);
+            addAction(detailPane, 'Create Host-to-Host Flow', addHostIntentAction);
+        } else if (nSel() >= 2 && allSelectionsClass('host')) {
+            addAction(detailPane, 'Create Multi-Source Flow', addMultiSourceIntentAction);
         }
     }
 
@@ -2237,14 +2263,6 @@
 
     function panZoom() {
         return false;
-    }
-
-    function trafficHover() {
-        return hoverModes[hoverMode] === 'intents';
-    }
-
-    function flowsHover() {
-        return hoverModes[hoverMode] === 'flows';
     }
 
     function loadGlyphs(svg) {

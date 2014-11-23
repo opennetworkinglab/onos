@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.gui;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
@@ -23,20 +24,25 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
+import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
+import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
 import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
+import org.onlab.onos.net.flow.TrafficSelector;
+import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
+import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
@@ -119,7 +125,7 @@ public class TopologyViewWebSocket
         super(directory);
 
         intentFilter = new TopologyViewIntentFilter(intentService, deviceService,
-                                                   hostService, linkService);
+                                                    hostService, linkService);
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }
 
@@ -195,8 +201,11 @@ public class TopologyViewWebSocket
             requestDetails(event);
         } else if (type.equals("updateMeta")) {
             updateMetaUi(event);
+
         } else if (type.equals("addHostIntent")) {
             createHostIntent(event);
+        } else if (type.equals("addMultiSourceIntent")) {
+            createMultiSourceIntent(event);
 
         } else if (type.equals("requestTraffic")) {
             requestTraffic(event);
@@ -268,6 +277,7 @@ public class TopologyViewWebSocket
         }
     }
 
+
     // Creates host-to-host intent.
     private void createHostIntent(ObjectNode event) {
         ObjectNode payload = payload(event);
@@ -276,19 +286,66 @@ public class TopologyViewWebSocket
         HostId one = hostId(string(payload, "one"));
         HostId two = hostId(string(payload, "two"));
 
-        HostToHostIntent hostIntent = new HostToHostIntent(appId, one, two,
-                                                           DefaultTrafficSelector.builder().build(),
-                                                           DefaultTrafficTreatment.builder().build());
-        trafficEvent = event;
-        intentService.submit(hostIntent);
+        HostToHostIntent intent =
+                new HostToHostIntent(appId, one, two,
+                                     DefaultTrafficSelector.builder().build(),
+                                     DefaultTrafficTreatment.builder().build());
+        startMonitoring(event);
+        intentService.submit(intent);
     }
 
-    private synchronized long startMonitoring(ObjectNode event) {
-        if (trafficTask == null) {
-            trafficEvent = event;
-            trafficTask = new TrafficMonitor();
-            timer.schedule(trafficTask, TRAFFIC_FREQUENCY_SEC, TRAFFIC_FREQUENCY_SEC);
+    // Creates multi-source-to-single-dest intent.
+    private void createMultiSourceIntent(ObjectNode event) {
+        ObjectNode payload = payload(event);
+        long id = number(event, "sid");
+        // TODO: add protection against device ids and non-existent hosts.
+        Set<HostId> src = getHostIds((ArrayNode) payload.path("src"));
+        HostId dst = hostId(string(payload, "dst"));
+        Host dstHost = hostService.getHost(dst);
+
+        Set<ConnectPoint> ingressPoints = getHostLocations(src);
+
+        // FIXME: clearly, this is not enough
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthDst(dstHost.mac()).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+
+        MultiPointToSinglePointIntent intent =
+                new MultiPointToSinglePointIntent(appId, selector, treatment,
+                                                  ingressPoints, dstHost.location());
+        trafficEvent = event;
+        intentService.submit(intent);
+    }
+
+    private Set<ConnectPoint> getHostLocations(Set<HostId> hostIds) {
+        Set<ConnectPoint> points = new HashSet<>();
+        for (HostId hostId : hostIds) {
+            points.add(getHostLocation(hostId));
         }
+        return points;
+    }
+
+    private HostLocation getHostLocation(HostId hostId) {
+        return hostService.getHost(hostId).location();
+    }
+
+    // Produces a list of host ids from the specified JSON array.
+    private Set<HostId> getHostIds(ArrayNode ids) {
+        Set<HostId> hostIds = new HashSet<>();
+        for (JsonNode id : ids) {
+            hostIds.add(hostId(id.asText()));
+        }
+        return hostIds;
+    }
+
+
+    private synchronized long startMonitoring(ObjectNode event) {
+        if (trafficTask != null) {
+            stopMonitoring();
+        }
+        trafficEvent = event;
+        trafficTask = new TrafficMonitor();
+        timer.schedule(trafficTask, TRAFFIC_FREQUENCY_SEC, TRAFFIC_FREQUENCY_SEC);
         return number(event, "sid");
     }
 
