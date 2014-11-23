@@ -17,6 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import net.kuujo.copycat.Copycat;
+import net.kuujo.copycat.CopycatConfig;
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.cluster.TcpCluster;
@@ -116,6 +117,9 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     private volatile LeaderElectEvent myLeaderEvent = null;
 
+    // TODO make this configuratble
+    private int maxLogSizeBytes = 128 * (1024 ^ 2);
+
     @Activate
     public void activate() throws InterruptedException, ExecutionException {
 
@@ -175,7 +179,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
                     ClusterMessagingProtocol.DB_SERIALIZER);
 
-            copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol);
+            CopycatConfig ccConfig = new CopycatConfig();
+            ccConfig.setMaxLogSize(maxLogSizeBytes);
+
+            copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol, ccConfig);
             copycat.event(LeaderElectEvent.class).registerHandler(new RaftLeaderElectionMonitor());
             copycat.event(LeaderElectEvent.class).registerHandler(expirationTracker);
         }
