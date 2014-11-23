@@ -580,7 +580,7 @@
         updateLink: updateLink,
         updateHost: updateHost,
 
-        removeInstance: stillToImplement,
+        removeInstance: removeInstance,
         removeDevice: stillToImplement,
         removeLink: removeLink,
         removeHost: removeHost,
@@ -715,6 +715,23 @@
     }
 
     // TODO: fold removeX(...) methods into base method - remove dup code
+    function removeInstance(data) {
+        evTrace(data);
+        var inst = data.payload,
+            id = inst.id,
+            instData = onosInstances[id];
+        if (instData) {
+            var idx = find(id, onosOrder, 'id');
+            if (idx >= 0) {
+                onosOrder.splice(idx, 1);
+            }
+            delete onosInstances[id];
+            updateInstances();
+        } else {
+            logicError('updateInstance lookup fail. ID = "' + id + '"');
+        }
+    }
+
     function removeLink(data) {
         evTrace(data);
         var link = data.payload,
@@ -793,7 +810,9 @@
     function stillToImplement(data) {
         var p = data.payload;
         note(data.event, p.id);
-        network.view.alert('Not yet implemented: "' + data.event + '"');
+        if (!config.useLiveData) {
+            network.view.alert('Not yet implemented: "' + data.event + '"');
+        }
     }
 
     function unknownEvent(data) {
@@ -966,56 +985,62 @@
         return true;
     }
 
-    // TODO: these should be moved out to utility module.
-    function stripPx(s) {
-        return s.replace(/px$/,'');
-    }
-
-    function appendUse(svg, ox, oy, dim, iid, cls) {
-        var use = svg.append('use').attr({
-            transform: translate(ox,oy),
-            'xlink:href': iid,
-            width: dim,
-            height: dim
-        });
-        if (cls) {
-            use.classed(cls, true);
-        }
-        return use;
-    }
-
-    function appendGlyph(svg, ox, oy, dim, iid, cls) {
-        appendUse(svg, ox, oy, dim, iid, cls).classed('glyphIcon', true);
-    }
-
-    function appendBadge(svg, ox, oy, dim, iid, cls) {
-        appendUse(svg, ox, oy, dim, iid,cls ).classed('badgeIcon', true);
-    }
-
-    function attachUiBadge(svg) {
-        appendBadge(svg, 12, 50, 30, '#uiAttached', 'uiBadge');
-    }
 
     // ==============================
     // onos instance panel functions
-    var instW = 120;
 
-    function viewBox(w, h) {
-        return '0 0 ' + w + ' ' + h;
+    var instCfg = {
+        rectPad: 8,
+        nodeOx: 9,
+        nodeOy: 9,
+        nodeDim: 40,
+        birdOx: 19,
+        birdOy: 21,
+        birdDim: 21,
+        uiDy: 45,
+        titleDy: 30,
+        textYOff: 20,
+        textYSpc: 15
+    };
+
+    function viewBox(dim) {
+        return '0 0 ' + dim.w + ' ' + dim.h;
+    }
+
+    function instRectAttr(dim) {
+        var pad = instCfg.rectPad;
+        return {
+            x: pad,
+            y: pad,
+            width: dim.w - pad*2,
+            height: dim.h - pad*2,
+            rx: 12
+        };
+    }
+
+    function computeDim(self) {
+        var css = window.getComputedStyle(self);
+        return {
+            w: stripPx(css.width),
+            h: stripPx(css.height)
+        };
     }
 
     function updateInstances() {
         var onoses = oiBox.el.selectAll('.onosInst')
                 .data(onosOrder, function (d) { return d.id; }),
-            boxW = instW * onosOrder.length;
+            instDim = {w:0,h:0},
+            c = instCfg;
 
-        // adjust the width of the panel based on number of instances...
-        oiBox.width(boxW);
+        function nSw(n) {
+            return '# Switches: ' + n;
+        }
 
         // operate on existing onos instances if necessary
         onoses.each(function (d) {
             var el = d3.select(this),
                 svg = el.select('svg');
+            instDim = computeDim(this);
 
             // update online state
             el.classed('online', d.online);
@@ -1026,7 +1051,12 @@
                 attachUiBadge(svg);
             }
 
-            // TODO: update title and property values
+            function updAttr(id, value) {
+                svg.select('text.instLabel.'+id).text(value);
+            }
+
+            updAttr('ip', d.ip);
+            updAttr('ns', nSw(d.switches));
         });
 
 
@@ -1039,61 +1069,64 @@
 
         entering.each(function (d) {
             var el = d3.select(this),
-                css = window.getComputedStyle(this),
-                w = stripPx(css.width),
-                h = stripPx(css.height);
+                rectAttr,
+                svg;
+            instDim = computeDim(this);
+            rectAttr = instRectAttr(instDim);
 
-            var svg = el.append('svg').attr({
-                width: w,
-                height: h,
-                viewBox: viewBox(w, h)
+            svg = el.append('svg').attr({
+                width: instDim.w,
+                height: instDim.h,
+                viewBox: viewBox(instDim)
             });
 
-            svg.append('rect')
-                .attr({
-                    x: 8,
-                    y: 8,
-                    width: 104,
-                    height: 84,
-                    rx: 12
-                });
+            svg.append('rect').attr(rectAttr);
 
-
-            appendGlyph(svg, 9, 9, 36, '#node');
-            appendBadge(svg, 17, 19, 21, '#bird');
+            appendGlyph(svg, c.nodeOx, c.nodeOy, c.nodeDim, '#node');
+            appendBadge(svg, c.birdOx, c.birdOy, c.birdDim, '#bird');
 
             if (d.uiAttached) {
                 attachUiBadge(svg);
             }
 
-            //svg.append('use')
-            //    .attr({
-            //        class: 'birdBadge',
-            //        transform: translate(8,10),
-            //        'xlink:href': '#bird',
-            //        width: 18,
-            //        height: 18,
-            //        fill: '#fff'
-            //    });
-            //
-            //$('<div>').attr('class', 'onosTitle').text(d.id).appendTo(el);
+            var left = c.nodeOx + c.nodeDim,
+                len = rectAttr.width - left,
+                hlen = len / 2,
+                midline = hlen + left;
 
-            // is the UI attached to this instance?
-            // TODO: need uiAttached boolean in instance data
-            // TODO: use SVG glyph, not png..
-            //if (d.uiAttached) {
-            //if (i === 0) {
-            //    $('<img src="img/ui.png">').attr('class','ui').appendTo(el);
-            //}
+            // title
+            svg.append('text')
+                .attr({
+                    class: 'instTitle',
+                    x: midline,
+                    y: c.titleDy
+                })
+                .text(d.id);
+
+            // a couple of attributes
+            var ty = c.titleDy + c.textYOff;
+
+            function addAttr(id, label) {
+                svg.append('text').attr({
+                    class: 'instLabel ' + id,
+                    x: midline,
+                    y: ty
+                }).text(label);
+                ty += c.textYSpc;
+            }
+
+            addAttr('ip', d.ip);
+            addAttr('ns', nSw(d.switches));
         });
 
         // operate on existing + new onoses here
 
-        // the departed...
-        var exiting = onoses.exit()
-            .transition()
-            .style('opacity', 0)
-            .remove();
+        // adjust the panel size appropriately...
+        oiBox.width(instDim.w * onosOrder.length);
+        oiBox.height(instDim.h);
+
+        // remove any outgoing instances
+        onoses.exit().remove();
     }
 
     function clickInst(d) {
@@ -1126,6 +1159,36 @@
             .classed('mastership affinity', false);
         restoreLayerState();
         oiShowMaster = false;
+    }
+
+    // TODO: these should be moved out to utility module.
+    function stripPx(s) {
+        return s.replace(/px$/,'');
+    }
+
+    function appendUse(svg, ox, oy, dim, iid, cls) {
+        var use = svg.append('use').attr({
+            transform: translate(ox,oy),
+            'xlink:href': iid,
+            width: dim,
+            height: dim
+        });
+        if (cls) {
+            use.classed(cls, true);
+        }
+        return use;
+    }
+
+    function appendGlyph(svg, ox, oy, dim, iid, cls) {
+        appendUse(svg, ox, oy, dim, iid, cls).classed('glyphIcon', true);
+    }
+
+    function appendBadge(svg, ox, oy, dim, iid, cls) {
+        appendUse(svg, ox, oy, dim, iid,cls ).classed('badgeIcon', true);
+    }
+
+    function attachUiBadge(svg) {
+        appendBadge(svg, 12, instCfg.uiDy, 30, '#uiAttached', 'uiBadge');
     }
 
     // ==============================
@@ -1763,9 +1826,12 @@
 
     }
 
-    function find(key, array) {
-        for (var idx = 0, n = array.length; idx < n; idx++) {
-            if (array[idx].key === key) {
+    function find(key, array, tag) {
+        var _tag = tag || 'key',
+            idx, n, d;
+        for (idx = 0, n = array.length; idx < n; idx++) {
+            d = array[idx];
+            if (d[_tag] === key) {
                 return idx;
             }
         }

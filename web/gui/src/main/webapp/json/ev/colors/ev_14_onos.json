@@ -1,0 +1,14 @@
+{
+  "event": "removeInstance",
+  "payload": {
+    "id": "onos-leader",
+    "ip": "192.168.0.5",
+    "online": false,
+    "uiAttached": false,
+    "switches": 0,
+    "labels": [
+      "onos-leader",
+      "192.168.0.5"
+    ]
+  }
+}

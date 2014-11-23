@@ -20,6 +20,10 @@
  @author Simon Hunt
  */
 
+#feedback {
+    z-index: 1400;
+}
+
 #feedback svg {
     position: absolute;
     bottom: 0;

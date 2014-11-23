@@ -318,8 +318,9 @@ svg .node.host circle {
 
 #topo-oibox div.onosInst {
     display: inline-block;
-    width: 120px;
-    height: 100px;
+    width: 170px;
+    height: 85px;
+    cursor: pointer;
 }
 
 #topo-oibox svg rect {
@@ -350,6 +351,22 @@ svg .node.host circle {
     fill: #fff;
 }
 
+#topo-oibox svg text {
+    text-anchor: middle;
+    fill: #888;
+}
+#topo-oibox .online svg text {
+    fill: #000;
+}
+
+#topo-oibox svg text.instTitle {
+    font-size: 11pt;
+    font-weight: bold;
+}
+#topo-oibox svg text.instLabel {
+    font-size: 9pt;
+    font-style: italic;
+}
 
 #topo-oibox .onosInst.mastership {
     opacity: 0.3;
@@ -359,66 +376,6 @@ svg .node.host circle {
 }
 #topo-oibox .onosInst.mastership.affinity svg rect {
     filter: url(#blue-glow);
-}
-
-/* ------------------------------------------------------ */
-/* ------------------------------------------------------ */
-/* ------------------------------------------------------ */
-
-#topo-oibox .onosInst_OLD {
-    position: relative;
-    width: 88%;
-    left: 4%;
-    height: 80px;
-    margin: 8px 0;
-    cursor: pointer;
-
-    -moz-border-radius: 12px;
-    border-radius: 12px;
-
-    /* theme-related */
-    color: #444;
-    background-color: #ccc;
-    border: 4px solid #aaa;
-}
-
-#topo-oibox .onosInst_OLD .onosTitle {
-    text-align: center;
-    font-size: 10pt;
-    margin-top: 6px;
-    color: #888;
-}
-
-#topo-oibox .onosInst_OLD.online .onosTitle {
-    color: black;
-}
-
-#topo-oibox .onosInst_OLD svg .glyphIcon {
-    opacity: 0.5;
-    fill: black;
-    stroke: none;
-    fill-rule: evenodd;
-}
-#topo-oibox .onosInst_OLD.online svg .glyphIcon {
-    opacity: 1;
-    fill: black;
-    stroke: none;
-    fill-rule: evenodd;
-}
-
-
-#topo-oibox .onosInst_OLD.online img {
-    opacity: 1.0;
-    padding: 3px;
-}
-
-#topo-oibox .onosInst_OLD img.ui {
-    opacity: 1;
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    width: 20px;
-    height: 20px;
 }
 
 

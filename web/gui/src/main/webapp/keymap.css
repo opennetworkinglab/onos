@@ -20,6 +20,10 @@
  @author Simon Hunt
  */
 
+#keymap {
+    z-index: 1300;
+}
+
 #keymap svg {
     position: absolute;
     bottom: 40px;

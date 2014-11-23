@@ -49,7 +49,7 @@ div.onosView.currentView {
 #alerts {
     display: none;
     position: absolute;
-    z-index: 2000;
+    z-index: 1200;
     opacity: 0.65;
     background-color: #006;
     color: white;
@@ -83,10 +83,12 @@ div.onosView.currentView {
     color: #66d;
 }
 
+#floatPanels {
+    z-index: 1100;
+}
 
 #flyout {
     position: absolute;
-    z-index: 100;
     display: block;
     top: 10%;
     width: 280px;

@@ -785,8 +785,14 @@
                 function pxHide() {
                     return (-20 - widthVal()) + 'px';
                 }
+                function noPx(what) {
+                    return el.style(what).replace(/px$/, '');
+                }
                 function widthVal() {
-                    return el.style('width').replace(/px$/, '');
+                    return noPx('width');
+                }
+                function heightVal() {
+                    return noPx('height');
                 }
 
                 fp = {
@@ -822,6 +828,12 @@
                             return widthVal();
                         }
                         el.style('width', w + 'px');
+                    },
+                    height: function (h) {
+                        if (h === undefined) {
+                            return heightVal();
+                        }
+                        el.style('height', h + 'px');
                     }
                 };
                 fpanels[id] = fp;
