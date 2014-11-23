@@ -24,12 +24,9 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ONOS GUI (v1.1)</title>
+    <title>ONOS</title>
 
     <link rel="shortcut icon" href="img/onos-logo.png">
-
-    <!-- first script to be run -->
-    <script src="preamble.js"></script>
 
     <!-- Third party library code included here -->
     <!--TODO: use the minified version of d3, once debugging is complete -->
@@ -48,7 +45,6 @@
     <!-- This is where contributed stylesheets get INJECTED -->
     <!-- TODO: replace with template marker and inject refs server-side -->
     <link rel="stylesheet" href="topo2.css">
-    <link rel="stylesheet" href="webSockTrace.css">
 
 
     <!-- General library modules included here-->
@@ -86,8 +82,7 @@
         var ONOS = $.onos({
             comment: 'configuration options',
             theme: 'dark',
-            startVid: 'topo',
-            trace: false
+            startVid: 'topo'
         });
     </script>
 
@@ -112,8 +107,6 @@
 
     <!-- Contributed (application) views injected here -->
     <!-- TODO: replace with template marker and inject refs server-side -->
-    <script src="webSockTrace.js"></script>
-
     <script src="topo2.js"></script>
 
     <!-- finally, build the UI-->

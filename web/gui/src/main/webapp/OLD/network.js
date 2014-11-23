@@ -157,8 +157,8 @@
         d3.json(url , function (err, data) {
             if (err) {
                 alert('Oops! Error reading JSON...\n\n' +
-                    'URL: ' + url + '\n\n' +
-                    'Error: ' + err.message);
+                'URL: ' + url + '\n\n' +
+                'Error: ' + err.message);
                 return;
             }
 //            console.log("here is the JSON data...");
@@ -263,7 +263,7 @@
                         .attr('y', 15)
                         .style('font-size', '20pt')
                         .text('keyCode: ' + d3.event.keyCode +
-                            ' applied to : ' + contextLabel())
+                        ' applied to : ' + contextLabel())
                         .transition().duration(2000)
                         .style('font-size', '2pt')
                         .style('fill-opacity', 0.01)
@@ -474,7 +474,7 @@
                 'xlink:href': config.backgroundUrl
             })
             .style('visibility',
-                    config.options.loadBackground ? 'visible' : 'hidden');
+            config.options.loadBackground ? 'visible' : 'hidden');
 
 //        function zoomRedraw() {
 //            d3.select("#zoomable").attr("transform",
@@ -493,9 +493,9 @@
         glow.append('feColorMatrix')
             .attr('type', 'matrix')
             .attr('values', '0 0 0 0  0 ' +
-                '0 0 0 0  0 ' +
-                '0 0 0 0  .7 ' +
-                '0 0 0 1  0 ');
+            '0 0 0 0  0 ' +
+            '0 0 0 0  .7 ' +
+            '0 0 0 1  0 ');
 
         glow.append('feGaussianBlur')
             .attr('stdDeviation', 3)
@@ -596,14 +596,14 @@
 
             if (d.source.type)
 
-            network.linkSrcPort.append('rect').attr({
-                id: 'srcPort-' + safeId(d.id),
-                class: 'port ' + srcType,
-                width: pw,
-                height: ph,
-                rx: 4,
-                ry: 4
-            }).style('visibility', portVis);
+                network.linkSrcPort.append('rect').attr({
+                    id: 'srcPort-' + safeId(d.id),
+                    class: 'port ' + srcType,
+                    width: pw,
+                    height: ph,
+                    rx: 4,
+                    ry: 4
+                }).style('visibility', portVis);
 
             network.linkTgtPort.append('rect').attr({
                 id: 'tgtPort-' + safeId(d.id),
@@ -673,15 +673,15 @@
                 width: 100,
                 height: 12
             });
-            // note that width/height are adjusted to fit the label text
-            // then padded, and space made for the icon.
+        // note that width/height are adjusted to fit the label text
+        // then padded, and space made for the icon.
 
         network.node.filter('.device').each(function(d) {
             var node = d3.select(this),
                 icon = iconUrl(d);
 
             node.append('text')
-            // TODO: add label cycle behavior
+                // TODO: add label cycle behavior
                 .text(d.id)
                 .attr('dy', '1.1em');
 
@@ -1100,8 +1100,8 @@
             d3.json(url, function (err, data) {
                 if (err) {
                     alert('Oops! Error reading JSON...\n\n' +
-                        'URL: ' + url + '\n\n' +
-                        'Error: ' + err.message);
+                    'URL: ' + url + '\n\n' +
+                    'Error: ' + err.message);
                     return;
                 }
 //                console.log("JSON data... " + url);
