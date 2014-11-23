@@ -20,6 +20,8 @@ import org.easymock.IArgumentMatcher;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
+import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
@@ -70,9 +72,10 @@ public class PeerConnectivityManagerTest {
     };
 
     private PeerConnectivityManager peerConnectivityManager;
-    private IntentService intentService;
+    private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigService configInfoService;
     private InterfaceService interfaceService;
+    private IntentService intentService;
 
     private Map<String, BgpSpeaker> bgpSpeakers;
     private Map<String, Interface> interfaces;
@@ -525,8 +528,10 @@ public class PeerConnectivityManagerTest {
 
     /**
      * Initializes peer connectivity testing environment.
+     *
+     * @throws TestUtilsException if exceptions when using TestUtils
      */
-    private void initPeerConnectivity() {
+    private void initPeerConnectivity() throws TestUtilsException {
 
         configInfoService = createMock(SdnIpConfigService.class);
         expect(configInfoService.getBgpPeers()).andReturn(peers).anyTimes();
@@ -536,8 +541,13 @@ public class PeerConnectivityManagerTest {
         intentService = createMock(IntentService.class);
         replay(intentService);
 
-        peerConnectivityManager = new PeerConnectivityManager(APPID, configInfoService,
-                interfaceService, intentService);
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+
+        peerConnectivityManager =
+            new PeerConnectivityManager(APPID, intentSynchronizer,
+                                        configInfoService, interfaceService);
     }
 
     /*

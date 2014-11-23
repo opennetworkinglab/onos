@@ -117,7 +117,7 @@ public class RouterTestWithAsyncArp {
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService);
         router = new Router(APPID, intentSynchronizer,
-                hostService, sdnIpConfigService, interfaceService);
+                            sdnIpConfigService, interfaceService, hostService);
         internalHostListener = router.new InternalHostListener();
     }
 
@@ -229,8 +229,8 @@ public class RouterTestWithAsyncArp {
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntry));
-        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 1);
-        assertEquals(intentSynchronizer.getPushedRouteIntents().iterator().next(),
+        assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
+        assertEquals(intentSynchronizer.getRouteIntents().iterator().next(),
                      intent);
         verify(intentService);
         verify(hostService);
@@ -254,9 +254,9 @@ public class RouterTestWithAsyncArp {
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
 
         // Set up the bgpRoutes field of Router class with existing route, and
-        // pushedRouteIntents field with the corresponding existing intent
+        // routeIntents field with the corresponding existing intent
         setBgpRoutesField(routeEntry);
-        setPushedRouteIntentsField(routeEntry, intent);
+        setRouteIntentsField(routeEntry, intent);
 
         // Start to construct a new route entry and new intent
         RouteEntry routeEntryUpdate = new RouteEntry(
@@ -312,8 +312,8 @@ public class RouterTestWithAsyncArp {
         // Verify
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntryUpdate));
-        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 1);
-        assertEquals(intentSynchronizer.getPushedRouteIntents().iterator().next(),
+        assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
+        assertEquals(intentSynchronizer.getRouteIntents().iterator().next(),
                 intentNew);
         verify(intentService);
         verify(hostService);
@@ -334,9 +334,9 @@ public class RouterTestWithAsyncArp {
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
 
         // Set up the bgpRoutes field of Router class with existing route, and
-        // pushedRouteIntents field with the corresponding existing intent
+        // routeIntents field with the corresponding existing intent
         setBgpRoutesField(routeEntry);
-        setPushedRouteIntentsField(routeEntry, intent);
+        setRouteIntentsField(routeEntry, intent);
 
         // Set up expectation
         reset(intentService);
@@ -350,7 +350,7 @@ public class RouterTestWithAsyncArp {
 
         // Verify
         assertEquals(router.getRoutes().size(), 0);
-        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 0);
+        assertEquals(intentSynchronizer.getRouteIntents().size(), 0);
         verify(intentService);
     }
 
@@ -397,17 +397,17 @@ public class RouterTestWithAsyncArp {
     }
 
     /**
-     * Sets pushedRouteIntentsField in Router class.
+     * Sets routeIntentsField in IntentSynchronizer class.
      *
      * @throws TestUtilsException
      */
-    private void setPushedRouteIntentsField(RouteEntry routeEntry,
+    private void setRouteIntentsField(RouteEntry routeEntry,
             MultiPointToSinglePointIntent intent)
             throws TestUtilsException {
 
         ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
-            pushedRouteIntents =  new ConcurrentHashMap<>();
-        pushedRouteIntents.put(routeEntry.prefix(), intent);
-        TestUtils.setField(router, "pushedRouteIntents", pushedRouteIntents);
+            routeIntents =  new ConcurrentHashMap<>();
+        routeIntents.put(routeEntry.prefix(), intent);
+        TestUtils.setField(intentSynchronizer, "routeIntents", routeIntents);
     }
 }

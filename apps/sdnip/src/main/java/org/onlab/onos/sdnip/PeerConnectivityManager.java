@@ -16,6 +16,7 @@
 package org.onlab.onos.sdnip;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.onlab.onos.core.ApplicationId;
@@ -24,8 +25,6 @@ import org.onlab.onos.net.flow.DefaultTrafficSelector;
 import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.sdnip.bgp.BgpConstants;
 import org.onlab.onos.sdnip.config.BgpPeer;
@@ -48,9 +47,9 @@ public class PeerConnectivityManager {
     private static final Logger log = LoggerFactory.getLogger(
             PeerConnectivityManager.class);
 
+    private final IntentSynchronizer intentSynchronizer;
     private final SdnIpConfigService configService;
     private final InterfaceService interfaceService;
-    private final IntentService intentService;
 
     private final ApplicationId appId;
 
@@ -58,18 +57,18 @@ public class PeerConnectivityManager {
      * Creates a new PeerConnectivityManager.
      *
      * @param appId             the application ID
+     * @param intentSynchronizer the intent synchronizer
      * @param configService     the SDN-IP config service
      * @param interfaceService  the interface service
-     * @param intentService     the intent service
      */
     public PeerConnectivityManager(ApplicationId appId,
+                                   IntentSynchronizer intentSynchronizer,
                                    SdnIpConfigService configService,
-                                   InterfaceService interfaceService,
-                                   IntentService intentService) {
+                                   InterfaceService interfaceService) {
         this.appId = appId;
+        this.intentSynchronizer = intentSynchronizer;
         this.configService = configService;
         this.interfaceService = interfaceService;
-        this.intentService = intentService;
     }
 
     /**
@@ -107,6 +106,8 @@ public class PeerConnectivityManager {
      * {@link BgpSpeaker}s and all external {@link BgpPeer}s.
      */
     private void setUpConnectivity() {
+        List<PointToPointIntent> intents = new ArrayList<>();
+
         for (BgpSpeaker bgpSpeaker : configService.getBgpSpeakers()
                 .values()) {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
@@ -117,9 +118,12 @@ public class PeerConnectivityManager {
                 log.debug("Start to set up BGP paths between BGP speaker: {} "
                                   + "to BGP peer: {}", bgpSpeaker, bgpPeer);
 
-                buildPeerIntents(bgpSpeaker, bgpPeer);
+                intents.addAll(buildPeerIntents(bgpSpeaker, bgpPeer));
             }
         }
+
+        // Submit all the intents.
+        intentSynchronizer.submitPeerIntents(intents);
     }
 
     /**
@@ -128,9 +132,12 @@ public class PeerConnectivityManager {
      *
      * @param bgpSpeaker the BGP speaker
      * @param bgpPeer the BGP peer
+     * @return the intents to install
      */
-    private void buildPeerIntents(BgpSpeaker bgpSpeaker, BgpPeer bgpPeer) {
-        List<Intent> intents = new ArrayList<Intent>();
+    private Collection<PointToPointIntent> buildPeerIntents(
+                                                BgpSpeaker bgpSpeaker,
+                                                BgpPeer bgpPeer) {
+        List<PointToPointIntent> intents = new ArrayList<>();
 
         ConnectPoint bgpdConnectPoint = bgpSpeaker.connectPoint();
 
@@ -142,7 +149,7 @@ public class PeerConnectivityManager {
 
         if (peerInterface == null) {
             log.error("No interface found for peer {}", bgpPeer.ipAddress());
-            return;
+            return intents;
         }
 
         IpAddress bgpdAddress = null;
@@ -156,7 +163,7 @@ public class PeerConnectivityManager {
         if (bgpdAddress == null) {
             log.debug("No IP address found for peer {} on interface {}",
                       bgpPeer, bgpPeer.connectPoint());
-            return;
+            return intents;
         }
 
         IpAddress bgpdPeerAddress = bgpPeer.ipAddress();
@@ -231,11 +238,7 @@ public class PeerConnectivityManager {
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdPeerConnectPoint, bgpdConnectPoint));
 
-        // Submit all the intents.
-        // TODO submit as a batch
-        for (Intent intent : intents) {
-            intentService.submit(intent);
-        }
+        return intents;
     }
 
     /**
@@ -249,7 +252,8 @@ public class PeerConnectivityManager {
      * @return the new traffic selector
      */
     private TrafficSelector buildSelector(byte ipProto, IpAddress srcIp,
-                                 IpAddress dstIp, Short srcTcpPort, Short dstTcpPort) {
+                                          IpAddress dstIp, Short srcTcpPort,
+                                          Short dstTcpPort) {
         TrafficSelector.Builder builder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(ipProto)

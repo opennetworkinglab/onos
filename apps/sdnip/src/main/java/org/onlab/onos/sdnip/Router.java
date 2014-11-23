@@ -92,18 +92,19 @@ public class Router implements RouteListener {
      *
      * @param appId             the application ID
      * @param intentSynchronizer the intent synchronizer
-     * @param hostService       the host service
      * @param configService     the configuration service
      * @param interfaceService  the interface service
+     * @param hostService       the host service
      */
     public Router(ApplicationId appId, IntentSynchronizer intentSynchronizer,
-                  HostService hostService, SdnIpConfigService configService,
-                  InterfaceService interfaceService) {
+                  SdnIpConfigService configService,
+                  InterfaceService interfaceService,
+                  HostService hostService) {
         this.appId = appId;
         this.intentSynchronizer = intentSynchronizer;
-        this.hostService = hostService;
         this.configService = configService;
         this.interfaceService = interfaceService;
+        this.hostService = hostService;
 
         this.hostListener = new InternalHostListener();
 

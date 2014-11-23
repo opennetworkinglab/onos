@@ -113,8 +113,8 @@ public class SdnIpTest {
         random = new Random();
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService);
-        router = new Router(APPID, intentSynchronizer, hostService,
-                sdnIpConfigService, interfaceService);
+        router = new Router(APPID, intentSynchronizer, sdnIpConfigService,
+                            interfaceService, hostService);
     }
 
     /**
@@ -241,7 +241,7 @@ public class SdnIpTest {
         latch.await(5000, TimeUnit.MILLISECONDS);
 
         assertEquals(router.getRoutes().size(), numRoutes);
-        assertEquals(intentSynchronizer.getPushedRouteIntents().size(),
+        assertEquals(intentSynchronizer.getRouteIntents().size(),
                      numRoutes);
 
         verify(intentService);
@@ -317,7 +317,7 @@ public class SdnIpTest {
         deleteCount.await(5000, TimeUnit.MILLISECONDS);
 
         assertEquals(0, router.getRoutes().size());
-        assertEquals(0, intentSynchronizer.getPushedRouteIntents().size());
+        assertEquals(0, intentSynchronizer.getRouteIntents().size());
         verify(intentService);
     }
 

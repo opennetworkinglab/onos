@@ -20,25 +20,28 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
 import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class IntentSynchronizer {
     private static final Logger log =
@@ -46,7 +49,8 @@ public class IntentSynchronizer {
 
     private final ApplicationId appId;
     private final IntentService intentService;
-    private final Map<Ip4Prefix, MultiPointToSinglePointIntent> pushedRouteIntents;
+    private final Map<IntentKey, PointToPointIntent> peerIntents;
+    private final Map<Ip4Prefix, MultiPointToSinglePointIntent> routeIntents;
 
     //
     // State to deal with SDN-IP Leader election and pushing Intents
@@ -65,7 +69,8 @@ public class IntentSynchronizer {
     IntentSynchronizer(ApplicationId appId, IntentService intentService) {
         this.appId = appId;
         this.intentService = intentService;
-        pushedRouteIntents = new ConcurrentHashMap<>();
+        peerIntents = new ConcurrentHashMap<>();
+        routeIntents = new ConcurrentHashMap<>();
 
         bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
@@ -88,28 +93,47 @@ public class IntentSynchronizer {
      * Stops the synchronizer.
      */
     public void stop() {
-        // Stop the thread(s)
-        bgpIntentsSynchronizerExecutor.shutdownNow();
+        synchronized (this) {
+            // Stop the thread(s)
+            bgpIntentsSynchronizerExecutor.shutdownNow();
 
-        //
-        // Withdraw all SDN-IP intents
-        //
-        if (!isElectedLeader) {
-            return;         // Nothing to do: not the leader anymore
-        }
-        log.debug("Withdrawing all SDN-IP Route Intents...");
-        for (Intent intent : intentService.getIntents()) {
-            if (!(intent instanceof MultiPointToSinglePointIntent)
-                || !intent.appId().equals(appId)) {
-                continue;
+            //
+            // Withdraw all SDN-IP intents
+            //
+            if (!isElectedLeader) {
+                return;         // Nothing to do: not the leader anymore
             }
-            intentService.withdraw(intent);
-        }
 
-        pushedRouteIntents.clear();
+            //
+            // Build a batch operation to withdraw all intents from this
+            // application.
+            //
+            log.debug("Withdrawing all SDN-IP Intents...");
+            IntentOperations.Builder builder = IntentOperations.builder();
+            for (Intent intent : intentService.getIntents()) {
+                // Skip the intents from other applications
+                if (!intent.appId().equals(appId)) {
+                    continue;
+                }
+
+                // Skip the intents that are already withdrawn
+                IntentState intentState =
+                    intentService.getIntentState(intent.id());
+                if (intentState.equals(IntentState.WITHDRAWING) ||
+                    intentState.equals(IntentState.WITHDRAWN)) {
+                    continue;
+                }
+
+                builder.addWithdrawOperation(intent.id());
+            }
+            intentService.execute(builder.build());
+            leaderChanged(false);
+
+            peerIntents.clear();
+            routeIntents.clear();
+        }
     }
 
-    //@Override TODO hook this up to something
     public void leaderChanged(boolean isLeader) {
         log.debug("Leader changed: {}", isLeader);
 
@@ -128,18 +152,18 @@ public class IntentSynchronizer {
     }
 
     /**
-     * Gets the pushed route intents.
+     * Gets the route intents.
      *
-     * @return the pushed route intents
+     * @return the route intents
      */
-    public Collection<MultiPointToSinglePointIntent> getPushedRouteIntents() {
-        List<MultiPointToSinglePointIntent> pushedIntents = new LinkedList<>();
+    public Collection<MultiPointToSinglePointIntent> getRouteIntents() {
+        List<MultiPointToSinglePointIntent> result = new LinkedList<>();
 
         for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
-            pushedRouteIntents.entrySet()) {
-            pushedIntents.add(entry.getValue());
+            routeIntents.entrySet()) {
+            result.add(entry.getValue());
         }
-        return pushedIntents;
+        return result;
     }
 
     /**
@@ -158,15 +182,38 @@ public class IntentSynchronizer {
                     intentsSynchronizerSemaphore.drainPermits();
                 } catch (InterruptedException e) {
                     log.debug("Interrupted while waiting to become " +
-                                      "Intent Synchronization leader");
+                              "Intent Synchronization leader");
                     interrupted = true;
                     break;
                 }
-                syncIntents();
+                synchronizeIntents();
             }
         } finally {
             if (interrupted) {
                 Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
+     * Submits a collection of point-to-point intents.
+     *
+     * @param intents the intents to submit
+     */
+    void submitPeerIntents(Collection<PointToPointIntent> intents) {
+        synchronized (this) {
+            // Store the intents in memory
+            for (PointToPointIntent intent : intents) {
+                peerIntents.put(new IntentKey(intent), intent);
+            }
+
+            // Push the intents
+            if (isElectedLeader && isActivatedLeader) {
+                log.debug("Submitting all SDN-IP Peer Intents...");
+                // TODO: We should use a single Intent batch operation
+                for (Intent intent : intents) {
+                    intentService.submit(intent);
+                }
             }
         }
     }
@@ -180,14 +227,21 @@ public class IntentSynchronizer {
     void submitRouteIntent(Ip4Prefix prefix,
                            MultiPointToSinglePointIntent intent) {
         synchronized (this) {
+            MultiPointToSinglePointIntent oldIntent =
+                routeIntents.put(prefix, intent);
+
             if (isElectedLeader && isActivatedLeader) {
                 log.debug("Intent installation: adding Intent for prefix: {}",
                           prefix);
+                if (oldIntent != null) {
+                    //
+                    // TODO: Short-term solution to explicitly withdraw
+                    // instead of using "replace" operation.
+                    //
+                    intentService.withdraw(oldIntent);
+                }
                 intentService.submit(intent);
             }
-
-            // Maintain the Intent
-            pushedRouteIntents.put(prefix, intent);
         }
     }
 
@@ -199,11 +253,11 @@ public class IntentSynchronizer {
     void withdrawRouteIntent(Ip4Prefix prefix) {
         synchronized (this) {
             MultiPointToSinglePointIntent intent =
-                pushedRouteIntents.remove(prefix);
+                routeIntents.remove(prefix);
 
             if (intent == null) {
-                log.debug("There is no intent in pushedRouteIntents to delete " +
-                          "for prefix: {}", prefix);
+                log.debug("There is no Intent in routeIntents to " +
+                          "delete for prefix: {}", prefix);
                 return;
             }
 
@@ -216,168 +270,112 @@ public class IntentSynchronizer {
     }
 
     /**
-     * Performs Intents Synchronization between the internally stored Route
-     * Intents and the installed Route Intents.
+     * Synchronize the in-memory Intents with the Intents in the Intent
+     * framework.
      */
-    private void syncIntents() {
+    void synchronizeIntents() {
         synchronized (this) {
+
+            Map<IntentKey, Intent> localIntents = new HashMap<>();
+            Map<IntentKey, Intent> fetchedIntents = new HashMap<>();
+            Collection<Intent> storeInMemoryIntents = new LinkedList<>();
+            Collection<Intent> addIntents = new LinkedList<>();
+            Collection<Intent> deleteIntents = new LinkedList<>();
+
             if (!isElectedLeader) {
                 return;         // Nothing to do: not the leader anymore
             }
-            log.debug("Syncing SDN-IP Route Intents...");
+            log.debug("Syncing SDN-IP Intents...");
 
-            Map<Ip4Prefix, MultiPointToSinglePointIntent> fetchedIntents =
-                    new HashMap<>();
+            // Prepare the local intents
+            for (Intent intent : routeIntents.values()) {
+                localIntents.put(new IntentKey(intent), intent);
+            }
+            for (Intent intent : peerIntents.values()) {
+                localIntents.put(new IntentKey(intent), intent);
+            }
 
-            //
-            // Fetch all intents, and classify the Multi-Point-to-Point Intents
-            // based on the matching prefix.
-            //
+            // Fetch all intents for this application
             for (Intent intent : intentService.getIntents()) {
-
-                if (!(intent instanceof MultiPointToSinglePointIntent)
-                        || !intent.appId().equals(appId)) {
+                if (!intent.appId().equals(appId)) {
                     continue;
                 }
-                MultiPointToSinglePointIntent mp2pIntent =
-                        (MultiPointToSinglePointIntent) intent;
-
-                Criterion c =
-                    mp2pIntent.selector().getCriterion(Criterion.Type.IPV4_DST);
-                if (c != null && c instanceof IPCriterion) {
-                    IPCriterion ipCriterion = (IPCriterion) c;
-                    Ip4Prefix ip4Prefix = ipCriterion.ip().getIp4Prefix();
-                    if (ip4Prefix == null) {
-                        // TODO: For now we support only IPv4
-                        continue;
-                    }
-                    fetchedIntents.put(ip4Prefix, mp2pIntent);
-                } else {
-                    log.warn("No IPV4_DST criterion found for intent {}",
-                            mp2pIntent.id());
-                }
-
+                fetchedIntents.put(new IntentKey(intent), intent);
             }
 
-            //
-            // Compare for each prefix the local IN-MEMORY Intents with the
-            // FETCHED Intents:
-            //  - If the IN-MEMORY Intent is same as the FETCHED Intent, store
-            //    the FETCHED Intent in the local memory (i.e., override the
-            //    IN-MEMORY Intent) to preserve the original Intent ID
-            //  - if the IN-MEMORY Intent is not same as the FETCHED Intent,
-            //    delete the FETCHED Intent, and push/install the IN-MEMORY
-            //    Intent.
-            //  - If there is an IN-MEMORY Intent for a prefix, but no FETCHED
-            //    Intent for same prefix, then push/install the IN-MEMORY
-            //    Intent.
-            //  - If there is a FETCHED Intent for a prefix, but no IN-MEMORY
-            //    Intent for same prefix, then delete/withdraw the FETCHED
-            //    Intent.
-            //
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
-                    storeInMemoryIntents = new LinkedList<>();
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
-                    addIntents = new LinkedList<>();
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
-                    deleteIntents = new LinkedList<>();
-            for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
-                    pushedRouteIntents.entrySet()) {
-                Ip4Prefix prefix = entry.getKey();
-                MultiPointToSinglePointIntent inMemoryIntent =
-                        entry.getValue();
-                MultiPointToSinglePointIntent fetchedIntent =
-                        fetchedIntents.get(prefix);
-
-                if (fetchedIntent == null) {
-                    //
-                    // No FETCHED Intent for same prefix: push the IN-MEMORY
-                    // Intent.
-                    //
-                    addIntents.add(Pair.of(prefix, inMemoryIntent));
-                    continue;
-                }
-
-                IntentState state = intentService.getIntentState(fetchedIntent.id());
-                if (state == IntentState.WITHDRAWING ||
-                        state == IntentState.WITHDRAWN) {
-                    // The intent has been withdrawn but according to our route
-                    // table it should be installed. We'll reinstall it.
-                    addIntents.add(Pair.of(prefix, inMemoryIntent));
-                }
-
-                //
-                // If IN-MEMORY Intent is same as the FETCHED Intent,
-                // store the FETCHED Intent in the local memory.
-                //
-                if (compareMultiPointToSinglePointIntents(inMemoryIntent,
-                                                          fetchedIntent)) {
-                    storeInMemoryIntents.add(Pair.of(prefix, fetchedIntent));
-                } else {
-                    //
-                    // The IN-MEMORY Intent is not same as the FETCHED Intent,
-                    // hence delete the FETCHED Intent, and install the
-                    // IN-MEMORY Intent.
-                    //
-                    deleteIntents.add(Pair.of(prefix, fetchedIntent));
-                    addIntents.add(Pair.of(prefix, inMemoryIntent));
-                }
-                fetchedIntents.remove(prefix);
-            }
-
-            //
-            // Any remaining FETCHED Intents have to be deleted/withdrawn
-            //
-            for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
-                    fetchedIntents.entrySet()) {
-                Ip4Prefix prefix = entry.getKey();
-                MultiPointToSinglePointIntent fetchedIntent = entry.getValue();
-                deleteIntents.add(Pair.of(prefix, fetchedIntent));
-            }
+            computeIntentsDelta(localIntents, fetchedIntents,
+                                storeInMemoryIntents, addIntents,
+                                deleteIntents);
 
             //
             // Perform the actions:
             // 1. Store in memory fetched intents that are same. Can be done
             //    even if we are not the leader anymore
-            // 2. Delete intents: check if the leader before each operation
-            // 3. Add intents: check if the leader before each operation
+            // 2. Delete intents: check if the leader before the operation
+            // 3. Add intents: check if the leader before the operation
             //
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
-                    storeInMemoryIntents) {
-                Ip4Prefix prefix = pair.getLeft();
-                MultiPointToSinglePointIntent intent = pair.getRight();
-                log.debug("Intent synchronization: updating in-memory " +
-                                  "Intent for prefix: {}", prefix);
-                pushedRouteIntents.put(prefix, intent);
-            }
-            //
-            isActivatedLeader = true;           // Allow push of Intents
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
-                    deleteIntents) {
-                Ip4Prefix prefix = pair.getLeft();
-                MultiPointToSinglePointIntent intent = pair.getRight();
-                if (!isElectedLeader) {
-                    isActivatedLeader = false;
-                    return;
+            for (Intent intent : storeInMemoryIntents) {
+                // Store the intent in memory based on its type
+                if (intent instanceof MultiPointToSinglePointIntent) {
+                    MultiPointToSinglePointIntent mp2pIntent =
+                        (MultiPointToSinglePointIntent) intent;
+                    // Find the IP prefix
+                    Criterion c =
+                        mp2pIntent.selector().getCriterion(Criterion.Type.IPV4_DST);
+                    if (c != null && c instanceof IPCriterion) {
+                        IPCriterion ipCriterion = (IPCriterion) c;
+                        Ip4Prefix ip4Prefix = ipCriterion.ip().getIp4Prefix();
+                        if (ip4Prefix == null) {
+                            // TODO: For now we support only IPv4
+                            continue;
+                        }
+                        log.debug("Intent synchronization: updating " +
+                                  "in-memory Route Intent for prefix {}",
+                                  ip4Prefix);
+                        routeIntents.put(ip4Prefix, mp2pIntent);
+                    } else {
+                        log.warn("No IPV4_DST criterion found for Intent {}",
+                                 mp2pIntent.id());
+                    }
+                    continue;
                 }
-                log.debug("Intent synchronization: deleting Intent for " +
-                                  "prefix: {}", prefix);
-                intentService.withdraw(intent);
-            }
-            //
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
-                    addIntents) {
-                Ip4Prefix prefix = pair.getLeft();
-                MultiPointToSinglePointIntent intent = pair.getRight();
-                if (!isElectedLeader) {
-                    isActivatedLeader = false;
-                    return;
+                if (intent instanceof PointToPointIntent) {
+                    PointToPointIntent p2pIntent = (PointToPointIntent) intent;
+                    log.debug("Intent synchronization: updating " +
+                              "in-memory Peer Intent {}", p2pIntent);
+                    peerIntents.put(new IntentKey(intent), p2pIntent);
+                    continue;
                 }
-                log.debug("Intent synchronization: adding Intent for " +
-                                  "prefix: {}", prefix);
-                intentService.submit(intent);
+            }
+
+            // Withdraw Intents
+            IntentOperations.Builder builder = IntentOperations.builder();
+            for (Intent intent : deleteIntents) {
+                builder.addWithdrawOperation(intent.id());
+                log.debug("Intent synchronization: deleting Intent {}",
+                          intent);
             }
             if (!isElectedLeader) {
+                isActivatedLeader = false;
+                return;
+            }
+            intentService.execute(builder.build());
+
+            // Add Intents
+            builder = IntentOperations.builder();
+            for (Intent intent : addIntents) {
+                builder.addSubmitOperation(intent);
+                log.debug("Intent synchronization: adding Intent {}", intent);
+            }
+            if (!isElectedLeader) {
+                isActivatedLeader = false;
+                return;
+            }
+            intentService.execute(builder.build());
+
+            if (isElectedLeader) {
+                isActivatedLeader = true;       // Allow push of Intents
+            } else {
                 isActivatedLeader = false;
             }
             log.debug("Syncing SDN-IP routes completed.");
@@ -385,22 +383,199 @@ public class IntentSynchronizer {
     }
 
     /**
-     * Compares two Multi-point to Single Point Intents whether they represent
-     * same logical intention.
+     * Computes the delta in two sets of Intents: local in-memory Intents,
+     * and intents fetched from the Intent framework.
      *
-     * @param intent1 the first Intent to compare
-     * @param intent2 the second Intent to compare
-     * @return true if both Intents represent same logical intention, otherwise
-     * false
+     * @param localIntents the local in-memory Intents
+     * @param fetchedIntents the Intents fetched from the Intent framework
+     * @param storeInMemoryIntents the Intents that should be stored in memory.
+     * Note: This Collection must be allocated by the caller, and it will
+     * be populated by this method.
+     * @param addIntents the Intents that should be added to the Intent
+     * framework. Note: This Collection must be allocated by the caller, and
+     * it will be populated by this method.
+     * @param deleteIntents the Intents that should be deleted from the Intent
+     * framework. Note: This Collection must be allocated by the caller, and
+     * it will be populated by this method.
      */
-    private boolean compareMultiPointToSinglePointIntents(
-            MultiPointToSinglePointIntent intent1,
-            MultiPointToSinglePointIntent intent2) {
+    private void computeIntentsDelta(
+                                final Map<IntentKey, Intent> localIntents,
+                                final Map<IntentKey, Intent> fetchedIntents,
+                                Collection<Intent> storeInMemoryIntents,
+                                Collection<Intent> addIntents,
+                                Collection<Intent> deleteIntents) {
 
-        return Objects.equal(intent1.appId(), intent2.appId()) &&
-                Objects.equal(intent1.selector(), intent2.selector()) &&
-                Objects.equal(intent1.treatment(), intent2.treatment()) &&
-                Objects.equal(intent1.ingressPoints(), intent2.ingressPoints()) &&
-                Objects.equal(intent1.egressPoint(), intent2.egressPoint());
+        //
+        // Compute the deltas between the LOCAL in-memory Intents and the
+        // FETCHED Intents:
+        //  - If an Intent is in both the LOCAL and FETCHED sets:
+        //    If the FETCHED Intent is WITHDRAWING or WITHDRAWN, then
+        //    the LOCAL Intent should be added/installed; otherwise the
+        //    FETCHED intent should be stored in the local memory
+        //    (i.e., override the LOCAL Intent) to preserve the original
+        //    Intent ID.
+        //  - if a LOCAL Intent is not in the FETCHED set, then the LOCAL
+        //    Intent should be added/installed.
+        //  - If a FETCHED Intent is not in the LOCAL set, then the FETCHED
+        //    Intent should be deleted/withdrawn.
+        //
+        for (Map.Entry<IntentKey, Intent> entry : localIntents.entrySet()) {
+            IntentKey intentKey = entry.getKey();
+            Intent localIntent = entry.getValue();
+            Intent fetchedIntent = fetchedIntents.get(intentKey);
+
+            if (fetchedIntent == null) {
+                //
+                // No FETCHED Intent found: push the LOCAL Intent.
+                //
+                addIntents.add(localIntent);
+                continue;
+            }
+
+            IntentState state =
+                intentService.getIntentState(fetchedIntent.id());
+            if (state == IntentState.WITHDRAWING ||
+                state == IntentState.WITHDRAWN) {
+                // The intent has been withdrawn but according to our route
+                // table it should be installed. We'll reinstall it.
+                addIntents.add(localIntent);
+                continue;
+            }
+            storeInMemoryIntents.add(fetchedIntent);
+        }
+
+        for (Map.Entry<IntentKey, Intent> entry : fetchedIntents.entrySet()) {
+            IntentKey intentKey = entry.getKey();
+            Intent fetchedIntent = entry.getValue();
+            Intent localIntent = localIntents.get(intentKey);
+
+            if (localIntent != null) {
+                continue;
+            }
+
+            IntentState state =
+                intentService.getIntentState(fetchedIntent.id());
+            if (state == IntentState.WITHDRAWING ||
+                state == IntentState.WITHDRAWN) {
+                // Nothing to do. The intent has been already withdrawn.
+                continue;
+            }
+            //
+            // No LOCAL Intent found: delete/withdraw the FETCHED Intent.
+            //
+            deleteIntents.add(fetchedIntent);
+        }
+    }
+
+    /**
+     * Helper class that can be used to compute the key for an Intent by
+     * by excluding the Intent ID.
+     */
+    static final class IntentKey {
+        private final Intent intent;
+
+        /**
+         * Constructor.
+         *
+         * @param intent the intent to use
+         */
+        IntentKey(Intent intent) {
+            checkArgument((intent instanceof MultiPointToSinglePointIntent) ||
+                          (intent instanceof PointToPointIntent),
+                          "Intent type not recognized", intent);
+            this.intent = intent;
+        }
+
+        /**
+         * Compares two Multi-Point to Single-Point Intents whether they
+         * represent same logical intention.
+         *
+         * @param intent1 the first Intent to compare
+         * @param intent2 the second Intent to compare
+         * @return true if both Intents represent same logical intention,
+         * otherwise false
+         */
+        static boolean equalIntents(MultiPointToSinglePointIntent intent1,
+                                    MultiPointToSinglePointIntent intent2) {
+            return Objects.equals(intent1.appId(), intent2.appId()) &&
+                Objects.equals(intent1.selector(), intent2.selector()) &&
+                Objects.equals(intent1.treatment(), intent2.treatment()) &&
+                Objects.equals(intent1.ingressPoints(), intent2.ingressPoints()) &&
+                Objects.equals(intent1.egressPoint(), intent2.egressPoint());
+        }
+
+        /**
+         * Compares two Point-to-Point Intents whether they represent
+         * same logical intention.
+         *
+         * @param intent1 the first Intent to compare
+         * @param intent2 the second Intent to compare
+         * @return true if both Intents represent same logical intention,
+         * otherwise false
+         */
+        static boolean equalIntents(PointToPointIntent intent1,
+                                    PointToPointIntent intent2) {
+            return Objects.equals(intent1.appId(), intent2.appId()) &&
+                Objects.equals(intent1.selector(), intent2.selector()) &&
+                Objects.equals(intent1.treatment(), intent2.treatment()) &&
+                Objects.equals(intent1.ingressPoint(), intent2.ingressPoint()) &&
+                Objects.equals(intent1.egressPoint(), intent2.egressPoint());
+        }
+
+        @Override
+        public int hashCode() {
+            if (intent instanceof PointToPointIntent) {
+                PointToPointIntent p2pIntent = (PointToPointIntent) intent;
+                return Objects.hash(p2pIntent.appId(),
+                                    p2pIntent.resources(),
+                                    p2pIntent.selector(),
+                                    p2pIntent.treatment(),
+                                    p2pIntent.constraints(),
+                                    p2pIntent.ingressPoint(),
+                                    p2pIntent.egressPoint());
+            }
+            if (intent instanceof MultiPointToSinglePointIntent) {
+                MultiPointToSinglePointIntent m2pIntent =
+                    (MultiPointToSinglePointIntent) intent;
+                return Objects.hash(m2pIntent.appId(),
+                                    m2pIntent.resources(),
+                                    m2pIntent.selector(),
+                                    m2pIntent.treatment(),
+                                    m2pIntent.constraints(),
+                                    m2pIntent.ingressPoints(),
+                                    m2pIntent.egressPoint());
+            }
+            checkArgument(false, "Intent type not recognized", intent);
+            return 0;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if ((obj == null) || (!(obj instanceof IntentKey))) {
+                return false;
+            }
+            IntentKey other = (IntentKey) obj;
+
+            if (this.intent instanceof PointToPointIntent) {
+                if (!(other.intent instanceof PointToPointIntent)) {
+                    return false;
+                }
+                return equalIntents((PointToPointIntent) this.intent,
+                                    (PointToPointIntent) other.intent);
+            }
+            if (this.intent instanceof MultiPointToSinglePointIntent) {
+                if (!(other.intent instanceof MultiPointToSinglePointIntent)) {
+                    return false;
+                }
+                return equalIntents(
+                                (MultiPointToSinglePointIntent) this.intent,
+                                (MultiPointToSinglePointIntent) other.intent);
+            }
+            checkArgument(false, "Intent type not recognized", intent);
+            return false;
+        }
     }
 }

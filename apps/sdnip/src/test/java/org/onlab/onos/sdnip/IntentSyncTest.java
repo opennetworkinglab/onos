@@ -5,16 +5,23 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reportMatcher;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.easymock.IArgumentMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
@@ -35,10 +42,14 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentOperation;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
@@ -97,8 +108,8 @@ public class IntentSyncTest {
         intentService = createMock(IntentService.class);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService);
-        router = new Router(APPID, intentSynchronizer,
-                hostService, null, interfaceService);
+        router = new Router(APPID, intentSynchronizer, null, interfaceService,
+                            hostService);
     }
 
     /**
@@ -263,17 +274,16 @@ public class IntentSyncTest {
         // Compose a intent, which is equal to intent5 but the id is different.
         MultiPointToSinglePointIntent intent5New =
                 staticIntentBuilder(intent5, routeEntry5, "00:00:00:00:00:01");
-        assertTrue(TestUtils.callMethod(intentSynchronizer,
-                "compareMultiPointToSinglePointIntents",
-                new Class<?>[] {MultiPointToSinglePointIntent.class,
-                MultiPointToSinglePointIntent.class},
-                intent5, intent5New).equals(true));
+        assertThat(IntentSynchronizer.IntentKey.equalIntents(
+                        intent5, intent5New),
+                   is(true));
         assertFalse(intent5.equals(intent5New));
 
         MultiPointToSinglePointIntent intent6 = intentBuilder(
                 routeEntry6.prefix(), "00:00:00:00:00:01",  SW1_ETH1);
 
-        // Set up the bgpRoutes and pushedRouteIntents fields in Router class
+        // Set up the bgpRoutes field in Router class and routeIntents fields
+        // in IntentSynchronizer class
         InvertedRadixTree<RouteEntry> bgpRoutes =
                 new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
@@ -292,15 +302,14 @@ public class IntentSyncTest {
         TestUtils.setField(router, "bgpRoutes", bgpRoutes);
 
         ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
-        pushedRouteIntents =  new ConcurrentHashMap<>();
-        pushedRouteIntents.put(routeEntry1.prefix(), intent1);
-        pushedRouteIntents.put(routeEntry3.prefix(), intent3);
-        pushedRouteIntents.put(routeEntry4Update.prefix(), intent4Update);
-        pushedRouteIntents.put(routeEntry5.prefix(), intent5New);
-        pushedRouteIntents.put(routeEntry6.prefix(), intent6);
-        pushedRouteIntents.put(routeEntry7.prefix(), intent7);
-        TestUtils.setField(intentSynchronizer, "pushedRouteIntents",
-                           pushedRouteIntents);
+        routeIntents =  new ConcurrentHashMap<>();
+        routeIntents.put(routeEntry1.prefix(), intent1);
+        routeIntents.put(routeEntry3.prefix(), intent3);
+        routeIntents.put(routeEntry4Update.prefix(), intent4Update);
+        routeIntents.put(routeEntry5.prefix(), intent5New);
+        routeIntents.put(routeEntry6.prefix(), intent6);
+        routeIntents.put(routeEntry7.prefix(), intent7);
+        TestUtils.setField(intentSynchronizer, "routeIntents", routeIntents);
 
         // Set up expectation
         reset(intentService);
@@ -322,18 +331,26 @@ public class IntentSyncTest {
                 .andReturn(IntentState.WITHDRAWING).anyTimes();
         expect(intentService.getIntents()).andReturn(intents).anyTimes();
 
-        intentService.withdraw(intent2);
-        intentService.submit(intent3);
-        intentService.withdraw(intent4);
-        intentService.submit(intent4Update);
-        intentService.submit(intent6);
-        intentService.submit(intent7);
+        IntentOperations.Builder builder = IntentOperations.builder();
+        builder.addWithdrawOperation(intent2.id());
+        builder.addWithdrawOperation(intent4.id());
+        intentService.execute(eqExceptId(builder.build()));
+
+        builder = IntentOperations.builder();
+        builder.addSubmitOperation(intent3);
+        builder.addSubmitOperation(intent4Update);
+        builder.addSubmitOperation(intent6);
+        builder.addSubmitOperation(intent7);
+        intentService.execute(eqExceptId(builder.build()));
         replay(intentService);
 
         // Start the test
         intentSynchronizer.leaderChanged(true);
-        TestUtils.callMethod(intentSynchronizer, "syncIntents",
+        /*
+        TestUtils.callMethod(intentSynchronizer, "synchronizeIntents",
                              new Class<?>[] {});
+        */
+        intentSynchronizer.synchronizeIntents();
 
         // Verify
         assertEquals(router.getRoutes().size(), 6);
@@ -343,12 +360,12 @@ public class IntentSyncTest {
         assertTrue(router.getRoutes().contains(routeEntry5));
         assertTrue(router.getRoutes().contains(routeEntry6));
 
-        assertEquals(intentSynchronizer.getPushedRouteIntents().size(), 6);
-        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent1));
-        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent3));
-        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent4Update));
-        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent5));
-        assertTrue(intentSynchronizer.getPushedRouteIntents().contains(intent6));
+        assertEquals(intentSynchronizer.getRouteIntents().size(), 6);
+        assertTrue(intentSynchronizer.getRouteIntents().contains(intent1));
+        assertTrue(intentSynchronizer.getRouteIntents().contains(intent3));
+        assertTrue(intentSynchronizer.getRouteIntents().contains(intent4Update));
+        assertTrue(intentSynchronizer.getRouteIntents().contains(intent5));
+        assertTrue(intentSynchronizer.getRouteIntents().contains(intent6));
 
         verify(intentService);
     }
@@ -409,5 +426,130 @@ public class IntentSyncTest {
         TestUtils.setField(intentNew,
                 "ingressPoints", intent.ingressPoints());
         return intentNew;
+    }
+
+    /*
+     * EasyMock matcher that matches {@link IntenOperations} but
+     * ignores the {@link IntentId} when matching.
+     * <p/>
+     * The normal intent equals method tests that the intent IDs are equal,
+     * however in these tests we can't know what the intent IDs will be in
+     * advance, so we can't set up expected intents with the correct IDs. Thus,
+     * the solution is to use an EasyMock matcher that verifies that all the
+     * value properties of the provided intent match the expected values, but
+     * ignores the intent ID when testing equality.
+     */
+    private static final class IdAgnosticIntentOperationsMatcher implements
+                IArgumentMatcher {
+
+        private final IntentOperations intentOperations;
+        private String providedString;
+
+        /**
+         * Constructor taking the expected intent operations to match against.
+         *
+         * @param intentOperations the expected intent operations
+         */
+        public IdAgnosticIntentOperationsMatcher(
+                        IntentOperations intentOperations) {
+            this.intentOperations = intentOperations;
+        }
+
+        @Override
+        public void appendTo(StringBuffer strBuffer) {
+            strBuffer.append("IntentOperationsMatcher unable to match: "
+                    + providedString);
+        }
+
+        @Override
+        public boolean matches(Object object) {
+            if (!(object instanceof IntentOperations)) {
+                return false;
+            }
+
+            IntentOperations providedIntentOperations =
+                (IntentOperations) object;
+            providedString = providedIntentOperations.toString();
+
+            List<IntentKey> thisSubmitIntents = new LinkedList<>();
+            List<IntentId> thisWithdrawIntentIds = new LinkedList<>();
+            List<IntentKey> thisReplaceIntents = new LinkedList<>();
+            List<IntentKey> thisUpdateIntents = new LinkedList<>();
+            List<IntentKey> providedSubmitIntents = new LinkedList<>();
+            List<IntentId> providedWithdrawIntentIds = new LinkedList<>();
+            List<IntentKey> providedReplaceIntents = new LinkedList<>();
+            List<IntentKey> providedUpdateIntents = new LinkedList<>();
+
+            extractIntents(intentOperations, thisSubmitIntents,
+                           thisWithdrawIntentIds, thisReplaceIntents,
+                           thisUpdateIntents);
+            extractIntents(providedIntentOperations, providedSubmitIntents,
+                           providedWithdrawIntentIds, providedReplaceIntents,
+                           providedUpdateIntents);
+
+            return CollectionUtils.isEqualCollection(thisSubmitIntents,
+                                                     providedSubmitIntents) &&
+                CollectionUtils.isEqualCollection(thisWithdrawIntentIds,
+                                                  providedWithdrawIntentIds) &&
+                CollectionUtils.isEqualCollection(thisUpdateIntents,
+                                                  providedUpdateIntents) &&
+                CollectionUtils.isEqualCollection(thisReplaceIntents,
+                                                  providedReplaceIntents);
+        }
+
+        /**
+         * Extracts the intents per operation type. Each intent is encapsulated
+         * in IntentKey so it can be compared by excluding the Intent ID.
+         *
+         * @param intentOperations the container with the intent operations
+         * to extract the intents from
+         * @param submitIntents the SUBMIT intents
+         * @param withdrawIntentIds the WITHDRAW intents IDs
+         * @param replaceIntents the REPLACE intents
+         * @param updateIntents the UPDATE intens
+         */
+        private void extractIntents(IntentOperations intentOperations,
+                                    List<IntentKey> submitIntents,
+                                    List<IntentId> withdrawIntentIds,
+                                    List<IntentKey> replaceIntents,
+                                    List<IntentKey> updateIntents) {
+            for (IntentOperation oper : intentOperations.operations()) {
+                IntentId intentId;
+                IntentKey intentKey;
+                switch (oper.type()) {
+                case SUBMIT:
+                    intentKey = new IntentKey(oper.intent());
+                    submitIntents.add(intentKey);
+                    break;
+                case WITHDRAW:
+                    intentId = oper.intentId();
+                    withdrawIntentIds.add(intentId);
+                    break;
+                case REPLACE:
+                    intentKey = new IntentKey(oper.intent());
+                    replaceIntents.add(intentKey);
+                    break;
+                case UPDATE:
+                    intentKey = new IntentKey(oper.intent());
+                    updateIntents.add(intentKey);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Matcher method to set an expected intent to match against (ignoring the
+     * the intent ID).
+     *
+     * @param intent the expected intent
+     * @return something of type IntentOperations
+     */
+    private static IntentOperations eqExceptId(
+                IntentOperations intentOperations) {
+        reportMatcher(new IdAgnosticIntentOperationsMatcher(intentOperations));
+        return intentOperations;
     }
 }
