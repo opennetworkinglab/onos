@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -127,6 +128,15 @@ public abstract class TopologyViewMessages {
 
     // TODO: extract into an external & durable state; good enough for now and demo
     private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
+
+    /**
+     * Returns read-only view of the meta-ui information.
+     *
+     * @return map of id to meta-ui mementos
+     */
+    static Map<String, ObjectNode> getMetaUi() {
+        return Collections.unmodifiableMap(metaUi);
+    }
 
     /**
      * Creates a messaging facility for creating messages for topology viewer.
