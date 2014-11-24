@@ -122,10 +122,11 @@
     // --- Ordinal scales for 7 values.
     // TODO: tune colors for light and dark themes
 
-    var lightNorm = ['#1f77b4', '#2ca02c', '#d62728', '#9467bd', '#e377c2', '#bcbd22', '#17becf'],
-        lightMute = ['#aec7e8', '#98df8a', '#ff9896', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5'],
-        darkNorm = ['#1f77b4', '#2ca02c', '#d62728', '#9467bd', '#e377c2', '#bcbd22', '#17becf'],
-        darkMute = ['#aec7e8', '#98df8a', '#ff9896', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5'];
+    //                blue       purple     pink       mustard    cyan       green      red
+    var lightNorm = ['#1f77b4', '#9467bd', '#e377c2', '#bcbd22', '#17becf', '#2ca02c', '#d62728'],
+        lightMute = ['#aec7e8', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5', '#98df8a', '#ff9896'],
+        darkNorm = ['#1f77b4', '#9467bd', '#e377c2', '#bcbd22', '#17becf', '#2ca02c', '#d62728'],
+        darkMute = ['#aec7e8', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5', '#98df8a', '#ff9896'];
 
     function cat7() {
         var colors = {

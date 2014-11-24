@@ -1799,27 +1799,36 @@
         network.force.resume();
     }
 
+    var dCol = {
+        black: '#000',
+        paleblue: '#acf',
+        offwhite: '#ddd',
+        midgrey: '#888',
+        lightgrey: '#bbb',
+        orange: '#f90'
+    };
+
     // note: these are the device icon colors without affinity
-    var deviceColor = {
-        sel: '#f90',
+    var dColTheme = {
         light: {
             online: {
-                glyph: '#000',
-                rect: '#ddd',
+                glyph: dCol.black,
+                rect: dCol.paleblue
             },
             offline: {
-                glyph: '#888',
-                rect: '#bbb'
+                glyph: dCol.midgrey,
+                rect: dCol.lightgrey
             }
         },
+        // TODO: theme
         dark: {
             online: {
-                glyph: '#000',
-                rect: '#ddd'
+                glyph: dCol.black,
+                rect: dCol.paleblue
             },
             offline: {
-                glyph: '#888',
-                rect: '#bbb'
+                glyph: dCol.midgrey,
+                rect: dCol.lightgrey
             }
         }
     };
@@ -1827,7 +1836,7 @@
     function devBaseColor(d) {
         var t = network.view.getTheme(),
             o = d.online ? 'online' : 'offline';
-        return deviceColor[t][o];
+        return dColTheme[t][o];
     }
 
     function setDeviceColor(d) {
@@ -1840,10 +1849,10 @@
 
         if (s) {
             g = c.glyph;
-            r = deviceColor.sel;
+            r = dColTheme.sel;
         } else if (colorAffinity) {
             g = o ? a : c.glyph;
-            r = o ? c.rect : a;
+            r = o ? dCol.offwhite : a;
         } else {
             g = c.glyph;
             r = c.rect;
