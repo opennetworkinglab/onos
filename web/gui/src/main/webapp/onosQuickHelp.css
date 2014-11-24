@@ -15,53 +15,54 @@
  */
 
 /*
- ONOS GUI -- Key map layer -- CSS file
+ ONOS GUI -- Quick Help layer -- CSS file
 
  @author Simon Hunt
  */
 
-#keymap {
+#quickhelp {
     z-index: 1300;
 }
 
-#keymap svg {
+#quickhelp svg {
     position: absolute;
     bottom: 40px;
+    opacity: 1;
+}
+
+#quickhelp svg g.help rect {
+    fill: black;
     opacity: 0.7;
 }
 
-#keymap svg g.pane {
-    fill: black;
-}
-
-#keymap svg text.title {
+#quickhelp svg text.title {
     font-size: 10pt;
     font-style: italic;
     text-anchor: middle;
     fill: #999;
 }
 
-#keymap svg g.keyItem {
+#quickhelp svg g.keyItem {
     fill: white;
 }
 
-#keymap svg g.keyItem line {
-    stroke: #444;
-    stroke-dasharray: 4 4;
+#quickhelp svg g.keyItem line {
+    stroke: #888;
+    stroke-dasharray: 2 2;
 }
 
-#keymap svg text {
+#quickhelp svg text {
     font-size: 7pt;
     alignment-baseline: middle;
 }
 
-#keymap svg text.key {
+#quickhelp svg text.key {
     font-size: 7pt;
     fill: #add;
 }
 
-#keymap svg text.desc {
+#quickhelp svg text.desc {
     font-size: 7pt;
-    fill: #aaa;
+    fill: #ddd;
 }
 

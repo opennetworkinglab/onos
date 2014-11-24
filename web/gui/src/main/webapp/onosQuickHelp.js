@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Keymap Layer
+ ONOS GUI -- Quick Help Layer
 
  Defines the key-map layer for the UI. Used to give user a list of
  key bindings; both global, and for the current view.
@@ -33,34 +33,54 @@
     var w = '100%',
         h = '80%',
         fade = 500,
-        vb = '-220 -220 440 440',
-        paneW = 400,
-        paneH = 280,
-        offy = 65,
-        dy = 14,
-        offKey = 40,
-        offDesc = offKey + 50,
-        lineW = paneW - (2*offKey);
+        vb = '-200 0 400 400';
 
     // State variables
     var data = [];
 
     // DOM elements and the like
-    var kmdiv = d3.select('#keymap');
+    var qhdiv = d3.select('#quickhelp'),
+        svg = qhdiv.select('svg'),
+        pane,
+        rect,
+        items;
 
+    // General functions
     function isA(a) {
         return $.isArray(a) ? a : null;
     }
 
+    var keyDisp = {
+        equals: '=',
+        dash: '-',
+        slash: '/',
+        leftArrow: 'L-arrow',
+        upArrow: 'U-arrow',
+        rightArrow: 'R-arrow',
+        downArrow: 'D-arrow'
+    };
 
-    var svg = kmdiv.select('svg'),
-        pane;
+    function cap(s) {
+        return s.replace(/^[a-z]/, function (m) { return m.toUpperCase(); });
+    }
 
+    function mkKeyDisp(id) {
+        var v = keyDisp[id] || id;
+        return cap(v);
+    }
+
+    // layout configuration
+    var pad = 8,
+        offy = 45,
+        dy = 14,
+        offDesc = 40;
+
+    // D3 magic
     function updateKeyItems() {
-        var items = pane.selectAll('.keyItem')
+        var keyItems = items.selectAll('.keyItem')
             .data(data);
 
-        var entering = items.enter()
+        var entering = keyItems.enter()
             .append('g')
             .attr({
                 id: function (d) { return d.id; },
@@ -73,19 +93,13 @@
 
             if (d.id === '_') {
                 el.append('line')
-                    .attr({
-                        class: 'sep',
-                        x1: offKey,
-                        y1: y,
-                        x2: offKey + lineW,
-                        y2: y
-                    });
+                    .attr({ x1: 0, y1: y, x2: 1, y2: y});
             } else {
                 el.append('text')
                     .text(d.key)
                     .attr({
                         class: 'key',
-                        x: offKey,
+                        x: 0,
                         y: y
                     });
 
@@ -98,6 +112,22 @@
                     });
             }
         });
+
+        var box = items.node().getBBox(),
+            paneW = box.width + pad * 2,
+            paneH = box.height + offy;
+
+        items.select('line').attr('x2', box.width);
+        items.attr('transform', translate(-paneW/2, -pad));
+        rect.attr({
+            width: paneW,
+            height: paneH,
+            transform: translate(-paneW/2-pad, 0)
+        });
+    }
+
+    function translate(x, y) {
+        return 'translate(' + x + ',' + y + ')';
     }
 
     function aggregateData(bindings) {
@@ -127,7 +157,7 @@
                     {
                         id: id,
                         type: type,
-                        key: k,
+                        key: mkKeyDisp(k),
                         desc: desc
                     }
                 );
@@ -138,51 +168,47 @@
                 });
             }
         }
-
     }
 
-    function populateBindings(bindings) {
-        svg.append('g')
+    function popBind(bindings) {
+        pane = svg.append('g')
             .attr({
-                class: 'keyBindings',
-                transform: 'translate(-200,-200)',
+                class: 'help',
                 opacity: 0
-            })
-            .transition()
-            .duration(fade)
-            .attr('opacity', 1);
-
-        pane = svg.select('g');
-
-        pane.append('rect')
-            .attr({
-                width: paneW,
-                height: paneH,
-                rx: 8
             });
+
+        rect = pane.append('rect')
+            .attr('rx', 8);
 
         pane.append('text')
-            .text('Keyboard Shortcuts')
+            .text('Quick Help')
             .attr({
-                x: 200,
-                y: 0,
-                dy: '1.4em',
-                class: 'title'
+                class: 'title',
+                dy: '1.2em',
+                transform: translate(-pad,0)
             });
+
+        items = pane.append('g');
 
         aggregateData(bindings);
         updateKeyItems();
+
+        _fade(1);
     }
 
     function fadeBindings() {
-        svg.selectAll('g.keyBindings')
+        _fade(0);
+    }
+
+    function _fade(o) {
+        svg.selectAll('g.help')
             .transition()
             .duration(fade)
-            .attr('opacity', 0);
+            .attr('opacity', o);
     }
 
     function addSvg() {
-        svg = kmdiv.append('svg')
+        svg = qhdiv.append('svg')
             .attr({
                 width: w,
                 height: h,
@@ -196,18 +222,18 @@
             .remove();
     }
 
-    function showKeyMap(bindings) {
-        svg = kmdiv.select('svg');
+    function showQuickHelp(bindings) {
+        svg = qhdiv.select('svg');
         if (svg.empty()) {
             addSvg();
-            populateBindings(bindings);
+            popBind(bindings);
         } else {
-            hideKeyMap();
+            hideQuickHelp();
         }
     }
 
-    function hideKeyMap() {
-        svg = kmdiv.select('svg');
+    function hideQuickHelp() {
+        svg = qhdiv.select('svg');
         if (!svg.empty()) {
             fadeBindings();
             removeSvg();
@@ -216,8 +242,8 @@
         return false;
     }
 
-    onos.ui.addLib('keymap', {
-        show: showKeyMap,
-        hide: hideKeyMap
+    onos.ui.addLib('quickHelp', {
+        show: showQuickHelp,
+        hide: hideQuickHelp
     });
 }(ONOS));

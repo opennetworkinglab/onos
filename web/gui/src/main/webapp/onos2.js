@@ -415,7 +415,7 @@
 
         function setupGlobalKeys() {
             keyHandler.globalKeys = {
-                slash: [keyMap, 'Show / hide keyboard shortcuts'],
+                slash: [quickHelp, 'Show / hide Quick Help'],
                 esc: [escapeKey, 'Dismiss dialog or cancel selections'],
                 T: [toggleTheme, "Toggle theme"]
             };
@@ -427,17 +427,17 @@
             };
         }
 
-        function keyMap(view, key, code, ev) {
-            libApi.keymap.show(keyHandler);
+        function quickHelp(view, key, code, ev) {
+            libApi.quickHelp.show(keyHandler);
             return true;
         }
 
         function escapeKey(view, key, code, ev) {
-            if (libApi.keymap.hide()) {
-                return true;
-            }
             if (alerts.open) {
                 closeAlerts();
+                return true;
+            }
+            if (libApi.quickHelp.hide()) {
                 return true;
             }
             return false;
