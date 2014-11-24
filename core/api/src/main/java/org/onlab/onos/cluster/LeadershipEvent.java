@@ -77,6 +77,20 @@ public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leaders
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof LeadershipEvent) {
+            final LeadershipEvent other = (LeadershipEvent) obj;
+            return Objects.equals(this.type(), other.type()) &&
+                    Objects.equals(this.subject(), other.subject()) &&
+                    Objects.equals(this.time(), other.time());
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
             .add("type", type())

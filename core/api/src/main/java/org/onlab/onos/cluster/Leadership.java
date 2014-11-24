@@ -49,6 +49,20 @@ public class Leadership {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof Leadership) {
+            final Leadership other = (Leadership) obj;
+            return Objects.equals(this.topic, other.topic) &&
+                    Objects.equals(this.leader, other.leader) &&
+                    Objects.equals(this.epoch, other.epoch);
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
             .add("topic", topic)
