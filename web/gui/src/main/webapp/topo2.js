@@ -1024,7 +1024,7 @@
             y: pad,
             width: dim.w - pad*2,
             height: dim.h - pad*2,
-            rx: 12
+            rx: 8
         };
     }
 
