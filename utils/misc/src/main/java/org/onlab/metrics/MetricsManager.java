@@ -154,7 +154,7 @@ public class MetricsManager implements MetricsService {
      * Creates a Timer metric.
      *
      * @param component component the Timer is defined in
-     * @param feature feature the Timeer is defined in
+     * @param feature feature the Timer is defined in
      * @param metricName local name of the metric
      * @return the created Timer Metric
      */

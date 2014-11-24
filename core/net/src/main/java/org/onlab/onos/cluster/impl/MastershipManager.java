@@ -27,6 +27,9 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.metrics.MetricsComponent;
+import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.MetricsService;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
@@ -46,6 +49,9 @@ import org.onlab.onos.mastership.MastershipTermService;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.slf4j.Logger;
+
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.Timer.Context;
 
 @Component(immediate = true)
 @Service
@@ -72,10 +78,16 @@ public class MastershipManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MetricsService metricsService;
+
     private ClusterEventListener clusterListener = new InternalClusterEventListener();
+    private Timer requestRoleTimer;
 
     @Activate
     public void activate() {
+        requestRoleTimer = createTimer("Mastership", "requestRole", "responseTime");
+
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
         clusterService.addListener(clusterListener);
         store.setDelegate(delegate);
@@ -137,7 +149,12 @@ public class MastershipManager
     @Override
     public MastershipRole requestRoleFor(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        return store.requestRole(deviceId);
+        final Context timer = startTimer(requestRoleTimer);
+        try {
+            return store.requestRole(deviceId);
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     @Override
@@ -185,6 +202,28 @@ public class MastershipManager
     }
 
 
+
+    private Timer createTimer(String component, String feature, String name) {
+        if (metricsService != null) {
+            MetricsComponent c = metricsService.registerComponent(component);
+            MetricsFeature f = c.registerFeature(feature);
+            return metricsService.createTimer(c, f, name);
+        }
+        return null;
+    }
+
+    private static final Context startTimer(Timer timer) {
+        if (timer != null) {
+            return timer.time();
+        }
+        return null;
+    }
+
+    private static final void stopTimer(Context context) {
+        if (context != null) {
+            context.stop();
+        }
+    }
 
     //callback for reacting to cluster events
     private class InternalClusterEventListener implements ClusterEventListener {

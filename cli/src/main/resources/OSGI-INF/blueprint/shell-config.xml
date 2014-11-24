@@ -19,6 +19,11 @@
         <command>
             <action class="org.onlab.onos.cli.SummaryCommand"/>
         </command>
+
+        <command>
+            <action class="org.onlab.onos.cli.MetricsListCommand"/>
+        </command>
+
         <command>
             <action class="org.onlab.onos.cli.TabletMemberCommand"/>
         </command>
