@@ -79,12 +79,12 @@
 }
 
 #topo svg .node.device.online {
-    fill: #17f;
+    fill: #6e7fa3;
 }
 
 /* note: device is offline without the 'online' class */
 #topo svg .node.device text {
-    fill: #aaa;
+    fill: #bbb;
     font: 10pt sans-serif;
 }
 
@@ -102,7 +102,7 @@
     fill: #f90;
 }
 #topo svg .node.device.online .glyphIcon rect {
-    fill: #8ab;
+    fill: #ccc;
 }
 #topo svg .node.device.online .glyphIcon use {
     fill: #000;

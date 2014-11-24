@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffffff02",
+    "type": "roadm",
+    "online": false,
+    "master": "192.168.56.101",
+    "labels": [
+      "",
+      "opt-2",
+      "0000ffffffffff02"
+    ],
+    "metaUi": {
+      "x": 142,
+      "y": 603
+    }
+  }
+}

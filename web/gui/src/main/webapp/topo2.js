@@ -190,7 +190,8 @@
         oiBox,
         oiShowMaster = false,
         portLabelsOn = false,
-        cat7 = d3u.cat7();
+        cat7 = d3u.cat7(),
+        colorAffinity = false;
 
     var hoverModeAll = 1,
         hoverModeFlows = 2,
@@ -349,7 +350,7 @@
         } else if (detailPane.isVisible()) {
             deselectAll();
         } else if (oiBox.isVisible()) {
-            oiBox.hide();
+            hideInstances();
         } else if (summaryPane.isVisible()) {
             cancelSummary();
         }
@@ -864,19 +865,27 @@
         return true;
     }
 
-    function colorAffinity(on) {
-        // FIXME: need to code this portion up.
-    }
-
     function toggleInstances() {
         if (!oiBox.isVisible()) {
-            oiBox.show();
-            colorAffinity(true);
+            showInstances();
         } else {
-            oiBox.hide();
-            colorAffinity(false);
+            hideInstances();
         }
     }
+
+    function showInstances() {
+        oiBox.show();
+        colorAffinity = true;
+        updateDeviceColors();
+    }
+
+    function hideInstances() {
+        oiBox.hide();
+        colorAffinity = false;
+        cancelAffinity();
+        updateDeviceColors();
+    }
+
 
     function toggleSummary() {
         if (!summaryPane.isVisible()) {
@@ -1024,7 +1033,7 @@
             y: pad,
             width: dim.w - pad*2,
             height: dim.h - pad*2,
-            rx: 8
+            rx: 6
         };
     }
 
@@ -1691,7 +1700,6 @@
         });
 
         node.filter('.host').each(function (d) {
-            //var node = d3.select(this);
             var node = d.el;
             // TODO: appropriate update of host visuals
         });
@@ -1753,7 +1761,7 @@
         });
 
         // operate on both existing and new nodes, if necessary
-        //node .foo() .bar() ...
+        updateDeviceColors();
 
         // operate on exiting nodes:
         // Note that the node is removed after 2 seconds.
@@ -1789,6 +1797,62 @@
         // TODO: device node exit animation
 
         network.force.resume();
+    }
+
+    // note: these are the device icon colors without affinity
+    var deviceColor = {
+        sel: '#f90',
+        light: {
+            online: {
+                glyph: '#000',
+                rect: '#ddd',
+            },
+            offline: {
+                glyph: '#888',
+                rect: '#bbb'
+            }
+        },
+        dark: {
+            online: {
+                glyph: '#000',
+                rect: '#ddd'
+            },
+            offline: {
+                glyph: '#888',
+                rect: '#bbb'
+            }
+        }
+    };
+
+    function devBaseColor(d) {
+        var t = network.view.getTheme(),
+            o = d.online ? 'online' : 'offline';
+        return deviceColor[t][o];
+    }
+
+    function setDeviceColor(d) {
+        var o = d.online,
+            s = d.el.classed('selected'),
+            c = devBaseColor(d),
+            a = instColor(d.master, o),
+            g, r,
+            icon = d.el.select('g.deviceIcon');
+
+        if (s) {
+            g = c.glyph;
+            r = deviceColor.sel;
+        } else if (colorAffinity) {
+            g = o ? a : c.glyph;
+            r = o ? c.rect : a;
+        } else {
+            g = c.glyph;
+            r = c.rect;
+        }
+
+        icon.select('use')
+            .style('fill', g);
+        icon.select('rect')
+            .style('fill', r);
     }
 
     function addDeviceIcon(node, box, noLabel, iid) {
@@ -1915,7 +1979,7 @@
             webSock.ws.onopen = function() {
                 noWebSock(false);
                 requestSummary();
-                oiBox.show();
+                showInstances();
             };
 
             webSock.ws.onmessage = function(m) {
@@ -2053,6 +2117,7 @@
         selectOrder.push(obj.id);
 
         n.classed('selected', true);
+        updateDeviceColors(obj);
         updateDetailPane();
     }
 
@@ -2066,6 +2131,7 @@
             if (idx >= 0) {
                 selectOrder.splice(idx, 1);
             }
+            updateDeviceColors(obj.obj);
         }
     }
 
@@ -2074,12 +2140,18 @@
         node.classed('selected', false);
         selections = {};
         selectOrder = [];
+        updateDeviceColors();
         updateDetailPane();
     }
 
-    // update the state of the sumary pane
-    function updateSummaryPane() {
-
+    function updateDeviceColors(d) {
+        if (d) {
+            setDeviceColor(d);
+        } else {
+            node.filter('.device').each(function (d) {
+                setDeviceColor(d);
+            });
+        }
     }
 
     // update the state of the detail pane, based on current selections
@@ -2591,8 +2663,7 @@
 
     function theme(view, ctx, flags) {
         updateInstances();
-        // TODO: update other theme-affected elements
-
+        updateDeviceColors();
     }
 
     function birdTranslate(w, h) {
