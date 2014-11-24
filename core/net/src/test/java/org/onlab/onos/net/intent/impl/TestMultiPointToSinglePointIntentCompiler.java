@@ -24,6 +24,7 @@ import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 import org.onlab.onos.net.intent.LinkCollectionIntent;
@@ -46,7 +47,7 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
 /**
  * Unit tests for the MultiPointToSinglePoint intent compiler.
  */
-public class TestMultiPointToSinglePointIntentCompiler {
+public class TestMultiPointToSinglePointIntentCompiler extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new TestApplicationId("foo");
 

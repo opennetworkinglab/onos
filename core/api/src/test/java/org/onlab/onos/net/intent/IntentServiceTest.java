@@ -34,6 +34,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.core.IdGenerator;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
 
@@ -42,23 +43,26 @@ import org.onlab.onos.net.resource.LinkResourceAllocations;
  */
 public class IntentServiceTest {
 
-    public static final IntentId IID = new IntentId(123);
-    public static final IntentId INSTALLABLE_IID = new IntentId(234);
+    public static final int IID = 123;
+    public static final int INSTALLABLE_IID = 234;
 
     protected static final int GRACE_MS = 500; // millis
 
     protected TestableIntentService service;
     protected TestListener listener = new TestListener();
+    protected IdGenerator idGenerator = new MockIdGenerator();
 
     @Before
     public void setUp() {
         service = createIntentService();
         service.addListener(listener);
+        Intent.bindIdGenerator(idGenerator);
     }
 
     @After
     public void tearDown() {
         service.removeListener(listener);
+        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**

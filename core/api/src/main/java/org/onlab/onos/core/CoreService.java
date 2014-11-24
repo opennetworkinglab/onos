@@ -58,4 +58,12 @@ public interface CoreService {
      */
     ApplicationId registerApplication(String identifier);
 
+    /**
+     * Returns an id generator for a given topic.
+     *
+     * @param topic topic identified
+     * @return the id generator
+     */
+    IdGenerator getIdGenerator(String topic);
+
 }

@@ -24,7 +24,7 @@ public class TestSubclassInstallableIntent extends TestInstallableIntent {
      *
      * @param id intent ID
      */
-    public TestSubclassInstallableIntent(IntentId id) {
+    public TestSubclassInstallableIntent(int id) { //FIXME
         super(id);
     }
 

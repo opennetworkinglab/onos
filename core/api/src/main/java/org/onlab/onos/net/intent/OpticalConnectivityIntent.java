@@ -36,8 +36,7 @@ public class OpticalConnectivityIntent extends Intent {
      */
     public OpticalConnectivityIntent(ApplicationId appId,
                                      ConnectPoint src, ConnectPoint dst) {
-        super(id(OpticalConnectivityIntent.class, src, dst),
-                appId, null);
+        super(appId, null);
         this.src = src;
         this.dst = dst;
     }

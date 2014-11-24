@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.intent;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
@@ -47,7 +48,7 @@ public class TestHostToHostIntent {
      * Tests the equals() method where two HostToHostIntents have references
      * to the same hosts. These should compare equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testSameEquals() {
 
         HostId one = hid("00:00:00:00:00:01/-1");
@@ -62,7 +63,7 @@ public class TestHostToHostIntent {
      * Tests the equals() method where two HostToHostIntents have references
      * to different Hosts. These should compare not equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testSameEquals2() {
         HostId one = hid("00:00:00:00:00:01/-1");
         HostId two = hid("00:00:00:00:00:02/-1");
@@ -76,7 +77,7 @@ public class TestHostToHostIntent {
      * Tests that the hashCode() values for two equivalent HostToHostIntent
      * objects are the same.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeEquals() {
         HostId one = hid("00:00:00:00:00:01/-1");
         HostId two = hid("00:00:00:00:00:02/-1");
@@ -90,7 +91,7 @@ public class TestHostToHostIntent {
      * Tests that the hashCode() values for two distinct LinkCollectionIntent
      * objects are different.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeEquals2() {
         HostId one = hid("00:00:00:00:00:01/-1");
         HostId two = hid("00:00:00:00:00:02/-1");
@@ -104,7 +105,7 @@ public class TestHostToHostIntent {
      * Tests that the hashCode() values for two distinct LinkCollectionIntent
      * objects are different.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeDifferent() {
         HostId one = hid("00:00:00:00:00:01/-1");
         HostId two = hid("00:00:00:00:00:02/-1");

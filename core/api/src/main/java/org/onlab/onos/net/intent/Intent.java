@@ -16,14 +16,15 @@
 package org.onlab.onos.net.intent;
 
 import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.IdGenerator;
 import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.flow.BatchOperationTarget;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Abstraction of an application level intent.
@@ -37,6 +38,8 @@ public abstract class Intent implements BatchOperationTarget {
     private final ApplicationId appId;
     private final Collection<NetworkResource> resources;
 
+    private static IdGenerator idGenerator;
+
     /**
      * Constructor for serializer.
      */
@@ -49,13 +52,13 @@ public abstract class Intent implements BatchOperationTarget {
     /**
      * Creates a new intent.
      *
-     * @param id        intent identifier
-     * @param appId     application identifier
-     * @param resources required network resources (optional)
+     * @param appId         application identifier
+     * @param resources     required network resources (optional)
      */
-    protected Intent(IntentId id, ApplicationId appId,
+    protected Intent(ApplicationId appId,
                      Collection<NetworkResource> resources) {
-        this.id = checkNotNull(id, "Intent ID cannot be null");
+        checkState(idGenerator != null, "Id generator is not bound.");
+        this.id = IntentId.valueOf(idGenerator.getNewId());
         this.appId = checkNotNull(appId, "Application ID cannot be null");
         this.resources = resources;
     }
@@ -88,20 +91,6 @@ public abstract class Intent implements BatchOperationTarget {
     }
 
     /**
-     * Produces an intent identifier backed by hash-like fingerprint for the
-     * specified class of intent and its constituent fields.
-     *
-     * @param intentClass Class of the intent
-     * @param fields intent fields
-     * @return intent identifier
-     */
-    protected static IntentId id(Class<?> intentClass, Object... fields) {
-        // FIXME: spread the bits across the full long spectrum
-        return IntentId.valueOf(Objects.hash(intentClass.getName(),
-                                             Arrays.hashCode(fields)));
-    }
-
-    /**
      * Indicates whether or not the intent is installable.
      *
      * @return true if installable
@@ -112,7 +101,7 @@ public abstract class Intent implements BatchOperationTarget {
 
     @Override
     public final int hashCode() {
-        return Objects.hash(id);
+        return id.hashCode();
     }
 
     @Override
@@ -124,7 +113,29 @@ public abstract class Intent implements BatchOperationTarget {
             return false;
         }
         final Intent other = (Intent) obj;
-        return Objects.equals(this.id, other.id);
+        return this.id().equals(((Intent) obj).id());
     }
 
+    /**
+     * Binds an id generator for unique intent id generation.
+     *
+     * Note: A generator cannot be bound if there is already a generator bound.
+     * @param newIdGenerator id generator
+     */
+    public static final void bindIdGenerator(IdGenerator newIdGenerator) {
+        checkState(idGenerator == null, "Id generator is already bound.");
+        idGenerator = checkNotNull(newIdGenerator);
+    }
+
+    /**
+     * Unbinds an id generator.
+     *
+     * Note: The caller must provide the old id generator to succeed.
+     * @param oldIdGenerator the current id generator
+     */
+    public static final void unbindIdGenerator(IdGenerator oldIdGenerator) {
+        if (Objects.equals(idGenerator, oldIdGenerator)) {
+            idGenerator = null;
+        }
+    }
 }

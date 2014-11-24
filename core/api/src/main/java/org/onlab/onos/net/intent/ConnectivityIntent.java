@@ -51,18 +51,17 @@ public abstract class ConnectivityIntent extends Intent {
      * Path will be chosen without any constraints.
      * </p>
      *
-     * @param id        intent identifier
      * @param appId     application identifier
      * @param resources required network resources (optional)
      * @param selector  traffic selector
      * @param treatment treatment
      * @throws NullPointerException if the selector or treatement is null
      */
-    protected ConnectivityIntent(IntentId id, ApplicationId appId,
+    protected ConnectivityIntent(ApplicationId appId,
                                  Collection<NetworkResource> resources,
                                  TrafficSelector selector,
                                  TrafficTreatment treatment) {
-        this(id, appId, resources, selector, treatment, Collections.emptyList());
+        this(appId, resources, selector, treatment, Collections.emptyList());
     }
 
     /**
@@ -72,7 +71,6 @@ public abstract class ConnectivityIntent extends Intent {
      * Path will be optimized based on the first constraint if one is given.
      * </p>
      *
-     * @param id          intent identifier
      * @param appId       application identifier
      * @param resources   required network resources (optional)
      * @param selector    traffic selector
@@ -80,12 +78,12 @@ public abstract class ConnectivityIntent extends Intent {
      * @param constraints optional prioritized list of constraints
      * @throws NullPointerException if the selector or treatement is null
      */
-    protected ConnectivityIntent(IntentId id, ApplicationId appId,
+    protected ConnectivityIntent(ApplicationId appId,
                                  Collection<NetworkResource> resources,
                                  TrafficSelector selector,
                                  TrafficTreatment treatment,
                                  List<Constraint> constraints) {
-        super(id, appId, resources);
+        super(appId, resources);
         this.selector = checkNotNull(selector);
         this.treatment = checkNotNull(treatment);
         this.constraints = checkNotNull(constraints);

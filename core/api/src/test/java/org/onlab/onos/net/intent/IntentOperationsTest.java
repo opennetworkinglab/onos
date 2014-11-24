@@ -17,7 +17,10 @@ package org.onlab.onos.net.intent;
 
 import java.util.List;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.onlab.onos.core.IdGenerator;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.NetTestTools;
 import org.onlab.onos.net.flow.TrafficSelector;
@@ -40,11 +43,24 @@ public class IntentOperationsTest {
     final TrafficSelector selector = new IntentTestsMocks.MockSelector();
     final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
 
-    final Intent intent = new PointToPointIntent(NetTestTools.APP_ID,
-            selector,
-            treatment,
-            ingress,
-            egress);
+    private Intent intent;
+    protected IdGenerator idGenerator = new MockIdGenerator();
+
+    @Before
+    public void setUp() {
+        Intent.bindIdGenerator(idGenerator);
+
+        intent = new PointToPointIntent(NetTestTools.APP_ID,
+                                        selector,
+                                        treatment,
+                                        ingress,
+                                        egress);
+    }
+
+    @After
+    public void tearDown() {
+        Intent.unbindIdGenerator(idGenerator);
+    }
 
     /**
      * Checks that the IntentOperation and IntentOperations classes are immutable.

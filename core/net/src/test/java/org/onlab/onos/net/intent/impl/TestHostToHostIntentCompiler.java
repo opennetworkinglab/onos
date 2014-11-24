@@ -25,6 +25,7 @@ import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostService;
+import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentTestsMocks;
@@ -45,7 +46,7 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
 /**
  * Unit tests for the HostToHost intent compiler.
  */
-public class TestHostToHostIntentCompiler {
+public class TestHostToHostIntentCompiler extends AbstractIntentTest {
     private static final String HOST_ONE_MAC = "00:00:00:00:00:01";
     private static final String HOST_TWO_MAC = "00:00:00:00:00:02";
     private static final String HOST_ONE_VLAN = "-1";
@@ -63,7 +64,8 @@ public class TestHostToHostIntentCompiler {
     private HostService mockHostService;
 
     @Before
-    public void setup() {
+    public void setUp() throws Exception {
+        super.setUp();
         Host hostOne = createMock(Host.class);
         expect(hostOne.mac()).andReturn(new MacAddress(HOST_ONE_MAC.getBytes())).anyTimes();
         expect(hostOne.vlan()).andReturn(VlanId.vlanId()).anyTimes();

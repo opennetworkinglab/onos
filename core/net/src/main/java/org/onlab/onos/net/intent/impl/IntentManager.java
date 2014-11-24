@@ -25,6 +25,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.core.CoreService;
+import org.onlab.onos.core.IdGenerator;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
@@ -88,12 +90,8 @@ public class IntentManager
     private final AbstractListenerRegistry<IntentEvent, IntentListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
-    private ExecutorService executor;
-    private ExecutorService monitorExecutor;
-
-    private final IntentStoreDelegate delegate = new InternalStoreDelegate();
-    private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
-    private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentStore store;
@@ -110,6 +108,15 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
+
+    private ExecutorService executor;
+    private ExecutorService monitorExecutor;
+
+    private final IntentStoreDelegate delegate = new InternalStoreDelegate();
+    private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
+    private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
+    private IdGenerator idGenerator;
+
     @Activate
     public void activate() {
         store.setDelegate(delegate);
@@ -118,6 +125,8 @@ public class IntentManager
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
         executor = newSingleThreadExecutor(namedThreads("onos-intents"));
         monitorExecutor = newSingleThreadExecutor(namedThreads("onos-intent-monitor"));
+        idGenerator = coreService.getIdGenerator("intent-ids");
+        Intent.bindIdGenerator(idGenerator);
         log.info("Started");
     }
 
@@ -129,6 +138,7 @@ public class IntentManager
         eventDispatcher.removeSink(IntentEvent.class);
         executor.shutdown();
         monitorExecutor.shutdown();
+        Intent.unbindIdGenerator(idGenerator);
         log.info("Stopped");
     }
 

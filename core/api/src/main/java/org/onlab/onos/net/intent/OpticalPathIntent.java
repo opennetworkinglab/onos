@@ -37,9 +37,7 @@ public class OpticalPathIntent extends Intent {
             ConnectPoint src,
             ConnectPoint dst,
             Path path) {
-        super(id(OpticalPathIntent.class, src, dst, path),
-              appId,
-              ImmutableSet.<NetworkResource>copyOf(path.links()));
+        super(appId, ImmutableSet.<NetworkResource>copyOf(path.links()));
         this.src = src;
         this.dst = dst;
         this.path = path;

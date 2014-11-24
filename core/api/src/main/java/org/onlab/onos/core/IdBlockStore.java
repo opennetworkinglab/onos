@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onlab.onos.core;
 
 /**
- * An intent used in the unit test.
+ * Manages id blocks.
  */
-public class TestSubclassIntent extends TestIntent {
-    /**
-     * Constructs an instance with the specified intent ID.
-     *
-     * @param id intent ID
-     */
-    public TestSubclassIntent(int id) { //FIXME
-        super(id);
-    }
+public interface IdBlockStore {
 
     /**
-     * Constructor for serializer.
+     * Returns a topic-unique block of ids.
+     *
+     * @param topic topic name
+     * @return id block
      */
-    protected TestSubclassIntent() {
-        super();
-    }
+    IdBlock getIdBlock(String topic);
+
 }

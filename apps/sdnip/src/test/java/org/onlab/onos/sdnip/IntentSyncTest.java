@@ -41,6 +41,7 @@ import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
+import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.Ethernet;
@@ -60,7 +61,7 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
  * This class tests the intent synchronization function in the
  * IntentSynchronizer class.
  */
-public class IntentSyncTest {
+public class IntentSyncTest extends AbstractIntentTest {
 
     private InterfaceService interfaceService;
     private IntentService intentService;
@@ -95,6 +96,7 @@ public class IntentSyncTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
         setUpInterfaceService();
         setUpHostService();
         intentService = createMock(IntentService.class);

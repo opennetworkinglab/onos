@@ -72,6 +72,14 @@
 
     <dependency>
       <groupId>org.onlab.onos</groupId>
+      <artifactId>onos-api</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+    </dependency>
+
+    <dependency>
+      <groupId>org.onlab.onos</groupId>
       <artifactId>onos-cli</artifactId>
       <version>${project.version}</version>
     </dependency>

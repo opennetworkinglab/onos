@@ -34,6 +34,7 @@ import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.sdnip.bgp.BgpConstants;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.BgpSpeaker;
@@ -58,7 +59,7 @@ import static org.easymock.EasyMock.*;
 /**
  * Unit tests for PeerConnectivityManager interface.
  */
-public class PeerConnectivityManagerTest {
+public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new ApplicationId() {
         @Override
@@ -112,6 +113,7 @@ public class PeerConnectivityManagerTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
         bgpSpeakers = Collections.unmodifiableMap(setUpBgpSpeakers());
         interfaces = Collections.unmodifiableMap(setUpInterfaces());
         peers = Collections.unmodifiableMap(setUpPeers());

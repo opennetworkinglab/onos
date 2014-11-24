@@ -23,46 +23,46 @@ import org.onlab.onos.net.flow.BatchOperationTarget;
  */
 public final class IntentId implements BatchOperationTarget {
 
-    private final long fingerprint;
+    private final long value;
 
     /**
      * Creates an intent identifier from the specified string representation.
      *
-     * @param fingerprint long value
+     * @param value long value
      * @return intent identifier
      */
-    public static IntentId valueOf(long fingerprint) {
-        return new IntentId(fingerprint);
+    public static IntentId valueOf(long value) {
+        return new IntentId(value);
     }
 
     /**
      * Constructor for serializer.
      */
     IntentId() {
-        this.fingerprint = 0;
+        this.value = 0;
     }
 
     /**
      * Constructs the ID corresponding to a given long value.
      *
-     * @param fingerprint the underlying value of this ID
+     * @param value the underlying value of this ID
      */
-    IntentId(long fingerprint) {
-        this.fingerprint = fingerprint;
+    IntentId(long value) {
+        this.value = value;
     }
 
     /**
-     * Returns the backing fingerprint.
+     * Returns the backing value.
      *
-     * @return the fingerprint
+     * @return the value
      */
     public long fingerprint() {
-        return fingerprint;
+        return value;
     }
 
     @Override
     public int hashCode() {
-        return (int) (fingerprint ^ (fingerprint >>> 32));
+        return (int) (value ^ (value >>> 32));
     }
 
     @Override
@@ -74,12 +74,12 @@ public final class IntentId implements BatchOperationTarget {
             return false;
         }
         IntentId that = (IntentId) obj;
-        return this.fingerprint == that.fingerprint;
+        return this.value == that.value;
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(fingerprint);
+        return "0x" + Long.toHexString(value);
     }
 
 }

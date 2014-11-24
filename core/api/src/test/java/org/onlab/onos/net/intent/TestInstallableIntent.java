@@ -21,13 +21,17 @@ import org.onlab.onos.TestApplicationId;
  * An installable intent used in the unit test.
  */
 public class TestInstallableIntent extends Intent {
+
+    private final int value;
+
     /**
      * Constructs an instance with the specified intent ID.
      *
-     * @param id intent ID
+     * @param value intent ID
      */
-    public TestInstallableIntent(IntentId id) {
-        super(id, new TestApplicationId("foo"), null);
+    public TestInstallableIntent(int value) { // FIXME
+        super(new TestApplicationId("foo"), null);
+        this.value = value;
     }
 
     /**
@@ -35,6 +39,7 @@ public class TestInstallableIntent extends Intent {
      */
     protected TestInstallableIntent() {
         super();
+        value = -1;
     }
 
     @Override

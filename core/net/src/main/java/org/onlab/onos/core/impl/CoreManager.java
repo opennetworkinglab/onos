@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.ApplicationIdStore;
 import org.onlab.onos.core.CoreService;
+import org.onlab.onos.core.IdBlockStore;
+import org.onlab.onos.core.IdGenerator;
 import org.onlab.onos.core.Version;
 import org.onlab.util.Tools;
 
@@ -35,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Core service implementation.
  */
-@Component
+@Component(immediate = true)
 @Service
 public class CoreManager implements CoreService {
 
@@ -44,6 +46,9 @@ public class CoreManager implements CoreService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore applicationIdStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IdBlockStore idBlockStore;
 
     @Activate
     public void activate() {
@@ -72,6 +77,13 @@ public class CoreManager implements CoreService {
     public ApplicationId registerApplication(String name) {
         checkNotNull(name, "Application ID cannot be null");
         return applicationIdStore.registerApplication(name);
+    }
+
+    @Override
+    public IdGenerator getIdGenerator(String topic) {
+        // FIXME this should be created lazily (once per topic)
+        IdBlockAllocator allocator = new StoreBasedIdBlockAllocator(topic, idBlockStore);
+        return new BlockAllocatorBasedIdGenerator(allocator);
     }
 
 }

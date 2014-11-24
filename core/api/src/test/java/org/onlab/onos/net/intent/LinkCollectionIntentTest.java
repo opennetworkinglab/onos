@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
@@ -43,7 +44,7 @@ import static org.onlab.onos.net.NetTestTools.link;
 /**
  * Unit tests for the LinkCollectionIntent class.
  */
-public class LinkCollectionIntentTest {
+public class LinkCollectionIntentTest extends IntentTest {
 
     final ConnectPoint egress = NetTestTools.connectPoint("egress", 3);
     final TrafficSelector selector = new IntentTestsMocks.MockSelector();
@@ -60,7 +61,7 @@ public class LinkCollectionIntentTest {
     /**
      * Tests equals(), hashCode() and toString() methods.
      */
-    @Test
+    @Test @Ignore("Equality is based on ids, which will be different")
     public void testEquals() {
 
         final HashSet<Link> links1 = new HashSet<>();
@@ -166,5 +167,27 @@ public class LinkCollectionIntentTest {
 
         final List<Constraint> createdConstraints = collectionIntent.constraints();
         assertThat(createdConstraints, hasSize(0));
+    }
+
+    @Override
+    protected Intent createOne() {
+        HashSet<Link> links1 = new HashSet<>();
+        links1.add(link("src", 1, "dst", 2));
+        return new LinkCollectionIntent(APP_ID,
+                                        selector,
+                                        treatment,
+                                        links1,
+                                        egress);
+    }
+
+    @Override
+    protected Intent createAnother() {
+        HashSet<Link> links2 = new HashSet<>();
+        links2.add(link("src", 1, "dst", 3));
+        return new LinkCollectionIntent(APP_ID,
+                                        selector,
+                                        treatment,
+                                        links2,
+                                        egress);
     }
 }

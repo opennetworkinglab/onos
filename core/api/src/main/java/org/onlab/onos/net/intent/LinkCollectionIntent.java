@@ -76,8 +76,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 Set<Link> links,
                                 ConnectPoint egressPoint,
                                 List<Constraint> constraints) {
-        super(id(LinkCollectionIntent.class, selector, treatment, links, egressPoint, constraints),
-                appId, resources(links), selector, treatment, constraints);
+        super(appId, resources(links), selector, treatment, constraints);
         this.links = links;
         this.egressPoints = ImmutableSet.of(egressPoint);
     }
@@ -99,8 +98,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 Set<Link> links,
                                 Set<ConnectPoint> egressPoints,
                                 List<Constraint> constraints) {
-        super(id(LinkCollectionIntent.class, selector, treatment, links,
-                 egressPoints), appId, resources(links), selector, treatment);
+        super(appId, resources(links), selector, treatment);
 
         this.links = links;
         this.egressPoints = ImmutableSet.copyOf(egressPoints);

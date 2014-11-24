@@ -24,6 +24,7 @@ import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentTestsMocks;
 import org.onlab.onos.net.intent.PathIntent;
@@ -46,7 +47,7 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
 /**
  * Unit tests for the HostToHost intent compiler.
  */
-public class TestPointToPointIntentCompiler {
+public class TestPointToPointIntentCompiler extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new TestApplicationId("foo");
 

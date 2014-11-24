@@ -64,8 +64,7 @@ public class PathIntent extends ConnectivityIntent {
      */
     public PathIntent(ApplicationId appId, TrafficSelector selector,
                       TrafficTreatment treatment, Path path, List<Constraint> constraints) {
-        super(id(PathIntent.class, selector, treatment, path, constraints), appId,
-                resources(path.links()), selector, treatment, constraints);
+        super(appId, resources(path.links()), selector, treatment, constraints);
         PathIntent.validate(path.links());
         this.path = path;
     }

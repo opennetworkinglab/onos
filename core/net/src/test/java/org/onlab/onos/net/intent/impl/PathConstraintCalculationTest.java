@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.net.intent.Constraint;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentTestsMocks;
@@ -46,7 +47,7 @@ import static org.onlab.onos.net.NetTestTools.connectPoint;
  * Unit tests for calculating paths for intents with constraints.
  */
 
-public class PathConstraintCalculationTest {
+public class PathConstraintCalculationTest extends AbstractIntentTest {
 
     /**
      * Creates a point to point intent compiler for a three switch linear

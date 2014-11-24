@@ -73,9 +73,7 @@ public class PointToPointIntent extends ConnectivityIntent {
                               ConnectPoint ingressPoint,
                               ConnectPoint egressPoint,
                               List<Constraint> constraints) {
-        super(id(PointToPointIntent.class, selector, treatment,
-                 ingressPoint, egressPoint, constraints),
-              appId, null, selector, treatment, constraints);
+        super(appId, null, selector, treatment, constraints);
 
         checkNotNull(ingressPoint);
         checkNotNull(egressPoint);

@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
@@ -73,7 +74,7 @@ public class TestLinkCollectionIntent {
      * Tests the equals() method where two LinkCollectionIntents have references
      * to the same Links in different orders. These should compare equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testSameEquals() {
         links1.add(link1);
         links1.add(link2);
@@ -93,7 +94,7 @@ public class TestLinkCollectionIntent {
      * Tests the equals() method where two LinkCollectionIntents have references
      * to different Links. These should compare not equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testLinksDifferentEquals() {
         links1.add(link1);
         links1.add(link2);
@@ -111,7 +112,7 @@ public class TestLinkCollectionIntent {
      * Tests the equals() method where two LinkCollectionIntents have references
      * to the same Links but different egress points. These should compare not equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testEgressDifferentEquals() {
         links1.add(link1);
         links1.add(link2);
@@ -131,7 +132,7 @@ public class TestLinkCollectionIntent {
      * Tests that the hashCode() values for two equivalent LinkCollectionIntent
      * objects are the same.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeEquals() {
         links1.add(link1);
         links1.add(link2);
@@ -151,7 +152,7 @@ public class TestLinkCollectionIntent {
      * Tests that the hashCode() values for two distinct LinkCollectionIntent
      * objects are different.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeDifferent() {
         links1.add(link1);
         links1.add(link2);

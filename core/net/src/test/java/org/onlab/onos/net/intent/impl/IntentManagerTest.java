@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.onos.TestApplicationId;
 import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.impl.TestCoreManager;
 import org.onlab.onos.event.impl.TestEventDispatcher;
 import org.onlab.onos.net.NetworkResource;
 import org.onlab.onos.net.flow.FlowRule;
@@ -82,6 +83,7 @@ public class IntentManagerTest {
         manager.eventDispatcher = new TestEventDispatcher();
         manager.trackerService = new TestIntentTracker();
         manager.flowRuleService = flowRuleService;
+        manager.coreService = new TestCoreManager();
         service = manager;
         extensionService = manager;
 
@@ -262,7 +264,7 @@ public class IntentManagerTest {
         private final Long number;
         // Nothing new here
         public MockIntent(Long number) {
-            super(id(MockIntent.class, number), APPID, null);
+            super(APPID, null);
             this.number = number;
         }
 

@@ -16,6 +16,7 @@
 package org.onlab.onos.net.intent;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
@@ -76,7 +77,7 @@ public class TestMultiPointToSinglePointIntent {
      * Tests the equals() method where two MultiPointToSinglePoint have references
      * to the same Links in different orders. These should compare equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testSameEquals() {
 
         Set<ConnectPoint> ingress1 = new HashSet<>();
@@ -97,7 +98,7 @@ public class TestMultiPointToSinglePointIntent {
      * Tests the equals() method where two MultiPointToSinglePoint have references
      * to different Links. These should compare not equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testLinksDifferentEquals() {
         ingress1.add(point3);
 
@@ -114,7 +115,7 @@ public class TestMultiPointToSinglePointIntent {
      * Tests that the hashCode() values for two equivalent MultiPointToSinglePoint
      * objects are the same.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeEquals() {
         ingress1.add(point2);
         ingress1.add(point3);
@@ -132,7 +133,7 @@ public class TestMultiPointToSinglePointIntent {
      * Tests that the hashCode() values for two distinct MultiPointToSinglePoint
      * objects are different.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeDifferent() {
         ingress1.add(point2);
 

@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.intent;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.TestApplicationId;
@@ -48,7 +49,7 @@ public class TestPointToPointIntent {
      * Tests the equals() method where two PointToPointIntents have references
      * to the same ingress and egress points. These should compare equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testSameEquals() {
         PointToPointIntent i1 = makePointToPoint(point1, point2);
         PointToPointIntent i2 = makePointToPoint(point1, point2);
@@ -60,7 +61,7 @@ public class TestPointToPointIntent {
      * Tests the equals() method where two HostToHostIntents have references
      * to different Hosts. These should compare not equal.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testLinksDifferentEquals() {
         PointToPointIntent i1 = makePointToPoint(point1, point2);
         PointToPointIntent i2 = makePointToPoint(point2, point1);
@@ -72,7 +73,7 @@ public class TestPointToPointIntent {
      * Tests that the hashCode() values for two equivalent HostToHostIntent
      * objects are the same.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeEquals() {
         PointToPointIntent i1 = makePointToPoint(point1, point2);
         PointToPointIntent i2 = makePointToPoint(point1, point2);
@@ -84,7 +85,7 @@ public class TestPointToPointIntent {
      * Tests that the hashCode() values for two distinct LinkCollectionIntent
      * objects are different.
      */
-    @Test
+    @Test @Ignore("Needs to be merged with other API test")
     public void testHashCodeDifferent() {
         PointToPointIntent i1 = makePointToPoint(point1, point2);
         PointToPointIntent i2 = makePointToPoint(point2, point1);

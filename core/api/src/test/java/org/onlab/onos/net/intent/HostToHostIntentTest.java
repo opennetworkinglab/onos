@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.intent;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
@@ -28,9 +29,12 @@ import static org.onlab.onos.net.NetTestTools.hid;
 /**
  * Unit tests for the HostToHostIntent class.
  */
-public class HostToHostIntentTest {
-    final TrafficSelector selector = new IntentTestsMocks.MockSelector();
-    final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
+public class HostToHostIntentTest extends IntentTest {
+    private final TrafficSelector selector = new IntentTestsMocks.MockSelector();
+    private final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
+    private final HostId id1 = hid("12:34:56:78:91:ab/1");
+    private final HostId id2 = hid("12:34:56:78:92:ab/1");
+    private final HostId id3 = hid("12:34:56:78:93:ab/1");
 
     /**
      * Checks that the HostToHostIntent class is immutable.
@@ -43,12 +47,8 @@ public class HostToHostIntentTest {
     /**
      * Tests equals(), hashCode() and toString() methods.
      */
-    @Test
+    @Test @Ignore("Equality is based on ids, which will be different")
     public void testEquals() {
-        final HostId id1 = hid("12:34:56:78:91:ab/1");
-        final HostId id2 = hid("12:34:56:78:92:ab/1");
-        final HostId id3 = hid("12:34:56:78:93:ab/1");
-
         final HostToHostIntent intent1 = new HostToHostIntent(APP_ID,
                 id1,
                 id2,
@@ -69,5 +69,15 @@ public class HostToHostIntentTest {
                 .addEqualityGroup(intent1, sameAsIntent1)
                 .addEqualityGroup(intent2)
                 .testEquals();
+    }
+
+    @Override
+    protected Intent createOne() {
+        return new HostToHostIntent(APP_ID, id1, id2, selector, treatment);
+    }
+
+    @Override
+    protected Intent createAnother() {
+        return new HostToHostIntent(APP_ID, id1, id3, selector, treatment);
     }
 }
