@@ -210,10 +210,11 @@ public class IntentSynchronizer {
             // Push the intents
             if (isElectedLeader && isActivatedLeader) {
                 log.debug("Submitting all SDN-IP Peer Intents...");
-                // TODO: We should use a single Intent batch operation
+                IntentOperations.Builder builder = IntentOperations.builder();
                 for (Intent intent : intents) {
-                    intentService.submit(intent);
+                    builder.addSubmitOperation(intent);
                 }
+                intentService.execute(builder.build());
             }
         }
     }

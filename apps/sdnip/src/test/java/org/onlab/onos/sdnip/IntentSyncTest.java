@@ -5,7 +5,6 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reportMatcher;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.is;
@@ -15,13 +14,9 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.easymock.IArgumentMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
@@ -42,14 +37,11 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentOperation;
 import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
@@ -334,14 +326,16 @@ public class IntentSyncTest {
         IntentOperations.Builder builder = IntentOperations.builder();
         builder.addWithdrawOperation(intent2.id());
         builder.addWithdrawOperation(intent4.id());
-        intentService.execute(eqExceptId(builder.build()));
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
 
         builder = IntentOperations.builder();
         builder.addSubmitOperation(intent3);
         builder.addSubmitOperation(intent4Update);
         builder.addSubmitOperation(intent6);
         builder.addSubmitOperation(intent7);
-        intentService.execute(eqExceptId(builder.build()));
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
         // Start the test
@@ -426,130 +420,5 @@ public class IntentSyncTest {
         TestUtils.setField(intentNew,
                 "ingressPoints", intent.ingressPoints());
         return intentNew;
-    }
-
-    /*
-     * EasyMock matcher that matches {@link IntenOperations} but
-     * ignores the {@link IntentId} when matching.
-     * <p/>
-     * The normal intent equals method tests that the intent IDs are equal,
-     * however in these tests we can't know what the intent IDs will be in
-     * advance, so we can't set up expected intents with the correct IDs. Thus,
-     * the solution is to use an EasyMock matcher that verifies that all the
-     * value properties of the provided intent match the expected values, but
-     * ignores the intent ID when testing equality.
-     */
-    private static final class IdAgnosticIntentOperationsMatcher implements
-                IArgumentMatcher {
-
-        private final IntentOperations intentOperations;
-        private String providedString;
-
-        /**
-         * Constructor taking the expected intent operations to match against.
-         *
-         * @param intentOperations the expected intent operations
-         */
-        public IdAgnosticIntentOperationsMatcher(
-                        IntentOperations intentOperations) {
-            this.intentOperations = intentOperations;
-        }
-
-        @Override
-        public void appendTo(StringBuffer strBuffer) {
-            strBuffer.append("IntentOperationsMatcher unable to match: "
-                    + providedString);
-        }
-
-        @Override
-        public boolean matches(Object object) {
-            if (!(object instanceof IntentOperations)) {
-                return false;
-            }
-
-            IntentOperations providedIntentOperations =
-                (IntentOperations) object;
-            providedString = providedIntentOperations.toString();
-
-            List<IntentKey> thisSubmitIntents = new LinkedList<>();
-            List<IntentId> thisWithdrawIntentIds = new LinkedList<>();
-            List<IntentKey> thisReplaceIntents = new LinkedList<>();
-            List<IntentKey> thisUpdateIntents = new LinkedList<>();
-            List<IntentKey> providedSubmitIntents = new LinkedList<>();
-            List<IntentId> providedWithdrawIntentIds = new LinkedList<>();
-            List<IntentKey> providedReplaceIntents = new LinkedList<>();
-            List<IntentKey> providedUpdateIntents = new LinkedList<>();
-
-            extractIntents(intentOperations, thisSubmitIntents,
-                           thisWithdrawIntentIds, thisReplaceIntents,
-                           thisUpdateIntents);
-            extractIntents(providedIntentOperations, providedSubmitIntents,
-                           providedWithdrawIntentIds, providedReplaceIntents,
-                           providedUpdateIntents);
-
-            return CollectionUtils.isEqualCollection(thisSubmitIntents,
-                                                     providedSubmitIntents) &&
-                CollectionUtils.isEqualCollection(thisWithdrawIntentIds,
-                                                  providedWithdrawIntentIds) &&
-                CollectionUtils.isEqualCollection(thisUpdateIntents,
-                                                  providedUpdateIntents) &&
-                CollectionUtils.isEqualCollection(thisReplaceIntents,
-                                                  providedReplaceIntents);
-        }
-
-        /**
-         * Extracts the intents per operation type. Each intent is encapsulated
-         * in IntentKey so it can be compared by excluding the Intent ID.
-         *
-         * @param intentOperations the container with the intent operations
-         * to extract the intents from
-         * @param submitIntents the SUBMIT intents
-         * @param withdrawIntentIds the WITHDRAW intents IDs
-         * @param replaceIntents the REPLACE intents
-         * @param updateIntents the UPDATE intens
-         */
-        private void extractIntents(IntentOperations intentOperations,
-                                    List<IntentKey> submitIntents,
-                                    List<IntentId> withdrawIntentIds,
-                                    List<IntentKey> replaceIntents,
-                                    List<IntentKey> updateIntents) {
-            for (IntentOperation oper : intentOperations.operations()) {
-                IntentId intentId;
-                IntentKey intentKey;
-                switch (oper.type()) {
-                case SUBMIT:
-                    intentKey = new IntentKey(oper.intent());
-                    submitIntents.add(intentKey);
-                    break;
-                case WITHDRAW:
-                    intentId = oper.intentId();
-                    withdrawIntentIds.add(intentId);
-                    break;
-                case REPLACE:
-                    intentKey = new IntentKey(oper.intent());
-                    replaceIntents.add(intentKey);
-                    break;
-                case UPDATE:
-                    intentKey = new IntentKey(oper.intent());
-                    updateIntents.add(intentKey);
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Matcher method to set an expected intent to match against (ignoring the
-     * the intent ID).
-     *
-     * @param intent the expected intent
-     * @return something of type IntentOperations
-     */
-    private static IntentOperations eqExceptId(
-                IntentOperations intentOperations) {
-        reportMatcher(new IdAgnosticIntentOperationsMatcher(intentOperations));
-        return intentOperations;
     }
 }

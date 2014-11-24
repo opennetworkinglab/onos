@@ -16,7 +16,6 @@
 package org.onlab.onos.sdnip;
 
 import com.google.common.collect.Sets;
-import org.easymock.IArgumentMatcher;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,6 +30,8 @@ import org.onlab.onos.net.flow.DefaultTrafficTreatment;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.InterfaceIpAddress;
+import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.sdnip.bgp.BgpConstants;
@@ -550,69 +551,6 @@ public class PeerConnectivityManagerTest {
                                         configInfoService, interfaceService);
     }
 
-    /*
-     * EasyMock matcher that matches {@link PointToPointIntent}s but
-     * ignores the {@link IntentId} when matching.
-     * <p/>
-     * The normal intent equals method tests that the intent IDs are equal,
-     * however in these tests we can't know what the intent IDs will be in
-     * advance, so we can't set up expected intents with the correct IDs. Thus,
-     * the solution is to use an EasyMock matcher that verifies that all the
-     * value properties of the provided intent match the expected values, but
-     * ignores the intent ID when testing equality.
-     */
-    private static final class IdAgnosticPointToPointIntentMatcher implements
-    IArgumentMatcher {
-
-        private final PointToPointIntent intent;
-        private String providedIntentString;
-
-        /**
-         * Constructor taking the expected intent to match against.
-         *
-         * @param intent the expected intent
-         */
-        public IdAgnosticPointToPointIntentMatcher(PointToPointIntent intent) {
-            this.intent = intent;
-        }
-
-        @Override
-        public void appendTo(StringBuffer strBuffer) {
-            strBuffer.append("PointToPointIntentMatcher unable to match: "
-                    + providedIntentString);
-        }
-
-        @Override
-        public boolean matches(Object object) {
-            if (!(object instanceof PointToPointIntent)) {
-                return false;
-            }
-
-            PointToPointIntent providedIntent = (PointToPointIntent) object;
-            providedIntentString = providedIntent.toString();
-
-            PointToPointIntent matchIntent =
-                    new PointToPointIntent(providedIntent.appId(),
-                            intent.selector(), intent.treatment(),
-                            intent.ingressPoint(), intent.egressPoint());
-
-            return matchIntent.equals(providedIntent);
-        }
-    }
-
-    /**
-     * Matcher method to set an expected intent to match against (ignoring the
-     * the intent ID).
-     *
-     * @param intent the expected intent
-     * @return something of type PointToPointIntent
-     */
-    private static PointToPointIntent eqExceptId(
-            PointToPointIntent intent) {
-        reportMatcher(new IdAgnosticPointToPointIntentMatcher(intent));
-        return null;
-    }
-
     /**
      * Tests whether peer connectivity manager can set up correct BGP and
      * ICMP intents according to specific configuration.
@@ -625,11 +563,13 @@ public class PeerConnectivityManagerTest {
 
         reset(intentService);
 
-        // Sets up the expected PointToPoint intents.
-        for (int i = 0; i < intentList.size(); i++) {
-            intentService.submit(eqExceptId(intentList.get(i)));
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder();
+        for (Intent intent : intentList) {
+            builder.addSubmitOperation(intent);
         }
-
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
         // Running the interface to be tested.
@@ -659,6 +599,9 @@ public class PeerConnectivityManagerTest {
         replay(configInfoService);
 
         reset(intentService);
+        IntentOperations.Builder builder = IntentOperations.builder();
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);
@@ -682,6 +625,9 @@ public class PeerConnectivityManagerTest {
         replay(configInfoService);
 
         reset(intentService);
+        IntentOperations.Builder builder = IntentOperations.builder();
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);
