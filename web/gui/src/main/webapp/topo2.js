@@ -143,6 +143,7 @@
         O: [toggleSummary, 'Toggle ONOS summary pane'],
         I: [toggleInstances, 'Toggle ONOS instances pane'],
         B: [toggleBg, 'Toggle background image'],
+        H: [toggleHosts, 'Toggle host visibility'],
         L: [cycleLabels, 'Cycle Device labels'],
         P: togglePorts,
         U: [unpin, 'Unpin node'],
@@ -170,8 +171,7 @@
             ctx: null,
             params: {},
             evNumber: 0,
-            view: null,
-            debug: false
+            view: null
         },
         webSock,
         sid = 0,
@@ -191,8 +191,10 @@
         oiShowMaster = false,
         portLabelsOn = false,
         cat7 = d3u.cat7(),
-        colorAffinity = false;
+        colorAffinity = false,
+        showHosts = false;
 
+    // constants
     var hoverModeAll = 1,
         hoverModeFlows = 2,
         hoverModeIntents = 3,
@@ -247,22 +249,9 @@
         cat7.testCard(svg);
     }
 
-    function abortIfLive() {
-        if (config.useLiveData) {
-            network.view.alert("Sorry, currently using live data..");
-            return true;
-        }
-        return false;
-    }
-
-    function testDebug(msg) {
-        if (scenario.debug) {
-            scenario.view.alert(msg);
-        }
-    }
-
     function injectTestEvent(view) {
-        if (abortIfLive()) { return; }
+        if (config.useLiveData) { return; }
+
         var sc = scenario,
             evn = ++sc.evNumber,
             pfx = sc.evDir + sc.ctx + sc.evPrefix + evn,
@@ -293,7 +282,6 @@
                     v.alert('non-404 error:\n\n' + frame.url + '\n\n' + err);
                 }
             } else {
-                testDebug('loaded: ' + frame.url);
                 wsTrace('test', JSON.stringify(data));
                 frame.cb(data);
             }
@@ -308,7 +296,7 @@
 
     function injectStartupEvents(view) {
         var last = scenario.params.lastAuto || 0;
-        if (abortIfLive()) { return; }
+        if (config.useLiveData) { return; }
 
         while (scenario.evNumber < last) {
             injectTestEvent(view);
@@ -317,7 +305,13 @@
 
     function toggleBg() {
         var vis = bgImg.style('visibility');
-        bgImg.style('visibility', (vis === 'hidden') ? 'visible' : 'hidden');
+        bgImg.style('visibility', visVal(vis === 'hidden'));
+    }
+
+    function toggleHosts() {
+        showHosts = !showHosts;
+        updateHostVisibility();
+        network.view.flash('Hosts ' + visVal(showHosts));
     }
 
     function cycleLabels() {
@@ -332,7 +326,7 @@
     }
 
     function togglePorts(view) {
-        view.alert('togglePorts() callback')
+        //view.alert('togglePorts() callback')
     }
 
     function unpin() {
@@ -568,7 +562,6 @@
 
     function logicError(msg) {
         // TODO, report logic error to server, via websock, so it can be logged
-        //network.view.alert('Logic Error:\n\n' + msg);
         console.warn(msg);
     }
 
@@ -822,7 +815,7 @@
     }
 
     function unknownEvent(data) {
-        network.view.alert('Unknown event type: "' + data.event + '"');
+        console.warn('Unknown event type: "' + data.event + '"', data);
     }
 
     function handleServerEvent(data) {
@@ -832,12 +825,6 @@
 
     // ==============================
     // Out-going messages...
-
-    function userFeedback(msg) {
-        // for now, use the alert pane as is. Maybe different alert style in
-        // the future (centered on view; dismiss button?)
-        network.view.alert(msg);
-    }
 
     function nSel() {
         return selectOrder.length;
@@ -1221,6 +1208,10 @@
         appendBadge(svg, 12, instCfg.uiDy, 30, '#uiAttached', 'uiBadge');
     }
 
+    function visVal(b) {
+        return b ? 'visible' : 'hidden';
+    }
+
     // ==============================
     // force layout modification functions
 
@@ -1319,6 +1310,10 @@
         });
     }
 
+    function showHostVis(el) {
+        el.style('visibility', visVal(showHosts));
+    }
+
     var widthRatio = 1.4,
         linkScale = d3.scale.linear()
             .domain([1, 12])
@@ -1350,6 +1345,9 @@
             // provide ref to element selection from backing data....
             d.el = link;
             restyleLinkElement(d);
+            if (d.type() === 'hostLink') {
+                showHostVis(link);
+            }
         });
 
         // operate on both existing and new links, if necessary
@@ -1663,6 +1661,12 @@
         updateHostLabel(hostData);
     }
 
+    function updateHostVisibility() {
+        var v = visVal(showHosts);
+        nodeG.selectAll('.host').style('visibility', v);
+        linkG.selectAll('.hostLink').style('visibility', v);
+    }
+
     function nodeMouseOver(d) {
         hovered = d;
         requestTrafficForMode();
@@ -1692,7 +1696,6 @@
 
         // operate on existing nodes...
         node.filter('.device').each(function (d) {
-            //var node = d3.select(this);
             var node = d.el;
             node.classed('online', d.online);
             updateDeviceLabel(d);
@@ -1747,13 +1750,12 @@
 
             // provide ref to element from backing data....
             d.el = node;
+            showHostVis(node);
 
             node.append('circle').attr('r', r);
-
             if (iid) {
                 addHostIcon(node, r, iid);
             }
-
             node.append('text')
                 .text(hostLabel)
                 .attr('dy', textDy)
@@ -2014,9 +2016,9 @@
             if (webSock.ws) {
                 webSock.ws.send(message);
             } else if (config.useLiveData) {
-                network.view.alert('no web socket open\n\n' + message);
+                console.warn('no web socket open', message);
             } else {
-                console.log('WS Send: ' + JSON.stringify(message));
+                console.log('WS Send: ', message);
             }
         }
 
@@ -2607,7 +2609,7 @@
     }
 
     function showBg() {
-        return config.options.showBackground ? 'visible' : 'hidden';
+        return visVal(config.options.showBackground);
     }
 
     function loadStaticMap() {

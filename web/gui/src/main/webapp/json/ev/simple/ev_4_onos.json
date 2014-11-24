@@ -5,10 +5,9 @@
     "type": "switch",
     "online": true,
     "labels": [
-      "0000ffffffff0003",
-      "FF:FF:FF:FF:00:03",
-      "sw-3-yo",
-      ""
+      "",
+      "switch-3",
+      "0000ffffffff0003"
     ],
     "metaUi": {
       "x": 800,
