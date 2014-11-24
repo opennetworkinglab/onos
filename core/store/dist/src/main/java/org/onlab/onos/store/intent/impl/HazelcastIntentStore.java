@@ -180,7 +180,7 @@ public class HazelcastIntentStore
             prevParking = states.get(id);
             if (prevParking == null) {
                 IntentState existing = states.putIfAbsent(id, SUBMITTED);
-                verify(existing != null, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                verify(existing == null, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
             } else {
                 verify(prevParking == WITHDRAWN,
                         "Illegal state transition attempted from %s to SUBMITTED",
