@@ -104,33 +104,32 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     private StoreSerializer serializer;
 
 
+    void createTable(String tableName) {
+        boolean tableReady = false;
+        do {
+            try {
+                if (!databaseAdminService.listTables().contains(tableName)) {
+                    databaseAdminService.createTable(tableName);
+                }
+                tableReady = true;
+            } catch (DatabaseException e) {
+                log.debug("Failed creating table, retrying", e);
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e1) {
+                    throw new DatabaseException(e1);
+                }
+            }
+        } while (!tableReady);
+    }
+
     @Activate
     public void activate() {
 
         serializer = new KryoSerializer();
 
-        Set<String> tables = null;
-        int retries = 0;
-        do {
-            try {
-                tables = databaseAdminService.listTables();
-            } catch (DatabaseException e) {
-                log.debug("DatabaseException", e);
-                retries++;
-                if (retries > 10) {
-                    log.error("Failed to list tables, moving on", e);
-                    tables = new HashSet<>();
-                }
-            }
-        } while (tables == null);
-
-        if (!tables.contains(LINK_RESOURCE_ALLOCATIONS)) {
-            databaseAdminService.createTable(LINK_RESOURCE_ALLOCATIONS);
-        }
-        if (!tables.contains(INTENT_ALLOCATIONS)) {
-            databaseAdminService.createTable(INTENT_ALLOCATIONS);
-        }
-
+        createTable(LINK_RESOURCE_ALLOCATIONS);
+        createTable(INTENT_ALLOCATIONS);
 
         log.info("Started");
     }

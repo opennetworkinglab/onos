@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.onlab.onos.store.serializers.StoreSerializer;
 import org.onlab.onos.store.service.DatabaseAdminService;
+import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.VersionedValue;
 
@@ -70,9 +71,21 @@ public class CMap<K, V> {
         this.tableName = checkNotNull(tableName);
         this.serializer = checkNotNull(serializer);
 
-        if (!dbAdminService.listTables().contains(tableName)) {
-            dbAdminService.createTable(tableName);
-        }
+        boolean tableReady = false;
+        do {
+            try {
+                if (!dbAdminService.listTables().contains(tableName)) {
+                    dbAdminService.createTable(tableName);
+                }
+                tableReady = true;
+            } catch (DatabaseException e) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e1) {
+                    throw new DatabaseException(e1);
+                }
+            }
+        } while (!tableReady);
 
         keyCache = CacheBuilder.newBuilder()
                     .softValues()
