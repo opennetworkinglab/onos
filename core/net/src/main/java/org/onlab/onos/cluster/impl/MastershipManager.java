@@ -17,6 +17,7 @@ package org.onlab.onos.cluster.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.metrics.MetricsUtil.*;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,8 +28,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.metrics.MetricsComponent;
-import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
 import org.onlab.onos.cluster.ClusterEvent;
 import org.onlab.onos.cluster.ClusterEventListener;
@@ -36,6 +35,7 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
+import org.onlab.onos.core.MetricsHelper;
 import org.onlab.onos.event.AbstractListenerRegistry;
 import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.mastership.MastershipAdminService;
@@ -56,7 +56,8 @@ import com.codahale.metrics.Timer.Context;
 @Component(immediate = true)
 @Service
 public class MastershipManager
-    implements MastershipService, MastershipAdminService, MastershipTermService {
+    implements MastershipService, MastershipAdminService, MastershipTermService,
+               MetricsHelper {
 
     private static final String NODE_ID_NULL = "Node ID cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -192,36 +193,15 @@ public class MastershipManager
         listenerRegistry.removeListener(listener);
     }
 
-    // FIXME: provide wiring to allow events to be triggered by changes within the store
+    @Override
+    public MetricsService metricsService() {
+        return metricsService;
+    }
 
     // Posts the specified event to the local event dispatcher.
     private void post(MastershipEvent event) {
         if (event != null && eventDispatcher != null) {
             eventDispatcher.post(event);
-        }
-    }
-
-
-
-    private Timer createTimer(String component, String feature, String name) {
-        if (metricsService != null) {
-            MetricsComponent c = metricsService.registerComponent(component);
-            MetricsFeature f = c.registerFeature(feature);
-            return metricsService.createTimer(c, f, name);
-        }
-        return null;
-    }
-
-    private static final Context startTimer(Timer timer) {
-        if (timer != null) {
-            return timer.time();
-        }
-        return null;
-    }
-
-    private static final void stopTimer(Context context) {
-        if (context != null) {
-            context.stop();
         }
     }
 
