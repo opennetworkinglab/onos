@@ -186,8 +186,6 @@ public class IntentSynchronizer {
                     //
                     intentsSynchronizerSemaphore.drainPermits();
                 } catch (InterruptedException e) {
-                    log.debug("SDN-IP interrupted while waiting to become " +
-                              "Intent Synchronization leader");
                     interrupted = true;
                     break;
                 }
