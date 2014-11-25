@@ -5,10 +5,10 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.easymock.IArgumentMatcher;
+import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentOperation;
 import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
 
 import static org.easymock.EasyMock.reportMatcher;
@@ -24,6 +24,18 @@ public final class TestIntentServiceHelper {
     }
 
     /**
+     * Matcher method to set the expected intent to match against
+     * (ignoring the intent ID for the intent).
+     *
+     * @param intent the expected Intent
+     * @return the submitted Intent
+     */
+    static Intent eqExceptId(Intent intent) {
+        reportMatcher(new IdAgnosticIntentMatcher(intent));
+        return intent;
+    }
+
+    /**
      * Matcher method to set the expected intent operations to match against
      * (ignoring the intent ID for each intent).
      *
@@ -35,18 +47,51 @@ public final class TestIntentServiceHelper {
         return intentOperations;
     }
 
-
-    /**
-     * Matcher method to set an expected point-to-point intent to match
-     * against (ignoring the intent ID).
-     *
-     * @param intent the expected point-to-point intent
-     * @return the submitted point-to-point intent
+    /*
+     * EasyMock matcher that matches {@link Inten} but
+     * ignores the {@link IntentId} when matching.
+     * <p/>
+     * The normal intent equals method tests that the intent IDs are equal,
+     * however in these tests we can't know what the intent IDs will be in
+     * advance, so we can't set up expected intents with the correct IDs. Thus,
+     * the solution is to use an EasyMock matcher that verifies that all the
+     * value properties of the provided intent match the expected values, but
+     * ignores the intent ID when testing equality.
      */
-    private static PointToPointIntent eqExceptId(
-            PointToPointIntent intent) {
-        reportMatcher(new IdAgnosticPointToPointIntentMatcher(intent));
-        return intent;
+    private static final class IdAgnosticIntentMatcher implements
+                IArgumentMatcher {
+
+        private final Intent intent;
+        private String providedString;
+
+        /**
+         * Constructor taking the expected intent to match against.
+         *
+         * @param intent the expected intent
+         */
+        public IdAgnosticIntentMatcher(Intent intent) {
+            this.intent = intent;
+        }
+
+        @Override
+        public void appendTo(StringBuffer strBuffer) {
+            strBuffer.append("IntentMatcher unable to match: "
+                    + providedString);
+        }
+
+        @Override
+        public boolean matches(Object object) {
+            if (!(object instanceof Intent)) {
+                return false;
+            }
+
+            Intent providedIntent = (Intent) object;
+            providedString = providedIntent.toString();
+
+            IntentKey thisIntentKey = new IntentKey(intent);
+            IntentKey providedIntentKey = new IntentKey(providedIntent);
+            return thisIntentKey.equals(providedIntentKey);
+        }
     }
 
     /*
@@ -158,56 +203,6 @@ public final class TestIntentServiceHelper {
                     break;
                 }
             }
-        }
-    }
-
-    /*
-     * EasyMock matcher that matches {@link PointToPointIntent}s but
-     * ignores the {@link IntentId} when matching.
-     * <p/>
-     * The normal intent equals method tests that the intent IDs are equal,
-     * however in these tests we can't know what the intent IDs will be in
-     * advance, so we can't set up expected intents with the correct IDs. Thus,
-     * the solution is to use an EasyMock matcher that verifies that all the
-     * value properties of the provided intent match the expected values, but
-     * ignores the intent ID when testing equality.
-     */
-    private static final class IdAgnosticPointToPointIntentMatcher implements
-                IArgumentMatcher {
-
-        private final PointToPointIntent intent;
-        private String providedIntentString;
-
-        /**
-         * Constructor taking the expected intent to match against.
-         *
-         * @param intent the expected intent
-         */
-        public IdAgnosticPointToPointIntentMatcher(PointToPointIntent intent) {
-            this.intent = intent;
-        }
-
-        @Override
-        public void appendTo(StringBuffer strBuffer) {
-            strBuffer.append("PointToPointIntentMatcher unable to match: "
-                    + providedIntentString);
-        }
-
-        @Override
-        public boolean matches(Object object) {
-            if (!(object instanceof PointToPointIntent)) {
-                return false;
-            }
-
-            PointToPointIntent providedIntent = (PointToPointIntent) object;
-            providedIntentString = providedIntent.toString();
-
-            PointToPointIntent matchIntent =
-                    new PointToPointIntent(providedIntent.appId(),
-                            intent.selector(), intent.treatment(),
-                            intent.ingressPoint(), intent.egressPoint());
-
-            return matchIntent.equals(providedIntent);
         }
     }
 }

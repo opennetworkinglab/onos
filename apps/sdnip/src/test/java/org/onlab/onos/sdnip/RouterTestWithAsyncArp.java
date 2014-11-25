@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
@@ -50,10 +49,12 @@ import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.InterfaceIpAddress;
+import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.net.provider.ProviderId;
+import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
 import org.onlab.onos.sdnip.Router.InternalHostListener;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
@@ -194,7 +195,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
     /**
      * This method tests adding a route entry.
      */
-    @Test @Ignore("needs fix from intents")
+    @Test
     public void testProcessRouteAdd() throws TestUtilsException {
 
         // Construct a route entry
@@ -213,7 +214,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
         replay(hostService);
 
         reset(intentService);
-        intentService.submit(intent);
+        intentService.submit(TestIntentServiceHelper.eqExceptId(intent));
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
@@ -234,8 +235,11 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntry));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
-        assertEquals(intentSynchronizer.getRouteIntents().iterator().next(),
-                     intent);
+        Intent firstIntent =
+            intentSynchronizer.getRouteIntents().iterator().next();
+        IntentKey firstIntentKey = new IntentKey(firstIntent);
+        IntentKey intentKey = new IntentKey(intent);
+        assertTrue(firstIntentKey.equals(intentKey));
         verify(intentService);
         verify(hostService);
 
@@ -246,7 +250,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
      *
      * @throws TestUtilsException
      */
-    @Test @Ignore("needs fix from intents")
+    @Test
     public void testRouteUpdate() throws TestUtilsException {
 
         // Construct the existing route entry
@@ -295,8 +299,8 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
         replay(hostService);
 
         reset(intentService);
-        intentService.withdraw(intent);
-        intentService.submit(intentNew);
+        intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
+        intentService.submit(TestIntentServiceHelper.eqExceptId(intentNew));
         replay(intentService);
 
         // Call the processRouteAdd() method in Router class
@@ -317,8 +321,11 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
         assertEquals(router.getRoutes().size(), 1);
         assertTrue(router.getRoutes().contains(routeEntryUpdate));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
-        assertEquals(intentSynchronizer.getRouteIntents().iterator().next(),
-                intentNew);
+        Intent firstIntent =
+            intentSynchronizer.getRouteIntents().iterator().next();
+        IntentKey firstIntentKey = new IntentKey(firstIntent);
+        IntentKey intentNewKey = new IntentKey(intentNew);
+        assertTrue(firstIntentKey.equals(intentNewKey));
         verify(intentService);
         verify(hostService);
     }
@@ -344,7 +351,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
 
         // Set up expectation
         reset(intentService);
-        intentService.withdraw(intent);
+        intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
         replay(intentService);
 
         // Call route deleting method in Router class

@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.easymock.IAnswer;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.onlab.junit.IntegrationTest;
@@ -200,7 +199,7 @@ public class SdnIpTest extends AbstractIntentTest {
      * @throws InterruptedException if interrupted while waiting on a latch
      * @throws TestUtilsException if exceptions when using TestUtils
      */
-    @Test @Ignore("needs fix from intents")
+    @Test
     public void testAddRoutes() throws InterruptedException, TestUtilsException {
         int numRoutes = 100;
 
@@ -220,7 +219,7 @@ public class SdnIpTest extends AbstractIntentTest {
             MultiPointToSinglePointIntent intent = getIntentForUpdate(update,
                     generateMacAddress(nextHopAddress),
                     egressConnectPoint);
-            intentService.submit(intent);
+            intentService.submit(TestIntentServiceHelper.eqExceptId(intent));
 
             expectLastCall().andAnswer(new IAnswer<Object>() {
                 @Override
@@ -262,7 +261,7 @@ public class SdnIpTest extends AbstractIntentTest {
      * @throws InterruptedException if interrupted while waiting on a latch
      * @throws TestUtilsException exceptions when using TestUtils
      */
-    @Test @Ignore("needs fix from intents")
+    @Test
     public void testDeleteRoutes() throws InterruptedException, TestUtilsException {
         int numRoutes = 100;
         List<RouteUpdate> routeUpdates = generateRouteUpdates(numRoutes);
@@ -281,7 +280,7 @@ public class SdnIpTest extends AbstractIntentTest {
             MultiPointToSinglePointIntent intent = getIntentForUpdate(update,
                     generateMacAddress(nextHopAddress),
                     egressConnectPoint);
-            intentService.submit(intent);
+            intentService.submit(TestIntentServiceHelper.eqExceptId(intent));
             expectLastCall().andAnswer(new IAnswer<Object>() {
                 @Override
                 public Object answer() throws Throwable {
@@ -289,7 +288,7 @@ public class SdnIpTest extends AbstractIntentTest {
                     return null;
                 }
             }).once();
-            intentService.withdraw(intent);
+            intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
             expectLastCall().andAnswer(new IAnswer<Object>() {
                 @Override
                 public Object answer() throws Throwable {
