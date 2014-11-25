@@ -123,10 +123,15 @@
     // TODO: tune colors for light and dark themes
 
     //                blue       purple     pink       mustard    cyan       green      red
-    var lightNorm = ['#1f77b4', '#9467bd', '#e377c2', '#bcbd22', '#17becf', '#2ca02c', '#d62728'],
-        lightMute = ['#aec7e8', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5', '#98df8a', '#ff9896'],
-        darkNorm = ['#1f77b4', '#9467bd', '#e377c2', '#bcbd22', '#17becf', '#2ca02c', '#d62728'],
-        darkMute = ['#aec7e8', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5', '#98df8a', '#ff9896'];
+    //var lightNorm = ['#1f77b4', '#9467bd', '#e377c2', '#bcbd22', '#17becf', '#2ca02c', '#d62728'],
+    //    lightMute = ['#aec7e8', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5', '#98df8a', '#ff9896'],
+    //    darkNorm = ['#1f77b4', '#9467bd', '#e377c2', '#bcbd22', '#17becf', '#2ca02c', '#d62728'],
+    //    darkMute = ['#aec7e8', '#c5b0d5', '#f7b6d2', '#dbdb8d', '#9edae5', '#98df8a', '#ff9896'];
+
+    var lightNorm = ['#3F587F', '#77533D', '#C94E30', '#892D78', '#138C62', '#006D72', '#59AD00'],
+        lightMute = ['#56657C', '#665F57', '#C68C7F', '#876E82', '#68897E', '#4E6F70', '#93AA7B'],
+        darkNorm = ['#3F587F', '#77533D', '#C94E30', '#892D78', '#138C62', '#006D72', '#59AD00'],
+        darkMute = ['#56657C', '#665F57', '#C68C7F', '#876E82', '#68897E', '#4E6F70', '#93AA7B'];
 
     function cat7() {
         var colors = {

@@ -24,6 +24,8 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
+import org.onlab.onos.mastership.MastershipEvent;
+import org.onlab.onos.mastership.MastershipListener;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.Host;
@@ -46,6 +48,7 @@ import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.Ethernet;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,6 +65,7 @@ import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_UPDATED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
 
@@ -80,8 +84,8 @@ public class TopologyViewWebSocket
 
     private static final String APP_ID = "org.onlab.onos.gui";
 
-    private static final long SUMMARY_FREQUENCY_SEC = 2000;
-    private static final long TRAFFIC_FREQUENCY_SEC = 1000;
+    private static final long SUMMARY_FREQUENCY_SEC = 3000;
+    private static final long TRAFFIC_FREQUENCY_SEC = 1500;
 
     private static final Comparator<? super ControllerNode> NODE_COMPARATOR =
             new Comparator<ControllerNode>() {
@@ -97,6 +101,7 @@ public class TopologyViewWebSocket
     private FrameConnection control;
 
     private final ClusterEventListener clusterListener = new InternalClusterListener();
+    private final MastershipListener mastershipListener = new InternalMastershipListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
     private final HostListener hostListener = new InternalHostListener();
@@ -164,7 +169,7 @@ public class TopologyViewWebSocket
         this.control = (FrameConnection) connection;
         addListeners();
 
-        sendAllInstances();
+        sendAllInstances(null);
         sendAllDevices();
         sendAllLinks();
         sendAllHosts();
@@ -235,11 +240,12 @@ public class TopologyViewWebSocket
     }
 
     // Sends all controller nodes to the client as node-added messages.
-    private void sendAllInstances() {
+    private void sendAllInstances(String messageType) {
         List<ControllerNode> nodes = new ArrayList<>(clusterService.getNodes());
         Collections.sort(nodes, NODE_COMPARATOR);
         for (ControllerNode node : nodes) {
-            sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node)));
+            sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node),
+                                        messageType));
         }
     }
 
@@ -307,13 +313,14 @@ public class TopologyViewWebSocket
 
         // FIXME: clearly, this is not enough
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
                 .matchEthDst(dstHost.mac()).build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         MultiPointToSinglePointIntent intent =
                 new MultiPointToSinglePointIntent(appId, selector, treatment,
                                                   ingressPoints, dstHost.location());
-        trafficEvent = event;
+        startMonitoring(event);
         intentService.submit(intent);
     }
 
@@ -359,7 +366,6 @@ public class TopologyViewWebSocket
 
     // Subscribes for host traffic messages.
     private synchronized void requestAllTraffic(ObjectNode event) {
-        ObjectNode payload = payload(event);
         long sid = startMonitoring(event);
         sendMessage(trafficSummaryMessage(sid));
     }
@@ -375,7 +381,6 @@ public class TopologyViewWebSocket
 
         // If there is a hover node, include it in the hosts and find intents.
         String hover = string(payload, "hover");
-        Set<Intent> hoverIntents;
         if (!isNullOrEmpty(hover)) {
             addHover(hosts, devices, hover);
         }
@@ -447,6 +452,7 @@ public class TopologyViewWebSocket
     // Adds all internal listeners.
     private void addListeners() {
         clusterService.addListener(clusterListener);
+        mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
         hostService.addListener(hostListener);
@@ -458,6 +464,7 @@ public class TopologyViewWebSocket
         if (!listenersRemoved) {
             listenersRemoved = true;
             clusterService.removeListener(clusterListener);
+            mastershipService.removeListener(mastershipListener);
             deviceService.removeListener(deviceListener);
             linkService.removeListener(linkListener);
             hostService.removeListener(hostListener);
@@ -469,7 +476,17 @@ public class TopologyViewWebSocket
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
-            sendMessage(instanceMessage(event));
+            sendMessage(instanceMessage(event, null));
+        }
+    }
+
+    // Mastership change listener
+    private class InternalMastershipListener implements MastershipListener {
+        @Override
+        public void event(MastershipEvent event) {
+            sendAllInstances("updateInstance");
+            Device device = deviceService.getDevice(event.subject());
+            sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));
         }
     }
 

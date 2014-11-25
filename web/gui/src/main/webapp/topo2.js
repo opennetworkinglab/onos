@@ -1088,8 +1088,8 @@
 
             svg.append('rect').attr(rectAttr);
 
-            appendGlyph(svg, c.nodeOx, c.nodeOy, c.nodeDim, '#node');
-            appendBadge(svg, c.birdOx, c.birdOy, c.birdDim, '#bird');
+            //appendGlyph(svg, c.nodeOx, c.nodeOy, c.nodeDim, '#node');
+            appendBadge(svg, 14, 14, 28, '#bird');
 
             if (d.uiAttached) {
                 attachUiBadge(svg);

@@ -61,6 +61,9 @@
             <action class="org.onlab.onos.cli.MastersListCommand"/>
         </command>
         <command>
+            <action class="org.onlab.onos.cli.BalanceMastersCommand"/>
+        </command>
+        <command>
             <action class="org.onlab.onos.cli.ApplicationIdListCommand"/>
         </command>
 

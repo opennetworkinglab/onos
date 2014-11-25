@@ -356,7 +356,7 @@ svg .node.host circle {
     fill: #888;
 }
 #topo-oibox .online svg text {
-    fill: #000;
+    fill: #eee;
 }
 
 #topo-oibox svg text.instTitle {

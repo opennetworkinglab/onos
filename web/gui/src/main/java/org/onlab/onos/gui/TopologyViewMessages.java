@@ -289,7 +289,7 @@ public abstract class TopologyViewMessages {
     }
 
     // Produces a cluster instance message to the client.
-    protected ObjectNode instanceMessage(ClusterEvent event) {
+    protected ObjectNode instanceMessage(ClusterEvent event, String messageType) {
         ControllerNode node = event.subject();
         int switchCount = mastershipService.getDevicesOf(node.id()).size();
         ObjectNode payload = mapper.createObjectNode()
@@ -307,8 +307,10 @@ public abstract class TopologyViewMessages {
         payload.set("labels", labels);
         addMetaUi(node.id().toString(), payload);
 
-        String type = (event.type() == INSTANCE_ADDED) ? "addInstance" :
-                ((event.type() == INSTANCE_REMOVED) ? "removeInstance" : "updateInstance");
+        String type = messageType != null ? messageType :
+                ((event.type() == INSTANCE_ADDED) ? "addInstance" :
+                        ((event.type() == INSTANCE_REMOVED ? "removeInstance" :
+                                "updateInstance")));
         return envelope(type, 0, payload);
     }
 
