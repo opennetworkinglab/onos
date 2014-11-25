@@ -305,7 +305,7 @@ public class FlowRuleManager
                 if (event == null) {
                     log.debug("No flow store event generated.");
                 } else {
-                    log.debug("Flow {} {}", flowEntry, event.type());
+                    log.trace("Flow {} {}", flowEntry, event.type());
                     post(event);
                 }
             } else {

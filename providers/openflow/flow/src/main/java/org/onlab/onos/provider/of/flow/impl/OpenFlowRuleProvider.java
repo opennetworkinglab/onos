@@ -337,7 +337,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
 
             if (!stats.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
-                log.debug("sending flowstats to core {}", completeEntries.get(did));
+                log.trace("sending flowstats to core {}", completeEntries.get(did));
                 providerService.pushFlowMetrics(did, completeEntries.get(did));
                 completeEntries.removeAll(did);
             }
