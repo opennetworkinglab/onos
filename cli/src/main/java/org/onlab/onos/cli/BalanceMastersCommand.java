@@ -109,7 +109,7 @@ public class BalanceMastersCommand extends AbstractShellCommand {
             DeviceId deviceId = it.next();
 
             // Check that the transfer can happen for the current element.
-            if (mastershipService.getNodesFor(deviceId).backups().contains(smallest)) {
+            if (mastershipService.getNodesFor(deviceId).backups().contains(smallest.id())) {
                 print("Setting %s as the new master for %s", smallest.id(), deviceId);
                 adminService.setRole(smallest.id(), deviceId, MastershipRole.MASTER);
                 i++;
