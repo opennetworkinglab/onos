@@ -16,7 +16,6 @@
 package org.onlab.onos.net.flow;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Objects;
 
@@ -24,11 +23,8 @@ import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.DefaultGroupId;
 import org.onlab.onos.core.GroupId;
 import org.onlab.onos.net.DeviceId;
-import org.slf4j.Logger;
 
 public class DefaultFlowRule implements FlowRule {
-
-    private static final Logger log = getLogger(DefaultFlowRule.class);
 
     private final DeviceId deviceId;
     private final int priority;
