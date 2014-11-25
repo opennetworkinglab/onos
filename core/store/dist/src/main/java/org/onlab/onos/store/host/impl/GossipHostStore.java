@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -137,6 +139,8 @@ public class GossipHostStore
         }
     };
 
+    private ExecutorService executor;
+
     private ScheduledExecutorService backgroundExecutor;
 
     @Activate
@@ -150,6 +154,8 @@ public class GossipHostStore
         clusterCommunicator.addSubscriber(
                 GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalHostAntiEntropyAdvertisementListener());
+
+        executor = Executors.newCachedThreadPool(namedThreads("host-fg-%d"));
 
         backgroundExecutor =
                 newSingleThreadScheduledExecutor(minPriority(namedThreads("host-bg-%d")));
@@ -166,6 +172,7 @@ public class GossipHostStore
 
     @Deactivate
     public void deactivate() {
+        executor.shutdownNow();
         backgroundExecutor.shutdownNow();
         try {
             if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -459,33 +466,58 @@ public class GossipHostStore
         }
     }
 
-    private class InternalHostEventListener implements ClusterMessageHandler {
+    private final class InternalHostEventListener
+            implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
 
             log.debug("Received host update event from peer: {}", message.sender());
-            InternalHostEvent event = (InternalHostEvent) SERIALIZER.decode(message.payload());
+            InternalHostEvent event = SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
             HostId hostId = event.hostId();
             HostDescription hostDescription = event.hostDescription();
             Timestamp timestamp = event.timestamp();
 
-            notifyDelegateIfNotNull(createOrUpdateHostInternal(providerId, hostId, hostDescription, timestamp));
+            executor.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        notifyDelegateIfNotNull(createOrUpdateHostInternal(providerId,
+                                                                           hostId,
+                                                                           hostDescription,
+                                                                           timestamp));
+                    } catch (Exception e) {
+                        log.warn("Exception thrown handling host removed", e);
+                    }
+                }
+            });
         }
     }
 
-    private class InternalHostRemovedEventListener implements ClusterMessageHandler {
+    private final class InternalHostRemovedEventListener
+            implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
 
             log.debug("Received host removed event from peer: {}", message.sender());
-            InternalHostRemovedEvent event = (InternalHostRemovedEvent) SERIALIZER.decode(message.payload());
+            InternalHostRemovedEvent event = SERIALIZER.decode(message.payload());
 
             HostId hostId = event.hostId();
             Timestamp timestamp = event.timestamp();
 
-            notifyDelegateIfNotNull(removeHostInternal(hostId, timestamp));
+            executor.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        notifyDelegateIfNotNull(removeHostInternal(hostId, timestamp));
+                    } catch (Exception e) {
+                        log.warn("Exception thrown handling host removed", e);
+                    }
+                }
+            });
         }
     }
 
@@ -636,8 +668,8 @@ public class GossipHostStore
         }
     }
 
-    private final class InternalHostAntiEntropyAdvertisementListener implements
-            ClusterMessageHandler {
+    private final class InternalHostAntiEntropyAdvertisementListener
+            implements ClusterMessageHandler {
 
         @Override
         public void handle(ClusterMessage message) {

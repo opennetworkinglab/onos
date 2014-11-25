@@ -71,6 +71,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -141,6 +143,8 @@ public class GossipLinkStore
         }
     };
 
+    private ExecutorService executor;
+
     private ScheduledExecutorService backgroundExecutors;
 
     @Activate
@@ -155,6 +159,8 @@ public class GossipLinkStore
         clusterCommunicator.addSubscriber(
                 GossipLinkStoreMessageSubjects.LINK_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalLinkAntiEntropyAdvertisementListener());
+
+        executor = Executors.newCachedThreadPool(namedThreads("link-fg-%d"));
 
         backgroundExecutors =
                 newSingleThreadScheduledExecutor(minPriority(namedThreads("link-bg-%d")));
@@ -171,6 +177,8 @@ public class GossipLinkStore
 
     @Deactivate
     public void deactivate() {
+
+        executor.shutdownNow();
 
         backgroundExecutors.shutdownNow();
         try {
@@ -762,7 +770,8 @@ public class GossipLinkStore
         }
     }
 
-    private class InternalLinkEventListener implements ClusterMessageHandler {
+    private final class InternalLinkEventListener
+            implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
 
@@ -772,11 +781,22 @@ public class GossipLinkStore
             ProviderId providerId = event.providerId();
             Timestamped<LinkDescription> linkDescription = event.linkDescription();
 
-            notifyDelegateIfNotNull(createOrUpdateLinkInternal(providerId, linkDescription));
+            executor.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        notifyDelegateIfNotNull(createOrUpdateLinkInternal(providerId, linkDescription));
+                    } catch (Exception e) {
+                        log.warn("Exception thrown handling link event", e);
+                    }
+                }
+            });
         }
     }
 
-    private class InternalLinkRemovedEventListener implements ClusterMessageHandler {
+    private final class InternalLinkRemovedEventListener
+            implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
 
@@ -786,11 +806,22 @@ public class GossipLinkStore
             LinkKey linkKey = event.linkKey();
             Timestamp timestamp = event.timestamp();
 
-            notifyDelegateIfNotNull(removeLinkInternal(linkKey, timestamp));
+            executor.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        notifyDelegateIfNotNull(removeLinkInternal(linkKey, timestamp));
+                    } catch (Exception e) {
+                        log.warn("Exception thrown handling link removed", e);
+                    }
+                }
+            });
         }
     }
 
-    private final class InternalLinkAntiEntropyAdvertisementListener implements ClusterMessageHandler {
+    private final class InternalLinkAntiEntropyAdvertisementListener
+            implements ClusterMessageHandler {
 
         @Override
         public void handle(ClusterMessage message) {
