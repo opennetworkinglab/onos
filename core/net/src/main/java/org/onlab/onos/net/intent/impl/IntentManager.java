@@ -833,7 +833,8 @@ public class IntentManager
     private class InternalBatchDelegate implements IntentBatchDelegate {
         @Override
         public void execute(IntentOperations operations) {
-            log.info("Execute operations: {}", operations);
+            log.info("Execute {} operation(s).", operations.operations().size());
+            log.debug("Execute operations: {}", operations.operations());
             //FIXME: perhaps we want to track this task so that we can cancel it.
             monitorExecutor.execute(new IntentInstallMonitor(operations));
         }
