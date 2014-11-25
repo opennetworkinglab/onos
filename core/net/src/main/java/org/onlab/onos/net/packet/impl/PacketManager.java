@@ -97,7 +97,13 @@ implements PacketService, PacketProviderRegistry {
 
     private void localEmit(OutboundPacket packet) {
         final Device device = deviceService.getDevice(packet.sendThrough());
+
+        if (device == null) {
+            return;
+        }
+
         final PacketProvider packetProvider = getProvider(device.providerId());
+
         if (packetProvider != null) {
             packetProvider.emit(packet);
         }

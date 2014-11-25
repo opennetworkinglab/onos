@@ -95,6 +95,10 @@ public class DistributedPacketStore
         NodeId myId = clusterService.getLocalNode().id();
         NodeId master = mastershipService.getMasterFor(packet.sendThrough());
 
+        if (master == null) {
+            return;
+        }
+
         if (myId.equals(master)) {
             notifyDelegate(new PacketEvent(Type.EMIT, packet));
             return;
