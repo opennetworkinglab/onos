@@ -22,6 +22,7 @@ import org.apache.commons.lang3.RandomUtils;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -29,6 +30,7 @@ import org.junit.Test;
  */
 public class PingPongTest {
 
+    @Ignore("Turning off fragile test")
     @Test
     public void testPingPong() throws Exception {
         NettyMessagingService pinger = new NettyMessagingService(8085);
