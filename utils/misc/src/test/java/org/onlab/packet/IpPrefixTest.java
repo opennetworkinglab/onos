@@ -15,9 +15,9 @@
  */
 package org.onlab.packet;
 
-import com.google.common.testing.EqualsTester;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
 
 /**
  * Tests for class {@link IpPrefix}.
@@ -34,10 +34,9 @@ public class IpPrefixTest {
     /**
      * Tests the immutability of {@link IpPrefix}.
      */
-    @Ignore("The class is not pure immutable, because it is not 'final'")
     @Test
     public void testImmutable() {
-        assertThatClassIsImmutable(IpPrefix.class);
+        assertThatClassIsImmutableBaseClass(IpPrefix.class);
     }
 
     /**

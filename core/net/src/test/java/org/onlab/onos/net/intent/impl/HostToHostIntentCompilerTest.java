@@ -46,7 +46,7 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
 /**
  * Unit tests for the HostToHost intent compiler.
  */
-public class TestHostToHostIntentCompiler extends AbstractIntentTest {
+public class HostToHostIntentCompilerTest extends AbstractIntentTest {
     private static final String HOST_ONE_MAC = "00:00:00:00:00:01";
     private static final String HOST_TWO_MAC = "00:00:00:00:00:02";
     private static final String HOST_ONE_VLAN = "-1";

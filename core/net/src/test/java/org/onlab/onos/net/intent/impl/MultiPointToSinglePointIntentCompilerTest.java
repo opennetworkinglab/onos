@@ -47,7 +47,7 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
 /**
  * Unit tests for the MultiPointToSinglePoint intent compiler.
  */
-public class TestMultiPointToSinglePointIntentCompiler extends AbstractIntentTest {
+public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new TestApplicationId("foo");
 

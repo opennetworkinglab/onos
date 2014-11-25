@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Link;
@@ -61,7 +60,7 @@ public class LinkCollectionIntentTest extends IntentTest {
     /**
      * Tests equals(), hashCode() and toString() methods.
      */
-    @Test @Ignore("Equality is based on ids, which will be different")
+    @Test
     public void testEquals() {
 
         final HashSet<Link> links1 = new HashSet<>();
@@ -72,12 +71,6 @@ public class LinkCollectionIntentTest extends IntentTest {
                         treatment,
                         links1,
                         egress);
-        final LinkCollectionIntent sameAsCollectionIntent1 =
-        new LinkCollectionIntent(APP_ID,
-                selector,
-                treatment,
-                links1,
-                egress);
 
         final HashSet<Link> links2 = new HashSet<>();
         links2.add(link("src", 1, "dst", 3));
@@ -89,7 +82,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                         egress);
 
         new EqualsTester()
-                .addEqualityGroup(collectionIntent1, sameAsCollectionIntent1)
+                .addEqualityGroup(collectionIntent1)
                 .addEqualityGroup(collectionIntent2)
                 .testEquals();
     }

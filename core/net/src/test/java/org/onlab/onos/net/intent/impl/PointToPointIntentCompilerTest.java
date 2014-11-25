@@ -47,7 +47,7 @@ import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairM
 /**
  * Unit tests for the HostToHost intent compiler.
  */
-public class TestPointToPointIntentCompiler extends AbstractIntentTest {
+public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new TestApplicationId("foo");
 

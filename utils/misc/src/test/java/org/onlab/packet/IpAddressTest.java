@@ -15,18 +15,18 @@
  */
 package org.onlab.packet;
 
-import com.google.common.net.InetAddresses;
-import com.google.common.testing.EqualsTester;
-import org.junit.Ignore;
+import java.net.InetAddress;
+
 import org.junit.Test;
 
-import java.net.InetAddress;
+import com.google.common.net.InetAddresses;
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
 
 /**
  * Tests for class {@link IpAddress}.
@@ -35,10 +35,9 @@ public class IpAddressTest {
     /**
      * Tests the immutability of {@link IpAddress}.
      */
-    @Ignore("The class is not pure immutable, because it is not 'final'")
     @Test
     public void testImmutable() {
-        assertThatClassIsImmutable(IpAddress.class);
+        assertThatClassIsImmutableBaseClass(IpAddress.class);
     }
 
     /**

@@ -18,11 +18,20 @@ package org.onlab.onos.net.intent;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Suite of tests of the multi-to-single point intent descriptor.
  */
 public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
+
+    /**
+     * Checks that the MultiPointToSinglePointIntent class is immutable.
+     */
+    @Test
+    public void checkImmutability() {
+        assertThatClassIsImmutable(MultiPointToSinglePointIntent.class);
+    }
 
     @Test
     public void basics() {

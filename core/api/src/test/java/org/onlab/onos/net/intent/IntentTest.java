@@ -15,14 +15,9 @@
  */
 package org.onlab.onos.net.intent;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * Base facilities to test various intent tests.
@@ -37,24 +32,6 @@ public abstract class IntentTest extends AbstractIntentTest {
      */
     protected static <T> Set<T> itemSet(T[] items) {
         return new HashSet<>(Arrays.asList(items));
-    }
-
-    @Test @Ignore("Equality is based on ids, which will be different")
-    public void equalsAndHashCode() {
-        Intent one = createOne();
-        Intent like = createOne();
-        Intent another = createAnother();
-
-        assertTrue("should be equal", one.equals(like));
-        assertEquals("incorrect hashCode", one.hashCode(), like.hashCode());
-        assertFalse("should not be equal", one.equals(another));
-    }
-
-    //@Test FIXME
-    public void testToString() {
-        Intent one = createOne();
-        Intent like = createOne();
-        assertEquals("incorrect toString", one.toString(), like.toString());
     }
 
     /**

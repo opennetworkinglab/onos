@@ -15,13 +15,17 @@
  */
 package org.onlab.onos.net.intent;
 
-import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.onos.TestApplicationId;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.flow.TrafficSelector;
 
 import com.google.common.testing.EqualsTester;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.onos.net.NetTestTools.APP_ID;
 import static org.onlab.onos.net.NetTestTools.hid;
@@ -36,6 +40,28 @@ public class HostToHostIntentTest extends IntentTest {
     private final HostId id2 = hid("12:34:56:78:92:ab/1");
     private final HostId id3 = hid("12:34:56:78:93:ab/1");
 
+    private static final ApplicationId APPID = new TestApplicationId("foo");
+
+    private HostToHostIntent makeHostToHost(HostId one, HostId two) {
+        return new HostToHostIntent(APPID, one, two, selector, treatment);
+    }
+
+    /**
+     * Tests the equals() method where two HostToHostIntents have references
+     * to the same hosts. These should compare equal.
+     */
+    @Test
+    public void testSameEquals() {
+
+        HostId one = hid("00:00:00:00:00:01/-1");
+        HostId two = hid("00:00:00:00:00:02/-1");
+        HostToHostIntent i1 = makeHostToHost(one, two);
+        HostToHostIntent i2 = makeHostToHost(one, two);
+
+        assertThat(i1.one(), is(equalTo(i2.one())));
+        assertThat(i1.two(), is(equalTo(i2.two())));
+    }
+
     /**
      * Checks that the HostToHostIntent class is immutable.
      */
@@ -47,18 +73,14 @@ public class HostToHostIntentTest extends IntentTest {
     /**
      * Tests equals(), hashCode() and toString() methods.
      */
-    @Test @Ignore("Equality is based on ids, which will be different")
+    @Test
     public void testEquals() {
         final HostToHostIntent intent1 = new HostToHostIntent(APP_ID,
                 id1,
                 id2,
                 selector,
                 treatment);
-        final HostToHostIntent sameAsIntent1 = new HostToHostIntent(APP_ID,
-                id1,
-                id2,
-                selector,
-                treatment);
+
         final HostToHostIntent intent2 = new HostToHostIntent(APP_ID,
                 id2,
                 id3,
@@ -66,7 +88,7 @@ public class HostToHostIntentTest extends IntentTest {
                 treatment);
 
         new EqualsTester()
-                .addEqualityGroup(intent1, sameAsIntent1)
+                .addEqualityGroup(intent1)
                 .addEqualityGroup(intent2)
                 .testEquals();
     }
