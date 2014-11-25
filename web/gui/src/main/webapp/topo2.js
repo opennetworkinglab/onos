@@ -146,13 +146,22 @@
         H: [toggleHosts, 'Toggle host visibility'],
         L: [cycleLabels, 'Cycle Device labels'],
         P: togglePorts,
-        U: [unpin, 'Unpin node'],
-        R: [resetZoomPan, 'Reset zoom/pan'],
+        U: [unpin, 'Unpin node (hover mouse over)'],
+        R: [resetZoomPan, 'Reset zoom / pan'],
         V: [showTrafficAction, 'Show related traffic'],
         A: [showAllTrafficAction, 'Show all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
         esc: handleEscape
     };
+
+    // mouse gestures
+    var gestures = [
+        ['click', 'Select the item and show details'],
+        ['shift-click', 'Toggle selection state'],
+        ['drag', 'Reposition (and pin) device / host'],
+        ['cmd-scroll', 'Zoom in / out'],
+        ['cmd-drag', 'Pan']
+    ];
 
     // state variables
     var network = {
@@ -2385,6 +2394,7 @@
 
     //var showInstances;
 
+/*
     function addButtonBar(view) {
         var bb = d3.select('#mast')
             .append('span').classed('right', true).attr('id', 'bb');
@@ -2398,6 +2408,7 @@
 
         //showInstances = mkTogBtn('Show Instances', toggleInst);
     }
+*/
 
     function panZoom() {
         return false;
@@ -2555,10 +2566,11 @@
         // set our radio buttons and key bindings
         layerBtnSet = view.setRadio(layerButtons);
         view.setKeys(keyDispatch);
+        view.setGestures(gestures);
 
         // patch in our "button bar" for now
         // TODO: implement a more official frameworky way of doing this..
-        addButtonBar(view);
+        //addButtonBar(view);
 
         // Load map data asynchronously; complete startup after that..
         loadGeoJsonData();

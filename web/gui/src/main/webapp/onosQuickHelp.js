@@ -43,7 +43,8 @@
         svg = qhdiv.select('svg'),
         pane,
         rect,
-        items;
+        items,
+        keyAgg;
 
     // General functions
     function isA(a) {
@@ -73,7 +74,7 @@
     var pad = 8,
         offy = 45,
         dy = 14,
-        offDesc = 40;
+        offDesc = 8;
 
     // D3 magic
     function updateKeyItems() {
@@ -91,7 +92,7 @@
             var el = d3.select(this),
                 y = offy + dy * i;
 
-            if (d.id === '_') {
+            if (d.id[0] === '_') {
                 el.append('line')
                     .attr({ x1: 0, y1: y, x2: 1, y2: y});
             } else {
@@ -102,6 +103,8 @@
                         x: 0,
                         y: y
                     });
+                // NOTE: used for sizing column width...
+                keyAgg.append('text').text(d.key).attr('class', 'key');
 
                 el.append('text')
                     .text(d.desc)
@@ -113,11 +116,14 @@
             }
         });
 
+        var kbox = keyAgg.node().getBBox();
+        items.selectAll('.desc').attr('x', kbox.width + offDesc);
+
         var box = items.node().getBBox(),
             paneW = box.width + pad * 2,
             paneH = box.height + offy;
 
-        items.select('line').attr('x2', box.width);
+        items.selectAll('line').attr('x2', box.width);
         items.attr('transform', translate(-paneW/2, -pad));
         rect.attr({
             width: paneW,
@@ -134,25 +140,47 @@
         var gmap = d3.map(bindings.globalKeys),
             vmap = d3.map(bindings.viewKeys),
             gkeys = gmap.keys(),
-            vkeys = vmap.keys();
+            vkeys = vmap.keys(),
+            vgest = bindings.viewGestures,
+            sep = 0;
 
         gkeys.sort();
         vkeys.sort();
 
         data = [];
         gkeys.forEach(function (k) {
-            addItem('global', k, gmap.get(k));
+            addItem('glob', k, gmap.get(k));
         });
-        addItem('separator');
+        addItem('sep');
         vkeys.forEach(function (k) {
             addItem('view', k, vmap.get(k));
         });
+        addItem('sep');
+        vgest.forEach(function (g) {
+            if (g.length === 2) {
+                addItem('gest', g[0], g[1]);
+            }
+        });
+
 
         function addItem(type, k, d) {
             var id = type + '-' + k,
                 a = isA(d),
                 desc = a && a[1];
-            if (desc) {
+
+            if (type === 'sep') {
+                data.push({
+                    id: '_' + sep++,
+                    type: type
+                });
+            } else if (type === 'gest') {
+                data.push({
+                    id: id,
+                    type: type,
+                    key: k,
+                    desc: d
+                });
+            } else if (desc) {
                 data.push(
                     {
                         id: id,
@@ -161,11 +189,6 @@
                         desc: desc
                     }
                 );
-            } else if (type === 'separator') {
-                data.push({
-                    id: '_',
-                    type: type
-                });
             }
         }
     }
@@ -189,6 +212,7 @@
             });
 
         items = pane.append('g');
+        keyAgg = pane.append('g').style('visibility', 'hidden');
 
         aggregateData(bindings);
         updateKeyItems();

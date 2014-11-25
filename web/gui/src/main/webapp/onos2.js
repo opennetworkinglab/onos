@@ -63,7 +63,8 @@
                 globalKeys: {},
                 maskedKeys: {},
                 viewKeys: {},
-                viewFn: null
+                viewFn: null,
+                viewGestures: []
             },
             alerts = {
                 open: false,
@@ -452,6 +453,10 @@
             return true;
         }
 
+        function setGestureNotes(g) {
+            keyHandler.viewGestures = isA(g) || [];
+        }
+
         function setKeyBindings(keyArg) {
             var viewKeys,
                 masked = [];
@@ -614,6 +619,7 @@
                     uid: this.uid,
                     setRadio: this.setRadio,
                     setKeys: this.setKeys,
+                    setGestures: this.setGestures,
                     dataLoadError: this.dataLoadError,
                     alert: this.alert,
                     flash: this.flash,
@@ -717,6 +723,10 @@
 
             setKeys: function (keyArg) {
                 setKeyBindings(keyArg);
+            },
+
+            setGestures: function (g) {
+                setGestureNotes(g);
             },
 
             getTheme: function () {
