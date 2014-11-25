@@ -113,7 +113,7 @@ public abstract class Intent implements BatchOperationTarget {
             return false;
         }
         final Intent other = (Intent) obj;
-        return this.id().equals(((Intent) obj).id());
+        return this.id().equals(other.id());
     }
 
     /**
