@@ -1987,7 +1987,7 @@
             .replace(/\#.*/, '')
             .replace('http://', 'ws://')
             .replace('https://', 'wss://')
-            .replace('index2.html', config.webSockUrl);
+            .replace('index.html', config.webSockUrl);
     }
 
     webSock = {
