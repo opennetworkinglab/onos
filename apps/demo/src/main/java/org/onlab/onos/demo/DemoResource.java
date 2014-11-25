@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * Rest API for demos.
@@ -33,10 +34,11 @@ public class DemoResource extends BaseResource {
                     .entity("Expected type field containing either mesh or random.").build();
         }
 
+
         DemoAPI.InstallType type = DemoAPI.InstallType.valueOf(
                 cfg.get("type").asText().toUpperCase());
         DemoAPI demo = get(DemoAPI.class);
-        demo.setup(type);
+        demo.setup(type, Optional.ofNullable(cfg.get("runParams")));
 
         return Response.ok(mapper.createObjectNode().toString()).build();
     }

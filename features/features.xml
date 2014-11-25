@@ -231,6 +231,7 @@
     <feature name="onos-app-demo" version="1.0.0"
              description="ONOS demo applications">
         <feature>onos-api</feature>
+        <bundle>mvn:org.onlab.onos/onlab-misc/1.0.0-SNAPSHOT</bundle>
         <bundle>mvn:org.onlab.onos/onos-app-demo/1.0.0-SNAPSHOT</bundle>
     </feature>
 

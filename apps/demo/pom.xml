@@ -109,7 +109,9 @@
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
-                            org.onlab.onos.*
+                            org.onlab.onos.*,
+                            org.onlab.util.*,
+                            org.jboss.netty.util.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>
