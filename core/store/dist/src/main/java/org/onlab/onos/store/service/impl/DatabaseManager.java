@@ -117,8 +117,11 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     private volatile LeaderElectEvent myLeaderEvent = null;
 
-    // TODO make this configuratble
+    // TODO make this configurable
     private int maxLogSizeBytes = 128 * (1024 ^ 2);
+
+    // TODO make this configurable
+    private long electionTimeoutMs = 5000; // CopyCat default: 2000
 
     @Activate
     public void activate() throws InterruptedException, ExecutionException {
@@ -181,6 +184,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
             CopycatConfig ccConfig = new CopycatConfig();
             ccConfig.setMaxLogSize(maxLogSizeBytes);
+            ccConfig.setElectionTimeout(electionTimeoutMs);
 
             copycat = new Copycat(stateMachine, consensusLog, cluster, copycatMessagingProtocol, ccConfig);
             copycat.event(LeaderElectEvent.class).registerHandler(new RaftLeaderElectionMonitor());
