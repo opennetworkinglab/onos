@@ -46,6 +46,19 @@ public abstract class Tools {
     }
 
     /**
+     * Returns a thread factory that produces threads with MIN_PRIORITY.
+     *
+     * @param factory backing ThreadFactory
+     * @return thread factory
+     */
+    public static ThreadFactory minPriority(ThreadFactory factory) {
+        return new ThreadFactoryBuilder()
+                    .setThreadFactory(factory)
+                    .setPriority(Thread.MIN_PRIORITY)
+                    .build();
+    }
+
+    /**
      * Converts a string from hex to long.
      *
      * @param string hex number in string form; sans 0x

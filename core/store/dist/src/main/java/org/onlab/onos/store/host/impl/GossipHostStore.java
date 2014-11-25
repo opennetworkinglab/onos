@@ -23,6 +23,7 @@ import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.minPriority;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
@@ -136,7 +137,7 @@ public class GossipHostStore
         }
     };
 
-    private ScheduledExecutorService executor;
+    private ScheduledExecutorService backgroundExecutor;
 
     @Activate
     public void activate() {
@@ -150,14 +151,14 @@ public class GossipHostStore
                 GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalHostAntiEntropyAdvertisementListener());
 
-        executor =
-                newSingleThreadScheduledExecutor(namedThreads("link-anti-entropy-%d"));
+        backgroundExecutor =
+                newSingleThreadScheduledExecutor(minPriority(namedThreads("host-bg-%d")));
 
         // TODO: Make these configurable
         long initialDelaySec = 5;
         long periodSec = 5;
         // start anti-entropy thread
-        executor.scheduleAtFixedRate(new SendAdvertisementTask(),
+        backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
                     initialDelaySec, periodSec, TimeUnit.SECONDS);
 
         log.info("Started");
@@ -165,9 +166,9 @@ public class GossipHostStore
 
     @Deactivate
     public void deactivate() {
-        executor.shutdownNow();
+        backgroundExecutor.shutdownNow();
         try {
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.error("Timeout during executor shutdown");
             }
         } catch (InterruptedException e) {
@@ -642,7 +643,17 @@ public class GossipHostStore
         public void handle(ClusterMessage message) {
             log.trace("Received Host Anti-Entropy advertisement from peer: {}", message.sender());
             HostAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
-            handleAntiEntropyAdvertisement(advertisement);
+            backgroundExecutor.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        handleAntiEntropyAdvertisement(advertisement);
+                    } catch (Exception e) {
+                        log.warn("Exception thrown handling Host advertisements", e);
+                    }
+                }
+            });
         }
     }
 }
