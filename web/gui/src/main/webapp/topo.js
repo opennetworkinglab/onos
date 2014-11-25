@@ -356,6 +356,9 @@
             hideInstances();
         } else if (summaryPane.isVisible()) {
             cancelSummary();
+            stopAntTimer();
+        } else {
+            hoverMode = hoverModeFlows;
         }
     }
 

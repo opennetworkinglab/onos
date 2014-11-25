@@ -16,6 +16,8 @@
 package org.onlab.onos.event;
 
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Timer;
@@ -30,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * batch size.
  */
 public abstract class AbstractEventAccumulator implements EventAccumulator {
+
+    private Logger log = LoggerFactory.getLogger(AbstractEventAccumulator.class);
 
     private final Timer timer;
     private final int maxEvents;
@@ -104,9 +108,13 @@ public abstract class AbstractEventAccumulator implements EventAccumulator {
     private class ProcessorTask extends TimerTask {
         @Override
         public void run() {
-            idleTask = cancelIfActive(idleTask);
-            maxTask = cancelIfActive(maxTask);
-            processEvents(finalizeCurrentBatch());
+            try {
+                idleTask = cancelIfActive(idleTask);
+                maxTask = cancelIfActive(maxTask);
+                processEvents(finalizeCurrentBatch());
+            } catch (Exception e) {
+                log.warn("Unable to process batch due to {}", e.getMessage());
+            }
         }
     }
 

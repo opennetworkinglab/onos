@@ -23,13 +23,15 @@ import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.mastership.MastershipAdminService;
 import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
+import org.onlab.onos.net.device.DeviceService;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.onlab.onos.net.MastershipRole.MASTER;
 
 /**
  * Forces device mastership rebalancing.
@@ -50,73 +52,62 @@ public class BalanceMastersCommand extends AbstractShellCommand {
 
         // Create buckets reflecting current ownership.
         for (ControllerNode node : nodes) {
-            controllerDevices.putAll(node, mastershipService.getDevicesOf(node.id()));
+            Set<DeviceId> devicesOf = mastershipService.getDevicesOf(node.id());
+            controllerDevices.putAll(node, devicesOf);
+            print("Node %s has %d devices.", node.id(), devicesOf.size());
         }
 
-        int bucketCount = nodes.size();
-        for (int i = 0; i < bucketCount / 2; i++) {
+        int rounds = nodes.size();
+        for (int i = 0; i < rounds; i++) {
             // Iterate over the buckets and find the smallest and the largest.
-            ControllerNode smallest = findSmallestBucket(controllerDevices);
-            ControllerNode largest = findLargestBucket(controllerDevices);
-            balanceBuckets(smallest, largest, controllerDevices,
-                           mastershipService, adminService);
+            ControllerNode smallest = findBucket(true, nodes, controllerDevices);
+            ControllerNode largest = findBucket(false, nodes, controllerDevices);
+            balanceBuckets(smallest, largest, controllerDevices, adminService);
         }
     }
 
-    private ControllerNode findSmallestBucket(Multimap<ControllerNode, DeviceId> controllerDevices) {
-        int minSize = Integer.MAX_VALUE;
-        ControllerNode minNode = null;
-        for (ControllerNode node : controllerDevices.keySet()) {
+    private ControllerNode findBucket(boolean min, Collection<ControllerNode> nodes,
+                                      Multimap<ControllerNode, DeviceId> controllerDevices) {
+        int xSize = min ? Integer.MAX_VALUE : -1;
+        ControllerNode xNode = null;
+        for (ControllerNode node : nodes) {
             int size = controllerDevices.get(node).size();
-            if (size < minSize) {
-                minSize = size;
-                minNode = node;
+            if ((min && size < xSize) || (!min && size > xSize)) {
+                xSize = size;
+                xNode = node;
             }
         }
-        return minNode;
-    }
-
-    private ControllerNode findLargestBucket(Multimap<ControllerNode, DeviceId> controllerDevices) {
-        int maxSize = -1;
-        ControllerNode maxNode = null;
-        for (ControllerNode node : controllerDevices.keySet()) {
-            int size = controllerDevices.get(node).size();
-            if (size >= maxSize) {
-                maxSize = size;
-                maxNode = node;
-            }
-        }
-        return maxNode;
+        return xNode;
     }
 
     // FIXME: enhance to better handle cases where smallest cannot take any of the devices from largest
 
     private void balanceBuckets(ControllerNode smallest, ControllerNode largest,
                                 Multimap<ControllerNode, DeviceId> controllerDevices,
-                                MastershipService mastershipService,
                                 MastershipAdminService adminService) {
         Collection<DeviceId> minBucket = controllerDevices.get(smallest);
         Collection<DeviceId> maxBucket = controllerDevices.get(largest);
+        int bucketCount = controllerDevices.keySet().size();
+        int deviceCount = get(DeviceService.class).getDeviceCount();
 
         int delta = (maxBucket.size() - minBucket.size()) / 2;
+        delta = Math.min(deviceCount / bucketCount, delta);
 
-        print("Attempting to move %d nodes from %s to %s...",
-              delta, largest.id(), smallest.id());
+        if (delta > 0) {
+            print("Attempting to move %d nodes from %s to %s...",
+                  delta, largest.id(), smallest.id());
 
-        int i = 0;
-        Iterator<DeviceId> it = maxBucket.iterator();
-        while (it.hasNext() && i < delta) {
-            DeviceId deviceId = it.next();
-
-            // Check that the transfer can happen for the current element.
-            if (mastershipService.getNodesFor(deviceId).backups().contains(smallest.id())) {
-                print("Setting %s as the new master for %s", smallest.id(), deviceId);
-                adminService.setRole(smallest.id(), deviceId, MastershipRole.MASTER);
+            int i = 0;
+            Iterator<DeviceId> it = maxBucket.iterator();
+            while (it.hasNext() && i < delta) {
+                DeviceId deviceId = it.next();
+                print("Setting %s as the master for %s", smallest.id(), deviceId);
+                adminService.setRole(smallest.id(), deviceId, MASTER);
+                controllerDevices.put(smallest, deviceId);
+                it.remove();
                 i++;
             }
         }
-
-        controllerDevices.removeAll(smallest);
     }
 
 }

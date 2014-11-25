@@ -66,13 +66,13 @@ public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
     private static final int MAX_THREADS = 8;
-    private static final int DEFAULT_MAX_EVENTS = 100;
-    private static final int DEFAULT_MAX_BATCH_MS = 50;
-    private static final int DEFAULT_MAX_IDLE_MS = 5;
+    private static final int DEFAULT_MAX_EVENTS = 200;
+    private static final int DEFAULT_MAX_BATCH_MS = 60;
+    private static final int DEFAULT_MAX_IDLE_MS = 30;
 
     // FIXME: Replace with a system-wide timer instance;
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
-    private static final Timer TIMER = new Timer();
+    private static final Timer TIMER = new Timer("topo-event-batching");
 
     @Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
             label = "Maximum number of events to accumulate")
@@ -121,6 +121,9 @@ public class DefaultTopologyProvider extends AbstractProvider
         providerService = providerRegistry.register(this);
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
+
+        log.info("Configured with maxEvents = {}; maxBatchMs = {}; maxIdleMs = {}",
+                 maxEvents, maxBatchMs, maxIdleMs);
 
         isStarted = true;
         triggerRecompute();
