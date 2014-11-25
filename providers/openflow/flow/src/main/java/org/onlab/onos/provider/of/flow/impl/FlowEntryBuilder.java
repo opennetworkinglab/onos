@@ -184,6 +184,9 @@ public class FlowEntryBuilder {
                     log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                 }
                 break;
+            case SET_FIELD:
+                // TODO handle 1.3 set field actions correctly
+                break;
             case SET_TP_DST:
             case SET_TP_SRC:
             case POP_MPLS:
@@ -192,7 +195,6 @@ public class FlowEntryBuilder {
             case PUSH_MPLS:
             case PUSH_PBB:
             case PUSH_VLAN:
-            case SET_FIELD:
             case SET_MPLS_LABEL:
             case SET_MPLS_TC:
             case SET_MPLS_TTL:
