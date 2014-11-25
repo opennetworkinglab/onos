@@ -31,6 +31,7 @@ import org.onlab.onos.cluster.LeadershipEvent;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
 import org.onlab.onos.core.DefaultApplicationId;
+import org.onlab.onos.core.DefaultGroupId;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultAnnotations;
@@ -298,6 +299,7 @@ public final class KryoNamespaces {
             .register(ReadStatus.class)
             .register(WriteStatus.class)
             .register(VersionedValue.class)
+            .register(DefaultGroupId.class)
 
             .build();
 

@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.cluster.RoleInfo;
+import org.onlab.onos.core.DefaultGroupId;
 import org.onlab.onos.mastership.MastershipTerm;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
@@ -335,6 +336,12 @@ public class KryoSerializerTest {
     public void testAnnotationConstraint() {
         testSerializable(new AnnotationConstraint("distance", 100.0));
     }
+
+    @Test
+    public void testDefaultGroupId() {
+        testSerializedEquals(new DefaultGroupId(99));
+    }
+
 
     @Test
     public void testAnnotations() {
