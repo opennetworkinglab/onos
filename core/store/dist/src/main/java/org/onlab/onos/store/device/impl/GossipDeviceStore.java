@@ -1032,12 +1032,9 @@ public class GossipDeviceStore
         Map<PortFragmentId, Timestamp> adPorts = new HashMap<>(numDevices * portsPerDevice);
         Map<DeviceId, Timestamp> adOffline = new HashMap<>(numDevices);
 
-        for (Entry<DeviceId, Map<ProviderId, DeviceDescriptions>>
-            provs : deviceDescs.entrySet()) {
+        deviceDescs.forEach((deviceId, devDescs) -> {
 
             // for each Device...
-            final DeviceId deviceId = provs.getKey();
-            final Map<ProviderId, DeviceDescriptions> devDescs = provs.getValue();
             synchronized (devDescs) {
 
                 // send device offline timestamp
@@ -1065,7 +1062,7 @@ public class GossipDeviceStore
                     }
                 }
             }
-        }
+        });
 
         return new DeviceAntiEntropyAdvertisement(self, adDevices, adPorts, adOffline);
     }

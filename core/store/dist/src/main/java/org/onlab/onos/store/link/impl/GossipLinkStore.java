@@ -674,17 +674,13 @@ public class GossipLinkStore
         Map<LinkFragmentId, Timestamp> linkTimestamps = new HashMap<>(linkDescs.size());
         Map<LinkKey, Timestamp> linkTombstones = new HashMap<>(removedLinks.size());
 
-        for (Entry<LinkKey, Map<ProviderId, Timestamped<LinkDescription>>>
-            provs : linkDescs.entrySet()) {
-
-            final LinkKey linkKey = provs.getKey();
-            final Map<ProviderId, Timestamped<LinkDescription>> linkDesc = provs.getValue();
+        linkDescs.forEach((linkKey, linkDesc) -> {
             synchronized (linkDesc) {
                 for (Map.Entry<ProviderId, Timestamped<LinkDescription>> e : linkDesc.entrySet()) {
                     linkTimestamps.put(new LinkFragmentId(linkKey, e.getKey()), e.getValue().timestamp());
                 }
             }
-        }
+        });
 
         linkTombstones.putAll(removedLinks);
 
