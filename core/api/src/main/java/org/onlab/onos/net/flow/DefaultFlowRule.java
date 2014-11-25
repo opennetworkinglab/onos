@@ -21,6 +21,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Objects;
 
 import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.DefaultGroupId;
+import org.onlab.onos.core.GroupId;
 import org.onlab.onos.net.DeviceId;
 import org.slf4j.Logger;
 
@@ -40,7 +42,7 @@ public class DefaultFlowRule implements FlowRule {
 
     private final int timeout;
     private final boolean permanent;
-    private final short groupId;
+    private final GroupId groupId;
 
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
@@ -55,19 +57,26 @@ public class DefaultFlowRule implements FlowRule {
         this.created = System.currentTimeMillis();
 
         this.appId = (short) (flowId >>> 48);
-        this.groupId = (short) ((flowId >>> 32) & 0xFFFF);
+        this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            int timeout, boolean permanent) {
-        this(deviceId, selector, treatment, priority, appId, (short) 0, timeout, permanent);
+        this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(0), timeout, permanent);
+    }
+
+    @Deprecated
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+                           TrafficTreatment treatment, int priority, ApplicationId appId,
+                           short groupId, int timeout, boolean permanent) {
+        this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(groupId), timeout, permanent);
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
-                           short groupId, int timeout, boolean permanent) {
+                           GroupId groupId, int timeout, boolean permanent) {
 
         if (priority < FlowRule.MIN_PRIORITY) {
             throw new IllegalArgumentException("Priority cannot be less than " + MIN_PRIORITY);
@@ -87,8 +96,8 @@ public class DefaultFlowRule implements FlowRule {
          * id consists of the following.
          * | appId (16 bits) | groupId (16 bits) | flowId (32 bits) |
          */
-        this.id = FlowId.valueOf((((long) this.appId) << 48) | (((long) this.groupId) << 32)
-                                         | (this.hash() & 0xffffffffL));
+        this.id = FlowId.valueOf((((long) this.appId) << 48) | (((long) this.groupId.id()) << 32)
+                | (this.hash() & 0xffffffffL));
     }
 
     public DefaultFlowRule(FlowRule rule) {
@@ -117,7 +126,7 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     @Override
-    public short groupId() {
+    public GroupId groupId() {
         return groupId;
     }
 

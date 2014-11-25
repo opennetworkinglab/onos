@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.net.flow;
 
+import org.onlab.onos.core.GroupId;
 import org.onlab.onos.net.DeviceId;
 
 /**
@@ -46,7 +47,7 @@ public interface FlowRule extends BatchOperationTarget {
      *
      * @return an groupId
      */
-    short groupId();
+    GroupId groupId();
 
     /**
      * Returns the flow rule priority given in natural order; higher numbers

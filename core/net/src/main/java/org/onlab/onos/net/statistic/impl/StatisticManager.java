@@ -357,7 +357,7 @@ public class StatisticManager implements StatisticService {
                 }
                 // FIXME: The left hand type and right hand type don't match
                 // FlowEntry.groupId() still returns a short value, not int.
-                return flowEntry.groupId() == groupId.get().id();
+                return flowEntry.groupId().equals(groupId.get());
             }
         };
     }

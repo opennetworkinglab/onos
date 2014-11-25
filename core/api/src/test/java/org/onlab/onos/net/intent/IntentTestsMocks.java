@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.onlab.onos.core.DefaultGroupId;
+import org.onlab.onos.core.GroupId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.ElementId;
 import org.onlab.onos.net.Link;
@@ -309,8 +311,8 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public short groupId() {
-            return 0;
+        public GroupId groupId() {
+            return new DefaultGroupId(0);
         }
 
         @Override
