@@ -213,6 +213,21 @@ public class DistributedFlowRuleStore
             }
         });
 
+        clusterCommunicator.addSubscriber(REMOVE_FLOW_ENTRY, new ClusterMessageHandler() {
+
+            @Override
+            public void handle(ClusterMessage message) {
+                FlowEntry rule = SERIALIZER.decode(message.payload());
+                log.trace("received get flow entry request for {}", rule);
+                FlowRuleEvent event = removeFlowRuleInternal(rule);
+                try {
+                    message.respond(SERIALIZER.encode(event));
+                } catch (IOException e) {
+                    log.error("Failed to respond back", e);
+                }
+            }
+        });
+
         replicaInfoEventListener = new InternalReplicaInfoEventListener();
 
         replicaInfoManager.addListener(replicaInfoEventListener);
@@ -222,6 +237,10 @@ public class DistributedFlowRuleStore
 
     @Deactivate
     public void deactivate() {
+        clusterCommunicator.removeSubscriber(REMOVE_FLOW_ENTRY);
+        clusterCommunicator.removeSubscriber(GET_DEVICE_FLOW_ENTRIES);
+        clusterCommunicator.removeSubscriber(GET_FLOW_ENTRY);
+        clusterCommunicator.removeSubscriber(APPLY_BATCH_FLOWS);
         replicaInfoManager.removeListener(replicaInfoEventListener);
         log.info("Stopped");
     }
@@ -507,9 +526,21 @@ public class DistributedFlowRuleStore
             return removeFlowRuleInternal(rule);
         }
 
-        log.warn("Tried to remove FlowRule {},"
-                + " while the Node was not the master.", rule);
-        return null;
+        log.trace("Forwarding removeFlowRule to {}, which is the primary (master) for device {}",
+                  replicaInfo.master().orNull(), rule.deviceId());
+
+        ClusterMessage message = new ClusterMessage(
+                  clusterService.getLocalNode().id(),
+                  REMOVE_FLOW_ENTRY,
+                  SERIALIZER.encode(rule));
+
+        try {
+            Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
+            return SERIALIZER.decode(responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
+        } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
+            // FIXME: throw a FlowStoreException
+            throw new RuntimeException(e);
+        }
     }
 
     private FlowRuleEvent removeFlowRuleInternal(FlowEntry rule) {
