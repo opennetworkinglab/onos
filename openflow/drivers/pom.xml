@@ -36,16 +36,4 @@
             <artifactId>onos-of-api</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-<!--
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-        </plugins>
--->
-    </build>
-
 </project>

@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.drivers.impl;
+package org.onlab.onos.openflow.drivers;
 
-
-
-import java.util.Collections;
-import java.util.List;
 
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.RoleState;
 import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriverFactory;
+
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A simple implementation of a driver manager that differentiates between

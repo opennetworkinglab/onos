@@ -31,7 +31,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
 import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
-import org.onlab.onos.openflow.drivers.impl.DriverManager;
+import org.onlab.onos.openflow.drivers.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
@@ -201,7 +201,7 @@ public class Controller {
     protected OpenFlowSwitchDriver getOFSwitchInstance(long dpid,
             OFDescStatsReply desc, OFVersion ofv) {
         OpenFlowSwitchDriver sw = DriverManager.getSwitch(new Dpid(dpid),
-                desc, ofv);
+                                                          desc, ofv);
         sw.setAgent(agent);
         sw.setRoleHandler(new RoleManager(sw));
         return sw;

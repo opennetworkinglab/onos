@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.drivers.impl;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+package org.onlab.onos.openflow.drivers;
 
 import org.onlab.onos.openflow.controller.Dpid;
 import org.onlab.onos.openflow.controller.RoleState;
@@ -64,6 +56,14 @@ import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.util.HexString;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Stanford University,
@@ -1138,7 +1138,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
      * @param toControllerWrite as a WRITE_ACITION instruction
      * @param toTable as a GOTO_TABLE instruction
      * @param tableToSend
-     * @throws IOException
+     * @throws java.io.IOException
      */
     @SuppressWarnings("unchecked")
     private void populateTableMissEntry(int tableToAdd, boolean toControllerNow,

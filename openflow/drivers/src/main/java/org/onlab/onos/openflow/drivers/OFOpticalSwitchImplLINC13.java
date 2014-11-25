@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.drivers.impl;
+package org.onlab.onos.openflow.drivers;
 
+import org.onlab.onos.openflow.controller.Dpid;
+import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
 import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
@@ -30,6 +30,7 @@ import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
