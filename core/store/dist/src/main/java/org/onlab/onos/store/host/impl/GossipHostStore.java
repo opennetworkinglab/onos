@@ -98,10 +98,13 @@ public class GossipHostStore
 
     private final Logger log = getLogger(getClass());
 
-    // Host inventory
-    private final Map<HostId, StoredHost> hosts = new ConcurrentHashMap<>(2000000, 0.75f, 16);
+    // TODO: make this configurable
+    private int hostsExpected = 2000000;
 
-    private final Map<HostId, Timestamped<Host>> removedHosts = new ConcurrentHashMap<>(2000000, 0.75f, 16);
+    // Host inventory
+    private final Map<HostId, StoredHost> hosts = new ConcurrentHashMap<>(hostsExpected, 0.75f, 16);
+
+    private final Map<HostId, Timestamped<Host>> removedHosts = new ConcurrentHashMap<>(hostsExpected, 0.75f, 16);
 
     // Hosts tracked by their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
@@ -539,17 +542,14 @@ public class GossipHostStore
         Map<HostFragmentId, Timestamp> timestamps = new HashMap<>(hosts.size());
         Map<HostId, Timestamp> tombstones = new HashMap<>(removedHosts.size());
 
-        for (Entry<HostId, StoredHost> e : hosts.entrySet()) {
-
-            final HostId hostId = e.getKey();
-            final StoredHost hostInfo = e.getValue();
+        hosts.forEach((hostId, hostInfo) -> {
             final ProviderId providerId = hostInfo.providerId();
             timestamps.put(new HostFragmentId(hostId, providerId), hostInfo.timestamp());
-        }
+        });
 
-        for (Entry<HostId, Timestamped<Host>> e : removedHosts.entrySet()) {
-            tombstones.put(e.getKey(), e.getValue().timestamp());
-        }
+        removedHosts.forEach((hostId, timestamped) -> {
+            tombstones.put(hostId, timestamped.timestamp());
+        });
 
         return new HostAntiEntropyAdvertisement(self, timestamps, tombstones);
     }
