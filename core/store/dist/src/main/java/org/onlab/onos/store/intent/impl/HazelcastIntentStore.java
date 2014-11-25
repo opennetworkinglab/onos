@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.store.intent.impl;
 
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.Timer.Context;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.core.EntryAdapter;
@@ -26,7 +28,11 @@ import com.hazelcast.core.Member;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.metrics.MetricsService;
+import org.onlab.onos.core.MetricsHelper;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentId;
@@ -48,12 +54,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.metrics.MetricsUtil.*;
 
 @Component(immediate = true, enabled = false)
 @Service
 public class HazelcastIntentStore
         extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>
-        implements IntentStore {
+        implements IntentStore, MetricsHelper {
 
     /** Valid parking state, which can transition to INSTALLED. */
     private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, INSTALLED, FAILED);
@@ -72,12 +79,41 @@ public class HazelcastIntentStore
 
     private SMap<IntentId, List<Intent>> installable;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MetricsService metricsService;
+
     // TODO make this configurable
     private boolean onlyLogTransitionError = true;
+
+    private Timer createIntentTimer;
+    private Timer removeIntentTimer;
+    private Timer setInstallableIntentsTimer;
+    private Timer getInstallableIntentsTimer;
+    private Timer removeInstalledIntentsTimer;
+    private Timer setStateTimer;
+    private Timer getIntentCountTimer;
+    private Timer getIntentsTimer;
+    private Timer getIntentTimer;
+    private Timer getIntentStateTimer;
+
+    private Timer createResponseTimer(String methodName) {
+        return createTimer("IntentStore", methodName, "responseTime");
+    }
 
     @Override
     @Activate
     public void activate() {
+        createIntentTimer = createResponseTimer("createIntent");
+        removeIntentTimer = createResponseTimer("removeIntent");
+        setInstallableIntentsTimer = createResponseTimer("setInstallableIntents");
+        getInstallableIntentsTimer = createResponseTimer("getInstallableIntents");
+        removeInstalledIntentsTimer = createResponseTimer("removeInstalledIntents");
+        setStateTimer = createResponseTimer("setState");
+        getIntentCountTimer = createResponseTimer("getIntentCount");
+        getIntentsTimer = createResponseTimer("getIntents");
+        getIntentTimer = createResponseTimer("getIntent");
+        getIntentStateTimer = createResponseTimer("getIntentState");
+
         // FIXME: We need a way to add serializer for intents which has been plugged-in.
         // As a short term workaround, relax Kryo config to
         // registrationRequired=false
@@ -120,53 +156,88 @@ public class HazelcastIntentStore
     }
 
     @Override
+    public MetricsService metricsService() {
+        return metricsService;
+    }
+
+    @Override
     public IntentEvent createIntent(Intent intent) {
-        Intent existing = intents.putIfAbsent(intent.id(), intent);
-        if (existing != null) {
-            // duplicate, ignore
-            return null;
-        } else {
-            return this.setState(intent, IntentState.SUBMITTED);
+        Context timer = startTimer(createIntentTimer);
+        try {
+            Intent existing = intents.putIfAbsent(intent.id(), intent);
+            if (existing != null) {
+                // duplicate, ignore
+                return null;
+            } else {
+                return this.setState(intent, IntentState.SUBMITTED);
+            }
+        } finally {
+            stopTimer(timer);
         }
     }
 
     @Override
     public IntentEvent removeIntent(IntentId intentId) {
-        Intent intent = intents.remove(intentId);
-        installable.remove(intentId);
-        if (intent == null) {
-            // was already removed
-            return null;
+        Context timer = startTimer(removeIntentTimer);
+        try {
+            Intent intent = intents.remove(intentId);
+            installable.remove(intentId);
+            if (intent == null) {
+                // was already removed
+                return null;
+            }
+            IntentEvent event = this.setState(intent, WITHDRAWN);
+            states.remove(intentId);
+            transientStates.remove(intentId);
+            // TODO: Should we callremoveInstalledIntents if this Intent was
+            return event;
+        } finally {
+            stopTimer(timer);
         }
-        IntentEvent event = this.setState(intent, WITHDRAWN);
-        states.remove(intentId);
-        transientStates.remove(intentId);
-        // TODO: Should we callremoveInstalledIntents if this Intent was
-        return event;
     }
 
     @Override
     public long getIntentCount() {
-        return intents.size();
+        Context timer = startTimer(getIntentCountTimer);
+        try {
+            return intents.size();
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     @Override
     public Iterable<Intent> getIntents() {
-        return ImmutableSet.copyOf(intents.values());
+        Context timer = startTimer(getIntentsTimer);
+        try {
+            return ImmutableSet.copyOf(intents.values());
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     @Override
     public Intent getIntent(IntentId intentId) {
-        return intents.get(intentId);
+        Context timer = startTimer(getIntentTimer);
+        try {
+            return intents.get(intentId);
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     @Override
     public IntentState getIntentState(IntentId id) {
-        final IntentState localState = transientStates.get(id);
-        if (localState != null) {
-            return localState;
+        Context timer = startTimer(getIntentStateTimer);
+        try {
+            final IntentState localState = transientStates.get(id);
+            if (localState != null) {
+                return localState;
+            }
+            return states.get(id);
+        } finally {
+            stopTimer(timer);
         }
-        return states.get(id);
     }
 
     private void verify(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
@@ -181,76 +252,97 @@ public class HazelcastIntentStore
 
     @Override
     public IntentEvent setState(Intent intent, IntentState state) {
-        final IntentId id = intent.id();
-        IntentEvent.Type type = null;
-        final IntentState prevParking;
-        boolean transientStateChangeOnly = false;
+        Context timer = startTimer(setStateTimer);
+        try {
 
-        // parking state transition
-        switch (state) {
-        case SUBMITTED:
-            prevParking = states.get(id);
-            if (prevParking == null) {
-                IntentState existing = states.putIfAbsent(id, SUBMITTED);
-                verify(existing == null, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
-            } else {
-                verify(prevParking == WITHDRAWN,
-                        "Illegal state transition attempted from %s to SUBMITTED",
-                        prevParking);
-                boolean updated = states.replace(id, prevParking, SUBMITTED);
-                verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+            final IntentId id = intent.id();
+            IntentEvent.Type type = null;
+            final IntentState prevParking;
+            boolean transientStateChangeOnly = false;
+
+            // parking state transition
+            switch (state) {
+            case SUBMITTED:
+                prevParking = states.get(id);
+                if (prevParking == null) {
+                    IntentState existing = states.putIfAbsent(id, SUBMITTED);
+                    verify(existing == null, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                } else {
+                    verify(prevParking == WITHDRAWN,
+                            "Illegal state transition attempted from %s to SUBMITTED",
+                            prevParking);
+                    boolean updated = states.replace(id, prevParking, SUBMITTED);
+                    verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                }
+                type = IntentEvent.Type.SUBMITTED;
+                break;
+            case INSTALLED:
+                prevParking = states.replace(id, INSTALLED);
+                verify(PRE_INSTALLED.contains(prevParking),
+                       "Illegal state transition attempted from %s to INSTALLED",
+                       prevParking);
+                type = IntentEvent.Type.INSTALLED;
+                break;
+            case FAILED:
+                prevParking = states.replace(id, FAILED);
+                type = IntentEvent.Type.FAILED;
+                break;
+            case WITHDRAWN:
+                prevParking = states.replace(id, WITHDRAWN);
+                verify(PRE_WITHDRAWN.contains(prevParking),
+                       "Illegal state transition attempted from %s to WITHDRAWN",
+                       prevParking);
+                type = IntentEvent.Type.WITHDRAWN;
+                break;
+            default:
+                transientStateChangeOnly = true;
+                prevParking = null;
+                break;
             }
-            type = IntentEvent.Type.SUBMITTED;
-            break;
-        case INSTALLED:
-            prevParking = states.replace(id, INSTALLED);
-            verify(PRE_INSTALLED.contains(prevParking),
-                   "Illegal state transition attempted from %s to INSTALLED",
-                   prevParking);
-            type = IntentEvent.Type.INSTALLED;
-            break;
-        case FAILED:
-            prevParking = states.replace(id, FAILED);
-            type = IntentEvent.Type.FAILED;
-            break;
-        case WITHDRAWN:
-            prevParking = states.replace(id, WITHDRAWN);
-            verify(PRE_WITHDRAWN.contains(prevParking),
-                   "Illegal state transition attempted from %s to WITHDRAWN",
-                   prevParking);
-            type = IntentEvent.Type.WITHDRAWN;
-            break;
-        default:
-            transientStateChangeOnly = true;
-            prevParking = null;
-            break;
-        }
-        if (!transientStateChangeOnly) {
-            log.debug("Parking State change: {} {}=>{}",  id, prevParking, state);
-        }
-        // Update instance local state, which includes non-parking state transition
-        final IntentState prevTransient = transientStates.put(id, state);
-        log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
+            if (!transientStateChangeOnly) {
+                log.debug("Parking State change: {} {}=>{}",  id, prevParking, state);
+            }
+            // Update instance local state, which includes non-parking state transition
+            final IntentState prevTransient = transientStates.put(id, state);
+            log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
 
-        if (type == null) {
-            return null;
+            if (type == null) {
+                return null;
+            }
+            return new IntentEvent(type, intent);
+        } finally {
+            stopTimer(timer);
         }
-        return new IntentEvent(type, intent);
     }
 
     @Override
     public void setInstallableIntents(IntentId intentId, List<Intent> result) {
-        installable.put(intentId, result);
+        Context timer = startTimer(setInstallableIntentsTimer);
+        try {
+            installable.put(intentId, result);
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     @Override
     public List<Intent> getInstallableIntents(IntentId intentId) {
-        return installable.get(intentId);
+        Context timer = startTimer(getInstallableIntentsTimer);
+        try {
+            return installable.get(intentId);
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     @Override
     public void removeInstalledIntents(IntentId intentId) {
-        installable.remove(intentId);
+        Context timer = startTimer(removeInstalledIntentsTimer);
+        try {
+            installable.remove(intentId);
+        } finally {
+            stopTimer(timer);
+        }
     }
 
     public final class RemoteIntentStateListener extends EntryAdapter<IntentId, IntentState> {
