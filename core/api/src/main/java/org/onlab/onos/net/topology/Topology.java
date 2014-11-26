@@ -22,15 +22,21 @@ import org.onlab.onos.net.Provided;
  */
 public interface Topology extends Provided {
 
-    // FIXME: Following is not true right now. It is actually System.nanoTime(),
-    // which has no relation to epoch time, wall clock, etc.
     /**
-     * Returns the time, specified in milliseconds since start of epoch,
-     * when the topology became active and made available.
+     * Returns the time, specified in system nanos of when the topology
+     * became available.
      *
-     * @return time in milliseconds since start of epoch
+     * @return time in system nanos
      */
     long time();
+
+    /**
+     * Returns the time, specified in system nanos of how long the topology
+     * took to compute.
+     *
+     * @return elapsed time in system nanos
+     */
+    long computeCost();
 
     /**
      * Returns the number of SCCs (strongly connected components) in the

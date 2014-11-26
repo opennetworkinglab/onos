@@ -65,6 +65,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
             new TarjanGraphSearch<>();
 
     private final long time;
+    private final long computeCost;
     private final TopologyGraph graph;
 
     private final SCCResult<TopologyVertex, TopologyEdge> clusterResults;
@@ -104,11 +105,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         this.broadcastSets = buildBroadcastSets();
         this.infrastructurePoints = findInfrastructurePoints();
+        this.computeCost = Math.max(0, System.nanoTime() - time);
     }
 
     @Override
     public long time() {
         return time;
+    }
+
+    @Override
+    public long computeCost() {
+        return computeCost;
     }
 
     @Override
@@ -453,6 +460,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     public String toString() {
         return toStringHelper(this)
                 .add("time", time)
+                .add("computeCost", computeCost)
                 .add("clusters", clusterCount())
                 .add("devices", deviceCount())
                 .add("links", linkCount())

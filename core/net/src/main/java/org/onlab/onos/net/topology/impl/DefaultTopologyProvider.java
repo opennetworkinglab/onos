@@ -66,9 +66,9 @@ public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
     private static final int MAX_THREADS = 8;
-    private static final int DEFAULT_MAX_EVENTS = 200;
-    private static final int DEFAULT_MAX_BATCH_MS = 60;
-    private static final int DEFAULT_MAX_IDLE_MS = 30;
+    private static final int DEFAULT_MAX_EVENTS = 1000;
+    private static final int DEFAULT_MAX_IDLE_MS = 10;
+    private static final int DEFAULT_MAX_BATCH_MS = 50;
 
     // FIXME: Replace with a system-wide timer instance;
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
@@ -116,14 +116,14 @@ public class DefaultTopologyProvider extends AbstractProvider
     @Activate
     public synchronized void activate(ComponentContext context) {
         executor = newFixedThreadPool(MAX_THREADS, namedThreads("topo-build-%d"));
+        accumulator = new TopologyChangeAccumulator();
+        logConfig("Configured");
+
         modified(context);
 
         providerService = providerRegistry.register(this);
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
-
-        log.info("Configured with maxEvents = {}; maxBatchMs = {}; maxIdleMs = {}",
-                 maxEvents, maxBatchMs, maxIdleMs);
 
         isStarted = true;
         triggerRecompute();
@@ -149,6 +149,7 @@ public class DefaultTopologyProvider extends AbstractProvider
     public void modified(ComponentContext context) {
         if (context == null) {
             accumulator = new TopologyChangeAccumulator();
+            logConfig("Reconfigured");
             return;
         }
 
@@ -163,6 +164,7 @@ public class DefaultTopologyProvider extends AbstractProvider
 
             s = (String) properties.get("maxIdleMs");
             newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s);
+
         } catch (Exception e) {
             newMaxEvents = DEFAULT_MAX_EVENTS;
             newMaxBatchMs = DEFAULT_MAX_BATCH_MS;
@@ -174,9 +176,13 @@ public class DefaultTopologyProvider extends AbstractProvider
             maxBatchMs = newMaxBatchMs;
             maxIdleMs = newMaxIdleMs;
             accumulator = maxEvents > 1 ? new TopologyChangeAccumulator() : null;
-            log.info("Reconfigured with maxEvents = {}; maxBatchMs = {}; maxIdleMs = {}",
-                     maxEvents, maxBatchMs, maxIdleMs);
+            logConfig("Reconfigured");
         }
+    }
+
+    private void logConfig(String prefix) {
+        log.info("{} with maxEvents = {}; maxBatchMs = {}; maxIdleMs = {}; accumulator={}",
+                 prefix, maxEvents, maxBatchMs, maxIdleMs, accumulator != null);
     }
 
 
