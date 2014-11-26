@@ -118,7 +118,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     private volatile LeaderElectEvent myLeaderEvent = null;
 
     // TODO make this configurable
-    private int maxLogSizeBytes = 128 * (1024 ^ 2);
+    private int maxLogSizeBytes = 128 * (1024 * 1024);
 
     // TODO make this configurable
     private long electionTimeoutMs = 5000; // CopyCat default: 2000
