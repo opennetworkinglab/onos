@@ -1,6 +1,7 @@
 package org.onlab.onos.store.service;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 import org.onlab.onos.cluster.ControllerNode;
@@ -67,4 +68,11 @@ public interface DatabaseAdminService {
      * @return Copied collection of members forming default Tablet.
      */
     public Collection<ControllerNode> listMembers();
+
+    /**
+     * Returns the current Leader of the default Tablet.
+     *
+     * @return leader node
+     */
+    public Optional<ControllerNode> leader();
 }

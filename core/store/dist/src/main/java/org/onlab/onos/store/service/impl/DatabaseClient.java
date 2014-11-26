@@ -151,4 +151,8 @@ public class DatabaseClient implements ClusterMessageHandler {
     public Map<String, VersionedValue> getAll(String tableName) {
         return submit("getAll", tableName);
     }
+
+    Member getCurrentLeader() {
+        return currentLeader;
+    }
 }

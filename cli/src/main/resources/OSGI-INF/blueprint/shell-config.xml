@@ -27,6 +27,11 @@
         <command>
             <action class="org.onlab.onos.cli.TabletMemberCommand"/>
         </command>
+
+        <command>
+            <action class="org.onlab.onos.cli.TabletLeaderCommand"/>
+        </command>
+
         <command>
             <action class="org.onlab.onos.cli.TabletAddCommand"/>
             <completers>

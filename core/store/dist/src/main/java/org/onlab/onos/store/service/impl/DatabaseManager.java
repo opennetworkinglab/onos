@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -38,7 +39,6 @@ import org.onlab.onos.cluster.ClusterEventListener;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.MessageSubject;
@@ -433,6 +433,18 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
     }
 
+    @Override
+    public Optional<ControllerNode> leader() {
+        if (copycat != null) {
+            if (copycat.isLeader()) {
+                return Optional.of(clusterService.getLocalNode());
+            }
+            Member leader = copycat.cluster().remoteMember(copycat.leader());
+            return Optional.ofNullable(getNodeIdFromMember(leader));
+        }
+        return Optional.ofNullable(getNodeIdFromMember(client.getCurrentLeader()));
+    }
+
     private final class LeaderAdvertiser implements Runnable {
 
         @Override
@@ -549,28 +561,28 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
         }
         Set<ControllerNode> members = new HashSet<>();
         for (Member member : copycat.cluster().members()) {
-            if (member instanceof TcpMember) {
-                final TcpMember tcpMember = (TcpMember) member;
-                // TODO assuming tcpMember#host to be IP address,
-                // but if not lookup DNS, etc. first
-                IpAddress ip = IpAddress.valueOf(tcpMember.host());
-                int tcpPort = tcpMember.port();
-                NodeId id = getNodeIdFromIp(ip, tcpPort);
-                if (id == null) {
-                    log.info("No NodeId found for {}:{}", ip, tcpPort);
-                    continue;
-                }
-                members.add(new DefaultControllerNode(id, ip, tcpPort));
+            ControllerNode node = getNodeIdFromMember(member);
+            if (node == null) {
+                log.info("No Node found for {}", member);
+                continue;
             }
+            members.add(node);
         }
         return members;
     }
 
-    private NodeId getNodeIdFromIp(IpAddress ip, int tcpPort) {
-        for (ControllerNode node : clusterService.getNodes()) {
-            if (node.ip().equals(ip) &&
-                node.tcpPort() == tcpPort) {
-                return node.id();
+    private ControllerNode getNodeIdFromMember(Member member) {
+        if (member instanceof TcpMember) {
+            final TcpMember tcpMember = (TcpMember) member;
+            // TODO assuming tcpMember#host to be IP address,
+            // but if not lookup DNS, etc. first
+            IpAddress ip = IpAddress.valueOf(tcpMember.host());
+            int tcpPort = tcpMember.port();
+            for (ControllerNode node : clusterService.getNodes()) {
+                if (node.ip().equals(ip) &&
+                    node.tcpPort() == tcpPort) {
+                    return node;
+                }
             }
         }
         return null;
