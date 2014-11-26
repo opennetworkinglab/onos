@@ -153,6 +153,7 @@ public final class KryoNamespaces {
             .register(new ArraysAsListSerializer(), Arrays.asList().getClass())
             .register(Collections.singletonList(1).getClass())
             .register(Duration.class)
+            .register(Collections.emptySet().getClass())
             .build();
 
     /**

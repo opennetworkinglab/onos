@@ -72,6 +72,7 @@ import org.onlab.util.KryoNamespace;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -342,6 +343,10 @@ public class KryoSerializerTest {
         testSerializedEquals(new DefaultGroupId(99));
     }
 
+    @Test
+    public void testEmptySet() {
+        testSerializedEquals(Collections.emptySet());
+    }
 
     @Test
     public void testAnnotations() {
