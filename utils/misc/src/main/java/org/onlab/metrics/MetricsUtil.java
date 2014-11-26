@@ -30,7 +30,7 @@ public final class MetricsUtil {
      * @param timer timer to start
      * @return timing context, if timer was not null
      */
-    public static final Context startTimer(Timer timer) {
+    public static Context startTimer(Timer timer) {
         if (timer != null) {
             return timer.time();
         }
@@ -45,7 +45,7 @@ public final class MetricsUtil {
      *
      * @param context timing context to stop, if not null.
      */
-    public static final void stopTimer(Context context) {
+    public static void stopTimer(Context context) {
         if (context != null) {
             context.stop();
         }

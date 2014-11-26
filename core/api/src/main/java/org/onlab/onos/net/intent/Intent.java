@@ -122,7 +122,7 @@ public abstract class Intent implements BatchOperationTarget {
      * Note: A generator cannot be bound if there is already a generator bound.
      * @param newIdGenerator id generator
      */
-    public static final void bindIdGenerator(IdGenerator newIdGenerator) {
+    public static void bindIdGenerator(IdGenerator newIdGenerator) {
         checkState(idGenerator == null, "Id generator is already bound.");
         idGenerator = checkNotNull(newIdGenerator);
     }
@@ -133,7 +133,7 @@ public abstract class Intent implements BatchOperationTarget {
      * Note: The caller must provide the old id generator to succeed.
      * @param oldIdGenerator the current id generator
      */
-    public static final void unbindIdGenerator(IdGenerator oldIdGenerator) {
+    public static void unbindIdGenerator(IdGenerator oldIdGenerator) {
         if (Objects.equals(idGenerator, oldIdGenerator)) {
             idGenerator = null;
         }
