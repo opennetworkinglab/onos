@@ -37,7 +37,7 @@ import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.device.DeviceServiceAdapter;
 import org.onlab.onos.net.flow.TrafficTreatment;
 import org.onlab.onos.net.link.LinkDescription;
 import org.onlab.onos.net.link.LinkProvider;
@@ -376,7 +376,7 @@ public class LLDPLinkProviderTest {
         }
     }
 
-    private class TestDeviceService implements DeviceService {
+    private class TestDeviceService extends DeviceServiceAdapter {
 
         private Map<DeviceId, Device> devices = new HashMap<>();
         private final ArrayListMultimap<DeviceId, Port> ports =
@@ -408,7 +408,7 @@ public class LLDPLinkProviderTest {
 
         @Override
         public Iterable<Device> getDevices() {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         @Override

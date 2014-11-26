@@ -154,6 +154,11 @@ public class DefaultTopologyProviderTest {
                                    device("e"), device("f"));
         }
 
+        @Override
+        public Iterable<Device> getAvailableDevices() {
+            return getDevices();
+        }
+
         void post(DeviceEvent event) {
             eventDispatcher.post(event);
         }
@@ -172,6 +177,11 @@ public class DefaultTopologyProviderTest {
                                    link("c", 2, "d", 1), link("d", 1, "c", 2),
                                    link("d", 2, "a", 2), link("a", 2, "d", 2),
                                    link("e", 1, "f", 1), link("f", 1, "e", 1));
+        }
+
+        @Override
+        public Iterable<Link> getActiveLinks() {
+            return getLinks();
         }
 
         void post(LinkEvent event) {

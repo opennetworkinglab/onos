@@ -41,6 +41,13 @@ public interface LinkService {
     Iterable<Link> getLinks();
 
     /**
+     * Returns a collection of all active infrastructure links.
+     *
+     * @return all infrastructure links
+     */
+    Iterable<Link> getActiveLinks();
+
+    /**
      * Returns set of all infrastructure links leading to and from the
      * specified device.
      *

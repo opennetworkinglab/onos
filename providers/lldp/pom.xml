@@ -32,4 +32,12 @@
 
     <description>ONOS LLDP Link Discovery</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.onlab.onos</groupId>
+            <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

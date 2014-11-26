@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.store.trivial.impl;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -120,6 +121,18 @@ public class SimpleDeviceStore
     @Override
     public Iterable<Device> getDevices() {
         return Collections.unmodifiableCollection(devices.values());
+    }
+
+    @Override
+    public Iterable<Device> getAvailableDevices() {
+        return FluentIterable.from(getDevices())
+                .filter(new Predicate<Device>() {
+
+                    @Override
+                    public boolean apply(Device input) {
+                        return isAvailable(input.id());
+                    }
+                });
     }
 
     @Override

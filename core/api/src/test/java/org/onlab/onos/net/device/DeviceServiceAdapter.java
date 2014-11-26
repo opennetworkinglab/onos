@@ -21,6 +21,9 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+
 import java.util.List;
 
 /**
@@ -35,6 +38,18 @@ public class DeviceServiceAdapter implements DeviceService {
     @Override
     public Iterable<Device> getDevices() {
         return null;
+    }
+
+    @Override
+    public Iterable<Device> getAvailableDevices() {
+        return FluentIterable.from(getDevices())
+                .filter(new Predicate<Device>() {
+
+                    @Override
+                    public boolean apply(Device input) {
+                        return isAvailable(input.id());
+                    }
+                });
     }
 
     @Override

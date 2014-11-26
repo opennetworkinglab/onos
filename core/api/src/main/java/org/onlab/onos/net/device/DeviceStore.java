@@ -44,6 +44,15 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     Iterable<Device> getDevices();
 
     /**
+     * Returns an iterable collection of all devices currently available to the system.
+     *
+     * @return device collection
+     */
+    Iterable<Device> getAvailableDevices();
+
+
+
+    /**
      * Returns the device with the specified identifier.
      *
      * @param deviceId device identifier

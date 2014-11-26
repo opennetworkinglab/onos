@@ -31,6 +31,7 @@ import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Link.State;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceListener;
@@ -49,6 +50,8 @@ import org.onlab.onos.net.provider.AbstractProviderRegistry;
 import org.onlab.onos.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 
 /**
@@ -106,6 +109,18 @@ public class LinkManager
     @Override
     public Iterable<Link> getLinks() {
         return store.getLinks();
+    }
+
+    @Override
+    public Iterable<Link> getActiveLinks() {
+        return FluentIterable.from(getLinks())
+                .filter(new Predicate<Link>() {
+
+                    @Override
+                    public boolean apply(Link input) {
+                        return input.state() == State.ACTIVE;
+                    }
+                });
     }
 
     @Override

@@ -149,6 +149,11 @@ public class DeviceManager
     }
 
     @Override
+    public Iterable<Device> getAvailableDevices() {
+        return store.getAvailableDevices();
+    }
+
+    @Override
     public Device getDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDevice(deviceId);

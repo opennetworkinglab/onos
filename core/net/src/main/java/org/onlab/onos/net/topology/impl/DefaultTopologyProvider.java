@@ -16,6 +16,7 @@
 package org.onlab.onos.net.topology.impl;
 
 import com.google.common.collect.ImmutableList;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -209,8 +210,8 @@ public class DefaultTopologyProvider extends AbstractProvider
         if (isStarted) {
             GraphDescription desc =
                     new DefaultGraphDescription(System.nanoTime(),
-                                                deviceService.getDevices(),
-                                                linkService.getLinks());
+                                                deviceService.getAvailableDevices(),
+                                                linkService.getActiveLinks());
             providerService.topologyChanged(desc, reasons);
         }
     }

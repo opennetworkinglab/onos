@@ -39,7 +39,7 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.device.DeviceServiceAdapter;
 import org.onlab.onos.net.flow.instructions.Instruction;
 import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
 import org.onlab.onos.net.host.HostProvider;
@@ -189,7 +189,7 @@ public class HostMonitorTest {
         }
     }
 
-    class TestDeviceService implements DeviceService {
+    class TestDeviceService extends DeviceServiceAdapter {
 
         List<Device> devices = Lists.newArrayList();
         Multimap<DeviceId, Port> devicePorts = HashMultimap.create();

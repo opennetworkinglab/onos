@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
+import org.onlab.onos.net.device.DeviceServiceAdapter;
 import org.onlab.onos.net.flow.BatchOperation;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
 import org.onlab.onos.net.flow.DefaultFlowEntry;
@@ -461,7 +462,7 @@ public class FlowRuleManagerTest {
         }
     }
 
-    private static class TestDeviceService implements DeviceService {
+    private static class TestDeviceService extends DeviceServiceAdapter {
 
         @Override
         public int getDeviceCount() {

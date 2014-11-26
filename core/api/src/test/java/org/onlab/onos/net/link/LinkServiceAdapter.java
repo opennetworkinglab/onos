@@ -20,6 +20,10 @@ import java.util.Set;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.Link.State;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 
 /**
  * Test adapter for link service.
@@ -33,6 +37,18 @@ public class LinkServiceAdapter implements LinkService {
     @Override
     public Iterable<Link> getLinks() {
         return null;
+    }
+
+    @Override
+    public Iterable<Link> getActiveLinks() {
+        return FluentIterable.from(getLinks())
+                .filter(new Predicate<Link>() {
+
+                    @Override
+                    public boolean apply(Link input) {
+                        return input.state() == State.ACTIVE;
+                    }
+                });
     }
 
     @Override
