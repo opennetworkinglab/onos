@@ -105,6 +105,12 @@ public class IntentSynchronizer {
             }
 
             //
+            // NOTE: We don't withdraw the intents during shutdown, because
+            // it creates flux in the data plane during switchover.
+            //
+
+            /*
+            //
             // Build a batch operation to withdraw all intents from this
             // application.
             //
@@ -136,6 +142,7 @@ public class IntentSynchronizer {
             peerIntents.clear();
             routeIntents.clear();
             log.debug("SDN-IP Intent Synchronizer shutdown completed");
+            */
         }
     }
 
