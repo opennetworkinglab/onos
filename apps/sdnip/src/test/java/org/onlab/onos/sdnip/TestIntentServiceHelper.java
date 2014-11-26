@@ -48,7 +48,7 @@ public final class TestIntentServiceHelper {
     }
 
     /*
-     * EasyMock matcher that matches {@link Inten} but
+     * EasyMock matcher that matches {@link Intent} but
      * ignores the {@link IntentId} when matching.
      * <p/>
      * The normal intent equals method tests that the intent IDs are equal,

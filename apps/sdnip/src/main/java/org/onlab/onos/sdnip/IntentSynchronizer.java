@@ -316,6 +316,12 @@ public class IntentSynchronizer {
                 }
                 fetchedIntents.put(new IntentKey(intent), intent);
             }
+            if (log.isDebugEnabled()) {
+                for (Intent intent: fetchedIntents.values()) {
+                    log.debug("SDN-IP Intent Synchronizer: fetched intent: {}",
+                              intent);
+                }
+            }
 
             computeIntentsDelta(localIntents, fetchedIntents,
                                 storeInMemoryIntents, addIntents,
@@ -370,6 +376,8 @@ public class IntentSynchronizer {
                       intent);
             }
             if (!isElectedLeader) {
+                log.debug("SDN-IP Intent Synchronizer: cannot withdraw intents: " +
+                          "not elected leader anymore");
                 isActivatedLeader = false;
                 return;
             }
@@ -380,14 +388,16 @@ public class IntentSynchronizer {
             builder = IntentOperations.builder();
             for (Intent intent : addIntents) {
                 builder.addSubmitOperation(intent);
+                log.debug("SDN-IP Intent Synchronizer: submitting intent: {}",
+                          intent);
             }
             if (!isElectedLeader) {
+                log.debug("SDN-IP Intent Synchronizer: cannot submit intents: " +
+                          "not elected leader anymore");
                 isActivatedLeader = false;
                 return;
             }
             intentOperations = builder.build();
-            log.debug("SDN-IP Intent Synchronizer: submitting intents: {}",
-                      intentOperations);
             intentService.execute(intentOperations);
 
             if (isElectedLeader) {
