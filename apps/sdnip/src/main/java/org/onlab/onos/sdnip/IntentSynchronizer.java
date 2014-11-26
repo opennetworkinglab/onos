@@ -126,7 +126,8 @@ public class IntentSynchronizer {
                 // Skip the intents that are already withdrawn
                 IntentState intentState =
                     intentService.getIntentState(intent.id());
-                if (intentState.equals(IntentState.WITHDRAWING) ||
+                if ((intentState == null) ||
+                    intentState.equals(IntentState.WITHDRAWING) ||
                     intentState.equals(IntentState.WITHDRAWN)) {
                     continue;
                 }
@@ -461,7 +462,8 @@ public class IntentSynchronizer {
 
             IntentState state =
                 intentService.getIntentState(fetchedIntent.id());
-            if (state == IntentState.WITHDRAWING ||
+            if (state == null ||
+                state == IntentState.WITHDRAWING ||
                 state == IntentState.WITHDRAWN) {
                 // The intent has been withdrawn but according to our route
                 // table it should be installed. We'll reinstall it.
@@ -482,7 +484,8 @@ public class IntentSynchronizer {
 
             IntentState state =
                 intentService.getIntentState(fetchedIntent.id());
-            if (state == IntentState.WITHDRAWING ||
+            if (state == null ||
+                state == IntentState.WITHDRAWING ||
                 state == IntentState.WITHDRAWN) {
                 // Nothing to do. The intent has been already withdrawn.
                 continue;

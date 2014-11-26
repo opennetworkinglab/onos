@@ -126,6 +126,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             // Collect the summary for each intent type intents
             for (Intent intent : intents) {
                 IntentState intentState = service.getIntentState(intent.id());
+                if (intentState == null) {
+                    continue;
+                }
 
                 // Update the summary for all Intents
                 summaryAll.update(intentState);
