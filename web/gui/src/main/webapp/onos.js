@@ -825,6 +825,8 @@
                     return noPx('height');
                 }
 
+                function noop() {}
+
                 fp = {
                     id: id,
                     el: el,
@@ -833,17 +835,19 @@
                         return on;
                     },
 
-                    show: function () {
-                        console.log('show pane: ' + id);
+                    show: function (cb) {
+                        var endCb = isF(cb) || noop;
                         on = true;
                         el.transition().duration(750)
+                            .each('end', endCb)
                             .style(cfg.side, pxShow())
                             .style('opacity', 1);
                     },
-                    hide: function () {
-                        console.log('hide pane: ' + id);
+                    hide: function (cb) {
+                        var endCb = isF(cb) || noop;
                         on = false;
                         el.transition().duration(750)
+                            .each('end', endCb)
                             .style(cfg.side, pxHide())
                             .style('opacity', 0);
                     },

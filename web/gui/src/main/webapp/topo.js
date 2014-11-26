@@ -770,13 +770,13 @@
     function showSummary(data) {
         evTrace(data);
         populateSummary(data.payload);
-        summaryPane.show();
+        showSummaryPane();
     }
 
     function showDetails(data) {
         evTrace(data);
         populateDetails(data.payload);
-        detailPane.show();
+        showDetailPane();
     }
 
     function showTraffic(data) {
@@ -901,8 +901,38 @@
 
     function cancelSummary() {
         sendMessage('cancelSummary', {});
-        summaryPane.hide();
+        hideSummaryPane();
     }
+
+    // encapsulate interaction between summary and details panes
+    function showSummaryPane() {
+        if (detailPane.isVisible()) {
+            detailPane.down(summaryPane.show);
+        } else {
+            summaryPane.show();
+        }
+    }
+
+    function hideSummaryPane() {
+        summaryPane.hide(function () {
+            if (detailPane.isVisible()) {
+                detailPane.up();
+            }
+        });
+    }
+
+    function showDetailPane() {
+        if (summaryPane.isVisible()) {
+            detailPane.down(detailPane.show);
+        } else {
+            detailPane.up(detailPane.show);
+        }
+    }
+
+    function hideDetailPane() {
+        detailPane.hide();
+    }
+
 
     // request details for the selected element
     // invoked from selection of a single node.
@@ -2191,7 +2221,7 @@
     }
 
     function emptySelect() {
-        detailPane.hide();
+        hideDetailPane();
         cancelTraffic();
     }
 
@@ -2697,6 +2727,30 @@
         return 'translate('+((w-bdim)*.4)+','+((h-bdim)*.1)+')';
     }
 
+    function isF(f) { return $.isFunction(f) ? f : null; }
+    function noop() {}
+
+    function augmentDetailPane() {
+        var dp = detailPane;
+        dp.ypos = { up: 64, down: 320, current: 320};
+
+        dp._move = function (y, cb) {
+            var endCb = isF(cb) || noop,
+                yp = dp.ypos;
+            if (yp.current !== y) {
+                yp.current = y;
+                dp.el.transition().duration(300)
+                    .each('end', endCb)
+                    .style('top', yp.current + 'px');
+            } else {
+                endCb();
+            }
+        };
+
+        dp.down = function (cb) { dp._move(dp.ypos.down, cb); };
+        dp.up = function (cb) { dp._move(dp.ypos.up, cb); };
+    }
+
     // ==============================
     // View registration
 
@@ -2710,6 +2764,7 @@
 
     summaryPane = onos.ui.addFloatingPanel('topo-summary');
     detailPane = onos.ui.addFloatingPanel('topo-detail');
+    augmentDetailPane();
     oiBox = onos.ui.addFloatingPanel('topo-oibox', 'TL');
     oiBox.width(20);
 
