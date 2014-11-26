@@ -16,6 +16,7 @@
 package org.onlab.onos.sdnip.bgp;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.namedThreads;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -186,8 +187,8 @@ public class BgpSessionManager {
         isShutdown = false;
 
         ChannelFactory channelFactory =
-            new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
-                                              Executors.newCachedThreadPool());
+            new NioServerSocketChannelFactory(Executors.newCachedThreadPool(namedThreads("BGP-SM-boss-%d")),
+                                              Executors.newCachedThreadPool(namedThreads("BGP-SM-worker-%d")));
         ChannelPipelineFactory pipelineFactory = new ChannelPipelineFactory() {
                 @Override
                 public ChannelPipeline getPipeline() throws Exception {

@@ -16,6 +16,8 @@
 
 package org.onlab.onos.openflow.controller.impl;
 
+import static org.onlab.util.Tools.namedThreads;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
@@ -135,13 +137,13 @@ public class Controller {
 
         if (workerThreads == 0) {
             execFactory =  new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+                    Executors.newCachedThreadPool(namedThreads("Controller-boss-%d")),
+                    Executors.newCachedThreadPool(namedThreads("Controller-worker-%d")));
             return new ServerBootstrap(execFactory);
         } else {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool(), workerThreads);
+                    Executors.newCachedThreadPool(namedThreads("Controller-boss-%d")),
+                    Executors.newCachedThreadPool(namedThreads("Controller-worker-%d")), workerThreads);
             return new ServerBootstrap(execFactory);
         }
     }
