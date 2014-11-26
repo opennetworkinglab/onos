@@ -43,6 +43,7 @@ public interface LinkResourceStore {
      * Releases resources.
      *
      * @param allocations resources to be released
+     * @return the link resource event
      */
     LinkResourceEvent releaseResources(LinkResourceAllocations allocations);
 

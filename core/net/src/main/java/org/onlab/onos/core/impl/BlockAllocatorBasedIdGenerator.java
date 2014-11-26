@@ -15,7 +15,7 @@ public class BlockAllocatorBasedIdGenerator implements IdGenerator {
     /**
      * Constructs an ID generator which use {@link IdBlockAllocator} as backend.
      *
-     * @param allocator
+     * @param allocator the ID block allocator to use
      */
     protected BlockAllocatorBasedIdGenerator(IdBlockAllocator allocator) {
         this.allocator = allocator;

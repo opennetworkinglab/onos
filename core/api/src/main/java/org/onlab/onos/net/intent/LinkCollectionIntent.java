@@ -90,6 +90,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
      * @param treatment    action
      * @param links        traversed links
      * @param egressPoints Set of egress point
+     * @param constraints  the constraints
      * @throws NullPointerException {@code path} is null
      */
     public LinkCollectionIntent(ApplicationId appId,
