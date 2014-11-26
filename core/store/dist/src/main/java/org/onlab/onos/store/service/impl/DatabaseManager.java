@@ -264,13 +264,12 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             } catch (DatabaseException e) {
                 log.debug("Failed to listTables. Will retry later...", e);
                 Thread.sleep(RETRY_MS);
-            } finally {
-                if (retries == ACTIVATE_MAX_RETRIES) {
-                    log.error("Failed to listTables after multiple attempts. Giving up.");
-                    // Exiting hoping things will be fixed by the time
-                    // others start using the service
-                    return;
-                }
+            }
+            if (retries == ACTIVATE_MAX_RETRIES) {
+                log.error("Failed to listTables after multiple attempts. Giving up.");
+                // Exiting hoping things will be fixed by the time
+                // others start using the service
+                return;
             }
             retries++;
         } while (true);
