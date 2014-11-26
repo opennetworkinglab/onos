@@ -17,6 +17,8 @@ package org.onlab.graph;
 
 import org.junit.Test;
 
+import java.text.DecimalFormat;
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
@@ -121,6 +123,39 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
                                              new TestEdge(G, A, -5),
                                              new TestEdge(A, G, 4)));
         executeSearch(graphSearch(), graph, A, G, weight, 3, 4.0);
+    }
+
+    @Test
+    public void disconnectedPerf() {
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+        disconnected();
+    }
+
+
+    @Test
+    public void disconnected() {
+        Set<TestVertex> vertexes = new HashSet<>();
+        for (int i = 0; i < 200; i++) {
+            vertexes.add(new TestVertex("v" + i));
+        }
+
+        graph = new AdjacencyListsGraph<>(vertexes, of());
+
+        long start = System.nanoTime();
+        for (TestVertex src : vertexes) {
+            executeSearch(graphSearch(), graph, src, null, null, 0, 0);
+        }
+        long end = System.nanoTime();
+        DecimalFormat fmt = new DecimalFormat("#,###");
+        System.out.println("Compute cost is " + fmt.format(end - start) + " nanos");
     }
 
 }

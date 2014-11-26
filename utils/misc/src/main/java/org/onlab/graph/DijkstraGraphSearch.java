@@ -38,6 +38,11 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
         // Cost to reach the source vertex is 0 of course.
         result.updateVertex(src, null, 0.0, false);
 
+        if (graph.getEdges().isEmpty()) {
+            result.buildPaths();
+            return result;
+        }
+
         // Use the min priority queue to progressively find each nearest
         // vertex until we reach the desired destination, if one was given,
         // or until we reach all possible destinations.
