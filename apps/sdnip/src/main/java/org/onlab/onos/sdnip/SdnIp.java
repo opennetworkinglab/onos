@@ -29,15 +29,17 @@ import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.LeadershipEvent;
 import org.onlab.onos.cluster.LeadershipEventListener;
-import org.onlab.onos.cluster.LeadershipService;
+// import org.onlab.onos.cluster.LeadershipService;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
 import org.onlab.onos.sdnip.bgp.BgpSession;
 import org.onlab.onos.sdnip.bgp.BgpSessionManager;
 import org.onlab.onos.sdnip.config.SdnIpConfigReader;
+import org.onlab.onos.store.hz.StoreService;
 
 import org.slf4j.Logger;
 
@@ -68,7 +70,13 @@ public class SdnIp implements SdnIpService {
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LeadershipService leadershipService;
+    protected StoreService storeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
+
+    //    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected SdnIpLeadershipService leadershipService;
 
     private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigReader config;
@@ -77,7 +85,7 @@ public class SdnIp implements SdnIpService {
     private BgpSessionManager bgpSessionManager;
     private LeadershipEventListener leadershipEventListener =
         new InnerLeadershipEventListener();
-    ApplicationId appId;
+    private ApplicationId appId;
     private ControllerNode localControllerNode;
 
     @Activate
@@ -106,6 +114,10 @@ public class SdnIp implements SdnIpService {
                             interfaceService, hostService);
         router.start();
 
+        leadershipService = new SdnIpLeadershipService(clusterService,
+                                                       storeService,
+                                                       eventDispatcher);
+        leadershipService.start();
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());
 
@@ -126,6 +138,7 @@ public class SdnIp implements SdnIpService {
 
         leadershipService.withdraw(appId.name());
         leadershipService.removeListener(leadershipEventListener);
+        leadershipService.stop();
 
         log.info("SDN-IP Stopped");
     }
