@@ -155,7 +155,8 @@ public class IntentManagerTest {
         listener.setLatch(1, Type.WITHDRAWN);
         service.withdraw(intent);
         listener.await(Type.WITHDRAWN);
-        assertEquals(1L, service.getIntentCount());
+        delay(10); //FIXME this is a race
+        assertEquals(0L, service.getIntentCount());
         assertEquals(0L, flowRuleService.getFlowRuleCount());
     }
 
@@ -176,7 +177,8 @@ public class IntentManagerTest {
 
         listener.await(Type.INSTALLED);
         listener.await(Type.WITHDRAWN);
-        assertEquals(1L, service.getIntentCount());
+        delay(10); //FIXME this is a race
+        assertEquals(0L, service.getIntentCount());
         assertEquals(0L, flowRuleService.getFlowRuleCount());
     }
 
@@ -198,7 +200,8 @@ public class IntentManagerTest {
         service.replace(intent.id(), intent2);
         listener.await(Type.WITHDRAWN);
         listener.await(Type.INSTALLED);
-        assertEquals(2L, service.getIntentCount());
+        delay(10); //FIXME this is a race
+        assertEquals(1L, service.getIntentCount());
         assertEquals(1L, manager.flowRuleService.getFlowRuleCount());
         assertEquals(intent2.number().intValue(),
                      flowRuleService.flows.iterator().next().priority());

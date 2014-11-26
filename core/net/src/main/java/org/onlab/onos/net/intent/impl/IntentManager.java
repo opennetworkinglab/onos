@@ -694,6 +694,10 @@ public class IntentManager
             if (event != null) {
                 eventDispatcher.post(event);
             }
+
+            if (newState == WITHDRAWN) {
+                store.removeIntent(intent.id());
+            }
         }
 
         Map<Intent, IntentState> stateMap() {

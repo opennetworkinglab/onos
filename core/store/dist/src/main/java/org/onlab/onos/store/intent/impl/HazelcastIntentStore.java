@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.metrics.MetricsUtil.*;
@@ -177,20 +178,15 @@ public class HazelcastIntentStore
     }
 
     @Override
-    public IntentEvent removeIntent(IntentId intentId) {
+    public void removeIntent(IntentId intentId) {
         Context timer = startTimer(removeIntentTimer);
+        checkState(getIntentState(intentId) == WITHDRAWN,
+                   "Intent state for {} is not WITHDRAWN.", intentId);
         try {
-            Intent intent = intents.remove(intentId);
+            intents.remove(intentId);
             installable.remove(intentId);
-            if (intent == null) {
-                // was already removed
-                return null;
-            }
-            IntentEvent event = this.setState(intent, WITHDRAWN);
             states.remove(intentId);
             transientStates.remove(intentId);
-            // TODO: Should we callremoveInstalledIntents if this Intent was
-            return event;
         } finally {
             stopTimer(timer);
         }

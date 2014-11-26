@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.cli.net;
 
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
@@ -35,6 +36,7 @@ import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -89,39 +91,44 @@ public class IntentPushTestCommand extends AbstractShellCommand
 
         add = true;
         latch = new CountDownLatch(count);
-        IntentOperations operations = generateIntents(ingress, egress);
+        List<Intent> operations = generateIntents(ingress, egress);
         submitIntents(operations);
 
         add = false;
         latch = new CountDownLatch(count);
-        operations = generateIntents(ingress, egress);
         submitIntents(operations);
 
         service.removeListener(this);
     }
 
-    private IntentOperations generateIntents(ConnectPoint ingress, ConnectPoint egress) {
+    private List<Intent> generateIntents(ConnectPoint ingress, ConnectPoint egress) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
-        IntentOperations.Builder ops = IntentOperations.builder();
+        List<Intent> intents = Lists.newArrayList();
         for (int i = 1; i <= count; i++) {
             TrafficSelector s = selector
                     .matchEthSrc(MacAddress.valueOf(i))
                     .build();
-            Intent intent = new PointToPointIntent(appId(), s, treatment,
-                                                   ingress, egress);
-            if (add) {
-                ops.addSubmitOperation(intent);
-            } else {
-                ops.addWithdrawOperation(intent.id());
-            }
+            intents.add(new PointToPointIntent(appId(), s, treatment,
+                                               ingress, egress));
+
         }
-        return ops.build();
+        return intents;
     }
 
-    private void submitIntents(IntentOperations ops) {
+    private void submitIntents(List<Intent> intents) {
+        IntentOperations.Builder builder = IntentOperations.builder();
+        for (Intent intent : intents) {
+            if (add) {
+                builder.addSubmitOperation(intent);
+            } else {
+                builder.addWithdrawOperation(intent.id());
+            }
+        }
+        IntentOperations ops = builder.build();
+
         start = System.currentTimeMillis();
         service.execute(ops);
         try {

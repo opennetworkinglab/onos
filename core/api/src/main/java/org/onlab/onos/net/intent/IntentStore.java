@@ -42,9 +42,8 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * Removes the specified intent from the inventory.
      *
      * @param intentId intent identification
-     * @return removed state transition event or null if intent was not found
      */
-    IntentEvent removeIntent(IntentId intentId);
+    void removeIntent(IntentId intentId);
 
     /**
      * Returns the number of intents in the store.
@@ -102,8 +101,6 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return compiled installable intents
      */
     List<Intent> getInstallableIntents(IntentId intentId);
-
-    // TODO: this should be triggered from with the store as a result of removeIntent call
 
     /**
      * Removes any installable intents which resulted from compilation of the

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -68,16 +69,12 @@ public class SimpleIntentStore
     }
 
     @Override
-    public IntentEvent removeIntent(IntentId intentId) {
-        Intent intent = intents.remove(intentId);
+    public void removeIntent(IntentId intentId) {
+        checkState(getIntentState(intentId) == WITHDRAWN,
+                   "Intent state for {} is not WITHDRAWN.", intentId);
+        intents.remove(intentId);
         installable.remove(intentId);
-        if (intent == null) {
-            // was already removed
-            return null;
-        }
-        IntentEvent event = this.setState(intent, WITHDRAWN);
         states.remove(intentId);
-        return event;
     }
 
     @Override
