@@ -44,6 +44,7 @@ import org.onlab.onos.net.intent.IntentEvent;
 import org.onlab.onos.net.intent.IntentListener;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.store.service.DatabaseAdminService;
+import org.onlab.onos.store.service.DatabaseException;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.Lock;
 import org.onlab.onos.store.service.LockService;
@@ -209,7 +210,7 @@ public class FooComponent {
                     }
                 }
             }
-            int retry = 5;
+            int retry = 1;
 
             do {
                 if (vv == null) {
@@ -223,13 +224,15 @@ public class FooComponent {
                     log.info("Write success. New value: {}", next);
                     break;
                 } else {
-                    log.info("Write failed trying to write {}", next);
+                    log.info("Write failed retrying.....{}", retry);
                     vv = dbService.get(someTable, someKey);
                     if (vv == null) {
                         log.error("Shouldn't reach here");
                     }
                 }
-            } while (retry-- > 0);
+            } while (retry++ < 5);
+        } catch (DatabaseException e) {
+            log.debug("DB Exception thrown {}", e.getMessage());
         } catch (Exception e) {
             log.error("Exception thrown", e);
         }
