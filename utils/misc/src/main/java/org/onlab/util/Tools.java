@@ -15,15 +15,20 @@
  */
 package org.onlab.util;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
+
+import org.slf4j.Logger;
 
 import com.google.common.base.Strings;
 import com.google.common.primitives.UnsignedLongs;
@@ -34,6 +39,8 @@ public abstract class Tools {
     private Tools() {
     }
 
+    private static final Logger TOOLS_LOG = getLogger(Tools.class);
+
     /**
      * Returns a thread factory that produces threads named according to the
      * supplied name pattern.
@@ -42,7 +49,16 @@ public abstract class Tools {
      * @return thread factory
      */
     public static ThreadFactory namedThreads(String pattern) {
-        return new ThreadFactoryBuilder().setNameFormat(pattern).build();
+        return new ThreadFactoryBuilder()
+                .setNameFormat(pattern)
+                // FIXME remove UncaughtExceptionHandler before release
+                .setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+
+                    @Override
+                    public void uncaughtException(Thread t, Throwable e) {
+                        TOOLS_LOG.error("Uncaught exception on {}", t.getName(), e);
+                    }
+                }).build();
     }
 
     /**
