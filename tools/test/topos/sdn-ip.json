@@ -1,10 +1,10 @@
 {
     "devices": [
         { "alias":  "s1", "uri": "of:0000000000000001", "mac": "000000000001", "annotations": { "name": "DEN", "latitude": 39.739317, "longitude": -104.983791 }, "type": "SWITCH" },
-        { "alias":  "s2", "uri": "of:0000000000000002", "mac": "000000000002", "annotations": { "name": "ORD", "latitude": 41.880143, "longitude": -87.624257  }, "type": "SWITCH" },
+        { "alias":  "s2", "uri": "of:0000000000000002", "mac": "000000000002", "annotations": { "name": "IND", "latitude": 39.769089, "longitude": -86.158039  }, "type": "SWITCH" },
         { "alias":  "s3", "uri": "of:0000000000000003", "mac": "000000000003", "annotations": { "name": "ABQ", "latitude": 35.116541, "longitude": -106.604146 }, "type": "SWITCH" },
         { "alias":  "s4", "uri": "of:0000000000000004", "mac": "000000000004", "annotations": { "name": "DFW", "latitude": 32.779501, "longitude": -96.801104  }, "type": "SWITCH" },
-        { "alias":  "s5", "uri": "of:0000000000000005", "mac": "000000000005", "annotations": { "name": "SEA", "latitude": 47.606126, "longitude": -122.332903 }, "type": "SWITCH" },
+        { "alias":  "s5", "uri": "of:0000000000000005", "mac": "000000000005", "annotations": { "name": "PDX", "latitude": 45.522585, "longitude": -122.677890 }, "type": "SWITCH" },
         { "alias":  "s6", "uri": "of:0000000000000006", "mac": "000000000006", "annotations": { "name": "SFO", "latitude": 37.785286, "longitude": -122.406509 }, "type": "SWITCH" },
         { "alias":  "s7", "uri": "of:0000000000000007", "mac": "000000000007", "annotations": { "name": "LAX", "latitude": 34.055604, "longitude": -118.248567 }, "type": "SWITCH" },
         { "alias":  "s8", "uri": "of:0000000000000008", "mac": "000000000008", "annotations": { "name": "JFK", "latitude": 40.769487, "longitude": -73.972520  }, "type": "SWITCH" },
@@ -14,9 +14,9 @@
 
     "hosts" : [
         { "mac": "00:00:00:00:00:01", "vlan": -1, "location": "of:0000000000000001/10", "ip": "10.0.1.2, 10.0.2.2",                         "annotations": { "type": "bgpSpeaker", "latitude": 42.292306, "longitude": -104.084378 } },
-        { "mac": "00:00:00:00:00:02", "vlan": -1, "location": "of:0000000000000002/10", "ip": "10.0.11.2, 10.0.22.2, 10.0.3.2, 10.0.4.2",   "annotations": { "type": "bgpSpeaker", "latitude": 42.163617, "longitude": -92.652051 } },
+        { "mac": "00:00:00:00:00:02", "vlan": -1, "location": "of:0000000000000002/10", "ip": "10.0.11.2, 10.0.22.2, 10.0.3.2, 10.0.4.2",   "annotations": { "type": "bgpSpeaker", "latitude": 41.019068, "longitude": -91.079570 } },
         { "mac": "00:00:00:00:00:03", "vlan": -1, "location": "of:0000000000000003/10", "ip": "10.0.33.2, 10.0.44.2",                       "annotations": { "type": "bgpSpeaker", "latitude": 32.043892, "longitude": -105.644437 } },
-        { "mac": "00:00:00:00:01:01", "vlan": -1, "location": "of:0000000000000005/10", "ip": "10.0.1.1",                                   "annotations": { "type": "router", "latitude": 47.545724, "longitude": -127.023830 } },
+        { "mac": "00:00:00:00:01:01", "vlan": -1, "location": "of:0000000000000005/10", "ip": "10.0.1.1",                                   "annotations": { "type": "router", "latitude": 45.637863, "longitude": -125.749416 } },
         { "mac": "00:00:00:00:01:02", "vlan": -1, "location": "of:0000000000000006/10", "ip": "10.0.11.1",                                  "annotations": { "type": "router", "latitude": 35.459285, "longitude": -125.749416 } },
         { "mac": "00:00:00:00:02:01", "vlan": -1, "location": "of:0000000000000007/10", "ip": "10.0.2.1, 10.0.22.1",                        "annotations": { "type": "router", "latitude": 31.277098, "longitude": -121.35488 } },
         { "mac": "00:00:00:00:03:01", "vlan": -1, "location": "of:0000000000000008/10", "ip": "10.0.3.1, 10.0.33.1",                        "annotations": { "type": "router", "latitude": 39.368502, "longitude": -69.976271 } },
