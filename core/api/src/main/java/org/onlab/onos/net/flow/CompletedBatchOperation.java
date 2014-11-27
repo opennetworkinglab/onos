@@ -17,9 +17,9 @@ package org.onlab.onos.net.flow;
 
 
 import java.util.Collections;
-
 import java.util.Set;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -73,4 +73,12 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
         return failedIds;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("success?", success)
+                .add("failedItems", failures)
+                .add("failedIds", failedIds)
+                .toString();
+    }
 }

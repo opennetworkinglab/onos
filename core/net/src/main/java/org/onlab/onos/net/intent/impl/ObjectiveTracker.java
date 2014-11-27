@@ -169,8 +169,10 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                                         linkEvent.subject().isDurable())) {
                             final LinkKey linkKey = linkKey(linkEvent.subject());
                             Set<IntentId> intentIds = intentsByLink.get(linkKey);
-                            log.debug("recompile triggered by LinkDown {} {}", linkKey, intentIds);
-                            toBeRecompiled.addAll(intentIds);
+                            synchronized (intentsByLink) {
+                                log.debug("recompile triggered by LinkDown {} {}", linkKey, intentIds);
+                                toBeRecompiled.addAll(intentIds);
+                            }
                         }
                         recompileOnly = recompileOnly &&
                                 (linkEvent.type() == LINK_REMOVED ||

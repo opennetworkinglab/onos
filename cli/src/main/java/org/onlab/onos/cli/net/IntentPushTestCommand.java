@@ -132,7 +132,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         start = System.currentTimeMillis();
         service.execute(ops);
         try {
-            if (latch.await(30, TimeUnit.SECONDS)) {
+            if (latch.await(100 + count * 200, TimeUnit.MILLISECONDS)) {
                 printResults(count);
             } else {
                 print("Failure: %d intents not installed", latch.getCount());

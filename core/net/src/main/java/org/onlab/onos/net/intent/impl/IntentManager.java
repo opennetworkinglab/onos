@@ -734,7 +734,8 @@ public class IntentManager
 
     private class IntentInstallMonitor implements Runnable {
 
-        private static final long TIMEOUT = 5000; // ms
+        // TODO make this configurable
+        private static final int TIMEOUT_PER_OP = 500; // ms
         private static final int MAX_ATTEMPTS = 3;
 
         private final IntentOperations ops;
@@ -742,11 +743,18 @@ public class IntentManager
 
         private Future<CompletedBatchOperation> future;
         private long startTime = System.currentTimeMillis();
-        private long endTime = startTime + TIMEOUT;
+        private long endTime;
         private int installAttempt;
 
         public IntentInstallMonitor(IntentOperations ops) {
             this.ops = ops;
+            resetTimeoutLimit();
+        }
+
+        private void resetTimeoutLimit() {
+            // FIXME compute reasonable timeouts
+            this.endTime = System.currentTimeMillis()
+                           + ops.operations().size() * TIMEOUT_PER_OP;
         }
 
         private void buildIntentUpdates() {
@@ -805,6 +813,7 @@ public class IntentManager
          */
         private void processFutures() {
             if (future == null) {
+                log.warn("I have no Future.");
                 return; //FIXME look at this
             }
             try {
@@ -818,9 +827,10 @@ public class IntentManager
         }
 
         private void retry() {
+            log.debug("Execution timed out, retrying.");
             if (future.cancel(true)) { // cancel success; batch is reverted
                 // reset the timer
-                endTime = System.currentTimeMillis() + TIMEOUT;
+                resetTimeoutLimit();
                 if (installAttempt++ >= MAX_ATTEMPTS) {
                     log.warn("Install request timed out: {}", ops);
                     for (IntentUpdate update : intentUpdates) {

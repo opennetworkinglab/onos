@@ -262,9 +262,16 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest paths
      */
     Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
+        final DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
+        final DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
+        Set<TopologyVertex> vertices = graph.getVertexes();
+        if (!vertices.contains(srcV) || !vertices.contains(dstV)) {
+            // src or dst not part of the current graph
+            return ImmutableSet.of();
+        }
+
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                DIJKSTRA.search(graph, new DefaultTopologyVertex(src),
-                                new DefaultTopologyVertex(dst), weight);
+                DIJKSTRA.search(graph, srcV, dstV, weight);
         ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             builder.add(networkPath(path));

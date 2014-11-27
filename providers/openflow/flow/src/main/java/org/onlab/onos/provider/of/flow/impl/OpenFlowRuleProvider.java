@@ -15,10 +15,12 @@
  */
 package org.onlab.onos.provider.of.flow.impl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -85,7 +87,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -191,9 +195,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     @Override
     public Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch) {
-        final Set<Dpid> sws =
-                Collections.newSetFromMap(new ConcurrentHashMap<Dpid, Boolean>());
-        final Map<Long, FlowRuleBatchEntry> fmXids = new HashMap<Long, FlowRuleBatchEntry>();
+        final Set<Dpid> sws = Sets.newConcurrentHashSet();
+        final Map<Long, FlowRuleBatchEntry> fmXids = new HashMap<>();
         /*
          * Use identity hash map for reference equality as we could have equal
          * flow mods for different switches.
@@ -201,7 +204,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         Map<OFFlowMod, OpenFlowSwitch> mods = Maps.newIdentityHashMap();
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             FlowRule flowRule = fbe.getTarget();
-            OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
+            final Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
                 /*
                  * if a switch we are supposed to install to is gone then
@@ -212,8 +216,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 failed.cancel(true);
                 return failed;
             }
-            sws.add(new Dpid(sw.getId()));
-            Long flowModXid = xidCounter.getAndIncrement();
+            sws.add(dpid);
+            final Long flowModXid = xidCounter.getAndIncrement();
             FlowModBuilder builder =
                     FlowModBuilder.builder(flowRule, sw.factory(),
                                            Optional.of(flowModXid));
@@ -302,12 +306,17 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     future = pendingFutures.get(msg.getXid());
                     if (future != null) {
                         future.satisfyRequirement(dpid);
+                    } else {
+                        log.warn("Received unknown Barrier Reply: {}", msg.getXid());
                     }
                     break;
                 case ERROR:
+                    log.warn("received Error message {} from {}", msg, dpid);
                     future = pendingFMs.get(msg.getXid());
                     if (future != null) {
                         future.fail((OFErrorMsg) msg, dpid);
+                    } else {
+                        log.warn("Received unknown Error Reply: {} {}", msg.getXid(), msg);
                     }
                     break;
                 default:
@@ -369,13 +378,17 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private class InstallationFuture implements Future<CompletedBatchOperation> {
 
+        // barrier xid
         private final Long xid;
+        // waiting for barrier reply from...
         private final Set<Dpid> sws;
         private final AtomicBoolean ok = new AtomicBoolean(true);
+        // FlowMod xid ->
         private final Map<Long, FlowRuleBatchEntry> fms;
 
 
         private final Set<FlowEntry> offendingFlowMods = Sets.newHashSet();
+        // Failed batch operation id
         private Long failedId;
 
         private final CountDownLatch countDownLatch;
@@ -456,6 +469,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
 
         public void verify() {
+            checkState(!sws.isEmpty());
             for (Dpid dpid : sws) {
                 OpenFlowSwitch sw = controller.getSwitch(dpid);
                 OFBarrierRequest.Builder builder = sw.factory()
@@ -520,7 +534,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 cleanUp();
                 return result;
             }
-            throw new TimeoutException();
+            throw new TimeoutException(this.toString());
         }
 
         private void cleanUp() {
@@ -537,6 +551,22 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             sws.remove(dpid);
             //FIXME don't do cleanup here (moved by BOC)
             //cleanUp();
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("xid", xid)
+                    .add("pending devices", sws)
+                    .add("devices in batch",
+                         fms.values().stream()
+                             .map((fbe) -> fbe.getTarget().deviceId())
+                             .distinct().collect(Collectors.toList()))
+                    .add("failedId", failedId)
+                    .add("latchCount", countDownLatch.getCount())
+                    .add("state", state)
+                    .add("no error?", ok.get())
+                    .toString();
         }
     }
 

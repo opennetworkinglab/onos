@@ -67,7 +67,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -232,7 +231,7 @@ public class FlowRuleManager
             lastSeen.remove(flowEntry);
             FlowEntry stored = store.getFlowEntry(flowEntry);
             if (stored == null) {
-                log.info("Rule already evicted from store: {}", flowEntry);
+                log.debug("Rule already evicted from store: {}", flowEntry);
                 return;
             }
             Device device = deviceService.getDevice(flowEntry.deviceId());
@@ -378,7 +377,8 @@ public class FlowRuleManager
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements FlowRuleStoreDelegate {
 
-        private static final int TIMEOUT = 5000; // ms
+        // FIXME set appropriate default and make it configurable
+        private static final int TIMEOUT_PER_OP = 500; // ms
 
         // TODO: Right now we only dispatch events at individual flowEntry level.
         // It may be more efficient for also dispatch events as a batch.
@@ -407,7 +407,7 @@ public class FlowRuleManager
                     public void run() {
                         CompletedBatchOperation res;
                         try {
-                            res = result.get(TIMEOUT, TimeUnit.MILLISECONDS);
+                            res = result.get(TIMEOUT_PER_OP * batchOperation.size(), TimeUnit.MILLISECONDS);
                             store.batchOperationComplete(FlowRuleBatchEvent.completed(request, res));
                         } catch (TimeoutException | InterruptedException | ExecutionException e) {
                             log.warn("Something went wrong with the batch operation {}",
@@ -456,6 +456,10 @@ public class FlowRuleManager
         public boolean cancel(boolean mayInterruptIfRunning) {
             if (state.get() == BatchState.FINISHED) {
                 return false;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Cancelling FlowRuleBatchFuture",
+                          new RuntimeException("Just printing backtrace"));
             }
             if (!state.compareAndSet(BatchState.STARTED, BatchState.CANCELLED)) {
                 return false;
@@ -526,6 +530,7 @@ public class FlowRuleManager
                 throw new CancellationException();
             }
             if (!completed.isSuccess()) {
+                log.warn("FlowRuleBatch failed: {}", completed);
                 failed.addAll(completed.failedItems());
                 failedIds.addAll(completed.failedIds());
                 cleanUpBatch();
@@ -557,9 +562,11 @@ public class FlowRuleManager
         }
 
         private void cleanUpBatch() {
+            log.debug("cleaning up batch");
+            // TODO convert these into a batch?
             for (FlowRuleBatchEntry fbe : batches.values()) {
                 if (fbe.getOperator() == FlowRuleOperation.ADD ||
-                        fbe.getOperator() == FlowRuleOperation.MODIFY) {
+                    fbe.getOperator() == FlowRuleOperation.MODIFY) {
                     store.deleteFlowRule(fbe.getTarget());
                 } else if (fbe.getOperator() == FlowRuleOperation.REMOVE) {
                     store.removeFlowRule(new DefaultFlowEntry(fbe.getTarget()));
