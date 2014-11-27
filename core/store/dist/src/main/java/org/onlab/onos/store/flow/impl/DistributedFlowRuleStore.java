@@ -519,7 +519,8 @@ public class DistributedFlowRuleStore
 
     @Override
     public FlowRuleEvent removeFlowRule(FlowEntry rule) {
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
+        final DeviceId deviceId = rule.deviceId();
+        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
 
         final NodeId localId = clusterService.getLocalNode().id();
         if (localId.equals(replicaInfo.master().orNull())) {
@@ -527,8 +528,14 @@ public class DistributedFlowRuleStore
             return removeFlowRuleInternal(rule);
         }
 
+        if (!replicaInfo.master().isPresent()) {
+            log.warn("No master for {}", deviceId);
+            // TODO: revisit if this should be null (="no-op") or Exception
+            return null;
+        }
+
         log.trace("Forwarding removeFlowRule to {}, which is the primary (master) for device {}",
-                  replicaInfo.master().orNull(), rule.deviceId());
+                  replicaInfo.master().orNull(), deviceId);
 
         ClusterMessage message = new ClusterMessage(
                   clusterService.getLocalNode().id(),
