@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -173,7 +174,7 @@ public class SimpleMastershipStore
     public Set<DeviceId> getDevices(NodeId nodeId) {
         Set<DeviceId> ids = new HashSet<>();
         for (Map.Entry<DeviceId, NodeId> d : masterMap.entrySet()) {
-            if (d.getValue().equals(nodeId)) {
+            if (Objects.equals(d.getValue(), nodeId)) {
                 ids.add(d.getKey());
             }
         }
