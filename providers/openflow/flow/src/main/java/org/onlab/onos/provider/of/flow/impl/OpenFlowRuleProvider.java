@@ -396,7 +396,6 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         public void fail(OFErrorMsg msg, Dpid dpid) {
 
             ok.set(false);
-            removeRequirement(dpid);
             FlowEntry fe = null;
             FlowRuleBatchEntry fbe = fms.get(msg.getXid());
             failedId = fbe.id();
@@ -446,6 +445,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
             offendingFlowMods.add(fe);
 
+            removeRequirement(dpid);
         }
 
 
