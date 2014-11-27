@@ -129,7 +129,7 @@ public class OpticalPathProvisioner {
             }
 
             // Build the intent batch
-            IntentOperations.Builder ops = IntentOperations.builder();
+            IntentOperations.Builder ops = IntentOperations.builder(appId);
             for (Intent i : intents) {
                 // TODO: don't allow duplicate intents between the same points for now
                 // we may want to allow this carefully in future to increase capacity

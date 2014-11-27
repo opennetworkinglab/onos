@@ -216,5 +216,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
     }
 
+    //TODO consider adding flow rule event tracking
 
+    //FIXME the only intents that will be tracked are events that were
+    //executed on this instance. Need to have some backup trackers...
 }

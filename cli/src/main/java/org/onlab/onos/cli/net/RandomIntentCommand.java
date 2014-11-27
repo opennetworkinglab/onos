@@ -86,7 +86,7 @@ public class RandomIntentCommand extends AbstractShellCommand {
     }
 
     private void submitIntents(Collection<Intent> intents) {
-        IntentOperations.Builder builder = IntentOperations.builder();
+        IntentOperations.Builder builder = IntentOperations.builder(appId());
         for (Intent intent : intents) {
             builder.addSubmitOperation(intent);
         }
@@ -95,7 +95,7 @@ public class RandomIntentCommand extends AbstractShellCommand {
     }
 
     private void withdrawIntents() {
-        IntentOperations.Builder builder = IntentOperations.builder();
+        IntentOperations.Builder builder = IntentOperations.builder(appId());
         for (Intent intent : service.getIntents()) {
             if (appId().equals(intent.appId())) {
                 builder.addWithdrawOperation(intent.id());

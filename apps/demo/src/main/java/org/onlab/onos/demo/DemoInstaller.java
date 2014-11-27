@@ -308,7 +308,7 @@ public class DemoInstaller implements DemoAPI {
         }
 
         private void installIntents(List<HostPair> toInstall) {
-            IntentOperations.Builder builder = IntentOperations.builder();
+            IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (HostPair pair : toInstall) {
                 installed.add(pair);
                 uninstalledOrWithdrawn.remove(pair);
@@ -318,7 +318,7 @@ public class DemoInstaller implements DemoAPI {
         }
 
         private void uninstallIntents(Collection<HostPair> toRemove) {
-            IntentOperations.Builder builder = IntentOperations.builder();
+            IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (HostPair pair : toRemove) {
                 installed.remove(pair);
                 uninstalledOrWithdrawn.add(pair);
@@ -333,7 +333,7 @@ public class DemoInstaller implements DemoAPI {
         private void cleanUp() {
             List<HostPair> allPairs = Lists.newArrayList(installed);
             allPairs.addAll(uninstalledOrWithdrawn);
-            IntentOperations.Builder builder = IntentOperations.builder();
+            IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (HostPair pair : allPairs) {
                 builder.addWithdrawOperation(pair.h2hIntent().id());
             }

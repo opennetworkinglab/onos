@@ -221,7 +221,7 @@ public class IntentSynchronizer {
             // Push the intents
             if (isElectedLeader && isActivatedLeader) {
                 log.debug("SDN-IP Submitting all Peer Intents...");
-                IntentOperations.Builder builder = IntentOperations.builder();
+                IntentOperations.Builder builder = IntentOperations.builder(appId);
                 for (Intent intent : intents) {
                     builder.addSubmitOperation(intent);
                 }
@@ -370,7 +370,7 @@ public class IntentSynchronizer {
             }
 
             // Withdraw Intents
-            IntentOperations.Builder builder = IntentOperations.builder();
+            IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (Intent intent : deleteIntents) {
                 builder.addWithdrawOperation(intent.id());
                 log.debug("SDN-IP Intent Synchronizer: withdrawing intent: {}",
@@ -386,7 +386,7 @@ public class IntentSynchronizer {
             intentService.execute(intentOperations);
 
             // Add Intents
-            builder = IntentOperations.builder();
+            builder = IntentOperations.builder(appId);
             for (Intent intent : addIntents) {
                 builder.addSubmitOperation(intent);
                 log.debug("SDN-IP Intent Synchronizer: submitting intent: {}",

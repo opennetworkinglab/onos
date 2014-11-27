@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.google.common.collect.ImmutableList;
+import org.onlab.onos.core.ApplicationId;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -33,14 +34,16 @@ import static org.onlab.onos.net.intent.IntentOperation.Type.WITHDRAW;
 public final class IntentOperations {
 
     private final List<IntentOperation> operations;
+    private final ApplicationId appId;
 
     /**
      * Creates a batch of intent operations using the supplied list.
      *
      * @param operations list of intent operations
      */
-    private IntentOperations(List<IntentOperation> operations) {
+    private IntentOperations(List<IntentOperation> operations, ApplicationId appId) {
         this.operations = operations;
+        this.appId = appId;
     }
 
     /**
@@ -52,15 +55,19 @@ public final class IntentOperations {
         return operations;
     }
 
+    public ApplicationId appId() {
+        return appId;
+    }
+
     /**
      * Returns a builder for intent operation batches.
      *
      * @return intent operations builder
+     * @param applicationId application id
      */
-    public static Builder builder() {
-        return new Builder();
+    public static Builder builder(ApplicationId applicationId) {
+        return new Builder(applicationId);
     }
-
 
     @Override
     public int hashCode() {
@@ -92,9 +99,11 @@ public final class IntentOperations {
     public static final class Builder {
 
         private final ImmutableList.Builder<IntentOperation> builder = ImmutableList.builder();
+        private final ApplicationId appId;
 
         // Public construction is forbidden.
-        private Builder() {
+        private Builder(ApplicationId appId) {
+            this.appId = appId;
         }
 
         /**
@@ -153,7 +162,7 @@ public final class IntentOperations {
          * @return immutable batch of intent operations
          */
         public IntentOperations build() {
-            return new IntentOperations(builder.build());
+            return new IntentOperations(builder.build(), appId);
         }
 
     }

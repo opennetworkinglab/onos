@@ -20,6 +20,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.intent.IntentBatchDelegate;
 import org.onlab.onos.net.intent.IntentBatchService;
 import org.onlab.onos.net.intent.IntentOperations;
@@ -91,6 +92,11 @@ public class SimpleIntentBatchQueue implements IntentBatchService {
         synchronized (this) {
             return Sets.newHashSet(currentBatches);
         }
+    }
+
+    @Override
+    public boolean isLocalLeader(ApplicationId applicationId) {
+        return true;
     }
 
     @Override

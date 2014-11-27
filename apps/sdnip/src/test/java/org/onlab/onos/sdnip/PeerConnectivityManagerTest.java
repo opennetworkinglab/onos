@@ -566,7 +566,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         reset(intentService);
 
         // Setup the expected intents
-        IntentOperations.Builder builder = IntentOperations.builder();
+        IntentOperations.Builder builder = IntentOperations.builder(null); //FIXME null
         for (Intent intent : intentList) {
             builder.addSubmitOperation(intent);
         }
@@ -601,9 +601,9 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(configInfoService);
 
         reset(intentService);
-        IntentOperations.Builder builder = IntentOperations.builder();
+        IntentOperations.Builder builder = IntentOperations.builder(null); //FIXME null
         intentService.execute(TestIntentServiceHelper.eqExceptId(
-                                builder.build()));
+                builder.build()));
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);
@@ -627,9 +627,9 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(configInfoService);
 
         reset(intentService);
-        IntentOperations.Builder builder = IntentOperations.builder();
+        IntentOperations.Builder builder = IntentOperations.builder(null); //FIXME null
         intentService.execute(TestIntentServiceHelper.eqExceptId(
-                                builder.build()));
+                builder.build()));
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);

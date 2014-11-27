@@ -119,7 +119,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     }
 
     private void submitIntents(List<Intent> intents) {
-        IntentOperations.Builder builder = IntentOperations.builder();
+        IntentOperations.Builder builder = IntentOperations.builder(appId());
         for (Intent intent : intents) {
             if (add) {
                 builder.addSubmitOperation(intent);
@@ -132,7 +132,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         start = System.currentTimeMillis();
         service.execute(ops);
         try {
-            if (latch.await(10, TimeUnit.SECONDS)) {
+            if (latch.await(30, TimeUnit.SECONDS)) {
                 printResults(count);
             } else {
                 print("Failure: %d intents not installed", latch.getCount());

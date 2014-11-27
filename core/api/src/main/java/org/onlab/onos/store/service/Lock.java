@@ -82,7 +82,7 @@ public interface Lock {
      * lock acquisition events
      * @return epoch
      */
-     long epoch();
+    long epoch();
 
     /**
      * Releases the lock.

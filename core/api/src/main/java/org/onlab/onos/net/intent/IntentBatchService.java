@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.net.intent;
 
+import org.onlab.onos.core.ApplicationId;
+
 import java.util.Set;
 
 /**
@@ -46,7 +48,18 @@ public interface IntentBatchService {
      * Returns the set of intent batches currently being processed.
      * @return set of batches
      */
+    //TODO we may want to get rid of this method
+    @Deprecated
     Set<IntentOperations> getCurrentOperations();
+
+    /**
+     * Return true if this instance is the local leader for batch
+     * processing a given application id.
+     *
+     * @param applicationId
+     * @return
+     */
+    boolean isLocalLeader(ApplicationId applicationId);
 
     /**
      * Sets the batch service delegate.

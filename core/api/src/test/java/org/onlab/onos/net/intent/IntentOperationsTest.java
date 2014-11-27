@@ -78,15 +78,15 @@ public class IntentOperationsTest {
     @Test
     public void testEquals() {
         final IntentOperations operations1 =
-                IntentOperations.builder()
+                IntentOperations.builder(null) //FIXME null
                         .addSubmitOperation(intent)
                         .build();
         final IntentOperations sameAsOperations1 =
-                IntentOperations.builder()
+                IntentOperations.builder(null) //FIXME null
                         .addSubmitOperation(intent)
                         .build();
         final IntentOperations operations2 =
-                IntentOperations.builder()
+                IntentOperations.builder(null) //FIXME null
                         .addReplaceOperation(intent.id(), intent)
                         .build();
 
@@ -102,7 +102,7 @@ public class IntentOperationsTest {
     @Test
     public void testConstruction() {
         final IntentOperations operations =
-                IntentOperations.builder()
+                IntentOperations.builder(null) //FIXME
                         .addUpdateOperation(intent.id())
                         .addWithdrawOperation(intent.id())
                         .build();
