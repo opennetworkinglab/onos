@@ -208,7 +208,7 @@ public class StatisticManager implements StatisticService {
      * @return set of flow entries
      */
     private Set<FlowEntry> getPreviousStatistic(ConnectPoint connectPoint) {
-        Set<FlowEntry> stats = statisticStore.getCurrentStatistic(connectPoint);
+        Set<FlowEntry> stats = statisticStore.getPreviousStatistic(connectPoint);
         if (stats == null) {
             return Collections.emptySet();
         } else {
