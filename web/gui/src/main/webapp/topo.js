@@ -142,9 +142,10 @@
 
         O: [toggleSummary, 'Toggle ONOS summary pane'],
         I: [toggleInstances, 'Toggle ONOS instances pane'],
+        D: [toggleDetails, 'Disable / enable details pane'],
         B: [toggleBg, 'Toggle background image'],
         H: [toggleHosts, 'Toggle host visibility'],
-        L: [cycleLabels, 'Cycle Device labels'],
+        L: [cycleLabels, 'Cycle device labels'],
         P: togglePorts,
         U: [unpin, 'Unpin node (hover mouse over)'],
         R: [resetZoomPan, 'Reset zoom / pan'],
@@ -201,7 +202,9 @@
         portLabelsOn = false,
         cat7 = d3u.cat7(),
         colorAffinity = false,
-        showHosts = false;
+        showHosts = false,
+        useDetails = true,
+        haveDetails = false;
 
     // constants
     var hoverModeAll = 1,
@@ -251,6 +254,10 @@
 
     // ==============================
     // Key Callbacks
+
+    function flash(txt) {
+        network.view.flash(txt);
+    }
 
     function testMe(view) {
         //view.alert('Theme is ' + view.getTheme());
@@ -320,7 +327,7 @@
     function toggleHosts() {
         showHosts = !showHosts;
         updateHostVisibility();
-        network.view.flash('Hosts ' + visVal(showHosts));
+        flash('Hosts ' + visVal(showHosts));
     }
 
     function cycleLabels() {
@@ -350,7 +357,7 @@
     function handleEscape(view) {
         if (oiShowMaster) {
             cancelAffinity();
-        } else if (detailPane.isVisible()) {
+        } else if (haveDetails) {
             deselectAll();
         } else if (oiBox.isVisible()) {
             hideInstances();
@@ -775,8 +782,11 @@
 
     function showDetails(data) {
         evTrace(data);
+        haveDetails = true;
         populateDetails(data.payload);
-        showDetailPane();
+        if (useDetails) {
+            showDetailPane();
+        }
     }
 
     function showTraffic(data) {
@@ -904,6 +914,19 @@
         hideSummaryPane();
     }
 
+    function toggleDetails() {
+        useDetails = !useDetails;
+        if (useDetails) {
+            flash('Enable details pane');
+            if (haveDetails) {
+                showDetailPane();
+            }
+        } else {
+            flash('Disable details pane');
+            hideDetailPane();
+        }
+    }
+
     // encapsulate interaction between summary and details panes
     function showSummaryPane() {
         if (detailPane.isVisible()) {
@@ -951,7 +974,7 @@
             two: selectOrder[1],
             ids: selectOrder
         });
-        network.view.flash('Host-to-Host flow added');
+        flash('Host-to-Host flow added');
     }
 
     function addMultiSourceIntentAction() {
@@ -960,7 +983,7 @@
             dst: selectOrder[selectOrder.length - 1],
             ids: selectOrder
         });
-        network.view.flash('Multi-Source flow added');
+        flash('Multi-Source flow added');
     }
 
 
@@ -981,7 +1004,7 @@
     function showTrafficAction() {
         hoverMode = hoverModeIntents;
         requestSelectTraffic();
-        network.view.flash('Related Traffic');
+        flash('Related Traffic');
     }
 
     function requestSelectTraffic() {
@@ -1000,7 +1023,7 @@
     function showDeviceLinkFlowsAction() {
         hoverMode = hoverModeFlows;
         requestDeviceLinkFlows();
-        network.view.flash('Device Flows');
+        flash('Device Flows');
     }
 
     function requestDeviceLinkFlows() {
@@ -1018,7 +1041,7 @@
     function showAllTrafficAction() {
         hoverMode = hoverModeAll;
         requestAllTraffic();
-        network.view.flash('All Traffic');
+        flash('All Traffic');
     }
 
     function requestAllTraffic() {
@@ -2221,6 +2244,7 @@
     }
 
     function emptySelect() {
+        haveDetails = false;
         hideDetailPane();
         cancelTraffic();
     }
@@ -2232,6 +2256,7 @@
     }
 
     function multiSelect() {
+        haveDetails = true;
         populateMultiSelect();
         requestTrafficForMode();
     }
