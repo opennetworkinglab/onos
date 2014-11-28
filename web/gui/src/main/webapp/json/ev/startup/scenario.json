@@ -11,9 +11,8 @@
     "Loads 16 devices (10 optical, 6 packet)",
     " and their associated links.",
     "",
-    "Press 'S' to load initial events.",
-    "",
-    "Press spacebar to complete the scenario...",
+    "Press '=' to load initial events.",
+    "Press '-' to fire further events...",
     " * 4 events - device online, add 3 links",
     " * 5 events - device offline, remove 4 links"
   ]

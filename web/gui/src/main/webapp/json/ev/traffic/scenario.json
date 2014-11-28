@@ -9,8 +9,9 @@
   "description": [
     "Figure out primary, secondary and animated link visualizations.",
     "",
-    "Press 'S' to load initial events.",
+    "Press 'H' to show hosts.",
     "",
-    "Press spacebar to complete the scenario..."
+    "Press '=' to load initial events.",
+    "Press '-' to fire further events."
   ]
 }

@@ -6,9 +6,9 @@
     "online": true,
     "master": "local",
     "labels": [
-      "0000ffffffff0003",
-      "FF:FF:FF:FF:00:03",
-      "sw-3"
+      "",
+      "sw-3",
+      "0000ffffffff0003"
     ],
     "metaUi": {
       "x": 282,

@@ -1,14 +1,14 @@
 {
-  "event": "addInstance",
+  "event": "updateInstance",
   "payload": {
     "id": "192.168.56.101",
     "ip": "192.168.56.101",
     "online": true,
-    "uiAttached": false,
-    "switches": 2,
+    "uiAttached": true,
+    "switches": 4,
     "labels": [
       "192.168.56.101",
-      "127.0.0.1"
+      "192.168.56.101"
     ]
   }
 }

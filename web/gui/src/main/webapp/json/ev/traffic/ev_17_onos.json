@@ -4,21 +4,30 @@
   "payload": {
     "paths": [
       {
-        "intentId": "0x4321",
+        "class": "animated",
+        "traffic": true,
         "links": [
           "0E:2A:69:30:13:86/-1/0-of:0000ffffffff0003/101",
           "0E:2A:69:30:13:aa/-1/0-of:0000ffffffff0008/101"
         ],
-        "class": "animated"
+        "labels": [
+          "47 bytes",
+          "47 bytes"
+        ]
       },
       {
-        "intentId": "0xbab3",
+        "class": "animated optical",
+        "traffic": true,
         "links": [
           "of:0000ffffffff0003/4-of:0000ffffffffff03/1",
           "of:0000ffffffff0008/4-of:0000ffffffffff08/1",
           "of:0000ffffffffff08/4-of:0000ffffffffff03/1"
         ],
-        "class": "animated optical"
+        "labels": [
+          "24 bytes",
+          "some bits",
+          "foo bars"
+        ]
       }
     ]
   }

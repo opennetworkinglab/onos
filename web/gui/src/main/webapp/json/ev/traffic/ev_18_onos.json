@@ -4,46 +4,52 @@
   "payload": {
     "paths": [
       {
-        "intentId": "0x1234",
+        "class": "primary",
+        "traffic": false,
         "links": [
           "of:0000ffffffff0008/2-of:0000ffffffff0003/1"
         ],
-        "class": "primary"
+        "labels": [""]
       },
       {
-        "intentId": "0x4321",
+        "class": "secondary",
+        "traffic": false,
         "links": [
           "of:0000ffffffff0003/9-of:0000ffffffff0007/2"
         ],
-        "class": "secondary"
+        "labels": [""]
       },
       {
-        "intentId": "0xbabe",
+        "class": "animated",
+        "traffic": true,
         "links": [
           "of:0000ffffffff0008/4-of:0000ffffffff0007/1"
         ],
-        "class": "animated"
+        "labels": [""]
       },
       {
-        "intentId": "0xbab1",
+        "class": "primary optical",
+        "traffic": false,
         "links": [
           "of:0000ffffffff0008/4-of:0000ffffffffff08/1"
         ],
-        "class": "primary optical"
+        "labels": [""]
       },
       {
-        "intentId": "0xbab2",
+        "class": "secondary optical",
+        "traffic": false,
         "links": [
           "of:0000ffffffff0003/4-of:0000ffffffffff03/1"
         ],
-        "class": "secondary optical"
+        "labels": [""]
       },
       {
-        "intentId": "0xbab3",
+        "class": "animated optical",
+        "traffic": true,
         "links": [
           "of:0000ffffffffff08/4-of:0000ffffffffff03/1"
         ],
-        "class": "animated optical"
+        "labels": [""]
       }
     ]
   }

@@ -4,7 +4,7 @@
     "id": "of:0000ffffffffff03",
     "type": "roadm",
     "online": true,
-    "master": "local",
+    "master": "192.168.56.101",
     "labels": [
       "0000ffffffffff03",
       "FF:FF:FF:FF:FF:03",

@@ -5,9 +5,9 @@
     "type": "roadm",
     "online": true,
     "labels": [
-      "0000ffffffffff03",
-      "FF:FF:FF:FF:FF:03",
-      "opt-3"
+      "",
+      "opt-3",
+      "0000ffffffffff03"
     ],
     "metaUi": {
       "x": 282,

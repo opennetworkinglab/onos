@@ -3,6 +3,7 @@
   "payload": {
     "id": "of:0000ffffffff0003/2-of:0000ffffffffff03/1",
     "type": "optical",
+    "online": true,
     "linkWidth": 2,
     "src": "of:0000ffffffff0003",
     "srcPort": "2",

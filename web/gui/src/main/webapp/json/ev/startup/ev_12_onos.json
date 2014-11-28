@@ -5,9 +5,9 @@
     "type": "switch",
     "online": true,
     "labels": [
-      "0000ffffffff0001",
-      "FF:FF:FF:FF:00:01",
-      "?"
+      "",
+      "sw-1",
+      "0000ffffffff0001"
     ],
     "metaUi": {
       "x": 167,

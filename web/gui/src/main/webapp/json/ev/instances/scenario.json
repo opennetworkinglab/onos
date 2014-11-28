@@ -7,10 +7,10 @@
     "lastAuto": 17
   },
   "description": [
-    "Visualizing ONOS instances.",
+    "Press 'I' to show instance pane.",
+    "Press 'H' to show hosts.",
     "",
-    "Press 'S' to load initial events.",
-    "",
-    "Press spacebar to complete the scenario..."
+    "Press '=' to load initial events.",
+    "Press '-' to fire further events."
   ]
 }

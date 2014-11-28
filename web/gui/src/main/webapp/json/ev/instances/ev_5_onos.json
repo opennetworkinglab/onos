@@ -4,7 +4,7 @@
     "id": "of:0000ffffffff0003",
     "type": "switch",
     "online": true,
-    "master": "local",
+    "master": "192.168.56.101",
     "labels": [
       "0000ffffffff0003",
       "FF:FF:FF:FF:00:03",

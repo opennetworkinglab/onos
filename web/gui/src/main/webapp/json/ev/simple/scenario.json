@@ -8,6 +8,10 @@
     "lastAuto": 0
   },
   "description": [
+    "Press 'H' to show hosts.",
+    "",
+    "Press '-' to fire further events.",
+    "",
     "1. add device [8] (offline)",
     "2. add device [3] (offline)",
     "3. update device [8] (online, label3 change)",
