@@ -15,8 +15,17 @@
  */
 package org.onlab.onos.net.intent;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
 import org.onlab.onos.store.Store;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -110,4 +119,165 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      */
     void removeInstalledIntents(IntentId intentId);
 
+
+    /**
+     * Returns a new empty batch write operation buider.
+     *
+     * @return BatchWrite
+     */
+    default BatchWrite newBatchWrite() {
+        return new BatchWrite();
+    }
+
+    // default implementation simply executes them sequentially.
+    // Store implementation should override and implement actual batch write.
+    /**
+     * Execute writes in a batch.
+     *
+     * @param batch BatchWrite to execute
+     * @return failed operations
+     */
+    default List<Operation> batchWrite(BatchWrite batch) {
+        List<Operation> failed = new ArrayList<>();
+        for (Operation op : batch.operations) {
+            switch (op.type) {
+            case CREATE_INTENT:
+                checkArgument(op.args.size() == 1,
+                              "CREATE_INTENT takes 1 argument. %s", op);
+                Intent intent = (Intent) op.args.get(0);
+                if (createIntent(intent) == null) {
+                    failed.add(op);
+                }
+                break;
+
+            case REMOVE_INTENT:
+                checkArgument(op.args.size() == 1,
+                              "REMOVE_INTENT takes 1 argument. %s", op);
+                IntentId intentId = (IntentId) op.args.get(0);
+                removeIntent(intentId);
+                break;
+
+            case REMOVE_INSTALLED:
+                checkArgument(op.args.size() == 1,
+                              "REMOVE_INSTALLED takes 1 argument. %s", op);
+                intentId = (IntentId) op.args.get(0);
+                removeInstalledIntents(intentId);
+                break;
+
+            case SET_INSTALLABLE:
+                checkArgument(op.args.size() == 2,
+                              "SET_INSTALLABLE takes 2 arguments. %s", op);
+                intentId = (IntentId) op.args.get(0);
+                @SuppressWarnings("unchecked")
+                List<Intent> installableIntents = (List<Intent>) op.args.get(1);
+                setInstallableIntents(intentId, installableIntents);
+                break;
+
+            case SET_STATE:
+                checkArgument(op.args.size() == 2,
+                              "SET_STATE takes 2 arguments. %s", op);
+                intent = (Intent) op.args.get(0);
+                IntentState newState = (IntentState) op.args.get(1);
+                setState(intent, newState);
+                break;
+
+            default:
+                break;
+            }
+        }
+        return failed;
+    }
+
+    public static class BatchWrite {
+
+        public enum OpType {
+            CREATE_INTENT,
+            REMOVE_INTENT,
+            SET_STATE,
+            SET_INSTALLABLE,
+            REMOVE_INSTALLED
+        }
+
+        List<Operation> operations = new ArrayList<>();
+
+        public List<Operation> operations() {
+            return Collections.unmodifiableList(operations);
+        }
+
+        public boolean isEmpty() {
+            return operations.isEmpty();
+        }
+
+        public BatchWrite createIntent(Intent intent) {
+            operations.add(Operation.of(OpType.CREATE_INTENT,
+                                        ImmutableList.of(intent)));
+            return this;
+        }
+
+        public BatchWrite removeIntent(IntentId intentId) {
+            operations.add(Operation.of(OpType.REMOVE_INTENT,
+                                        ImmutableList.of(intentId)));
+            return this;
+        }
+
+        public BatchWrite setState(Intent intent, IntentState newState) {
+            operations.add(Operation.of(OpType.SET_STATE,
+                                        ImmutableList.of(intent, newState)));
+            return this;
+        }
+
+        public BatchWrite setInstallableIntents(IntentId intentId, List<Intent> installableIntents) {
+            operations.add(Operation.of(OpType.SET_INSTALLABLE,
+                                        ImmutableList.of(intentId, installableIntents)));
+            return this;
+        }
+
+        public BatchWrite removeInstalledIntents(IntentId intentId) {
+            operations.add(Operation.of(OpType.REMOVE_INSTALLED,
+                                        ImmutableList.of(intentId)));
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("operations", operations)
+                    .toString();
+        }
+
+        public static class Operation {
+            final OpType type;
+            final ImmutableList<Object> args;
+
+            public static Operation of(OpType type, List<Object> args) {
+                return new Operation(type, args);
+            }
+
+            public Operation(OpType type, List<Object> args) {
+                this.type = checkNotNull(type);
+                this.args = ImmutableList.copyOf(args);
+            }
+
+            public OpType type() {
+                return type;
+            }
+
+            public ImmutableList<Object> args() {
+                return args;
+            }
+
+            @SuppressWarnings("unchecked")
+            public <T> T arg(int i) {
+                return (T) args.get(i);
+            }
+
+            @Override
+            public String toString() {
+                return MoreObjects.toStringHelper(getClass())
+                        .add("type", type)
+                        .add("args", args)
+                        .toString();
+            }
+        }
+    }
 }

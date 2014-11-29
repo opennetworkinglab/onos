@@ -18,6 +18,9 @@ package org.onlab.onos.store.intent.impl;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
 import com.google.common.base.Verify;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -34,22 +37,28 @@ import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
+import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
 import org.onlab.onos.store.AbstractStore;
 import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onlab.onos.store.service.BatchWriteRequest;
+import org.onlab.onos.store.service.BatchWriteRequest.Builder;
+import org.onlab.onos.store.service.BatchWriteResult;
 import org.onlab.onos.store.service.DatabaseAdminService;
 import org.onlab.onos.store.service.DatabaseService;
 import org.onlab.onos.store.service.impl.CMap;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -70,14 +79,20 @@ public class DistributedIntentStore
     private final Logger log = getLogger(getClass());
 
     // Assumption: IntentId will not have synonyms
+    private static final String INTENTS_TABLE = "intents";
     private CMap<IntentId, Intent> intents;
+
+    private static final String STATES_TABLE = "intent-states";
     private CMap<IntentId, IntentState> states;
 
     // TODO left behind transient state issue: ONOS-103
     // Map to store instance local intermediate state transition
     private transient Map<IntentId, IntentState> transientStates = new ConcurrentHashMap<>();
 
+    private static final String INSTALLABLE_TABLE = "installable-intents";
     private CMap<IntentId, List<Intent>> installable;
+
+    private LoadingCache<IntentId, String> keyCache;
 
     private StoreSerializer serializer;
 
@@ -137,13 +152,23 @@ public class DistributedIntentStore
             }
         };
 
-        intents = new CMap<>(dbAdminService, dbService, "intents", serializer);
+        keyCache = CacheBuilder.newBuilder()
+                .softValues()
+                .build(new CacheLoader<IntentId, String>() {
 
-        states = new CMap<>(dbAdminService, dbService, "intent-states", serializer);
+                    @Override
+                    public String load(IntentId key) {
+                        return key.toString();
+                    }
+                });
+
+        intents = new IntentIdMap<>(dbAdminService, dbService, INTENTS_TABLE, serializer);
+
+        states = new IntentIdMap<>(dbAdminService, dbService, STATES_TABLE, serializer);
 
         transientStates.clear();
 
-        installable = new CMap<>(dbAdminService, dbService, "installable-intents", serializer);
+        installable = new IntentIdMap<>(dbAdminService, dbService, INSTALLABLE_TABLE, serializer);
 
         log.info("Started");
     }
@@ -349,6 +374,103 @@ public class DistributedIntentStore
             installable.remove(intentId);
         } finally {
             stopTimer(timer);
+        }
+    }
+
+    protected String strIntentId(IntentId key) {
+        return keyCache.getUnchecked(key);
+    }
+
+    /**
+     * Distributed Map from IntentId to some value.
+     *
+     * @param <V> Map value type
+     */
+    final class IntentIdMap<V> extends CMap<IntentId, V> {
+
+        /**
+         * Creates a IntentIdMap instance.
+         *
+         * @param dbAdminService DatabaseAdminService to use for this instance
+         * @param dbService DatabaseService to use for this instance
+         * @param tableName table which this Map corresponds to
+         * @param serializer Value serializer
+         */
+        public IntentIdMap(DatabaseAdminService dbAdminService,
+                         DatabaseService dbService,
+                         String tableName,
+                         StoreSerializer serializer) {
+            super(dbAdminService, dbService, tableName, serializer);
+        }
+
+        @Override
+        protected String sK(IntentId key) {
+            return strIntentId(key);
+        }
+    }
+
+    @Override
+    public List<Operation> batchWrite(BatchWrite batch) {
+
+        List<Operation> failed = new ArrayList<>();
+        final Builder builder = BatchWriteRequest.newBuilder();
+
+        for (Operation op : batch.operations()) {
+            switch (op.type()) {
+            case CREATE_INTENT:
+                checkArgument(op.args().size() == 1,
+                              "CREATE_INTENT takes 1 argument. %s", op);
+                Intent intent = op.arg(0);
+                builder.putIfAbsent(INTENTS_TABLE, strIntentId(intent.id()), serializer.encode(intent));
+                builder.putIfAbsent(STATES_TABLE, strIntentId(intent.id()), serializer.encode(SUBMITTED));
+                break;
+
+            case REMOVE_INTENT:
+                checkArgument(op.args().size() == 1,
+                              "REMOVE_INTENT takes 1 argument. %s", op);
+                IntentId intentId = (IntentId) op.arg(0);
+                builder.remove(INTENTS_TABLE, strIntentId(intentId));
+                builder.remove(STATES_TABLE, strIntentId(intentId));
+                builder.remove(INSTALLABLE_TABLE, strIntentId(intentId));
+                break;
+
+            case SET_STATE:
+                checkArgument(op.args().size() == 2,
+                              "SET_STATE takes 2 arguments. %s", op);
+                intent = op.arg(0);
+                IntentState newState = op.arg(1);
+                builder.put(STATES_TABLE, strIntentId(intent.id()), serializer.encode(newState));
+                break;
+
+            case SET_INSTALLABLE:
+                checkArgument(op.args().size() == 2,
+                              "SET_INSTALLABLE takes 2 arguments. %s", op);
+                intentId = op.arg(0);
+                List<Intent> installableIntents = op.arg(1);
+                builder.put(INSTALLABLE_TABLE, strIntentId(intentId), serializer.encode(installableIntents));
+                break;
+
+            case REMOVE_INSTALLED:
+                checkArgument(op.args().size() == 1,
+                              "REMOVE_INSTALLED takes 1 argument. %s", op);
+                intentId = op.arg(0);
+                builder.remove(INSTALLABLE_TABLE, strIntentId(intentId));
+                break;
+
+            default:
+                log.warn("Unknown Operation encountered: {}", op);
+                failed.add(op);
+                break;
+            }
+        }
+
+        BatchWriteResult batchWriteResult = dbService.batchWrite(builder.build());
+        if (batchWriteResult.isSuccessful()) {
+            // no-failure (except for invalid input)
+            return failed;
+        } else {
+            // everything failed
+            return batch.operations();
         }
     }
 }
