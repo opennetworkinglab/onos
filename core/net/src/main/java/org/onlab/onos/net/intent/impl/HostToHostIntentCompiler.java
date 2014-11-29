@@ -20,15 +20,20 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.net.DefaultLink;
+import org.onlab.onos.net.DefaultPath;
 import org.onlab.onos.net.Host;
+import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.flow.TrafficSelector;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.HostToHostIntent;
 import org.onlab.onos.net.intent.Intent;
 import org.onlab.onos.net.intent.PathIntent;
+import org.onlab.onos.net.intent.constraint.AsymmetricPathConstraint;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -58,14 +63,33 @@ public class HostToHostIntentCompiler
     @Override
     public List<Intent> compile(HostToHostIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
+        boolean isAsymmetric = intent.constraints().contains(new AsymmetricPathConstraint());
         Path pathOne = getPath(intent, intent.one(), intent.two());
-        Path pathTwo = getPath(intent, intent.two(), intent.one());
+        Path pathTwo = isAsymmetric ?
+                getPath(intent, intent.two(), intent.one()) : invertPath(pathOne);
 
         Host one = hostService.getHost(intent.one());
         Host two = hostService.getHost(intent.two());
 
         return Arrays.asList(createPathIntent(pathOne, one, two, intent),
                              createPathIntent(pathTwo, two, one, intent));
+    }
+
+    // Inverts the specified path. This makes an assumption that each link in
+    // the path has a reverse link available. Under most circumstances, this
+    // assumption will hold.
+    private Path invertPath(Path path) {
+        List<Link> reverseLinks = new ArrayList<>(path.links().size());
+        for (Link link : path.links()) {
+            reverseLinks.add(0, reverseLink(link));
+        }
+        return new DefaultPath(path.providerId(), reverseLinks, path.cost());
+    }
+
+    // Produces a reverse variant of the specified link.
+    private Link reverseLink(Link link) {
+        return new DefaultLink(link.providerId(), link.dst(), link.src(),
+                               link.type(), link.state(), link.isDurable());
     }
 
     // Creates a path intent from the specified path and original connectivity intent.

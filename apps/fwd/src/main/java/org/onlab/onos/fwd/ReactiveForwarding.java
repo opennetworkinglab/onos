@@ -132,8 +132,8 @@ public class ReactiveForwarding {
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
 
-            // Bail if this is deemed to be a control packet.
-            if (isControlPacket(ethPkt)) {
+            // Bail if this is deemed to be a control or IPv6 multicast packet.
+            if (isControlPacket(ethPkt) || isIpv6Multicast(ethPkt)) {
                 return;
             }
 
@@ -192,6 +192,11 @@ public class ReactiveForwarding {
     private boolean isControlPacket(Ethernet eth) {
         short type = eth.getEtherType();
         return type == Ethernet.TYPE_LLDP || type == Ethernet.TYPE_BSN;
+    }
+
+    // Indicated whether this is an IPv6 multicast packet.
+    private boolean isIpv6Multicast(Ethernet eth) {
+        return eth.getEtherType() == Ethernet.TYPE_IPV6 && eth.isMulticast();
     }
 
     // Selects a path from the given set that does not lead back to the

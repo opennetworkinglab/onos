@@ -558,7 +558,7 @@ public class TopologyViewWebSocket
         }
     }
 
-    // Accummulates events to drive methodic update of the summary pane.
+    // Accumulates events to drive methodic update of the summary pane.
     private class InternalEventAccummulator extends AbstractEventAccumulator {
         protected InternalEventAccummulator() {
             super(new Timer("topo-summary"), MAX_EVENTS, MAX_BATCH_MS, MAX_IDLE_MS);

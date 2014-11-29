@@ -31,14 +31,16 @@ import java.util.Map;
  */
 public class Ethernet extends BasePacket {
     private static final String HEXES = "0123456789ABCDEF";
-    public static final short TYPE_ARP = 0x0806;
+    public static final short TYPE_ARP = (short) 0x0806;
     public static final short TYPE_RARP = (short) 0x8035;
-    public static final short TYPE_IPV4 = 0x0800;
+    public static final short TYPE_IPV4 = (short) 0x0800;
+    public static final short TYPE_IPV6 = (short) 0x86dd;
     public static final short TYPE_LLDP = (short) 0x88cc;
     public static final short TYPE_BSN = (short) 0x8942;
     public static final short VLAN_UNTAGGED = (short) 0xffff;
     public static final short MPLS_UNICAST = (short) 0x8847;
     public static final short MPLS_MULTICAST = (short) 0x8848;
+
     public static final short DATALAYER_ADDRESS_LENGTH = 6; // bytes
     public static final Map<Short, Class<? extends IPacket>> ETHER_TYPE_CLASS_MAP =
         new HashMap<>();

@@ -36,6 +36,7 @@ import org.onlab.onos.net.Host;
 import org.onlab.onos.net.HostId;
 import org.onlab.onos.net.HostLocation;
 import org.onlab.onos.net.Link;
+import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DeviceEvent;
 import org.onlab.onos.net.device.DeviceService;
@@ -66,6 +67,7 @@ import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +84,7 @@ import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
 import static org.onlab.onos.net.DeviceId.deviceId;
 import static org.onlab.onos.net.HostId.hostId;
+import static org.onlab.onos.net.LinkKey.linkKey;
 import static org.onlab.onos.net.PortNumber.P0;
 import static org.onlab.onos.net.PortNumber.portNumber;
 import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
@@ -109,8 +112,6 @@ public abstract class TopologyViewMessages {
     private static final String MB_UNIT = "MB";
     private static final String KB_UNIT = "KB";
     private static final String B_UNIT = "B";
-
-    private static final String ANIMATED = "animated";
 
     protected final ServiceDirectory directory;
     protected final ClusterService clusterService;
@@ -560,12 +561,49 @@ public abstract class TopologyViewMessages {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode paths = mapper.createArrayNode();
         payload.set("paths", paths);
-        for (Link link : linkService.getLinks()) {
-            Set<Link> links = new HashSet<>();
-            links.add(link);
-            addPathTraffic(paths, "plain", "secondary", links);
+
+        ObjectNode pathNodeN = mapper.createObjectNode();
+        ArrayNode linksNodeN = mapper.createArrayNode();
+        ArrayNode labelsN = mapper.createArrayNode();
+
+        pathNodeN.put("class", "plain").put("traffic", false);
+        pathNodeN.set("links", linksNodeN);
+        pathNodeN.set("labels", labelsN);
+        paths.add(pathNodeN);
+
+        ObjectNode pathNodeT = mapper.createObjectNode();
+        ArrayNode linksNodeT = mapper.createArrayNode();
+        ArrayNode labelsT = mapper.createArrayNode();
+
+        pathNodeT.put("class", "secondary").put("traffic", true);
+        pathNodeT.set("links", linksNodeT);
+        pathNodeT.set("labels", labelsT);
+        paths.add(pathNodeT);
+
+        for (BiLink link : consolidateLinks(linkService.getLinks())) {
+            boolean bi = link.two != null;
+            if (isInfrastructureEgress(link.one) ||
+                    (bi && isInfrastructureEgress(link.two))) {
+                link.addLoad(statService.load(link.one));
+                link.addLoad(bi ? statService.load(link.two) : null);
+                if (link.hasTraffic) {
+                    linksNodeT.add(compactLinkString(link.one));
+                    labelsT.add(formatBytes(link.bytes));
+                } else {
+                    linksNodeN.add(compactLinkString(link.one));
+                    labelsN.add("");
+                }
+            }
         }
         return envelope("showTraffic", sid, payload);
+    }
+
+    private Collection<BiLink> consolidateLinks(Iterable<Link> links) {
+        Map<LinkKey, BiLink> biLinks = new HashMap<>();
+        for (Link link : links) {
+            addLink(biLinks, link);
+        }
+        return biLinks.values();
     }
 
     // Produces JSON message to trigger flow overview visualization
@@ -603,6 +641,33 @@ public abstract class TopologyViewMessages {
         ArrayNode paths = mapper.createArrayNode();
         payload.set("paths", paths);
 
+        // Classify links based on their traffic traffic first...
+        Map<LinkKey, BiLink> biLinks = classifyLinkTraffic(trafficClasses);
+
+        // Then separate the links into their respective classes and send them out.
+        Map<String, ObjectNode> pathNodes = new HashMap<>();
+        for (BiLink biLink : biLinks.values()) {
+            boolean hasTraffic = biLink.hasTraffic;
+            String tc = (biLink.classes + (hasTraffic ? " animated" : "")).trim();
+            ObjectNode pathNode = pathNodes.get(tc);
+            if (pathNode == null) {
+                pathNode = mapper.createObjectNode()
+                        .put("class", tc).put("traffic", hasTraffic);
+                pathNode.set("links", mapper.createArrayNode());
+                pathNode.set("labels", mapper.createArrayNode());
+                pathNodes.put(tc, pathNode);
+                paths.add(pathNode);
+            }
+            ((ArrayNode) pathNode.path("links")).add(compactLinkString(biLink.one));
+            ((ArrayNode) pathNode.path("labels")).add(hasTraffic ? formatBytes(biLink.bytes) : "");
+        }
+
+        return envelope("showTraffic", sid, payload);
+    }
+
+    // Classifies the link traffic according to the specified classes.
+    private Map<LinkKey, BiLink> classifyLinkTraffic(TrafficClass... trafficClasses) {
+        Map<LinkKey, BiLink> biLinks = new HashMap<>();
         for (TrafficClass trafficClass : trafficClasses) {
             for (Intent intent : trafficClass.intents) {
                 boolean isOptical = intent instanceof OpticalConnectivityIntent;
@@ -611,23 +676,48 @@ public abstract class TopologyViewMessages {
                     for (Intent installable : installables) {
                         String cls = isOptical ? trafficClass.type + " optical" : trafficClass.type;
                         if (installable instanceof PathIntent) {
-                            addPathTraffic(paths, cls, ANIMATED,
-                                           ((PathIntent) installable).path().links());
+                            classifyLinks(cls, biLinks, ((PathIntent) installable).path().links());
                         } else if (installable instanceof LinkCollectionIntent) {
-                            addPathTraffic(paths, cls, ANIMATED,
-                                           ((LinkCollectionIntent) installable).links());
+                            classifyLinks(cls, biLinks, ((LinkCollectionIntent) installable).links());
                         } else if (installable instanceof OpticalPathIntent) {
-                            addPathTraffic(paths, cls, ANIMATED,
-                                           ((OpticalPathIntent) installable).path().links());
+                            classifyLinks(cls, biLinks, ((OpticalPathIntent) installable).path().links());
                         }
-
                     }
                 }
             }
         }
-
-        return envelope("showTraffic", sid, payload);
+        return biLinks;
     }
+
+
+    // Adds the link segments (path or tree) associated with the specified
+    // connectivity intent
+    private void classifyLinks(String type, Map<LinkKey, BiLink> biLinks,
+                               Iterable<Link> links) {
+        if (links != null) {
+            for (Link link : links) {
+                BiLink biLink = addLink(biLinks, link);
+                if (isInfrastructureEgress(link)) {
+                    biLink.addLoad(statService.load(link));
+                    biLink.addClass(type);
+                }
+            }
+        }
+    }
+
+
+    private BiLink addLink(Map<LinkKey, BiLink> biLinks, Link link) {
+        LinkKey key = canonicalLinkKey(link);
+        BiLink biLink = biLinks.get(key);
+        if (biLink != null) {
+            biLink.setOther(link);
+        } else {
+            biLink = new BiLink(key, link);
+            biLinks.put(key, biLink);
+        }
+        return biLink;
+    }
+
 
     // Adds the link segments (path or tree) associated with the specified
     // connectivity intent
@@ -646,7 +736,7 @@ public abstract class TopologyViewMessages {
                     String label = "";
                     if (load.rate() > 0) {
                         hasTraffic = true;
-                        label = format(load);
+                        label = formatBytes(load.latest());
                     }
                     labels.add(label);
                 }
@@ -660,8 +750,7 @@ public abstract class TopologyViewMessages {
     }
 
     // Poor-mans formatting to get the labels with byte counts looking nice.
-    private String format(Load load) {
-        long bytes = load.latest();
+    private String formatBytes(long bytes) {
         String unit;
         double value;
         if (bytes > GB) {
@@ -711,6 +800,44 @@ public abstract class TopologyViewMessages {
         result.set("propOrder", porder);
         result.set("props", pnode);
         return result;
+    }
+
+    // Produces canonical link key, i.e. one that will match link and its inverse.
+    private LinkKey canonicalLinkKey(Link link) {
+        String sn = link.src().elementId().toString();
+        String dn = link.dst().elementId().toString();
+        return sn.compareTo(dn) < 0 ?
+                linkKey(link.src(), link.dst()) : linkKey(link.dst(), link.src());
+    }
+
+    // Representation of link and its inverse and any traffic data.
+    private class BiLink {
+        public final LinkKey key;
+        public final Link one;
+        public Link two;
+        public boolean hasTraffic = false;
+        public long bytes = 0;
+        public String classes = "";
+
+        BiLink(LinkKey key, Link link) {
+            this.key = key;
+            this.one = link;
+        }
+
+        void setOther(Link link) {
+            this.two = link;
+        }
+
+        void addLoad(Load load) {
+            if (load != null) {
+                this.hasTraffic = hasTraffic || load.rate() > 0;
+                this.bytes += load.latest();
+            }
+        }
+
+        void addClass(String trafficClass) {
+            classes = classes + " " + trafficClass;
+        }
     }
 
     // Auxiliary key/value carrier.
