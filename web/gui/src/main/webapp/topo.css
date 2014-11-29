@@ -330,7 +330,7 @@ svg .node.host circle {
 #topo-oibox .online svg rect {
     opacity: 1;
     fill: #9cf;
-    stroke: #357;
+    stroke: #555;
 }
 
 #topo-oibox svg .glyphIcon {
@@ -342,7 +342,7 @@ svg .node.host circle {
 }
 
 #topo-oibox svg .badgeIcon {
-    fill: #aaa;
+    fill: #777;
     fill-rule: evenodd;
 }
 
@@ -352,7 +352,7 @@ svg .node.host circle {
 
 #topo-oibox svg text {
     text-anchor: middle;
-    fill: #888;
+    fill: #777;
 }
 #topo-oibox .online svg text {
     fill: #eee;
