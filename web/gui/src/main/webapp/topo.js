@@ -206,7 +206,8 @@
         showHosts = false,
         showOffline = true,
         useDetails = true,
-        haveDetails = false;
+        haveDetails = false,
+        dragAllowed = true;
 
     // constants
     var hoverModeAll = 1,
@@ -2642,13 +2643,12 @@
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
+        // load glyphs and filters...
         loadGlyphs(svg);
+        d3u.appendGlow(svg);
 
         zoomPanContainer = svg.append('g').attr('id', 'zoomPanContainer');
         setupZoomPan();
-
-        // add blue glow filter to svg layer
-        d3u.appendGlow(zoomPanContainer);
 
         // group for the topology
         topoG = zoomPanContainer.append('g')
@@ -2691,6 +2691,14 @@
             }
         }
 
+        // predicate that indicates when dragging is active
+        function dragEnabled() {
+            // meta key pressed means we are zooming/panning (so disable drag)
+            return dragAllowed && !d3.event.sourceEvent.metaKey;
+            // dragAllowed will be set false when we are in oblique view
+            // or when we 'lock' node positions
+        }
+
         // set up the force layout
         network.force = d3.layout.force()
             .size(forceDim)
@@ -2704,10 +2712,16 @@
             .on('tick', tick);
 
         network.drag = d3u.createDragBehavior(network.force,
-            selectCb, atDragEnd, panZoom);
+            selectCb, atDragEnd, dragEnabled);
+
 
         // create mask layer for when we lose connection to server.
         // TODO: this should be part of the framework
+
+        function para(sel, text) {
+            sel.append('p').text(text);
+        }
+
         mask = view.$div.append('div').attr('id','topo-mask');
         para(mask, 'Oops!');
         para(mask, 'Web-socket connection to server closed...');
@@ -2729,10 +2743,6 @@
                     height: config.birdDim,
                     fill: '#111'
                 })
-    }
-
-    function para(sel, text) {
-        sel.append('p').text(text);
     }
 
 

@@ -23,23 +23,40 @@
 (function (onos) {
     'use strict';
 
-    function createDragBehavior(force, selectCb, atDragEnd, requireMeta) {
+    function isF(f) {
+        return $.isFunction(f) ? f : null;
+    }
+
+    function createDragBehavior(force, selectCb, atDragEnd, enabled) {
         var draggedThreshold = d3.scale.linear()
                 .domain([0, 0.1])
                 .range([5, 20])
                 .clamp(true),
-            drag;
+            drag,
+            fSel = isF(selectCb),
+            fEnd = isF(atDragEnd),
+            fEnb = isF(enabled),
+            bad = [];
 
-        // TODO: better validation of parameters
-        if (!$.isFunction(selectCb)) {
-            alert('d3util.createDragBehavior(): selectCb is not a function')
+        function naf(what) {
+            return 'd3util.createDragBehavior(): '+ what + ' is not a function';
         }
-        if (!$.isFunction(atDragEnd)) {
-            alert('d3util.createDragBehavior(): atDragEnd is not a function')
+
+        if (!fSel) {
+            bad.push(naf('selectCb'));
         }
-        if (!$.isFunction(requireMeta)) {
-            alert('d3util.createDragBehavior(): requireMeta is not a function')
+        if (!fEnd) {
+            bad.push(naf('atDragEnd'));
         }
+        if (!fEnb) {
+            bad.push(naf('enabled'));
+        }
+
+        if (bad.length) {
+            alert(bad.join('\n'));
+            return null;
+        }
+
 
         function dragged(d) {
             var threshold = draggedThreshold(force.alpha()),
@@ -54,7 +71,7 @@
         drag = d3.behavior.drag()
             .origin(function(d) { return d; })
             .on('dragstart', function(d) {
-                if (requireMeta() ^ !d3.event.sourceEvent.metaKey) {
+                if (enabled()) {
                     d3.event.sourceEvent.stopPropagation();
 
                     d.oldX = d.x;
@@ -65,7 +82,7 @@
                 }
             })
             .on('drag', function(d) {
-                if (requireMeta() ^ !d3.event.sourceEvent.metaKey) {
+                if (enabled()) {
                     d.px = d3.event.x;
                     d.py = d3.event.y;
                     if (dragged(d)) {
