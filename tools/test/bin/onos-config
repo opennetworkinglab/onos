@@ -26,6 +26,11 @@ ssh $remote "
 
     echo \"onos.ip = \$(ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/system.properties
+
+    # Drop copycat related log level for the console
+    echo "log4j.logger.net.kuujo.copycat= INFO" \
+        >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
+
 "
 
 # Generate a default tablets.json from the ON* environment variables
