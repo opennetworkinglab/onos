@@ -15,10 +15,13 @@
  */
 package org.onlab.onos.cli.net;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.onos.cli.AbstractShellCommand;
+import org.onlab.onos.core.ApplicationId;
+import org.onlab.onos.core.CoreService;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.PortNumber;
@@ -61,16 +64,26 @@ public class IntentPushTestCommand extends AbstractShellCommand
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-    @Argument(index = 2, name = "count",
-              description = "Number of intents to push",
-              required = true, multiValued = false)
-    String countString = null;
+
+    @Argument(index = 2, name = "Intents per appId",
+            description = "Number of intents per appId",
+            required = true, multiValued = false)
+    String intentsPerAppId = null;
+
+    @Argument(index = 3, name = "apps",
+            description = "Number of appIds",
+            required = false, multiValued = false)
+    String appIds = null;
+
 
     private IntentService service;
     private CountDownLatch latch;
     private long start, end;
+    private int apps;
+    private int intentsPerApp;
     private int count;
     private boolean add;
+
 
     @Override
     protected void execute() {
@@ -85,13 +98,18 @@ public class IntentPushTestCommand extends AbstractShellCommand
         PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
-        count = Integer.parseInt(countString);
+        apps = appIds != null ? Integer.parseInt(appIds) : 1;
+        intentsPerApp = Integer.parseInt(intentsPerAppId);
+
+        count = intentsPerApp * apps;
+
 
         service.addListener(this);
 
+        ArrayListMultimap<Integer, Intent> operations = generateIntents(ingress, egress);
+
         add = true;
         latch = new CountDownLatch(count);
-        List<Intent> operations = generateIntents(ingress, egress);
         submitIntents(operations);
 
         add = false;
@@ -101,36 +119,41 @@ public class IntentPushTestCommand extends AbstractShellCommand
         service.removeListener(this);
     }
 
-    private List<Intent> generateIntents(ConnectPoint ingress, ConnectPoint egress) {
+    private ArrayListMultimap<Integer, Intent> generateIntents(ConnectPoint ingress, ConnectPoint egress) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
-        List<Intent> intents = Lists.newArrayList();
-        for (int i = 1; i <= count; i++) {
-            TrafficSelector s = selector
-                    .matchEthSrc(MacAddress.valueOf(i))
-                    .build();
-            intents.add(new PointToPointIntent(appId(), s, treatment,
-                                               ingress, egress));
+        ArrayListMultimap<Integer, Intent> intents = ArrayListMultimap.create();
+        for (int app = 1; app <= apps; app++) {
+            for (int i = 1; i <= intentsPerApp; i++) {
+                TrafficSelector s = selector
+                        .matchEthSrc(MacAddress.valueOf(i))
+                        .build();
+                intents.put(app, new PointToPointIntent(appId(), s, treatment,
+                                                        ingress, egress));
 
+            }
         }
         return intents;
     }
 
-    private void submitIntents(List<Intent> intents) {
-        IntentOperations.Builder builder = IntentOperations.builder(appId());
-        for (Intent intent : intents) {
-            if (add) {
-                builder.addSubmitOperation(intent);
-            } else {
-                builder.addWithdrawOperation(intent.id());
+    private void submitIntents(ArrayListMultimap<Integer, Intent> intents) {
+        List<IntentOperations> opList = Lists.newArrayList();
+        for (Integer app : intents.keySet()) {
+            IntentOperations.Builder builder = IntentOperations.builder(appId(app));
+            for (Intent intent : intents.get(app)) {
+                if (add) {
+                    builder.addSubmitOperation(intent);
+                } else {
+                    builder.addWithdrawOperation(intent.id());
+                }
             }
+            opList.add(builder.build());
         }
-        IntentOperations ops = builder.build();
 
         start = System.currentTimeMillis();
-        service.execute(ops);
+        opList.forEach(ops -> service.execute(ops));
         try {
             if (latch.await(100 + count * 200, TimeUnit.MILLISECONDS)) {
                 printResults(count);
@@ -146,6 +169,16 @@ public class IntentPushTestCommand extends AbstractShellCommand
         long delta = end - start;
         String text = add ? "install" : "withdraw";
         print("Time to %s %d intents: %d ms", text, count, delta);
+    }
+
+
+    /**
+     * Returns application ID for the CLI.
+     *
+     * @return command-line application identifier
+     */
+    protected ApplicationId appId(Integer id) {
+        return get(CoreService.class).registerApplication("org.onlab.onos.cli-" + id);
     }
 
     /**

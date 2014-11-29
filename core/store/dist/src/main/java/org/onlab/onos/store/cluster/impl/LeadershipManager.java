@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -156,6 +157,11 @@ public class LeadershipManager implements LeadershipService {
                             LeadershipEvent.Type.LEADER_BOOTED,
                             new Leadership(lock.path(), localNode, lock.epoch())));
         }
+    }
+
+    @Override
+    public Map<String, Leadership> getLeaderBoard() {
+        return ImmutableMap.copyOf(leaderBoard);
     }
 
     @Override

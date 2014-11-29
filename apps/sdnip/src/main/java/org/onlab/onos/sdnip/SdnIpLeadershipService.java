@@ -159,6 +159,12 @@ public class SdnIpLeadershipService implements LeadershipService {
     }
 
     @Override
+    public Map<String, Leadership> getLeaderBoard() {
+        throw new UnsupportedOperationException("I don't know what to do." +
+                                                        " I wish you luck.");
+    }
+
+    @Override
     public void addListener(LeadershipEventListener listener) {
         listenerRegistry.addListener(listener);
     }

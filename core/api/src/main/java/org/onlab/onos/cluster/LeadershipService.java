@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.cluster;
 
+import java.util.Map;
+
 /**
  * Service for leader election.
  * Leadership contests are organized around topics. A instance can join the
@@ -42,6 +44,8 @@ public interface LeadershipService {
      * @param path topic for which this controller node no longer wishes to be a leader.
      */
     void withdraw(String path);
+
+    Map<String, Leadership> getLeaderBoard();
 
     /**
      * Registers a event listener to be notified of leadership events.
