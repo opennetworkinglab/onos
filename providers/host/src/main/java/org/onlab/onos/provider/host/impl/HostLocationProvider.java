@@ -109,6 +109,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void deactivate() {
         providerRegistry.unregister(this);
         pktService.removeProcessor(processor);
+        deviceService.removeListener(deviceListener);
         providerService = null;
         log.info("Stopped");
     }
