@@ -29,6 +29,7 @@ import org.onlab.onos.net.flow.instructions.Instructions;
 import org.onlab.onos.net.statistic.StatisticStore;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -84,8 +85,8 @@ public class SimpleStatisticStore implements StatisticStore {
             return;
         }
         InternalStatisticRepresentation rep = representations.get(cp);
-        if (rep != null) {
-            rep.remove(rule);
+        if (rep != null && rep.remove(rule)) {
+            updatePublishedStats(cp, Collections.emptySet());
         }
         Set<FlowEntry> values = current.get(cp);
         if (values != null) {
@@ -183,9 +184,9 @@ public class SimpleStatisticStore implements StatisticStore {
             counter.incrementAndGet();
         }
 
-        public synchronized void remove(FlowRule rule) {
+        public synchronized boolean remove(FlowRule rule) {
             rules.remove(rule);
-            counter.decrementAndGet();
+            return counter.decrementAndGet() == 0;
         }
 
         public synchronized boolean submit(FlowEntry rule) {
