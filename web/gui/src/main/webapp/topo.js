@@ -145,6 +145,7 @@
         D: [toggleDetails, 'Disable / enable details pane'],
         B: [toggleBg, 'Toggle background image'],
         H: [toggleHosts, 'Toggle host visibility'],
+        M: [toggleOffline, 'Toggle offline visibility'],
         L: [cycleLabels, 'Cycle device labels'],
         P: togglePorts,
         U: [unpin, 'Unpin node (hover mouse over)'],
@@ -203,6 +204,7 @@
         cat7 = d3u.cat7(),
         colorAffinity = false,
         showHosts = false,
+        showOffline = true,
         useDetails = true,
         haveDetails = false;
 
@@ -328,6 +330,12 @@
         showHosts = !showHosts;
         updateHostVisibility();
         flash('Hosts ' + visVal(showHosts));
+    }
+
+    function toggleOffline() {
+        showOffline = !showOffline;
+        updateOfflineVisibility();
+        flash('Offline devices ' + visVal(showOffline));
     }
 
     function cycleLabels() {
@@ -711,13 +719,20 @@
         evTrace(data);
         var device = data.payload,
             id = device.id,
-            d = network.lookup[id];
+            d = network.lookup[id],
+            wasOnline;
+
         if (d) {
+            wasOnline = d.online;
             $.extend(d, device);
             if (positionNode(d, true)) {
                 sendUpdateMeta(d, true);
             }
             updateNodes();
+            if (wasOnline !== d.online) {
+                findAttachedLinks(d.id).forEach(restyleLinkElement);
+                updateOfflineVisibility(d);
+            }
         } else {
             logicError('updateDevice lookup fail. ID = "' + id + '"');
         }
@@ -742,7 +757,10 @@
             d = network.lookup[id];
         if (d) {
             $.extend(d, host);
-            updateHostState(d);
+            if (positionNode(d, true)) {
+                sendUpdateMeta(d, true);
+            }
+            updateNodes(d);
         } else {
             logicError('updateHost lookup fail. ID = "' + id + '"');
         }
@@ -1339,8 +1357,10 @@
             class: 'link',
 
             type: function () { return 'hostLink'; },
-            // TODO: ideally, we should see if our edge switch is online...
-            online: function () { return true; },
+            online: function () {
+                // hostlink target is edge switch
+                return lnk.target.online;
+            },
             linkWidth: function () { return 1; }
         });
         return lnk;
@@ -1366,8 +1386,9 @@
             },
             online: function () {
                 var s = lnk.fromSource,
-                    t = lnk.fromTarget;
-                return (s && s.online) || (t && t.online);
+                    t = lnk.fromTarget,
+                    both = lnk.source.online && lnk.target.online;
+                return both && ((s && s.online) || (t && t.online));
             },
             linkWidth: function () {
                 var s = lnk.fromSource,
@@ -1435,12 +1456,12 @@
 
         // operate on exiting links:
         link.exit()
-            .attr('stroke-dasharray', '3, 3')
+            .attr('stroke-dasharray', '3 3')
             .style('opacity', 0.5)
             .transition()
             .duration(1500)
             .attr({
-                'stroke-dasharray': '3, 12',
+                'stroke-dasharray': '3 12',
                 stroke: config.topo.linkOutColor,
                 'stroke-width': config.topo.linkOutWidth
             })
@@ -1575,8 +1596,6 @@
             node.fixed = true;
             node.px = node.x = x;
             node.py = node.y = y;
-            //node.px = x;
-            //node.py = y;
             return;
         }
 
@@ -1586,8 +1605,6 @@
             node.fixed = true;
             node.px = node.x = coord[0];
             node.py = node.y = coord[1];
-            //node.x = coord[0];
-            //node.y = coord[1];
             return true;
         }
 
@@ -1726,21 +1743,61 @@
     }
 
     function updateHostLabel(d) {
-        var label = hostLabel(d),
-            host = d.el;
-
-        host.select('text').text(label);
-    }
-
-    // FIXME : fold this into updateNodes.
-    function updateHostState(hostData) {
-        updateHostLabel(hostData);
+        var label = trimLabel(hostLabel(d));
+        d.el.select('text').text(label);
     }
 
     function updateHostVisibility() {
         var v = visVal(showHosts);
         nodeG.selectAll('.host').style('visibility', v);
         linkG.selectAll('.hostLink').style('visibility', v);
+    }
+
+    function findOfflineNodes() {
+        var a = [];
+        network.nodes.forEach(function (d) {
+            if (d.class === 'device' && !d.online) {
+                a.push(d);
+            }
+        });
+        return a;
+    }
+
+    function updateOfflineVisibility(dev) {
+        var so = showOffline,
+            sh = showHosts,
+            vb = 'visibility',
+            v, off, al, ah, db, b;
+
+        function updAtt(show) {
+            al.forEach(function (d) {
+                b = show && ((d.type() !== 'hostLink') || sh);
+                d.el.style(vb, visVal(b));
+            });
+            ah.forEach(function (d) {
+                b = show && sh;
+                d.el.style(vb, visVal(b));
+            });
+        }
+
+        if (dev) {
+            // updating a specific device that just toggled off/on-line
+            db = dev.online || so;
+            dev.el.style(vb, visVal(db));
+            al = findAttachedLinks(dev.id);
+            ah = findAttachedHosts(dev.id);
+            updAtt(db);
+        } else {
+            // updating all offline devices
+            v = visVal(so);
+            off = findOfflineNodes();
+            off.forEach(function (d) {
+                d.el.style(vb, v);
+                al = findAttachedLinks(d.id);
+                ah = findAttachedHosts(d.id);
+                updAtt(so);
+            });
+        }
     }
 
     function nodeMouseOver(d) {
@@ -1779,8 +1836,8 @@
         });
 
         node.filter('.host').each(function (d) {
-            var node = d.el;
-            // TODO: appropriate update of host visuals
+            updateHostLabel(d);
+            positionNode(d, true);
         });
 
         // operate on entering nodes:

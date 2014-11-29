@@ -24,6 +24,7 @@
     "10. update link (increase width, update props)",
     "11. update link (reduce width, update props)",
     "12. remove link",
-    "13. remove host (10.0.0.17)"
+    "13. remove host (10.0.0.17)",
+    "13. remove device [3]"
   ]
 }
