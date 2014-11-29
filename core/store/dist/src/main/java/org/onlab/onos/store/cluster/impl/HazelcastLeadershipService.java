@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip;
+package org.onlab.onos.store.cluster.impl;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.util.Tools.namedThreads;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +24,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
 import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.Leadership;
@@ -34,17 +43,14 @@ import org.onlab.onos.store.hz.StoreService;
 import org.onlab.onos.store.serializers.KryoNamespaces;
 import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
-import static org.onlab.util.Tools.namedThreads;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Maps;
 import com.hazelcast.config.TopicConfig;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Distributed implementation of LeadershipService that is based on Hazelcast.
@@ -63,9 +69,11 @@ import static com.google.common.base.Preconditions.checkArgument;
  * the current leader (e.g., for informational purpose).
  * </p>
  */
-public class SdnIpLeadershipService implements LeadershipService {
+@Component(immediate = true)
+@Service
+public class HazelcastLeadershipService implements LeadershipService {
     private static final Logger log =
-        LoggerFactory.getLogger(SdnIpLeadershipService.class);
+        LoggerFactory.getLogger(HazelcastLeadershipService.class);
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
@@ -80,45 +88,31 @@ public class SdnIpLeadershipService implements LeadershipService {
     private static final long LEADERSHIP_PERIODIC_INTERVAL_MS = 5 * 1000; // 5s
     private static final long LEADERSHIP_REMOTE_TIMEOUT_MS = 15 * 1000;  // 15s
 
-    private ClusterService clusterService;
-    private StoreService storeService;
-    private EventDeliveryService eventDispatcher;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StoreService storeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
 
     private AbstractListenerRegistry<LeadershipEvent, LeadershipEventListener>
         listenerRegistry;
     private final Map<String, Topic> topics = Maps.newConcurrentMap();
     private ControllerNode localNode;
 
-    /**
-     * Constructor.
-     *
-     * @param clusterService the cluster service to use
-     * @param storeService the store service to use
-     * @param eventDispatcher the event dispacher to use
-     */
-    SdnIpLeadershipService(ClusterService clusterService,
-                           StoreService storeService,
-                           EventDeliveryService eventDispatcher) {
-        this.clusterService = clusterService;
-        this.storeService = storeService;
-        this.eventDispatcher = eventDispatcher;
-    }
-
-    /**
-     * Starts operation.
-     */
-    void start() {
+    @Activate
+    protected void activate() {
         localNode = clusterService.getLocalNode();
         listenerRegistry = new AbstractListenerRegistry<>();
         eventDispatcher.addSink(LeadershipEvent.class, listenerRegistry);
 
-        log.info("SDN-IP Leadership Service started");
+        log.info("Hazelcast Leadership Service started");
     }
 
-    /**
-     * Stops operation.
-     */
-    void stop() {
+    @Deactivate
+    protected void deactivate() {
         eventDispatcher.removeSink(LeadershipEvent.class);
 
         for (Topic topic : topics.values()) {
@@ -126,7 +120,7 @@ public class SdnIpLeadershipService implements LeadershipService {
         }
         topics.clear();
 
-        log.info("SDN-IP Leadership Service stopped");
+        log.info("Hazelcast Leadership Service stopped");
     }
 
     @Override

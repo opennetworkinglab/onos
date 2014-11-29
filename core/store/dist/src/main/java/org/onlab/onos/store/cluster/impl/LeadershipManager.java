@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
  * Distributed implementation of LeadershipService that is based on the primitives exposed by
  * LockService.
  */
-@Component(immediate = true)
+@Component(enabled = false)
 @Service
 public class LeadershipManager implements LeadershipService {
 
