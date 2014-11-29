@@ -211,7 +211,7 @@ public class HazelcastIntentBatchQueue
     private class InternalLeaderListener implements LeadershipEventListener {
         @Override
         public void event(LeadershipEvent event) {
-            log.debug("Leadership Event: time = {} type = {} event = {}",
+            log.trace("Leadership Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
 
             String topic = event.subject().topic();

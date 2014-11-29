@@ -158,7 +158,7 @@ public class DatabaseEntryExpirationTracker implements
 
         @Override
         public void run() {
-            log.debug("Received an expiration event for {}, version: {}", row, version);
+            log.trace("Received an expiration event for {}, version: {}", row, version);
             Map<DatabaseRow, Long> map = tableEntryExpirationMap.get(row.tableName);
             try {
                 if (isLocalMemberLeader.get()) {

@@ -282,7 +282,7 @@ public class LeadershipManager implements LeadershipService {
         @Override
         public void handle(ClusterMessage message) {
             LeadershipEvent event = SERIALIZER.decode(message.payload());
-            log.debug("Received {} from {}", event, message.sender());
+            log.trace("Received {} from {}", event, message.sender());
             notifyListeners(event);
         }
     }
