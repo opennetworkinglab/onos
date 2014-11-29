@@ -97,6 +97,7 @@
                 case 187: return 'equals';
                 case 189: return 'dash';
                 case 191: return 'slash';
+                case 192: return 'backQuote';
                 default:
                     if ((code >= 48 && code <= 57) ||
                         (code >= 65 && code <= 90)) {

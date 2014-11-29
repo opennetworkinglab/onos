@@ -140,6 +140,7 @@
         equals: injectStartupEvents,
         dash: injectTestEvent,
 
+        E: [equalizeMasters, 'Equalize mastership roles'],
         O: [toggleSummary, 'Toggle ONOS summary pane'],
         I: [toggleInstances, 'Toggle ONOS instances pane'],
         D: [toggleDetails, 'Disable / enable details pane'],
@@ -924,6 +925,11 @@
         colorAffinity = false;
         cancelAffinity();
         updateDeviceColors();
+    }
+
+    function equalizeMasters() {
+        flash('Equalizing master roles');
+        sendMessage('equalizeMasters');
     }
 
     function toggleSummary() {

@@ -27,6 +27,7 @@ import org.onlab.onos.core.CoreService;
 import org.onlab.onos.event.AbstractEventAccumulator;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.event.EventAccumulator;
+import org.onlab.onos.mastership.MastershipAdminService;
 import org.onlab.onos.mastership.MastershipEvent;
 import org.onlab.onos.mastership.MastershipListener;
 import org.onlab.onos.net.ConnectPoint;
@@ -233,6 +234,9 @@ public class TopologyViewWebSocket
             requestSummary(event);
         } else if (type.equals("cancelSummary")) {
             cancelSummary(event);
+
+        } else if (type.equals("equalizeMasters")) {
+            equalizeMasters(event);
         }
     }
 
@@ -446,6 +450,12 @@ public class TopologyViewWebSocket
     // Cancels sending summary messages.
     private synchronized void cancelSummary(ObjectNode event) {
         summaryEnabled = false;
+    }
+
+
+    // Forces mastership role rebalancing.
+    private void equalizeMasters(ObjectNode event) {
+        directory.get(MastershipAdminService.class).balanceRoles();
     }
 
 

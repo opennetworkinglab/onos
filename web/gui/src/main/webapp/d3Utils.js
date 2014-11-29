@@ -140,12 +140,12 @@
     // TODO: tune colors for light and dark themes
     // Note: These colors look good on the white background. Still, need to tune for dark.
 
-    //               blue       brown      purple     sea green  brick red  dark teal  lime
-    var lightNorm = ['#3E5780', '#78533B', '#8A2979', '#018D61', '#CB4D28', '#006D73', '#56AF00'],
-        lightMute = ['#A8B8CC', '#CCB3A8', '#D19FCE', '#96D6BF', '#FFC2BD', '#8FCCCA', '#CAEAA4'],
+    //               blue       brown      brick red  sea green  purple     dark teal  lime
+    var lightNorm = ['#3E5780', '#78533B', '#CB4D28', '#018D61', '#8A2979', '#006D73', '#56AF00'],
+        lightMute = ['#A8B8CC', '#CCB3A8', '#FFC2BD', '#96D6BF', '#D19FCE', '#8FCCCA', '#CAEAA4'],
 
-        darkNorm  = ['#3E5780', '#78533B', '#8A2979', '#018D61', '#CB4D28', '#006D73', '#56AF00'],
-        darkMute  = ['#A8B8CC', '#CCB3A8', '#D19FCE', '#96D6BF', '#FFC2BD', '#8FCCCA', '#CAEAA4'];
+        darkNorm  = ['#3E5780', '#78533B', '#CB4D28', '#018D61', '#8A2979', '#006D73', '#56AF00'],
+        darkMute  = ['#A8B8CC', '#CCB3A8', '#FFC2BD', '#96D6BF', '#D19FCE', '#8FCCCA', '#CAEAA4'];
 
     function cat7() {
         var colors = {

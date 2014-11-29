@@ -33,4 +33,10 @@ public interface MastershipAdminService {
      */
     void setRole(NodeId instance, DeviceId deviceId, MastershipRole role);
 
+    /**
+     * Balances the mastership to be shared as evenly as possibly by all
+     * online instances.
+     */
+    void balanceRoles();
+
 }
