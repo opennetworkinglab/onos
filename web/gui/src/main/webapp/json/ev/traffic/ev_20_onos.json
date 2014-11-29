@@ -1,0 +1,17 @@
+{
+  "event": "updateDevice",
+  "payload": {
+    "id": "of:0000ffffffff0007",
+    "type": "switch",
+    "online": false,
+    "labels": [
+      "",
+      "sw-7",
+      "0000ffffffff0007"
+    ],
+    "metaUi": {
+      "x": 530,
+      "y": 330
+    }
+  }
+}

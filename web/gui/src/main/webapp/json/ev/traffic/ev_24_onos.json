@@ -1,0 +1,17 @@
+{
+  "event": "removeHost",
+  "payload": {
+    "id": "0E:2A:69:30:13:88/-1",
+    "ingress": "0E:2A:69:30:13:88/-1/0-of:0000ffffffff0007/101",
+    "egress": "of:0000ffffffff0007/101-0E:2A:69:30:13:86/-1/0",
+    "cp": {
+      "device": "of:0000ffffffff0007",
+      "port": 101
+    },
+    "labels": [
+      "4.5.7.6",
+      "0E:2A:69:30:13:88"
+    ],
+    "props": {}
+  }
+}

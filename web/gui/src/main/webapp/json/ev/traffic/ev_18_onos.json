@@ -28,8 +28,8 @@
         "labels": [""]
       },
       {
-        "class": "primary optical",
-        "traffic": false,
+        "class": "animated optical",
+        "traffic": true,
         "links": [
           "of:0000ffffffff0008/4-of:0000ffffffffff08/1"
         ],
@@ -44,8 +44,8 @@
         "labels": [""]
       },
       {
-        "class": "animated optical",
-        "traffic": true,
+        "class": "primary optical",
+        "traffic": false,
         "links": [
           "of:0000ffffffffff08/4-of:0000ffffffffff03/1"
         ],

@@ -596,7 +596,7 @@
         updateHost: updateHost,
 
         removeInstance: removeInstance,
-        removeDevice: stillToImplement,
+        removeDevice: removeDevice,
         removeLink: removeLink,
         removeHost: removeHost,
 
@@ -621,9 +621,17 @@
     function addDevice(data) {
         evTrace(data);
         var device = data.payload,
-            nodeData = createDeviceNode(device);
-        network.nodes.push(nodeData);
-        network.lookup[nodeData.id] = nodeData;
+            id = device.id,
+            d;
+
+        if (network.lookup[id]) {
+            logicError('Device already added: ' + id);
+            return;
+        }
+
+        d = createDeviceNode(device);
+        network.nodes.push(d);
+        network.lookup[id] = d;
         updateNodes();
         network.force.start();
     }
@@ -633,24 +641,24 @@
         var link = data.payload,
             result = findLink(link, 'add'),
             bad = result.badLogic,
-            ldata = result.ldata;
+            d = result.ldata;
 
         if (bad) {
             logicError(bad + ': ' + link.id);
             return;
         }
 
-        if (ldata) {
+        if (d) {
             // we already have a backing store link for src/dst nodes
-            addLinkUpdate(ldata, link);
+            addLinkUpdate(d, link);
             return;
         }
 
         // no backing store link yet
-        ldata = createLink(link);
-        if (ldata) {
-            network.links.push(ldata);
-            network.lookup[ldata.key] = ldata;
+        d = createLink(link);
+        if (d) {
+            network.links.push(d);
+            network.lookup[d.key] = d;
             updateLinks();
             network.force.start();
         }
@@ -659,18 +667,26 @@
     function addHost(data) {
         evTrace(data);
         var host = data.payload,
-            node = createHostNode(host),
+            id = host.id,
+            d,
             lnk;
-        network.nodes.push(node);
-        network.lookup[host.id] = node;
+
+        if (network.lookup[id]) {
+            logicError('Host already added: ' + id);
+            return;
+        }
+
+        d = createHostNode(host);
+        network.nodes.push(d);
+        network.lookup[host.id] = d;
         updateNodes();
 
         lnk = createHostLink(host);
         if (lnk) {
-            node.linkData = lnk;    // cache ref on its host
+            d.linkData = lnk;    // cache ref on its host
             network.links.push(lnk);
-            network.lookup[host.ingress] = lnk;
-            network.lookup[host.egress] = lnk;
+            network.lookup[d.ingress] = lnk;
+            network.lookup[d.egress] = lnk;
             updateLinks();
         }
         network.force.start();
@@ -682,9 +698,9 @@
         evTrace(data);
         var inst = data.payload,
             id = inst.id,
-            instData = onosInstances[id];
-        if (instData) {
-            $.extend(instData, inst);
+            d = onosInstances[id];
+        if (d) {
+            $.extend(d, inst);
             updateInstances();
         } else {
             logicError('updateInstance lookup fail. ID = "' + id + '"');
@@ -723,10 +739,10 @@
         evTrace(data);
         var host = data.payload,
             id = host.id,
-            hostData = network.lookup[id];
-        if (hostData) {
-            $.extend(hostData, host);
-            updateHostState(hostData);
+            d = network.lookup[id];
+        if (d) {
+            $.extend(d, host);
+            updateHostState(d);
         } else {
             logicError('updateHost lookup fail. ID = "' + id + '"');
         }
@@ -737,9 +753,9 @@
         evTrace(data);
         var inst = data.payload,
             id = inst.id,
-            instData = onosInstances[id];
-        if (instData) {
-            var idx = find(id, onosOrder, 'id');
+            d = onosInstances[id];
+        if (d) {
+            var idx = find(id, onosOrder);
             if (idx >= 0) {
                 onosOrder.splice(idx, 1);
             }
@@ -750,13 +766,26 @@
         }
     }
 
+    function removeDevice(data) {
+        evTrace(data);
+        var device = data.payload,
+            id = device.id,
+            d = network.lookup[id];
+        if (d) {
+            removeDeviceElement(d);
+        } else {
+            logicError('removeDevice lookup fail. ID = "' + id + '"');
+        }
+    }
+
     function removeLink(data) {
         evTrace(data);
         var link = data.payload,
             result = findLink(link, 'remove'),
             bad = result.badLogic;
         if (bad) {
-            logicError(bad + ': ' + link.id);
+            // may have already removed link, if attached to removed device
+            console.warn(bad + ': ' + link.id);
             return;
         }
         result.removeRawLink();
@@ -766,14 +795,16 @@
         evTrace(data);
         var host = data.payload,
             id = host.id,
-            hostData = network.lookup[id];
-        if (hostData) {
-            removeHostElement(hostData);
+            d = network.lookup[id];
+        if (d) {
+            removeHostElement(d, true);
         } else {
-            logicError('removeHost lookup fail. ID = "' + id + '"');
+            // may have already removed host, if attached to removed device
+            console.warn('removeHost lookup fail. ID = "' + id + '"');
         }
     }
 
+    // the following events are server responses to user actions
     function showSummary(data) {
         evTrace(data);
         populateSummary(data.payload);
@@ -828,14 +859,6 @@
 
     // ...............................
 
-    function stillToImplement(data) {
-        var p = data.payload;
-        note(data.event, p.id);
-        if (!config.useLiveData) {
-            network.view.alert('Not yet implemented: "' + data.event + '"');
-        }
-    }
-
     function unknownEvent(data) {
         console.warn('Unknown event type: "' + data.event + '"', data);
     }
@@ -853,17 +876,6 @@
     }
     function getSel(idx) {
         return selections[selectOrder[idx]];
-    }
-    function getSelId(idx) {
-        return getSel(idx).obj.id;
-    }
-    function getSelIds(start, endOffset) {
-        var end = selectOrder.length - endOffset;
-        var ids = [];
-        selectOrder.slice(start, end).forEach(function (d) {
-            ids.push(getSelId(d));
-        });
-        return ids;
     }
     function allSelectionsClass(cls) {
         for (var i=0, n=nSel(); i<n; i++) {
@@ -894,7 +906,6 @@
         cancelAffinity();
         updateDeviceColors();
     }
-
 
     function toggleSummary() {
         if (!summaryPane.isVisible()) {
@@ -1841,14 +1852,18 @@
 
         // host node exits....
         exiting.filter('.host').each(function (d) {
-            var node = d3.select(this);
+            var node = d.el;
+            node.select('use')
+                .style('opacity', 0.5)
+                .transition()
+                .duration(800)
+                .style('opacity', 0);
 
             node.select('text')
                 .style('opacity', 0.5)
                 .transition()
-                .duration(1000)
+                .duration(800)
                 .style('opacity', 0);
-            // note, leave <g>.remove to remove this element
 
             node.select('circle')
                 .style('stroke-fill', '#555')
@@ -1857,11 +1872,22 @@
                 .transition()
                 .duration(1500)
                 .attr('r', 0);
-            // note, leave <g>.remove to remove this element
-
         });
 
-        // TODO: device node exit animation
+        // device node exits....
+        exiting.filter('.device').each(function (d) {
+            var node = d.el;
+            node.select('use')
+                .style('opacity', 0.5)
+                .transition()
+                .duration(800)
+                .style('opacity', 0);
+
+            node.selectAll('rect')
+                .style('stroke-fill', '#555')
+                .style('fill', '#888')
+                .style('opacity', 0.5);
+        });
 
         network.force.resume();
     }
@@ -1968,7 +1994,7 @@
     }
 
     function find(key, array, tag) {
-        var _tag = tag || 'key',
+        var _tag = tag || 'id',
             idx, n, d;
         for (idx = 0, n = array.length; idx < n; idx++) {
             d = array[idx];
@@ -1979,8 +2005,8 @@
         return -1;
     }
 
-    function removeLinkElement(linkData) {
-        var idx = find(linkData.key, network.links),
+    function removeLinkElement(d) {
+        var idx = find(d.key, network.links, 'key'),
             removed;
         if (idx >=0) {
             // remove from links array
@@ -1992,20 +2018,64 @@
         }
     }
 
-    function removeHostElement(hostData) {
+    function removeHostElement(d, upd) {
+        var lu = network.lookup;
         // first, remove associated hostLink...
-        removeLinkElement(hostData.linkData);
+        removeLinkElement(d.linkData);
+
+        // remove hostLink bindings
+        delete lu[d.ingress];
+        delete lu[d.egress];
 
         // remove from lookup cache
-        delete network.lookup[hostData.id];
+        delete lu[d.id];
         // remove from nodes array
-        var idx = find(hostData.id, network.nodes);
+        var idx = find(d.id, network.nodes);
+        network.nodes.splice(idx, 1);
+        // remove from SVG
+        // NOTE: upd is false if we were called from removeDeviceElement()
+        if (upd) {
+            updateNodes();
+            network.force.resume();
+        }
+    }
+
+
+    function removeDeviceElement(d) {
+        var id = d.id;
+        // first, remove associated hosts and links..
+        findAttachedHosts(id).forEach(removeHostElement);
+        findAttachedLinks(id).forEach(removeLinkElement);
+
+        // remove from lookup cache
+        delete network.lookup[id];
+        // remove from nodes array
+        var idx = find(id, network.nodes);
         network.nodes.splice(idx, 1);
         // remove from SVG
         updateNodes();
         network.force.resume();
     }
 
+    function findAttachedHosts(devId) {
+        var hosts = [];
+        network.nodes.forEach(function (d) {
+            if (d.class === 'host' && d.cp.device === devId) {
+                hosts.push(d);
+            }
+        });
+        return hosts;
+    }
+
+    function findAttachedLinks(devId) {
+        var links = [];
+        network.links.forEach(function (d) {
+            if (d.source.id === devId || d.target.id === devId) {
+                links.push(d);
+            }
+        });
+        return links;
+    }
 
     function tick() {
         node.attr({
