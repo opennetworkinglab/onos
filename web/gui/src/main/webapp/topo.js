@@ -928,8 +928,8 @@
     }
 
     function equalizeMasters() {
-        flash('Equalizing master roles');
         sendMessage('equalizeMasters');
+        flash('Equalizing master roles');
     }
 
     function toggleSummary() {
@@ -942,11 +942,11 @@
 
     // request overall summary data
     function requestSummary() {
-        sendMessage('requestSummary', {});
+        sendMessage('requestSummary');
     }
 
     function cancelSummary() {
-        sendMessage('cancelSummary', {});
+        sendMessage('cancelSummary');
         hideSummaryPane();
     }
 
@@ -996,12 +996,11 @@
     // request details for the selected element
     // invoked from selection of a single node.
     function requestDetails() {
-        var data = getSel(0).obj,
-            payload = {
-                id: data.id,
-                class: data.class
-            };
-        sendMessage('requestDetails', payload);
+        var data = getSel(0).obj;
+        sendMessage('requestDetails', {
+            id: data.id,
+            class: data.class
+        });
     }
 
     function addHostIntentAction() {
@@ -1024,7 +1023,7 @@
 
 
     function cancelTraffic() {
-        sendMessage('cancelTraffic', {});
+        sendMessage('cancelTraffic');
     }
 
     function requestTrafficForMode() {
@@ -1044,13 +1043,16 @@
     }
 
     function requestSelectTraffic() {
+        function hoverValid() {
+            return hoverMode === hoverModeIntents &&
+                hovered &&
+                (hovered.class === 'host' || hovered.class === 'device');
+        }
+
         if (validateSelectionContext()) {
-            var hoverId = (hoverMode === hoverModeIntents && hovered &&
-                    (hovered.class === 'host' || hovered.class === 'device'))
-                        ? hovered.id : '';
             sendMessage('requestTraffic', {
                 ids: selectOrder,
-                hover: hoverId
+                hover: hoverValid() ? hovered.id : ''
             });
         }
     }
@@ -1063,12 +1065,15 @@
     }
 
     function requestDeviceLinkFlows() {
+        function hoverValid() {
+            return hoverMode === hoverModeFlows &&
+                hovered && (hovered.class === 'device');
+        }
+
         if (validateSelectionContext()) {
-            var hoverId = (hoverMode === hoverModeFlows && hovered &&
-                    (hovered.class === 'device')) ? hovered.id : '';
             sendMessage('requestDeviceLinkFlows', {
                 ids: selectOrder,
-                hover: hoverId
+                hover: hoverValid() ? hovered.id : ''
             });
         }
     }
@@ -1081,7 +1086,7 @@
     }
 
     function requestAllTraffic() {
-        sendMessage('requestAllTraffic', {});
+        sendMessage('requestAllTraffic');
     }
 
     function validateSelectionContext() {
@@ -2228,10 +2233,11 @@
     }
 
     function sendMessage(evType, payload) {
-        var toSend = {
+        var p = payload || {},
+            toSend = {
                 event: evType,
                 sid: ++sid,
-                payload: payload
+                payload: p
             },
             asText = JSON.stringify(toSend);
         wsTraceTx(asText);
@@ -2607,7 +2613,7 @@
         sendMessage('updateMeta', {
             id: d.id,
             'class': d.class,
-            'memento': metaUi
+            memento: metaUi
         });
     }
 
