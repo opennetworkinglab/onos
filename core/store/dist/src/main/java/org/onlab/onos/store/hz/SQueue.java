@@ -15,6 +15,7 @@
  */
 package org.onlab.onos.store.hz;
 
+import com.google.common.collect.Lists;
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ItemListener;
 import com.hazelcast.monitor.LocalQueueStats;
@@ -22,6 +23,7 @@ import org.onlab.onos.store.serializers.StoreSerializer;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -145,7 +147,9 @@ public class SQueue<T> implements IQueue<T> {
 
     @Override
     public Iterator<T> iterator() {
-        throw new UnsupportedOperationException();
+        List<T> list = Lists.newArrayList();
+        q.forEach(elem -> list.add(deserialize(elem)));
+        return list.iterator();
     }
 
     @Override
