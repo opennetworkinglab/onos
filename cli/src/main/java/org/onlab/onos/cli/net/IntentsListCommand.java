@@ -76,10 +76,12 @@ public class IntentsListCommand extends AbstractShellCommand {
         } else {
             for (Intent intent : service.getIntents()) {
                 IntentState state = service.getIntentState(intent.id());
-                print("id=%s, state=%s, type=%s, appId=%s",
-                      intent.id(), state, intent.getClass().getSimpleName(),
-                      intent.appId().name());
-                printDetails(service, intent);
+                if (state != null) {
+                    print("id=%s, state=%s, type=%s, appId=%s",
+                          intent.id(), state, intent.getClass().getSimpleName(),
+                          intent.appId().name());
+                    printDetails(service, intent);
+                }
             }
         }
     }
