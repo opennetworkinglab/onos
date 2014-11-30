@@ -15,15 +15,16 @@
  */
 package org.onlab.onos.store.hz;
 
-import com.google.common.collect.Lists;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ItemListener;
 import com.hazelcast.monitor.LocalQueueStats;
+
 import org.onlab.onos.store.serializers.StoreSerializer;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -105,11 +106,13 @@ public class SQueue<T> implements IQueue<T> {
         return q.contains(serialize(o));
     }
 
+    @Deprecated // not implemented yet
     @Override
     public int drainTo(Collection<? super T> collection) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public int drainTo(Collection<? super T> collection, int i) {
         throw new UnsupportedOperationException();
@@ -147,36 +150,42 @@ public class SQueue<T> implements IQueue<T> {
 
     @Override
     public Iterator<T> iterator() {
-        List<T> list = Lists.newArrayList();
-        q.forEach(elem -> list.add(deserialize(elem)));
-        return list.iterator();
+        return FluentIterable.from(q)
+                .transform(new DeserializeVal())
+                .iterator();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public Object[] toArray() {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public <T1> T1[] toArray(T1[] t1s) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public boolean containsAll(Collection<?> collection) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public boolean addAll(Collection<? extends T> collection) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public boolean removeAll(Collection<?> collection) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public boolean retainAll(Collection<?> collection) {
         throw new UnsupportedOperationException();
@@ -192,11 +201,13 @@ public class SQueue<T> implements IQueue<T> {
         return q.getLocalQueueStats();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public String addItemListener(ItemListener<T> itemListener, boolean b) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated // not implemented yet
     @Override
     public boolean removeItemListener(String s) {
         throw new UnsupportedOperationException();
@@ -226,5 +237,12 @@ public class SQueue<T> implements IQueue<T> {
     @Override
     public void destroy() {
         q.destroy();
+    }
+
+    private final class DeserializeVal implements Function<byte[], T> {
+        @Override
+        public T apply(byte[] input) {
+            return deserialize(input);
+        }
     }
 }
