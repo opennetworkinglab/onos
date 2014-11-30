@@ -311,7 +311,7 @@ public abstract class TopologyViewMessages {
         String type = messageType != null ? messageType :
                 ((event.type() == INSTANCE_ADDED) ? "addInstance" :
                         ((event.type() == INSTANCE_REMOVED ? "removeInstance" :
-                                "updateInstance")));
+                                "addInstance")));
         return envelope(type, 0, payload);
     }
 
