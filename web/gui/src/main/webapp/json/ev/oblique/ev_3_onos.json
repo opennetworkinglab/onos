@@ -1,0 +1,17 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "sw3b",
+    "type": "roadm",
+    "online": true,
+    "labels": [
+      "",
+      "sw-3b",
+      "00003b"
+    ],
+    "metaUi": {
+      "x": 200,
+      "y": 600
+    }
+  }
+}

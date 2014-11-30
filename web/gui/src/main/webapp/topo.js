@@ -149,7 +149,7 @@
         A: [showAllTrafficAction, 'Show all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
         X: [toggleNodeLock, 'Lock / unlock node positions'],
-        Z: [toggleOblique, 'Toggle oblique view'],
+        Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
         esc: handleEscape
     };
 
@@ -326,6 +326,12 @@
         bgImg.style('visibility', visVal(vis === 'hidden'));
     }
 
+    function opacifyBg(b) {
+        bgImg.transition()
+            .duration(1000)
+            .attr('opacity', b ? 1 : 0);
+    }
+
     function toggleNodeLock() {
         nodeLock = !nodeLock;
         flash('Node positions ' + (nodeLock ? 'locked' : 'unlocked'))
@@ -333,7 +339,12 @@
 
     function toggleOblique() {
         oblique = !oblique;
-        // TODO: oblique transformation
+        if (oblique) {
+            network.force.stop();
+            toObliqueView();
+        } else {
+            toNormalView();
+        }
     }
 
     function toggleHosts() {
@@ -368,7 +379,7 @@
             sendUpdateMeta(hovered);
             hovered.fixed = false;
             hovered.el.classed('fixed', false);
-            network.force.resume();
+            fResume();
         }
     }
 
@@ -385,6 +396,179 @@
         } else {
             hoverMode = hoverModeFlows;
         }
+    }
+
+    // ==============================
+    // Oblique view ...
+
+    var obview = {
+            tt:  -.7,     // x skew y factor
+            xsk: -35,     // x skew angle
+            ysc: 0.5,     // y scale
+            pad: 50,
+            time: 1500,
+            fill: {
+                pkt: 'rgba(130,130,170,0.3)',
+                opt: 'rgba(170,130,170,0.3)'
+            },
+            id: function (tag) {
+                return 'obview-' + tag + 'Plane';
+            },
+            yt: function (h, dir) {
+                return h * obview.ysc * dir * 1.1;
+            },
+            obXform: function (h, dir) {
+                var yt = obview.yt(h, dir);
+                return scale(1, obview.ysc) + translate(0, yt) + skewX(obview.xsk);
+            },
+            noXform: function () {
+                return skewX(0) + translate(0,0) + scale(1,1);
+            },
+            xffn: null,
+            plane: {}
+    };
+
+
+    function toObliqueView() {
+        var box = nodeG.node().getBBox(),
+            ox, oy;
+
+        padBox(box, obview.pad);
+
+        ox = box.x + box.width / 2;
+        oy = box.y + box.height / 2;
+
+        // remember node lock state, then lock the nodes down
+        obview.nodeLock = nodeLock;
+        nodeLock = true;
+        opacifyBg(false);
+
+        insertPlanes(ox, oy);
+
+        obview.xffn = function (xy, dir) {
+            var yt = obview.yt(box.height, dir),
+                ax = xy.x - ox,
+                ay = xy.y - oy,
+                x = ax + ay * obview.tt,
+                y = ay * obview.ysc + obview.ysc * yt;
+            return {x: ox + x, y: oy + y};
+        };
+
+        showPlane('pkt', box, -1);
+        showPlane('opt', box, 1);
+        obTransitionNodes();
+    }
+
+    function toNormalView() {
+        obview.xffn = null;
+
+        hidePlane('pkt');
+        hidePlane('opt');
+        obTransitionNodes();
+
+        removePlanes();
+
+        // restore node lock state
+        nodeLock = obview.nodeLock;
+        opacifyBg(true);
+    }
+
+    function obTransitionNodes() {
+        var xffn = obview.xffn;
+
+        // return the direction for the node
+        // -1 for pkt layer, 1 for optical layer
+        function dir(d) {
+            return inLayer(d, 'pkt') ? -1 : 1;
+        }
+
+        if (xffn) {
+            network.nodes.forEach(function (d) {
+                var oldxy = {x: d.x, y: d.y},
+                    coords = xffn(oldxy, dir(d));
+                d.oldxy = oldxy;
+                d.px = d.x = coords.x;
+                d.py = d.y = coords.y;
+            });
+        } else {
+            network.nodes.forEach(function (d) {
+                var old = d.oldxy || {x: d.x, y: d.y};
+                d.px = d.x = old.x;
+                d.py = d.y = old.y;
+                delete d.oldxy;
+            });
+        }
+
+        node.transition()
+            .duration(obview.time)
+            .attr(tickStuff.nodeAttr);
+        link.transition()
+            .duration(obview.time)
+            .attr(tickStuff.linkAttr);
+        linkLabel.transition()
+            .duration(obview.time)
+            .attr(tickStuff.linkLabelAttr);
+    }
+
+    function showPlane(tag, box, dir) {
+        var g = obview.plane[tag];
+
+        // set box origin at center..
+        box.x = -box.width/2;
+        box.y = -box.height/2;
+
+        g.select('rect')
+            .attr(box)
+            .attr('opacity', 0)
+            .transition()
+            .duration(obview.time)
+            .attr('opacity', 1)
+            .attr('transform', obview.obXform(box.height, dir));
+    }
+
+    function hidePlane(tag) {
+        var g = obview.plane[tag];
+
+        g.select('rect')
+            .transition()
+            .duration(obview.time)
+            .attr('opacity', 0)
+            .attr('transform', obview.noXform());
+    }
+
+    function insertPlanes(ox, oy) {
+        function ins(tag) {
+            var id = obview.id(tag),
+                g = panZoomContainer.insert('g', '#topo-G')
+                    .attr('id', id)
+                    .attr('transform', translate(ox,oy));
+            g.append('rect')
+                .attr('fill', obview.fill[tag])
+                .attr('opacity', 0);
+            obview.plane[tag] = g;
+        }
+        ins('opt');
+        ins('pkt');
+    }
+
+    function removePlanes() {
+        function rem(tag) {
+            var id = obview.id(tag);
+            panZoomContainer.select('#'+id)
+                .transition()
+                .duration(obview.time + 50)
+                .remove();
+            delete obview.plane[tag];
+        }
+        rem('opt');
+        rem('pkt');
+    }
+
+    function padBox(box, p) {
+        box.x -= p;
+        box.y -= p;
+        box.width += p*2;
+        box.height += p*2;
     }
 
     // ==============================
@@ -651,7 +835,7 @@
         network.nodes.push(d);
         network.lookup[id] = d;
         updateNodes();
-        network.force.start();
+        fStart();
     }
 
     function addLink(data) {
@@ -678,7 +862,7 @@
             network.links.push(d);
             network.lookup[d.key] = d;
             updateLinks();
-            network.force.start();
+            fStart();
         }
     }
 
@@ -707,7 +891,7 @@
             network.lookup[d.egress] = lnk;
             updateLinks();
         }
-        network.force.start();
+        fStart();
     }
 
     // TODO: fold updateX(...) methods into one base method; remove duplication
@@ -1332,7 +1516,12 @@
     function translate(x, y) {
         return 'translate(' + x + ',' + y + ')';
     }
-
+    function scale(x,y) {
+        return 'scale(' + x + ',' + y + ')';
+    }
+    function skewX(x) {
+        return 'skewX(' + x + ')';
+    }
     function rotate(deg) {
         return 'rotate(' + deg + ')';
     }
@@ -1965,8 +2154,7 @@
                 .style('fill', '#888')
                 .style('opacity', 0.5);
         });
-
-        network.force.resume();
+        fResume();
     }
 
     var dCol = {
@@ -2091,7 +2279,7 @@
             // remove from lookup cache
             delete network.lookup[removed[0].key];
             updateLinks();
-            network.force.resume();
+            fResume();
         }
     }
 
@@ -2113,7 +2301,7 @@
         // NOTE: upd is false if we were called from removeDeviceElement()
         if (upd) {
             updateNodes();
-            network.force.resume();
+            fResume();
         }
     }
 
@@ -2131,7 +2319,7 @@
         network.nodes.splice(idx, 1);
         // remove from SVG
         updateNodes();
-        network.force.resume();
+        fResume();
     }
 
     function findAttachedHosts(devId) {
@@ -2154,32 +2342,49 @@
         return links;
     }
 
-    function tick() {
-        node.attr({
-            transform: function (d) { return translate(d.x, d.y); }
-        });
+    function fResume() {
+        if (!oblique) {
+            network.force.resume();
+        }
+    }
 
-        link.attr({
+    function fStart() {
+        if (!oblique) {
+            network.force.start();
+        }
+    }
+
+    var tickStuff = {
+        nodeAttr: {
+            transform: function (d) { return translate(d.x, d.y); }
+        },
+        linkAttr: {
             x1: function (d) { return d.source.x; },
             y1: function (d) { return d.source.y; },
             x2: function (d) { return d.target.x; },
             y2: function (d) { return d.target.y; }
-        });
+        },
+        linkLabelAttr: {
+            transform: function (d) {
+                var lnk = findLinkById(d.key);
 
-        linkLabel.each(function (d) {
-            var el = d3.select(this);
-            var lnk = findLinkById(d.key);
-
-            if (lnk) {
-                var parms = {
-                    x1: lnk.source.x,
-                    y1: lnk.source.y,
-                    x2: lnk.target.x,
-                    y2: lnk.target.y
-                };
-                el.attr('transform', transformLabel(parms));
+                if (lnk) {
+                    var parms = {
+                        x1: lnk.source.x,
+                        y1: lnk.source.y,
+                        x2: lnk.target.x,
+                        y2: lnk.target.y
+                    };
+                    return transformLabel(parms);
+                }
             }
-        });
+        }
+    };
+
+    function tick() {
+        node.attr(tickStuff.nodeAttr);
+        link.attr(tickStuff.linkAttr);
+        linkLabel.attr(tickStuff.linkLabelAttr);
     }
 
     // ==============================

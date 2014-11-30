@@ -1,0 +1,13 @@
+{
+  "event": "addLink",
+  "payload": {
+    "id": "4-4b",
+    "type": "direct",
+    "online": true,
+    "linkWidth": 2,
+    "src": "sw4",
+    "srcPort": "20",
+    "dst": "sw4b",
+    "dstPort": "10"
+  }
+}

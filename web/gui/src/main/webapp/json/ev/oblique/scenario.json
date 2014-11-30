@@ -1,0 +1,11 @@
+{
+  "title": "Oblique Test Scenario",
+  "params": {
+    "lastAuto": 8
+  },
+  "description": [
+    "Test Scenario for Oblique view",
+    "",
+    "Press '=' to load initial events."
+  ]
+}
