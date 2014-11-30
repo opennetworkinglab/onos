@@ -108,12 +108,6 @@
             charge: {
                 device: -8000,
                 host: -5000
-            },
-            pad: 20,
-            translate: function() {
-                return 'translate(' +
-                    config.force.pad + ',' +
-                    config.force.pad + ')';
             }
         },
         // see below in creation of viewBox on main svg
@@ -231,7 +225,7 @@
         mask;
 
     // the projection for the map background
-    var geoMapProjection;
+    var geoMapProj;
 
     // the zoom function
     var zoom;
@@ -1614,7 +1608,7 @@
 
         var location = node.location;
         if (location && location.type === 'latlng') {
-            var coord = geoMapProjection([location.lng, location.lat]);
+            var coord = geoMapProj([location.lng, location.lat]);
             node.fixed = true;
             node.px = node.x = coord[0];
             node.py = node.y = coord[1];
@@ -2578,7 +2572,7 @@
         zoom = d3.behavior.zoom()
             .translate([0, 0])
             .scale(1)
-            .scaleExtent([1, 8])
+            .scaleExtent([0.25, 10])
             .on("zoom", zoomed);
 
         svg.call(zoom);
@@ -2631,7 +2625,7 @@
             ll;
 
         if (store) {
-            ll = geoMapProjection.invert([d.x, d.y]);
+            ll = geoMapProj.invert([d.x, d.y]);
             metaUi = {
                 x: d.x,
                 y: d.y,
@@ -2653,9 +2647,7 @@
     function preload(view, ctx, flags) {
         var w = view.width(),
             h = view.height(),
-            fcfg = config.force,
-            fpad = fcfg.pad,
-            forceDim = [w - 2*fpad, h - 2*fpad];
+            fcfg = config.force;
 
         // NOTE: view.$div is a D3 selection of the view's div
         var viewBox = '0 0 ' + config.logicalSize + ' ' + config.logicalSize;
@@ -2671,8 +2663,7 @@
 
         // group for the topology
         topoG = panZoomContainer.append('g')
-            .attr('id', 'topo-G')
-            .attr('transform', fcfg.translate());
+            .attr('id', 'topo-G');
 
         // subgroups for links, link labels, and nodes
         linkG = topoG.append('g').attr('id', 'links');
@@ -2720,7 +2711,7 @@
 
         // set up the force layout
         network.force = d3.layout.force()
-            .size(forceDim)
+            .size([w, h])
             .nodes(network.nodes)
             .links(network.links)
             .gravity(0.4)
@@ -2856,6 +2847,31 @@
             });
     }
 
+    function setProjForView(path, topoData) {
+        var dim = config.logicalSize;
+
+        // start with unit scale, no translation..
+        geoMapProj.scale(1).translate([0, 0]);
+
+        // figure out dimensions of map data..
+        var b = path.bounds(topoData),
+            x1 = b[0][0],
+            y1 = b[0][1],
+            x2 = b[1][0],
+            y2 = b[1][1],
+            dx = x2 - x1,
+            dy = y2 - y1,
+            x = (x1 + x2) / 2,
+            y = (y1 + y2) / 2;
+
+        // size map to 95% of minimum dimension to fill space..
+        var s = .95 / Math.min(dx / dim, dy / dim);
+        var t = [dim / 2 - s * x, dim / 2 - s * y];
+
+        // set new scale, translation on the projection..
+        geoMapProj.scale(s).translate(t);
+    }
+
     function loadGeoMap() {
         fnTrace('loadGeoMap', geoJsonUrl);
 
@@ -2863,22 +2879,10 @@
         var topoData = topojson.feature(geoJson, geoJson.objects.states);
 
         // see: http://bl.ocks.org/mbostock/4707858
-        geoMapProjection = d3.geo.mercator();
-        var path = d3.geo.path().projection(geoMapProjection);
+        geoMapProj = d3.geo.mercator();
+        var path = d3.geo.path().projection(geoMapProj);
 
-        geoMapProjection
-            .scale(1)
-            .translate([0, 0]);
-
-        // [[x1,y1],[x2,y2]]
-        var b = path.bounds(topoData);
-        // size map to 95% of minimum dimension to fill space
-        var s = .95 / Math.min((b[1][0] - b[0][0]) / config.logicalSize, (b[1][1] - b[0][1]) / config.logicalSize);
-        var t = [(config.logicalSize - s * (b[1][0] + b[0][0])) / 2, (config.logicalSize - s * (b[1][1] + b[0][1])) / 2];
-
-        geoMapProjection
-            .scale(s)
-            .translate(t);
+        setProjForView(path, topoData);
 
         bgImg = panZoomContainer.insert("g", '#topo-G');
         bgImg.attr('id', 'map').selectAll('path')
