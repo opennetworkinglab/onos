@@ -148,6 +148,8 @@
         V: [showTrafficAction, 'Show related traffic'],
         A: [showAllTrafficAction, 'Show all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
+        X: [toggleNodeLock, 'Lock / unlock node positions'],
+        Z: [toggleOblique, 'Toggle oblique view'],
         esc: handleEscape
     };
 
@@ -203,7 +205,8 @@
         showOffline = true,
         useDetails = true,
         haveDetails = false,
-        dragAllowed = true;
+        nodeLock = false,
+        oblique = false;
 
     // constants
     var hoverModeAll = 1,
@@ -321,6 +324,16 @@
     function toggleBg() {
         var vis = bgImg.style('visibility');
         bgImg.style('visibility', visVal(vis === 'hidden'));
+    }
+
+    function toggleNodeLock() {
+        nodeLock = !nodeLock;
+        flash('Node positions ' + (nodeLock ? 'locked' : 'unlocked'))
+    }
+
+    function toggleOblique() {
+        oblique = !oblique;
+        // TODO: oblique transformation
     }
 
     function toggleHosts() {
@@ -2704,9 +2717,12 @@
         // predicate that indicates when dragging is active
         function dragEnabled() {
             // meta key pressed means we are zooming/panning (so disable drag)
-            return dragAllowed && !d3.event.sourceEvent.metaKey;
-            // dragAllowed will be set false when we are in oblique view
-            // or when we 'lock' node positions
+            return !nodeLock && !d3.event.sourceEvent.metaKey;
+        }
+
+        // predicate that indicates when clicking is active
+        function clickEnabled() {
+            return true;
         }
 
         // set up the force layout
@@ -2722,7 +2738,7 @@
             .on('tick', tick);
 
         network.drag = d3u.createDragBehavior(network.force,
-            selectCb, atDragEnd, dragEnabled);
+            selectCb, atDragEnd, dragEnabled, clickEnabled);
 
 
         // create mask layer for when we lose connection to server.

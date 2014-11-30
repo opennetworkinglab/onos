@@ -27,7 +27,9 @@
         return $.isFunction(f) ? f : null;
     }
 
-    function createDragBehavior(force, selectCb, atDragEnd, enabled) {
+    // TODO: sensible defaults
+    function createDragBehavior(force, selectCb, atDragEnd,
+                                dragEnabled, clickEnabled) {
         var draggedThreshold = d3.scale.linear()
                 .domain([0, 0.1])
                 .range([5, 20])
@@ -35,7 +37,8 @@
             drag,
             fSel = isF(selectCb),
             fEnd = isF(atDragEnd),
-            fEnb = isF(enabled),
+            fDEn = isF(dragEnabled),
+            fCEn = isF(clickEnabled),
             bad = [];
 
         function naf(what) {
@@ -48,8 +51,11 @@
         if (!fEnd) {
             bad.push(naf('atDragEnd'));
         }
-        if (!fEnb) {
-            bad.push(naf('enabled'));
+        if (!fDEn) {
+            bad.push(naf('dragEnabled'));
+        }
+        if (!fCEn) {
+            bad.push(naf('clickEnabled'));
         }
 
         if (bad.length) {
@@ -71,7 +77,7 @@
         drag = d3.behavior.drag()
             .origin(function(d) { return d; })
             .on('dragstart', function(d) {
-                if (enabled()) {
+                if (clickEnabled() || dragEnabled()) {
                     d3.event.sourceEvent.stopPropagation();
 
                     d.oldX = d.x;
@@ -82,7 +88,7 @@
                 }
             })
             .on('drag', function(d) {
-                if (enabled()) {
+                if (dragEnabled()) {
                     d.px = d3.event.x;
                     d.py = d3.event.y;
                     if (dragged(d)) {
@@ -96,13 +102,18 @@
                 if (d.dragStarted) {
                     d.dragStarted = false;
                     if (!dragged(d)) {
-                        // consider this the same as a 'click' (selection of node)
-                        selectCb(d, this); // TODO: set 'this' context instead of param
+                        // consider this the same as a 'click'
+                        // (selection of a node)
+                        if (clickEnabled()) {
+                            selectCb(d, this); // TODO: set 'this' context instead of param
+                        }
                     }
                     d.fixed &= ~6;
 
                     // hook at the end of a drag gesture
-                    atDragEnd(d, this); // TODO: set 'this' context instead of param
+                    if (dragEnabled()) {
+                        atDragEnd(d, this); // TODO: set 'this' context instead of param
+                    }
                 }
             });
 
