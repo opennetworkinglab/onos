@@ -197,6 +197,7 @@
         summaryPane,
         detailPane,
         antTimer = null,
+        guiSuccessor = null,
         onosInstances = {},
         onosOrder = [],
         oiBox,
@@ -620,7 +621,7 @@
         var inst = data.payload,
             id = inst.id;
         if (onosInstances[id]) {
-            logicError('ONOS instance already added: ' + id);
+            updateInstance(data);
             return;
         }
         onosInstances[id] = inst;
@@ -635,7 +636,7 @@
             d;
 
         if (network.lookup[id]) {
-            logicError('Device already added: ' + id);
+            updateDevice(data);
             return;
         }
 
@@ -2177,16 +2178,38 @@
     // ==============================
     // Web-Socket for live data
 
+    function findGuiSuccessor() {
+        var idx = -1;
+        onosOrder.forEach(function (d, i) {
+            if (d.uiAttached) {
+                idx = i;
+            }
+        });
+
+        for (var i = 0; i < onosOrder.length - 1; i++) {
+            var ni = (idx + 1 + i) % onosOrder.length;
+            if (onosOrder[ni].online) {
+                return onosOrder[ni].ip;
+            }
+        }
+        return null;
+    }
+
     function webSockUrl() {
-        return document.location.toString()
-            .replace(/\#.*/, '')
-            .replace('http://', 'ws://')
-            .replace('https://', 'wss://')
-            .replace('index.html', config.webSockUrl);
+        var url = document.location.toString()
+                .replace(/\#.*/, '')
+                .replace('http://', 'ws://')
+                .replace('https://', 'wss://')
+                .replace('index.html', config.webSockUrl);
+        if (guiSuccessor) {
+            url = url.replace(location.hostname, guiSuccessor);
+        }
+        return url;
     }
 
     webSock = {
         ws : null,
+        retries: 0,
 
         connect : function() {
             webSock.ws = new WebSocket(webSockUrl());
@@ -2195,6 +2218,7 @@
                 noWebSock(false);
                 requestSummary();
                 showInstances();
+                webSock.retries = 0;
             };
 
             webSock.ws.onmessage = function(m) {
@@ -2206,7 +2230,13 @@
 
             webSock.ws.onclose = function(m) {
                 webSock.ws = null;
-                noWebSock(true);
+                guiSuccessor = findGuiSuccessor();
+                if (guiSuccessor && webSock.retries < onosOrder.length) {
+                    webSock.retries++;
+                    webSock.connect();
+                } else {
+                    noWebSock(true);
+                }
             };
         },
 

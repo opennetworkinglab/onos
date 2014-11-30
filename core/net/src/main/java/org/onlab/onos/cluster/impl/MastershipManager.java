@@ -17,8 +17,6 @@ package org.onlab.onos.cluster.impl;
 
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,8 +46,11 @@ import org.onlab.onos.net.MastershipRole;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,6 +58,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
+import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
 import static org.onlab.onos.net.MastershipRole.MASTER;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -208,31 +210,34 @@ public class MastershipManager
     @Override
     public void balanceRoles() {
         List<ControllerNode> nodes = newArrayList(clusterService.getNodes());
-        Multimap<ControllerNode, DeviceId> controllerDevices = HashMultimap.create();
+        Map<ControllerNode, Set<DeviceId>> controllerDevices = new HashMap<>();
         int deviceCount = 0;
 
         // Create buckets reflecting current ownership.
         for (ControllerNode node : nodes) {
-            Set<DeviceId> devicesOf = getDevicesOf(node.id());
-            deviceCount += devicesOf.size();
-            controllerDevices.putAll(node, devicesOf);
-            log.info("Node {} has {} devices.", node.id(), devicesOf.size());
+            if (clusterService.getState(node.id()) == ACTIVE) {
+                Set<DeviceId> devicesOf = new HashSet<>(getDevicesOf(node.id()));
+                deviceCount += devicesOf.size();
+                controllerDevices.put(node, devicesOf);
+                log.info("Node {} has {} devices.", node.id(), devicesOf.size());
+            }
         }
 
-        int rounds = nodes.size();
+        // Now re-balance the buckets until they are roughly even.
+        int rounds = controllerDevices.keySet().size();
         for (int i = 0; i < rounds; i++) {
             // Iterate over the buckets and find the smallest and the largest.
-            ControllerNode smallest = findBucket(true, nodes, controllerDevices);
-            ControllerNode largest = findBucket(false, nodes, controllerDevices);
+            ControllerNode smallest = findBucket(true, controllerDevices);
+            ControllerNode largest = findBucket(false, controllerDevices);
             balanceBuckets(smallest, largest, controllerDevices, deviceCount);
         }
     }
 
-    private ControllerNode findBucket(boolean min, Collection<ControllerNode> nodes,
-                                      Multimap<ControllerNode, DeviceId> controllerDevices) {
+    private ControllerNode findBucket(boolean min,
+                                      Map<ControllerNode, Set<DeviceId>>  controllerDevices) {
         int xSize = min ? Integer.MAX_VALUE : -1;
         ControllerNode xNode = null;
-        for (ControllerNode node : nodes) {
+        for (ControllerNode node : controllerDevices.keySet()) {
             int size = controllerDevices.get(node).size();
             if ((min && size < xSize) || (!min && size > xSize)) {
                 xSize = size;
@@ -243,7 +248,7 @@ public class MastershipManager
     }
 
     private void balanceBuckets(ControllerNode smallest, ControllerNode largest,
-                                Multimap<ControllerNode, DeviceId> controllerDevices,
+                                Map<ControllerNode, Set<DeviceId>>  controllerDevices,
                                 int deviceCount) {
         Collection<DeviceId> minBucket = controllerDevices.get(smallest);
         Collection<DeviceId> maxBucket = controllerDevices.get(largest);
@@ -262,7 +267,7 @@ public class MastershipManager
                 DeviceId deviceId = it.next();
                 log.info("Setting {} as the master for {}", smallest.id(), deviceId);
                 setRole(smallest.id(), deviceId, MASTER);
-                controllerDevices.put(smallest, deviceId);
+                controllerDevices.get(smallest).add(deviceId);
                 it.remove();
                 i++;
             }
