@@ -1,0 +1,8 @@
+#!/bin/bash
+# Creates some sample intents
+onos $OCI add-host-intent 00:00:00:00:00:15/-1 00:00:00:00:00:0b/-1
+onos $OCI add-host-intent 00:00:00:00:00:15/-1 00:00:00:00:00:0e/-1
+onos $OCI add-host-intent 00:00:00:00:00:10/-1 00:00:00:00:00:0a/-1
+onos $OCI add-host-intent 00:00:00:00:00:09/-1 00:00:00:00:00:0c/-1
+onos $OCI add-host-intent 00:00:00:00:00:02/-1 00:00:00:00:00:0e/-1
+onos $OCI add-host-intent 00:00:00:00:00:11/-1 00:00:00:00:00:05/-1

@@ -20,11 +20,13 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.onos.net.DefaultAnnotations;
 import org.onlab.onos.net.Device;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
+import org.onlab.onos.net.SparseAnnotations;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
 import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -206,13 +208,15 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             Device.Type deviceType = sw.isOptical() ? Device.Type.ROADM :
                     Device.Type.SWITCH;
             ChassisId cId = new ChassisId(dpid.value());
+            SparseAnnotations annotations = DefaultAnnotations.builder()
+                    .set("protocol", sw.factory().getVersion().toString()).build();
             DeviceDescription description =
                     new DefaultDeviceDescription(did.uri(), deviceType,
                                                  sw.manfacturerDescription(),
                                                  sw.hardwareDescription(),
                                                  sw.softwareDescription(),
                                                  sw.serialNumber(),
-                                                 cId);
+                                                 cId, annotations);
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
         }

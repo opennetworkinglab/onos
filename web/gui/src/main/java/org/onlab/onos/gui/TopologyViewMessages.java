@@ -475,6 +475,7 @@ public abstract class TopologyViewMessages {
                              new Prop("H/W Version", device.hwVersion()),
                              new Prop("S/W Version", device.swVersion()),
                              new Prop("Serial Number", device.serialNumber()),
+                             new Prop("Protocol", annot.value("protocol")),
                              new Separator(),
                              new Prop("Master", master(deviceId)),
                              new Prop("Latitude", annot.value("latitude")),

@@ -1,0 +1,112 @@
+{
+    "devices" : [
+        {
+            "uri": "of:0000ffffffffff01", "mac": "ffffffffffff01", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "SFO", "latitude": 37.779751, "longitude": -122.409791, "optical.regens": 0 },
+            "ports": [ { "port": 10, "speed": 100000, "type": "FIBER" },
+            { "port": 20, "speed": 0, "type": "FIBER" },
+            { "port": 50, "speed":100000, "type": "FIBER" } ]
+        },
+        {
+            "uri": "of:0000ffffffffff02", "mac": "ffffffffffff02", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "SAC", "latitude": 38.581001, "longitude": -121.497844, "optical.regens": 0 },
+            "ports": [ { "port": 20, "speed": 100000, "type": "FIBER" },
+            { "port": 30, "speed": 0, "type": "FIBER" },
+            { "port": 50, "speed": 0, "type": "FIBER" } ]
+        },
+        {
+            "uri": "of:0000ffffffffff03", "mac": "ffffffffffff03", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "LAX", "latitude": 34.056346, "longitude": -118.235951, "optical.regens": 0 },
+            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" },
+            { "port": 50, "speed": 0, "type": "FIBER" },
+            { "port": 20, "speed": 0, "type": "FIBER" } ]
+        },
+        {
+            "uri": "of:0000ffffffffff04", "mac": "ffffffffffff04", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "SDG", "latitude": 32.714564, "longitude": -117.153528, "optical.regens": 3 },
+            "ports": [ { "port": 30, "speed": 0, "type": "FIBER" },
+            { "port":50, "speed": 0, "type": "FIBER" },
+             { "port":20, "speed": 0, "type": "FIBER" }]
+        },
+        {
+            "uri": "of:0000ffffffffff05", "mac": "ffffffffffff05", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "MSP", "latitude": 44.8, "longitude": -93.1, "optical.regens": 3 },
+            "ports": [ { "port": 20, "speed": 0, "type": "FIBER" },
+             { "port": 30, "speed": 0, "type": "FIBER" },
+             { "port": 40, "speed": 0, "type": "FIBER" },
+             { "port": 50, "speed": 0, "type": "FIBER" }]
+        },
+        {
+            "uri": "of:0000ffffffffff06", "mac": "ffffffffffff06", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "DFW", "latitude": 32.777665, "longitude": -96.802064, "optical.regens": 3 },
+            "ports": [ { "port": 10, "speed": 0, "type": "FIBER" },
+            { "port": 20, "speed": 0, "type": "FIBER" },
+             { "port": 30, "speed": 0, "type": "FIBER" },
+             { "port": 40, "speed": 0, "type": "FIBER" },
+             { "port": 50, "speed": 0, "type": "FIBER" }]
+        },
+        {
+            "uri": "of:0000ffffffffff07", "mac": "ffffffffffff07", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": {  "name": "CHG", "latitude": 41.877461, "longitude": -87.642892, "optical.regens": 3 },
+            "ports": [ { "port": 10, "speed": 0, "type": "FIBER" },
+            { "port": 20, "speed": 0, "type": "FIBER" },
+             { "port": 30, "speed": 0, "type": "FIBER" },
+             { "port": 50, "speed": 0, "type": "FIBER" }]
+        },
+        {
+            "uri": "of:0000ffffffffff08", "mac": "ffffffffffff08", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": {  "name": "IAD", "latitude": 38.8, "longitude": -77.1, "optical.regens": 3 },
+            "ports": [ { "port": 20, "speed": 0, "type": "FIBER" },
+             { "port": 30, "speed": 0, "type": "FIBER" },
+             { "port": 50, "speed": 0, "type": "FIBER" }]
+        },
+        {
+            "uri": "of:0000ffffffffff09", "mac": "ffffffffffff09", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "JFK", "latitude": 40.728270, "longitude": -73.994483, "optical.regens": 0 },
+            "ports": [ { "port": 10, "speed": 0, "type": "FIBER" },
+            { "port": 20, "speed": 0, "type": "FIBER" },
+            { "port": 50, "speed": 0, "type": "FIBER" }]
+        },
+        {
+            "uri": "of:0000ffffffffff0A", "mac": "ffffffffffff0A", "type": "ROADM",
+            "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
+            "annotations": { "name": "ATL", "latitude": 33.749017, "longitude": -84.394168, "optical.regens": 0 },
+            "ports": [ { "port": 10, "speed": 0, "type": "FIBER" },
+            { "port": 20, "speed": 0, "type": "FIBER" },
+            { "port": 50, "speed": 0, "type": "FIBER" }]
+        }
+    ],
+
+    "links" : [
+        { "src": "of:0000ffffffffff01/50", "dst": "of:0000ffffffffff02/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 48, "durable": "true" } },
+        { "src": "of:0000ffffffffff02/50", "dst": "of:0000ffffffffff03/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 493, "durable": "true" } },
+        { "src": "of:0000ffffffffff03/50", "dst": "of:0000ffffffffff04/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 171, "durable": "true" } },
+        { "src": "of:0000ffffffffff01/20", "dst": "of:0000ffffffffff05/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 2555, "durable": "true" } },
+        { "src": "of:0000ffffffffff02/20", "dst": "of:0000ffffffffff05/20", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 2539, "durable": "true" } },
+        { "src": "of:0000ffffffffff03/20", "dst": "of:0000ffffffffff06/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1979, "durable": "true" } },
+        { "src": "of:0000ffffffffff04/20", "dst": "of:0000ffffffffff06/20", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1867, "durable": "true" } },
+        { "src": "of:0000ffffffffff05/30", "dst": "of:0000ffffffffff06/40", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1378, "durable": "true" } },
+        { "src": "of:0000ffffffffff05/40", "dst": "of:0000ffffffffff07/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 2200, "durable": "true" } },
+        { "src": "of:0000ffffffffff06/30", "dst": "of:0000ffffffffff08/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1918, "durable": "true" } },
+        { "src": "of:0000ffffffffff07/20", "dst": "of:0000ffffffffff08/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 3625, "durable": "true" } },
+        { "src": "of:0000ffffffffff07/30", "dst": "of:0000ffffffffff09/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 3880, "durable": "true" } },
+        { "src": "of:0000ffffffffff08/20", "dst": "of:0000ffffffffff0A/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 838, "durable": "true" } },
+        { "src": "of:0000ffffffffff09/20", "dst": "of:0000ffffffffff0A/20", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1245, "durable": "true" } },
+
+        { "src": "of:0000000000000011/52", "dst": "of:0000ffffffffff01/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
+        { "src": "of:0000000000000016/52", "dst": "of:0000ffffffffff04/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
+        { "src": "of:000000000000000d/52", "dst": "of:0000ffffffffff06/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
+        { "src": "of:0000000000000002/52", "dst": "of:0000ffffffffff07/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
+        { "src": "of:0000000000000019/52", "dst": "of:0000ffffffffff09/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
+        { "src": "of:0000000000000005/52", "dst": "of:0000ffffffffff0A/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } }
+    ]
+}

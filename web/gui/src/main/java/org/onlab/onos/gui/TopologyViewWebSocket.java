@@ -263,15 +263,31 @@ public class TopologyViewWebSocket
 
     // Sends all devices to the client as device-added messages.
     private void sendAllDevices() {
+        // Send optical first, others later for layered rendering
         for (Device device : deviceService.getDevices()) {
-            sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
+            if (device.type() == Device.Type.ROADM) {
+                sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
+            }
+        }
+        for (Device device : deviceService.getDevices()) {
+            if (device.type() != Device.Type.ROADM) {
+                sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
+            }
         }
     }
 
     // Sends all links to the client as link-added messages.
     private void sendAllLinks() {
+        // Send optical first, others later for layered rendering
         for (Link link : linkService.getLinks()) {
-            sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
+            if (link.type() == Link.Type.OPTICAL) {
+                sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
+            }
+        }
+        for (Link link : linkService.getLinks()) {
+            if (link.type() != Link.Type.OPTICAL) {
+                sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
+            }
         }
     }
 
@@ -564,6 +580,7 @@ public class TopologyViewWebSocket
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle traffic request due to {}", e.getMessage());
+                log.warn("Boom!", e);
             }
         }
     }

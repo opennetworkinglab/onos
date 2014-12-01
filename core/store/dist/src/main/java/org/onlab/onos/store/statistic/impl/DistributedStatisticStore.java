@@ -15,11 +15,7 @@
  */
 package org.onlab.onos.store.statistic.impl;
 
-import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.*;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -57,6 +53,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.GET_CURRENT;
+import static org.onlab.onos.store.statistic.impl.StatisticStoreMessageSubjects.GET_PREVIOUS;
+import static org.slf4j.LoggerFactory.getLogger;
+
 
 /**
  * Maintains statistics using RPC calls to collect stats from remote instances
@@ -69,13 +69,13 @@ public class DistributedStatisticStore implements StatisticStore {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ReplicaInfoService replicaInfoManager;
+    protected ReplicaInfoService replicaInfoManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterCommunicationService clusterCommunicator;
+    protected ClusterCommunicationService clusterCommunicator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterService clusterService;
+    protected ClusterService clusterService;
 
     private Map<ConnectPoint, InternalStatisticRepresentation> representations =
             new ConcurrentHashMap<>();
@@ -197,9 +197,7 @@ public class DistributedStatisticStore implements StatisticStore {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
         if (!replicaInfo.master().isPresent()) {
             log.warn("No master for {}", deviceId);
-            // TODO: revisit if this should be returning empty collection.
-            // FIXME: throw a StatsStoreException
-            throw new RuntimeException("No master for " + deviceId);
+            return Collections.emptySet();
         }
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getCurrentStatisticInternal(connectPoint);
@@ -215,8 +213,8 @@ public class DistributedStatisticStore implements StatisticStore {
                 return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
                                                       TimeUnit.MILLISECONDS));
             } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-                // FIXME: throw a StatsStoreException
-                throw new RuntimeException(e);
+                log.warn("Unable to communicate with peer {}", replicaInfo.master().get());
+                return Collections.emptySet();
             }
         }
 
@@ -232,9 +230,7 @@ public class DistributedStatisticStore implements StatisticStore {
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
         if (!replicaInfo.master().isPresent()) {
             log.warn("No master for {}", deviceId);
-            // TODO: revisit if this should be returning empty collection.
-            // FIXME: throw a StatsStoreException
-            throw new RuntimeException("No master for " + deviceId);
+            return Collections.emptySet();
         }
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getPreviousStatisticInternal(connectPoint);
@@ -250,8 +246,8 @@ public class DistributedStatisticStore implements StatisticStore {
                 return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
                                                       TimeUnit.MILLISECONDS));
             } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-                // FIXME: throw a StatsStoreException
-                throw new RuntimeException(e);
+                log.warn("Unable to communicate with peer {}", replicaInfo.master().get());
+                return Collections.emptySet();
             }
         }
 
