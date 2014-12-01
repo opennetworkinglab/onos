@@ -15,7 +15,6 @@
  */
 package org.onlab.onos.net.intent;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
@@ -42,16 +41,16 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * mechanism.
      *
      * @param intent intent to be submitted
-     * @return event indicating the intent was submitted or null if no
-     * change resulted, e.g. duplicate intent
      */
-    IntentEvent createIntent(Intent intent);
+    @Deprecated
+    void createIntent(Intent intent);
 
     /**
      * Removes the specified intent from the inventory.
      *
      * @param intentId intent identification
      */
+    @Deprecated
     void removeIntent(IntentId intentId);
 
     /**
@@ -89,9 +88,8 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      *
      * @param intent   intent whose state is to be changed
      * @param newState new state
-     * @return state transition event
      */
-    IntentEvent setState(Intent intent, IntentState newState);
+    void setState(Intent intent, IntentState newState);
 
     /**
      * Sets the installable intents which resulted from compilation of the
@@ -129,64 +127,13 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
         return new BatchWrite();
     }
 
-    // default implementation simply executes them sequentially.
-    // Store implementation should override and implement actual batch write.
     /**
      * Execute writes in a batch.
      *
      * @param batch BatchWrite to execute
      * @return failed operations
      */
-    default List<Operation> batchWrite(BatchWrite batch) {
-        List<Operation> failed = new ArrayList<>();
-        for (Operation op : batch.operations) {
-            switch (op.type) {
-            case CREATE_INTENT:
-                checkArgument(op.args.size() == 1,
-                              "CREATE_INTENT takes 1 argument. %s", op);
-                Intent intent = (Intent) op.args.get(0);
-                if (createIntent(intent) == null) {
-                    failed.add(op);
-                }
-                break;
-
-            case REMOVE_INTENT:
-                checkArgument(op.args.size() == 1,
-                              "REMOVE_INTENT takes 1 argument. %s", op);
-                IntentId intentId = (IntentId) op.args.get(0);
-                removeIntent(intentId);
-                break;
-
-            case REMOVE_INSTALLED:
-                checkArgument(op.args.size() == 1,
-                              "REMOVE_INSTALLED takes 1 argument. %s", op);
-                intentId = (IntentId) op.args.get(0);
-                removeInstalledIntents(intentId);
-                break;
-
-            case SET_INSTALLABLE:
-                checkArgument(op.args.size() == 2,
-                              "SET_INSTALLABLE takes 2 arguments. %s", op);
-                intentId = (IntentId) op.args.get(0);
-                @SuppressWarnings("unchecked")
-                List<Intent> installableIntents = (List<Intent>) op.args.get(1);
-                setInstallableIntents(intentId, installableIntents);
-                break;
-
-            case SET_STATE:
-                checkArgument(op.args.size() == 2,
-                              "SET_STATE takes 2 arguments. %s", op);
-                intent = (Intent) op.args.get(0);
-                IntentState newState = (IntentState) op.args.get(1);
-                setState(intent, newState);
-                break;
-
-            default:
-                break;
-            }
-        }
-        return failed;
-    }
+     List<Operation> batchWrite(BatchWrite batch);
 
     public static class BatchWrite {
 

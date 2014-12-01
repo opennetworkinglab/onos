@@ -19,7 +19,7 @@ import org.onlab.onos.cluster.LeadershipService;
 
 /**
  * A trivial implementation of the leadership service.
- * <p></p>
+ * <p>
  * The service is not distributed, so it can assume there's a single leadership
  * contender. This contender is always granted leadership whenever it asks.
  */

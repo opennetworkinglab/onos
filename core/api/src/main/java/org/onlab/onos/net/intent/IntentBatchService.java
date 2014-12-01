@@ -56,8 +56,8 @@ public interface IntentBatchService {
      * Return true if this instance is the local leader for batch
      * processing a given application id.
      *
-     * @param applicationId
-     * @return
+     * @param applicationId an application id
+     * @return true if this instance is the local leader for batch
      */
     boolean isLocalLeader(ApplicationId applicationId);
 

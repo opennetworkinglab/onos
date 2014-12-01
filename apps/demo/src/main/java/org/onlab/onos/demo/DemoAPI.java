@@ -14,6 +14,7 @@ public interface DemoAPI {
     /**
      * Installs intents based on the installation type.
      * @param type the installation type.
+     * @param runParams run params
      */
     void setup(InstallType type, Optional<JsonNode> runParams);
 

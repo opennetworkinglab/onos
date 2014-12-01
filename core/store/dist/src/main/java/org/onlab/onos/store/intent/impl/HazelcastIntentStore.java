@@ -20,6 +20,7 @@ import com.codahale.metrics.Timer.Context;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -171,15 +172,16 @@ public class HazelcastIntentStore
     }
 
     @Override
-    public IntentEvent createIntent(Intent intent) {
+    public void createIntent(Intent intent) {
         Context timer = startTimer(createIntentTimer);
         try {
             Intent existing = intents.putIfAbsent(intent.id(), intent);
             if (existing != null) {
                 // duplicate, ignore
-                return null;
+                return;
             } else {
-                return this.setState(intent, IntentState.SUBMITTED);
+                this.setState(intent, IntentState.SUBMITTED);
+                return;
             }
         } finally {
             stopTimer(timer);
@@ -256,7 +258,7 @@ public class HazelcastIntentStore
     }
 
     @Override
-    public IntentEvent setState(Intent intent, IntentState state) {
+    public void setState(Intent intent, IntentState state) {
         Context timer = startTimer(setStateTimer);
         try {
 
@@ -311,10 +313,10 @@ public class HazelcastIntentStore
             final IntentState prevTransient = transientStates.put(id, state);
             log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
 
-            if (type == null) {
-                return null;
+            if (type != null) {
+                notifyDelegate(new IntentEvent(type, intent));
             }
-            return new IntentEvent(type, intent);
+            return;
         } finally {
             stopTimer(timer);
         }
@@ -358,6 +360,7 @@ public class HazelcastIntentStore
         List<Operation> failed = new ArrayList<>();
 
         List<Pair<Operation, List<Future<?>>>> futures = new ArrayList<>(batch.operations().size());
+        List<IntentEvent> events = Lists.newArrayList();
 
         for (Operation op : batch.operations()) {
             switch (op.type()) {
@@ -434,6 +437,7 @@ public class HazelcastIntentStore
                                  prevIntent, prevIntentState,
                                  intent, newIntentState);
                     }
+                    events.add(IntentEvent.getEvent(SUBMITTED, intent));
                 } catch (InterruptedException e) {
                     log.error("Batch write was interrupted while processing {}", op,  e);
                     failed.add(op);
@@ -487,6 +491,8 @@ public class HazelcastIntentStore
                     if (PARKING.contains(newState)) {
                         transientStates.remove(intentId);
                     }
+                    events.add(IntentEvent.getEvent(newState, intent));
+
                     log.trace("{} - {} -> {}", intentId, prevIntentState, newState);
                     // TODO sanity check and log?
                 } catch (InterruptedException e) {
@@ -554,6 +560,9 @@ public class HazelcastIntentStore
                 break;
             }
         }
+
+        notifyDelegate(events);
+
         return failed;
     }
 
@@ -571,6 +580,8 @@ public class HazelcastIntentStore
                     log.debug("{} state updated remotely, removing transient state {}",
                               intentId, oldState);
                 }
+
+                notifyDelegate(IntentEvent.getEvent(event.getValue(), getIntent(intentId)));
             }
         }
     }

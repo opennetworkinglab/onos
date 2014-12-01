@@ -16,6 +16,8 @@
 package org.onlab.onos.store.trivial.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,6 +28,7 @@ import org.onlab.onos.net.intent.IntentId;
 import org.onlab.onos.net.intent.IntentState;
 import org.onlab.onos.net.intent.IntentStore;
 import org.onlab.onos.net.intent.IntentStoreDelegate;
+import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
 import org.onlab.onos.store.AbstractStore;
 import org.slf4j.Logger;
 
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -60,12 +64,13 @@ public class SimpleIntentStore
     }
 
     @Override
-    public IntentEvent createIntent(Intent intent) {
+    public void createIntent(Intent intent) {
         if (intents.containsKey(intent.id())) {
-            return null;
+            return;
         }
         intents.put(intent.id(), intent);
-        return this.setState(intent, IntentState.SUBMITTED);
+        this.setState(intent, IntentState.SUBMITTED);
+        return;
     }
 
     @Override
@@ -98,7 +103,7 @@ public class SimpleIntentStore
     }
 
     @Override
-    public IntentEvent setState(Intent intent, IntentState state) {
+    public void setState(Intent intent, IntentState state) {
         IntentId id = intent.id();
         states.put(id, state);
         IntentEvent.Type type = null;
@@ -119,10 +124,9 @@ public class SimpleIntentStore
         default:
             break;
         }
-        if (type == null) {
-            return null;
+        if (type != null) {
+            notifyDelegate(new IntentEvent(type, intent));
         }
-        return new IntentEvent(type, intent);
     }
 
     @Override
@@ -139,5 +143,60 @@ public class SimpleIntentStore
     public void removeInstalledIntents(IntentId intentId) {
         installable.remove(intentId);
     }
+    /**
+     * Execute writes in a batch.
+     *
+     * @param batch BatchWrite to execute
+     * @return failed operations
+     */
+    @Override
+    public List<Operation> batchWrite(BatchWrite batch) {
+        List<Operation> failed = Lists.newArrayList();
+        for (Operation op : batch.operations()) {
+            switch (op.type()) {
+            case CREATE_INTENT:
+                checkArgument(op.args().size() == 1,
+                              "CREATE_INTENT takes 1 argument. %s", op);
+                Intent intent = (Intent) op.args().get(0);
+                // TODO: what if it failed?
+                createIntent(intent);
+                break;
 
+            case REMOVE_INTENT:
+                checkArgument(op.args().size() == 1,
+                              "REMOVE_INTENT takes 1 argument. %s", op);
+                IntentId intentId = (IntentId) op.args().get(0);
+                removeIntent(intentId);
+                break;
+
+            case REMOVE_INSTALLED:
+                checkArgument(op.args().size() == 1,
+                              "REMOVE_INSTALLED takes 1 argument. %s", op);
+                intentId = (IntentId) op.args().get(0);
+                removeInstalledIntents(intentId);
+                break;
+
+            case SET_INSTALLABLE:
+                checkArgument(op.args().size() == 2,
+                              "SET_INSTALLABLE takes 2 arguments. %s", op);
+                intentId = (IntentId) op.args().get(0);
+                @SuppressWarnings("unchecked")
+                List<Intent> installableIntents = (List<Intent>) op.args().get(1);
+                setInstallableIntents(intentId, installableIntents);
+                break;
+
+            case SET_STATE:
+                checkArgument(op.args().size() == 2,
+                              "SET_STATE takes 2 arguments. %s", op);
+                intent = (Intent) op.args().get(0);
+                IntentState newState = (IntentState) op.args().get(1);
+                setState(intent, newState);
+                break;
+
+            default:
+                break;
+            }
+        }
+        return failed;
+    }
 }

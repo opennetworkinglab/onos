@@ -67,4 +67,32 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
         super(type, intent);
     }
 
+    public static IntentEvent getEvent(IntentState state, Intent intent) {
+        Type type;
+        switch (state) {
+            case SUBMITTED:
+                type = Type.SUBMITTED;
+                break;
+            case INSTALLED:
+                type = Type.INSTALLED;
+                break;
+            case WITHDRAWN:
+                type = Type.WITHDRAWN;
+                break;
+            case FAILED:
+                type = Type.FAILED;
+                break;
+
+            //fallthrough to default from here
+            case COMPILING:
+            case INSTALLING:
+            case RECOMPILING:
+            case WITHDRAWING:
+            default:
+                throw new IllegalArgumentException(
+                        "Intent event cannot have transient state: " + state);
+        }
+        return new IntentEvent(type, intent);
+    }
+
 }

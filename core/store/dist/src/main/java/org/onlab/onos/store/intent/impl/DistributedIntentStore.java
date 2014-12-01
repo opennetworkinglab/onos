@@ -23,6 +23,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -187,15 +188,16 @@ public class DistributedIntentStore
     }
 
     @Override
-    public IntentEvent createIntent(Intent intent) {
+    public void createIntent(Intent intent) {
         Context timer = startTimer(createIntentTimer);
         try {
             boolean absent = intents.putIfAbsent(intent.id(), intent);
             if (!absent) {
                 // duplicate, ignore
-                return null;
+                return;
             } else {
-                return this.setState(intent, IntentState.SUBMITTED);
+                this.setState(intent, IntentState.SUBMITTED);
+                return;
             }
         } finally {
             stopTimer(timer);
@@ -273,7 +275,7 @@ public class DistributedIntentStore
     }
 
     @Override
-    public IntentEvent setState(Intent intent, IntentState state) {
+    public void setState(Intent intent, IntentState state) {
         Context timer = startTimer(setStateTimer);
         try {
             final IntentId id = intent.id();
@@ -341,10 +343,10 @@ public class DistributedIntentStore
                 log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
             }
 
-            if (evtType == null) {
-                return null;
+            if (evtType != null) {
+                notifyDelegate(new IntentEvent(evtType, intent));
             }
-            return new IntentEvent(evtType, intent);
+            return;
         } finally {
             stopTimer(timer);
         }
@@ -417,6 +419,7 @@ public class DistributedIntentStore
 
         List<Operation> failed = new ArrayList<>();
         final Builder builder = BatchWriteRequest.newBuilder();
+        List<IntentEvent> events = Lists.newArrayList();
 
         final Set<IntentId> transitionedToParking = new HashSet<>();
 
@@ -428,6 +431,7 @@ public class DistributedIntentStore
                 Intent intent = op.arg(0);
                 builder.putIfAbsent(INTENTS_TABLE, strIntentId(intent.id()), serializer.encode(intent));
                 builder.putIfAbsent(STATES_TABLE, strIntentId(intent.id()), serializer.encode(SUBMITTED));
+                events.add(IntentEvent.getEvent(SUBMITTED, intent));
                 break;
 
             case REMOVE_INTENT:
@@ -450,6 +454,7 @@ public class DistributedIntentStore
                 } else {
                     transitionedToParking.remove(intent.id());
                 }
+                events.add(IntentEvent.getEvent(newState, intent));
                 break;
 
             case SET_INSTALLABLE:
@@ -478,9 +483,11 @@ public class DistributedIntentStore
         if (batchWriteResult.isSuccessful()) {
             // no-failure (except for invalid input)
             transitionedToParking.forEach((intentId) -> transientStates.remove(intentId));
+            notifyDelegate(events);
             return failed;
         } else {
             // everything failed
+            // FIXME what to do with events?
             return batch.operations();
         }
     }

@@ -128,7 +128,7 @@ public class IntentManager
         trackerService.setDelegate(topoDelegate);
         batchService.setDelegate(batchDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
-        executor = newFixedThreadPool(NUM_THREADS, namedThreads("onos-intent-monitor"));
+        executor = newFixedThreadPool(NUM_THREADS, namedThreads("onos-intent"));
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
@@ -646,12 +646,11 @@ public class IntentManager
             return !isComplete() ? batches.get(currentBatch) : null;
         }
 
-        List<IntentEvent> batchSuccess(BatchWrite batchWrite) {
+        void batchSuccess(BatchWrite batchWrite) {
             // move on to next Batch
             if (++currentBatch == batches.size()) {
-                return finalizeStates(batchWrite);
+                finalizeStates(batchWrite);
             }
-            return Collections.emptyList();
         }
 
         void batchFailed() {
@@ -673,19 +672,16 @@ public class IntentManager
         }
 
         // FIXME make sure this is called!!!
-        private List<IntentEvent> finalizeStates(BatchWrite batchWrite) {
+        private void finalizeStates(BatchWrite batchWrite) {
             // events to be triggered on successful write
-            List<IntentEvent> events = new ArrayList<>();
             for (Intent intent : stateMap.keySet()) {
                 switch (getInflightState(intent)) {
                     case INSTALLING:
                         batchWrite.setState(intent, INSTALLED);
                         batchWrite.setInstallableIntents(newIntent.id(), newInstallables);
-                        events.add(new IntentEvent(Type.INSTALLED, intent));
                         break;
                     case WITHDRAWING:
                         batchWrite.setState(intent, WITHDRAWN);
-                        events.add(new IntentEvent(Type.WITHDRAWN, intent));
                         batchWrite.removeInstalledIntents(intent.id());
                         batchWrite.removeIntent(intent.id());
                         break;
@@ -705,7 +701,6 @@ public class IntentManager
                         break;
                 }
             }
-            return events;
         }
 
         List<FlowRuleBatchOperation> batches() {
@@ -737,10 +732,10 @@ public class IntentManager
                     intent.id(), oldState, newState);
 
             stateMap.put(intent, newState);
-            IntentEvent event = store.setState(intent, newState);
-            if (event != null) {
-                eventDispatcher.post(event);
-            }
+//            IntentEvent event = store.setState(intent, newState);
+//            if (event != null) {
+//                eventDispatcher.post(event);
+//            }
         }
 
         Map<Intent, IntentState> stateMap() {
@@ -822,7 +817,7 @@ public class IntentManager
                 BatchWrite batchWrite = store.newBatchWrite();
                 List<IntentEvent> events = new ArrayList<>();
                 for (IntentUpdate update : intentUpdates) {
-                    events.addAll(update.batchSuccess(batchWrite));
+                    update.batchSuccess(batchWrite);
                 }
                 if (!batchWrite.isEmpty()) {
                     store.batchWrite(batchWrite);

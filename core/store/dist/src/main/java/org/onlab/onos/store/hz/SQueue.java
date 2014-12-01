@@ -18,6 +18,7 @@ package org.onlab.onos.store.hz;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.hazelcast.core.IQueue;
+import com.hazelcast.core.ItemEvent;
 import com.hazelcast.core.ItemListener;
 import com.hazelcast.monitor.LocalQueueStats;
 
@@ -201,16 +202,39 @@ public class SQueue<T> implements IQueue<T> {
         return q.getLocalQueueStats();
     }
 
-    @Deprecated // not implemented yet
+
     @Override
-    public String addItemListener(ItemListener<T> itemListener, boolean b) {
-        throw new UnsupportedOperationException();
+    public String addItemListener(ItemListener<T> itemListener, boolean withValue) {
+        ItemListener<byte[]> il = new ItemListener<byte[]>() {
+            @Override
+            public void itemAdded(ItemEvent<byte[]> item) {
+                itemListener.itemAdded(new ItemEvent<T>(getName(item),
+                                                        item.getEventType(),
+                                                        deserialize(item.getItem()),
+                                                        item.getMember()));
+            }
+
+            @Override
+            public void itemRemoved(ItemEvent<byte[]> item) {
+                itemListener.itemRemoved(new ItemEvent<T>(getName(item),
+                                                          item.getEventType(),
+                                                          deserialize(item.getItem()),
+                                                          item.getMember()));
+            }
+
+            private String getName(ItemEvent<byte[]> item) {
+                return (item.getSource() instanceof String) ?
+                        (String) item.getSource() : item.getSource().toString();
+
+            }
+        };
+        return q.addItemListener(il, withValue);
     }
 
-    @Deprecated // not implemented yet
+
     @Override
-    public boolean removeItemListener(String s) {
-        throw new UnsupportedOperationException();
+    public boolean removeItemListener(String registrationId) {
+        return q.removeItemListener(registrationId);
     }
 
     @Deprecated

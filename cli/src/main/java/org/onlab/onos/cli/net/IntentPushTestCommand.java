@@ -199,6 +199,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     /**
      * Returns application ID for the CLI.
      *
+     * @param id application id
      * @return command-line application identifier
      */
     protected ApplicationId appId(Integer id) {

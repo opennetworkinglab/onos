@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -229,7 +231,8 @@ public class IntentManagerTest {
 
         public void await(IntentEvent.Type type) {
             try {
-                latchMap.get(type).await();
+                assertTrue("Timed out waiting for: " + type,
+                           latchMap.get(type).await(5, TimeUnit.SECONDS));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
