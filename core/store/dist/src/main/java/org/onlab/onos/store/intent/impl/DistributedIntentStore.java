@@ -53,6 +53,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,6 +76,8 @@ public class DistributedIntentStore
 
     /** Valid parking state, which can transition to WITHDRAWN. */
     private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
+
+    private static final Set<IntentState> PARKING = EnumSet.of(SUBMITTED, INSTALLED, WITHDRAWN, FAILED);
 
     private final Logger log = getLogger(getClass());
 
@@ -415,6 +418,8 @@ public class DistributedIntentStore
         List<Operation> failed = new ArrayList<>();
         final Builder builder = BatchWriteRequest.newBuilder();
 
+        final Set<IntentId> transitionedToParking = new HashSet<>();
+
         for (Operation op : batch.operations()) {
             switch (op.type()) {
             case CREATE_INTENT:
@@ -440,6 +445,11 @@ public class DistributedIntentStore
                 intent = op.arg(0);
                 IntentState newState = op.arg(1);
                 builder.put(STATES_TABLE, strIntentId(intent.id()), serializer.encode(newState));
+                if (PARKING.contains(newState)) {
+                    transitionedToParking.add(intent.id());
+                } else {
+                    transitionedToParking.remove(intent.id());
+                }
                 break;
 
             case SET_INSTALLABLE:
@@ -467,6 +477,7 @@ public class DistributedIntentStore
         BatchWriteResult batchWriteResult = dbService.batchWrite(builder.build());
         if (batchWriteResult.isSuccessful()) {
             // no-failure (except for invalid input)
+            transitionedToParking.forEach((intentId) -> transientStates.remove(intentId));
             return failed;
         } else {
             // everything failed

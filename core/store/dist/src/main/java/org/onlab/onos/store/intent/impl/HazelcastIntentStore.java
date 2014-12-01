@@ -76,6 +76,8 @@ public class HazelcastIntentStore
     /** Valid parking state, which can transition to WITHDRAWN. */
     private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
 
+    private static final Set<IntentState> PARKING = EnumSet.of(SUBMITTED, INSTALLED, WITHDRAWN, FAILED);
+
     private final Logger log = getLogger(getClass());
 
     // Assumption: IntentId will not have synonyms
@@ -348,6 +350,8 @@ public class HazelcastIntentStore
         }
     }
 
+    // TODO slice out methods after merging Ali's patch
+    // CHECKSTYLE IGNORE MethodLength FOR NEXT 1 LINES
     @Override
     public List<Operation> batchWrite(BatchWrite batch) {
         // Hazelcast version will never fail for conditional failure now.
@@ -479,6 +483,10 @@ public class HazelcastIntentStore
 
                 try {
                     IntentState prevIntentState = (IntentState) subops.get(0).get();
+
+                    if (PARKING.contains(newState)) {
+                        transientStates.remove(intentId);
+                    }
                     log.trace("{} - {} -> {}", intentId, prevIntentState, newState);
                     // TODO sanity check and log?
                 } catch (InterruptedException e) {
