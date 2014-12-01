@@ -29,13 +29,15 @@ import java.util.Map;
         description = "Finds the leader for particular topic.")
 public class LeaderCommand extends AbstractShellCommand {
 
+    private static final String FMT = "%-20s: %15s";
+
     @Override
     protected void execute() {
         LeadershipService leaderService = get(LeadershipService.class);
         Map<String, Leadership> leaderBoard = leaderService.getLeaderBoard();
-        print("Topic:\t\tLeader");
+        print(FMT, "Topic", "Leader");
         for (String topic : leaderBoard.keySet()) {
-            print("%s:\t%s", topic, leaderBoard.get(topic).leader().id());
+            print(FMT, topic, leaderBoard.get(topic).leader().id());
         }
     }
 

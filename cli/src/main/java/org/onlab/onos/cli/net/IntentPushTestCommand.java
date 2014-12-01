@@ -19,6 +19,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.onos.cli.AbstractShellCommand;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
@@ -75,15 +76,29 @@ public class IntentPushTestCommand extends AbstractShellCommand
             required = false, multiValued = false)
     String appIds = null;
 
+    @Argument(index = 4, name = "appIdBase",
+            description = "Base Value for Application IDs",
+            required = false, multiValued = false)
+    String appIdBaseStr = null;
+
+    @Option(name = "-i", aliases = "--install",
+            description = "Install intents",
+            required = false, multiValued = false)
+    private boolean installOnly = false;
+
+    @Option(name = "-w", aliases = "--withdraw",
+            description = "Withdraw intents",
+            required = false, multiValued = false)
+    private boolean withdrawOnly = false;
 
     private IntentService service;
     private CountDownLatch latch;
     private long start, end;
     private int apps;
     private int intentsPerApp;
+    private int appIdBase;
     private int count;
     private boolean add;
-
 
     @Override
     protected void execute() {
@@ -100,21 +115,30 @@ public class IntentPushTestCommand extends AbstractShellCommand
 
         apps = appIds != null ? Integer.parseInt(appIds) : 1;
         intentsPerApp = Integer.parseInt(intentsPerAppId);
+        appIdBase = appIdBaseStr != null ? Integer.parseInt(appIdBaseStr) : 1;
 
         count = intentsPerApp * apps;
-
 
         service.addListener(this);
 
         ArrayListMultimap<Integer, Intent> operations = generateIntents(ingress, egress);
 
-        add = true;
-        latch = new CountDownLatch(count);
-        submitIntents(operations);
+        boolean both = !(installOnly ^ withdrawOnly);
 
-        add = false;
-        latch = new CountDownLatch(count);
-        submitIntents(operations);
+        if (installOnly || both) {
+            add = true;
+            latch = new CountDownLatch(count);
+            submitIntents(operations);
+        }
+
+        if (withdrawOnly || both) {
+            if (withdrawOnly && !both) {
+                print("This should fail for now...");
+            }
+            add = false;
+            latch = new CountDownLatch(count);
+            submitIntents(operations);
+        }
 
         service.removeListener(this);
     }
@@ -125,12 +149,12 @@ public class IntentPushTestCommand extends AbstractShellCommand
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         ArrayListMultimap<Integer, Intent> intents = ArrayListMultimap.create();
-        for (int app = 1; app <= apps; app++) {
+        for (int app = 0; app < apps; app++) {
             for (int i = 1; i <= intentsPerApp; i++) {
                 TrafficSelector s = selector
                         .matchEthSrc(MacAddress.valueOf(i))
                         .build();
-                intents.put(app, new PointToPointIntent(appId(), s, treatment,
+                intents.put(app, new PointToPointIntent(appId(app), s, treatment,
                                                         ingress, egress));
 
             }
@@ -178,7 +202,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
      * @return command-line application identifier
      */
     protected ApplicationId appId(Integer id) {
-        return get(CoreService.class).registerApplication("org.onlab.onos.cli-" + id);
+        return get(CoreService.class).registerApplication("org.onlab.onos.cli-"
+                                                                  + (id + appIdBase));
     }
 
     /**
