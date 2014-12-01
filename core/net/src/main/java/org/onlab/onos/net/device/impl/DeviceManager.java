@@ -25,6 +25,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -46,6 +48,7 @@ import org.onlab.onos.net.MastershipRole;
 import org.onlab.onos.net.Port;
 import org.onlab.onos.net.PortNumber;
 import org.onlab.onos.net.device.DefaultDeviceDescription;
+import org.onlab.onos.net.device.DefaultPortDescription;
 import org.onlab.onos.net.device.DeviceAdminService;
 import org.onlab.onos.net.device.DeviceClockProviderService;
 import org.onlab.onos.net.device.DeviceDescription;
@@ -330,6 +333,13 @@ public class DeviceManager
             log.info("Device {} disconnected from this node", deviceId);
 
             DeviceEvent event = null;
+            List<Port> ports = store.getPorts(deviceId);
+            List<PortDescription> descs = Lists.newArrayList();
+            ports.forEach(port ->
+                descs.add(new DefaultPortDescription(port.number(),
+                                                     false, port.type(),
+                                                     port.portSpeed())));
+            store.updatePorts(this.provider().id(), deviceId, descs);
             try {
                 event = store.markOffline(deviceId);
             } catch (IllegalStateException e) {

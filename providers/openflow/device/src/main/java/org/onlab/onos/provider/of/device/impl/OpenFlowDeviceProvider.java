@@ -46,6 +46,7 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
+import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFVersion;
@@ -242,7 +243,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
-            PortDescription portDescription = buildPortDescription(status.getDesc());
+            PortDescription portDescription = buildPortDescription(status);
             providerService.portStatusChanged(deviceId(uri(dpid)), portDescription);
         }
 
@@ -301,6 +302,17 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                             !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
             return new DefaultPortDescription(portNo, enabled, type, portSpeed(port));
+        }
+
+        private PortDescription buildPortDescription(OFPortStatus status) {
+            OFPortDesc port = status.getDesc();
+            if (status.getReason() != OFPortReason.DELETE) {
+                return buildPortDescription(port);
+            } else {
+                PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+                Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
+                return new DefaultPortDescription(portNo, false, type, portSpeed(port));
+            }
         }
 
         private long portSpeed(OFPortDesc port) {
