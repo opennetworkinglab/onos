@@ -211,8 +211,7 @@ public class HazelcastLeadershipService implements LeadershipService {
             String topicHzId = "LeadershipService/" + topicName + "/topic";
             leaderLock = storeService.getHazelcastInstance().getLock(lockHzId);
 
-            String threadPoolName =
-                "sdnip-leader-election-" + topicName + "-%d";
+            String threadPoolName = "leader-election-" + topicName + "-%d";
             leaderElectionExecutor = Executors.newScheduledThreadPool(2,
                                         namedThreads(threadPoolName));
 
@@ -257,7 +256,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                 SERIALIZER.decode(message.getMessageObject());
             NodeId eventLeaderId = leadershipEvent.subject().leader().id();
 
-            log.debug("SDN-IP Leadership Event: time = {} type = {} event = {}",
+            log.debug("Leadership Event: time = {} type = {} event = {}",
                       leadershipEvent.time(), leadershipEvent.type(),
                       leadershipEvent);
             if (!leadershipEvent.subject().topic().equals(topicName)) {
@@ -344,7 +343,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                 try {
                     Thread.sleep(LEADERSHIP_PERIODIC_INTERVAL_MS);
                 } catch (InterruptedException e) {
-                    log.debug("SDN-IP Leader Election periodic thread interrupted");
+                    log.debug("Leader Election periodic thread interrupted");
                 }
             }
         }
@@ -360,7 +359,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                 // Try to acquire the lock and keep it until the instance is
                 // shutdown.
                 //
-                log.debug("SDN-IP Leader Election begin for topic {}",
+                log.debug("Leader Election begin for topic {}",
                           topicName);
                 try {
                     // Block until it becomes the leader
@@ -370,7 +369,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                     // Thread interrupted. Either shutdown or run for
                     // re-election.
                     //
-                    log.debug("SDN-IP Election interrupted for topic {}",
+                    log.debug("Election interrupted for topic {}",
                               topicName);
                     continue;
                 }
@@ -379,7 +378,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                     //
                     // This instance is now the leader
                     //
-                    log.info("SDN-IP Leader Elected for topic {}", topicName);
+                    log.info("Leader Elected for topic {}", topicName);
                     leader = localNode;
                     leadershipEvent = new LeadershipEvent(
                         LeadershipEvent.Type.LEADER_ELECTED,
@@ -396,14 +395,13 @@ public class HazelcastLeadershipService implements LeadershipService {
                     // Thread interrupted. Either shutdown or run for
                     // re-election.
                     //
-                    log.debug("SDN-IP Leader Interrupted for topic {}",
+                    log.debug("Leader Interrupted for topic {}",
                               topicName);
                 }
 
                 synchronized (this) {
                     // If we reach here, we should release the leadership
-                    log.debug("SDN-IP Leader Lock Released for topic {}",
-                              topicName);
+                    log.debug("Leader Lock Released for topic {}", topicName);
                     if ((leader != null) &&
                         leader.id().equals(localNode.id())) {
                         leader = null;
