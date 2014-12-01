@@ -58,17 +58,6 @@
         <bundle>mvn:org.onlab.onos/onlab-thirdparty/1.0.0-SNAPSHOT</bundle>
 
         <bundle>mvn:org.mapdb/mapdb/1.0.6</bundle>
-
-<!-- FIXME: resolce Chronicle's dependency issue
-        <bundle>mvn:net.openhft/lang/6.4.6</bundle>
-        <bundle>mvn:net.openhft/affinity/2.1.1</bundle>
-        <bundle>mvn:net.openhft/chronicle/3.2.2</bundle>
--->
-<!-- things used before shading copycat
-        <bundle>wrap:mvn:http://mavenrepo.onlab.us:8081/nexus/content/groups/public@id=onlab-temp!net.kuujo.copycat/copycat/0.4.0-SNAPSHOT$Bundle-SymbolicName=net.kuujo.copycat.copycat&amp;Bundle-Version=0.4.0.SNAPSHOT</bundle>
-        <bundle>wrap:mvn:http://mavenrepo.onlab.us:8081/nexus/content/groups/public@id=onlab-temp!net.kuujo.copycat/copycat-tcp/0.4.0-SNAPSHOT$Bundle-SymbolicName=net.kuujo.copycat.copycat-tcp&amp;Bundle-Version=0.4.0.SNAPSHOT</bundle>
-        <bundle>wrap:mvn:http://mavenrepo.onlab.us:8081/nexus/content/groups/public@id=onlab-temp!net.kuujo.copycat/copycat-chronicle/0.4.0-SNAPSHOT$Bundle-SymbolicName=net.kuujo.copycat.copycat-chronicle&amp;Bundle-Version=0.4.0.SNAPSHOT</bundle>
--->
     </feature>
 
     <feature name="onos-thirdparty-web" version="1.0.0"
