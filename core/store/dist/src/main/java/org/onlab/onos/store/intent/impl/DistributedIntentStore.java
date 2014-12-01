@@ -65,7 +65,7 @@ import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.metrics.MetricsUtil.*;
 
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class DistributedIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>

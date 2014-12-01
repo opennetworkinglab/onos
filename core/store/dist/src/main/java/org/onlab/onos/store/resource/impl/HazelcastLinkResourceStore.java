@@ -64,7 +64,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages link resources using Hazelcast.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class HazelcastLinkResourceStore
     extends AbstractHazelcastStore<LinkResourceEvent, StoreDelegate<LinkResourceEvent>>

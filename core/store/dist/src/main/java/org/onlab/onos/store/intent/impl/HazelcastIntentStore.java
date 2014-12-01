@@ -64,7 +64,7 @@ import static org.onlab.onos.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.metrics.MetricsUtil.*;
 
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class HazelcastIntentStore
         extends AbstractHazelcastStore<IntentEvent, IntentStoreDelegate>

@@ -71,7 +71,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages link resources using database service.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class DistributedLinkResourceStore implements LinkResourceStore {
 
