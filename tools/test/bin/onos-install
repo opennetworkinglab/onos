@@ -35,6 +35,10 @@ ssh $remote "
     mkdir $ONOS_INSTALL_DIR/var
     mkdir $ONOS_INSTALL_DIR/config
 
+    # create dir for Raft log
+    # TODO: use $KARAF_DATA
+    mkdir -p -- $ONOS_INSTALL_DIR/$KARAF_DIST/data/raft
+
     # Install the upstart configuration file and setup options for debugging
     [ -z "$nostart" ] && sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
     echo 'export ONOS_OPTS=debug' > $ONOS_INSTALL_DIR/options

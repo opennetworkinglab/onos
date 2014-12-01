@@ -10,4 +10,5 @@ nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 onos-service --cell stop
 
-for node in $nodes; do onos-ssh $node "rm -v /tmp/onos-copy-cat-log_*"; done
+# TODO: use $KARAF_DATA
+for node in $nodes; do onos-ssh $node "rm -v -- $ONOS_INSTALL_DIR/$KARAF_DIST/data/raft/onos-copy-cat-log_*"; done

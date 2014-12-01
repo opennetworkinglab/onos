@@ -82,8 +82,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DatabaseProtocolService copycatMessagingProtocol;
 
-    // FIXME: point to appropriate path
-    public static final String LOG_FILE_PREFIX = "/tmp/onos-copy-cat-log_";
+    public static final String LOG_FILE_PREFIX = "raft/onos-copy-cat-log_";
 
     // Current working dir seems to be /opt/onos/apache-karaf-3.0.2
     // TODO: Set the path to /opt/onos/config
@@ -125,6 +124,10 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
     @Activate
     public void activate() throws InterruptedException, ExecutionException {
+
+        // KARAF_DATA
+        //  http://karaf.apache.org/manual/latest/users-guide/start-stop.html
+        final String dataDir = System.getProperty("karaf.data", "./data");
 
         // load tablet configuration
         File file = new File(CONFIG_DIR, initialMemberConfig);
@@ -179,7 +182,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 
             DatabaseStateMachine stateMachine = new DatabaseStateMachine();
             stateMachine.addEventListener(expirationTracker);
-            Log consensusLog = new MapDBLog(LOG_FILE_PREFIX + localNode.id(),
+            Log consensusLog = new MapDBLog(dataDir + "/" + LOG_FILE_PREFIX + localNode.id(),
                     ClusterMessagingProtocol.DB_SERIALIZER);
 
             CopycatConfig ccConfig = new CopycatConfig();
