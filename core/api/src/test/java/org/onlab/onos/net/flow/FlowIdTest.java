@@ -34,7 +34,7 @@ public class FlowIdTest {
     final FlowId flowId2 = FlowId.valueOf(2);
 
     /**
-     * Checks that the DefaultFlowRule class is immutable.
+     * Checks that the FlowId class is immutable.
      */
     @Test
     public void testImmutability() {
@@ -42,7 +42,7 @@ public class FlowIdTest {
     }
 
     /**
-     * Checks the operation of equals(), hashCode and toString() methods.
+     * Checks the operation of equals(), hashCode() and toString() methods.
      */
     @Test
     public void testEquals() {

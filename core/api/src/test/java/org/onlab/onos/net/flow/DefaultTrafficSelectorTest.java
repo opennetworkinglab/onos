@@ -72,13 +72,18 @@ public class DefaultTrafficSelectorTest {
     }
 
     /**
-     * Hamcrest matcher to check that a collection of Intents contains an
-     * Intent with the specified Intent Id.
+     * Hamcrest matcher to check that a selector contains a
+     * Criterion with the specified type.
      */
     public static final class CriterionExistsMatcher
            extends TypeSafeMatcher<TrafficSelector> {
         private final Criterion.Type type;
 
+        /**
+         * Constructs a matcher for the given criterion type.
+         *
+         * @param typeValue criterion type to match
+         */
         public CriterionExistsMatcher(Criterion.Type typeValue) {
             type = typeValue;
         }
@@ -102,7 +107,7 @@ public class DefaultTrafficSelectorTest {
 
 
     /**
-     * Factory method to create a criterion type matcher.  Returns a matcher
+     * Creates a criterion type matcher.  Returns a matcher
      * for a criterion with the given type.
      *
      * @param type type of Criterion to match
