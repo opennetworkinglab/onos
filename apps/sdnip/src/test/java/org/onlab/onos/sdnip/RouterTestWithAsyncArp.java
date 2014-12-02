@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -50,6 +51,7 @@ import org.onlab.onos.net.host.HostEvent;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.AbstractIntentTest;
@@ -196,7 +198,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
      * This method tests adding a route entry.
      */
     @Test
-    public void testProcessRouteAdd() throws TestUtilsException {
+    public void testRouteAdd() throws TestUtilsException {
 
         // Construct a route entry
         RouteEntry routeEntry = new RouteEntry(
@@ -214,13 +216,18 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
         replay(hostService);
 
         reset(intentService);
-        intentService.submit(TestIntentServiceHelper.eqExceptId(intent));
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intent);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
-        // Call the processRouteAdd() method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteAdd(routeEntry);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         Host host = new DefaultHost(ProviderId.NONE, HostId.NONE,
                 MacAddress.valueOf("00:00:00:00:00:01"), VlanId.NONE,
@@ -299,14 +306,22 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
         replay(hostService);
 
         reset(intentService);
-        intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
-        intentService.submit(TestIntentServiceHelper.eqExceptId(intentNew));
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addWithdrawOperation(intent.id());
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
+        builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intentNew);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
-        // Call the processRouteAdd() method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteAdd(routeEntryUpdate);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntryUpdate);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         Host host = new DefaultHost(ProviderId.NONE, HostId.NONE,
                 MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE,
@@ -334,7 +349,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
      * This method tests deleting a route entry.
      */
     @Test
-    public void testProcessRouteDelete() throws TestUtilsException {
+    public void testRouteDelete() throws TestUtilsException {
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
@@ -351,13 +366,18 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
 
         // Set up expectation
         reset(intentService);
-        intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addWithdrawOperation(intent.id());
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
-        // Call route deleting method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteDelete(routeEntry);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.DELETE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
         assertEquals(router.getRoutes().size(), 0);

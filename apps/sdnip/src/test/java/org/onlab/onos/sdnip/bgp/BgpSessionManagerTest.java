@@ -82,7 +82,7 @@ public class BgpSessionManagerTest {
      */
     private class DummyRouteListener implements RouteListener {
         @Override
-        public void update(RouteUpdate routeUpdate) {
+        public void update(Collection<RouteUpdate> routeUpdate) {
             // Nothing to do
         }
     }

@@ -325,13 +325,13 @@ public class IntentSyncTest extends AbstractIntentTest {
                 .andReturn(IntentState.WITHDRAWING).anyTimes();
         expect(intentService.getIntents()).andReturn(intents).anyTimes();
 
-        IntentOperations.Builder builder = IntentOperations.builder(null); //FIXME null
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
         builder.addWithdrawOperation(intent2.id());
         builder.addWithdrawOperation(intent4.id());
         intentService.execute(TestIntentServiceHelper.eqExceptId(
                                 builder.build()));
 
-        builder = IntentOperations.builder(null); //FIXME null
+        builder = IntentOperations.builder(APPID);
         builder.addSubmitOperation(intent3);
         builder.addSubmitOperation(intent4Update);
         builder.addSubmitOperation(intent6);

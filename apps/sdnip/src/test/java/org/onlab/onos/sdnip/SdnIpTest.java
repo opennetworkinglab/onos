@@ -236,9 +236,7 @@ public class SdnIpTest extends AbstractIntentTest {
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 
         // Add route updates
-        for (RouteUpdate update : routeUpdates) {
-            router.processRouteAdd(update.routeEntry());
-        }
+        router.processRouteUpdates(routeUpdates);
 
         latch.await(5000, TimeUnit.MILLISECONDS);
 
@@ -304,17 +302,19 @@ public class SdnIpTest extends AbstractIntentTest {
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 
         // Send the add updates first
-        for (RouteUpdate update : routeUpdates) {
-            router.processRouteAdd(update.routeEntry());
-        }
+        router.processRouteUpdates(routeUpdates);
 
         // Give some time to let the intents be submitted
         installCount.await(5000, TimeUnit.MILLISECONDS);
 
         // Send the DELETE updates
+        List<RouteUpdate> deleteRouteUpdates = new ArrayList<>();
         for (RouteUpdate update : routeUpdates) {
-            router.processRouteDelete(update.routeEntry());
+            RouteUpdate deleteUpdate = new RouteUpdate(RouteUpdate.Type.DELETE,
+                                                       update.routeEntry());
+            deleteRouteUpdates.add(deleteUpdate);
         }
+        router.processRouteUpdates(deleteRouteUpdates);
 
         deleteCount.await(5000, TimeUnit.MILLISECONDS);
 

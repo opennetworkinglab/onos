@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -248,18 +249,28 @@ public class BgpSessionManager {
         synchronized void routeUpdates(BgpSession bgpSession,
                         Collection<BgpRouteEntry> addedBgpRouteEntries,
                         Collection<BgpRouteEntry> deletedBgpRouteEntries) {
+            Collection<RouteUpdate> routeUpdates = new LinkedList<>();
+            RouteUpdate routeUpdate;
+
             if (isShutdown) {
                 return;         // Ignore any leftover updates if shutdown
             }
             // Process the deleted route entries
             for (BgpRouteEntry bgpRouteEntry : deletedBgpRouteEntries) {
-                processDeletedRoute(bgpSession, bgpRouteEntry);
+                routeUpdate = processDeletedRoute(bgpSession, bgpRouteEntry);
+                if (routeUpdate != null) {
+                    routeUpdates.add(routeUpdate);
+                }
             }
 
             // Process the added/updated route entries
             for (BgpRouteEntry bgpRouteEntry : addedBgpRouteEntries) {
-                processAddedRoute(bgpSession, bgpRouteEntry);
+                routeUpdate = processAddedRoute(bgpSession, bgpRouteEntry);
+                if (routeUpdate != null) {
+                    routeUpdates.add(routeUpdate);
+                }
             }
+            routeListener.update(routeUpdates);
         }
 
         /**
@@ -268,9 +279,11 @@ public class BgpSessionManager {
          * @param bgpSession the BGP session the route entry update was
          * received on
          * @param bgpRouteEntry the added/updated route entry
+         * @return the result route update that should be forwarded to the
+         * Route Listener, or null if no route update should be forwarded
          */
-        private void processAddedRoute(BgpSession bgpSession,
-                                       BgpRouteEntry bgpRouteEntry) {
+        private RouteUpdate processAddedRoute(BgpSession bgpSession,
+                                              BgpRouteEntry bgpRouteEntry) {
             RouteUpdate routeUpdate;
             BgpRouteEntry bestBgpRouteEntry =
                 bgpRoutes.get(bgpRouteEntry.prefix());
@@ -284,9 +297,7 @@ public class BgpSessionManager {
                 bgpRoutes.put(bgpRouteEntry.prefix(), bgpRouteEntry);
                 routeUpdate =
                     new RouteUpdate(RouteUpdate.Type.UPDATE, bgpRouteEntry);
-                // Forward the result route updates to the Route Listener
-                routeListener.update(routeUpdate);
-                return;
+                return routeUpdate;
             }
 
             //
@@ -296,7 +307,7 @@ public class BgpSessionManager {
             //
             if (bestBgpRouteEntry.getBgpSession() !=
                 bgpRouteEntry.getBgpSession()) {
-                return;
+                return null;            // Nothing to do
             }
 
             // Find the next best route
@@ -315,8 +326,7 @@ public class BgpSessionManager {
             bgpRoutes.put(bestBgpRouteEntry.prefix(), bestBgpRouteEntry);
             routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
                                           bestBgpRouteEntry);
-            // Forward the result route updates to the Route Listener
-            routeListener.update(routeUpdate);
+            return routeUpdate;
         }
 
         /**
@@ -325,9 +335,11 @@ public class BgpSessionManager {
          * @param bgpSession the BGP session the route entry update was
          * received on
          * @param bgpRouteEntry the deleted route entry
+         * @return the result route update that should be forwarded to the
+         * Route Listener, or null if no route update should be forwarded
          */
-        private void processDeletedRoute(BgpSession bgpSession,
-                                         BgpRouteEntry bgpRouteEntry) {
+        private RouteUpdate processDeletedRoute(BgpSession bgpSession,
+                                                BgpRouteEntry bgpRouteEntry) {
             RouteUpdate routeUpdate;
             BgpRouteEntry bestBgpRouteEntry =
                 bgpRoutes.get(bgpRouteEntry.prefix());
@@ -340,7 +352,7 @@ public class BgpSessionManager {
             // because we need to check whether this is same object.
             //
             if (bgpRouteEntry != bestBgpRouteEntry) {
-                return;         // Nothing to do
+                return null;            // Nothing to do
             }
 
             //
@@ -353,9 +365,7 @@ public class BgpSessionManager {
                               bestBgpRouteEntry);
                 routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
                                               bestBgpRouteEntry);
-                // Forward the result route updates to the Route Listener
-                routeListener.update(routeUpdate);
-                return;
+                return routeUpdate;
             }
 
             //
@@ -364,8 +374,7 @@ public class BgpSessionManager {
             bgpRoutes.remove(bgpRouteEntry.prefix());
             routeUpdate = new RouteUpdate(RouteUpdate.Type.DELETE,
                                           bgpRouteEntry);
-            // Forward the result route updates to the Route Listener
-            routeListener.update(routeUpdate);
+            return routeUpdate;
         }
 
         /**

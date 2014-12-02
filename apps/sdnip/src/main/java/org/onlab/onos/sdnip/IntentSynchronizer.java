@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
 import org.onlab.onos.net.flow.criteria.Criterion;
@@ -116,7 +117,7 @@ public class IntentSynchronizer {
             //
             log.debug("SDN-IP Intent Synchronizer shutdown: " +
                       "withdrawing all intents...");
-            IntentOperations.Builder builder = IntentOperations.builder();
+            IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (Intent intent : intentService.getIntents()) {
                 // Skip the intents from other applications
                 if (!intent.appId().equals(appId)) {
@@ -234,51 +235,84 @@ public class IntentSynchronizer {
     }
 
     /**
-     * Submits a multi-point-to-single-point intent.
+     * Updates multi-point-to-single-point route intents.
      *
-     * @param prefix the IPv4 matching prefix for the intent to submit
-     * @param intent the intent to submit
+     * @param submitIntents the intents to submit
+     * @param withdrawPrefixes the IPv4 matching prefixes for the intents
+     * to withdraw
      */
-    void submitRouteIntent(Ip4Prefix prefix,
-                           MultiPointToSinglePointIntent intent) {
-        synchronized (this) {
-            MultiPointToSinglePointIntent oldIntent =
-                routeIntents.put(prefix, intent);
+    void updateRouteIntents(
+                Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>> submitIntents,
+                Collection<Ip4Prefix> withdrawPrefixes) {
 
-            if (isElectedLeader && isActivatedLeader) {
-                if (oldIntent != null) {
-                    //
-                    // TODO: Short-term solution to explicitly withdraw
-                    // instead of using "replace" operation.
-                    //
-                    log.debug("SDN-IP Withdrawing old intent: {}", oldIntent);
-                    intentService.withdraw(oldIntent);
+        //
+        // NOTE: Semantically, we MUST withdraw existing intents before
+        // submitting new intents.
+        //
+        synchronized (this) {
+            MultiPointToSinglePointIntent intent;
+
+            log.debug("SDN-IP submitting intents = {} withdrawing = {}",
+                     submitIntents.size(), withdrawPrefixes.size());
+
+            //
+            // Prepare the Intent batch operations for the intents to withdraw
+            //
+            IntentOperations.Builder withdrawBuilder =
+                IntentOperations.builder(appId);
+            for (Ip4Prefix prefix : withdrawPrefixes) {
+                intent = routeIntents.remove(prefix);
+                if (intent == null) {
+                    log.debug("SDN-IP No intent in routeIntents to delete " +
+                              "for prefix: {}", prefix);
+                    continue;
                 }
-                log.debug("SDN-IP Submitting intent: {}", intent);
-                intentService.submit(intent);
-            }
-        }
-    }
-
-    /**
-     * Withdraws a multi-point-to-single-point intent.
-     *
-     * @param prefix the IPv4 matching prefix for the intent to withdraw.
-     */
-    void withdrawRouteIntent(Ip4Prefix prefix) {
-        synchronized (this) {
-            MultiPointToSinglePointIntent intent =
-                routeIntents.remove(prefix);
-
-            if (intent == null) {
-                log.debug("SDN-IP no intent in routeIntents to delete for " +
-                          "prefix: {}", prefix);
-                return;
+                if (isElectedLeader && isActivatedLeader) {
+                    log.debug("SDN-IP Withdrawing intent: {}", intent);
+                    withdrawBuilder.addWithdrawOperation(intent.id());
+                }
             }
 
+            //
+            // Prepare the Intent batch operations for the intents to submit
+            //
+            IntentOperations.Builder submitBuilder =
+                IntentOperations.builder(appId);
+            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
+                     submitIntents) {
+                Ip4Prefix prefix = pair.getLeft();
+                intent = pair.getRight();
+                MultiPointToSinglePointIntent oldIntent =
+                    routeIntents.put(prefix, intent);
+                if (isElectedLeader && isActivatedLeader) {
+                    if (oldIntent != null) {
+                        //
+                        // TODO: Short-term solution to explicitly withdraw
+                        // instead of using "replace" operation.
+                        //
+                        log.debug("SDN-IP Withdrawing old intent: {}",
+                                  oldIntent);
+                        withdrawBuilder.addWithdrawOperation(oldIntent.id());
+                    }
+                    log.debug("SDN-IP Submitting intent: {}", intent);
+                    submitBuilder.addSubmitOperation(intent);
+                }
+            }
+
+            //
+            // Submit the Intent operations
+            //
             if (isElectedLeader && isActivatedLeader) {
-                log.debug("SDN-IP Withdrawing intent: {}", intent);
-                intentService.withdraw(intent);
+                IntentOperations intentOperations = withdrawBuilder.build();
+                if (!intentOperations.operations().isEmpty()) {
+                    log.debug("SDN-IP Withdrawing intents executed");
+                    intentService.execute(intentOperations);
+                }
+                intentOperations = submitBuilder.build();
+                if (!intentOperations.operations().isEmpty()) {
+                    log.debug("SDN-IP Submitting intents executed");
+                    intentService.execute(intentOperations);
+                }
             }
         }
     }

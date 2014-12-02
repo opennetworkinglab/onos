@@ -15,6 +15,8 @@
  */
 package org.onlab.onos.sdnip;
 
+import java.util.Collection;
+
 /**
  * An interface to receive route updates from route providers.
  */
@@ -22,7 +24,7 @@ public interface RouteListener {
     /**
      * Receives a route update from a route provider.
      *
-     * @param routeUpdate the updated route information
+     * @param routeUpdates the collection with updated route information
      */
-    public void update(RouteUpdate routeUpdate);
+    public void update(Collection<RouteUpdate> routeUpdates);
 }

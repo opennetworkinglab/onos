@@ -20,12 +20,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.Host;
@@ -74,10 +77,13 @@ public class Router implements RouteListener {
     private InvertedRadixTree<RouteEntry> bgpRoutes;
 
     // Stores all incoming route updates in a queue.
-    private final BlockingQueue<RouteUpdate> routeUpdates;
+    private final BlockingQueue<Collection<RouteUpdate>> routeUpdatesQueue;
 
     // The Ip4Address is the next hop address of each route update.
     private final SetMultimap<Ip4Address, RouteEntry> routesWaitingOnArp;
+
+    // The IPv4 address to MAC address mapping
+    private final Map<Ip4Address, MacAddress> ip2Mac;
 
     private final ApplicationId appId;
     private final IntentSynchronizer intentSynchronizer;
@@ -110,9 +116,10 @@ public class Router implements RouteListener {
 
         bgpRoutes = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
-        routeUpdates = new LinkedBlockingQueue<>();
+        routeUpdatesQueue = new LinkedBlockingQueue<>();
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
                 HashMultimap.<Ip4Address, RouteEntry>create());
+        ip2Mac = new ConcurrentHashMap<>();
 
         bgpUpdatesExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
@@ -146,19 +153,18 @@ public class Router implements RouteListener {
             // Cleanup all local state
             bgpRoutes = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
-            routeUpdates.clear();
+            routeUpdatesQueue.clear();
             routesWaitingOnArp.clear();
+            ip2Mac.clear();
         }
     }
 
     @Override
-    public void update(RouteUpdate routeUpdate) {
-        log.debug("Received new route update: {}", routeUpdate);
-
+    public void update(Collection<RouteUpdate> routeUpdates) {
         try {
-            routeUpdates.put(routeUpdate);
+            routeUpdatesQueue.put(routeUpdates);
         } catch (InterruptedException e) {
-            log.debug("Interrupted while putting on routeUpdates queue", e);
+            log.debug("Interrupted while putting on routeUpdatesQueue", e);
             Thread.currentThread().interrupt();
         }
     }
@@ -171,18 +177,9 @@ public class Router implements RouteListener {
         try {
             while (!interrupted) {
                 try {
-                    RouteUpdate update = routeUpdates.take();
-                    switch (update.type()) {
-                        case UPDATE:
-                            processRouteAdd(update.routeEntry());
-                            break;
-                        case DELETE:
-                            processRouteDelete(update.routeEntry());
-                            break;
-                        default:
-                            log.error("Unknown update Type: {}", update.type());
-                            break;
-                    }
+                    Collection<RouteUpdate> routeUpdates =
+                        routeUpdatesQueue.take();
+                    processRouteUpdates(routeUpdates);
                 } catch (InterruptedException e) {
                     log.debug("Interrupted while taking from updates queue", e);
                     interrupted = true;
@@ -198,98 +195,137 @@ public class Router implements RouteListener {
     }
 
     /**
+     * Processes route updates.
+     *
+     * @param routeUpdates the route updates to process
+     */
+    void processRouteUpdates(Collection<RouteUpdate> routeUpdates) {
+        synchronized (this) {
+            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
+                submitIntents = new LinkedList<>();
+            Collection<Ip4Prefix> withdrawPrefixes = new LinkedList<>();
+            MultiPointToSinglePointIntent intent;
+
+            for (RouteUpdate update : routeUpdates) {
+                switch (update.type()) {
+                case UPDATE:
+                    intent = processRouteAdd(update.routeEntry(),
+                                             withdrawPrefixes);
+                    if (intent != null) {
+                        submitIntents.add(Pair.of(update.routeEntry().prefix(),
+                                                  intent));
+                    }
+                    break;
+                case DELETE:
+                    processRouteDelete(update.routeEntry(), withdrawPrefixes);
+                    break;
+                default:
+                    log.error("Unknown update Type: {}", update.type());
+                    break;
+                }
+            }
+
+            intentSynchronizer.updateRouteIntents(submitIntents,
+                                                  withdrawPrefixes);
+        }
+    }
+
+    /**
      * Processes adding a route entry.
      * <p>
-     * Put new route entry into the radix tree. If there was an existing
-     * next hop for this prefix, but the next hop was different, then execute
-     * deleting old route entry. If the next hop is the SDN domain, we do not
-     * handle it at the moment. Otherwise, execute adding a route.
+     * The route entry is added to the radix tree. If there was an existing
+     * next hop for this prefix, but the next hop was different, then the
+     * old route entry is deleted.
      * </p>
-     *
-     * @param routeEntry the route entry to add
-     */
-    void processRouteAdd(RouteEntry routeEntry) {
-        synchronized (this) {
-            log.debug("Processing route add: {}", routeEntry);
-
-            Ip4Prefix prefix = routeEntry.prefix();
-            Ip4Address nextHop = null;
-            RouteEntry foundRouteEntry =
-                    bgpRoutes.put(RouteEntry.createBinaryString(prefix),
-                                  routeEntry);
-            if (foundRouteEntry != null) {
-                nextHop = foundRouteEntry.nextHop();
-            }
-
-            if (nextHop != null && !nextHop.equals(routeEntry.nextHop())) {
-                // There was an existing nexthop for this prefix. This update
-                // supersedes that, so we need to remove the old flows for this
-                // prefix from the switches
-                executeRouteDelete(routeEntry);
-            }
-            if (nextHop != null && nextHop.equals(routeEntry.nextHop())) {
-                return;
-            }
-
-            if (routeEntry.nextHop().equals(LOCAL_NEXT_HOP)) {
-                // Route originated by SDN domain
-                // We don't handle these at the moment
-                log.debug("Own route {} to {}",
-                          routeEntry.prefix(), routeEntry.nextHop());
-                return;
-            }
-
-            executeRouteAdd(routeEntry);
-        }
-    }
-
-    /**
-     * Executes adding a route entry.
      * <p>
-     * Find out the egress Interface and MAC address of next hop router for
-     * this route entry. If the MAC address can not be found in ARP cache,
-     * then this prefix will be put in routesWaitingOnArp queue. Otherwise,
-     * new route intent will be created and installed.
+     * NOTE: Currently, we don't handle routes if the next hop is within the
+     * SDN domain.
      * </p>
      *
      * @param routeEntry the route entry to add
+     * @param withdrawPrefixes the collection of accumulated prefixes whose
+     * intents will be withdrawn
+     * @return the corresponding intent that should be submitted, or null
      */
-    private void executeRouteAdd(RouteEntry routeEntry) {
-        log.debug("Executing route add: {}", routeEntry);
+    private MultiPointToSinglePointIntent processRouteAdd(
+                RouteEntry routeEntry,
+                Collection<Ip4Prefix> withdrawPrefixes) {
+        log.debug("Processing route add: {}", routeEntry);
 
-        // Monitor the IP address so we'll get notified of updates to the MAC
-        // address.
+        Ip4Prefix prefix = routeEntry.prefix();
+        Ip4Address nextHop = null;
+        RouteEntry foundRouteEntry =
+            bgpRoutes.put(RouteEntry.createBinaryString(prefix),
+                          routeEntry);
+        if (foundRouteEntry != null) {
+            nextHop = foundRouteEntry.nextHop();
+        }
+
+        if (nextHop != null && !nextHop.equals(routeEntry.nextHop())) {
+            // There was an existing nexthop for this prefix. This update
+            // supersedes that, so we need to remove the old flows for this
+            // prefix from the switches
+            withdrawPrefixes.add(routeEntry.prefix());
+        }
+        if (nextHop != null && nextHop.equals(routeEntry.nextHop())) {
+            return null;
+        }
+
+        if (routeEntry.nextHop().equals(LOCAL_NEXT_HOP)) {
+            // Route originated by SDN domain
+            // We don't handle these at the moment
+            log.debug("Own route {} to {}",
+                      routeEntry.prefix(), routeEntry.nextHop());
+            return null;
+        }
+
+        //
+        // Find the MAC address of next hop router for this route entry.
+        // If the MAC address can not be found in ARP cache, then this prefix
+        // will be put in routesWaitingOnArp queue. Otherwise, generate
+        // a new route intent.
+        //
+
+        // Monitor the IP address for updates of the MAC address
         hostService.startMonitoringIp(routeEntry.nextHop());
 
-        // See if we know the MAC address of the next hop
-        MacAddress nextHopMacAddress = null;
-        Set<Host> hosts = hostService.getHostsByIp(routeEntry.nextHop());
-        if (!hosts.isEmpty()) {
-            // TODO how to handle if multiple hosts are returned?
-            nextHopMacAddress = hosts.iterator().next().mac();
+        // Check if we know the MAC address of the next hop
+        MacAddress nextHopMacAddress = ip2Mac.get(routeEntry.nextHop());
+        if (nextHopMacAddress == null) {
+            Set<Host> hosts = hostService.getHostsByIp(routeEntry.nextHop());
+            if (!hosts.isEmpty()) {
+                // TODO how to handle if multiple hosts are returned?
+                nextHopMacAddress = hosts.iterator().next().mac();
+            }
+            if (nextHopMacAddress != null) {
+                ip2Mac.put(routeEntry.nextHop(), nextHopMacAddress);
+            }
         }
-
         if (nextHopMacAddress == null) {
             routesWaitingOnArp.put(routeEntry.nextHop(), routeEntry);
-            return;
+            return null;
         }
-
-        addRouteIntentToNextHop(routeEntry.prefix(),
-                                routeEntry.nextHop(),
-                                nextHopMacAddress);
+        return generateRouteIntent(routeEntry.prefix(), routeEntry.nextHop(),
+                                   nextHopMacAddress);
     }
 
     /**
-     * Adds a route intent given a prefix and a next hop IP address. This
-     * method will find the egress interface for the intent.
+     * Generates a route intent for a prefix, the next hop IP address, and
+     * the next hop MAC address.
+     * <p/>
+     * This method will find the egress interface for the intent.
+     * Intent will match dst IP prefix and rewrite dst MAC address at all other
+     * border switches, then forward packets according to dst MAC address.
      *
      * @param prefix            IP prefix of the route to add
      * @param nextHopIpAddress  IP address of the next hop
      * @param nextHopMacAddress MAC address of the next hop
+     * @return the generated intent, or null if no intent should be submitted
      */
-    private void addRouteIntentToNextHop(Ip4Prefix prefix,
-                                         Ip4Address nextHopIpAddress,
-                                         MacAddress nextHopMacAddress) {
+    private MultiPointToSinglePointIntent generateRouteIntent(
+                Ip4Prefix prefix,
+                Ip4Address nextHopIpAddress,
+                MacAddress nextHopMacAddress) {
 
         // Find the attachment point (egress interface) of the next hop
         Interface egressInterface;
@@ -308,30 +344,17 @@ public class Router implements RouteListener {
             if (egressInterface == null) {
                 log.warn("No outgoing interface found for {}",
                          nextHopIpAddress);
-                return;
+                return null;
             }
         }
 
-        doAddRouteIntent(prefix, egressInterface, nextHopMacAddress);
-    }
-
-    /**
-     * Installs a route intent for a prefix.
-     * <p/>
-     * Intent will match dst IP prefix and rewrite dst MAC address at all other
-     * border switches, then forward packets according to dst MAC address.
-     *
-     * @param prefix            IP prefix from route
-     * @param egressInterface   egress Interface connected to next hop router
-     * @param nextHopMacAddress MAC address of next hop router
-     */
-    private void doAddRouteIntent(Ip4Prefix prefix, Interface egressInterface,
-                                  MacAddress nextHopMacAddress) {
-        log.debug("Adding intent for prefix {}, next hop mac {}",
-                  prefix, nextHopMacAddress);
-
+        //
+        // Generate the intent itself
+        //
         Set<ConnectPoint> ingressPorts = new HashSet<>();
         ConnectPoint egressPort = egressInterface.connectPoint();
+        log.debug("Generating intent for prefix {}, next hop mac {}",
+                  prefix, nextHopMacAddress);
 
         for (Interface intf : interfaceService.getInterfaces()) {
             if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
@@ -351,51 +374,39 @@ public class Router implements RouteListener {
                 .setEthDst(nextHopMacAddress)
                 .build();
 
-        MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(appId, selector, treatment,
-                                                  ingressPorts, egressPort);
-
-        intentSynchronizer.submitRouteIntent(prefix, intent);
+        return new MultiPointToSinglePointIntent(appId, selector, treatment,
+                                                 ingressPorts, egressPort);
     }
 
     /**
-     * Executes deleting a route entry.
+     * Processes the deletion of a route entry.
      * <p>
-     * Removes prefix from radix tree, and if successful, then try to delete
-     * the related intent.
+     * The prefix for the routing entry is removed from radix tree.
+     * If the operation is successful, the prefix is added to the collection
+     * of prefixes whose intents that will be withdrawn.
      * </p>
      *
      * @param routeEntry the route entry to delete
+     * @param withdrawPrefixes the collection of accumulated prefixes whose
+     * intents will be withdrawn
      */
-    void processRouteDelete(RouteEntry routeEntry) {
-        synchronized (this) {
-            log.debug("Processing route delete: {}", routeEntry);
-            Ip4Prefix prefix = routeEntry.prefix();
+    private void processRouteDelete(RouteEntry routeEntry,
+                                    Collection<Ip4Prefix> withdrawPrefixes) {
+        log.debug("Processing route delete: {}", routeEntry);
+        Ip4Prefix prefix = routeEntry.prefix();
 
-            if (bgpRoutes.remove(RouteEntry.createBinaryString(prefix))) {
-                //
-                // Only delete flows if an entry was actually removed from the
-                // tree. If no entry was removed, the <prefix, nexthop> wasn't
-                // there so it's probably already been removed and we don't
-                // need to do anything.
-                //
-                executeRouteDelete(routeEntry);
-            }
-
-            routesWaitingOnArp.remove(routeEntry.nextHop(), routeEntry);
-            // TODO cancel the request in the ARP manager as well
+        if (bgpRoutes.remove(RouteEntry.createBinaryString(prefix))) {
+            //
+            // Only withdraw intents if an entry was actually removed from the
+            // tree. If no entry was removed, the <prefix, nexthop> wasn't
+            // there so it's probably already been removed and we don't
+            // need to do anything.
+            //
+            withdrawPrefixes.add(routeEntry.prefix());
         }
-    }
 
-    /**
-     * Executed deleting a route entry.
-     *
-     * @param routeEntry the route entry to delete
-     */
-    private void executeRouteDelete(RouteEntry routeEntry) {
-        log.debug("Executing route delete: {}", routeEntry);
-
-        intentSynchronizer.withdrawRouteIntent(routeEntry.prefix());
+        routesWaitingOnArp.remove(routeEntry.nextHop(), routeEntry);
+        // TODO cancel the request in the ARP manager as well
     }
 
     /**
@@ -418,6 +429,9 @@ public class Router implements RouteListener {
         // while we're pushing intents. If the tree changes, the
         // tree and intents could get out of sync.
         synchronized (this) {
+            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
+                submitIntents = new LinkedList<>();
+            MultiPointToSinglePointIntent intent;
 
             Set<RouteEntry> routesToPush =
                     routesWaitingOnArp.removeAll(ipAddress);
@@ -429,18 +443,30 @@ public class Router implements RouteListener {
                 RouteEntry foundRouteEntry =
                         bgpRoutes.getValueForExactKey(binaryString);
                 if (foundRouteEntry != null &&
-                        foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
+                    foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
                     // We only push prefix flows if the prefix is still in the
                     // radix tree and the next hop is the same as our
                     // update.
                     // The prefix could have been removed while we were waiting
                     // for the ARP, or the next hop could have changed.
-                    addRouteIntentToNextHop(prefix, ipAddress, macAddress);
+                    intent = generateRouteIntent(prefix, ipAddress,
+                                                 macAddress);
+                    if (intent != null) {
+                        submitIntents.add(Pair.of(prefix, intent));
+                    }
                 } else {
                     log.debug("{} has been revoked before the MAC was resolved",
-                            routeEntry);
+                              routeEntry);
                 }
             }
+
+            if (!submitIntents.isEmpty()) {
+                Collection<Ip4Prefix> withdrawPrefixes = new LinkedList<>();
+                intentSynchronizer.updateRouteIntents(submitIntents,
+                                                      withdrawPrefixes);
+            }
+
+            ip2Mac.put(ipAddress, macAddress);
         }
     }
 
@@ -469,9 +495,13 @@ public class Router implements RouteListener {
     class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            if (event.type() == HostEvent.Type.HOST_ADDED ||
-                    event.type() == HostEvent.Type.HOST_UPDATED) {
-                Host host = event.subject();
+            log.debug("Received HostEvent {}", event);
+
+            Host host = event.subject();
+            switch (event.type()) {
+            case HOST_ADDED:
+                // FALLTHROUGH
+            case HOST_UPDATED:
                 for (IpAddress ip : host.ipAddresses()) {
                     Ip4Address ip4Address = ip.getIp4Address();
                     if (ip4Address == null) {
@@ -480,6 +510,19 @@ public class Router implements RouteListener {
                     }
                     updateMac(ip4Address, host.mac());
                 }
+                break;
+            case HOST_REMOVED:
+                for (IpAddress ip : host.ipAddresses()) {
+                    Ip4Address ip4Address = ip.getIp4Address();
+                    if (ip4Address == null) {
+                        // TODO: For now we support only IPv4
+                        continue;
+                    }
+                    ip2Mac.remove(ip4Address);
+                }
+                break;
+            default:
+                break;
             }
         }
     }

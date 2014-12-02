@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -50,6 +51,7 @@ import org.onlab.onos.net.host.HostListener;
 import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.host.InterfaceIpAddress;
 import org.onlab.onos.net.intent.Intent;
+import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.AbstractIntentTest;
@@ -234,7 +236,7 @@ public class RouterTest extends AbstractIntentTest {
      * This method tests adding a route entry.
      */
     @Test
-    public void testProcessRouteAdd() throws TestUtilsException {
+    public void testRouteAdd() throws TestUtilsException {
         // Construct a route entry
         RouteEntry routeEntry = new RouteEntry(
                 Ip4Prefix.valueOf("1.1.1.0/24"),
@@ -261,13 +263,19 @@ public class RouterTest extends AbstractIntentTest {
 
         // Set up test expectation
         reset(intentService);
-        intentService.submit(TestIntentServiceHelper.eqExceptId(intent));
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intent);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
-        // Call the processRouteAdd() method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteAdd(routeEntry);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
         assertEquals(router.getRoutes().size(), 1);
@@ -289,31 +297,15 @@ public class RouterTest extends AbstractIntentTest {
     @Test
     public void testRouteUpdate() throws TestUtilsException {
         // Firstly add a route
-        testProcessRouteAdd();
+        testRouteAdd();
+
+        Intent addedIntent =
+            intentSynchronizer.getRouteIntents().iterator().next();
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
                 Ip4Prefix.valueOf("1.1.1.0/24"),
                 Ip4Address.valueOf("192.168.10.1"));
-
-        // Construct the existing MultiPointToSinglePointIntent intent
-        TrafficSelector.Builder selectorBuilder =
-                DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
-                routeEntry.prefix());
-
-        TrafficTreatment.Builder treatmentBuilder =
-                DefaultTrafficTreatment.builder();
-        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
-
-        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
-
-        MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(APPID,
-                        selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, SW1_ETH1);
 
         // Start to construct a new route entry and new intent
         RouteEntry routeEntryUpdate = new RouteEntry(
@@ -343,14 +335,23 @@ public class RouterTest extends AbstractIntentTest {
 
         // Set up test expectation
         reset(intentService);
-        intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
-        intentService.submit(TestIntentServiceHelper.eqExceptId(intentNew));
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addWithdrawOperation(addedIntent.id());
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
+        builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intentNew);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
-        // Call the processRouteAdd() method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteAdd(routeEntryUpdate);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntryUpdate);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
         assertEquals(router.getRoutes().size(), 1);
@@ -368,43 +369,33 @@ public class RouterTest extends AbstractIntentTest {
      * This method tests deleting a route entry.
      */
     @Test
-    public void testProcessRouteDelete() throws TestUtilsException {
+    public void testRouteDelete() throws TestUtilsException {
         // Firstly add a route
-        testProcessRouteAdd();
+        testRouteAdd();
+
+        Intent addedIntent =
+            intentSynchronizer.getRouteIntents().iterator().next();
 
         // Construct the existing route entry
         RouteEntry routeEntry = new RouteEntry(
                 Ip4Prefix.valueOf("1.1.1.0/24"),
                 Ip4Address.valueOf("192.168.10.1"));
 
-        // Construct the existing MultiPointToSinglePointIntent intent
-        TrafficSelector.Builder selectorBuilder =
-                DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
-                routeEntry.prefix());
-
-        TrafficTreatment.Builder treatmentBuilder =
-                DefaultTrafficTreatment.builder();
-        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
-
-        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
-
-        MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(APPID,
-                        selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, SW1_ETH1);
-
         // Set up expectation
         reset(intentService);
-        intentService.withdraw(TestIntentServiceHelper.eqExceptId(intent));
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addWithdrawOperation(addedIntent.id());
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
         replay(intentService);
 
-        // Call route deleting method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteDelete(routeEntry);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.DELETE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
         assertEquals(router.getRoutes().size(), 0);
@@ -428,10 +419,12 @@ public class RouterTest extends AbstractIntentTest {
         reset(intentService);
         replay(intentService);
 
-        // Call the processRouteAdd() method in Router class
+        // Call the processRouteUpdates() method in Router class
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
-        router.processRouteAdd(routeEntry);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
         assertEquals(router.getRoutes().size(), 1);
