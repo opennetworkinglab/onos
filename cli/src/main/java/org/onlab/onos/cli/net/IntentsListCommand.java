@@ -206,11 +206,12 @@ public class IntentsListCommand extends AbstractShellCommand {
         private class IntentSummary {
             private final String intentType;
             private int total = 0;
-            private int submitted = 0;
+            private int installReq = 0;
             private int compiling = 0;
             private int installing = 0;
             private int installed = 0;
             private int recompiling = 0;
+            private int withdrawReq = 0;
             private int withdrawing = 0;
             private int withdrawn = 0;
             private int failed = 0;
@@ -221,11 +222,11 @@ public class IntentsListCommand extends AbstractShellCommand {
             private static final String FORMAT_SUMMARY_LINE2 =
                 "%-23s    withdrawn=    %7d   failed=      %7d";
             private static final String FORMAT_SUMMARY_LINE3 =
-                "%-23s    submitted=    %7d   compiling=   %7d";
+                "%-23s    installReq=   %7d   compiling=   %7d";
             private static final String FORMAT_SUMMARY_LINE4 =
                 "%-23s    installing=   %7d   recompiling= %7d";
             private static final String FORMAT_SUMMARY_LINE5 =
-                "%-23s    withdrawing=  %7d";
+                "%-23s    withdrawReq=  %7d   withdrawing= %7d";
             private static final String FORMAT_SUMMARY_LINE6 =
                 "%-23s    unknownState= %7d";
 
@@ -247,7 +248,7 @@ public class IntentsListCommand extends AbstractShellCommand {
                 total++;
                 switch (intentState) {
                 case INSTALL_REQ:
-                    submitted++;
+                    installReq++;
                     break;
                 case COMPILING:
                     compiling++;
@@ -260,6 +261,9 @@ public class IntentsListCommand extends AbstractShellCommand {
                     break;
                 case RECOMPILING:
                     recompiling++;
+                    break;
+                case WITHDRAW_REQ:
+                    withdrawReq++;
                     break;
                 case WITHDRAWING:
                     withdrawing++;
@@ -282,9 +286,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             void printState() {
                 print(FORMAT_SUMMARY_LINE1, intentType, total, installed);
                 print(FORMAT_SUMMARY_LINE2, intentType, withdrawn, failed);
-                print(FORMAT_SUMMARY_LINE3, intentType, submitted, compiling);
+                print(FORMAT_SUMMARY_LINE3, intentType, installReq, compiling);
                 print(FORMAT_SUMMARY_LINE4, intentType, installing, recompiling);
-                print(FORMAT_SUMMARY_LINE5, intentType, withdrawing);
+                print(FORMAT_SUMMARY_LINE5, intentType, withdrawReq, withdrawing);
                 if (unknownState != 0) {
                     print(FORMAT_SUMMARY_LINE6, intentType, unknownState);
                 }
@@ -300,10 +304,11 @@ public class IntentsListCommand extends AbstractShellCommand {
                     .put("total", total)
                     .put("installed", installed)
                     .put("failed", failed)
-                    .put("submitted", submitted)
+                    .put("installReq", installReq)
                     .put("compiling", compiling)
                     .put("installing", installing)
                     .put("recompiling", recompiling)
+                    .put("withdrawReq", withdrawReq)
                     .put("withdrawing", withdrawing)
                     .put("withdrawn", withdrawn)
                     .put("unknownState", unknownState);
