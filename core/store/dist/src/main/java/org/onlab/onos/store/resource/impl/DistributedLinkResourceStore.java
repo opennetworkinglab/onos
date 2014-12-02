@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.net.AnnotationKeys;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.intent.IntentId;
@@ -99,9 +100,9 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     protected LinkService linkService;
 
     // Link annotation key name to use as bandwidth
-    private String bandwidthAnnotation = "bandwidth";
+    private String bandwidthAnnotation = AnnotationKeys.BANDWIDTH;
     // Link annotation key name to use as max lambda
-    private String wavesAnnotation = "optical.waves";
+    private String wavesAnnotation = AnnotationKeys.OPTICAL_WAVES;
 
     private StoreSerializer serializer;
 
