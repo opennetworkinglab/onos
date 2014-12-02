@@ -59,7 +59,7 @@ import org.onlab.onos.net.provider.ProviderId;
 import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -78,7 +78,7 @@ import com.google.common.collect.Sets;
  */
 public class RouterTest extends AbstractIntentTest {
 
-    private SdnIpConfigService sdnIpConfigService;
+    private SdnIpConfigurationService sdnIpConfigService;
     private InterfaceService interfaceService;
     private IntentService intentService;
     private HostService hostService;
@@ -146,7 +146,7 @@ public class RouterTest extends AbstractIntentTest {
         peers.put(IpAddress.valueOf(peer2Sw2Eth1),
                 new BgpPeer("00:00:00:00:00:00:00:02", 1, peer2Sw2Eth1));
 
-        sdnIpConfigService = createMock(SdnIpConfigService.class);
+        sdnIpConfigService = createMock(SdnIpConfigurationService.class);
         expect(sdnIpConfigService.getBgpPeers()).andReturn(peers).anyTimes();
         replay(sdnIpConfigService);
 

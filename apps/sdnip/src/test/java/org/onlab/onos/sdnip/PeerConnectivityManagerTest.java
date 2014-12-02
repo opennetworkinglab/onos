@@ -40,7 +40,7 @@ import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.BgpSpeaker;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.onos.sdnip.config.InterfaceAddress;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
@@ -75,7 +75,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private PeerConnectivityManager peerConnectivityManager;
     private IntentSynchronizer intentSynchronizer;
-    private SdnIpConfigService configInfoService;
+    private SdnIpConfigurationService configInfoService;
     private InterfaceService interfaceService;
     private IntentService intentService;
 
@@ -536,7 +536,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     private void initPeerConnectivity() throws TestUtilsException {
 
-        configInfoService = createMock(SdnIpConfigService.class);
+        configInfoService = createMock(SdnIpConfigurationService.class);
         expect(configInfoService.getBgpPeers()).andReturn(peers).anyTimes();
         expect(configInfoService.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
         replay(configInfoService);

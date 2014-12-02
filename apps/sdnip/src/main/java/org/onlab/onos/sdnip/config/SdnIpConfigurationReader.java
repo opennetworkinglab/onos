@@ -28,14 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// TODO: As a long term solution, a module providing general network configuration to ONOS nodes should be used.
-
 /**
- * SDN-IP Config Reader provides IConfigInfoService by reading from an
- * SDN-IP configuration file. It must be enabled on the nodes within the cluster
- * not running SDN-IP.
+ * Implementation of SdnIpConfigurationService which reads SDN-IP configuration
+ * from a file.
  */
-public class SdnIpConfigReader implements SdnIpConfigService {
+public class SdnIpConfigurationReader implements SdnIpConfigurationService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -75,7 +72,10 @@ public class SdnIpConfigReader implements SdnIpConfigService {
         }
     }
 
-    public void init() {
+    /**
+     * Instructs the configuration reader to read the configuration from the file.
+     */
+    public void readConfiguration() {
         readConfiguration(configFileName);
     }
 
@@ -89,6 +89,13 @@ public class SdnIpConfigReader implements SdnIpConfigService {
         return Collections.unmodifiableMap(bgpPeers);
     }
 
+    /**
+     * Converts DPIDs of the form xx:xx:xx:xx:xx:xx:xx to OpenFlow provider
+     * device URIs.
+     *
+     * @param dpid the DPID string to convert
+     * @return the URI string for this device
+     */
     static String dpidToUri(String dpid) {
         return "of:" + dpid.replace(":", "");
     }

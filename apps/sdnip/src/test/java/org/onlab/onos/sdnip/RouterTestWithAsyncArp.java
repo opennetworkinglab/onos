@@ -60,7 +60,7 @@ import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
 import org.onlab.onos.sdnip.Router.InternalHostListener;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -80,7 +80,7 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
  */
 public class RouterTestWithAsyncArp extends AbstractIntentTest {
 
-    private SdnIpConfigService sdnIpConfigService;
+    private SdnIpConfigurationService sdnIpConfigService;
     private InterfaceService interfaceService;
     private IntentService intentService;
     private HostService hostService;
@@ -133,7 +133,7 @@ public class RouterTestWithAsyncArp extends AbstractIntentTest {
      */
     private void setUpSdnIpConfigService() {
 
-        sdnIpConfigService = createMock(SdnIpConfigService.class);
+        sdnIpConfigService = createMock(SdnIpConfigurationService.class);
 
         Map<IpAddress, BgpPeer> peers = new HashMap<>();
 

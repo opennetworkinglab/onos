@@ -42,7 +42,7 @@ import org.onlab.onos.net.host.HostService;
 import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -88,7 +88,7 @@ public class Router implements RouteListener {
     private final ApplicationId appId;
     private final IntentSynchronizer intentSynchronizer;
     private final HostService hostService;
-    private final SdnIpConfigService configService;
+    private final SdnIpConfigurationService configService;
     private final InterfaceService interfaceService;
     private final ExecutorService bgpUpdatesExecutor;
     private final HostListener hostListener;
@@ -103,7 +103,7 @@ public class Router implements RouteListener {
      * @param hostService       the host service
      */
     public Router(ApplicationId appId, IntentSynchronizer intentSynchronizer,
-                  SdnIpConfigService configService,
+                  SdnIpConfigurationService configService,
                   InterfaceService interfaceService,
                   HostService hostService) {
         this.appId = appId;

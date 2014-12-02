@@ -37,7 +37,7 @@ import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
 import org.onlab.onos.sdnip.bgp.BgpSession;
 import org.onlab.onos.sdnip.bgp.BgpSessionManager;
-import org.onlab.onos.sdnip.config.SdnIpConfigReader;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationReader;
 import org.slf4j.Logger;
 
 /**
@@ -70,7 +70,7 @@ public class SdnIp implements SdnIpService {
     protected LeadershipService leadershipService;
 
     private IntentSynchronizer intentSynchronizer;
-    private SdnIpConfigReader config;
+    private SdnIpConfigurationReader config;
     private PeerConnectivityManager peerConnectivity;
     private Router router;
     private BgpSessionManager bgpSessionManager;
@@ -84,8 +84,8 @@ public class SdnIp implements SdnIpService {
         log.info("SDN-IP started");
 
         appId = coreService.registerApplication(SDN_IP_APP);
-        config = new SdnIpConfigReader();
-        config.init();
+        config = new SdnIpConfigurationReader();
+        config.readConfiguration();
 
         localControllerNode = clusterService.getLocalNode();
 

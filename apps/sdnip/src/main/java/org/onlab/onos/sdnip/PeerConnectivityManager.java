@@ -31,7 +31,7 @@ import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.BgpSpeaker;
 import org.onlab.onos.sdnip.config.Interface;
 import org.onlab.onos.sdnip.config.InterfaceAddress;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
@@ -48,7 +48,7 @@ public class PeerConnectivityManager {
             PeerConnectivityManager.class);
 
     private final IntentSynchronizer intentSynchronizer;
-    private final SdnIpConfigService configService;
+    private final SdnIpConfigurationService configService;
     private final InterfaceService interfaceService;
 
     private final ApplicationId appId;
@@ -63,7 +63,7 @@ public class PeerConnectivityManager {
      */
     public PeerConnectivityManager(ApplicationId appId,
                                    IntentSynchronizer intentSynchronizer,
-                                   SdnIpConfigService configService,
+                                   SdnIpConfigurationService configService,
                                    InterfaceService interfaceService) {
         this.appId = appId;
         this.intentSynchronizer = intentSynchronizer;

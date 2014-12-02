@@ -64,7 +64,7 @@ public class BgpSpeaker {
         this.name = name;
         this.macAddress = MacAddress.valueOf(macAddress);
         this.connectPoint = new ConnectPoint(
-                DeviceId.deviceId(SdnIpConfigReader.dpidToUri(attachmentDpid)),
+                DeviceId.deviceId(SdnIpConfigurationReader.dpidToUri(attachmentDpid)),
                 PortNumber.portNumber(attachmentPort));
     }
 

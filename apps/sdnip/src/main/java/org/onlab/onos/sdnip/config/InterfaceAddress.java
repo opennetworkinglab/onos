@@ -48,7 +48,7 @@ public class InterfaceAddress {
                             @JsonProperty("interfacePort") int port,
                             @JsonProperty("ipAddress") String ipAddress) {
         this.connectPoint = new ConnectPoint(
-                DeviceId.deviceId(SdnIpConfigReader.dpidToUri(dpid)),
+                DeviceId.deviceId(SdnIpConfigurationReader.dpidToUri(dpid)),
                 PortNumber.portNumber(port));
         this.ipAddress = IpAddress.valueOf(ipAddress);
     }

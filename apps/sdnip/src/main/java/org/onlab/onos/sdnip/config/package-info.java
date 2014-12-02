@@ -15,6 +15,6 @@
  */
 
 /**
- * SDN-IP configuration.
+ * SDN-IP configuration services.
  */
 package org.onlab.onos.sdnip.config;

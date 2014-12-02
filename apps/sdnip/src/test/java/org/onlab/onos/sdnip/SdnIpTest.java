@@ -42,7 +42,7 @@ import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
 import org.onlab.onos.net.intent.AbstractIntentTest;
 import org.onlab.onos.sdnip.config.BgpPeer;
 import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.SdnIpConfigService;
+import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -70,7 +70,7 @@ public class SdnIpTest extends AbstractIntentTest {
     private IntentSynchronizer intentSynchronizer;
     static Router router;
 
-    private SdnIpConfigService sdnIpConfigService;
+    private SdnIpConfigurationService sdnIpConfigService;
     private InterfaceService interfaceService;
     private HostService hostService;
     private IntentService intentService;
@@ -169,7 +169,7 @@ public class SdnIpTest extends AbstractIntentTest {
      */
     private void setUpSdnIpConfigService() {
 
-        sdnIpConfigService = createMock(SdnIpConfigService.class);
+        sdnIpConfigService = createMock(SdnIpConfigurationService.class);
 
         bgpPeers = new HashMap<>();
 
