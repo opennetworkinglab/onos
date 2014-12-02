@@ -19,7 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 
 import org.apache.commons.lang3.RandomUtils;
@@ -118,7 +117,7 @@ public class GossipLinkStore
     private final SetMultimap<DeviceId, LinkKey> dstLinks = createSynchronizedHashMultiMap();
 
     // Remove links
-    private final Map<LinkKey, Timestamp> removedLinks = Maps.newHashMap();
+    private final Map<LinkKey, Timestamp> removedLinks = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceClockService deviceClockService;
