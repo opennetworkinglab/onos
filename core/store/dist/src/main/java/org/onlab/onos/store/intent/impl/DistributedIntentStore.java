@@ -451,10 +451,10 @@ public class DistributedIntentStore
                 builder.put(STATES_TABLE, strIntentId(intent.id()), serializer.encode(newState));
                 if (PARKING.contains(newState)) {
                     transitionedToParking.add(intent.id());
+                    events.add(IntentEvent.getEvent(newState, intent));
                 } else {
                     transitionedToParking.remove(intent.id());
                 }
-                events.add(IntentEvent.getEvent(newState, intent));
                 break;
 
             case SET_INSTALLABLE:

@@ -490,8 +490,8 @@ public class HazelcastIntentStore
 
                     if (PARKING.contains(newState)) {
                         transientStates.remove(intentId);
+                        events.add(IntentEvent.getEvent(newState, intent));
                     }
-                    events.add(IntentEvent.getEvent(newState, intent));
 
                     log.trace("{} - {} -> {}", intentId, prevIntentState, newState);
                     // TODO sanity check and log?
