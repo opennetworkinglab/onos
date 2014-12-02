@@ -107,6 +107,8 @@ public class HazelcastIntentStore
     private Timer getIntentTimer;
     private Timer getIntentStateTimer;
 
+    private String listenerId;
+
     private Timer createResponseTimer(String methodName) {
         return createTimer("IntentStore", methodName, "responseTime");
     }
@@ -150,7 +152,7 @@ public class HazelcastIntentStore
         IMap<byte[], byte[]> rawStates = super.theInstance.getMap("intent-states");
         states = new SMap<>(rawStates , super.serializer);
         EntryListener<IntentId, IntentState> listener = new RemoteIntentStateListener();
-        states.addEntryListener(listener , true);
+        listenerId = states.addEntryListener(listener , true);
 
         transientStates.clear();
 
@@ -163,6 +165,7 @@ public class HazelcastIntentStore
 
     @Deactivate
     public void deactivate() {
+        states.removeEntryListener(listenerId);
         log.info("Stopped");
     }
 

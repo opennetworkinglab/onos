@@ -74,6 +74,8 @@ public class DistributedMastershipStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    private String listenerId;
+
     @Override
     @Activate
     public void activate() {
@@ -91,7 +93,7 @@ public class DistributedMastershipStore
         };
 
         roleMap = new SMap<>(theInstance.<byte[], byte[]>getMap("nodeRoles"), this.serializer);
-        roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
+        listenerId = roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
         terms = new SMap<>(theInstance.<byte[], byte[]>getMap("terms"), this.serializer);
 
         log.info("Started");
@@ -99,6 +101,7 @@ public class DistributedMastershipStore
 
     @Deactivate
     public void deactivate() {
+        roleMap.removeEntryListener(listenerId);
         log.info("Stopped");
     }
 

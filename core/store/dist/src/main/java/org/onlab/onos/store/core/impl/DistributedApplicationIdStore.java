@@ -22,6 +22,7 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.MapEvent;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -54,6 +55,8 @@ public class DistributedApplicationIdStore
 
     protected Map<Short, DefaultApplicationId> appIds = new ConcurrentHashMap<>();
 
+    private String listenerId;
+
 
     @Override
     @Activate
@@ -73,7 +76,7 @@ public class DistributedApplicationIdStore
         lastAppId = theInstance.getAtomicLong("applicationId");
 
         appIdsByName = new SMap<>(theInstance.<byte[], byte[]>getMap("appIdsByName"), this.serializer);
-        appIdsByName.addEntryListener((new RemoteAppIdEventHandler()), true);
+        listenerId = appIdsByName.addEntryListener((new RemoteAppIdEventHandler()), true);
 
         primeAppIds();
 
@@ -82,6 +85,7 @@ public class DistributedApplicationIdStore
 
     @Deactivate
     public void deactivate() {
+        appIdsByName.removeEntryListener(listenerId);
         log.info("Stopped");
     }
 

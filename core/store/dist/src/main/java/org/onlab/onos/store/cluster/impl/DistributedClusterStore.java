@@ -64,6 +64,8 @@ public class DistributedClusterStore
     private final MembershipListener listener = new InternalMembershipListener();
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
 
+    private String nodesListenerId;
+
     @Override
     @Activate
     public void activate() {
@@ -74,7 +76,7 @@ public class DistributedClusterStore
         OptionalCacheLoader<NodeId, DefaultControllerNode> nodeLoader
                 = new OptionalCacheLoader<>(serializer, rawNodes);
         nodes = new AbsentInvalidatingLoadingCache<>(newBuilder().build(nodeLoader));
-        rawNodes.addEntryListener(new RemoteCacheEventHandler<>(nodes), true);
+        nodesListenerId = rawNodes.addEntryListener(new RemoteCacheEventHandler<>(nodes), true);
 
         loadClusterNodes();
 
@@ -90,6 +92,7 @@ public class DistributedClusterStore
 
     @Deactivate
     public void deactivate() {
+        rawNodes.removeEntryListener(nodesListenerId);
         theInstance.getCluster().removeMembershipListener(listenerId);
         log.info("Stopped");
     }
