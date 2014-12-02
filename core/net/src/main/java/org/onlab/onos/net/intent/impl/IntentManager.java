@@ -293,6 +293,8 @@ public class IntentManager
             // If all went well, associate the resulting list of installable
             // intents with the top-level intent and proceed to install.
             update.setInstallables(installables);
+        } catch (PathNotFoundException e) {
+            log.debug("Path not found for intent {}", intent.id());
         } catch (IntentException e) {
             log.warn("Unable to compile intent {} due to:", intent.id(), e);
 
