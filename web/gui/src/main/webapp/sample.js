@@ -49,7 +49,7 @@
     }
 
     // gets invoked only the first time the view is loaded
-    function preload(view, ctx) {
+    function init(view, ctx, flags) {
         // prepare our SVG layer...
         svg = view.$div.append('svg');
         sizeSvg(view);
@@ -57,7 +57,7 @@
     }
 
     // gets invoked just before our view is loaded
-    function reset(view) {
+    function reset(view, ctx, flags) {
         // clear dot group and reset circle data
         dotG.html('');
         circleData = [];
@@ -177,7 +177,7 @@
             .remove();
     }
 
-    function load(view, ctx) {
+    function load(view, ctx, flags) {
         var ctxText = ctx ? 'Context is "' + ctx + '"' : '';
 
         // display our view context
@@ -197,7 +197,7 @@
         doCircles(view);
     }
 
-    function resize(view, ctx) {
+    function resize(view, ctx, flags) {
         sizeSvg(view);
         updateCirclePositions(view);
 
@@ -213,7 +213,7 @@
     // == register our view here, with links to lifecycle callbacks
 
     onos.ui.addView('sample', {
-        preload: preload,
+        init: init,
         reset: reset,
         load: load,
         resize: resize

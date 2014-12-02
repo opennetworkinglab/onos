@@ -2862,7 +2862,7 @@
     // ==============================
     // View life-cycle callbacks
 
-    function preload(view, ctx, flags) {
+    function init(view, ctx, flags) {
         var w = view.width(),
             h = view.height(),
             fcfg = config.force;
@@ -3161,7 +3161,7 @@
     // View registration
 
     onos.ui.addView('topo', {
-        preload: preload,
+        init: init,
         load: load,
         unload: unload,
         resize: resize,

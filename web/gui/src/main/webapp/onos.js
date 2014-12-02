@@ -331,10 +331,10 @@
             current.ctx = t.ctx || '';
             current.flags = t.flags || {};
 
-            // preload is called only once, after the view is in the DOM
-            if (!view.preloaded) {
-                view.preload(current.ctx, current.flags);
-                view.preloaded = true;
+            // init is called only once, after the view is in the DOM
+            if (!view.inited) {
+                view.init(current.ctx, current.flags);
+                view.inited = true;
             }
 
             // clear the view of stale data
@@ -569,7 +569,7 @@
         // Constructor
         //      vid : view id
         //      nid : id of associated nav-item (optional)
-        //      cb  : callbacks (preload, reset, load, unload, resize, error)
+        //      cb  : callbacks (init, reset, load, unload, resize, theme, error)
         function View(vid) {
             var av = 'addView(): ',
                 args = Array.prototype.slice.call(arguments),
@@ -630,12 +630,12 @@
 
             // == Life-cycle functions
             // TODO: factor common code out of life-cycle
-            preload: function (ctx, flags) {
+            init: function (ctx, flags) {
                 var c = ctx || '',
-                    fn = isF(this.cb.preload);
-                traceFn('View.preload', this.vid + ', ' + c);
+                    fn = isF(this.cb.init);
+                traceFn('View.init', this.vid + ', ' + c);
                 if (fn) {
-                    trace('PRELOAD cb for ' + this.vid);
+                    trace('INIT cb for ' + this.vid);
                     fn(this.token(), c, flags);
                 }
             },
@@ -771,7 +771,6 @@
         var fpConfig = {
             TR: {
                 side: 'right'
-
             },
             TL: {
                 side: 'left'
@@ -891,7 +890,7 @@
              * the framework can infer it.
              * <p>
              * <i>cb</i> is a plain object containing callback functions:
-             * "preload", "reset", "load", "unload", "resize", "error".
+             * "init", "reset", "load", "unload", "resize", "theme", "error".
              * <pre>
              *     function myLoad(view, ctx) { ... }
              *     ...

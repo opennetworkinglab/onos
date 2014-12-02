@@ -28,7 +28,7 @@
 
     // invoked only the first time the view is loaded
     //  - used to initialize the view contents
-    function preload(view, ctx, flags) {
+    function init(view, ctx, flags) {
         // NOTE: view.$div is a D3 selection of the view's div
         list = view.$div.append('ul');
         // ... further code to initialize the SVG view ...
@@ -80,7 +80,7 @@
     // load and resize events would look like this:
 
     onos.ui.addView('myDivViewId', {
-        preload: preload,
+        init: init,
         load: load,
         resize: resize
     });
@@ -96,7 +96,7 @@
     // The complete gamut of callbacks would look like this:
     //
     //  onos.ui.addView('myViewId', {
-    //      preload: preload,
+    //      init: init,
     //      reset: reset,
     //      load: load,
     //      unload: unload,
