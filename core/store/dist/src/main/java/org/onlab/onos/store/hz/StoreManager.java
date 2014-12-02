@@ -17,7 +17,6 @@ package org.onlab.onos.store.hz;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.FileSystemXmlConfig;
-import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
@@ -47,12 +46,6 @@ public class StoreManager implements StoreService {
     public void activate() {
         try {
             Config config = new FileSystemXmlConfig(HAZELCAST_XML_FILE);
-
-            MapConfig roles = config.getMapConfig("nodeRoles");
-            roles.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - roles.getBackupCount());
-
-            MapConfig terms = config.getMapConfig("terms");
-            terms.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - terms.getBackupCount());
 
             instance = Hazelcast.newHazelcastInstance(config);
             log.info("Started");

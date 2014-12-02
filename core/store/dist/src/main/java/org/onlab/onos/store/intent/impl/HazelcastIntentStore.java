@@ -21,6 +21,8 @@ import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -82,12 +84,15 @@ public class HazelcastIntentStore
     private final Logger log = getLogger(getClass());
 
     // Assumption: IntentId will not have synonyms
+    private static final String INTENTS_MAP_NAME = "intents";
     private SMap<IntentId, Intent> intents;
+    private static final String INTENT_STATES_MAP_NAME = "intent-states";
     private SMap<IntentId, IntentState> states;
 
     // Map to store instance local intermediate state transition
     private transient Map<IntentId, IntentState> transientStates = new ConcurrentHashMap<>();
 
+    private static final String INSTALLABLE_INTENTS_MAP_NAME = "installable-intents";
     private SMap<IntentId, List<Intent>> installable;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -144,20 +149,29 @@ public class HazelcastIntentStore
 
         };
 
+        final Config config = theInstance.getConfig();
+
+        MapConfig intentsCfg = config.getMapConfig(INTENTS_MAP_NAME);
+        intentsCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - intentsCfg.getBackupCount());
+
         // TODO: enable near cache, allow read from backup for this IMap
-        IMap<byte[], byte[]> rawIntents = super.theInstance.getMap("intents");
+        IMap<byte[], byte[]> rawIntents = super.theInstance.getMap(INTENTS_MAP_NAME);
         intents = new SMap<>(rawIntents , super.serializer);
 
-        // TODO: disable near cache, disable read from backup for this IMap
-        IMap<byte[], byte[]> rawStates = super.theInstance.getMap("intent-states");
+        MapConfig statesCfg = config.getMapConfig(INTENT_STATES_MAP_NAME);
+        statesCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - statesCfg.getBackupCount());
+
+        IMap<byte[], byte[]> rawStates = super.theInstance.getMap(INTENT_STATES_MAP_NAME);
         states = new SMap<>(rawStates , super.serializer);
         EntryListener<IntentId, IntentState> listener = new RemoteIntentStateListener();
         listenerId = states.addEntryListener(listener , true);
 
         transientStates.clear();
 
-        // TODO: disable near cache, disable read from backup for this IMap
-        IMap<byte[], byte[]> rawInstallables = super.theInstance.getMap("installable-intents");
+        MapConfig installableCfg = config.getMapConfig(INSTALLABLE_INTENTS_MAP_NAME);
+        installableCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - installableCfg.getBackupCount());
+
+        IMap<byte[], byte[]> rawInstallables = super.theInstance.getMap(INSTALLABLE_INTENTS_MAP_NAME);
         installable = new SMap<>(rawInstallables , super.serializer);
 
         log.info("Started");

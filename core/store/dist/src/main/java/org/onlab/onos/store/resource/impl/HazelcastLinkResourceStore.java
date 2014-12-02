@@ -52,6 +52,8 @@ import org.slf4j.Logger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.TransactionalMap;
 import com.hazelcast.transaction.TransactionContext;
 import com.hazelcast.transaction.TransactionException;
@@ -104,6 +106,15 @@ public class HazelcastLinkResourceStore
     @Activate
     public void activate() {
         super.activate();
+
+        final Config config = theInstance.getConfig();
+
+        MapConfig linkCfg = config.getMapConfig(LINK_RESOURCE_ALLOCATIONS);
+        linkCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - linkCfg.getBackupCount());
+
+        MapConfig intentCfg = config.getMapConfig(INTENT_ALLOCATIONS);
+        intentCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - intentCfg.getBackupCount());
+
         log.info("Started");
     }
 

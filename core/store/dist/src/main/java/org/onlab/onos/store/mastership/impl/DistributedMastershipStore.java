@@ -45,6 +45,8 @@ import org.onlab.onos.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 
 import com.google.common.base.Objects;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MapEvent;
@@ -67,8 +69,10 @@ public class DistributedMastershipStore
     private static final Integer INIT = 1;
 
     //device to node roles
+    private static final String NODE_ROLES_MAP_NAME = "nodeRoles";
     protected SMap<DeviceId, RoleValue> roleMap;
     //devices to terms
+    private static final String TERMS_MAP_NAME = "terms";
     protected SMap<DeviceId, Integer> terms;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -92,9 +96,17 @@ public class DistributedMastershipStore
             }
         };
 
-        roleMap = new SMap<>(theInstance.<byte[], byte[]>getMap("nodeRoles"), this.serializer);
+        final Config config = theInstance.getConfig();
+
+        MapConfig nodeRolesCfg = config.getMapConfig(NODE_ROLES_MAP_NAME);
+        nodeRolesCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - nodeRolesCfg.getBackupCount());
+
+        MapConfig termsCfg = config.getMapConfig(TERMS_MAP_NAME);
+        termsCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - termsCfg.getBackupCount());
+
+        roleMap = new SMap<>(theInstance.<byte[], byte[]>getMap(NODE_ROLES_MAP_NAME), this.serializer);
         listenerId = roleMap.addEntryListener((new RemoteMasterShipEventHandler()), true);
-        terms = new SMap<>(theInstance.<byte[], byte[]>getMap("terms"), this.serializer);
+        terms = new SMap<>(theInstance.<byte[], byte[]>getMap(TERMS_MAP_NAME), this.serializer);
 
         log.info("Started");
     }
