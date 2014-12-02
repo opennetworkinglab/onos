@@ -18,6 +18,7 @@ package org.onlab.onos.store.cluster.impl;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.namedThreads;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -153,8 +154,20 @@ public class HazelcastLeadershipService implements LeadershipService {
 
     @Override
     public Map<String, Leadership> getLeaderBoard() {
-        throw new UnsupportedOperationException("I don't know what to do." +
-                                                        " I wish you luck.");
+        Map<String, Leadership> result = new HashMap<>();
+
+        //
+        // Get the leaders for the topics.
+        // NOTE: A topic is listed only if this instance is running for
+        // a leadership for that topic.
+        //
+        for (Topic topic : topics.values()) {
+            Leadership leadership = new Leadership(topic.topicName(),
+                                                   topic.leader(),
+                                                   0L); // TODO: epoch not used
+            result.put(topic.topicName(), leadership);
+        }
+        return result;
     }
 
     @Override
@@ -190,6 +203,15 @@ public class HazelcastLeadershipService implements LeadershipService {
          */
         private Topic(String topicName) {
             this.topicName = topicName;
+        }
+
+        /**
+         * Gets the topic name.
+         *
+         * @return the topic name
+         */
+        private String topicName() {
+            return topicName;
         }
 
         /**
