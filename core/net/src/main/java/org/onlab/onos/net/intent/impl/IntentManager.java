@@ -38,7 +38,6 @@ import org.onlab.onos.net.intent.IntentBatchDelegate;
 import org.onlab.onos.net.intent.IntentBatchService;
 import org.onlab.onos.net.intent.IntentCompiler;
 import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentEvent.Type;
 import org.onlab.onos.net.intent.IntentException;
 import org.onlab.onos.net.intent.IntentExtensionService;
 import org.onlab.onos.net.intent.IntentId;
@@ -86,6 +85,12 @@ public class IntentManager
     public static final String INTENT_ID_NULL = "Intent ID cannot be null";
 
     private static final int NUM_THREADS = 12;
+
+    private static final EnumSet<IntentState> RECOMPILE
+            = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
+    private static final EnumSet<IntentState> NON_PARKED_OR_FAILED
+            = EnumSet.complementOf(EnumSet.of(INSTALL_REQ, INSTALLED, WITHDRAW_REQ, WITHDRAWN));
+
 
     // Collections for compiler, installer, and listener are ONOS instance local
     private final ConcurrentMap<Class<? extends Intent>,
@@ -510,13 +515,18 @@ public class IntentManager
         if (compileAllFailed) {
             // If required, compile all currently failed intents.
             for (Intent intent : getIntents()) {
-                if (getIntentState(intent.id()) == FAILED) {
+                IntentState state = getIntentState(intent.id());
+                if (RECOMPILE.contains(state)) {
                     IntentOperations.Builder builder = batches.get(intent.appId());
                     if (builder == null) {
                         builder = IntentOperations.builder(intent.appId());
                         batches.put(intent.appId(), builder);
                     }
-                    builder.addUpdateOperation(intent.id());
+                    if (state == WITHDRAW_REQ) {
+                        builder.addWithdrawOperation(intent.id());
+                    } else {
+                        builder.addUpdateOperation(intent.id());
+                    }
                 }
             }
         }
@@ -607,15 +617,18 @@ public class IntentManager
             } else {
                 oldInstallables = null;
                 if (newIntent == null) {
-                    log.info("Ignoring {} for Intent {}", op.type(), op.intentId());
+                    log.info("Ignoring {} for missing Intent {}", op.type(), op.intentId());
                 }
             }
         }
 
         void init(BatchWrite batchWrite) {
-            // add new intent to store (if required)
             if (newIntent != null) {
+                // TODO consider only "creating" intent if it does not exist
+                // Note: We need to set state to INSTALL_REQ regardless.
                 batchWrite.createIntent(newIntent);
+            } else if (oldIntent != null && !oldIntent.equals(newIntent)) {
+                batchWrite.setState(oldIntent, WITHDRAW_REQ);
             }
         }
 
@@ -637,10 +650,6 @@ public class IntentManager
 
         void setInstallables(List<Intent> installables) {
             newInstallables = installables;
-            //FIXME batch this
-
-            //store.setInstallableIntents(newIntent.id(), installables);
-
         }
 
         boolean isComplete() {
@@ -659,7 +668,6 @@ public class IntentManager
         }
 
         void batchFailed() {
-
             // the current batch has failed, so recompile
             // remove the current batch and all remaining
             for (int i = currentBatch; i < batches.size(); i++) {
@@ -673,10 +681,10 @@ public class IntentManager
                 batches.addAll(uninstallIntent(newIntent, newInstallables()));
             }
 
-            // FIXME: should we try to recompile?
+            // TODO we might want to try to recompile the new intent
         }
 
-        // FIXME make sure this is called!!!
+        // make sure this is called!!!
         private void finalizeStates(BatchWrite batchWrite) {
             // events to be triggered on successful write
             for (Intent intent : stateMap.keySet()) {
@@ -695,9 +703,10 @@ public class IntentManager
                         break;
 
                     // FALLTHROUGH to default from here
-                    case SUBMITTED:
+                    case INSTALL_REQ:
                     case COMPILING:
                     case RECOMPILING:
+                    case WITHDRAW_REQ:
                     case WITHDRAWN:
                     case INSTALLED:
                     default:
@@ -708,10 +717,6 @@ public class IntentManager
             }
         }
 
-        List<FlowRuleBatchOperation> batches() {
-            return batches;
-        }
-
         void addBatches(List<FlowRuleBatchOperation> batches) {
             this.batches.addAll(batches);
         }
@@ -720,31 +725,19 @@ public class IntentManager
             return stateMap.get(intent);
         }
 
-
         // set transient state during intent update process
         void setInflightState(Intent intent, IntentState newState) {
             // This method should be called for
             // transition to non-parking or Failed only
-            EnumSet<IntentState> nonParkingOrFailed
-                = EnumSet.complementOf(EnumSet.of(SUBMITTED, INSTALLED, WITHDRAWN));
-            if (!nonParkingOrFailed.contains(newState)) {
+            if (!NON_PARKED_OR_FAILED.contains(newState)) {
                 log.error("Unexpected transition to {}", newState);
             }
 
-            // TODO: clean this up, or set to debug
             IntentState oldState = stateMap.get(intent);
             log.debug("intent id: {}, old state: {}, new state: {}",
                     intent.id(), oldState, newState);
 
             stateMap.put(intent, newState);
-//            IntentEvent event = store.setState(intent, newState);
-//            if (event != null) {
-//                eventDispatcher.post(event);
-//            }
-        }
-
-        Map<Intent, IntentState> stateMap() {
-            return stateMap;
         }
     }
 
@@ -790,12 +783,6 @@ public class IntentManager
 
             // start processing each Intents
             for (IntentUpdate update : intentUpdates) {
-                if (update.newIntent() != null) {
-                    IntentState state = store.getIntentState(update.newIntent().id());
-                    if (state == SUBMITTED) {
-                        eventDispatcher.post(new IntentEvent(Type.SUBMITTED, update.newIntent));
-                    }
-                }
                 processIntentUpdate(update);
             }
             future = applyNextBatch();
@@ -820,15 +807,11 @@ public class IntentManager
         private void updateBatches(CompletedBatchOperation completed) {
             if (completed.isSuccess()) {
                 BatchWrite batchWrite = store.newBatchWrite();
-                List<IntentEvent> events = new ArrayList<>();
                 for (IntentUpdate update : intentUpdates) {
                     update.batchSuccess(batchWrite);
                 }
                 if (!batchWrite.isEmpty()) {
                     store.batchWrite(batchWrite);
-                    for (IntentEvent event : events) {
-                        eventDispatcher.post(event);
-                    }
                 }
             } else {
                 // entire batch has been reverted...
@@ -851,6 +834,13 @@ public class IntentManager
             }
         }
 
+        private void abandonShip() {
+            // the batch has failed
+            // TODO: maybe we should do more?
+            future = null;
+            log.error("Walk the plank, matey...");
+        }
+
         /**
          * Iterate through the pending futures, and remove them when they have completed.
          */
@@ -863,9 +853,11 @@ public class IntentManager
                 CompletedBatchOperation completed = future.get(100, TimeUnit.NANOSECONDS);
                 updateBatches(completed);
                 future = applyNextBatch();
-            } catch (TimeoutException | InterruptedException | ExecutionException te) {
-                //TODO look into error message
-                log.debug("Installation of intents are still pending: {}", ops);
+            } catch (TimeoutException | InterruptedException te) {
+                log.trace("Installation of intents are still pending: {}", ops);
+            } catch (ExecutionException e) {
+                log.warn("Execution of batch failed: {}", ops, e);
+                abandonShip();
             }
         }
 
@@ -893,7 +885,6 @@ public class IntentManager
         }
 
         boolean isComplete() {
-            // TODO: actually check with the intent update?
             return future == null;
         }
 

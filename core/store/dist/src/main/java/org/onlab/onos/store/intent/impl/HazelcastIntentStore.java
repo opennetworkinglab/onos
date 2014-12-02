@@ -72,12 +72,12 @@ public class HazelcastIntentStore
         implements IntentStore, MetricsHelper {
 
     /** Valid parking state, which can transition to INSTALLED. */
-    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, INSTALLED, FAILED);
+    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(INSTALL_REQ, INSTALLED, FAILED);
 
     /** Valid parking state, which can transition to WITHDRAWN. */
     private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
 
-    private static final Set<IntentState> PARKING = EnumSet.of(SUBMITTED, INSTALLED, WITHDRAWN, FAILED);
+    private static final Set<IntentState> PARKING = EnumSet.of(INSTALL_REQ, INSTALLED, WITHDRAWN, FAILED);
 
     private final Logger log = getLogger(getClass());
 
@@ -150,7 +150,7 @@ public class HazelcastIntentStore
         IMap<byte[], byte[]> rawStates = super.theInstance.getMap("intent-states");
         states = new SMap<>(rawStates , super.serializer);
         EntryListener<IntentId, IntentState> listener = new RemoteIntentStateListener();
-        states.addEntryListener(listener , false);
+        states.addEntryListener(listener , true);
 
         transientStates.clear();
 
@@ -180,7 +180,7 @@ public class HazelcastIntentStore
                 // duplicate, ignore
                 return;
             } else {
-                this.setState(intent, IntentState.SUBMITTED);
+                this.setState(intent, IntentState.INSTALL_REQ);
                 return;
             }
         } finally {
@@ -261,7 +261,6 @@ public class HazelcastIntentStore
     public void setState(Intent intent, IntentState state) {
         Context timer = startTimer(setStateTimer);
         try {
-
             final IntentId id = intent.id();
             IntentEvent.Type type = null;
             final IntentState prevParking;
@@ -269,23 +268,23 @@ public class HazelcastIntentStore
 
             // parking state transition
             switch (state) {
-            case SUBMITTED:
+            case INSTALL_REQ:
                 prevParking = states.get(id);
                 if (prevParking == null) {
-                    IntentState existing = states.putIfAbsent(id, SUBMITTED);
-                    verify(existing == null, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                    IntentState existing = states.putIfAbsent(id, INSTALL_REQ);
+                    verify(existing == null, "Conditional replace %s => %s failed", prevParking, INSTALL_REQ);
                 } else {
-                    verify(prevParking == WITHDRAWN,
-                            "Illegal state transition attempted from %s to SUBMITTED",
+                    verify(PRE_INSTALLED.contains(prevParking),
+                            "Illegal state transition attempted from %s to INSTALL_REQ",
                             prevParking);
-                    boolean updated = states.replace(id, prevParking, SUBMITTED);
-                    verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                    boolean updated = states.replace(id, prevParking, INSTALL_REQ);
+                    verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALL_REQ);
                 }
-                type = IntentEvent.Type.SUBMITTED;
+                type = IntentEvent.Type.INSTALL_REQ;
                 break;
             case INSTALLED:
                 prevParking = states.replace(id, INSTALLED);
-                verify(PRE_INSTALLED.contains(prevParking),
+                verify(prevParking == INSTALL_REQ,
                        "Illegal state transition attempted from %s to INSTALLED",
                        prevParking);
                 type = IntentEvent.Type.INSTALLED;
@@ -294,9 +293,16 @@ public class HazelcastIntentStore
                 prevParking = states.replace(id, FAILED);
                 type = IntentEvent.Type.FAILED;
                 break;
+            case WITHDRAW_REQ:
+                prevParking = states.replace(id, WITHDRAW_REQ);
+                verify(PRE_WITHDRAWN.contains(prevParking),
+                       "Illegal state transition attempted from %s to WITHDRAW_REQ",
+                       prevParking);
+                type = IntentEvent.Type.WITHDRAW_REQ;
+                break;
             case WITHDRAWN:
                 prevParking = states.replace(id, WITHDRAWN);
-                verify(PRE_WITHDRAWN.contains(prevParking),
+                verify(prevParking == WITHDRAW_REQ,
                        "Illegal state transition attempted from %s to WITHDRAWN",
                        prevParking);
                 type = IntentEvent.Type.WITHDRAWN;
@@ -316,7 +322,6 @@ public class HazelcastIntentStore
             if (type != null) {
                 notifyDelegate(new IntentEvent(type, intent));
             }
-            return;
         } finally {
             stopTimer(timer);
         }
@@ -370,7 +375,7 @@ public class HazelcastIntentStore
                 Intent intent = op.arg(0);
                 futures.add(Pair.of(op,
                                     ImmutableList.of(intents.putAsync(intent.id(), intent),
-                                                     states.putAsync(intent.id(), SUBMITTED))));
+                                                     states.putAsync(intent.id(), INSTALL_REQ))));
                 break;
 
             case REMOVE_INTENT:
@@ -426,7 +431,7 @@ public class HazelcastIntentStore
             case CREATE_INTENT:
             {
                 Intent intent = op.arg(0);
-                IntentState newIntentState = SUBMITTED;
+                IntentState newIntentState = INSTALL_REQ;
 
                 try {
                     Intent prevIntent = (Intent) subops.get(0).get();
@@ -437,7 +442,7 @@ public class HazelcastIntentStore
                                  prevIntent, prevIntentState,
                                  intent, newIntentState);
                     }
-                    events.add(IntentEvent.getEvent(SUBMITTED, intent));
+                    events.add(IntentEvent.getEvent(INSTALL_REQ, intent));
                 } catch (InterruptedException e) {
                     log.error("Batch write was interrupted while processing {}", op,  e);
                     failed.add(op);

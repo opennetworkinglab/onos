@@ -31,9 +31,9 @@ public interface IntentMetricsService {
     public List<IntentEvent> getEvents();
 
     /**
-     * Gets the Event Metric for the intent SUBMITTED events.
+     * Gets the Event Metric for the intent INSTALL_REQ events.
      *
-     * @return the Event Metric for the intent SUBMITTED events.
+     * @return the Event Metric for the intent INSTALL_REQ events.
      */
     public EventMetric intentSubmittedEventMetric();
 

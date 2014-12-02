@@ -73,12 +73,12 @@ public class DistributedIntentStore
         implements IntentStore, MetricsHelper {
 
     /** Valid parking state, which can transition to INSTALLED. */
-    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(SUBMITTED, INSTALLED, FAILED);
+    private static final Set<IntentState> PRE_INSTALLED = EnumSet.of(INSTALL_REQ, INSTALLED, FAILED);
 
     /** Valid parking state, which can transition to WITHDRAWN. */
     private static final Set<IntentState> PRE_WITHDRAWN = EnumSet.of(INSTALLED, FAILED);
 
-    private static final Set<IntentState> PARKING = EnumSet.of(SUBMITTED, INSTALLED, WITHDRAWN, FAILED);
+    private static final Set<IntentState> PARKING = EnumSet.of(INSTALL_REQ, INSTALLED, WITHDRAWN, FAILED);
 
     private final Logger log = getLogger(getClass());
 
@@ -196,7 +196,7 @@ public class DistributedIntentStore
                 // duplicate, ignore
                 return;
             } else {
-                this.setState(intent, IntentState.SUBMITTED);
+                this.setState(intent, IntentState.INSTALL_REQ);
                 return;
             }
         } finally {
@@ -286,19 +286,19 @@ public class DistributedIntentStore
 
             // parking state transition
             switch (state) {
-            case SUBMITTED:
+            case INSTALL_REQ:
                 prevParking = states.get(id);
                 if (prevParking == null) {
-                    updated = states.putIfAbsent(id, SUBMITTED);
-                    verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                    updated = states.putIfAbsent(id, INSTALL_REQ);
+                    verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALL_REQ);
                 } else {
                     verify(prevParking == WITHDRAWN,
-                            "Illegal state transition attempted from %s to SUBMITTED",
+                            "Illegal state transition attempted from %s to INSTALL_REQ",
                             prevParking);
-                    updated = states.replace(id, prevParking, SUBMITTED);
-                    verify(updated, "Conditional replace %s => %s failed", prevParking, SUBMITTED);
+                    updated = states.replace(id, prevParking, INSTALL_REQ);
+                    verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALL_REQ);
                 }
-                evtType = IntentEvent.Type.SUBMITTED;
+                evtType = IntentEvent.Type.INSTALL_REQ;
                 break;
 
             case INSTALLED:
@@ -430,8 +430,8 @@ public class DistributedIntentStore
                               "CREATE_INTENT takes 1 argument. %s", op);
                 Intent intent = op.arg(0);
                 builder.putIfAbsent(INTENTS_TABLE, strIntentId(intent.id()), serializer.encode(intent));
-                builder.putIfAbsent(STATES_TABLE, strIntentId(intent.id()), serializer.encode(SUBMITTED));
-                events.add(IntentEvent.getEvent(SUBMITTED, intent));
+                builder.putIfAbsent(STATES_TABLE, strIntentId(intent.id()), serializer.encode(INSTALL_REQ));
+                events.add(IntentEvent.getEvent(INSTALL_REQ, intent));
                 break;
 
             case REMOVE_INTENT:

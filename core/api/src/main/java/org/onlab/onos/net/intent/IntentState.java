@@ -26,9 +26,11 @@ public enum IntentState {
      * local controller instance.
      * <p>
      * All intent in the runtime take this state first.
+     * </p><p>
+     * Intents will also pass through this state when they are updated.
      * </p>
      */
-    SUBMITTED,
+    INSTALL_REQ,
 
     /**
      * Signifies that the intent is being compiled into installable intents.
@@ -67,16 +69,11 @@ public enum IntentState {
     RECOMPILING,
 
     /**
-     * TODO: Indicated that an intent will soon be recompiled.
-     */
-    //UPDATE,
-
-    /**
-     * TODO.
      * Indicates that an application has requested that an intent be withdrawn.
-     * It will start withdrawing short, but not necessarily on this instance.
+     * It will start withdrawing shortly, but not necessarily on this instance.
+     * Intents can also be parked here if it is impossible to withdraw them.
      */
-    //WITHDRAW_REQ,
+    WITHDRAW_REQ,
 
     /**
      * Indicates that the intent is being withdrawn. This is a transitional

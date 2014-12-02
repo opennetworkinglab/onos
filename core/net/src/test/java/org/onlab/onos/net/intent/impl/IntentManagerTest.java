@@ -130,11 +130,11 @@ public class IntentManagerTest {
     public void submitIntent() {
         flowRuleService.setFuture(true);
 
-        listener.setLatch(1, Type.SUBMITTED);
+        listener.setLatch(1, Type.INSTALL_REQ);
         listener.setLatch(1, Type.INSTALLED);
         Intent intent = new MockIntent(MockIntent.nextId());
         service.submit(intent);
-        listener.await(Type.SUBMITTED);
+        listener.await(Type.INSTALL_REQ);
         listener.await(Type.INSTALLED);
         assertEquals(1L, service.getIntentCount());
         assertEquals(1L, flowRuleService.getFlowRuleCount());
@@ -194,7 +194,7 @@ public class IntentManagerTest {
 
         MockIntent intent2 = new MockIntent(MockIntent.nextId());
         listener.setLatch(1, Type.WITHDRAWN);
-        listener.setLatch(1, Type.SUBMITTED);
+        listener.setLatch(1, Type.INSTALL_REQ);
         listener.setLatch(1, Type.INSTALLED);
         service.replace(intent.id(), intent2);
         listener.await(Type.WITHDRAWN);

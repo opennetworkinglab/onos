@@ -94,7 +94,7 @@ public class OpticalPathProvisioner {
         @Override
         public void event(IntentEvent event) {
             switch (event.type()) {
-                case SUBMITTED:
+                case INSTALL_REQ:
                     break;
                 case INSTALLED:
                     break;

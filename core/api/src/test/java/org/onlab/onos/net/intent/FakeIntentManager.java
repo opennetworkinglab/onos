@@ -174,8 +174,8 @@ public class FakeIntentManager implements TestableIntentService {
     @Override
     public void submit(Intent intent) {
         intents.put(intent.id(), intent);
-        setState(intent, IntentState.SUBMITTED);
-        dispatch(new IntentEvent(IntentEvent.Type.SUBMITTED, intent));
+        setState(intent, IntentState.INSTALL_REQ);
+        dispatch(new IntentEvent(IntentEvent.Type.INSTALL_REQ, intent));
         executeSubmit(intent);
     }
 

@@ -246,7 +246,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             void update(IntentState intentState) {
                 total++;
                 switch (intentState) {
-                case SUBMITTED:
+                case INSTALL_REQ:
                     submitted++;
                     break;
                 case COMPILING:

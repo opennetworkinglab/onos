@@ -24,9 +24,9 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
 
     public enum Type {
         /**
-         * Signifies that a new intent has been submitted to the system.
+         * Signifies that an intent is to be installed or reinstalled.
          */
-        SUBMITTED,
+        INSTALL_REQ,
 
         /**
          * Signifies that an intent has been successfully installed.
@@ -37,6 +37,11 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
          * Signifies that an intent has failed compilation or installation.
          */
         FAILED,
+
+        /**
+         * Signifies that an intent will be withdrawn.
+         */
+        WITHDRAW_REQ,
 
         /**
          * Signifies that an intent has been withdrawn from the system.
@@ -70,11 +75,14 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
     public static IntentEvent getEvent(IntentState state, Intent intent) {
         Type type;
         switch (state) {
-            case SUBMITTED:
-                type = Type.SUBMITTED;
+            case INSTALL_REQ:
+                type = Type.INSTALL_REQ;
                 break;
             case INSTALLED:
                 type = Type.INSTALLED;
+                break;
+            case WITHDRAW_REQ:
+                type = Type.WITHDRAW_REQ;
                 break;
             case WITHDRAWN:
                 type = Type.WITHDRAWN;

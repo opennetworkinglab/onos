@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class SimpleIdBlockStore implements IdBlockStore {
 
-    private static final long DEFAULT_BLOCK_SIZE = 1000L;
+    private static final long DEFAULT_BLOCK_SIZE = 0x1000L;
 
     private final Map<String, AtomicLong> topicBlocks = new ConcurrentHashMap<>();
 

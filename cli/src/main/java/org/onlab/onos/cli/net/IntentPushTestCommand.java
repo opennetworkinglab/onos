@@ -245,7 +245,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
             } else {
                 log.warn("install event latch is null");
             }
-        } else if (event.type() != Type.SUBMITTED) {
+        } else if (event.type() != Type.INSTALL_REQ) {
             log.info("Unexpected intent event: {}", event);
         }
     }

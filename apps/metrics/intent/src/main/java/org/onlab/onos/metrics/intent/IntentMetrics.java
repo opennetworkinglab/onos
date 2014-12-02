@@ -134,7 +134,7 @@ public class IntentMetrics implements IntentMetricsService,
             // an event equivalent of "Withdraw Requested"
             //
             switch (event.type()) {
-            case SUBMITTED:
+            case INSTALL_REQ:
                 intentSubmittedEventMetric.eventReceived();
                 break;
             case INSTALLED:

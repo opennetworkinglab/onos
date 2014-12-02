@@ -4,9 +4,6 @@ import org.onlab.onos.core.IdBlock;
 import org.onlab.onos.core.IdBlockStore;
 
 public class StoreBasedIdBlockAllocator implements IdBlockAllocator {
-    private long blockTop;
-    private static final long BLOCK_SIZE = 0x1000000L;
-
     private final IdBlockStore store;
     private final String topic;
 

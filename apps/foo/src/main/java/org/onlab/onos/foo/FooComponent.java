@@ -136,7 +136,7 @@ public class FooComponent {
         @Override
         public void event(IntentEvent event) {
             String message;
-            if (event.type() == IntentEvent.Type.SUBMITTED) {
+            if (event.type() == IntentEvent.Type.INSTALL_REQ) {
                 message = "WOW! It looks like someone has some intentions: {}";
             } else if (event.type() == IntentEvent.Type.INSTALLED) {
                 message = "AWESOME! So far things are going great: {}";

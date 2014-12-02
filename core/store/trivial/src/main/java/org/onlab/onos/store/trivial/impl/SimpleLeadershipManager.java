@@ -59,6 +59,7 @@ public class SimpleLeadershipManager implements LeadershipService {
 
     @Override
     public Map<String, Leadership> getLeaderBoard() {
+        //FIXME
         throw new UnsupportedOperationException("I don't know what to do." +
                                                         " I wish you luck.");
     }

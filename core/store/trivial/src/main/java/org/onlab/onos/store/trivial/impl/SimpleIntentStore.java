@@ -69,8 +69,7 @@ public class SimpleIntentStore
             return;
         }
         intents.put(intent.id(), intent);
-        this.setState(intent, IntentState.SUBMITTED);
-        return;
+        this.setState(intent, IntentState.INSTALL_REQ);
     }
 
     @Override
@@ -109,14 +108,17 @@ public class SimpleIntentStore
         IntentEvent.Type type = null;
 
         switch (state) {
-        case SUBMITTED:
-            type = IntentEvent.Type.SUBMITTED;
+        case INSTALL_REQ:
+            type = IntentEvent.Type.INSTALL_REQ;
             break;
         case INSTALLED:
             type = IntentEvent.Type.INSTALLED;
             break;
         case FAILED:
             type = IntentEvent.Type.FAILED;
+            break;
+        case WITHDRAW_REQ:
+            type = IntentEvent.Type.WITHDRAW_REQ;
             break;
         case WITHDRAWN:
             type = IntentEvent.Type.WITHDRAWN;

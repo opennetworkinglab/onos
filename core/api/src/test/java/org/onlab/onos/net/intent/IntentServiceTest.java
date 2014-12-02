@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.onlab.onos.net.intent.IntentEvent.Type.FAILED;
 import static org.onlab.onos.net.intent.IntentEvent.Type.INSTALLED;
-import static org.onlab.onos.net.intent.IntentEvent.Type.SUBMITTED;
+import static org.onlab.onos.net.intent.IntentEvent.Type.INSTALL_REQ;
 import static org.onlab.onos.net.intent.IntentEvent.Type.WITHDRAWN;
 
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class IntentServiceTest {
         });
 
         // Make sure that all expected events have been emitted
-        validateEvents(intent, SUBMITTED, INSTALLED);
+        validateEvents(intent, INSTALL_REQ, INSTALLED);
 
         // Make sure there is just one intent (and is ours)
         assertEquals("incorrect intent count", 1, service.getIntentCount());
@@ -145,7 +145,7 @@ public class IntentServiceTest {
         });
 
         // Make sure that all expected events have been emitted
-        validateEvents(intent, SUBMITTED, FAILED);
+        validateEvents(intent, INSTALL_REQ, FAILED);
     }
 
     @Test
@@ -168,7 +168,7 @@ public class IntentServiceTest {
         });
 
         // Make sure that all expected events have been emitted
-        validateEvents(intent, SUBMITTED, FAILED);
+        validateEvents(intent, INSTALL_REQ, FAILED);
     }
 
     /**
