@@ -133,7 +133,7 @@ public class IntentSynchronizer {
                     continue;
                 }
 
-                log.debug("SDN-IP Intent Synchronizer withdrawing intent: {}",
+                log.trace("SDN-IP Intent Synchronizer withdrawing intent: {}",
                           intent);
                 builder.addWithdrawOperation(intent.id());
             }
@@ -227,7 +227,7 @@ public class IntentSynchronizer {
                     builder.addSubmitOperation(intent);
                 }
                 IntentOperations intentOperations = builder.build();
-                log.debug("SDN-IP Submitting intents: {}",
+                log.trace("SDN-IP Submitting intents: {}",
                           intentOperations.operations());
                 intentService.execute(intentOperations);
             }
@@ -263,12 +263,12 @@ public class IntentSynchronizer {
             for (Ip4Prefix prefix : withdrawPrefixes) {
                 intent = routeIntents.remove(prefix);
                 if (intent == null) {
-                    log.debug("SDN-IP No intent in routeIntents to delete " +
+                    log.trace("SDN-IP No intent in routeIntents to delete " +
                               "for prefix: {}", prefix);
                     continue;
                 }
                 if (isElectedLeader && isActivatedLeader) {
-                    log.debug("SDN-IP Withdrawing intent: {}", intent);
+                    log.trace("SDN-IP Withdrawing intent: {}", intent);
                     withdrawBuilder.addWithdrawOperation(intent.id());
                 }
             }
@@ -290,11 +290,11 @@ public class IntentSynchronizer {
                         // TODO: Short-term solution to explicitly withdraw
                         // instead of using "replace" operation.
                         //
-                        log.debug("SDN-IP Withdrawing old intent: {}",
+                        log.trace("SDN-IP Withdrawing old intent: {}",
                                   oldIntent);
                         withdrawBuilder.addWithdrawOperation(oldIntent.id());
                     }
-                    log.debug("SDN-IP Submitting intent: {}", intent);
+                    log.trace("SDN-IP Submitting intent: {}", intent);
                     submitBuilder.addSubmitOperation(intent);
                 }
             }
@@ -353,7 +353,7 @@ public class IntentSynchronizer {
             }
             if (log.isDebugEnabled()) {
                 for (Intent intent: fetchedIntents.values()) {
-                    log.debug("SDN-IP Intent Synchronizer: fetched intent: {}",
+                    log.trace("SDN-IP Intent Synchronizer: fetched intent: {}",
                               intent);
                 }
             }
@@ -384,7 +384,7 @@ public class IntentSynchronizer {
                             // TODO: For now we support only IPv4
                             continue;
                         }
-                        log.debug("SDN-IP Intent Synchronizer: updating " +
+                        log.trace("SDN-IP Intent Synchronizer: updating " +
                                   "in-memory Route Intent for prefix {}",
                                   ip4Prefix);
                         routeIntents.put(ip4Prefix, mp2pIntent);
@@ -396,7 +396,7 @@ public class IntentSynchronizer {
                 }
                 if (intent instanceof PointToPointIntent) {
                     PointToPointIntent p2pIntent = (PointToPointIntent) intent;
-                    log.debug("SDN-IP Intent Synchronizer: updating " +
+                    log.trace("SDN-IP Intent Synchronizer: updating " +
                               "in-memory Peer Intent {}", p2pIntent);
                     peerIntents.put(new IntentKey(intent), p2pIntent);
                     continue;
@@ -407,11 +407,11 @@ public class IntentSynchronizer {
             IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (Intent intent : deleteIntents) {
                 builder.addWithdrawOperation(intent.id());
-                log.debug("SDN-IP Intent Synchronizer: withdrawing intent: {}",
+                log.trace("SDN-IP Intent Synchronizer: withdrawing intent: {}",
                       intent);
             }
             if (!isElectedLeader) {
-                log.debug("SDN-IP Intent Synchronizer: cannot withdraw intents: " +
+                log.trace("SDN-IP Intent Synchronizer: cannot withdraw intents: " +
                           "not elected leader anymore");
                 isActivatedLeader = false;
                 return;
@@ -423,11 +423,11 @@ public class IntentSynchronizer {
             builder = IntentOperations.builder(appId);
             for (Intent intent : addIntents) {
                 builder.addSubmitOperation(intent);
-                log.debug("SDN-IP Intent Synchronizer: submitting intent: {}",
+                log.trace("SDN-IP Intent Synchronizer: submitting intent: {}",
                           intent);
             }
             if (!isElectedLeader) {
-                log.debug("SDN-IP Intent Synchronizer: cannot submit intents: " +
+                log.trace("SDN-IP Intent Synchronizer: cannot submit intents: " +
                           "not elected leader anymore");
                 isActivatedLeader = false;
                 return;
