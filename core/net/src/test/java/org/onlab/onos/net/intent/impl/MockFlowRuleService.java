@@ -1,7 +1,9 @@
 package org.onlab.onos.net.intent.impl;
 
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.Future;
+
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.flow.CompletedBatchOperation;
@@ -12,9 +14,9 @@ import org.onlab.onos.net.flow.FlowRuleBatchOperation;
 import org.onlab.onos.net.flow.FlowRuleListener;
 import org.onlab.onos.net.flow.FlowRuleService;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.Future;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 
 
 public class MockFlowRuleService implements FlowRuleService {
@@ -23,7 +25,17 @@ public class MockFlowRuleService implements FlowRuleService {
     final Set<FlowRule> flows = Sets.newHashSet();
 
     public void setFuture(boolean success) {
-        future = Futures.immediateFuture(new CompletedBatchOperation(true, Collections.emptySet()));
+        setFuture(success, 0);
+    }
+
+    public void setFuture(boolean success, long intentId) {
+        if (success) {
+            future = Futures.immediateFuture(new CompletedBatchOperation(true, Collections.emptySet()));
+        } else {
+            final Set<Long> failedIds = ImmutableSet.of(intentId);
+            future = Futures.immediateFuture(
+                    new CompletedBatchOperation(false, flows, failedIds));
+        }
     }
 
     @Override

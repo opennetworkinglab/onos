@@ -300,6 +300,7 @@ public class IntentManager
             update.setInstallables(installables);
         } catch (PathNotFoundException e) {
             log.debug("Path not found for intent {}", intent);
+            update.setInflightState(intent, FAILED);
         } catch (IntentException e) {
             log.warn("Unable to compile intent {} due to:", intent.id(), e);
 
@@ -350,11 +351,12 @@ public class IntentManager
                                                installable.resources());
             try {
                 batches.addAll(getInstaller(installable).install(installable));
-            } catch (IntentException e) {
+            } catch (Exception e) { // TODO this should be IntentException
                 log.warn("Unable to install intent {} due to:", update.newIntent().id(), e);
                 trackerService.removeTrackedResources(update.newIntent().id(),
                                                       installable.resources());
-                //FIXME we failed... intent should be recompiled
+                //TODO we failed; intent should be recompiled
+                update.setInflightState(update.newIntent(), FAILED);
             }
         }
         update.addBatches(batches);
@@ -660,11 +662,9 @@ public class IntentManager
             return !isComplete() ? batches.get(currentBatch) : null;
         }
 
-        void batchSuccess(BatchWrite batchWrite) {
+        void batchSuccess() {
             // move on to next Batch
-            if (++currentBatch == batches.size()) {
-                finalizeStates(batchWrite);
-            }
+            currentBatch++;
         }
 
         void batchFailed() {
@@ -684,7 +684,6 @@ public class IntentManager
             // TODO we might want to try to recompile the new intent
         }
 
-        // make sure this is called!!!
         private void finalizeStates(BatchWrite batchWrite) {
             // events to be triggered on successful write
             for (Intent intent : stateMap.keySet()) {
@@ -699,6 +698,7 @@ public class IntentManager
                         batchWrite.removeIntent(intent.id());
                         break;
                     case FAILED:
+                        batchWrite.setState(intent, FAILED);
                         batchWrite.removeInstalledIntents(intent.id());
                         break;
 
@@ -801,27 +801,39 @@ public class IntentManager
                     batch.addAll(update.currentBatch());
                 }
             }
-            return (batch.size() > 0) ? flowRuleService.applyBatch(batch) : null;
-        }
-
-        private void updateBatches(CompletedBatchOperation completed) {
-            if (completed.isSuccess()) {
+            if (batch.size() > 0) {
+                //FIXME apply batch might throw an exception
+                return flowRuleService.applyBatch(batch);
+            } else {
+                // there are no flow rule batches; finalize the intent update
                 BatchWrite batchWrite = store.newBatchWrite();
                 for (IntentUpdate update : intentUpdates) {
-                    update.batchSuccess(batchWrite);
+                    update.finalizeStates(batchWrite);
                 }
                 if (!batchWrite.isEmpty()) {
                     store.batchWrite(batchWrite);
                 }
+                return null;
+            }
+        }
+
+        private void updateBatches(CompletedBatchOperation completed) {
+            if (completed.isSuccess()) {
+                for (IntentUpdate update : intentUpdates) {
+                    update.batchSuccess();
+                }
             } else {
                 // entire batch has been reverted...
-                log.warn("Failed items: {}", completed.failedItems());
+                log.debug("Failed items: {}", completed.failedItems());
+                log.debug("Failed ids: {}",  completed.failedIds());
 
                 for (Long id : completed.failedIds()) {
                     IntentId targetId = IntentId.valueOf(id);
                     for (IntentUpdate update : intentUpdates) {
                         List<Intent> installables = Lists.newArrayList(update.newInstallables());
-                        installables.addAll(update.oldInstallables());
+                        if (update.oldInstallables() != null) {
+                            installables.addAll(update.oldInstallables());
+                        }
                         for (Intent intent : installables) {
                             if (intent.id().equals(targetId)) {
                                 update.batchFailed();
@@ -837,8 +849,9 @@ public class IntentManager
         private void abandonShip() {
             // the batch has failed
             // TODO: maybe we should do more?
-            future = null;
             log.error("Walk the plank, matey...");
+            future = null;
+            batchService.removeIntentOperations(ops);
         }
 
         /**
@@ -866,11 +879,15 @@ public class IntentManager
             if (future.cancel(true)) { // cancel success; batch is reverted
                 // reset the timer
                 resetTimeoutLimit();
-                if (installAttempt++ >= MAX_ATTEMPTS) {
+                installAttempt++;
+                if (installAttempt == MAX_ATTEMPTS) {
                     log.warn("Install request timed out: {}", ops);
                     for (IntentUpdate update : intentUpdates) {
                         update.batchFailed();
                     }
+                } else if (installAttempt > MAX_ATTEMPTS) {
+                    abandonShip();
+                    return;
                 } // else just resubmit the work
                 future = applyNextBatch();
                 executor.submit(this);
@@ -880,7 +897,7 @@ public class IntentManager
                 // cancel failed... batch is broken; shouldn't happen!
                 // we could manually reverse everything
                 // ... or just core dump and send email to Ali
-                batchService.removeIntentOperations(ops);
+                abandonShip();
             }
         }
 
@@ -925,6 +942,7 @@ public class IntentManager
                 log.error("Error submitting batches:", e);
                 // FIXME incomplete Intents should be cleaned up
                 //       (transition to FAILED, etc.)
+                abandonShip();
             }
         }
     }
