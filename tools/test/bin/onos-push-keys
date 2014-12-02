@@ -10,6 +10,7 @@ remote=$ONOS_USER@${1:-$OCI}
 
 scp -q ~/.ssh/id_rsa.pub $remote:/tmp
 ssh $remote "
+    mkdir -p ~/.ssh
     cat /tmp/id_rsa.pub >> ~/.ssh/authorized_keys
     sort -u ~/.ssh/authorized_keys > ~/.ssh/authorized_keys.bak
     mv ~/.ssh/authorized_keys.bak ~/.ssh/authorized_keys
