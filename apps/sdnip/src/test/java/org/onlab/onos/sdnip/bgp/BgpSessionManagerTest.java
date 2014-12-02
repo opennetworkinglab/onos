@@ -61,6 +61,9 @@ public class BgpSessionManagerTest {
     private static final long DEFAULT_LOCAL_PREF = 10;
     private static final long DEFAULT_MULTI_EXIT_DISC = 20;
 
+    // Timeout waiting for a message to be received
+    private static final int MESSAGE_TIMEOUT_MS = 5000; // 5s
+
     // The BGP Session Manager to test
     private BgpSessionManager bgpSessionManager;
 
@@ -212,10 +215,10 @@ public class BgpSessionManagerTest {
         peerBootstrap.connect(connectToSocket);
 
         // Wait until the OPEN message is received
-        peerFrameDecoder.receivedOpenMessageLatch.await(2000,
+        peerFrameDecoder.receivedOpenMessageLatch.await(MESSAGE_TIMEOUT_MS,
                                                         TimeUnit.MILLISECONDS);
         // Wait until the KEEPALIVE message is received
-        peerFrameDecoder.receivedKeepaliveMessageLatch.await(2000,
+        peerFrameDecoder.receivedKeepaliveMessageLatch.await(MESSAGE_TIMEOUT_MS,
                                                         TimeUnit.MILLISECONDS);
 
         //
@@ -256,10 +259,10 @@ public class BgpSessionManagerTest {
         peerBootstrap.connect(connectToSocket);
 
         // Wait until the OPEN message is received
-        peerFrameDecoder.receivedOpenMessageLatch.await(2000,
+        peerFrameDecoder.receivedOpenMessageLatch.await(MESSAGE_TIMEOUT_MS,
                                                         TimeUnit.MILLISECONDS);
         // Wait until the KEEPALIVE message is received
-        peerFrameDecoder.receivedKeepaliveMessageLatch.await(2000,
+        peerFrameDecoder.receivedKeepaliveMessageLatch.await(MESSAGE_TIMEOUT_MS,
                                                         TimeUnit.MILLISECONDS);
 
         // Get the BGP Session handler
