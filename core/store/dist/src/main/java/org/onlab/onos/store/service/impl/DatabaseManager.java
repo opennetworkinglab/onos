@@ -63,7 +63,7 @@ import com.google.common.collect.ImmutableList;
  * Strongly consistent and durable state management service based on
  * Copycat implementation of Raft consensus protocol.
  */
-@Component(immediate = true)
+@Component(immediate = false)
 @Service
 public class DatabaseManager implements DatabaseService, DatabaseAdminService {
 

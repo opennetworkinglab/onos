@@ -33,7 +33,7 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 
-@Component(immediate = true)
+@Component(immediate = false)
 @Service
 public class DistributedLockManager implements LockService {
 

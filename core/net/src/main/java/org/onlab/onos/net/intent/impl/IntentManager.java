@@ -294,7 +294,7 @@ public class IntentManager
             // intents with the top-level intent and proceed to install.
             update.setInstallables(installables);
         } catch (PathNotFoundException e) {
-            log.debug("Path not found for intent {}", intent.id());
+            log.debug("Path not found for intent {}", intent);
         } catch (IntentException e) {
             log.warn("Unable to compile intent {} due to:", intent.id(), e);
 
@@ -606,6 +606,9 @@ public class IntentManager
                 oldInstallables = store.getInstallableIntents(oldIntent.id());
             } else {
                 oldInstallables = null;
+                if (newIntent == null) {
+                    log.info("Ignoring {} for Intent {}", op.type(), op.intentId());
+                }
             }
         }
 
@@ -853,8 +856,8 @@ public class IntentManager
          */
         private void processFutures() {
             if (future == null) {
-                log.warn("I have no Future.");
-                return; //FIXME look at this
+                // we are done if the future is null
+                return;
             }
             try {
                 CompletedBatchOperation completed = future.get(100, TimeUnit.NANOSECONDS);

@@ -77,7 +77,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService resourceManager;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -106,6 +106,18 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         resourceManager.removeListener(linkResourceListener);
         batchService.removeListener(leaderListener);
         log.info("Stopped");
+    }
+
+    protected void bindIntentService(IntentService service) {
+        if (intentService == null) {
+            intentService = service;
+        }
+     }
+
+    protected void unbindIntentService(IntentService service) {
+        if (intentService == service) {
+            intentService = null;
+        }
     }
 
     @Override
@@ -235,6 +247,10 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     //TODO consider adding flow rule event tracking
 
     private void updateTrackedResources(ApplicationId appId, boolean track) {
+        if (intentService == null) {
+            log.debug("Intent service is not bound yet");
+            return;
+        }
         intentService.getIntents().forEach(intent -> {
             if (intent.appId().equals(appId)) {
                 IntentId id = intent.id();
