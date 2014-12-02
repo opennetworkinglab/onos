@@ -265,7 +265,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             @Override
             void processOFPortStatus(OFChannelHandler h, OFPortStatus m)
                     throws IOException {
-                unhandledMessageReceived(h, m);
+                h.pendingPortStatusMsg.add(m);
             }
         },
 
@@ -313,7 +313,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             @Override
             void processOFPortStatus(OFChannelHandler h, OFPortStatus m)
                     throws IOException, SwitchStateException {
-                unhandledMessageReceived(h, m);
+                h.pendingPortStatusMsg.add(m);
 
             }
         },
@@ -438,6 +438,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     if (!h.sw.connectSwitch()) {
                         disconnectDuplicate(h);
                     }
+                    handlePendingPortStatusMessages(h);
                     h.setState(ACTIVE);
                 } else {
                     h.setState(WAIT_SWITCH_DRIVER_SUB_HANDSHAKE);
@@ -528,6 +529,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
             private void moveToActive(OFChannelHandler h) {
                 boolean success = h.sw.connectSwitch();
+                handlePendingPortStatusMessages(h);
                 h.setState(ACTIVE);
                 if (!success) {
                     disconnectDuplicate(h);
@@ -602,7 +604,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             void processOFPortStatus(OFChannelHandler h, OFPortStatus m)
                     throws SwitchStateException {
                 handlePortStatusMessage(h, m, true);
-                h.dispatchMessage(m);
+                //h.dispatchMessage(m);
             }
 
             @Override
@@ -765,15 +767,18 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                         "happen";
                 throw new SwitchStateException(msg);
             }
+            log.info("Processing {} pending port status messages for {}",
+                     h.pendingPortStatusMsg.size(), h.sw.getStringId());
+
             ArrayList<OFPortStatus> temp  = new ArrayList<OFPortStatus>();
             for (OFPortStatus ps: h.pendingPortStatusMsg) {
                 temp.add(ps);
                 handlePortStatusMessage(h, ps, false);
             }
-            temp.clear();
             // expensive but ok - we don't expect too many port-status messages
             // note that we cannot use clear(), because of the reasons below
             h.pendingPortStatusMsg.removeAll(temp);
+            temp.clear();
             // the iterator above takes a snapshot of the list - so while we were
             // dealing with the pending port-status messages, we could have received
             // newer ones. Handle them recursively, but break the recursion after

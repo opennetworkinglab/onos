@@ -33,6 +33,7 @@ import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
+import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFRoleReply;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
@@ -166,7 +167,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
      */
     @Override
     public final void handleMessage(OFMessage m) {
-        if (this.role == RoleState.MASTER) {
+        if (this.role == RoleState.MASTER || m instanceof OFPortStatus) {
             this.agent.processMessage(dpid, m);
         }
     }
