@@ -586,7 +586,10 @@ public class HazelcastIntentStore
                               intentId, oldState);
                 }
 
-                notifyDelegate(IntentEvent.getEvent(event.getValue(), getIntent(intentId)));
+                if (event.getValue() != null) {
+                    // notify if this is not entry removed event
+                    notifyDelegate(IntentEvent.getEvent(event.getValue(), getIntent(intentId)));
+                }
             }
         }
     }
