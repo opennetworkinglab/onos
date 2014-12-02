@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 /**
  * ONOS Cluster messaging based Copycat protocol.
  */
-@Component(immediate = true)
+@Component(immediate = false)
 @Service
 public class ClusterMessagingProtocol
     implements DatabaseProtocolService, Protocol<TcpMember> {
