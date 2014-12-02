@@ -29,9 +29,9 @@ public interface LeadershipService {
     /**
      * Gets the most recent leader for the topic.
      * @param path topic
-     * @return node who is the leader, null if so such topic exists.
+     * @return nodeId of the leader, null if so such topic exists.
      */
-    ControllerNode getLeader(String path);
+    NodeId getLeader(String path);
 
     /**
      * Joins the leadership contest.

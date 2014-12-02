@@ -15,12 +15,12 @@
  */
 package org.onlab.onos.store.intent.impl;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IQueue;
-import com.hazelcast.core.ItemEvent;
-import com.hazelcast.core.ItemListener;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -29,10 +29,10 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.LeadershipEvent;
 import org.onlab.onos.cluster.LeadershipEventListener;
 import org.onlab.onos.cluster.LeadershipService;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
 import org.onlab.onos.event.AbstractListenerRegistry;
@@ -50,12 +50,12 @@ import org.onlab.onos.store.serializers.StoreSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IQueue;
+import com.hazelcast.core.ItemEvent;
+import com.hazelcast.core.ItemListener;
 
 @Component(immediate = true)
 @Service
@@ -82,7 +82,7 @@ public class HazelcastIntentBatchQueue
 
 
     private HazelcastInstance theInstance;
-    private ControllerNode localControllerNode;
+    private NodeId localControllerNodeId;
     protected StoreSerializer serializer;
     private IntentBatchDelegate delegate;
     private InternalLeaderListener leaderListener = new InternalLeaderListener();
@@ -98,7 +98,7 @@ public class HazelcastIntentBatchQueue
     @Activate
     public void activate() {
         theInstance = storeService.getHazelcastInstance();
-        localControllerNode = clusterService.getLocalNode();
+        localControllerNodeId = clusterService.getLocalNode().id();
         leadershipService.addListener(leaderListener);
 
         serializer = new KryoSerializer() {
@@ -254,7 +254,7 @@ public class HazelcastIntentBatchQueue
             if (!topic.startsWith(TOPIC_BASE)) {
                 return;         // Not our topic: ignore
             }
-            if (!event.subject().leader().id().equals(localControllerNode.id())) {
+            if (!event.subject().leader().equals(localControllerNodeId)) {
                 // run for leadership
                 getQueue(getAppId(topic));
                 return;         // The event is not about this instance: ignore

@@ -10,10 +10,10 @@ import com.google.common.base.MoreObjects;
 public class Leadership {
 
     private final String topic;
-    private final ControllerNode leader;
+    private final NodeId leader;
     private final long epoch;
 
-    public Leadership(String topic, ControllerNode leader, long epoch) {
+    public Leadership(String topic, NodeId leader, long epoch) {
         this.topic = topic;
         this.leader = leader;
         this.epoch = epoch;
@@ -28,10 +28,10 @@ public class Leadership {
     }
 
     /**
-     * The leader for this topic.
+     * The nodeId of leader for this topic.
      * @return leader node.
      */
-    public ControllerNode leader() {
+    public NodeId leader() {
         return leader;
     }
 

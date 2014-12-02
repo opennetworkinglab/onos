@@ -37,7 +37,7 @@ public class LeaderCommand extends AbstractShellCommand {
         Map<String, Leadership> leaderBoard = leaderService.getLeaderBoard();
         print(FMT, "Topic", "Leader");
         for (String topic : leaderBoard.keySet()) {
-            print(FMT, topic, leaderBoard.get(topic).leader().id());
+            print(FMT, topic, leaderBoard.get(topic).leader());
         }
     }
 

@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -19,11 +18,11 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.Leadership;
 import org.onlab.onos.cluster.LeadershipEvent;
 import org.onlab.onos.cluster.LeadershipEventListener;
 import org.onlab.onos.cluster.LeadershipService;
+import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
 import org.onlab.onos.store.cluster.messaging.ClusterMessage;
 import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
@@ -36,6 +35,7 @@ import org.onlab.onos.store.service.impl.DistributedLockManager;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -77,7 +77,7 @@ public class LeadershipManager implements LeadershipService {
 
     private final Map<String, Lock> openContests = Maps.newConcurrentMap();
     private final Set<LeadershipEventListener> listeners = Sets.newIdentityHashSet();
-    private ControllerNode localNode;
+    private NodeId localNodeId;
 
     private final LeadershipEventListener peerAdvertiser = new PeerAdvertiser();
     private final LeadershipEventListener leaderBoardUpdater = new LeaderBoardUpdater();
@@ -94,7 +94,7 @@ public class LeadershipManager implements LeadershipService {
 
     @Activate
     public void activate() {
-        localNode = clusterService.getLocalNode();
+        localNodeId = clusterService.getLocalNode().id();
 
         addListener(peerAdvertiser);
         addListener(leaderBoardUpdater);
@@ -120,7 +120,7 @@ public class LeadershipManager implements LeadershipService {
 
 
     @Override
-    public ControllerNode getLeader(String path) {
+    public NodeId getLeader(String path) {
         synchronized (leaderBoard) {
             Leadership leadership = leaderBoard.get(path);
             if (leadership != null) {
@@ -155,7 +155,7 @@ public class LeadershipManager implements LeadershipService {
             notifyListeners(
                     new LeadershipEvent(
                             LeadershipEvent.Type.LEADER_BOOTED,
-                            new Leadership(lock.path(), localNode, lock.epoch())));
+                            new Leadership(lock.path(), localNodeId, lock.epoch())));
         }
     }
 
@@ -201,7 +201,7 @@ public class LeadershipManager implements LeadershipService {
                 notifyListeners(
                         new LeadershipEvent(
                                 LeadershipEvent.Type.LEADER_ELECTED,
-                                new Leadership(lock.path(), localNode, lock.epoch())));
+                                new Leadership(lock.path(), localNodeId, lock.epoch())));
                 return;
             } else {
                 log.warn("Failed to acquire lock for {}. Will retry in {} ms", path, WAIT_BEFORE_RETRY_MS, error);
@@ -236,7 +236,7 @@ public class LeadershipManager implements LeadershipService {
                 notifyListeners(
                         new LeadershipEvent(
                                 LeadershipEvent.Type.LEADER_REELECTED,
-                                new Leadership(lock.path(), localNode, lock.epoch())));
+                                new Leadership(lock.path(), localNodeId, lock.epoch())));
                 threadPool.schedule(this, TERM_DURATION_MS / 2, TimeUnit.MILLISECONDS);
             } else {
                 // Check if this node already withdrew from the contest, in which case
@@ -245,7 +245,7 @@ public class LeadershipManager implements LeadershipService {
                     notifyListeners(
                             new LeadershipEvent(
                                     LeadershipEvent.Type.LEADER_BOOTED,
-                                    new Leadership(lock.path(), localNode, lock.epoch())));
+                                    new Leadership(lock.path(), localNodeId, lock.epoch())));
                     // Retry leadership after a brief wait.
                     threadPool.schedule(new TryLeadership(lock), WAIT_BEFORE_RETRY_MS, TimeUnit.MILLISECONDS);
                 }
@@ -270,11 +270,11 @@ public class LeadershipManager implements LeadershipService {
         @Override
         public void event(LeadershipEvent event) {
             // publish events originating on this host.
-            if (event.subject().leader().equals(localNode)) {
+            if (event.subject().leader().equals(localNodeId)) {
                 try {
                     clusterCommunicator.broadcast(
                             new ClusterMessage(
-                                    localNode.id(),
+                                    localNodeId,
                                     LEADERSHIP_UPDATES,
                                     SERIALIZER.encode(event)));
                 } catch (IOException e) {

@@ -31,7 +31,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
 import org.onlab.onos.cluster.Leadership;
 import org.onlab.onos.cluster.LeadershipEvent;
 import org.onlab.onos.cluster.LeadershipEventListener;
@@ -100,11 +99,11 @@ public class HazelcastLeadershipService implements LeadershipService {
     private AbstractListenerRegistry<LeadershipEvent, LeadershipEventListener>
         listenerRegistry;
     private final Map<String, Topic> topics = Maps.newConcurrentMap();
-    private ControllerNode localNode;
+    private NodeId localNodeId;
 
     @Activate
     protected void activate() {
-        localNode = clusterService.getLocalNode();
+        localNodeId = clusterService.getLocalNode().id();
         listenerRegistry = new AbstractListenerRegistry<>();
         eventDispatcher.addSink(LeadershipEvent.class, listenerRegistry);
 
@@ -124,7 +123,7 @@ public class HazelcastLeadershipService implements LeadershipService {
     }
 
     @Override
-    public ControllerNode getLeader(String path) {
+    public NodeId getLeader(String path) {
         Topic topic = topics.get(path);
         if (topic == null) {
             return null;
@@ -177,7 +176,7 @@ public class HazelcastLeadershipService implements LeadershipService {
         private volatile long lastLeadershipUpdateMs = 0;
         private ExecutorService leaderElectionExecutor;
 
-        private ControllerNode leader;
+        private NodeId leader;
         private Lock leaderLock;
         private Future<?> getLockFuture;
         private Future<?> periodicProcessingFuture;
@@ -198,7 +197,7 @@ public class HazelcastLeadershipService implements LeadershipService {
          *
          * @return the leader for the topic
          */
-        private ControllerNode leader() {
+        private NodeId leader() {
             return leader;
         }
 
@@ -254,7 +253,7 @@ public class HazelcastLeadershipService implements LeadershipService {
         public void onMessage(Message<byte[]> message) {
             LeadershipEvent leadershipEvent =
                 SERIALIZER.decode(message.getMessageObject());
-            NodeId eventLeaderId = leadershipEvent.subject().leader().id();
+            NodeId eventLeaderId = leadershipEvent.subject().leader();
 
             log.debug("Leadership Event: time = {} type = {} event = {}",
                       leadershipEvent.time(), leadershipEvent.type(),
@@ -262,7 +261,7 @@ public class HazelcastLeadershipService implements LeadershipService {
             if (!leadershipEvent.subject().topic().equals(topicName)) {
                 return;         // Not our topic: ignore
             }
-            if (eventLeaderId.equals(localNode.id())) {
+            if (eventLeaderId.equals(localNodeId)) {
                 return;         // My own message: ignore
             }
 
@@ -276,7 +275,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                     // leadership and run for re-election.
                     //
                     if ((leader != null) &&
-                        leader.id().equals(localNode.id())) {
+                        leader.equals(localNodeId)) {
                         getLockFuture.cancel(true);
                     } else {
                         // Just update the current leader
@@ -288,7 +287,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                 case LEADER_BOOTED:
                     // Remove the state for the current leader
                     if ((leader != null) &&
-                        eventLeaderId.equals(leader.id())) {
+                        eventLeaderId.equals(leader)) {
                         leader = null;
                     }
                     eventDispatcher.post(leadershipEvent);
@@ -312,13 +311,13 @@ public class HazelcastLeadershipService implements LeadershipService {
                 synchronized (this) {
                     LeadershipEvent leadershipEvent;
                     if (leader != null) {
-                        if (leader.id().equals(localNode.id())) {
+                        if (leader.equals(localNodeId)) {
                             //
                             // Advertise ourselves as the leader
                             //
                             leadershipEvent = new LeadershipEvent(
                                 LeadershipEvent.Type.LEADER_REELECTED,
-                                new Leadership(topicName, localNode, 0));
+                                new Leadership(topicName, localNodeId, 0));
                             // Dispatch to all remote instances
                             leaderTopic.publish(SERIALIZER.encode(leadershipEvent));
                         } else {
@@ -379,10 +378,10 @@ public class HazelcastLeadershipService implements LeadershipService {
                     // This instance is now the leader
                     //
                     log.info("Leader Elected for topic {}", topicName);
-                    leader = localNode;
+                    leader = localNodeId;
                     leadershipEvent = new LeadershipEvent(
                         LeadershipEvent.Type.LEADER_ELECTED,
-                        new Leadership(topicName, localNode, 0));
+                        new Leadership(topicName, localNodeId, 0));
                     eventDispatcher.post(leadershipEvent);
                     leaderTopic.publish(SERIALIZER.encode(leadershipEvent));
                 }
@@ -403,12 +402,12 @@ public class HazelcastLeadershipService implements LeadershipService {
                     // If we reach here, we should release the leadership
                     log.debug("Leader Lock Released for topic {}", topicName);
                     if ((leader != null) &&
-                        leader.id().equals(localNode.id())) {
+                        leader.equals(localNodeId)) {
                         leader = null;
                     }
                     leadershipEvent = new LeadershipEvent(
                                 LeadershipEvent.Type.LEADER_BOOTED,
-                                new Leadership(topicName, localNode, 0));
+                                new Leadership(topicName, localNodeId, 0));
                     eventDispatcher.post(leadershipEvent);
                     leaderTopic.publish(SERIALIZER.encode(leadershipEvent));
                     leaderLock.unlock();
