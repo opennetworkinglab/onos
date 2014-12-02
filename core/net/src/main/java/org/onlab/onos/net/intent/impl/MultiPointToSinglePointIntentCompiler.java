@@ -15,12 +15,19 @@
  */
 package org.onlab.onos.net.intent.impl;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.onos.net.ConnectPoint;
+import org.onlab.onos.net.DeviceId;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.Path;
 import org.onlab.onos.net.intent.Intent;
@@ -32,10 +39,7 @@ import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.resource.LinkResourceAllocations;
 import org.onlab.onos.net.topology.PathService;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
  * An intent compiler for
@@ -64,16 +68,25 @@ public class MultiPointToSinglePointIntentCompiler
     @Override
     public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
-        Set<Link> links = new HashSet<>();
+        Map<DeviceId, Link> links = new HashMap<>();
 
         for (ConnectPoint ingressPoint : intent.ingressPoints()) {
             Path path = getPath(ingressPoint, intent.egressPoint());
-            links.addAll(path.links());
+            for (Link link : path.links()) {
+                if (links.containsKey(link.src().deviceId())) {
+                    // We've already reached the existing tree with the first
+                    // part of this path. Don't add the remainder of the path
+                    // in case it differs from the path we already have.
+                    break;
+                }
+
+                links.put(link.src().deviceId(), link);
+            }
         }
 
         Intent result = new LinkCollectionIntent(intent.appId(),
                                                  intent.selector(), intent.treatment(),
-                                                 links, intent.egressPoint());
+                                                 Sets.newHashSet(links.values()), intent.egressPoint());
         return Arrays.asList(result);
     }
 
