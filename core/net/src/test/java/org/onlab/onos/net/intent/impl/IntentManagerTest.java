@@ -111,16 +111,13 @@ public class IntentManagerTest {
         //the batch has not yet been removed when we receive the last event
         // FIXME: this doesn't guarantee to avoid the race
         for (int tries = 0; tries < 10; tries++) {
-            if (manager.batchService.getPendingOperations().isEmpty() &&
-                    manager.batchService.getCurrentOperations().isEmpty()) {
+            if (manager.batchService.getPendingOperations().isEmpty()) {
                 break;
             }
             delay(10);
         }
         assertTrue("There are still pending batch operations.",
                    manager.batchService.getPendingOperations().isEmpty());
-        assertTrue("There are still outstanding batch operations.",
-                   manager.batchService.getCurrentOperations().isEmpty());
 
         extensionService.unregisterCompiler(MockIntent.class);
         extensionService.unregisterInstaller(MockInstallableIntent.class);

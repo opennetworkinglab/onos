@@ -266,9 +266,8 @@ public class DemoInstaller implements DemoAPI {
                 }
                 count++;
                 if (count > ITERATIONMAX) {
-                    log.warn("A batch is stuck processing. current : {}" +
-                                     ", pending : {}",
-                             intentBatchService.getCurrentOperations(),
+                    log.warn("A batch is stuck processing. " +
+                                     "pending : {}",
                              intentBatchService.getPendingOperations());
                     shutdownAndAwaitTermination(randomWorker);
                 }

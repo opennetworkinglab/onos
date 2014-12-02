@@ -45,14 +45,6 @@ public interface IntentBatchService {
     Set<IntentOperations> getPendingOperations();
 
     /**
-     * Returns the set of intent batches currently being processed.
-     * @return set of batches
-     */
-    //TODO we may want to get rid of this method
-    @Deprecated
-    Set<IntentOperations> getCurrentOperations();
-
-    /**
      * Return true if this instance is the local leader for batch
      * processing a given application id.
      *
@@ -75,4 +67,17 @@ public interface IntentBatchService {
      */
     void unsetDelegate(IntentBatchDelegate delegate);
 
+    /**
+     * Adds the specified listener for intent batch leadership events.
+     *
+     * @param listener listener to be added
+     */
+    void addListener(IntentBatchListener listener);
+
+    /**
+     * Removes the specified listener for intent batch leadership events.
+     *
+     * @param listener listener to be removed
+     */
+    void removeListener(IntentBatchListener listener);
 }

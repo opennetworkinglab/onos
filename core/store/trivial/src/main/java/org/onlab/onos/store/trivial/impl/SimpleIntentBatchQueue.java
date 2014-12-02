@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.net.intent.IntentBatchDelegate;
+import org.onlab.onos.net.intent.IntentBatchListener;
 import org.onlab.onos.net.intent.IntentBatchService;
 import org.onlab.onos.net.intent.IntentOperations;
 import org.slf4j.Logger;
@@ -83,14 +84,9 @@ public class SimpleIntentBatchQueue implements IntentBatchService {
     @Override
     public Set<IntentOperations> getPendingOperations() {
         synchronized (this) {
-            return Sets.newHashSet(pendingBatches);
-        }
-    }
-
-    @Override
-    public Set<IntentOperations> getCurrentOperations() {
-        synchronized (this) {
-            return Sets.newHashSet(currentBatches);
+            Set<IntentOperations> set = Sets.newHashSet(pendingBatches);
+            set.addAll(currentBatches); // TODO refactor this current vs. pending
+            return set;
         }
     }
 
@@ -109,5 +105,17 @@ public class SimpleIntentBatchQueue implements IntentBatchService {
         if (this.delegate != null && this.delegate.equals(delegate)) {
             this.delegate = null;
         }
+    }
+
+    @Override
+    public void addListener(IntentBatchListener listener) {
+        // no-op
+        //TODO: we are always the master
+    }
+
+    @Override
+    public void removeListener(IntentBatchListener listener) {
+        // no-op
+        //TODO: we are always the master
     }
 }

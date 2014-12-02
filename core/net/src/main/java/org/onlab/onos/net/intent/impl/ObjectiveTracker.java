@@ -15,22 +15,25 @@
  */
 package org.onlab.onos.net.intent.impl;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.event.Event;
 import org.onlab.onos.net.Link;
 import org.onlab.onos.net.LinkKey;
 import org.onlab.onos.net.NetworkResource;
+import org.onlab.onos.net.intent.IntentBatchLeaderEvent;
+import org.onlab.onos.net.intent.IntentBatchListener;
+import org.onlab.onos.net.intent.IntentBatchService;
 import org.onlab.onos.net.intent.IntentId;
+import org.onlab.onos.net.intent.IntentService;
 import org.onlab.onos.net.link.LinkEvent;
 import org.onlab.onos.net.resource.LinkResourceEvent;
 import org.onlab.onos.net.resource.LinkResourceListener;
@@ -40,8 +43,10 @@ import org.onlab.onos.net.topology.TopologyListener;
 import org.onlab.onos.net.topology.TopologyService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -72,18 +77,26 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService resourceManager;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentBatchService batchService;
+
     private ExecutorService executorService =
             newSingleThreadExecutor(namedThreads("onos-flowtracker"));
 
     private TopologyListener listener = new InternalTopologyListener();
     private LinkResourceListener linkResourceListener =
             new InternalLinkResourceListener();
+    private final LeadershipListener leaderListener = new LeadershipListener();
     private TopologyChangeDelegate delegate;
 
     @Activate
     public void activate() {
         topologyService.addListener(listener);
         resourceManager.addListener(linkResourceListener);
+        batchService.addListener(leaderListener);
         log.info("Started");
     }
 
@@ -91,6 +104,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     public void deactivate() {
         topologyService.removeListener(listener);
         resourceManager.removeListener(linkResourceListener);
+        batchService.removeListener(leaderListener);
         log.info("Stopped");
     }
 
@@ -220,6 +234,38 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     //TODO consider adding flow rule event tracking
 
-    //FIXME the only intents that will be tracked are events that were
-    //executed on this instance. Need to have some backup trackers...
+    private void updateTrackedResources(ApplicationId appId, boolean track) {
+        intentService.getIntents().forEach(intent -> {
+            if (intent.appId().equals(appId)) {
+                IntentId id = intent.id();
+                Collection<NetworkResource> resources = Lists.newArrayList();
+                intentService.getInstallableIntents(id).stream()
+                        .map(installable -> installable.resources())
+                        .forEach(resources::addAll);
+                if (track) {
+                    addTrackedResources(id, resources);
+                } else {
+                    removeTrackedResources(id, resources);
+                }
+            }
+        });
+    }
+
+    private class LeadershipListener implements IntentBatchListener {
+        @Override
+        public void event(IntentBatchLeaderEvent event) {
+            log.debug("leadership event: {}", event);
+            ApplicationId appId = event.subject();
+            switch (event.type()) {
+                case ELECTED:
+                    updateTrackedResources(appId, true);
+                    break;
+                case BOOTED:
+                    updateTrackedResources(appId, false);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }

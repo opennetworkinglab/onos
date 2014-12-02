@@ -35,7 +35,11 @@ import org.onlab.onos.cluster.LeadershipEventListener;
 import org.onlab.onos.cluster.LeadershipService;
 import org.onlab.onos.core.ApplicationId;
 import org.onlab.onos.core.CoreService;
+import org.onlab.onos.event.AbstractListenerRegistry;
+import org.onlab.onos.event.EventDeliveryService;
 import org.onlab.onos.net.intent.IntentBatchDelegate;
+import org.onlab.onos.net.intent.IntentBatchLeaderEvent;
+import org.onlab.onos.net.intent.IntentBatchListener;
 import org.onlab.onos.net.intent.IntentBatchService;
 import org.onlab.onos.net.intent.IntentOperations;
 import org.onlab.onos.store.hz.SQueue;
@@ -46,7 +50,6 @@ import org.onlab.onos.store.serializers.StoreSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,6 +77,10 @@ public class HazelcastIntentBatchQueue
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StoreService storeService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
+
+
     private HazelcastInstance theInstance;
     private ControllerNode localControllerNode;
     protected StoreSerializer serializer;
@@ -84,6 +91,9 @@ public class HazelcastIntentBatchQueue
     private final Set<ApplicationId> myTopics = Sets.newHashSet();
     private final Map<ApplicationId, IntentOperations> outstandingOps
             = Maps.newHashMap();
+
+    private final AbstractListenerRegistry<IntentBatchLeaderEvent, IntentBatchListener>
+            listenerRegistry = new AbstractListenerRegistry<>();
 
     @Activate
     public void activate() {
@@ -103,11 +113,13 @@ public class HazelcastIntentBatchQueue
             }
 
         };
+        eventDispatcher.addSink(IntentBatchLeaderEvent.class, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(IntentBatchLeaderEvent.class);
         leadershipService.removeListener(leaderListener);
         for (ApplicationId appId: batchQueues.keySet()) {
             leadershipService.withdraw(getTopic(appId));
@@ -277,12 +289,6 @@ public class HazelcastIntentBatchQueue
     }
 
     @Override
-    public Set<IntentOperations> getCurrentOperations() {
-        //FIXME this is not really implemented
-        return Collections.emptySet();
-    }
-
-    @Override
     public boolean isLocalLeader(ApplicationId applicationId) {
         return myTopics.contains(applicationId);
     }
@@ -297,5 +303,15 @@ public class HazelcastIntentBatchQueue
         if (this.delegate != null && this.delegate.equals(delegate)) {
             this.delegate = null;
         }
+    }
+
+    @Override
+    public void addListener(IntentBatchListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(IntentBatchListener listener) {
+        listenerRegistry.removeListener(listener);
     }
 }
