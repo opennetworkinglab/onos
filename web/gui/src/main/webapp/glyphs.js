@@ -107,10 +107,14 @@
         });
     }
 
+    function loadDefs(defs) {
+        defStuff(defs, birdViewBox,  birdData);
+        defStuff(defs, glyphViewBox, glyphData);
+        defStuff(defs, badgeViewBox, badgeData);
+    }
+
     onos.ui.addLib('glyphs', {
-        defBird:   function (defs) { defStuff(defs, birdViewBox,  birdData);  },
-        defGlyphs: function (defs) { defStuff(defs, glyphViewBox, glyphData); },
-        defBadges: function (defs) { defStuff(defs, badgeViewBox, badgeData); }
+        loadDefs: loadDefs
     });
 
 }(ONOS));

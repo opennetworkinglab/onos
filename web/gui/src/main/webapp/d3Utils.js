@@ -120,10 +120,10 @@
         return drag;
     }
 
-    function appendGlow(svg) {
+    function loadGlow(defs) {
         // TODO: parameterize color
 
-        var glow = svg.append('filter')
+        var glow = defs.append('filter')
             .attr('x', '-50%')
             .attr('y', '-50%')
             .attr('width', '200%')
@@ -132,10 +132,11 @@
 
         glow.append('feColorMatrix')
             .attr('type', 'matrix')
-            .attr('values', '0 0 0 0  0 ' +
-            '0 0 0 0  0 ' +
-            '0 0 0 0  .7 ' +
-            '0 0 0 1  0 ');
+            .attr('values',
+                '0 0 0 0  0 ' +
+                '0 0 0 0  0 ' +
+                '0 0 0 0  .7 ' +
+                '0 0 0 1  0 ');
 
         glow.append('feGaussianBlur')
             .attr('stdDeviation', 3)
@@ -242,7 +243,7 @@
     // === register the functions as a library
     onos.ui.addLib('d3util', {
         createDragBehavior: createDragBehavior,
-        appendGlow: appendGlow,
+        loadGlow: loadGlow,
         cat7: cat7
     });
 

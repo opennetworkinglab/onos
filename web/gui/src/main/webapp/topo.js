@@ -2831,11 +2831,10 @@
 
     }
 
-    function loadGlyphs(svg) {
+    function setupDefs(svg) {
         var defs = svg.append('defs');
-        gly.defBird(defs);
-        gly.defGlyphs(defs);
-        gly.defBadges(defs);
+        gly.loadDefs(defs);
+        d3u.loadGlow(defs);
     }
 
     function sendUpdateMeta(d, store) {
@@ -2872,9 +2871,8 @@
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
-        // load glyphs and filters...
-        loadGlyphs(svg);
-        d3u.appendGlow(svg);
+        // load glyphs, filters, and other definitions...
+        setupDefs(svg);
 
         panZoomContainer = svg.append('g').attr('id', 'panZoomContainer');
         setupPanZoom();
