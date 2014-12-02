@@ -24,9 +24,8 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ONOS</title>
-
     <link rel="shortcut icon" href="img/onos-logo.png">
+    <title>ONOS</title>
 
     <!-- Third party library code included here -->
     <!--TODO: use the minified version of d3, once debugging is complete -->
@@ -34,7 +33,10 @@
     <script src="tp/topojson.v1.min.js"></script>
     <script src="tp/jquery-2.1.1.min.js"></script>
 
-    <!-- Base library and framework stylesheets included here -->
+    <!-- ONOS UI Framework included here -->
+    <script src="onos.js"></script>
+
+    <!-- Framework and library stylesheets included here -->
     <link rel="stylesheet" href="base.css">
     <link rel="stylesheet" href="onos.css">
     <link rel="stylesheet" href="onosMast.css">
@@ -45,14 +47,6 @@
     <!-- This is where contributed stylesheets get INJECTED -->
     <!-- TODO: replace with template marker and inject refs server-side -->
     <link rel="stylesheet" href="topo.css">
-
-
-    <!-- General library modules included here-->
-    <script src="geometry.js"></script>
-
-    <!-- ONOS UI Framework included here-->
-    <script src="onos.js"></script>
-
 </head>
 <body>
     <div id="frame">
@@ -86,11 +80,12 @@
         });
     </script>
 
-    <!-- Library module files included here -->
+    <!-- Library modules included here -->
     <script src="d3Utils.js"></script>
+    <script src="geometry.js"></script>
     <script src="glyphs.js"></script>
 
-    <!-- Framework module files included here -->
+    <!-- Framework modules included here -->
     <script src="onosMast.js"></script>
     <script src="onosFlash.js"></script>
     <script src="onosQuickHelp.js"></script>
@@ -99,7 +94,7 @@
     <script src="module-svg-template.js"></script>
     <script src="module-div-template.js"></script>
 
-    <!-- Sample views; REMOVE THESE LINES, FOR PRODUCTION -->
+    <!-- Sample Views; REMOVE THESE LINES, FOR PRODUCTION -->
     <script src="sample.js"></script>
     <script src="sampleRadio.js"></script>
     <script src="sampleKeys.js"></script>

@@ -547,7 +547,7 @@ public abstract class TopologyViewMessages {
         String vlan = host.vlan().toString();
         return envelope("showDetails", sid,
                         json(isNullOrEmpty(name) ? hostId.toString() : name,
-                             isNullOrEmpty(type) ? "host" : type,
+                             isNullOrEmpty(type) ? "endstation" : type,
                              new Prop("MAC", host.mac().toString()),
                              new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
                              new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
