@@ -25,6 +25,31 @@ public final class AnnotationKeys {
     private AnnotationKeys() {}
 
     /**
+     * Annotation key for instance name.
+     */
+    public static final String NAME = "name";
+
+    /**
+     * Annotation key for instance type (e.g. host type).
+     */
+    public static final String TYPE = "type";
+
+    /**
+     * Annotation key for latitude (e.g. latitude of device).
+     */
+    public static final String LATITUDE = "latitude";
+
+    /**
+     * Annotation key for longitute (e.g. longitude of device).
+     */
+    public static final String LONGITUDE = "longitude";
+
+    /**
+     * Annotation key for southbound protocol.
+     */
+    public static final String PROTOCOL = "protocol";
+
+    /**
      * Annotation key for durable links.
      */
     public static final String DURABLE = "durable";

@@ -26,6 +26,7 @@ import org.onlab.onos.cluster.NodeId;
 import org.onlab.onos.core.CoreService;
 import org.onlab.onos.mastership.MastershipService;
 import org.onlab.onos.net.Annotated;
+import org.onlab.onos.net.AnnotationKeys;
 import org.onlab.onos.net.Annotations;
 import org.onlab.onos.net.ConnectPoint;
 import org.onlab.onos.net.DefaultEdgeLink;
@@ -325,7 +326,7 @@ public abstract class TopologyViewMessages {
                 .put("master", master(device.id()));
 
         // Generate labels: id, chassis id, no-label, optional-name
-        String name = device.annotations().value("name");
+        String name = device.annotations().value(AnnotationKeys.NAME);
         ArrayNode labels = mapper.createArrayNode();
         labels.add("");
         labels.add(isNullOrEmpty(name) ? device.id().toString() : name);
@@ -362,7 +363,7 @@ public abstract class TopologyViewMessages {
     // Produces a host event message to the client.
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
-        String hostType = host.annotations().value("type");
+        String hostType = host.annotations().value(AnnotationKeys.TYPE);
         ObjectNode payload = mapper.createObjectNode()
                 .put("id", host.id().toString())
                 .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
@@ -423,8 +424,8 @@ public abstract class TopologyViewMessages {
             return;
         }
 
-        String slat = annotations.value("latitude");
-        String slng = annotations.value("longitude");
+        String slat = annotations.value(AnnotationKeys.LATITUDE);
+        String slng = annotations.value(AnnotationKeys.LONGITUDE);
         try {
             if (slat != null && slng != null && !slat.isEmpty() && !slng.isEmpty()) {
                 double lat = Double.parseDouble(slat);
@@ -464,7 +465,7 @@ public abstract class TopologyViewMessages {
     protected ObjectNode deviceDetails(DeviceId deviceId, long sid) {
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
-        String name = annot.value("name");
+        String name = annot.value(AnnotationKeys.NAME);
         int portCount = deviceService.getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
         return envelope("showDetails", sid,
@@ -475,11 +476,11 @@ public abstract class TopologyViewMessages {
                              new Prop("H/W Version", device.hwVersion()),
                              new Prop("S/W Version", device.swVersion()),
                              new Prop("Serial Number", device.serialNumber()),
-                             new Prop("Protocol", annot.value("protocol")),
+                             new Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)),
                              new Separator(),
                              new Prop("Master", master(deviceId)),
-                             new Prop("Latitude", annot.value("latitude")),
-                             new Prop("Longitude", annot.value("longitude")),
+                             new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
+                             new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)),
                              new Separator(),
                              new Prop("Ports", Integer.toString(portCount)),
                              new Prop("Flows", Integer.toString(flowCount))));
@@ -542,8 +543,8 @@ public abstract class TopologyViewMessages {
     protected ObjectNode hostDetails(HostId hostId, long sid) {
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
-        String type = annot.value("type");
-        String name = annot.value("name");
+        String type = annot.value(AnnotationKeys.TYPE);
+        String name = annot.value(AnnotationKeys.NAME);
         String vlan = host.vlan().toString();
         return envelope("showDetails", sid,
                         json(isNullOrEmpty(name) ? hostId.toString() : name,
@@ -552,8 +553,8 @@ public abstract class TopologyViewMessages {
                              new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
                              new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
                              new Separator(),
-                             new Prop("Latitude", annot.value("latitude")),
-                             new Prop("Longitude", annot.value("longitude"))));
+                             new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
+                             new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE))));
     }
 
 
