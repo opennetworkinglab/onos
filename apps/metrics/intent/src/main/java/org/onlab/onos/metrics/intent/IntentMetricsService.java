@@ -45,11 +45,9 @@ public interface IntentMetricsService {
     public EventMetric intentInstalledEventMetric();
 
     /**
-     * Gets the Event Metric for the intent WITHDRAW_REQUESTED events.
+     * Gets the Event Metric for the intent WITHDRAW_REQ events.
      *
-     * TODO: This intent event is not implemented yet.
-     *
-     * @return the Event Metric for the intent WITHDRAW_REQUESTED events.
+     * @return the Event Metric for the intent WITHDRAW_REQ events.
      */
     public EventMetric intentWithdrawRequestedEventMetric();
 

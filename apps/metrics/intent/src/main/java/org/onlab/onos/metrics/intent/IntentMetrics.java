@@ -143,11 +143,9 @@ public class IntentMetrics implements IntentMetricsService,
             case FAILED:
                 // TODO: Just ignore?
                 break;
-                /*
-            case WITHDRAW_REQUESTED:
+            case WITHDRAW_REQ:
                 intentWithdrawRequestedEventMetric.eventReceived();
                 break;
-                */
             case WITHDRAWN:
                 intentWithdrawnEventMetric.eventReceived();
                 break;
