@@ -182,21 +182,31 @@ public class HazelcastLinkResourceStore
 
     @Override
     public Set<ResourceAllocation> getFreeResources(Link link) {
-        Map<ResourceType, Set<? extends ResourceAllocation>> freeResources = getFreeResourcesEx(link);
-        Set<ResourceAllocation> allFree = new HashSet<>();
-        for (Set<? extends ResourceAllocation> r:freeResources.values()) {
-            allFree.addAll(r);
+        TransactionOptions opt = new TransactionOptions();
+        // read-only and will never be commited, thus does not need durability
+        opt.setTransactionType(TransactionType.LOCAL);
+        TransactionContext tx = theInstance.newTransactionContext(opt);
+        tx.beginTransaction();
+        try {
+            Map<ResourceType, Set<? extends ResourceAllocation>> freeResources = getFreeResourcesEx(tx, link);
+            Set<ResourceAllocation> allFree = new HashSet<>();
+            for (Set<? extends ResourceAllocation> r : freeResources.values()) {
+                allFree.addAll(r);
+            }
+            return allFree;
+        } finally {
+            tx.rollbackTransaction();
         }
-        return allFree;
+
     }
 
-    private Map<ResourceType, Set<? extends ResourceAllocation>> getFreeResourcesEx(Link link) {
+    private Map<ResourceType, Set<? extends ResourceAllocation>> getFreeResourcesEx(TransactionContext tx, Link link) {
         // returns capacity - allocated
 
         checkNotNull(link);
         Map<ResourceType, Set<? extends ResourceAllocation>> free = new HashMap<>();
         final Map<ResourceType, Set<? extends ResourceAllocation>> caps = getResourceCapacity(link);
-        final Iterable<LinkResourceAllocations> allocations = getAllocations(link);
+        final Iterable<LinkResourceAllocations> allocations = getAllocations(tx, link);
 
         for (ResourceType type : ResourceType.values()) {
             // there should be class/category of resources
@@ -299,7 +309,7 @@ public class HazelcastLinkResourceStore
         // requested resources
         Set<ResourceAllocation> reqs = allocations.getResourceAllocation(link);
 
-        Map<ResourceType, Set<? extends ResourceAllocation>> available = getFreeResourcesEx(link);
+        Map<ResourceType, Set<? extends ResourceAllocation>> available = getFreeResourcesEx(tx, link);
         for (ResourceAllocation req : reqs) {
             Set<? extends ResourceAllocation> avail = available.get(req.type());
             if (req instanceof BandwidthResourceAllocation) {
@@ -446,7 +456,26 @@ public class HazelcastLinkResourceStore
             }
         }
         return res;
+    }
 
+    private Iterable<LinkResourceAllocations> getAllocations(TransactionContext tx,
+                                                             Link link) {
+        checkNotNull(tx);
+        checkNotNull(link);
+        final LinkKey key = LinkKey.linkKey(link);
+
+        STxMap<LinkKey, List<LinkResourceAllocations>> linkAllocs = getLinkAllocs(tx);
+        List<LinkResourceAllocations> res = null;
+        res = linkAllocs.get(key);
+        if (res == null) {
+            res = linkAllocs.putIfAbsent(key, new ArrayList<LinkResourceAllocations>());
+            if (res == null) {
+                return Collections.emptyList();
+            } else {
+                return res;
+            }
+        }
+        return null;
     }
 
     @Override
