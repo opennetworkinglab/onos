@@ -374,8 +374,6 @@ public class HazelcastIntentStore
         }
     }
 
-    // TODO slice out methods after merging Ali's patch
-    // CHECKSTYLE IGNORE MethodLength FOR NEXT 1 LINES
     @Override
     public List<Operation> batchWrite(BatchWrite batch) {
         // Hazelcast version will never fail for conditional failure now.
@@ -384,6 +382,18 @@ public class HazelcastIntentStore
         List<Pair<Operation, List<Future<?>>>> futures = new ArrayList<>(batch.operations().size());
         List<IntentEvent> events = Lists.newArrayList();
 
+        batchWriteAsync(batch, failed, futures);
+
+        // verify result
+        verifyAsyncWrites(futures, failed, events);
+
+        notifyDelegate(events);
+
+        return failed;
+    }
+
+    private void batchWriteAsync(BatchWrite batch, List<Operation> failed,
+                                 List<Pair<Operation, List<Future<?>>>> futures) {
         for (Operation op : batch.operations()) {
             switch (op.type()) {
             case CREATE_INTENT:
@@ -437,8 +447,18 @@ public class HazelcastIntentStore
                 break;
             }
         }
+    }
 
-        // verify result
+    /**
+     * Checks the async write result Futures and prepare Events to post.
+     *
+     * @param futures async write Futures
+     * @param failed list to output failed batch write operations
+     * @param events list to output events to post as result of writes
+     */
+    private void verifyAsyncWrites(List<Pair<Operation, List<Future<?>>>> futures,
+                                   List<Operation> failed,
+                                   List<IntentEvent> events) {
         for (Pair<Operation, List<Future<?>>> future : futures) {
             final Operation op = future.getLeft();
             final List<Future<?>> subops = future.getRight();
@@ -582,10 +602,6 @@ public class HazelcastIntentStore
                 break;
             }
         }
-
-        notifyDelegate(events);
-
-        return failed;
     }
 
     public final class RemoteIntentStateListener extends EntryAdapter<IntentId, IntentState> {
