@@ -145,8 +145,10 @@
         P: togglePorts,
         U: [unpin, 'Unpin node (hover mouse over)'],
         R: [resetPanZoom, 'Reset pan / zoom'],
-        V: [showTrafficAction, 'Show related traffic'],
-        A: [showAllTrafficAction, 'Show all traffic'],
+        V: [showRelatedIntentsAction, 'Show all related intents'],
+        N: [showNextIntentAction, 'Show next related intent'],
+        W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
+        A: [showAllTrafficAction, 'Monitor all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
         X: [toggleNodeLock, 'Lock / unlock node positions'],
         Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
@@ -209,10 +211,11 @@
         oblique = false;
 
     // constants
-    var hoverModeAll = 1,
+    var hoverModeNone = 0,
+        hoverModeAll = 1,
         hoverModeFlows = 2,
         hoverModeIntents = 3,
-        hoverMode = hoverModeFlows;
+        hoverMode = hoverModeNone;
 
     // D3 selections
     var svg,
@@ -394,7 +397,7 @@
             cancelSummary();
             stopAntTimer();
         } else {
-            hoverMode = hoverModeFlows;
+            hoverMode = hoverModeNone;
         }
     }
 
@@ -1219,22 +1222,20 @@
     }
 
     function requestTrafficForMode() {
-        if (hoverMode === hoverModeAll) {
-            requestAllTraffic();
-        } else if (hoverMode === hoverModeFlows) {
+        if (hoverMode === hoverModeFlows) {
             requestDeviceLinkFlows();
         } else if (hoverMode === hoverModeIntents) {
-            requestSelectTraffic();
+            requestRelatedIntents();
         }
     }
 
-    function showTrafficAction() {
+    function showRelatedIntentsAction() {
         hoverMode = hoverModeIntents;
-        requestSelectTraffic();
-        flash('Related Traffic');
+        requestRelatedIntents();
+        flash('Related intents');
     }
 
-    function requestSelectTraffic() {
+    function requestRelatedIntents() {
         function hoverValid() {
             return hoverMode === hoverModeIntents &&
                 hovered &&
@@ -1242,13 +1243,24 @@
         }
 
         if (validateSelectionContext()) {
-            sendMessage('requestTraffic', {
+            sendMessage('requestRelatedIntents', {
                 ids: selectOrder,
                 hover: hoverValid() ? hovered.id : ''
             });
         }
     }
 
+    function showNextIntentAction() {
+        hoverMode = hoverModeNone;
+        sendMessage('requestNextRelatedIntent', {});
+        flash('Next related intent');
+    }
+
+    function showSelectedIntentTrafficAction() {
+        hoverMode = hoverModeNone;
+        sendMessage('requestSelectedIntentTraffic', {});
+        flash('Monitoring selected intent');
+    }
 
     function showDeviceLinkFlowsAction() {
         hoverMode = hoverModeFlows;
@@ -2010,13 +2022,17 @@
     }
 
     function nodeMouseOver(d) {
-        hovered = d;
-        requestTrafficForMode();
+        if (hovered != d) {
+            hovered = d;
+            requestTrafficForMode();
+        }
     }
 
     function nodeMouseOut(d) {
-        hovered = null;
-        requestTrafficForMode();
+        if (hovered != null) {
+            hovered = null;
+            requestTrafficForMode();
+        }
     }
 
     function addHostIcon(node, radius, iid) {
@@ -2498,7 +2514,7 @@
         wsTrace('rx', msg);
     }
     function wsTrace(rxtx, msg) {
-        console.log('[' + rxtx + '] ' + msg);
+        // console.log('[' + rxtx + '] ' + msg);
     }
 
     // NOTE: Temporary hardcoded example for showing detail pane
@@ -2620,7 +2636,6 @@
             emptySelect();
         } else if (nSel === 1) {
             singleSelect();
-            requestTrafficForMode();
         } else {
             multiSelect();
         }
@@ -2635,12 +2650,14 @@
     function singleSelect() {
         // NOTE: detail is shown from showDetails event callback
         requestDetails();
+        cancelTraffic();
         requestTrafficForMode();
     }
 
     function multiSelect() {
         haveDetails = true;
         populateMultiSelect();
+        cancelTraffic();
         requestTrafficForMode();
     }
 
@@ -2738,7 +2755,7 @@
     function addSingleSelectActions(data) {
         detailPane.append('hr');
         // always want to allow 'show traffic'
-        addAction(detailPane, 'Show Related Traffic', showTrafficAction);
+        addAction(detailPane, 'Show Related Traffic', showRelatedIntentsAction);
 
         if (data.type === 'switch') {
             addAction(detailPane, 'Show Device Flows', showDeviceLinkFlowsAction);
@@ -2748,7 +2765,7 @@
     function addMultiSelectActions() {
         detailPane.append('hr');
         // always want to allow 'show traffic'
-        addAction(detailPane, 'Show Related Traffic', showTrafficAction);
+        addAction(detailPane, 'Show Related Traffic', showRelatedIntentsAction);
         // if exactly two hosts are selected, also want 'add host intent'
         if (nSel() === 2 && allSelectionsClass('host')) {
             addAction(detailPane, 'Create Host-to-Host Flow', addHostIntentAction);

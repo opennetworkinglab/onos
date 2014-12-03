@@ -676,13 +676,16 @@ public abstract class TopologyViewMessages {
                 List<Intent> installables = intentService.getInstallableIntents(intent.id());
                 if (installables != null) {
                     for (Intent installable : installables) {
-                        String cls = isOptical ? trafficClass.type + " optical" : trafficClass.type;
+                        String type = isOptical ? trafficClass.type + " optical" : trafficClass.type;
                         if (installable instanceof PathIntent) {
-                            classifyLinks(cls, biLinks, ((PathIntent) installable).path().links());
+                            classifyLinks(type, biLinks, trafficClass.showTraffic,
+                                          ((PathIntent) installable).path().links());
                         } else if (installable instanceof LinkCollectionIntent) {
-                            classifyLinks(cls, biLinks, ((LinkCollectionIntent) installable).links());
+                            classifyLinks(type, biLinks, trafficClass.showTraffic,
+                                          ((LinkCollectionIntent) installable).links());
                         } else if (installable instanceof OpticalPathIntent) {
-                            classifyLinks(cls, biLinks, ((OpticalPathIntent) installable).path().links());
+                            classifyLinks(type, biLinks, trafficClass.showTraffic,
+                                    ((OpticalPathIntent) installable).path().links());
                         }
                     }
                 }
@@ -695,12 +698,14 @@ public abstract class TopologyViewMessages {
     // Adds the link segments (path or tree) associated with the specified
     // connectivity intent
     private void classifyLinks(String type, Map<LinkKey, BiLink> biLinks,
-                               Iterable<Link> links) {
+                               boolean showTraffic, Iterable<Link> links) {
         if (links != null) {
             for (Link link : links) {
                 BiLink biLink = addLink(biLinks, link);
                 if (isInfrastructureEgress(link)) {
-                    biLink.addLoad(statService.load(link));
+                    if (showTraffic) {
+                        biLink.addLoad(statService.load(link));
+                    }
                     biLink.addClass(type);
                 }
             }
@@ -862,12 +867,18 @@ public abstract class TopologyViewMessages {
 
     // Auxiliary carrier of data for requesting traffic message.
     protected class TrafficClass {
+        public final boolean showTraffic;
         public final String type;
-        public final Set<Intent> intents;
+        public final Iterable<Intent> intents;
 
-        TrafficClass(String type, Set<Intent> intents) {
+        TrafficClass(String type, Iterable<Intent> intents) {
+            this(type, intents, false);
+        }
+
+        TrafficClass(String type, Iterable<Intent> intents, boolean showTraffic) {
             this.type = type;
             this.intents = intents;
+            this.showTraffic = showTraffic;
         }
     }
 

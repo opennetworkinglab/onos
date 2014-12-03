@@ -66,7 +66,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
-    private static final int MAX_THREADS = 8;
+    private static final int MAX_THREADS = 32;
     private static final int DEFAULT_MAX_EVENTS = 1000;
     private static final int DEFAULT_MAX_IDLE_MS = 10;
     private static final int DEFAULT_MAX_BATCH_MS = 50;

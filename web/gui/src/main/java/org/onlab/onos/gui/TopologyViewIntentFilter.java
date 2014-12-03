@@ -33,6 +33,7 @@ import org.onlab.onos.net.intent.PathIntent;
 import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.onos.net.link.LinkService;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,17 +72,19 @@ public class TopologyViewIntentFilter {
      * Finds all path (host-to-host or point-to-point) intents that pertains
      * to the given hosts.
      *
-     * @param hosts   set of hosts to query by
-     * @param devices set of devices to query by
+     * @param hosts         set of hosts to query by
+     * @param devices       set of devices to query by
+     * @param sourceIntents collection of intents to search
      * @return set of intents that 'match' all hosts and devices given
      */
-    Set<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices) {
+    List<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices,
+                                 Iterable<Intent> sourceIntents) {
         // Derive from this the set of edge connect points.
         Set<ConnectPoint> edgePoints = getEdgePoints(hosts);
 
         // Iterate over all intents and produce a set that contains only those
         // intents that target all selected hosts or derived edge connect points.
-        return getIntents(hosts, devices, edgePoints);
+        return getIntents(hosts, devices, edgePoints, sourceIntents);
     }
 
 
@@ -94,10 +97,11 @@ public class TopologyViewIntentFilter {
         return edgePoints;
     }
 
-    // Produces a set of intents that target all selected hosts, devices or connect points.
-    private Set<Intent> getIntents(Set<Host> hosts, Set<Device> devices,
-                                   Set<ConnectPoint> edgePoints) {
-        Set<Intent> intents = new HashSet<>();
+    // Produces a list of intents that target all selected hosts, devices or connect points.
+    private List<Intent> getIntents(Set<Host> hosts, Set<Device> devices,
+                                    Set<ConnectPoint> edgePoints,
+                                    Iterable<Intent> sourceIntents) {
+        List<Intent> intents = new ArrayList<>();
         if (hosts.isEmpty() && devices.isEmpty()) {
             return intents;
         }
@@ -105,7 +109,7 @@ public class TopologyViewIntentFilter {
         Set<OpticalConnectivityIntent> opticalIntents = new HashSet<>();
 
         // Search through all intents and see if they are relevant to our search.
-        for (Intent intent : intentService.getIntents()) {
+        for (Intent intent : sourceIntents) {
             if (intentService.getIntentState(intent.id()) == INSTALLED) {
                 boolean isRelevant = false;
                 if (intent instanceof HostToHostIntent) {
@@ -140,7 +144,7 @@ public class TopologyViewIntentFilter {
     }
 
     // Indicates whether the specified intent involves all of the given hosts.
-    private boolean isIntentRelevantToHosts(HostToHostIntent intent, Set<Host> hosts) {
+    private boolean isIntentRelevantToHosts(HostToHostIntent intent, Iterable<Host> hosts) {
         for (Host host : hosts) {
             HostId id = host.id();
             // Bail if intent does not involve this host.
@@ -152,7 +156,7 @@ public class TopologyViewIntentFilter {
     }
 
     // Indicates whether the specified intent involves all of the given devices.
-    private boolean isIntentRelevantToDevices(Intent intent, Set<Device> devices) {
+    private boolean isIntentRelevantToDevices(Intent intent, Iterable<Device> devices) {
         List<Intent> installables = intentService.getInstallableIntents(intent.id());
         for (Device device : devices) {
             if (!isIntentRelevantToDevice(installables, device)) {
@@ -192,7 +196,8 @@ public class TopologyViewIntentFilter {
         return false;
     }
 
-    private boolean isIntentRelevant(PointToPointIntent intent, Set<ConnectPoint> edgePoints) {
+    private boolean isIntentRelevant(PointToPointIntent intent,
+                                     Iterable<ConnectPoint> edgePoints) {
         for (ConnectPoint point : edgePoints) {
             // Bail if intent does not involve this edge point.
             if (!point.equals(intent.egressPoint()) &&
@@ -205,7 +210,7 @@ public class TopologyViewIntentFilter {
 
     // Indicates whether the specified intent involves all of the given edge points.
     private boolean isIntentRelevant(MultiPointToSinglePointIntent intent,
-                                     Set<ConnectPoint> edgePoints) {
+                                     Iterable<ConnectPoint> edgePoints) {
         for (ConnectPoint point : edgePoints) {
             // Bail if intent does not involve this edge point.
             if (!point.equals(intent.egressPoint()) &&
@@ -218,7 +223,7 @@ public class TopologyViewIntentFilter {
 
     // Indicates whether the specified intent involves all of the given edge points.
     private boolean isIntentRelevant(OpticalConnectivityIntent opticalIntent,
-                                     Set<Intent> intents) {
+                                     Iterable<Intent> intents) {
         Link ccSrc = getFirstLink(opticalIntent.getSrc(), false);
         Link ccDst = getFirstLink(opticalIntent.getDst(), true);
 
