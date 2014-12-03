@@ -101,7 +101,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         masterService.addListener(roleListener);
 
         LinkDiscovery ld;
-        for (Device device : deviceService.getDevices()) {
+        for (Device device : deviceService.getAvailableDevices()) {
             ld = new LinkDiscovery(device, packetSevice, masterService,
                               providerService, useBDDP);
             discoverers.put(device.id(), ld);
