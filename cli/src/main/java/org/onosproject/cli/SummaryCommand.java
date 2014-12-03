@@ -46,7 +46,7 @@ public class SummaryCommand extends AbstractShellCommand {
                     .put("devices", topology.deviceCount())
                     .put("links", topology.linkCount())
                     .put("hosts", get(HostService.class).getHostCount())
-                    .put("clusters", topology.clusterCount())
+                    .put("SCC(s)", topology.clusterCount())
                     .put("paths", topology.pathCount())
                     .put("flows", get(FlowRuleService.class).getFlowRuleCount())
                     .put("intents", get(IntentService.class).getIntentCount()));
@@ -54,7 +54,7 @@ public class SummaryCommand extends AbstractShellCommand {
             print("node=%s, version=%s",
                   get(ClusterService.class).getLocalNode().ip(),
                   get(CoreService.class).version().toString());
-            print("nodes=%d, devices=%d, links=%d, hosts=%d, clusters=%s, paths=%d, flows=%d, intents=%d",
+            print("nodes=%d, devices=%d, links=%d, hosts=%d, SCC(s)=%s, paths=%d, flows=%d, intents=%d",
                   get(ClusterService.class).getNodes().size(),
                   get(DeviceService.class).getDeviceCount(),
                   get(LinkService.class).getLinkCount(),
