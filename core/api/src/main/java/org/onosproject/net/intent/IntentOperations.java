@@ -44,6 +44,8 @@ public final class IntentOperations {
     private IntentOperations(List<IntentOperation> operations, ApplicationId appId) {
         checkNotNull(operations);
         checkNotNull(appId);
+        // TODO: consider check whether operations are not empty because empty batch is meaningless
+        // but it affects the existing code to add this checking
 
         this.operations = operations;
         this.appId = appId;
