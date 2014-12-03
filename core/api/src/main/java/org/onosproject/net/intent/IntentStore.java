@@ -133,7 +133,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param batch BatchWrite to execute
      * @return failed operations
      */
-     List<Operation> batchWrite(BatchWrite batch);
+    List<Operation> batchWrite(BatchWrite batch);
 
     public static class BatchWrite {
 
