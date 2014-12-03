@@ -15,16 +15,9 @@
  */
 package org.onosproject.net.intent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.onosproject.net.intent.IntentStore.BatchWrite.Operation;
+import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.store.Store;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -135,96 +128,4 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      */
     List<Operation> batchWrite(BatchWrite batch);
 
-    public static class BatchWrite {
-
-        public enum OpType {
-            CREATE_INTENT,
-            REMOVE_INTENT,
-            SET_STATE,
-            SET_INSTALLABLE,
-            REMOVE_INSTALLED
-        }
-
-        List<Operation> operations = new ArrayList<>();
-
-        public List<Operation> operations() {
-            return Collections.unmodifiableList(operations);
-        }
-
-        public boolean isEmpty() {
-            return operations.isEmpty();
-        }
-
-        public BatchWrite createIntent(Intent intent) {
-            operations.add(Operation.of(OpType.CREATE_INTENT,
-                                        ImmutableList.of(intent)));
-            return this;
-        }
-
-        public BatchWrite removeIntent(IntentId intentId) {
-            operations.add(Operation.of(OpType.REMOVE_INTENT,
-                                        ImmutableList.of(intentId)));
-            return this;
-        }
-
-        public BatchWrite setState(Intent intent, IntentState newState) {
-            operations.add(Operation.of(OpType.SET_STATE,
-                                        ImmutableList.of(intent, newState)));
-            return this;
-        }
-
-        public BatchWrite setInstallableIntents(IntentId intentId, List<Intent> installableIntents) {
-            operations.add(Operation.of(OpType.SET_INSTALLABLE,
-                                        ImmutableList.of(intentId, installableIntents)));
-            return this;
-        }
-
-        public BatchWrite removeInstalledIntents(IntentId intentId) {
-            operations.add(Operation.of(OpType.REMOVE_INSTALLED,
-                                        ImmutableList.of(intentId)));
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("operations", operations)
-                    .toString();
-        }
-
-        public static class Operation {
-            final OpType type;
-            final ImmutableList<Object> args;
-
-            public static Operation of(OpType type, List<Object> args) {
-                return new Operation(type, args);
-            }
-
-            public Operation(OpType type, List<Object> args) {
-                this.type = checkNotNull(type);
-                this.args = ImmutableList.copyOf(args);
-            }
-
-            public OpType type() {
-                return type;
-            }
-
-            public ImmutableList<Object> args() {
-                return args;
-            }
-
-            @SuppressWarnings("unchecked")
-            public <T> T arg(int i) {
-                return (T) args.get(i);
-            }
-
-            @Override
-            public String toString() {
-                return MoreObjects.toStringHelper(getClass())
-                        .add("type", type)
-                        .add("args", args)
-                        .toString();
-            }
-        }
-    }
 }

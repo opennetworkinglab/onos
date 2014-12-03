@@ -22,13 +22,14 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
-import org.onosproject.net.intent.IntentStore.BatchWrite.Operation;
+import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 

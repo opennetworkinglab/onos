@@ -48,7 +48,7 @@ import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
-import org.onosproject.net.intent.IntentStore.BatchWrite;
+import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
