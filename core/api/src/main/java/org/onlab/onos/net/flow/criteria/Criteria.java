@@ -178,9 +178,8 @@ public final class Criteria {
         return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }
 
-
     /**
-     * Implementations of criteria.
+     * Implementation of input port criterion.
      */
     public static final class PortCriterion implements Criterion {
         private final PortNumber port;
@@ -226,6 +225,9 @@ public final class Criteria {
     }
 
 
+    /**
+     * Implementation of MAC address criterion.
+     */
     public static final class EthCriterion implements Criterion {
         private final MacAddress mac;
         private final Type type;
@@ -273,6 +275,9 @@ public final class Criteria {
 
     }
 
+    /**
+     * Implementation of Ethernet type criterion.
+     */
     public static final class EthTypeCriterion implements Criterion {
 
         private final Short ethType;
@@ -318,7 +323,9 @@ public final class Criteria {
 
     }
 
-
+    /**
+     * Implementation of IP address criterion.
+     */
     public static final class IPCriterion implements Criterion {
 
         private final IpPrefix ip;
@@ -366,7 +373,9 @@ public final class Criteria {
 
     }
 
-
+    /**
+     * Implementation of Internet Protocol Number criterion.
+     */
     public static final class IPProtocolCriterion implements Criterion {
 
         private final Byte proto;
@@ -411,7 +420,9 @@ public final class Criteria {
 
     }
 
-
+    /**
+     * Implementation of VLAN priority criterion.
+     */
     public static final class VlanPcpCriterion implements Criterion {
 
         private final Byte vlanPcp;
@@ -457,7 +468,9 @@ public final class Criteria {
 
     }
 
-
+    /**
+     * Implementation of VLAN ID criterion.
+     */
     public static final class VlanIdCriterion implements Criterion {
 
 
@@ -504,7 +517,9 @@ public final class Criteria {
 
     }
 
-
+    /**
+     * Implementation of TCP port criterion.
+     */
     public static final class TcpPortCriterion implements Criterion {
 
         private final Short tcpPort;
@@ -551,6 +566,9 @@ public final class Criteria {
         }
     }
 
+    /**
+     * Implementation of MPLS tag criterion.
+     */
     public static final class MplsCriterion implements Criterion {
 
         private final Integer mplsLabel;
@@ -596,7 +614,9 @@ public final class Criteria {
 
     }
 
-
+    /**
+     * Implementation of lambda (wavelength) criterion.
+     */
     public static final class LambdaCriterion implements Criterion {
 
         private final short lambda;
@@ -641,6 +661,9 @@ public final class Criteria {
         }
     }
 
+    /**
+     * Implementation of optical signal type criterion.
+     */
     public static final class OpticalSignalTypeCriterion implements Criterion {
 
         private final Short signalType;
