@@ -109,9 +109,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Deactivate
     public void deactivate() {
-        for (OpenFlowSwitch sw : controller.getSwitches()) {
-            providerService.deviceDisconnected(DeviceId.deviceId(uri(sw.getId())));
-        }
         providerRegistry.unregister(this);
         controller.removeListener(listener);
         providerService = null;

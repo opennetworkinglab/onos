@@ -97,7 +97,6 @@ public class OpenFlowDeviceProviderTest {
     @After
     public void tearDown() {
         provider.deactivate();
-        assertTrue("devices should be removed", registry.connected.isEmpty());
         assertNull("listener should be removed", controller.listener);
         provider.controller = null;
         provider.providerRegistry = null;
