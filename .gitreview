@@ -1,6 +1,6 @@
 [gerrit]
 host=gerrit.onosproject.org
 port=29418
-project=onos-next.git
+project=onos.git
 defaultremote=origin
 defaultbranch=master
