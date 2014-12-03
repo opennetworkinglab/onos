@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -41,7 +42,9 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -100,6 +103,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     private int appIdBase;
     private int count;
     private boolean add;
+    private final Set<ApplicationId> myAppIds = new HashSet<>();
 
     @Override
     protected void execute() {
@@ -153,7 +157,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         for (int app = 0; app < apps; app++) {
             for (int i = 1; i <= intentsPerApp; i++) {
                 TrafficSelector s = selector
-                        .matchEthSrc(MacAddress.valueOf(i + app * intentsPerApp))
+                        .matchEthSrc(MacAddress.valueOf(i + (app + appIdBase) * intentsPerApp))
                         .build();
                 intents.put(app, new PointToPointIntent(appId(app), s, treatment,
                                                         ingress, egress));
@@ -204,8 +208,11 @@ public class IntentPushTestCommand extends AbstractShellCommand
      * @return command-line application identifier
      */
     protected ApplicationId appId(Integer id) {
-        return get(CoreService.class).registerApplication("org.onosproject.cli-"
-                                                                  + (id + appIdBase));
+        ApplicationId appId = get(CoreService.class)
+                                .registerApplication("org.onosproject.cli-"
+                                                     + (id + appIdBase));
+        myAppIds.add(appId);
+        return appId;
     }
 
     /**
@@ -240,6 +247,10 @@ public class IntentPushTestCommand extends AbstractShellCommand
             = EnumSet.of(Type.INSTALL_REQ, Type.WITHDRAW_REQ);
     @Override
     public synchronized void event(IntentEvent event) {
+        if (!myAppIds.contains(event.subject().appId())) {
+            // not my event, ignore
+            return;
+        }
         Type expected = add ? Type.INSTALLED : Type.WITHDRAWN;
         if (event.type() == expected) {
             end = Math.max(end, event.time());
