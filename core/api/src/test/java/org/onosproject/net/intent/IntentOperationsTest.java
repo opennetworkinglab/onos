@@ -20,6 +20,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.NetTestTools;
@@ -42,6 +44,8 @@ public class IntentOperationsTest {
     final ConnectPoint ingress = NetTestTools.connectPoint("ingress", 3);
     final TrafficSelector selector = new IntentTestsMocks.MockSelector();
     final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
+
+    private final ApplicationId appId = new DefaultApplicationId((short) 1, "IntentOperationsTest");
 
     private Intent intent;
     protected IdGenerator idGenerator = new MockIdGenerator();
@@ -78,15 +82,15 @@ public class IntentOperationsTest {
     @Test
     public void testEquals() {
         final IntentOperations operations1 =
-                IntentOperations.builder(null) //FIXME null
+                IntentOperations.builder(appId)
                         .addSubmitOperation(intent)
                         .build();
         final IntentOperations sameAsOperations1 =
-                IntentOperations.builder(null) //FIXME null
+                IntentOperations.builder(appId)
                         .addSubmitOperation(intent)
                         .build();
         final IntentOperations operations2 =
-                IntentOperations.builder(null) //FIXME null
+                IntentOperations.builder(appId)
                         .addReplaceOperation(intent.id(), intent)
                         .build();
 
@@ -102,7 +106,7 @@ public class IntentOperationsTest {
     @Test
     public void testConstruction() {
         final IntentOperations operations =
-                IntentOperations.builder(null) //FIXME
+                IntentOperations.builder(appId)
                         .addUpdateOperation(intent.id())
                         .addWithdrawOperation(intent.id())
                         .build();

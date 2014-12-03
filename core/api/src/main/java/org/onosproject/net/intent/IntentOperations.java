@@ -42,6 +42,9 @@ public final class IntentOperations {
      * @param operations list of intent operations
      */
     private IntentOperations(List<IntentOperation> operations, ApplicationId appId) {
+        checkNotNull(operations);
+        checkNotNull(appId);
+
         this.operations = operations;
         this.appId = appId;
     }
