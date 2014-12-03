@@ -133,7 +133,7 @@ public class IntentManager
         trackerService.setDelegate(topoDelegate);
         batchService.setDelegate(batchDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
-        executor = newFixedThreadPool(NUM_THREADS, namedThreads("onos-intent"));
+        executor = newFixedThreadPool(NUM_THREADS, namedThreads("onos-intent-%d"));
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
