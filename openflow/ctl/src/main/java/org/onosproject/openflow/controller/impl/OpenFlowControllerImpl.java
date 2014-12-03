@@ -17,6 +17,7 @@ package org.onosproject.openflow.controller.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,11 +43,15 @@ import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
+import org.projectfloodlight.openflow.protocol.OFFactories;
+import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +84,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             ArrayListMultimap.create();
 
     protected Set<OpenFlowEventListener> ofEventListener = Sets.newHashSet();
+
+    protected Multimap<Dpid, OFFlowStatsEntry> fullStats =
+            ArrayListMultimap.create();
 
     private final Controller ctrl = new Controller();
 
@@ -160,6 +169,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void processPacket(Dpid dpid, OFMessage msg) {
+        Collection<OFFlowStatsEntry> stats;
         switch (msg.getType()) {
         case PORT_STATUS:
             for (OpenFlowSwitchListener l : ofSwitchListener) {
@@ -186,7 +196,15 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     l.switchChanged(dpid);
                 }
             }
-            // fall through to invoke handler
+            stats = publishStats(dpid, reply);
+            if (stats != null) {
+                OFFlowStatsReply.Builder rep =
+                        OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
+                rep.setEntries(Lists.newLinkedList(stats));
+                executor.submit(new OFMessageHandler(dpid, rep.build()));
+            }
+            break;
+
         case FLOW_REMOVED:
         case ERROR:
         case BARRIER_REPLY:
@@ -216,6 +234,20 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             log.warn("Handling message type {} not yet implemented {}",
                     msg.getType(), msg);
         }
+    }
+
+    private synchronized Collection<OFFlowStatsEntry> publishStats(Dpid dpid,
+                                                                   OFStatsReply reply) {
+        //TODO: Get rid of synchronized
+        if (reply.getStatsType() != OFStatsType.FLOW) {
+            return null;
+        }
+        final OFFlowStatsReply replies = (OFFlowStatsReply) reply;
+        fullStats.putAll(dpid, replies.getEntries());
+        if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+            return fullStats.removeAll(dpid);
+        }
+        return null;
     }
 
     @Override

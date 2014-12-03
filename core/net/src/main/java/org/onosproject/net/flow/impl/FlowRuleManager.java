@@ -355,7 +355,7 @@ public class FlowRuleManager
 
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
-            List<FlowEntry> storedRules = Lists.newLinkedList(store.getFlowEntries(deviceId));
+            Set<FlowEntry> storedRules = Sets.newHashSet(store.getFlowEntries(deviceId));
 
             for (FlowEntry rule : flowEntries) {
                 if (storedRules.remove(rule)) {

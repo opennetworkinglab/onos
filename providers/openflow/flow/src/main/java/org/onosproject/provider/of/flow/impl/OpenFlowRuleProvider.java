@@ -58,8 +58,6 @@ import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
-import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
@@ -332,24 +330,17 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         private synchronized void pushFlowMetrics(Dpid dpid, OFStatsReply stats) {
-            if (stats.getStatsType() != OFStatsType.FLOW) {
-                return;
-            }
+
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
             final OFFlowStatsReply replies = (OFFlowStatsReply) stats;
-            //final List<FlowRule> entries = Lists.newLinkedList();
 
-            for (OFFlowStatsEntry reply : replies.getEntries()) {
-                if (!tableMissRule(dpid, reply)) {
-                    completeEntries.put(did, new FlowEntryBuilder(dpid, reply).build());
-                }
-            }
+            List<FlowEntry> flowEntries = replies.getEntries().stream()
+                    .filter(entry -> !tableMissRule(dpid, entry))
+                    .map(entry -> new FlowEntryBuilder(dpid, entry).build())
+                    .collect(Collectors.toList());
 
-            if (!stats.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
-                log.trace("sending flowstats to core {}", completeEntries.get(did));
-                providerService.pushFlowMetrics(did, completeEntries.get(did));
-                completeEntries.removeAll(did);
-            }
+            providerService.pushFlowMetrics(did, flowEntries);
+
         }
 
         private boolean tableMissRule(Dpid dpid, OFFlowStatsEntry reply) {
