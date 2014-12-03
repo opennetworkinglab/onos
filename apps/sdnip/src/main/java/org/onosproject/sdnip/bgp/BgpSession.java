@@ -32,6 +32,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
@@ -236,7 +237,7 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
-     * Closes the netty channel.
+     * Closes the Netty channel.
      *
      * @param ctx the Channel Handler Context
      */
@@ -289,7 +290,22 @@ public class BgpSession extends SimpleChannelHandler {
         log.debug("BGP Session Disconnected from {} on {}",
                   ctx.getChannel().getRemoteAddress(),
                   ctx.getChannel().getLocalAddress());
+        processChannelDisconnected();
+    }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
+        log.debug("BGP Session Exception Caught from {} on {}: {}",
+                  ctx.getChannel().getRemoteAddress(),
+                  ctx.getChannel().getLocalAddress(),
+                  e);
+        processChannelDisconnected();
+    }
+
+    /**
+     * Processes the channel being disconnected.
+     */
+    private void processChannelDisconnected() {
         //
         // Withdraw the routes advertised by this BGP peer
         //
