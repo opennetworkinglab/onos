@@ -40,5 +40,5 @@ fi
 
 # Execute the remote commands
 for node in $nodes; do
-    ssh -t $ONOS_USER@${node} "sudo service onos ${2:-status}"
+    ssh $ONOS_USER@${node} "sudo service onos ${2:-status}"
 done

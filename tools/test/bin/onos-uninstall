@@ -8,7 +8,7 @@
 
 remote=$ONOS_USER@${1:-$OCI}
 
-ssh -t $remote "
+ssh $remote "
     sudo service onos stop 1>/dev/null 2>/dev/null
     sudo rm -fr $ONOS_INSTALL_DIR
 "

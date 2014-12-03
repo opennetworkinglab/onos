@@ -23,7 +23,7 @@ remote=$ONOS_USER@$node
 
 scp -q $ONOS_TAR $remote:/tmp
 
-ssh -t $remote "
+ssh $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
 
     # Prepare a landing zone and unroll the bits
@@ -45,7 +45,6 @@ ssh -t $remote "
 
     # Remove any previous ON.Lab bits from ~/.m2 repo and re-stage it.
     rm -fr ~/.m2/repository/org/onlab
-    mkdir -p ~/.m2/repository/org/onlab
     cp -r $ONOS_INSTALL_DIR/$KARAF_DIST/system/org/onlab ~/.m2/repository/org/onlab
 
     # Drop log level for the console
