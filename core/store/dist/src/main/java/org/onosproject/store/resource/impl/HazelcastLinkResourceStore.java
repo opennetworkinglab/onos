@@ -355,7 +355,16 @@ public class HazelcastLinkResourceStore
         // all requests allocatable => add allocation
         final LinkKey linkKey = LinkKey.linkKey(link);
         STxMap<LinkKey, List<LinkResourceAllocations>> linkAllocs = getLinkAllocs(tx);
-        final List<LinkResourceAllocations> before = linkAllocs.get(linkKey);
+        List<LinkResourceAllocations> before = linkAllocs.get(linkKey);
+        if (before == null) {
+            List<LinkResourceAllocations> after = new ArrayList<>();
+            after.add(allocations);
+            before = linkAllocs.putIfAbsent(linkKey, after);
+            if (before != null) {
+                // concurrent allocation detected, retry transaction
+                throw new TransactionException("Concurrent Allocation, retry");
+            }
+        }
         List<LinkResourceAllocations> after = new ArrayList<>(before.size() + 1);
         after.addAll(before);
         after.add(allocations);
@@ -480,7 +489,7 @@ public class HazelcastLinkResourceStore
         List<LinkResourceAllocations> res = null;
         res = linkAllocs.get(key);
         if (res == null) {
-            res = linkAllocs.putIfAbsent(key, new ArrayList<LinkResourceAllocations>());
+            res = linkAllocs.putIfAbsent(key, new ArrayList<>());
             if (res == null) {
                 return Collections.emptyList();
             } else {
