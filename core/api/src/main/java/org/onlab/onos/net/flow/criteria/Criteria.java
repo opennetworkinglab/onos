@@ -109,9 +109,9 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on IP src field using the specified value.
+     * Creates a match on IP source field using the specified value.
      *
-     * @param ip ip src value
+     * @param ip ip source value
      * @return match criterion
      */
     public static Criterion matchIPSrc(IpPrefix ip) {
@@ -119,9 +119,9 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on IP dst field using the specified value.
+     * Creates a match on IP destination field using the specified value.
      *
-     * @param ip ip src value
+     * @param ip ip source value
      * @return match criterion
      */
     public static Criterion matchIPDst(IpPrefix ip) {
