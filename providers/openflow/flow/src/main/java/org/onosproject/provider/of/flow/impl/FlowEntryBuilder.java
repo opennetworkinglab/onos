@@ -177,7 +177,8 @@ public class FlowEntryBuilder {
                 break;
             case EXPERIMENTER:
                 OFActionExperimenter exp = (OFActionExperimenter) act;
-                if (exp.getExperimenter() == 0x80005A06) {
+                if (exp.getExperimenter() == 0x80005A06 ||
+                        exp.getExperimenter() == 0x748771) {
                     OFActionCircuit ct = (OFActionCircuit) exp;
                     builder.setLambda(((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber());
                 } else {
