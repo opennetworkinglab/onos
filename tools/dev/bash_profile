@@ -54,7 +54,7 @@ alias pub='onos-push-update-bundle'
 
 # Short-hand for tailing the ONOS (karaf) log 
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
-alias tlo='tl | grep --colour=always org.onlab'
+alias tlo='tl | grep --colour=always -E -e "org.onlab|org.onosproject"'
 alias ll='less $KARAF_LOG'
 
 # Pretty-print JSON output
