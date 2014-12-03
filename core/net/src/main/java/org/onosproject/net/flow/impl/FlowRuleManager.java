@@ -103,7 +103,7 @@ public class FlowRuleManager
 
     @Activate
     public void activate() {
-        futureService = Executors.newCachedThreadPool(namedThreads("provider-future-listeners"));
+        futureService = Executors.newCachedThreadPool(namedThreads("provider-future-listeners-%d"));
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
         log.info("Started");
