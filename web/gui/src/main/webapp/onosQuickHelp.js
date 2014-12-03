@@ -74,7 +74,7 @@
     // layout configuration
     var pad = 8,
         offy = 45,
-        dy = 14,
+        dy = 10,
         offDesc = 8;
 
     // D3 magic

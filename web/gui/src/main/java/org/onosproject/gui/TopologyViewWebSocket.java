@@ -213,6 +213,7 @@ public class TopologyViewWebSocket
             processMessage((ObjectNode) mapper.reader().readTree(data));
         } catch (Exception e) {
             log.warn("Unable to parse GUI request {} due to {}", data, e);
+            log.warn("Boom!!!", e);
         }
     }
 
@@ -384,7 +385,6 @@ public class TopologyViewWebSocket
     }
 
 
-
     private Set<ConnectPoint> getHostLocations(Set<HostId> hostIds) {
         Set<ConnectPoint> points = new HashSet<>();
         for (HostId hostId : hostIds) {
@@ -459,21 +459,19 @@ public class TopologyViewWebSocket
         // Cancel any other traffic monitoring mode.
         stopTrafficMonitoring();
 
+        // Get the set of selected hosts and their intents.
+        ArrayNode ids = (ArrayNode) payload.path("ids");
+        selectedHosts = getHosts(ids);
+        selectedDevices = getDevices(ids);
+        selectedIntents = intentFilter.findPathIntents(selectedHosts, selectedDevices,
+                                                       intentService.getIntents());
+        currentIntentIndex = -1;
+
         String hover = string(payload, "hover");
         if (haveSelectedIntents()) {
-            // Get the set of selected hosts and their intents.
-            ArrayNode ids = (ArrayNode) payload.path("ids");
-            selectedHosts = getHosts(ids);
-            selectedDevices = getDevices(ids);
-            selectedIntents = intentFilter.findPathIntents(selectedHosts, selectedDevices,
-                                                           intentService.getIntents());
-            currentIntentIndex = -1;
-
             // Send a message to highlight all links of all monitored intents.
             sendMessage(trafficMessage(sid, new TrafficClass("primary", selectedIntents)));
-        }
-
-        if (!isNullOrEmpty(hover)) {
+        } else if (!isNullOrEmpty(hover)) {
             // If there is a hover node, include it in the selection and find intents.
             processExtendedSelection(sid, hover);
         }
@@ -484,19 +482,21 @@ public class TopologyViewWebSocket
     }
 
     private void processExtendedSelection(long sid, String hover) {
-        Set<Host> hoverSelHosts = new HashSet<>(selectedHosts);
-        Set<Device> hoverSelDevices = new HashSet<>(selectedDevices);
-        addHover(hoverSelHosts, hoverSelDevices, hover);
+        if (haveSelectedIntents()) {
+            Set<Host> hoverSelHosts = new HashSet<>(selectedHosts);
+            Set<Device> hoverSelDevices = new HashSet<>(selectedDevices);
+            addHover(hoverSelHosts, hoverSelDevices, hover);
 
-        List<Intent> primary =
-                intentFilter.findPathIntents(hoverSelHosts, hoverSelDevices,
-                                             selectedIntents);
-        Set<Intent> secondary = new HashSet<>(selectedIntents);
-        secondary.removeAll(primary);
+            List<Intent> primary =
+                    intentFilter.findPathIntents(hoverSelHosts, hoverSelDevices,
+                                                 selectedIntents);
+            Set<Intent> secondary = new HashSet<>(selectedIntents);
+            secondary.removeAll(primary);
 
-        // Send a message to highlight all links of all monitored intents.
-        sendMessage(trafficMessage(sid, new TrafficClass("primary", primary),
-                                   new TrafficClass("secondary", secondary)));
+            // Send a message to highlight all links of all monitored intents.
+            sendMessage(trafficMessage(sid, new TrafficClass("primary", primary),
+                                       new TrafficClass("secondary", secondary)));
+        }
     }
 
     // Requests next of the related intents.
@@ -522,6 +522,9 @@ public class TopologyViewWebSocket
     // Requests monitoring of traffic for the selected intent.
     private void requestSelectedIntentTraffic(ObjectNode event) {
         if (haveSelectedIntents()) {
+            if (currentIntentIndex < 0) {
+                currentIntentIndex = 0;
+            }
             Intent selectedIntent = selectedIntents.get(currentIntentIndex);
             log.info("Requested traffic for selected {}", selectedIntent.id());
 
