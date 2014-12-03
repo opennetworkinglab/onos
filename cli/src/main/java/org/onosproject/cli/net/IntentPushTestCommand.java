@@ -94,7 +94,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
 
     private IntentService service;
     private CountDownLatch latch;
-    private long start, end;
+    private volatile long start, end;
     private int apps;
     private int intentsPerApp;
     private int appIdBase;
@@ -239,11 +239,14 @@ public class IntentPushTestCommand extends AbstractShellCommand
     private static final EnumSet<IntentEvent.Type> IGNORE_EVENT
             = EnumSet.of(Type.INSTALL_REQ, Type.WITHDRAW_REQ);
     @Override
-    public void event(IntentEvent event) {
+    public synchronized void event(IntentEvent event) {
         Type expected = add ? Type.INSTALLED : Type.WITHDRAWN;
         if (event.type() == expected) {
-            end = event.time();
+            end = Math.max(end, event.time());
             if (latch != null) {
+                if (latch.getCount() == 0) {
+                    log.warn("Latch was already 0 before counting down?");
+                }
                 latch.countDown();
             } else {
                 log.warn("install event latch is null");
