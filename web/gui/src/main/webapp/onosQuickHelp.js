@@ -138,12 +138,18 @@
     }
 
     function aggregateData(bindings) {
-        var gmap = d3.map(bindings.globalKeys),
+        var hf = '_helpFormat',
+            gmap = d3.map(bindings.globalKeys),
             vmap = d3.map(bindings.viewKeys),
-            gkeys = gmap.keys(),
-            vkeys = vmap.keys(),
+            fmt = vmap.get(hf),
             vgest = bindings.viewGestures,
+            gkeys = gmap.keys(),
+            vkeys,
             sep = 0;
+
+        // filter out help format entry
+        vmap.remove(hf);
+        vkeys = vmap.keys(),
 
         gkeys.sort();
         vkeys.sort();

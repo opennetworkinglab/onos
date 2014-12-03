@@ -485,19 +485,21 @@
             var event = d3.event,
                 keyCode = event.keyCode,
                 key = whatKey(keyCode),
-                gk = keyHandler.globalKeys[key],
+                kh = keyHandler,
+                gk = kh.globalKeys[key],
                 gcb = isF(gk) || (isA(gk) && isF(gk[0])),
-                vk = keyHandler.viewKeys[key],
-                vcb = isF(vk) || (isA(vk) && isF(vk[0])) || isF(keyHandler.viewFn);
+                vk = kh.viewKeys[key],
+                vcb = isF(vk) || (isA(vk) && isF(vk[0])) || isF(kh.viewFn),
+                token = current.view.token();
 
             // global callback?
-            if (gcb && gcb(current.view.token(), key, keyCode, event)) {
+            if (gcb && gcb(token, key, keyCode, event)) {
                 // if the event was 'handled', we are done
                 return;
             }
             // otherwise, let the view callback have a shot
             if (vcb) {
-                vcb(current.view.token(), key, keyCode, event);
+                vcb(token, key, keyCode, event);
             }
         }
 

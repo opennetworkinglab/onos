@@ -134,26 +134,37 @@
         equals: injectStartupEvents,
         dash: injectTestEvent,
 
-        E: [equalizeMasters, 'Equalize mastership roles'],
         O: [toggleSummary, 'Toggle ONOS summary pane'],
         I: [toggleInstances, 'Toggle ONOS instances pane'],
         D: [toggleDetails, 'Disable / enable details pane'],
-        B: [toggleBg, 'Toggle background image'],
+
         H: [toggleHosts, 'Toggle host visibility'],
         M: [toggleOffline, 'Toggle offline visibility'],
-        L: [cycleLabels, 'Cycle device labels'],
+        B: [toggleBg, 'Toggle background image'],
         P: togglePorts,
+
+        X: [toggleNodeLock, 'Lock / unlock node positions'],
+        Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
+        L: [cycleLabels, 'Cycle device labels'],
         U: [unpin, 'Unpin node (hover mouse over)'],
         R: [resetPanZoom, 'Reset pan / zoom'],
+
         V: [showRelatedIntentsAction, 'Show all related intents'],
         rightArrow: [showNextIntentAction, 'Show next related intent'],
         leftArrow: [showPrevIntentAction, 'Show previous related intent'],
         W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
         A: [showAllTrafficAction, 'Monitor all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
-        X: [toggleNodeLock, 'Lock / unlock node positions'],
-        Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
-        esc: handleEscape
+
+        E: [equalizeMasters, 'Equalize mastership roles'],
+
+        esc: handleEscape,
+
+        _helpFormat: [
+            ['O', 'I', 'D', '-', 'H', 'M', 'B', 'P' ],
+            ['X', 'Z', 'L', 'U', 'R' ],
+            ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
+        ]
     };
 
     // mouse gestures
@@ -2565,12 +2576,10 @@
 
     function selectObject(obj, el) {
         var n,
-            srcEv = d3.event.sourceEvent,
-            meta = srcEv.metaKey,
-            shift = srcEv.shiftKey;
+            ev = d3.event.sourceEvent;
 
-        // if the meta key is pressed, we are panning/zooming, so ignore
-        if (meta) {
+        // if the meta or alt key is pressed, we are panning/zooming, so ignore
+        if (ev.metaKey || ev.altKey) {
             return;
         }
 
@@ -2585,13 +2594,13 @@
         }
         if (!n) return;
 
-        if (shift && n.classed('selected')) {
+        if (ev.shiftKey && n.classed('selected')) {
             deselectObject(obj.id);
             updateDetailPane();
             return;
         }
 
-        if (!shift) {
+        if (!ev.shiftKey) {
             deselectAll();
         }
 
@@ -2805,8 +2814,9 @@
 
     function setupPanZoom() {
         function zoomed() {
-            // pan zoom active when meta key is pressed...
-            if (d3.event.sourceEvent.metaKey) {
+            var ev = d3.event.sourceEvent;
+            // pan/zoom active when meta or alt key is pressed...
+            if (ev.metaKey || ev.altKey) {
                 panZoom(d3.event.translate, d3.event.scale);
             }
         }
@@ -2943,8 +2953,10 @@
 
         // predicate that indicates when dragging is active
         function dragEnabled() {
-            // meta key pressed means we are zooming/panning (so disable drag)
-            return !nodeLock && !d3.event.sourceEvent.metaKey;
+            var ev = d3.event.sourceEvent;
+            // nodeLock means we aren't allowing nodes to be dragged...
+            // meta or alt key pressed means we are zooming/panning...
+            return !nodeLock && !(ev.metaKey || ev.altKey);
         }
 
         // predicate that indicates when clicking is active
