@@ -48,10 +48,6 @@ import org.slf4j.Logger;
 public class SdnIp implements SdnIpService {
 
     private static final String SDN_IP_APP = "org.onosproject.sdnip";
-    // NOTE: Must be 5s for now
-    private static final int LEASE_DURATION_MS = 5 * 1000;
-    private static final int LEASE_EXTEND_RETRY_MAX = 3;
-
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
