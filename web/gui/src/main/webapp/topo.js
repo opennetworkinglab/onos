@@ -146,7 +146,8 @@
         U: [unpin, 'Unpin node (hover mouse over)'],
         R: [resetPanZoom, 'Reset pan / zoom'],
         V: [showRelatedIntentsAction, 'Show all related intents'],
-        N: [showNextIntentAction, 'Show next related intent'],
+        rightArrow: [showNextIntentAction, 'Show next related intent'],
+        leftArrow: [showPrevIntentAction, 'Show previous related intent'],
         W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
         A: [showAllTrafficAction, 'Monitor all traffic'],
         F: [showDeviceLinkFlowsAction, 'Show device link flows'],
@@ -1232,7 +1233,7 @@
     function showRelatedIntentsAction() {
         hoverMode = hoverModeIntents;
         requestRelatedIntents();
-        flash('Related intents');
+        flash('Related Paths');
     }
 
     function requestRelatedIntents() {
@@ -1252,14 +1253,20 @@
 
     function showNextIntentAction() {
         hoverMode = hoverModeNone;
-        sendMessage('requestNextRelatedIntent', {});
-        flash('Next related intent');
+        sendMessage('requestNextRelatedIntent');
+        flash('>');
+    }
+
+    function showPrevIntentAction() {
+        hoverMode = hoverModeNone;
+        sendMessage('requestPrevRelatedIntent');
+        flash('<');
     }
 
     function showSelectedIntentTrafficAction() {
         hoverMode = hoverModeNone;
-        sendMessage('requestSelectedIntentTraffic', {});
-        flash('Monitoring selected intent');
+        sendMessage('requestSelectedIntentTraffic');
+        flash('Traffic on Selected Path');
     }
 
     function showDeviceLinkFlowsAction() {
@@ -3018,7 +3025,8 @@
     }
 
     function startAntTimer() {
-        if (!antTimer) {
+        // Note: disabled until traffic can be allotted to intents properly
+        if (false && !antTimer) {
             var pulses = [5, 3, 1.2, 3],
                 pulse = 0;
             antTimer = setInterval(function () {

@@ -213,7 +213,7 @@ public class TopologyViewWebSocket
             processMessage((ObjectNode) mapper.reader().readTree(data));
         } catch (Exception e) {
             log.warn("Unable to parse GUI request {} due to {}", data, e);
-            log.warn("Boom!!!", e);
+            log.debug("Boom!!!", e);
         }
     }
 
@@ -231,11 +231,18 @@ public class TopologyViewWebSocket
             createMultiSourceIntent(event);
 
         } else if (type.equals("requestRelatedIntents")) {
+            stopTrafficMonitoring();
             requestRelatedIntents(event);
+
         } else if (type.equals("requestNextRelatedIntent")) {
-            requestNextRelatedIntent(event);
+            stopTrafficMonitoring();
+            requestAnotherRelatedIntent(event, +1);
+        } else if (type.equals("requestPrevRelatedIntent")) {
+            stopTrafficMonitoring();
+            requestAnotherRelatedIntent(event, -1);
         } else if (type.equals("requestSelectedIntentTraffic")) {
             requestSelectedIntentTraffic(event);
+            startTrafficMonitoring(event);
 
         } else if (type.equals("requestAllTraffic")) {
             requestAllTraffic(event);
@@ -267,6 +274,7 @@ public class TopologyViewWebSocket
             }
         } catch (IOException e) {
             log.warn("Unable to send message {} to GUI due to {}", data, e);
+            log.debug("Boom!!!", e);
         }
     }
 
@@ -380,7 +388,7 @@ public class TopologyViewWebSocket
         selectedIntents = new ArrayList<>();
         selectedIntents.add(intent);
         currentIntentIndex = -1;
-        requestNextRelatedIntent(event);
+        requestAnotherRelatedIntent(event, +1);
         requestSelectedIntentTraffic(event);
     }
 
@@ -467,56 +475,70 @@ public class TopologyViewWebSocket
                                                        intentService.getIntents());
         currentIntentIndex = -1;
 
-        String hover = string(payload, "hover");
         if (haveSelectedIntents()) {
             // Send a message to highlight all links of all monitored intents.
             sendMessage(trafficMessage(sid, new TrafficClass("primary", selectedIntents)));
-        } else if (!isNullOrEmpty(hover)) {
-            // If there is a hover node, include it in the selection and find intents.
-            processExtendedSelection(sid, hover);
         }
+
+        // FIXME: Re-introduce one the client click vs hover gesture stuff is sorted out.
+//        String hover = string(payload, "hover");
+//        if (!isNullOrEmpty(hover)) {
+//            // If there is a hover node, include it in the selection and find intents.
+//            processHoverExtendedSelection(sid, hover);
+//        }
     }
 
     private boolean haveSelectedIntents() {
         return selectedIntents != null && !selectedIntents.isEmpty();
     }
 
-    private void processExtendedSelection(long sid, String hover) {
+    // Processes the selection extended with hovered item to segregate items
+    // into primary (those including the hover) vs secondary highlights.
+    private void processHoverExtendedSelection(long sid, String hover) {
+        Set<Host> hoverSelHosts = new HashSet<>(selectedHosts);
+        Set<Device> hoverSelDevices = new HashSet<>(selectedDevices);
+        addHover(hoverSelHosts, hoverSelDevices, hover);
+
+        List<Intent> primary = selectedIntents == null ? new ArrayList<>() :
+                intentFilter.findPathIntents(hoverSelHosts, hoverSelDevices,
+                                             selectedIntents);
+        Set<Intent> secondary = new HashSet<>(selectedIntents);
+        secondary.removeAll(primary);
+
+        // Send a message to highlight all links of all monitored intents.
+        sendMessage(trafficMessage(sid, new TrafficClass("primary", primary),
+                                   new TrafficClass("secondary", secondary)));
+    }
+
+    // Requests next or previous related intent.
+    private void requestAnotherRelatedIntent(ObjectNode event, int offset) {
         if (haveSelectedIntents()) {
-            Set<Host> hoverSelHosts = new HashSet<>(selectedHosts);
-            Set<Device> hoverSelDevices = new HashSet<>(selectedDevices);
-            addHover(hoverSelHosts, hoverSelDevices, hover);
-
-            List<Intent> primary =
-                    intentFilter.findPathIntents(hoverSelHosts, hoverSelDevices,
-                                                 selectedIntents);
-            Set<Intent> secondary = new HashSet<>(selectedIntents);
-            secondary.removeAll(primary);
-
-            // Send a message to highlight all links of all monitored intents.
-            sendMessage(trafficMessage(sid, new TrafficClass("primary", primary),
-                                       new TrafficClass("secondary", secondary)));
+            currentIntentIndex = currentIntentIndex + offset;
+            if (currentIntentIndex < 0) {
+                currentIntentIndex = selectedIntents.size() - 1;
+            } else if (currentIntentIndex >= selectedIntents.size()) {
+                currentIntentIndex = 0;
+            }
+            sendSelectedIntent(event);
         }
     }
 
-    // Requests next of the related intents.
-    private void requestNextRelatedIntent(ObjectNode event) {
-        if (haveSelectedIntents()) {
-            currentIntentIndex = (currentIntentIndex + 1) % selectedIntents.size();
-            Intent selectedIntent = selectedIntents.get(currentIntentIndex);
-            log.info("Requested next intent {}", selectedIntent.id());
+    // Sends traffic information on the related intents with the currently
+    // selected intent highlighted.
+    private void sendSelectedIntent(ObjectNode event) {
+        Intent selectedIntent = selectedIntents.get(currentIntentIndex);
+        log.info("Requested next intent {}", selectedIntent.id());
 
-            Set<Intent> primary = new HashSet<>();
-            primary.add(selectedIntent);
+        Set<Intent> primary = new HashSet<>();
+        primary.add(selectedIntent);
 
-            Set<Intent> secondary = new HashSet<>(selectedIntents);
-            secondary.remove(selectedIntent);
+        Set<Intent> secondary = new HashSet<>(selectedIntents);
+        secondary.remove(selectedIntent);
 
-            // Send a message to highlight all links of the selected intent.
-            sendMessage(trafficMessage(number(event, "sid"),
-                                       new TrafficClass("primary", primary),
-                                       new TrafficClass("secondary", secondary)));
-        }
+        // Send a message to highlight all links of the selected intent.
+        sendMessage(trafficMessage(number(event, "sid"),
+                                   new TrafficClass("primary", primary),
+                                   new TrafficClass("secondary", secondary)));
     }
 
     // Requests monitoring of traffic for the selected intent.
@@ -679,7 +701,7 @@ public class TopologyViewWebSocket
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle traffic request due to {}", e.getMessage());
-                log.warn("Boom!", e);
+                log.debug("Boom!", e);
             }
         }
     }
@@ -694,6 +716,7 @@ public class TopologyViewWebSocket
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
+                log.debug("Boom!", e);
             }
         }
     }
@@ -712,8 +735,8 @@ public class TopologyViewWebSocket
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
+                log.debug("Boom!", e);
             }
-
         }
     }
 }
