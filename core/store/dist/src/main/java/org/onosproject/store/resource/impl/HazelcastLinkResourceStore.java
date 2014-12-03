@@ -364,11 +364,12 @@ public class HazelcastLinkResourceStore
                 // concurrent allocation detected, retry transaction
                 throw new TransactionException("Concurrent Allocation, retry");
             }
+        } else {
+            List<LinkResourceAllocations> after = new ArrayList<>(before.size() + 1);
+            after.addAll(before);
+            after.add(allocations);
+            linkAllocs.replace(linkKey, before, after);
         }
-        List<LinkResourceAllocations> after = new ArrayList<>(before.size() + 1);
-        after.addAll(before);
-        after.add(allocations);
-        linkAllocs.replace(linkKey, before, after);
     }
 
     @Override
