@@ -18,10 +18,12 @@ package org.onosproject.sdnip;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
+import java.util.Dictionary;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -38,6 +40,7 @@ import org.onosproject.sdnip.bgp.BgpRouteEntry;
 import org.onosproject.sdnip.bgp.BgpSession;
 import org.onosproject.sdnip.bgp.BgpSessionManager;
 import org.onosproject.sdnip.config.SdnIpConfigurationReader;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 /**
@@ -65,6 +68,9 @@ public class SdnIp implements SdnIpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
 
+    private static final int DEFAULT_BGP_PORT = 2000;
+    private int bgpPort;
+
     private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigurationReader config;
     private PeerConnectivityManager peerConnectivity;
@@ -76,8 +82,9 @@ public class SdnIp implements SdnIpService {
     private ControllerNode localControllerNode;
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         log.info("SDN-IP started");
+        readComponentConfiguration(context);
 
         appId = coreService.registerApplication(SDN_IP_APP);
         config = new SdnIpConfigurationReader();
@@ -104,9 +111,10 @@ public class SdnIp implements SdnIpService {
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());
 
+        log.info("Starting BGP with port {}", bgpPort);
+
         bgpSessionManager = new BgpSessionManager(router);
-        // TODO: the local BGP listen port number should be configurable
-        bgpSessionManager.start(2000);
+        bgpSessionManager.start(bgpPort);
 
         // TODO need to disable link discovery on external ports
     }
@@ -123,6 +131,33 @@ public class SdnIp implements SdnIpService {
         leadershipService.removeListener(leadershipEventListener);
 
         log.info("SDN-IP Stopped");
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        try {
+            String strPort = (String) properties.get("bgpPort");
+            if (strPort != null) {
+                bgpPort = Integer.parseInt(strPort);
+            } else {
+                bgpPort = DEFAULT_BGP_PORT;
+            }
+        } catch (Exception e) {
+            bgpPort = DEFAULT_BGP_PORT;
+        }
+        log.debug("BGP port is set to {}", bgpPort);
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        // Blank @Modified method to catch modifications to the context.
+        // If no @Modified method exists, it seems @Activate is called again
+        // when the context is modified.
     }
 
     @Override
