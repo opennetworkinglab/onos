@@ -2,14 +2,7 @@
 <!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-    <!-- Suppressions for ONOS -->
-    <suppress files="edu.stanford.ramcloud.*" checks="[_a-zA-Z0-9]*"/>
-    <suppress files="net.floodlightcontroller.*" checks="[_a-zA-Z0-9]*"/>
-    <suppress files="net.onrc.onos.core.datastore.serializers.*" checks="[_a-zA-Z0-9]*"/>
 
-    <!-- BigSwitch packet code is designed to use parameter names that override
-         local member names -->
-    <suppress files="net.onrc.onos.core.packet.*" checks="HiddenField"/>
     <suppress files="org.apache.karaf.branding.*" checks="[a-zA-Z0-9]*"/>
 
     <suppress files=".*" checks="FinalParametersCheck"/>
