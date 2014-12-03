@@ -28,7 +28,7 @@
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
 
-    <description>Open Networking Operating System root project</description>
+    <description>Open Network Operating System root project</description>
 
     <modules>
         <module>tools/build/conf</module>
