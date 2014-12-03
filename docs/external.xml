@@ -39,7 +39,7 @@
         <module>..</module>
     </modules>
 
-    <url>http://onlab.us/</url>
+    <url>http://onosproject.org/</url>
 
     <build>
         <plugins>
