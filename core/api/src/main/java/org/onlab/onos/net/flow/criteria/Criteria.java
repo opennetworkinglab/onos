@@ -161,7 +161,7 @@ public final class Criteria {
     /**
      * Creates a match on lambda field using the specified value.
      *
-     * @param lambda lamda to match on
+     * @param lambda lambda to match on
      * @return match criterion
      */
     public static Criterion matchLambda(Short lambda) {
@@ -169,9 +169,9 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on lambda field using the specified value.
+     * Creates a match on optical signal type using the specified value.
      *
-     * @param sigType signame type
+     * @param sigType optical signal type
      * @return match criterion
      */
     public static Criterion matchOpticalSignalType(Short sigType) {
