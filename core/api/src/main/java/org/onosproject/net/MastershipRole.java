@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
 /**
  * Representation of a relationship role of a controller instance to a device

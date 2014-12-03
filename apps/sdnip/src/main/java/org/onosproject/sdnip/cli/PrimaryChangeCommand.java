@@ -1,9 +1,9 @@
-package org.onlab.onos.sdnip.cli;
+package org.onosproject.sdnip.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.sdnip.SdnIpService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.sdnip.SdnIpService;
 
 /**
  * Command to change whether this SDNIP instance is primary or not.

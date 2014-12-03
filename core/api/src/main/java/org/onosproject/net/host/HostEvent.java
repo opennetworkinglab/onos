@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
-import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.net.Host;
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.Host;
 
 /**
  * Describes end-station host event.

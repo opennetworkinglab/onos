@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import java.util.Set;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.TestApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.TestApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 
 /**
  * Base facilities to test various connectivity tests.

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.core.IdGenerator;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.NetTestTools;
-import org.onlab.onos.net.flow.TrafficSelector;
+import org.onosproject.core.IdGenerator;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.NetTestTools;
+import org.onosproject.net.flow.TrafficSelector;
 
 import com.google.common.testing.EqualsTester;
 

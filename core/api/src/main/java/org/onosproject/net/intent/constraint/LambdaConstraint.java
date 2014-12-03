@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.constraint;
+package org.onosproject.net.intent.constraint;
 
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.resource.ResourceRequest;
-import org.onlab.onos.net.resource.ResourceType;
+import org.onosproject.net.Link;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.ResourceRequest;
+import org.onosproject.net.resource.ResourceType;
 
 import java.util.Objects;
 

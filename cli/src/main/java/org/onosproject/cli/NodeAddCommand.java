@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cluster.ClusterAdminService;
-import org.onlab.onos.cluster.NodeId;
+import org.onosproject.cluster.ClusterAdminService;
+import org.onosproject.cluster.NodeId;
 import org.onlab.packet.IpAddress;
 
 /**

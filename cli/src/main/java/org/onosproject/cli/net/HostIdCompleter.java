@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import java.util.Iterator;
 import java.util.List;
@@ -21,9 +21,9 @@ import java.util.SortedSet;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.host.HostService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.Host;
+import org.onosproject.net.host.HostService;
 
 public class HostIdCompleter implements Completer {
 

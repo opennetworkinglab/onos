@@ -29,7 +29,7 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onlab.onos.calendar.BandwidthCalendarResource</param-value>
+            <param-value>org.onosproject.calendar.BandwidthCalendarResource</param-value>
         </init-param>
         <load-on-startup>10</load-on-startup>
     </servlet>

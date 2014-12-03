@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
 import java.util.Set;
 
 import org.junit.Test;
-import org.onlab.onos.event.AbstractEventTest;
-import org.onlab.onos.net.DefaultHost;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.event.AbstractEventTest;
+import org.onosproject.net.DefaultHost;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

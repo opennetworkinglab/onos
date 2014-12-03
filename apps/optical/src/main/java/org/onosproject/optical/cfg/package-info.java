@@ -18,4 +18,4 @@
  * Packet/Optical configuration.
  */
 @Deprecated
-package org.onlab.onos.optical.cfg;
+package org.onosproject.optical.cfg;

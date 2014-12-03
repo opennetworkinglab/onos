@@ -17,4 +17,4 @@
 /**
  * Implementation of distributed intent store.
  */
-package org.onlab.onos.store.intent.impl;
+package org.onosproject.store.intent.impl;

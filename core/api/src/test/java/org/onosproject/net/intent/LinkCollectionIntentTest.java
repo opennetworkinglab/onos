@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.NetTestTools;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.intent.constraint.LambdaConstraint;
-import org.onlab.onos.net.resource.Lambda;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.NetTestTools;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.resource.Lambda;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
@@ -37,8 +37,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onlab.onos.net.NetTestTools.APP_ID;
-import static org.onlab.onos.net.NetTestTools.link;
+import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.link;
 
 /**
  * Unit tests for the LinkCollectionIntent class.

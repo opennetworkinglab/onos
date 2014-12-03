@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 /**
  * Exception is thrown when the handshake fails to complete.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.proxyarp;
+package org.onosproject.proxyarp;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -22,12 +22,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.packet.PacketContext;
-import org.onlab.onos.net.packet.PacketProcessor;
-import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.proxyarp.ProxyArpService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.proxyarp.ProxyArpService;
 import org.slf4j.Logger;
 
 /**
@@ -54,7 +54,7 @@ public class ProxyArp {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onlab.onos.proxyarp");
+        appId = coreService.registerApplication("org.onosproject.proxyarp");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
         log.info("Started with Application ID {}", appId.id());
     }

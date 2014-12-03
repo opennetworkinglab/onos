@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.mastership.impl;
+package org.onosproject.store.mastership.impl;
 
 import java.util.List;
 import java.util.Map;
 
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.MastershipRole;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.net.MastershipRole;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;

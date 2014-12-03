@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
 import com.google.common.base.MoreObjects;
-import org.onlab.onos.net.AbstractDescription;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.SparseAnnotations;
+import org.onosproject.net.AbstractDescription;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
 
-import static org.onlab.onos.net.Port.Type;
+import static org.onosproject.net.Port.Type;
 
 /**
  * Default implementation of immutable port description.

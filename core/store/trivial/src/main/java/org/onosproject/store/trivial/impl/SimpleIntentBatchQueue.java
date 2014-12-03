@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.intent.IntentBatchDelegate;
-import org.onlab.onos.net.intent.IntentBatchListener;
-import org.onlab.onos.net.intent.IntentBatchService;
-import org.onlab.onos.net.intent.IntentOperations;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.intent.IntentBatchDelegate;
+import org.onosproject.net.intent.IntentBatchListener;
+import org.onosproject.net.intent.IntentBatchService;
+import org.onosproject.net.intent.IntentOperations;
 import org.slf4j.Logger;
 
 import java.util.LinkedList;

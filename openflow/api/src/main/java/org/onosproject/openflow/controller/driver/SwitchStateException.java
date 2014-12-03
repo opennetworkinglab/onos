@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.openflow.controller.driver;
+package org.onosproject.openflow.controller.driver;
 
 /**
  * This exception indicates an error or unexpected message during

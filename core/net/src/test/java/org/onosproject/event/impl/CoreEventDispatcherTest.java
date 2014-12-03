@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event.impl;
+package org.onosproject.event.impl;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.event.EventSink;
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.event.EventSink;
 
 import java.util.ArrayList;
 import java.util.List;

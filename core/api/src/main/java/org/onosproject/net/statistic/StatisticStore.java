@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.statistic;
+package org.onosproject.net.statistic;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowRule;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
 
 import java.util.Set;
 
@@ -29,21 +29,21 @@ public interface StatisticStore {
     /**
      * Lay the foundation for receiving flow stats for this rule.
      *
-     * @param rule a {@link org.onlab.onos.net.flow.FlowRule}
+     * @param rule a {@link org.onosproject.net.flow.FlowRule}
      */
     void prepareForStatistics(FlowRule rule);
 
     /**
      * Remove entries associated with this rule.
      *
-     * @param rule {@link org.onlab.onos.net.flow.FlowRule}
+     * @param rule {@link org.onosproject.net.flow.FlowRule}
      */
     void removeFromStatistics(FlowRule rule);
 
     /**
      * Adds a stats observation for a flow rule.
      *
-     * @param rule a {@link org.onlab.onos.net.flow.FlowEntry}
+     * @param rule a {@link org.onosproject.net.flow.FlowEntry}
      */
     void addOrUpdateStatistic(FlowEntry rule);
 

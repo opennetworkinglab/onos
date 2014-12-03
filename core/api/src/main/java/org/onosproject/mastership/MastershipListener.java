@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.mastership;
+package org.onosproject.mastership;
 
-import org.onlab.onos.event.EventListener;
+import org.onosproject.event.EventListener;
 
 /**
  * Entity capable of receiving device mastership-related events.

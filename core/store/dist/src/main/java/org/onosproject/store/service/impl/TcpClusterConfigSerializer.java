@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import java.util.Collection;
 

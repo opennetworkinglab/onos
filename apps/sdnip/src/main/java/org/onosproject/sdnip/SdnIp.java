@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,19 +25,19 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.LeadershipEvent;
-import org.onlab.onos.cluster.LeadershipEventListener;
-import org.onlab.onos.cluster.LeadershipService;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
-import org.onlab.onos.sdnip.bgp.BgpSession;
-import org.onlab.onos.sdnip.bgp.BgpSessionManager;
-import org.onlab.onos.sdnip.config.SdnIpConfigurationReader;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.LeadershipEvent;
+import org.onosproject.cluster.LeadershipEventListener;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.sdnip.bgp.BgpRouteEntry;
+import org.onosproject.sdnip.bgp.BgpSession;
+import org.onosproject.sdnip.bgp.BgpSessionManager;
+import org.onosproject.sdnip.config.SdnIpConfigurationReader;
 import org.slf4j.Logger;
 
 /**
@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 @Service
 public class SdnIp implements SdnIpService {
 
-    private static final String SDN_IP_APP = "org.onlab.onos.sdnip";
+    private static final String SDN_IP_APP = "org.onosproject.sdnip";
     // NOTE: Must be 5s for now
     private static final int LEASE_DURATION_MS = 5 * 1000;
     private static final int LEASE_EXTEND_RETRY_MAX = 3;

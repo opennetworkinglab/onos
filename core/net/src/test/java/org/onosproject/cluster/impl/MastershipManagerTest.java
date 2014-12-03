@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cluster.impl;
+package org.onosproject.cluster.impl;
 
 import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.ControllerNode.State;
-import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.mastership.MastershipStore;
-import org.onlab.onos.mastership.MastershipTermService;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.trivial.impl.SimpleMastershipStore;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.ControllerNode.State;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipStore;
+import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.store.trivial.impl.SimpleMastershipStore;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.onlab.onos.net.MastershipRole.*;
+import static org.onosproject.net.MastershipRole.*;
 
 /**
  * Test codifying the mastership service contracts.

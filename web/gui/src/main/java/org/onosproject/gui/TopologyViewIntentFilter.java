@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.gui;
+package org.onosproject.gui;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.LinkCollectionIntent;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.net.intent.OpticalConnectivityIntent;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.link.LinkService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.link.LinkService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.onlab.onos.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
 
 /**
  * Auxiliary facility to query the intent service based on the specified

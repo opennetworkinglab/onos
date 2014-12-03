@@ -17,4 +17,4 @@
 /**
  * Implementations of the codec broker and built-in entity JSON codecs.
  */
-package org.onlab.onos.codec.impl;
+package org.onosproject.codec.impl;

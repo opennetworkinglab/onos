@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import org.onlab.onos.cluster.NodeId;
+import org.onosproject.cluster.NodeId;
 
 /**
- * Kryo Serializer for {@link org.onlab.onos.cluster.NodeId}.
+ * Kryo Serializer for {@link org.onosproject.cluster.NodeId}.
  */
 public final class NodeIdSerializer extends Serializer<NodeId> {
 

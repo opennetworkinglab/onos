@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,18 +23,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.DeviceId;
 
 import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.mastership.MastershipEvent.Type.*;
-import static org.onlab.onos.net.MastershipRole.*;
+import static org.onosproject.mastership.MastershipEvent.Type.*;
+import static org.onosproject.net.MastershipRole.*;
 
 /**
  * Test for the simple MastershipStore implementation.

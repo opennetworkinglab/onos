@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
-import org.onlab.onos.net.NetworkResource;
-import org.onlab.onos.net.intent.IntentId;
+import org.onosproject.net.NetworkResource;
+import org.onosproject.net.intent.IntentId;
 
 import java.util.Collection;
 

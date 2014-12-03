@@ -1,7 +1,7 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static com.google.common.base.Verify.verifyNotNull;
-import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
+import static org.onosproject.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 import static java.util.concurrent.Executors.newCachedThreadPool;
@@ -25,11 +25,11 @@ import net.kuujo.copycat.protocol.SyncRequest;
 import net.kuujo.copycat.protocol.SyncResponse;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
 
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.slf4j.Logger;
 
 /**

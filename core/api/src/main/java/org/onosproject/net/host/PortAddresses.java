@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.onlab.onos.net.ConnectPoint;
+import org.onosproject.net.ConnectPoint;
 import org.onlab.packet.MacAddress;
 
 import com.google.common.base.MoreObjects;

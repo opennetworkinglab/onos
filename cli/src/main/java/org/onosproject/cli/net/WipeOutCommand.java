@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.device.DeviceAdminService;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.host.HostAdminService;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
+import org.onosproject.net.Device;
+import org.onosproject.net.Host;
+import org.onosproject.net.device.DeviceAdminService;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostAdminService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 
 /**
  * Wipes-out the entire network information base, i.e. devices, links, hosts, intents.

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.PortNumber;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.PortNumber;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;

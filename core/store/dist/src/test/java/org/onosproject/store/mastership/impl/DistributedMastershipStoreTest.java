@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.mastership.impl;
+package org.onosproject.store.mastership.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.net.MastershipRole.*;
+import static org.onosproject.net.MastershipRole.*;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,22 +31,22 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.ControllerNode.State;
-import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipStoreDelegate;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.mastership.MastershipEvent.Type;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.hz.StoreManager;
-import org.onlab.onos.store.hz.StoreService;
-import org.onlab.onos.store.hz.TestStoreManager;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.ControllerNode.State;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipStoreDelegate;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.mastership.MastershipEvent.Type;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.store.hz.StoreManager;
+import org.onosproject.store.hz.StoreService;
+import org.onosproject.store.hz.TestStoreManager;
+import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;

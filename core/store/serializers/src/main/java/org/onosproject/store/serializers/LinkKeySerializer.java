@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.LinkKey;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.LinkKey;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;

@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.onlab.onos</groupId>
+        <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -33,22 +33,22 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-nio</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-netty</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -57,7 +57,7 @@
             <artifactId>org.apache.karaf.shell.console</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
         </dependency>
         <dependency>

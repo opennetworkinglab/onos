@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.flow;
+package org.onosproject.store.flow;
 
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 
 /**
  * Service to return where the replica should be placed.

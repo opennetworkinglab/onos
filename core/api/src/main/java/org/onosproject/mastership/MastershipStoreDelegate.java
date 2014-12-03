@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.mastership;
+package org.onosproject.mastership;
 
-import org.onlab.onos.store.StoreDelegate;
+import org.onosproject.store.StoreDelegate;
 
 /**
  * Mastership store delegate abstraction.

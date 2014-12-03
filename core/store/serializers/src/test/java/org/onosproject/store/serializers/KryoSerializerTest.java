@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -24,42 +24,42 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.core.DefaultGroupId;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.Annotations;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.DefaultPort;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.flow.FlowId;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.onos.net.resource.BandwidthResourceAllocation;
-import org.onlab.onos.net.resource.DefaultLinkResourceAllocations;
-import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LambdaResourceAllocation;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.intent.constraint.AnnotationConstraint;
-import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
-import org.onlab.onos.net.intent.constraint.LambdaConstraint;
-import org.onlab.onos.net.intent.constraint.LatencyConstraint;
-import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
-import org.onlab.onos.net.intent.constraint.ObstacleConstraint;
-import org.onlab.onos.net.intent.constraint.WaypointConstraint;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DefaultPort;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.Link;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.DefaultLinkResourceAllocations;
+import org.onosproject.net.resource.DefaultLinkResourceRequest;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResourceAllocation;
+import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.intent.constraint.AnnotationConstraint;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.intent.constraint.LatencyConstraint;
+import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
@@ -80,8 +80,8 @@ import java.time.Duration;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 public class KryoSerializerTest {
 

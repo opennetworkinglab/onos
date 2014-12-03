@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import java.util.Iterator;
 import java.util.List;
@@ -23,31 +23,31 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.IntentInstaller;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.IntentInstaller;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.resource.DefaultLinkResourceRequest;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.LinkResourceService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -71,7 +71,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onlab.onos.net.intent");
+        appId = coreService.registerApplication("org.onosproject.net.intent");
         intentManager.registerInstaller(PathIntent.class, this);
     }
 

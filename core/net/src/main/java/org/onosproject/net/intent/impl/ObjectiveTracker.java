@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -24,23 +24,23 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.NetworkResource;
-import org.onlab.onos.net.intent.IntentBatchLeaderEvent;
-import org.onlab.onos.net.intent.IntentBatchListener;
-import org.onlab.onos.net.intent.IntentBatchService;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.resource.LinkResourceEvent;
-import org.onlab.onos.net.resource.LinkResourceListener;
-import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.topology.TopologyEvent;
-import org.onlab.onos.net.topology.TopologyListener;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.event.Event;
+import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.NetworkResource;
+import org.onosproject.net.intent.IntentBatchLeaderEvent;
+import org.onosproject.net.intent.IntentBatchListener;
+import org.onosproject.net.intent.IntentBatchService;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.resource.LinkResourceEvent;
+import org.onosproject.net.resource.LinkResourceListener;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -52,9 +52,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.onos.net.LinkKey.linkKey;
-import static org.onlab.onos.net.link.LinkEvent.Type.LINK_REMOVED;
-import static org.onlab.onos.net.link.LinkEvent.Type.LINK_UPDATED;
+import static org.onosproject.net.LinkKey.linkKey;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 

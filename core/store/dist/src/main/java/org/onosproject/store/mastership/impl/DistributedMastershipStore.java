@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.mastership.impl;
+package org.onosproject.store.mastership.impl;
 
-import static org.onlab.onos.mastership.MastershipEvent.Type.MASTER_CHANGED;
-import static org.onlab.onos.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
+import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
+import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
 
 import java.util.HashSet;
@@ -29,19 +29,19 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipStore;
-import org.onlab.onos.mastership.MastershipStoreDelegate;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.store.hz.AbstractHazelcastStore;
-import org.onlab.onos.store.hz.SMap;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipStore;
+import org.onosproject.mastership.MastershipStoreDelegate;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.store.hz.AbstractHazelcastStore;
+import org.onosproject.store.hz.SMap;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 
 import com.google.common.base.Objects;
@@ -51,7 +51,7 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MapEvent;
 
-import static org.onlab.onos.net.MastershipRole.*;
+import static org.onosproject.net.MastershipRole.*;
 
 /**
  * Distributed implementation of the mastership store. The store is

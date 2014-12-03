@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.provider.ProviderService;
+import org.onosproject.net.HostId;
+import org.onosproject.net.provider.ProviderService;
 
 /**
  * Means of conveying host information to the core.

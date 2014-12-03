@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -23,23 +23,23 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.AnnotationKeys;
-import org.onlab.onos.net.AnnotationsUtil;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkStore;
-import org.onlab.onos.net.link.LinkStoreDelegate;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.AbstractStore;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.AnnotationsUtil;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkStore;
+import org.onosproject.net.link.LinkStoreDelegate;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -55,14 +55,14 @@ import java.util.concurrent.ConcurrentMap;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static org.onlab.onos.net.DefaultAnnotations.merge;
-import static org.onlab.onos.net.DefaultAnnotations.union;
-import static org.onlab.onos.net.Link.State.ACTIVE;
-import static org.onlab.onos.net.Link.State.INACTIVE;
-import static org.onlab.onos.net.Link.Type.DIRECT;
-import static org.onlab.onos.net.Link.Type.INDIRECT;
-import static org.onlab.onos.net.LinkKey.linkKey;
-import static org.onlab.onos.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.DefaultAnnotations.merge;
+import static org.onosproject.net.DefaultAnnotations.union;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.Link.State.INACTIVE;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.Link.Type.INDIRECT;
+import static org.onosproject.net.LinkKey.linkKey;
+import static org.onosproject.net.link.LinkEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

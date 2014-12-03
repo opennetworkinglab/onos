@@ -17,10 +17,10 @@
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
     <command>
-      <action class="org.onlab.onos.metrics.topology.cli.TopologyEventsListCommand"/>
+      <action class="org.onosproject.metrics.topology.cli.TopologyEventsListCommand"/>
     </command>
     <command>
-      <action class="org.onlab.onos.metrics.topology.cli.TopologyEventsMetricsCommand"/>
+      <action class="org.onosproject.metrics.topology.cli.TopologyEventsMetricsCommand"/>
     </command>
   </command-bundle>
 

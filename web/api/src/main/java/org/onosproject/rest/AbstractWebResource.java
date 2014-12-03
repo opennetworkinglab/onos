@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.rest;
+package org.onosproject.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.util.ItemNotFoundException;
-import org.onlab.onos.codec.CodecContext;
-import org.onlab.onos.codec.CodecService;
-import org.onlab.onos.codec.JsonCodec;
+import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.CodecService;
+import org.onosproject.codec.JsonCodec;
 import org.onlab.rest.BaseResource;
 
 /**

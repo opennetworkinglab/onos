@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.device.impl;
+package org.onosproject.provider.of.device.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderRegistry;
-import org.onlab.onos.net.device.DeviceProviderService;
-import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowController;
-import org.onlab.onos.openflow.controller.OpenFlowSwitch;
-import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
-import org.onlab.onos.openflow.controller.RoleState;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceProvider;
+import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowController;
+import org.onosproject.openflow.controller.OpenFlowSwitch;
+import org.onosproject.openflow.controller.OpenFlowSwitchListener;
+import org.onosproject.openflow.controller.RoleState;
 import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
@@ -56,11 +56,11 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Port.Type.COPPER;
-import static org.onlab.onos.net.Port.Type.FIBER;
-import static org.onlab.onos.openflow.controller.Dpid.dpid;
-import static org.onlab.onos.openflow.controller.Dpid.uri;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Port.Type.COPPER;
+import static org.onosproject.net.Port.Type.FIBER;
+import static org.onosproject.openflow.controller.Dpid.dpid;
+import static org.onosproject.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -87,7 +87,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      * Creates an OpenFlow device provider.
      */
     public OpenFlowDeviceProvider() {
-        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onosproject.provider.openflow"));
     }
 
     @Activate

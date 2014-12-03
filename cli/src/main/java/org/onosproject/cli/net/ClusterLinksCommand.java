@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.topology.TopologyCluster;
+import org.onosproject.net.Link;
+import org.onosproject.net.topology.TopologyCluster;
 
-import static org.onlab.onos.cli.net.LinksListCommand.json;
-import static org.onlab.onos.cli.net.LinksListCommand.linkString;
-import static org.onlab.onos.net.topology.ClusterId.clusterId;
+import static org.onosproject.cli.net.LinksListCommand.json;
+import static org.onosproject.cli.net.LinksListCommand.linkString;
+import static org.onosproject.net.topology.ClusterId.clusterId;
 
 /**
  * Lists links of the specified topology cluster in the current topology.

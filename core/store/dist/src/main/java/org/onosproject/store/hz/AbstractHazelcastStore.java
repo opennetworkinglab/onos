@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.hz;
+package org.onosproject.store.hz;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -27,11 +27,11 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.StoreDelegate;
-import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onosproject.event.Event;
+import org.onosproject.store.AbstractStore;
+import org.onosproject.store.StoreDelegate;
+import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;

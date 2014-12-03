@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.hz;
+package org.onosproject.store.hz;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;

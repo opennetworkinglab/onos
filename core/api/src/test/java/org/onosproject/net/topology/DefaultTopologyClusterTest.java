@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology;
+package org.onosproject.net.topology;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.topology.ClusterId.clusterId;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.topology.ClusterId.clusterId;
 
 /**
  * Test of the default topology cluster implementation.

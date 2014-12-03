@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.provider;
+package org.onosproject.net.provider;
 
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * External identity of a {@link org.onlab.onos.net.provider.Provider} family.
+ * External identity of a {@link org.onosproject.net.provider.Provider} family.
  * It also carriers two designations of external characteristics, the URI
  * scheme and primary/ancillary indicator.
  * <p>
@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * a provider as a primary or ancillary.
  * </p>
  * <p>
- * A {@link org.onlab.onos.net.provider.ProviderRegistry} uses this designation
+ * A {@link org.onosproject.net.provider.ProviderRegistry} uses this designation
  * to permit only one primary provider per device URI scheme. Multiple
  * ancillary providers can register with the same device URI scheme however.
  * </p>
@@ -56,7 +56,7 @@ public class ProviderId {
     /**
      * Creates a new primary provider identifier from the specified string.
      * The providers are expected to follow the reverse DNS convention, e.g.
-     * {@code org.onlab.onos.provider.of.device}
+     * {@code org.onosproject.provider.of.device}
      *
      * @param scheme device URI scheme to which this provider is bound, e.g. "of", "snmp"
      * @param id     string identifier
@@ -68,7 +68,7 @@ public class ProviderId {
     /**
      * Creates a new provider identifier from the specified string.
      * The providers are expected to follow the reverse DNS convention, e.g.
-     * {@code org.onlab.onos.provider.of.device}
+     * {@code org.onosproject.provider.of.device}
      *
      * @param scheme    device URI scheme to which this provider is bound, e.g. "of", "snmp"
      * @param id        string identifier

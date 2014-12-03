@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.controller;
+package org.onosproject.openflow.controller;
 
 /**
  * Notifies providers about Packet in events.

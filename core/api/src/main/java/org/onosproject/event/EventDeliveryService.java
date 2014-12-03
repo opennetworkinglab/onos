@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event;
+package org.onosproject.event;
 
 /**
  * Abstraction of an entity capable of accepting events to be posted and

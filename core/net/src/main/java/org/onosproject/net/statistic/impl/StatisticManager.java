@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.statistic.impl;
+package org.onosproject.net.statistic.impl;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
@@ -25,21 +25,21 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.GroupId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
 
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleEvent;
-import org.onlab.onos.net.flow.FlowRuleListener;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.statistic.DefaultLoad;
-import org.onlab.onos.net.statistic.Load;
-import org.onlab.onos.net.statistic.StatisticService;
-import org.onlab.onos.net.statistic.StatisticStore;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.statistic.DefaultLoad;
+import org.onosproject.net.statistic.Load;
+import org.onosproject.net.statistic.StatisticService;
+import org.onosproject.net.statistic.StatisticStore;
 import org.slf4j.Logger;
 
 import java.util.Collections;

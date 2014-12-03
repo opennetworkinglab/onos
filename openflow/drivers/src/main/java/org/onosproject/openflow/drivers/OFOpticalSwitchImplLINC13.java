@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.drivers;
+package org.onosproject.openflow.drivers;
 
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
-import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
-import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
-import org.onlab.onos.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;

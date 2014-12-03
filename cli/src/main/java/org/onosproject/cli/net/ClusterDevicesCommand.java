@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.Comparators;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.topology.TopologyCluster;
+import org.onosproject.cli.Comparators;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.topology.TopologyCluster;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.onlab.onos.cli.MastersListCommand.json;
-import static org.onlab.onos.net.topology.ClusterId.clusterId;
+import static org.onosproject.cli.MastersListCommand.json;
+import static org.onosproject.net.topology.ClusterId.clusterId;
 
 /**
  * Lists devices of the specified topology cluster in the current topology.

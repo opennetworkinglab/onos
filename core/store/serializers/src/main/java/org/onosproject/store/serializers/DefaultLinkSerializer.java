@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.Link.State;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.Link.State;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.provider.ProviderId;
 
 /**
  * Kryo Serializer for {@link DefaultLink}.

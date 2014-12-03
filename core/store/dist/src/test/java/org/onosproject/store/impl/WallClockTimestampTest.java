@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.impl;
+package org.onosproject.store.impl;
 
 import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.store.Timestamp;
 import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;

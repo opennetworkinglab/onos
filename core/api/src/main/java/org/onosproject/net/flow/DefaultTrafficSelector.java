@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.criteria.Criteria;
-import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

@@ -43,23 +43,23 @@
     <br>
     <img src="doc-files/onos-subsystem.png" alt="ONOS subsystem structure"><br>
     For example, the device-subsystem comprises of a core
-    {@link org.onlab.onos.net.device.impl.DeviceManager},
+    {@link org.onosproject.net.device.impl.DeviceManager},
     which exposes a north-bound
-    {@link org.onlab.onos.net.device.DeviceService} through which applications or other core components
+    {@link org.onosproject.net.device.DeviceService} through which applications or other core components
     can learn about the global infrastructure device inventory and through
-    which they can also subscribe for asynchronous {@link org.onlab.onos.net.device.DeviceEvent}
-    notifications via the {@link org.onlab.onos.net.device.DeviceListener} mechanism. A set of
-    administrative actions can be performed via {@link org.onlab.onos.net.device.DeviceAdminService},
+    which they can also subscribe for asynchronous {@link org.onosproject.net.device.DeviceEvent}
+    notifications via the {@link org.onosproject.net.device.DeviceListener} mechanism. A set of
+    administrative actions can be performed via {@link org.onosproject.net.device.DeviceAdminService},
     e.g. setting mastership role, removing a decommissioned device.
 </p>
 
 <p>
-    On the south-bound side, the core {@link org.onlab.onos.net.device.impl.DeviceManager}
-    exposes a {@link org.onlab.onos.net.device.DeviceProviderRegistry} through which any number of
-    {@link org.onlab.onos.net.device.DeviceProvider} entities can register and in turn obtain a
-    {@link org.onlab.onos.net.device.DeviceProviderService}. Device and port information can then be
+    On the south-bound side, the core {@link org.onosproject.net.device.impl.DeviceManager}
+    exposes a {@link org.onosproject.net.device.DeviceProviderRegistry} through which any number of
+    {@link org.onosproject.net.device.DeviceProvider} entities can register and in turn obtain a
+    {@link org.onosproject.net.device.DeviceProviderService}. Device and port information can then be
     supplied to the core by each provider through the provider service issued
-    to them. When a provider unregisters, its {@link org.onlab.onos.net.device.DeviceProviderService}
+    to them. When a provider unregisters, its {@link org.onosproject.net.device.DeviceProviderService}
     will be invalidated and can no longer be used for interacting with the
     core.
 </p>
@@ -67,7 +67,7 @@
 <p>
     Within the core, the tasks of indexing, persisting and synchronizing the
     global device and port state with the cluster peers falls on the
-    {@link org.onlab.onos.net.device.DeviceStore}.
+    {@link org.onosproject.net.device.DeviceStore}.
 </p>
 
 <p>

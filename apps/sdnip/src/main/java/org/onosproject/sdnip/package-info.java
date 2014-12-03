@@ -17,4 +17,4 @@
 /**
  * SDN-IP peering application.
  */
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;

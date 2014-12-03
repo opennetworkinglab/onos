@@ -24,7 +24,7 @@
     </prerequisites>
 
     <parent>
-        <groupId>org.onlab.onos</groupId>
+        <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -55,26 +55,26 @@
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>
-                                org.onlab.onos:org.onlab.onos.*
+                                org.onosproject:org.onosproject.*
                             </packages>
                         </group>
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onlab.onos.impl:org.onlab.onos.core.impl:org.onlab.onos.cluster.impl:org.onlab.onos.net.device.impl:org.onlab.onos.net.link.impl:org.onlab.onos.net.host.impl:org.onlab.onos.net.topology.impl:org.onlab.onos.net.packet.impl:org.onlab.onos.net.flow.impl:org.onlab.onos.net.*.impl:org.onlab.onos.event.impl:org.onlab.onos.net.intent.impl:org.onlab.onos.net.proxyarp.impl:org.onlab.onos.mastership.impl:org.onlab.onos.net.resource.impl:org.onlab.onos.json:org.onlab.onos.json.*:org.onlab.onos.provider.host.impl:org.onlab.onos.provider.lldp.impl:org.onlab.onos.net.statistic.impl
+                                org.onosproject.impl:org.onosproject.core.impl:org.onosproject.cluster.impl:org.onosproject.net.device.impl:org.onosproject.net.link.impl:org.onosproject.net.host.impl:org.onosproject.net.topology.impl:org.onosproject.net.packet.impl:org.onosproject.net.flow.impl:org.onosproject.net.*.impl:org.onosproject.event.impl:org.onosproject.net.intent.impl:org.onosproject.net.proxyarp.impl:org.onosproject.mastership.impl:org.onosproject.net.resource.impl:org.onosproject.json:org.onosproject.json.*:org.onosproject.provider.host.impl:org.onosproject.provider.lldp.impl:org.onosproject.net.statistic.impl
                             </packages>
                         </group>
                         <group>
                             <title>Distributed Stores</title>
                             <packages>
-                                org.onlab.onos.store.*
+                                org.onosproject.store.*
                             </packages>
                         </group>
                         <group>
                             <title>OpenFlow Providers &amp; Controller
                             </title>
                             <packages>
-                                org.onlab.onos.provider.of.*:org.onlab.onos.openflow.*
+                                org.onosproject.provider.of.*:org.onosproject.openflow.*
                             </packages>
                         </group>
                         <group>
@@ -86,23 +86,23 @@
                         <group>
                             <title>GUI, REST &amp; Command-Line</title>
                             <packages>
-                                org.onlab.onos.gui:org.onlab.onos.rest:org.onlab.onos.cli:org.onlab.onos.gui.*:org.onlab.onos.rest.*:org.onlab.onos.cli.*:org.onlab.onos.codec.impl
+                                org.onosproject.gui:org.onosproject.rest:org.onosproject.cli:org.onosproject.gui.*:org.onosproject.rest.*:org.onosproject.cli.*:org.onosproject.codec.impl
                             </packages>
                         </group>
                         <group>
                             <title>Sample Applications</title>
                             <packages>
-                                org.onlab.onos.tvue:org.onlab.onos.fwd:org.onlab.onos.ifwd:org.onlab.onos.mobility:org.onlab.onos.proxyarp:org.onlab.onos.foo:org.onlab.onos.calendar:org.onlab.onos.optical:org.onlab.onos.optical.*:org.onlab.onos.sdnip:org.onlab.onos.sdnip.*:org.onlab.onos.config
+                                org.onosproject.tvue:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.foo:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config
                             </packages>
                         </group>
                         <group>
                             <title>Test Instrumentation</title>
                             <packages>
-                                org.onlab.onos.metrics.*
+                                org.onosproject.metrics.*
                             </packages>
                         </group>
                     </groups>
-                    <excludePackageNames>org.onlab.thirdparty:org.onlab.onos.oecfg</excludePackageNames>
+                    <excludePackageNames>org.onlab.thirdparty:org.onosproject.oecfg</excludePackageNames>
                 </configuration>
             </plugin>
         </plugins>

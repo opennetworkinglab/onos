@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
-import org.onlab.onos.net.AbstractDescription;
-import org.onlab.onos.net.SparseAnnotations;
+import org.onosproject.net.AbstractDescription;
+import org.onosproject.net.SparseAnnotations;
 import org.onlab.packet.ChassisId;
 
 import java.net.URI;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.Device.Type;
+import static org.onosproject.net.Device.Type;
 
 /**
  * Default implementation of immutable device description entity.

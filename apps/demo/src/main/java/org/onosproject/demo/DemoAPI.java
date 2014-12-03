@@ -1,4 +1,4 @@
-package org.onlab.onos.demo;
+package org.onosproject.demo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

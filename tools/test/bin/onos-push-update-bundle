@@ -7,7 +7,7 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 cd ~/.m2/repository
-jar=$(find org/onlab -type f -name '*.jar' | grep -e $1 | grep -v -e -tests | head -n 1)
+jar=$(find org/onosproject -type f -name '*.jar' | grep -e $1 | grep -v -e -tests | head -n 1)
 
 [ -z "$jar" ] && echo "No bundle $1 found for" && exit 1
 

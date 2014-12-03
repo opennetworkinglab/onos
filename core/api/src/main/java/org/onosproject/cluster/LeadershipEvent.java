@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cluster;
+package org.onosproject.cluster;
 
 import java.util.Objects;
 
-import org.onlab.onos.event.AbstractEvent;
+import org.onosproject.event.AbstractEvent;
 
 import com.google.common.base.MoreObjects;
 

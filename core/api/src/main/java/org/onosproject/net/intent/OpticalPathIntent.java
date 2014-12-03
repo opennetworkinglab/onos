@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import java.util.Collection;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.NetworkResource;
-import org.onlab.onos.net.Path;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.NetworkResource;
+import org.onosproject.net.Path;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;

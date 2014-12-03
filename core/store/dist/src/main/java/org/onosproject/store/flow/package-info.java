@@ -17,4 +17,4 @@
 /**
  * Definitions of events and messages pertaining to replication of flow entries.
  */
-package org.onlab.onos.store.flow;
+package org.onosproject.store.flow;

@@ -1,4 +1,4 @@
-package org.onlab.onos.core;
+package org.onosproject.core;
 
 import com.google.common.base.MoreObjects;
 

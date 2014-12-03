@@ -1,9 +1,9 @@
-package org.onlab.onos.core.impl;
+package org.onosproject.core.impl;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.core.IdGenerator;
-import org.onlab.onos.core.Version;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.core.IdGenerator;
+import org.onosproject.core.Version;
 
 import java.util.Set;
 

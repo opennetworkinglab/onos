@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.flow;
+package org.onosproject.store.flow;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.DeviceId;
 
 /**
  * Describes a device replicainfo event.

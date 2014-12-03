@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.foo;
+package org.onosproject.foo;
 
 import com.google.common.collect.Lists;
 import org.onlab.nio.IOLoop;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeoutException;
 import static java.lang.String.format;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
-import static org.onlab.onos.foo.IOLoopTestServer.PORT;
+import static org.onosproject.foo.IOLoopTestServer.PORT;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 

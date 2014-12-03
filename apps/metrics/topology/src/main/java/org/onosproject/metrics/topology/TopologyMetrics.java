@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.metrics.topology;
+package org.onosproject.metrics.topology;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -29,21 +29,21 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.EventMetric;
 import org.onlab.metrics.MetricsService;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkListener;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.topology.TopologyEvent;
-import org.onlab.onos.net.topology.TopologyListener;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.event.Event;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 /**
@@ -106,7 +106,7 @@ public class TopologyMetrics implements TopologyMetricsService {
     @Activate
     protected void activate() {
         appId =
-            coreService.registerApplication("org.onlab.onos.metrics.topology");
+            coreService.registerApplication("org.onosproject.metrics.topology");
 
         clear();
         registerMetrics();

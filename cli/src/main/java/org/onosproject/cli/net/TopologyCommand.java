@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyProvider;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyProvider;
+import org.onosproject.net.topology.TopologyService;
 
 /**
  * Lists summary of the current topology.

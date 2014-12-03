@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.device.impl;
+package org.onosproject.store.device.impl;
 
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.cluster.messaging.MessageSubject;
 
 // TODO: add prefix to assure uniqueness.
 /**

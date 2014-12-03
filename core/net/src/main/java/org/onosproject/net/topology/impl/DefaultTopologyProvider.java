@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology.impl;
+package org.onosproject.net.topology.impl;
 
 import com.google.common.collect.ImmutableList;
 
@@ -25,21 +25,21 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.AbstractEventAccumulator;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventAccumulator;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkListener;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.topology.DefaultGraphDescription;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.TopologyProvider;
-import org.onlab.onos.net.topology.TopologyProviderRegistry;
-import org.onlab.onos.net.topology.TopologyProviderService;
+import org.onosproject.event.AbstractEventAccumulator;
+import org.onosproject.event.Event;
+import org.onosproject.event.EventAccumulator;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.topology.DefaultGraphDescription;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.TopologyProvider;
+import org.onosproject.net.topology.TopologyProviderRegistry;
+import org.onosproject.net.topology.TopologyProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -51,8 +51,8 @@ import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onlab.onos.core.CoreService.CORE_PROVIDER_ID;
-import static org.onlab.onos.net.device.DeviceEvent.Type.*;
+import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 

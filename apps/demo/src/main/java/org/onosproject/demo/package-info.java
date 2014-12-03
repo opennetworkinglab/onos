@@ -17,4 +17,4 @@
 /**
  *  Demo applications live here.
  */
-package org.onlab.onos.demo;
+package org.onosproject.demo;

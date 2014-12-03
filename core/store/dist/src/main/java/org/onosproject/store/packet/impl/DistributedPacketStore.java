@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.packet.impl;
+package org.onosproject.store.packet.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,21 +25,21 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.net.packet.PacketEvent;
-import org.onlab.onos.net.packet.PacketEvent.Type;
-import org.onlab.onos.net.packet.PacketStore;
-import org.onlab.onos.net.packet.PacketStoreDelegate;
-import org.onlab.onos.store.AbstractStore;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketEvent;
+import org.onosproject.net.packet.PacketEvent.Type;
+import org.onosproject.net.packet.PacketStore;
+import org.onosproject.net.packet.PacketStoreDelegate;
+import org.onosproject.store.AbstractStore;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 

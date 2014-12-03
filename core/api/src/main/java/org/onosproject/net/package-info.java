@@ -17,4 +17,4 @@
 /**
  * Network model entities &amp; service API definitions.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;

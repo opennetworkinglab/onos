@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.statistic;
+package org.onosproject.net.statistic;
 
 /**
  * Simple data repository for link load information.

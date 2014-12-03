@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip.bgp;
+package org.onosproject.sdnip.bgp;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -43,8 +43,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
-import org.onlab.onos.sdnip.RouteListener;
-import org.onlab.onos.sdnip.RouteUpdate;
+import org.onosproject.sdnip.RouteListener;
+import org.onosproject.sdnip.RouteUpdate;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 

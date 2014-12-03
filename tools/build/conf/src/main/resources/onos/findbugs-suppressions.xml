@@ -18,13 +18,13 @@
     <!-- False positives on calls to CompletableFuture methods with a null
          parameter -->
     <Match>
-        <Class name="~org\.onlab\.onos\.store\.service\.impl\..*" />
+        <Class name="~org\.onosproject\.store\.service\.impl\..*" />
         <Bug pattern="NP_NONNULL_PARAM_VIOLATION" />
     </Match>
 
     <!-- Filter out testing application -->
     <Match>
-        <Class name="~org\.onlab\.onos\.foo\..*" />
+        <Class name="~org\.onosproject\.foo\..*" />
     </Match>
 
 </FindBugsFilter>

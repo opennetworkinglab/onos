@@ -13,36 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.rest;
+package org.onosproject.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderRegistry;
-import org.onlab.onos.net.device.DeviceProviderService;
-import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.host.DefaultHostDescription;
-import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.HostProviderRegistry;
-import org.onlab.onos.net.host.HostProviderService;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderRegistry;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.Link;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.Port;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceProvider;
+import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.host.DefaultHostDescription;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -56,8 +56,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Provider of devices and links parsed from a JSON configuration structure.
@@ -65,7 +65,7 @@ import static org.onlab.onos.net.PortNumber.portNumber;
 class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
     private static final ProviderId PID =
-            new ProviderId("cfg", "org.onlab.onos.rest", true);
+            new ProviderId("cfg", "org.onosproject.rest", true);
 
     private final JsonNode cfg;
     private final DeviceProviderRegistry deviceProviderRegistry;

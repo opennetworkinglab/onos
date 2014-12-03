@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.device.impl;
+package org.onosproject.store.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,12 +25,12 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceClockProviderService;
-import org.onlab.onos.net.device.DeviceClockService;
-import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.impl.MastershipBasedTimestamp;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceClockProviderService;
+import org.onosproject.net.device.DeviceClockService;
+import org.onosproject.store.Timestamp;
+import org.onosproject.store.impl.MastershipBasedTimestamp;
 import org.slf4j.Logger;
 
 /**

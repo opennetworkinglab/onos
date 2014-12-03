@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.topology.impl;
+package org.onosproject.store.topology.impl;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -26,23 +26,23 @@ import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
 import org.onlab.graph.TarjanGraphSearch;
 import org.onlab.graph.TarjanGraphSearch.SCCResult;
-import org.onlab.onos.net.AbstractModel;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultPath;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.ClusterId;
-import org.onlab.onos.net.topology.DefaultTopologyCluster;
-import org.onlab.onos.net.topology.DefaultTopologyVertex;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyEdge;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyVertex;
+import org.onosproject.net.AbstractModel;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.ClusterId;
+import org.onosproject.net.topology.DefaultTopologyCluster;
+import org.onosproject.net.topology.DefaultTopologyVertex;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyVertex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,10 +51,10 @@ import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.collect.ImmutableSetMultimap.Builder;
-import static org.onlab.onos.core.CoreService.CORE_PROVIDER_ID;
-import static org.onlab.onos.net.Link.State.ACTIVE;
-import static org.onlab.onos.net.Link.State.INACTIVE;
-import static org.onlab.onos.net.Link.Type.INDIRECT;
+import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.Link.State.INACTIVE;
+import static org.onosproject.net.Link.Type.INDIRECT;
 
 /**
  * Default implementation of the topology descriptor. This carries the

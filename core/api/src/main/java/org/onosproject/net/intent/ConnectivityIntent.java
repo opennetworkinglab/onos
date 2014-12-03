@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.NetworkResource;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Link;
+import org.onosproject.net.NetworkResource;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Collection;
 import java.util.Collections;

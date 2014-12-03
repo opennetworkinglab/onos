@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.IntentService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.Host;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.net.intent.IntentService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -107,6 +107,6 @@ public class RandomIntentCommand extends AbstractShellCommand {
 
     @Override
     protected ApplicationId appId() {
-        return get(CoreService.class).registerApplication("org.onlab.onos.cli-random");
+        return get(CoreService.class).registerApplication("org.onosproject.cli-random");
     }
 }

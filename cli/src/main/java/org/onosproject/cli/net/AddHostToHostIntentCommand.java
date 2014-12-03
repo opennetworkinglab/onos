@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.IntentService;
+import org.onosproject.net.HostId;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.IntentService;
 
 import java.util.List;
 

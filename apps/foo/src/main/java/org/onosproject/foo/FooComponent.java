@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.foo;
+package org.onosproject.foo;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.namedThreads;
@@ -30,25 +30,25 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.cluster.ClusterEvent;
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.store.service.DatabaseAdminService;
-import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.Lock;
-import org.onlab.onos.store.service.LockService;
-import org.onlab.onos.store.service.VersionedValue;
+import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.store.service.DatabaseAdminService;
+import org.onosproject.store.service.DatabaseException;
+import org.onosproject.store.service.DatabaseService;
+import org.onosproject.store.service.Lock;
+import org.onosproject.store.service.LockService;
+import org.onosproject.store.service.VersionedValue;
 import org.slf4j.Logger;
 
 /**

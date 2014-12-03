@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,17 +22,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.onos.cli.Comparators;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DeviceService;
+import org.onosproject.cli.Comparators;
+import org.onosproject.net.Device;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * Lists all ports or all ports of a device.

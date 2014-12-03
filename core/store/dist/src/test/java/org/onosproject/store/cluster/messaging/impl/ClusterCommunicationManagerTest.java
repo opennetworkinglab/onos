@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.messaging.impl;
+package org.onosproject.store.cluster.messaging.impl;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.cluster.impl.ClusterNodesDelegate;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.store.cluster.impl.ClusterNodesDelegate;
 import org.onlab.netty.NettyMessagingService;
 import org.onlab.packet.IpAddress;
 

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.link.impl;
+package org.onosproject.store.link.impl;
 
 import java.util.Objects;
 
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.provider.ProviderId;
 
 import com.google.common.base.MoreObjects;
 

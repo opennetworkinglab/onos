@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.impl;
+package org.onosproject.store.cluster.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.namedThreads;
@@ -31,17 +31,17 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.Leadership;
-import org.onlab.onos.cluster.LeadershipEvent;
-import org.onlab.onos.cluster.LeadershipEventListener;
-import org.onlab.onos.cluster.LeadershipService;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.store.hz.StoreService;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.Leadership;
+import org.onosproject.cluster.LeadershipEvent;
+import org.onosproject.cluster.LeadershipEventListener;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.store.hz.StoreService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

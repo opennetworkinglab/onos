@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.Annotations;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.Annotations;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 
@@ -52,7 +52,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @return command-line application identifier
      */
     protected ApplicationId appId() {
-        return get(CoreService.class).registerApplication("org.onlab.onos.cli");
+        return get(CoreService.class).registerApplication("org.onosproject.cli");
     }
 
     /**

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cluster;
+package org.onosproject.cluster;
 
-import org.onlab.onos.store.Store;
+import org.onosproject.store.Store;
 import org.onlab.packet.IpAddress;
 
 import java.util.Set;

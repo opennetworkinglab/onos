@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
 
 import java.util.Iterator;
 import java.util.List;

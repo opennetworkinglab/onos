@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultPath;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static org.onlab.onos.net.DefaultEdgeLink.createEdgeLink;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 
 /**
- * An intent compiler for {@link org.onlab.onos.net.intent.PointToPointIntent}.
+ * An intent compiler for {@link org.onosproject.net.intent.PointToPointIntent}.
  */
 @Component(immediate = true)
 public class PointToPointIntentCompiler
@@ -44,7 +44,7 @@ public class PointToPointIntentCompiler
 
     // TODO: use off-the-shell core provider ID
     private static final ProviderId PID =
-            new ProviderId("core", "org.onlab.onos.core", true);
+            new ProviderId("core", "org.onosproject.core", true);
     // TODO: consider whether the default cost is appropriate or not
     public static final int DEFAULT_COST = 1;
 

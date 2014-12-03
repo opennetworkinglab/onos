@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.PortNumber;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.PortNumber;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;

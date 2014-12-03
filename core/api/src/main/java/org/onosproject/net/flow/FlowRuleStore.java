@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.concurrent.Future;
 
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.Store;
+import org.onosproject.net.DeviceId;
+import org.onosproject.store.Store;
 
 /**
  * Manages inventory of flow rules; not intended for direct use.

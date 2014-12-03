@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instructions;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

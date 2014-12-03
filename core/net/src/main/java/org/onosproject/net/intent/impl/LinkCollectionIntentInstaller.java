@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,30 +27,30 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.IntentInstaller;
-import org.onlab.onos.net.intent.LinkCollectionIntent;
-import org.onlab.onos.net.intent.PathIntent;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.IntentInstaller;
+import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.PathIntent;
 
 import com.google.common.collect.Lists;
 
 /**
- * Installer for {@link org.onlab.onos.net.intent.LinkCollectionIntent} path
+ * Installer for {@link org.onosproject.net.intent.LinkCollectionIntent} path
  * segment intents.
  */
 @Component(immediate = true)
@@ -67,7 +67,7 @@ public class LinkCollectionIntentInstaller
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onlab.onos.net.intent");
+        appId = coreService.registerApplication("org.onosproject.net.intent");
         intentManager.registerInstaller(LinkCollectionIntent.class, this);
     }
 

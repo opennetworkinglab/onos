@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.rest;
+package org.onosproject.rest;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.link.LinkService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.link.LinkService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.rest.LinksWebResource.Direction.valueOf;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.rest.LinksWebResource.Direction.valueOf;
 
 /**
  * REST resource for interacting with the inventory of infrastructure links.

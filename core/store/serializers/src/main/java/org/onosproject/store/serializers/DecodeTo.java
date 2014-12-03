@@ -1,4 +1,4 @@
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

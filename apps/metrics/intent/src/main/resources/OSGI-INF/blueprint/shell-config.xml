@@ -17,10 +17,10 @@
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
     <command>
-      <action class="org.onlab.onos.metrics.intent.cli.IntentEventsListCommand"/>
+      <action class="org.onosproject.metrics.intent.cli.IntentEventsListCommand"/>
     </command>
     <command>
-      <action class="org.onlab.onos.metrics.intent.cli.IntentEventsMetricsCommand"/>
+      <action class="org.onosproject.metrics.intent.cli.IntentEventsMetricsCommand"/>
     </command>
   </command-bundle>
 

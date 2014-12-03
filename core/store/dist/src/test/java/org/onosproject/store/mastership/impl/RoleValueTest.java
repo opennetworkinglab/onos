@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.mastership.impl;
+package org.onosproject.store.mastership.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.net.MastershipRole.*;
+import static org.onosproject.net.MastershipRole.*;
 
 import org.junit.Test;
-import org.onlab.onos.cluster.NodeId;
+import org.onosproject.cluster.NodeId;
 
 import com.google.common.collect.Sets;
 

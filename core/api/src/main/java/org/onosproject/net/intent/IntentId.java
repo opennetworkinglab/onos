@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import org.onlab.onos.net.flow.BatchOperationTarget;
+import org.onosproject.net.flow.BatchOperationTarget;
 
 /**
  * Intent identifier suitable as an external key.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 
 public interface StoredFlowEntry extends FlowEntry {

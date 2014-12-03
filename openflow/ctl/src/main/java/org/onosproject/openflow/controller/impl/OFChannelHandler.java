@@ -15,7 +15,7 @@
  */
 
 //CHECKSTYLE:OFF
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -33,8 +33,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
-import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
-import org.onlab.onos.openflow.controller.driver.SwitchStateException;
+import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
+import org.onosproject.openflow.controller.driver.SwitchStateException;
 import org.projectfloodlight.openflow.exceptions.OFParseError;
 import org.projectfloodlight.openflow.protocol.OFAsyncGetReply;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;

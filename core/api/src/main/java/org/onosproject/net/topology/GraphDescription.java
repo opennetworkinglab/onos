@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology;
+package org.onosproject.net.topology;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.net.Description;
+import org.onosproject.net.Description;
 
 /**
  * Describes attribute(s) of a network graph.

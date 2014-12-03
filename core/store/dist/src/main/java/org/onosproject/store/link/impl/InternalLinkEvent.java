@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.link.impl;
+package org.onosproject.store.link.impl;
 
 import com.google.common.base.MoreObjects;
 
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.impl.Timestamped;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.impl.Timestamped;
 
 /**
  * Information published by GossipDeviceStore to notify peers of a device

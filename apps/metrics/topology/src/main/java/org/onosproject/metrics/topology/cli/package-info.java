@@ -17,4 +17,4 @@
 /**
  * Topology metrics command-line handlers.
  */
-package org.onlab.onos.metrics.topology.cli;
+package org.onosproject.metrics.topology.cli;

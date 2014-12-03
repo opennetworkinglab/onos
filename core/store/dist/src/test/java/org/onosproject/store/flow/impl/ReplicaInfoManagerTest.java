@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.flow.impl;
+package org.onosproject.store.flow.impl;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.*;
@@ -27,23 +27,23 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.DefaultEventSinkRegistry;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.event.EventSink;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipEvent.Type;
-import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.mastership.MastershipServiceAdapter;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.flow.ReplicaInfo;
-import org.onlab.onos.store.flow.ReplicaInfoEvent;
-import org.onlab.onos.store.flow.ReplicaInfoEventListener;
-import org.onlab.onos.store.flow.ReplicaInfoService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.DefaultEventSinkRegistry;
+import org.onosproject.event.Event;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.EventSink;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipEvent.Type;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipServiceAdapter;
+import org.onosproject.net.DeviceId;
+import org.onosproject.store.flow.ReplicaInfo;
+import org.onosproject.store.flow.ReplicaInfoEvent;
+import org.onosproject.store.flow.ReplicaInfoEventListener;
+import org.onosproject.store.flow.ReplicaInfoService;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;

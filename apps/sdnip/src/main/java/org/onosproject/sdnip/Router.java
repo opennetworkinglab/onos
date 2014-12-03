@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,20 +29,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.sdnip.config.BgpPeer;
-import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Host;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.sdnip.config.BgpPeer;
+import org.onosproject.sdnip.config.Interface;
+import org.onosproject.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;

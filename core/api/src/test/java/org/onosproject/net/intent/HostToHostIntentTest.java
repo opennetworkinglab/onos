@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import org.junit.Test;
-import org.onlab.onos.TestApplicationId;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.flow.TrafficSelector;
+import org.onosproject.TestApplicationId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.flow.TrafficSelector;
 
 import com.google.common.testing.EqualsTester;
 
@@ -27,8 +27,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onlab.onos.net.NetTestTools.APP_ID;
-import static org.onlab.onos.net.NetTestTools.hid;
+import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.hid;
 
 /**
  * Unit tests for the HostToHostIntent class.

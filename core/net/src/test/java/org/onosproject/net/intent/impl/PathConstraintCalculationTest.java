@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.AbstractIntentTest;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentTestsMocks;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
-import org.onlab.onos.net.intent.constraint.LambdaConstraint;
-import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.AbstractIntentTest;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentTestsMocks;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LinkResourceService;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -40,8 +40,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.fail;
-import static org.onlab.onos.net.NetTestTools.APP_ID;
-import static org.onlab.onos.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.connectPoint;
 
 /**
  * Unit tests for calculating paths for intents with constraints.

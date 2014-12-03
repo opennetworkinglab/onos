@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos;
+package org.onosproject;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onlab.onos.core.Version;
+import org.onosproject.core.Version;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.core.Version.version;
+import static org.onosproject.core.Version.version;
 
 /**
  * Tests of the version descriptor.

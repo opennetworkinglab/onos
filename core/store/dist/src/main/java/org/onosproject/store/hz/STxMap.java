@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.hz;
+package org.onosproject.store.hz;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 
 import com.hazelcast.core.TransactionalMap;
 import com.hazelcast.query.Predicate;

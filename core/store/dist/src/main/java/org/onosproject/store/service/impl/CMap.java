@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 
 import java.util.Map;
 
-import org.onlab.onos.store.serializers.StoreSerializer;
-import org.onlab.onos.store.service.DatabaseAdminService;
-import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.VersionedValue;
+import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.DatabaseAdminService;
+import org.onosproject.store.service.DatabaseException;
+import org.onosproject.store.service.DatabaseService;
+import org.onosproject.store.service.VersionedValue;
 
 import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;

@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -25,7 +25,7 @@ import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 import org.mapdb.TxBlock;
 import org.mapdb.TxMaker;
-import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 
 /**

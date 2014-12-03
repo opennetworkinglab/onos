@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.onlab.onos.TestApplicationId;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.AbstractIntentTest;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentTestsMocks;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onosproject.TestApplicationId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.AbstractIntentTest;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentTestsMocks;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.PointToPointIntent;
 
 import java.util.List;
 
@@ -37,12 +37,12 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onlab.onos.net.DefaultEdgeLink.createEdgeLink;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.NetTestTools.APP_ID;
-import static org.onlab.onos.net.NetTestTools.connectPoint;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairMatcher.linksHasPath;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.intent.LinksHaveEntryWithSourceDestinationPairMatcher.linksHasPath;
 
 /**
  * Unit tests for the HostToHost intent compiler.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.resource.impl;
+package org.onosproject.store.resource.impl;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,22 +21,22 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.AnnotationKeys;
-import org.onlab.onos.net.Annotations;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.onos.net.resource.BandwidthResourceAllocation;
-import org.onlab.onos.net.resource.LambdaResourceAllocation;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceStore;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceType;
-import org.onlab.onos.store.hz.StoreService;
-import org.onlab.onos.store.hz.TestStoreManager;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.Link;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.LambdaResourceAllocation;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceStore;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceType;
+import org.onosproject.store.hz.StoreService;
+import org.onosproject.store.hz.TestStoreManager;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -44,9 +44,9 @@ import com.hazelcast.core.Hazelcast;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.DIRECT;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Test of the simple LinkResourceStore implementation.

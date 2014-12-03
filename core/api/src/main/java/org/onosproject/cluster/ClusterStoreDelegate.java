@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cluster;
+package org.onosproject.cluster;
 
-import org.onlab.onos.store.StoreDelegate;
+import org.onosproject.store.StoreDelegate;
 
 /**
  * Cluster store delegate abstraction.

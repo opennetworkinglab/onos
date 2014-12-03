@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.optical.cfg;
+package org.onosproject.optical.cfg;
 
 /**
  * WDM Link Java data object converted from a JSON file.

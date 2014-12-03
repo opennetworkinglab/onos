@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.intent.impl;
+package org.onosproject.store.intent.impl;
 
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
@@ -37,18 +37,18 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
-import org.onlab.onos.core.MetricsHelper;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentState;
-import org.onlab.onos.net.intent.IntentStore;
-import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
-import org.onlab.onos.net.intent.IntentStoreDelegate;
-import org.onlab.onos.store.hz.AbstractHazelcastStore;
-import org.onlab.onos.store.hz.SMap;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onosproject.core.MetricsHelper;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentStore;
+import org.onosproject.net.intent.IntentStore.BatchWrite.Operation;
+import org.onosproject.net.intent.IntentStoreDelegate;
+import org.onosproject.store.hz.AbstractHazelcastStore;
+import org.onosproject.store.hz.SMap;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
@@ -63,7 +63,7 @@ import java.util.concurrent.Future;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static org.onlab.onos.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.metrics.MetricsUtil.*;
 

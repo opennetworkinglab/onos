@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.resource;
+package org.onosproject.net.resource;
 
-import org.onlab.onos.store.StoreDelegate;
+import org.onosproject.store.StoreDelegate;
 
 /**
  * Link resource store delegate abstraction.

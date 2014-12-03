@@ -17,4 +17,4 @@
 /**
  * Cluster messaging and distributed store serializers.
  */
-package org.onlab.onos.store.serializers.impl;
+package org.onosproject.store.serializers.impl;

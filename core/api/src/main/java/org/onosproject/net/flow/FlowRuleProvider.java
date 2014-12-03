@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.provider.Provider;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.provider.Provider;
 
 import java.util.concurrent.Future;
 

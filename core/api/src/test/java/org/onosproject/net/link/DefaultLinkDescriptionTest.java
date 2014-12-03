@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.link;
+package org.onosproject.net.link;
 
 import org.junit.Test;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.DefaultLinkTest.cp;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.DIRECT;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DefaultLinkTest.cp;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Test of the default link description.

@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.DefaultGroupId;
-import org.onlab.onos.core.GroupId;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 
 public class DefaultFlowRule implements FlowRule {
 

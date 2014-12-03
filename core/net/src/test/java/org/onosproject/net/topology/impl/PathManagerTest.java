@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology.impl;
+package org.onosproject.net.topology.impl;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.host.HostServiceAdapter;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.net.topology.TopologyServiceAdapter;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.Path;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.HostServiceAdapter;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.net.topology.TopologyServiceAdapter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +39,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.net.NetTestTools.*;
+import static org.onosproject.net.NetTestTools.*;
 
 /**
  * Test of the path selection subsystem.

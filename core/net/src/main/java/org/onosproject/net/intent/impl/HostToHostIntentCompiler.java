@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.DefaultPath;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.constraint.AsymmetricPathConstraint;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.Host;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
+import org.onosproject.net.resource.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.onlab.onos.net.flow.DefaultTrafficSelector.builder;
+import static org.onosproject.net.flow.DefaultTrafficSelector.builder;
 
 /**
  * A intent compiler for {@link HostToHostIntent}.

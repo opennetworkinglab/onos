@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.ApplicationIdStore;
-import org.onlab.onos.core.DefaultApplicationId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.ApplicationIdStore;
+import org.onosproject.core.DefaultApplicationId;
 
 import java.util.Map;
 import java.util.Set;

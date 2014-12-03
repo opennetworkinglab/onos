@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
-import org.onlab.onos.net.Description;
-import org.onlab.onos.net.PortNumber;
+import org.onosproject.net.Description;
+import org.onosproject.net.PortNumber;
 
-import static org.onlab.onos.net.Port.Type;
+import static org.onosproject.net.Port.Type;
 
 /**
  * Information about a port.

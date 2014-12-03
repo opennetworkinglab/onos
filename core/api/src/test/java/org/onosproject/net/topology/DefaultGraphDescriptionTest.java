@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology;
+package org.onosproject.net.topology;
 
 import com.google.common.collect.ImmutableSet;
 
 import org.junit.Test;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.Device.Type.SWITCH;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.topology.DefaultTopologyEdgeTest.*;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.topology.DefaultTopologyEdgeTest.*;
 
 public class DefaultGraphDescriptionTest {
 

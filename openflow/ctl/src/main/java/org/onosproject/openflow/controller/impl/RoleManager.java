@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import org.onlab.onos.openflow.controller.RoleState;
-import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
-import org.onlab.onos.openflow.controller.driver.RoleHandler;
-import org.onlab.onos.openflow.controller.driver.RoleRecvStatus;
-import org.onlab.onos.openflow.controller.driver.RoleReplyInfo;
-import org.onlab.onos.openflow.controller.driver.SwitchStateException;
+import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
+import org.onosproject.openflow.controller.driver.RoleHandler;
+import org.onosproject.openflow.controller.driver.RoleRecvStatus;
+import org.onosproject.openflow.controller.driver.RoleReplyInfo;
+import org.onosproject.openflow.controller.driver.SwitchStateException;
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;

@@ -1,7 +1,7 @@
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 import java.util.HashSet;
 import java.util.List;
@@ -9,15 +9,15 @@ import java.util.Set;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 
 
 @Command(scope = "onos", name = "add-single-to-multi-intent",

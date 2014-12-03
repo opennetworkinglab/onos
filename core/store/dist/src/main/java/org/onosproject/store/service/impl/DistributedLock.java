@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static com.google.common.base.Verify.verify;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -13,11 +13,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joda.time.DateTime;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.Lock;
-import org.onlab.onos.store.service.VersionedValue;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.store.service.DatabaseException;
+import org.onosproject.store.service.DatabaseService;
+import org.onosproject.store.service.Lock;
+import org.onosproject.store.service.VersionedValue;
 import org.slf4j.Logger;
 
 /**

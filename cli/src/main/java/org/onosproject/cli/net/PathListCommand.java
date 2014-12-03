@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
 
 import java.util.Set;
 
-import static org.onlab.onos.cli.net.LinksListCommand.compactLinkString;
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onosproject.cli.net.LinksListCommand.compactLinkString;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * Lists all shortest-paths paths between the specified source and

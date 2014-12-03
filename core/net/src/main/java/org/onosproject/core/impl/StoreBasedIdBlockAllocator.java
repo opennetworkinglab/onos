@@ -1,7 +1,7 @@
-package org.onlab.onos.core.impl;
+package org.onosproject.core.impl;
 
-import org.onlab.onos.core.IdBlock;
-import org.onlab.onos.core.IdBlockStore;
+import org.onosproject.core.IdBlock;
+import org.onosproject.core.IdBlockStore;
 
 public class StoreBasedIdBlockAllocator implements IdBlockAllocator {
     private final IdBlockStore store;

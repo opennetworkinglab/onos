@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import java.util.Comparator;
 
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Element;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.host.PortAddresses;
-import org.onlab.onos.net.topology.TopologyCluster;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Element;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Port;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.host.PortAddresses;
+import org.onosproject.net.topology.TopologyCluster;
 
 /**
  * Various comparators.

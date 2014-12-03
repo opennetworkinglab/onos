@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.List;
 
-import static org.onlab.onos.cli.net.DevicesListCommand.getSortedDevices;
+import static org.onosproject.cli.net.DevicesListCommand.getSortedDevices;
 
 /**
  * Lists mastership roles of nodes for each device.

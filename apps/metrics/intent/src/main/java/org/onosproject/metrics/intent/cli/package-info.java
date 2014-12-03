@@ -17,4 +17,4 @@
 /**
  * Intent metrics command-line handlers.
  */
-package org.onlab.onos.metrics.intent.cli;
+package org.onosproject.metrics.intent.cli;

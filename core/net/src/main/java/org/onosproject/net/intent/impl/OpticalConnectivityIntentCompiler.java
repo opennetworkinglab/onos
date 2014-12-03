@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
@@ -21,25 +21,25 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentCompiler;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.OpticalConnectivityIntent;
-import org.onlab.onos.net.intent.OpticalPathIntent;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyEdge;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.OpticalPathIntent;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyService;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * An intent compiler for {@link org.onlab.onos.net.intent.OpticalConnectivityIntent}.
+ * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
  */
 @Component(immediate = true)
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {

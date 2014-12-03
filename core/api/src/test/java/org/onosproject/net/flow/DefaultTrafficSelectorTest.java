@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.Set;
 
@@ -22,9 +22,9 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.criteria.Criteria;
-import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onlab.onos.net.flow.criteria.Criterion.Type;
+import static org.onosproject.net.flow.criteria.Criterion.Type;
 
 /**
  * Unit tests for default traffic selector class.

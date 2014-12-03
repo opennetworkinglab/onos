@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.core.impl;
+package org.onosproject.core.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.ApplicationIdStore;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.core.IdBlockStore;
-import org.onlab.onos.core.IdGenerator;
-import org.onlab.onos.core.Version;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.ApplicationIdStore;
+import org.onosproject.core.CoreService;
+import org.onosproject.core.IdBlockStore;
+import org.onosproject.core.IdGenerator;
+import org.onosproject.core.Version;
 import org.onlab.util.Tools;
 
 import java.io.File;

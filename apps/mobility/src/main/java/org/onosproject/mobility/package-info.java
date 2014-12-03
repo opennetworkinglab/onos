@@ -17,4 +17,4 @@
 /**
  * Sample application that provides simple form of end-station host mobility.
  */
-package org.onlab.onos.mobility;
+package org.onosproject.mobility;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event;
+package org.onosproject.event;
 
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;

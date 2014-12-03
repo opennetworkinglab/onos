@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,19 +26,19 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.AnnotationKeys;
-import org.onlab.onos.net.Annotations;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.onos.net.resource.BandwidthResourceAllocation;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LambdaResourceAllocation;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceEvent;
-import org.onlab.onos.net.resource.LinkResourceStore;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceType;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.Link;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResourceAllocation;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceEvent;
+import org.onosproject.net.resource.LinkResourceStore;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;

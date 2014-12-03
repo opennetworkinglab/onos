@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.cli.Comparators;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.device.DeviceService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.Comparators;
+import org.onosproject.net.Device;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.Collections;
 import java.util.List;

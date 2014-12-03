@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
-import org.onlab.onos.net.intent.IntentTestsMocks;
+import org.onosproject.net.intent.IntentTestsMocks;
 
-import static org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
+import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;

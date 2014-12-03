@@ -1,8 +1,8 @@
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import org.junit.After;
 import org.junit.Before;
-import org.onlab.onos.core.IdGenerator;
+import org.onosproject.core.IdGenerator;
 
 public abstract class AbstractIntentTest {
 

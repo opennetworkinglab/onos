@@ -1,4 +1,4 @@
-package org.onlab.onos.core;
+package org.onosproject.core;
 
 /**
  * Represents that there is no available IDs.

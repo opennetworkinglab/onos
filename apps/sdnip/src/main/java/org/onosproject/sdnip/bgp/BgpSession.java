@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip.bgp;
+package org.onosproject.sdnip.bgp;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -37,11 +37,11 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.HoldTimerExpired;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.MessageHeaderError;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.OpenMessageError;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
+import org.onosproject.sdnip.bgp.BgpConstants.Notifications;
+import org.onosproject.sdnip.bgp.BgpConstants.Notifications.HoldTimerExpired;
+import org.onosproject.sdnip.bgp.BgpConstants.Notifications.MessageHeaderError;
+import org.onosproject.sdnip.bgp.BgpConstants.Notifications.OpenMessageError;
+import org.onosproject.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;

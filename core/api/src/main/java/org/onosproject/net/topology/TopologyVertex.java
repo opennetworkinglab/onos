@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology;
+package org.onosproject.net.topology;
 
 import org.onlab.graph.Vertex;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 
 /**
  * Represents a vertex in the topology graph.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.openflow.controller.driver;
+package org.onosproject.openflow.controller.driver;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;

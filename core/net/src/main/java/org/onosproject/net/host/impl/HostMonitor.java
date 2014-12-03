@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host.impl;
+package org.onosproject.net.host.impl;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -26,23 +26,23 @@ import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instructions;
-import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.InterfaceIpAddress;
-import org.onlab.onos.net.host.PortAddresses;
-import org.onlab.onos.net.packet.DefaultOutboundPacket;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.host.PortAddresses;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;

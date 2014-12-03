@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.foo;
+package org.onosproject.foo;
 
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;

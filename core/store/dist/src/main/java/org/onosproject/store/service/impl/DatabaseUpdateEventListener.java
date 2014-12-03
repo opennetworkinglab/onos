@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
-import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
+import org.onosproject.store.service.impl.DatabaseStateMachine.TableMetadata;
 
 /**
  * Interface of database update event listeners.

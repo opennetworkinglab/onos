@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip.cli;
+package org.onosproject.sdnip.cli;
 
 import java.util.Collection;
 
@@ -23,9 +23,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.sdnip.SdnIpService;
-import org.onlab.onos.sdnip.bgp.BgpSession;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.sdnip.SdnIpService;
+import org.onosproject.sdnip.bgp.BgpSession;
 
 /**
  * Command to show the BGP neighbors.

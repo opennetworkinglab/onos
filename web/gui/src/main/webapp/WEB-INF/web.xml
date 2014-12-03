@@ -29,7 +29,7 @@
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>org.onlab.onos.gui</param-value>
+            <param-value>org.onosproject.gui</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -41,7 +41,7 @@
 
     <servlet>
         <servlet-name>Web Socket Service</servlet-name>
-        <servlet-class>org.onlab.onos.gui.GuiWebSocketServlet</servlet-class>
+        <servlet-class>org.onosproject.gui.GuiWebSocketServlet</servlet-class>
         <load-on-startup>2</load-on-startup>
     </servlet>
 

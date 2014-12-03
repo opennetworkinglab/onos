@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event.impl;
+package org.onosproject.event.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.event.DefaultEventSinkRegistry;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.event.EventSink;
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.event.DefaultEventSinkRegistry;
+import org.onosproject.event.Event;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.EventSink;
 import org.slf4j.Logger;
 
 import java.util.concurrent.BlockingQueue;

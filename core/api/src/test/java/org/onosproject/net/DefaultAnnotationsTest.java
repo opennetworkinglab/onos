@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
 import org.junit.Test;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.DefaultAnnotations.builder;
+import static org.onosproject.net.DefaultAnnotations.builder;
 
 /**
  * Tests of the default annotations.

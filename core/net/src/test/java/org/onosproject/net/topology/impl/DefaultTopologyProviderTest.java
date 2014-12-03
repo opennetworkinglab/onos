@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology.impl;
+package org.onosproject.net.topology.impl;
 
 import com.google.common.collect.ImmutableSet;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.impl.DeviceManager;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.impl.LinkManager;
-import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.TopologyProvider;
-import org.onlab.onos.net.topology.TopologyProviderRegistry;
-import org.onlab.onos.net.topology.TopologyProviderService;
+import org.onosproject.event.Event;
+import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.net.Device;
+import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.impl.DeviceManager;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.impl.LinkManager;
+import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.TopologyProvider;
+import org.onosproject.net.topology.TopologyProviderRegistry;
+import org.onosproject.net.topology.TopologyProviderService;
 
 import java.util.List;
 import java.util.Set;
@@ -43,10 +43,10 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
-import static org.onlab.onos.net.NetTestTools.device;
-import static org.onlab.onos.net.NetTestTools.link;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.net.NetTestTools.device;
+import static org.onosproject.net.NetTestTools.link;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 
 /**
  * Test of the default topology provider implementation.

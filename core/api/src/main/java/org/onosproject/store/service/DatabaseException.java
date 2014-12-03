@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 
 /**
  * Base exception type for database failures.

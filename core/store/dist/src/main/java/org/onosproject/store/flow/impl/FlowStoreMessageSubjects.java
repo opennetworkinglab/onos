@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.flow.impl;
+package org.onosproject.store.flow.impl;
 
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.cluster.messaging.MessageSubject;
 
 /**
  * MessageSubjects used by DistributedFlowRuleStore peer-peer communication.

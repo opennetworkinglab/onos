@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 
@@ -29,16 +29,16 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.openflow.controller.DefaultOpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowController;
-import org.onlab.onos.openflow.controller.OpenFlowEventListener;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.OpenFlowSwitch;
-import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
-import org.onlab.onos.openflow.controller.PacketListener;
-import org.onlab.onos.openflow.controller.RoleState;
-import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
+import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowController;
+import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowPacketContext;
+import org.onosproject.openflow.controller.OpenFlowSwitch;
+import org.onosproject.openflow.controller.OpenFlowSwitchListener;
+import org.onosproject.openflow.controller.PacketListener;
+import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFMessage;

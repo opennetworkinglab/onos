@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.device.DeviceService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.Device;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.List;
 import java.util.SortedSet;

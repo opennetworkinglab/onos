@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -25,31 +25,31 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.core.IdGenerator;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentBatchDelegate;
-import org.onlab.onos.net.intent.IntentBatchService;
-import org.onlab.onos.net.intent.IntentCompiler;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentException;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentInstaller;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentOperation;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
-import org.onlab.onos.net.intent.IntentStore;
-import org.onlab.onos.net.intent.IntentStore.BatchWrite;
-import org.onlab.onos.net.intent.IntentStoreDelegate;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.core.IdGenerator;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentBatchDelegate;
+import org.onosproject.net.intent.IntentBatchService;
+import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentException;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentInstaller;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentOperation;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentStore;
+import org.onosproject.net.intent.IntentStore.BatchWrite;
+import org.onosproject.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -68,7 +68,7 @@ import java.util.concurrent.TimeoutException;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onlab.onos.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 

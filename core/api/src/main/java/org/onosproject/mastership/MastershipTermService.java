@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.mastership;
+package org.onosproject.mastership;
 
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 
 // TODO give me a better name
 /**

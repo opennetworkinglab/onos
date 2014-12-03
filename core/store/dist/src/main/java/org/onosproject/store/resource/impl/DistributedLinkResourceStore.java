@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.resource.impl;
+package org.onosproject.store.resource.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,31 +29,31 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.AnnotationKeys;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.onos.net.resource.BandwidthResourceAllocation;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LambdaResourceAllocation;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceEvent;
-import org.onlab.onos.net.resource.LinkResourceStore;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceType;
-import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.StoreSerializer;
-import org.onlab.onos.store.service.BatchWriteRequest;
-import org.onlab.onos.store.service.BatchWriteRequest.Builder;
-import org.onlab.onos.store.service.BatchWriteResult;
-import org.onlab.onos.store.service.DatabaseAdminService;
-import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.VersionedValue;
-import org.onlab.onos.store.service.WriteRequest;
-import org.onlab.onos.store.service.WriteResult;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResourceAllocation;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceEvent;
+import org.onosproject.net.resource.LinkResourceStore;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceType;
+import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.BatchWriteRequest;
+import org.onosproject.store.service.BatchWriteRequest.Builder;
+import org.onosproject.store.service.BatchWriteResult;
+import org.onosproject.store.service.DatabaseAdminService;
+import org.onosproject.store.service.DatabaseException;
+import org.onosproject.store.service.DatabaseService;
+import org.onosproject.store.service.VersionedValue;
+import org.onosproject.store.service.WriteRequest;
+import org.onosproject.store.service.WriteResult;
 import org.slf4j.Logger;
 
 import com.google.common.base.Function;

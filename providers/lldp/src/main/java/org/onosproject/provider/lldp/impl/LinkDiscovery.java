@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.lldp.impl;
+package org.onosproject.provider.lldp.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.onlab.onos.net.MastershipRole.MASTER;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.nio.ByteBuffer;
@@ -33,20 +33,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.packet.DefaultOutboundPacket;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.net.packet.PacketContext;
-import org.onlab.onos.net.packet.PacketService;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONOSLLDP;
 import org.onlab.util.Timer;

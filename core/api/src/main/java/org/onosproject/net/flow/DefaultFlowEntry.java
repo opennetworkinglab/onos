@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 
 public class DefaultFlowEntry extends DefaultFlowRule

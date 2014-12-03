@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.packet.impl;
+package org.onosproject.net.packet.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -27,20 +27,20 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.net.packet.PacketContext;
-import org.onlab.onos.net.packet.PacketEvent;
-import org.onlab.onos.net.packet.PacketProcessor;
-import org.onlab.onos.net.packet.PacketProvider;
-import org.onlab.onos.net.packet.PacketProviderRegistry;
-import org.onlab.onos.net.packet.PacketProviderService;
-import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.packet.PacketStore;
-import org.onlab.onos.net.packet.PacketStoreDelegate;
-import org.onlab.onos.net.provider.AbstractProviderRegistry;
-import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onosproject.net.Device;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketEvent;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketProvider;
+import org.onosproject.net.packet.PacketProviderRegistry;
+import org.onosproject.net.packet.PacketProviderService;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.packet.PacketStore;
+import org.onosproject.net.packet.PacketStoreDelegate;
+import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 /**

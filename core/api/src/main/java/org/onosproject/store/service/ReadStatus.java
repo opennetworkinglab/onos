@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 
 /**
  * Status of completed read request.

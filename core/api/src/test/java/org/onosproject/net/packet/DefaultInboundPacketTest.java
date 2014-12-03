@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.packet;
+package org.onosproject.net.packet;
 
 import java.nio.ByteBuffer;
 
@@ -27,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onlab.onos.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.connectPoint;
 
 /**
  * Unit tests for the DefaultInboundPacket class.

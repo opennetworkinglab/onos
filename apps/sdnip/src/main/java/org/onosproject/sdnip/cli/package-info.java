@@ -17,4 +17,4 @@
 /**
  * SDN-IP command-line handlers.
  */
-package org.onlab.onos.sdnip.cli;
+package org.onosproject.sdnip.cli;

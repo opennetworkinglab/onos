@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
-import org.onlab.onos.net.intent.IntentId;
+import org.onosproject.net.intent.IntentId;
 
 /**
  * Auxiliary delegate for integration of intent manager and flow trackerService.
@@ -25,7 +25,7 @@ public interface TopologyChangeDelegate {
     /**
      * Notifies that topology has changed in such a way that the specified
      * intents should be recompiled. If the {@code compileAllFailed} parameter
-     * is true, then all intents in {@link org.onlab.onos.net.intent.IntentState#FAILED}
+     * is true, then all intents in {@link org.onosproject.net.intent.IntentState#FAILED}
      * state should be compiled as well.
      *
      * @param intentIds intents that should be recompiled

@@ -17,4 +17,4 @@
 /**
  * Packet/Optical application.
  */
-package org.onlab.onos.optical;
+package org.onosproject.optical;

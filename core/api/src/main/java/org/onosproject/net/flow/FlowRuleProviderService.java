@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.provider.ProviderService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.provider.ProviderService;
 
 /**
  * Service through which flow rule providers can inject information into

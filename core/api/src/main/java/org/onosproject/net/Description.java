@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
 /**
  * Base abstraction of a piece of information about network elements.

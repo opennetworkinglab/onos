@@ -1,4 +1,4 @@
 /**
  * Implementation of distributed packet store.
  */
-package org.onlab.onos.store.packet.impl;
+package org.onosproject.store.packet.impl;

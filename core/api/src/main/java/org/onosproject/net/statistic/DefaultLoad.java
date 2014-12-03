@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.statistic;
+package org.onosproject.net.statistic;
 
 import com.google.common.base.MoreObjects;
-import org.onlab.onos.net.flow.FlowRuleProvider;
+import org.onosproject.net.flow.FlowRuleProvider;
 
 /**
  * Implementation of a load.

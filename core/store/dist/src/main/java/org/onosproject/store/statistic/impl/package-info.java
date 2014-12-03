@@ -17,4 +17,4 @@
 /**
  * Implementation of the statistic store.
  */
-package org.onlab.onos.store.statistic.impl;
+package org.onosproject.store.statistic.impl;

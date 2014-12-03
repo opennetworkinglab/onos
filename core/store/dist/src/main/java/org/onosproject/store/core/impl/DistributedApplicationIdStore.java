@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.core.impl;
+package org.onosproject.store.core.impl;
 
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
 
@@ -27,13 +27,13 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.ApplicationIdStore;
-import org.onlab.onos.core.DefaultApplicationId;
-import org.onlab.onos.store.hz.AbstractHazelcastStore;
-import org.onlab.onos.store.hz.SMap;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.ApplicationIdStore;
+import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.store.hz.AbstractHazelcastStore;
+import org.onosproject.store.hz.SMap;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.util.KryoNamespace;
 
 import java.util.Map;

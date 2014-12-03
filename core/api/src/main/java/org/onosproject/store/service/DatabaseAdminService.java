@@ -1,10 +1,10 @@
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
-import org.onlab.onos.cluster.ControllerNode;
+import org.onosproject.cluster.ControllerNode;
 
 /**
  * Service interface for running administrative tasks on a Database.

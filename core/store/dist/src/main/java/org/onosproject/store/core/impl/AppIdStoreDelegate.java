@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.core.impl;
+package org.onosproject.store.core.impl;
 
-import org.onlab.onos.store.StoreDelegate;
+import org.onosproject.store.StoreDelegate;
 
 /**
  * Application ID store delegate.

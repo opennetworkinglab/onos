@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.config;
+package org.onosproject.config;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -28,12 +28,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.host.HostAdminService;
-import org.onlab.onos.net.host.InterfaceIpAddress;
-import org.onlab.onos.net.host.PortAddresses;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.host.HostAdminService;
+import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.host.PortAddresses;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;

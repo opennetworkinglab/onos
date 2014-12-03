@@ -1,6 +1,6 @@
-package org.onlab.onos.core.impl;
+package org.onosproject.core.impl;
 
-import org.onlab.onos.core.IdBlock;
+import org.onosproject.core.IdBlock;
 
 public class DummyIdBlockAllocator implements IdBlockAllocator {
     private long blockTop;

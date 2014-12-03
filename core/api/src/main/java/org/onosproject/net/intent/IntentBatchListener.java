@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import org.onlab.onos.event.EventListener;
+import org.onosproject.event.EventListener;
 
 /**
- * Listener for {@link org.onlab.onos.net.intent.IntentEvent intent events}.
+ * Listener for {@link org.onosproject.net.intent.IntentEvent intent events}.
  */
 public interface IntentBatchListener extends EventListener<IntentBatchLeaderEvent> {
 }

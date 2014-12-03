@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.mastership;
+package org.onosproject.mastership;
 
 import org.joda.time.LocalDateTime;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.DeviceId;
 
 import com.google.common.base.MoreObjects;
 

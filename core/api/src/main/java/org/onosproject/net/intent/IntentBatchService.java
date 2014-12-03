@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import org.onlab.onos.core.ApplicationId;
+import org.onosproject.core.ApplicationId;
 
 import java.util.Set;
 

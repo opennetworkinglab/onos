@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.ClusterId;
-import org.onlab.onos.net.topology.DefaultGraphDescription;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyEdge;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.ClusterId;
+import org.onosproject.net.topology.DefaultGraphDescription;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyEdge;
 import org.onlab.packet.ChassisId;
 
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Test of the default topology implementation.

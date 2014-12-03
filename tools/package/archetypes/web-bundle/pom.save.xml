@@ -18,7 +18,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.onlab.onos</groupId>
+    <groupId>org.onosproject</groupId>
     <artifactId>onos-web-bundle</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
@@ -37,24 +37,24 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <version>${onos.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
             <version>${onos.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-rest</artifactId>
             <version>${onos.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
             <version>${onos.version}</version>
             <scope>test</scope>
@@ -140,7 +140,7 @@
                             org.onlab.osgi.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
-                            org.onlab.onos.*
+                            org.onosproject.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

@@ -17,13 +17,13 @@
 /**
  *
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.Device.Type.SWITCH;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.device.DeviceEvent.Type.*;
-import static org.onlab.onos.net.NetTestTools.assertAnnotationsEquals;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.NetTestTools.assertAnnotationsEquals;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,20 +39,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceStore;
-import org.onlab.onos.net.device.DeviceStoreDelegate;
-import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceStore;
+import org.onosproject.net.device.DeviceStoreDelegate;
+import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.provider.ProviderId;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;

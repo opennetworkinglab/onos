@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.packet;
+package org.onosproject.net.packet;
 
-import org.onlab.onos.net.ConnectPoint;
+import org.onosproject.net.ConnectPoint;
 import org.onlab.packet.Ethernet;
 
 import java.nio.ByteBuffer;

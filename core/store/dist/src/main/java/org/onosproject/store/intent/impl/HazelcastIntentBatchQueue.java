@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.intent.impl;
+package org.onosproject.store.intent.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -28,25 +28,25 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.LeadershipEvent;
-import org.onlab.onos.cluster.LeadershipEventListener;
-import org.onlab.onos.cluster.LeadershipService;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.net.intent.IntentBatchDelegate;
-import org.onlab.onos.net.intent.IntentBatchLeaderEvent;
-import org.onlab.onos.net.intent.IntentBatchListener;
-import org.onlab.onos.net.intent.IntentBatchService;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.store.hz.SQueue;
-import org.onlab.onos.store.hz.StoreService;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipEvent;
+import org.onosproject.cluster.LeadershipEventListener;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.intent.IntentBatchDelegate;
+import org.onosproject.net.intent.IntentBatchLeaderEvent;
+import org.onosproject.net.intent.IntentBatchListener;
+import org.onosproject.net.intent.IntentBatchService;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.store.hz.SQueue;
+import org.onosproject.store.hz.StoreService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 

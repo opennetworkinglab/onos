@@ -17,4 +17,4 @@
 /**
  * Various exception mappers to map errors to proper response status codes.
  */
-package org.onlab.onos.rest.exceptions;
+package org.onosproject.rest.exceptions;

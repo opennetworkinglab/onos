@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.link.impl;
+package org.onosproject.store.link.impl;
 
 import com.google.common.collect.Iterables;
 
@@ -24,31 +24,31 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.device.DeviceClockService;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkStore;
-import org.onlab.onos.net.link.LinkStoreDelegate;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.cluster.StaticClusterService;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.device.impl.DeviceClockManager;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DeviceClockService;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkStore;
+import org.onosproject.net.link.LinkStoreDelegate;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.cluster.StaticClusterService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.device.impl.DeviceClockManager;
 import org.onlab.packet.IpAddress;
 
 import java.io.IOException;
@@ -67,11 +67,11 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.*;
-import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.*;
-import static org.onlab.onos.net.link.LinkEvent.Type.*;
-import static org.onlab.onos.net.NetTestTools.assertAnnotationsEquals;
+import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Link.Type.*;
+import static org.onosproject.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.NetTestTools.assertAnnotationsEquals;
 
 /**
  * Test of the GossipLinkStoreTest implementation.

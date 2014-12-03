@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.ConnectPoint;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
 
 /**
  * An optical layer intent for connectivity from one transponder port to another

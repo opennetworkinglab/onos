@@ -75,4 +75,4 @@
  * performs global recomputation/optimization across all prior intents.
  * </p>
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;

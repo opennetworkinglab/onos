@@ -1,14 +1,14 @@
-package org.onlab.onos.store.cluster;
+package org.onosproject.store.cluster;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.ControllerNode.State;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.ControllerNode.State;
 
 import com.google.common.collect.Sets;
 

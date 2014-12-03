@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.link;
+package org.onosproject.net.link;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Description;
-import org.onlab.onos.net.Link;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Description;
+import org.onosproject.net.Link;
 
 /**
  * Describes an infrastructure link.

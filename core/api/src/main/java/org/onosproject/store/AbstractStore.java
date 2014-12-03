@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store;
+package org.onosproject.store;
 
 import java.util.List;
 
-import org.onlab.onos.event.Event;
+import org.onosproject.event.Event;
 
 import static com.google.common.base.Preconditions.checkState;
 

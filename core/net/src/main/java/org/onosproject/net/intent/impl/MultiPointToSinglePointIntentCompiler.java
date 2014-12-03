@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,24 +26,24 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentCompiler;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.LinkCollectionIntent;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.topology.PathService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.topology.PathService;
 
 import com.google.common.collect.Sets;
 
 /**
  * An intent compiler for
- * {@link org.onlab.onos.net.intent.MultiPointToSinglePointIntent}.
+ * {@link org.onosproject.net.intent.MultiPointToSinglePointIntent}.
  */
 @Component(immediate = true)
 public class MultiPointToSinglePointIntentCompiler
@@ -96,7 +96,7 @@ public class MultiPointToSinglePointIntentCompiler
      * @param one start of the path
      * @param two end of the path
      * @return Path between the two
-     * @throws org.onlab.onos.net.intent.impl.PathNotFoundException if a path cannot be found
+     * @throws org.onosproject.net.intent.impl.PathNotFoundException if a path cannot be found
      */
     private Path getPath(ConnectPoint one, ConnectPoint two) {
         Set<Path> paths = pathService.getPaths(one.deviceId(), two.deviceId());

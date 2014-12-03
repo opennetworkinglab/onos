@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.drivers;
+package org.onosproject.openflow.drivers;
 
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.driver.AbstractOpenFlowSwitch;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;

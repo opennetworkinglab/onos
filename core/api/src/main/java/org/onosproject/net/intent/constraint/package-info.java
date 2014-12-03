@@ -17,4 +17,4 @@
 /**
  * Definitions of constraints used to refine intent specifications.
  */
-package org.onlab.onos.net.intent.constraint;
+package org.onosproject.net.intent.constraint;

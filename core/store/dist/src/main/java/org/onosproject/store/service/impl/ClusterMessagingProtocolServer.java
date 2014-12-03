@@ -1,10 +1,10 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.*;
-import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
+import static org.onosproject.store.service.impl.ClusterMessagingProtocol.*;
+import static org.onosproject.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -17,9 +17,9 @@ import net.kuujo.copycat.protocol.SubmitRequest;
 import net.kuujo.copycat.protocol.SyncRequest;
 import net.kuujo.copycat.spi.protocol.ProtocolServer;
 
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.slf4j.Logger;
 
 /**

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
-import static org.onlab.onos.net.PortNumber.P0;
+import static org.onosproject.net.PortNumber.P0;
 
 /**
  * Representation of a network edge location where an end-station host is

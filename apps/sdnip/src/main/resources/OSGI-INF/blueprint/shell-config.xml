@@ -17,16 +17,16 @@
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
     <command>
-      <action class="org.onlab.onos.sdnip.cli.BgpNeighborsListCommand"/>
+      <action class="org.onosproject.sdnip.cli.BgpNeighborsListCommand"/>
     </command>
     <command>
-      <action class="org.onlab.onos.sdnip.cli.BgpRoutesListCommand"/>
+      <action class="org.onosproject.sdnip.cli.BgpRoutesListCommand"/>
     </command>
     <command>
-      <action class="org.onlab.onos.sdnip.cli.RoutesListCommand"/>
+      <action class="org.onosproject.sdnip.cli.RoutesListCommand"/>
     </command>
     <command>
-      <action class="org.onlab.onos.sdnip.cli.PrimaryChangeCommand"/>
+      <action class="org.onosproject.sdnip.cli.PrimaryChangeCommand"/>
     </command>
   </command-bundle>
 </blueprint>

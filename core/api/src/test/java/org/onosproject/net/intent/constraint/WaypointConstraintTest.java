@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.constraint;
+package org.onosproject.net.intent.constraint;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.DefaultPath;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.LinkResourceService;
 
 import java.util.Arrays;
 
 import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.onlab.onos.net.DefaultLinkTest.cp;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.DIRECT;
+import static org.onosproject.net.DefaultLinkTest.cp;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Link.Type.DIRECT;
 
 /**
  * Test for constraint of intermediate elements.

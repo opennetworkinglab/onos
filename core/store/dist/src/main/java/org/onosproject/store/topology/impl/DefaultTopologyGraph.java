@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.topology.impl;
+package org.onosproject.store.topology.impl;
 
 import org.onlab.graph.AdjacencyListsGraph;
-import org.onlab.onos.net.topology.TopologyEdge;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyVertex;
+import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyVertex;
 
 import java.util.Set;
 

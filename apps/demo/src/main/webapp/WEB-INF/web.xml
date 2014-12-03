@@ -30,7 +30,7 @@
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
             <param-value>
-                org.onlab.onos.demo.DemoResource
+                org.onosproject.demo.DemoResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

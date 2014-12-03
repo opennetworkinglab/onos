@@ -13,46 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.gui;
+package org.onosproject.gui;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
-import org.onlab.onos.cluster.ClusterEvent;
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.event.AbstractEventAccumulator;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventAccumulator;
-import org.onlab.onos.mastership.MastershipAdminService;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.FlowRuleEvent;
-import org.onlab.onos.net.flow.FlowRuleListener;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkListener;
+import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractEventAccumulator;
+import org.onosproject.event.Event;
+import org.onosproject.event.EventAccumulator;
+import org.onosproject.mastership.MastershipAdminService;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 
@@ -67,13 +67,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ADDED;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.HostId.hostId;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onlab.onos.net.device.DeviceEvent.Type.DEVICE_UPDATED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.HostId.hostId;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 
 /**
  * Web socket capable of interacting with the GUI topology view.
@@ -88,7 +88,7 @@ public class TopologyViewWebSocket
     private static final byte PONG = 0xA;
     private static final byte[] PING_DATA = new byte[]{(byte) 0xde, (byte) 0xad};
 
-    private static final String APP_ID = "org.onlab.onos.gui";
+    private static final String APP_ID = "org.onosproject.gui";
 
     private static final long TRAFFIC_FREQUENCY = 2000;
     private static final long SUMMARY_FREQUENCY = 30000;

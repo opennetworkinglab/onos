@@ -17,4 +17,4 @@
 /**
  * Implementation of a distributed application ID registry store using Hazelcast.
  */
-package org.onlab.onos.store.core.impl;
+package org.onosproject.store.core.impl;

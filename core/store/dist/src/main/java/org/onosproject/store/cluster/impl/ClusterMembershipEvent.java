@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.impl;
+package org.onosproject.store.cluster.impl;
 
-import org.onlab.onos.cluster.ControllerNode;
+import org.onosproject.cluster.ControllerNode;
 
 //Not used right now
 /**

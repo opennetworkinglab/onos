@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
-import org.onlab.onos.store.StoreDelegate;
+import org.onosproject.store.StoreDelegate;
 
 /**
  * Infrastructure device store delegate abstraction.

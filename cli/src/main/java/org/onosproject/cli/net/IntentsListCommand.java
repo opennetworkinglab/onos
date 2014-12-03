@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,19 +21,19 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.NetworkResource;
-import org.onlab.onos.net.intent.ConnectivityIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
-import org.onlab.onos.net.intent.LinkCollectionIntent;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.net.intent.PathIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.NetworkResource;
+import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 
 import java.util.List;
 import java.util.Set;

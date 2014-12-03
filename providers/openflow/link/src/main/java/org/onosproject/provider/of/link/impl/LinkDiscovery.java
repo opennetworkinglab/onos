@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.link.impl;
+package org.onosproject.provider.of.link.impl;
 
-import static org.onlab.onos.openflow.controller.Dpid.uri;
+import static org.onosproject.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -30,16 +30,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link.Type;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowController;
-import org.onlab.onos.openflow.controller.OpenFlowSwitch;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowController;
+import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONLabLddp;
 import org.onlab.packet.ONLabLddp.DPIDandPort;

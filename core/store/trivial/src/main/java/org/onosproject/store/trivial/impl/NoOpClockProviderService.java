@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceClockProviderService;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceClockProviderService;
 
 import com.google.common.collect.Sets;
 

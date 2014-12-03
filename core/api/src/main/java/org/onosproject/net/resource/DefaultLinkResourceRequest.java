@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.resource;
+package org.onosproject.net.resource;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.IntentId;
+import org.onosproject.net.Link;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.IntentId;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
-import org.onlab.onos.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.LambdaConstraint;
 
 /**
  * Implementation of {@link LinkResourceRequest}.

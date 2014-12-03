@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.TestApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.AbstractIntentTest;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentTestsMocks;
-import org.onlab.onos.net.intent.LinkCollectionIntent;
-import org.onlab.onos.net.intent.MultiPointToSinglePointIntent;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.TestApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Path;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.AbstractIntentTest;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentTestsMocks;
+import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -40,9 +40,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onlab.onos.net.NetTestTools.connectPoint;
-import static org.onlab.onos.net.NetTestTools.createPath;
-import static org.onlab.onos.net.intent.LinksHaveEntryWithSourceDestinationPairMatcher.linksHasPath;
+import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.createPath;
+import static org.onosproject.net.intent.LinksHaveEntryWithSourceDestinationPairMatcher.linksHasPath;
 
 /**
  * Unit tests for the MultiPointToSinglePoint intent compiler.

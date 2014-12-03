@@ -1,8 +1,8 @@
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.store.service.WriteRequest.Type.*;
+import static org.onosproject.store.service.WriteRequest.Type.*;
 
 import java.util.Objects;
 

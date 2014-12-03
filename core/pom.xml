@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.onlab.onos</groupId>
+        <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -44,11 +44,11 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.packet;
+package org.onosproject.net.packet;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.IntentTestsMocks;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.IntentTestsMocks;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 
@@ -29,8 +29,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
-import static org.onlab.onos.net.NetTestTools.connectPoint;
-import static org.onlab.onos.net.NetTestTools.did;
+import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.did;
 
 /**
  * Unit tests for the DefaultPacketContextTest.

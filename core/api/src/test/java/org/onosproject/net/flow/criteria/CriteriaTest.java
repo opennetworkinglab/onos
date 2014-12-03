@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow.criteria;
+package org.onosproject.net.flow.criteria;
 
 import org.junit.Test;
-import org.onlab.onos.net.PortNumber;
+import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.junit.UtilityClassChecker.assertThatClassIsUtility;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Unit tests for the Criteria class and its subclasses.

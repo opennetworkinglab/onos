@@ -1,14 +1,14 @@
-package org.onlab.onos.core.impl;
+package org.onosproject.core.impl;
 
 import org.easymock.EasyMock;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.core.IdBlock;
+import org.onosproject.core.IdBlock;
 
 /**
- * Suites of test of {@link org.onlab.onos.core.impl.BlockAllocatorBasedIdGenerator}.
+ * Suites of test of {@link org.onosproject.core.impl.BlockAllocatorBasedIdGenerator}.
  */
 public class IdBlockAllocatorBasedIdGeneratorTest {
     private IdBlockAllocator allocator;
@@ -21,7 +21,7 @@ public class IdBlockAllocatorBasedIdGeneratorTest {
     }
 
     /**
-     * Tests generated IntentId sequences using two {@link org.onlab.onos.core.IdBlock blocks}.
+     * Tests generated IntentId sequences using two {@link org.onosproject.core.IdBlock blocks}.
      */
     @Test
     public void testIds() {

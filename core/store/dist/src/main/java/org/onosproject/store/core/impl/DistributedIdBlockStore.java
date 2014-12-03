@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.core.impl;
+package org.onosproject.store.core.impl;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
@@ -22,9 +22,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.IdBlock;
-import org.onlab.onos.core.IdBlockStore;
-import org.onlab.onos.store.hz.StoreService;
+import org.onosproject.core.IdBlock;
+import org.onosproject.core.IdBlockStore;
+import org.onosproject.store.hz.StoreService;
 
 import java.util.Map;
 

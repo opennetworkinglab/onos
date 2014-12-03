@@ -17,5 +17,5 @@
 /**
  * Distributed core state management services.
  */
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 

@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceService;
 
-import static org.onlab.onos.cli.net.AddPointToPointIntentCommand.getDeviceId;
-import static org.onlab.onos.cli.net.AddPointToPointIntentCommand.getPortNumber;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.cli.net.AddPointToPointIntentCommand.getDeviceId;
+import static org.onosproject.cli.net.AddPointToPointIntentCommand.getPortNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Lists allocations by link.

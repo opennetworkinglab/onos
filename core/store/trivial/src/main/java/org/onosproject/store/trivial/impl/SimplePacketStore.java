@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.net.packet.PacketEvent;
-import org.onlab.onos.net.packet.PacketEvent.Type;
-import org.onlab.onos.net.packet.PacketStore;
-import org.onlab.onos.net.packet.PacketStoreDelegate;
-import org.onlab.onos.store.AbstractStore;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketEvent;
+import org.onosproject.net.packet.PacketEvent.Type;
+import org.onosproject.net.packet.PacketStore;
+import org.onosproject.net.packet.PacketStoreDelegate;
+import org.onosproject.store.AbstractStore;
 
 /**
  * Simple single instance implementation of the packet store.

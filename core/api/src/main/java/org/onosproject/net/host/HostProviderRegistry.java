@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
-import org.onlab.onos.net.provider.ProviderRegistry;
+import org.onosproject.net.provider.ProviderRegistry;
 
 /**
  * Abstraction of a host provider registry.

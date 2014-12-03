@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.mobility;
+package org.onosproject.mobility;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
@@ -24,19 +24,19 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.flow.criteria.Criteria.EthCriterion;
-import org.onlab.onos.net.flow.criteria.Criterion;
-import org.onlab.onos.net.flow.criteria.Criterion.Type;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.host.HostService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.Device;
+import org.onosproject.net.Host;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.Criterion.Type;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
 import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 
@@ -67,7 +67,7 @@ public class HostMobility {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onlab.onos.mobility");
+        appId = coreService.registerApplication("org.onosproject.mobility");
         hostService.addListener(new InternalHostListener());
         log.info("Started with Application ID {}", appId.id());
     }

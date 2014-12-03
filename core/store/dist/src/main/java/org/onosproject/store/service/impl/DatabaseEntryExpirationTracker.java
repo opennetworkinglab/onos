@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 
@@ -34,13 +34,13 @@ import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
 
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.VersionedValue;
-import org.onlab.onos.store.service.impl.DatabaseStateMachine.State;
-import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.service.DatabaseService;
+import org.onosproject.store.service.VersionedValue;
+import org.onosproject.store.service.impl.DatabaseStateMachine.State;
+import org.onosproject.store.service.impl.DatabaseStateMachine.TableMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

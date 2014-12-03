@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.rest;
+package org.onosproject.rest;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.device.DeviceService;
+import org.onosproject.net.Device;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -27,7 +27,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * REST resource for interacting with the inventory of infrastructure devices.

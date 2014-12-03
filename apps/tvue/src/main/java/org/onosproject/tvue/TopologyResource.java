@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.tvue;
+package org.onosproject.tvue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.net.topology.TopologyVertex;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Host;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.net.topology.TopologyVertex;
 import org.onlab.packet.IpAddress;
 import org.onlab.rest.BaseResource;
 
@@ -43,9 +43,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.HostId.hostId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.HostId.hostId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Topology viewer resource.

@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 
 /**
  * A container object which either has a result or an exception.

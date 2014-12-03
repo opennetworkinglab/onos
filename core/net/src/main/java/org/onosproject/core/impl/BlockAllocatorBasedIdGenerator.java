@@ -1,8 +1,8 @@
-package org.onlab.onos.core.impl;
+package org.onosproject.core.impl;
 
-import org.onlab.onos.core.IdBlock;
-import org.onlab.onos.core.IdGenerator;
-import org.onlab.onos.core.UnavailableIdException;
+import org.onosproject.core.IdBlock;
+import org.onosproject.core.IdGenerator;
+import org.onosproject.core.UnavailableIdException;
 
 /**
  * Base class of {@link IdGenerator} implementations which use {@link IdBlockAllocator} as

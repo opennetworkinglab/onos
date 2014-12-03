@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology.impl;
+package org.onosproject.net.topology.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -24,24 +24,24 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultEdgeLink;
-import org.onlab.onos.net.DefaultPath;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.EdgeLink;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultEdgeLink;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.EdgeLink;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class PathManager implements PathService {
 
     private static final String ELEMENT_ID_NULL = "Element ID cannot be null";
 
-    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core");
+    private static final ProviderId PID = new ProviderId("core", "org.onosproject.core");
     private static final PortNumber P0 = PortNumber.portNumber(0);
 
     private static final EdgeLink NOT_HOST = new NotHost();

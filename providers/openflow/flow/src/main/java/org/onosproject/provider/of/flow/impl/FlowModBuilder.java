@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.flow.impl;
+package org.onosproject.provider.of.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.criteria.Criteria;
-import org.onlab.onos.net.flow.criteria.Criteria.EthCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.EthTypeCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.IPCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.IPProtocolCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.LambdaCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.PortCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.TcpPortCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.VlanIdCriterion;
-import org.onlab.onos.net.flow.criteria.Criteria.VlanPcpCriterion;
-import org.onlab.onos.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.Criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.Criteria.LambdaCriterion;
+import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.Criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.Criteria.VlanIdCriterion;
+import org.onosproject.net.flow.criteria.Criteria.VlanPcpCriterion;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.projectfloodlight.openflow.protocol.OFFactory;

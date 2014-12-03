@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.onlab.onos.net.intent.IntentTestsMocks;
+import org.onosproject.net.intent.IntentTestsMocks;
 
 import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.onlab.onos.net.NetTestTools.did;
+import static org.onosproject.net.NetTestTools.did;
 
 /**
  * Unit tests for the DefaultFlowEntry class.

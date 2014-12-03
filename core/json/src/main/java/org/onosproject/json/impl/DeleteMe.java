@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.json.impl;
+package org.onosproject.json.impl;
 
 /**
  * Created by tom on 10/16/14.

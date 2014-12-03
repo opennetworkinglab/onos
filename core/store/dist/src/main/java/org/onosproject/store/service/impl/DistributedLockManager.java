@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -17,16 +17,16 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.service.DatabaseAdminService;
-import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.DatabaseService;
-import org.onlab.onos.store.service.Lock;
-import org.onlab.onos.store.service.LockEventListener;
-import org.onlab.onos.store.service.LockService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.service.DatabaseAdminService;
+import org.onosproject.store.service.DatabaseException;
+import org.onosproject.store.service.DatabaseService;
+import org.onosproject.store.service.Lock;
+import org.onosproject.store.service.LockEventListener;
+import org.onosproject.store.service.LockService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.LinkedListMultimap;

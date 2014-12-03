@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.core.impl;
+package org.onosproject.store.core.impl;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.event.AbstractEvent;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.event.AbstractEvent;
 
 /**
  * Application ID event.

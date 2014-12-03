@@ -17,4 +17,4 @@
 /**
  * Packet/Optical sample forwarding applications.
  */
-package org.onlab.onos.optical.testapp;
+package org.onosproject.optical.testapp;

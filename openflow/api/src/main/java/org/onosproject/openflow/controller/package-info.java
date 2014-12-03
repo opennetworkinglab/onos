@@ -17,4 +17,4 @@
 /**
  * OpenFlow controller API.
  */
-package org.onlab.onos.openflow.controller;
+package org.onosproject.openflow.controller;

@@ -17,4 +17,4 @@
 /**
  * Core subsystem for responding to statistical inquiries.
  */
-package org.onlab.onos.net.statistic.impl;
+package org.onosproject.net.statistic.impl;

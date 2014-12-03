@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.calendar;
+package org.onosproject.calendar;
 
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onlab.rest.BaseResource;
 
 import javax.ws.rs.POST;
@@ -34,20 +34,20 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
 
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 
-import static org.onlab.onos.net.intent.IntentState.FAILED;
-import static org.onlab.onos.net.intent.IntentState.INSTALLED;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.slf4j.Logger;
@@ -143,7 +143,7 @@ public class BandwidthCalendarResource extends BaseResource {
     }
 
     protected ApplicationId appId() {
-        return get(CoreService.class).registerApplication("org.onlab.onos.calendar");
+        return get(CoreService.class).registerApplication("org.onosproject.calendar");
     }
 
     // Auxiliary listener to wait until the given intent reaches the installed or failed states.

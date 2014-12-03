@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import java.util.Collection;
 
-import org.onlab.onos.sdnip.bgp.BgpRouteEntry;
-import org.onlab.onos.sdnip.bgp.BgpSession;
+import org.onosproject.sdnip.bgp.BgpRouteEntry;
+import org.onosproject.sdnip.bgp.BgpSession;
 
 /**
  * Service interface exported by SDN-IP.

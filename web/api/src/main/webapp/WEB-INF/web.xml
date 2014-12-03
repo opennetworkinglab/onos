@@ -30,14 +30,14 @@
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
             <param-value>
-                org.onlab.onos.rest.exceptions.EntityNotFoundMapper,
-                org.onlab.onos.rest.exceptions.ServiceNotFoundMapper,
-                org.onlab.onos.rest.exceptions.ServerErrorMapper,
-                org.onlab.onos.rest.JsonBodyWriter,
+                org.onosproject.rest.exceptions.EntityNotFoundMapper,
+                org.onosproject.rest.exceptions.ServiceNotFoundMapper,
+                org.onosproject.rest.exceptions.ServerErrorMapper,
+                org.onosproject.rest.JsonBodyWriter,
 
-                org.onlab.onos.rest.DevicesWebResource,
-                org.onlab.onos.rest.LinksWebResource,
-                org.onlab.onos.rest.ConfigResource
+                org.onosproject.rest.DevicesWebResource,
+                org.onosproject.rest.LinksWebResource,
+                org.onosproject.rest.ConfigResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

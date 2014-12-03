@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event;
+package org.onosproject.event;
 
 /**
  * Abstraction of an of a time-stamped event pertaining to an arbitrary subject.

@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.device.impl;
+package org.onosproject.store.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.DefaultAnnotations.union;
+import static org.onosproject.net.DefaultAnnotations.union;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.SparseAnnotations;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.store.Timestamp;
-import org.onlab.onos.store.impl.Timestamped;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.PortDescription;
+import org.onosproject.store.Timestamp;
+import org.onosproject.store.impl.Timestamped;
 
 /*
  * Collection of Description of a Device and Ports, given from a Provider.

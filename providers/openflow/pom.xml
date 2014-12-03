@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.onlab.onos</groupId>
+        <groupId>org.onosproject</groupId>
         <artifactId>onos-providers</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -41,18 +41,18 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-of-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-of-api</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>

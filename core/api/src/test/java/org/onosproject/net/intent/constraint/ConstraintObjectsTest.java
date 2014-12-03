@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.constraint;
+package org.onosproject.net.intent.constraint;
 
 import org.junit.Test;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.resource.Bandwidth;
-import org.onlab.onos.net.resource.Lambda;
+import org.onosproject.net.Link;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.Lambda;
 
 import com.google.common.testing.EqualsTester;
 

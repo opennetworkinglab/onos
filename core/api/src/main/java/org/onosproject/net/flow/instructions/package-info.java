@@ -17,4 +17,4 @@
 /**
  * Traffic treatment model.
  */
-package org.onlab.onos.net.flow.instructions;
+package org.onosproject.net.flow.instructions;

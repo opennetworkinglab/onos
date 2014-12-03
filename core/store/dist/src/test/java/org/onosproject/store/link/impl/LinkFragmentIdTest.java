@@ -1,13 +1,13 @@
-package org.onlab.onos.store.link.impl;
+package org.onosproject.store.link.impl;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onosproject.net.DeviceId.deviceId;
 
 import org.junit.Test;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.provider.ProviderId;
 import com.google.common.testing.EqualsTester;
 
 public class LinkFragmentIdTest {

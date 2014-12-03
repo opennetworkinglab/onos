@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.metrics.intent.cli;
+package org.onosproject.metrics.intent.cli;
 
 import java.util.List;
 
@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.metrics.intent.IntentMetricsService;
-import org.onlab.onos.net.intent.IntentEvent;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.metrics.intent.IntentMetricsService;
+import org.onosproject.net.intent.IntentEvent;
 
 /**
  * Command to show the list of last intent events.

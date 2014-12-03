@@ -17,4 +17,4 @@
 /**
  * Traffic selection criteria model.
  */
-package org.onlab.onos.net.flow.criteria;
+package org.onosproject.net.flow.criteria;

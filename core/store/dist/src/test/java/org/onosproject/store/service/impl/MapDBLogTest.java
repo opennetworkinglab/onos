@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 
 import com.google.common.testing.EqualsTester;
 

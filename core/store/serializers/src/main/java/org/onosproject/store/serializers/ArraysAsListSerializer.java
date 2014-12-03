@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.provider;
+package org.onosproject.net.provider;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 
 import java.util.HashMap;
 import java.util.Map;

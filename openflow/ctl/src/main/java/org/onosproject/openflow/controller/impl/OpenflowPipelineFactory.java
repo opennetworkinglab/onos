@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 import java.util.concurrent.ThreadPoolExecutor;
 

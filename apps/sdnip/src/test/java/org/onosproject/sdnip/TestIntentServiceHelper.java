@@ -1,15 +1,15 @@
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.easymock.IArgumentMatcher;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentOperation;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.sdnip.IntentSynchronizer.IntentKey;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentOperation;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
 
 import static org.easymock.EasyMock.reportMatcher;
 

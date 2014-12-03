@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.DeviceId;
 
 /**
 * Interface for feeding term information to a logical clock service

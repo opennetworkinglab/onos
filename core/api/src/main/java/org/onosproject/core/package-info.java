@@ -17,4 +17,4 @@
 /**
  * ONOS Core API definitions.
  */
-package org.onlab.onos.core;
+package org.onosproject.core;

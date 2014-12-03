@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.net.HostId;
+import org.onosproject.store.Timestamp;
 
 /**
  * Interface for a logical clock service that issues per host timestamps.

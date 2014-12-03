@@ -17,4 +17,4 @@
 /**
  * Base abstractions related to the proxy arp service.
  */
-package org.onlab.onos.net.proxyarp;
+package org.onosproject.net.proxyarp;

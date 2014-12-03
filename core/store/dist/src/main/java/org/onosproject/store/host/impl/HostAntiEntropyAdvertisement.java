@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.host.impl;
+package org.onosproject.store.host.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.net.HostId;
+import org.onosproject.store.Timestamp;
 
 /**
  * Host AE Advertisement message.

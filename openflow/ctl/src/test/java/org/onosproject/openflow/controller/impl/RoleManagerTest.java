@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,13 +22,13 @@ import org.jboss.netty.channel.Channel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.openflow.controller.RoleState;
-import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
-import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
-import org.onlab.onos.openflow.controller.driver.RoleHandler;
-import org.onlab.onos.openflow.controller.driver.RoleRecvStatus;
-import org.onlab.onos.openflow.controller.driver.RoleReplyInfo;
-import org.onlab.onos.openflow.controller.driver.SwitchStateException;
+import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.driver.OpenFlowAgent;
+import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
+import org.onosproject.openflow.controller.driver.RoleHandler;
+import org.onosproject.openflow.controller.driver.RoleRecvStatus;
+import org.onosproject.openflow.controller.driver.RoleReplyInfo;
+import org.onosproject.openflow.controller.driver.SwitchStateException;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFFactories;
@@ -41,8 +41,8 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.U64;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.openflow.controller.RoleState.*;
-import static org.onlab.onos.openflow.controller.driver.RoleRecvStatus.*;
+import static org.onosproject.openflow.controller.RoleState.*;
+import static org.onosproject.openflow.controller.driver.RoleRecvStatus.*;
 
 public class RoleManagerTest {
 

@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.optical;
+package org.onosproject.optical;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkListener;
-import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderRegistry;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.onlab.onos.net.Link.Type.OPTICAL;
+import static org.onosproject.net.Link.Type.OPTICAL;
 
 /**
  * Ancillary provider to activate/deactivate optical links as their respective
@@ -66,7 +66,7 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
     private LinkListener linkListener = new InternalLinkListener();
 
     public OpticalLinkProvider() {
-        super(new ProviderId("optical", "org.onlab.onos.optical"));
+        super(new ProviderId("optical", "org.onosproject.optical"));
     }
 
     @Activate

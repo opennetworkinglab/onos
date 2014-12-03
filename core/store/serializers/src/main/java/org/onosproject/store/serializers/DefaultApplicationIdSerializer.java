@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.serializers;
+package org.onosproject.store.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.onlab.onos.core.DefaultApplicationId;
+import org.onosproject.core.DefaultApplicationId;
 
 /**
- * Kryo Serializer for {@link org.onlab.onos.core.DefaultApplicationId}.
+ * Kryo Serializer for {@link org.onosproject.core.DefaultApplicationId}.
  */
 public final class DefaultApplicationIdSerializer extends Serializer<DefaultApplicationId> {
 
     /**
-     * Creates {@link org.onlab.onos.core.DefaultApplicationId} serializer instance.
+     * Creates {@link org.onosproject.core.DefaultApplicationId} serializer instance.
      */
     public DefaultApplicationIdSerializer() {
         // non-null, immutable

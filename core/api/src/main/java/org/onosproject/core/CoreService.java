@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.core;
+package org.onosproject.core;
 
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.provider.ProviderId;
 
 import java.util.Set;
 
@@ -25,7 +25,7 @@ import java.util.Set;
 public interface CoreService {
 
     public static final ProviderId CORE_PROVIDER_ID =
-            new ProviderId("core", "org.onlab.onos.core");
+            new ProviderId("core", "org.onosproject.core");
 
     /**
      * Returns the product version.

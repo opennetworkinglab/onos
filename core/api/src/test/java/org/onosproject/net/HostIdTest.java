@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
 import com.google.common.testing.EqualsTester;
 
@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
-import static org.onlab.onos.net.HostId.hostId;
+import static org.onosproject.net.HostId.hostId;
 
 /**
  * Test for the host identifier.

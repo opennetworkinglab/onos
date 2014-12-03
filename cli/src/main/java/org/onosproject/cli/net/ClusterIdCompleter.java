@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyService;
 
 import java.util.List;
 import java.util.SortedSet;

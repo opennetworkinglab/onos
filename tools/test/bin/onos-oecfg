@@ -7,6 +7,6 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 APP=onos-app-oecfg
-JAR=$M2_REPO/org/onlab/onos/$APP/$ONOS_POM_VERSION/$APP-$ONOS_POM_VERSION.jar
+JAR=$M2_REPO/org/onosproject/$APP/$ONOS_POM_VERSION/$APP-$ONOS_POM_VERSION.jar
 
 java -jar $JAR < $1 | python -mjson.tool

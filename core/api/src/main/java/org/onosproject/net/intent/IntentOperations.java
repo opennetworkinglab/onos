@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import java.util.List;
 import java.util.Objects;
 
 import com.google.common.collect.ImmutableList;
-import org.onlab.onos.core.ApplicationId;
+import org.onosproject.core.ApplicationId;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.intent.IntentOperation.Type.REPLACE;
-import static org.onlab.onos.net.intent.IntentOperation.Type.SUBMIT;
-import static org.onlab.onos.net.intent.IntentOperation.Type.UPDATE;
-import static org.onlab.onos.net.intent.IntentOperation.Type.WITHDRAW;
+import static org.onosproject.net.intent.IntentOperation.Type.REPLACE;
+import static org.onosproject.net.intent.IntentOperation.Type.SUBMIT;
+import static org.onosproject.net.intent.IntentOperation.Type.UPDATE;
+import static org.onosproject.net.intent.IntentOperation.Type.WITHDRAW;
 
 /**
  * Batch of intent submit/withdraw/replace operations.

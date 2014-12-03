@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.flow;
+package org.onosproject.store.flow;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.Collections;
 
-import org.onlab.onos.cluster.NodeId;
+import org.onosproject.cluster.NodeId;
 
 import com.google.common.base.Optional;
 

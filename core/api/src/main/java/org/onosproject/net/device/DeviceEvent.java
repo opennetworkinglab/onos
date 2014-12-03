@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
 import org.joda.time.LocalDateTime;
-import org.onlab.onos.event.AbstractEvent;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Port;
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.Device;
+import org.onosproject.net.Port;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 

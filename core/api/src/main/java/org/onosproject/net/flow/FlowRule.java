@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
-import org.onlab.onos.core.GroupId;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 
 /**
  * Represents a generalized match &amp; action pair to be applied to

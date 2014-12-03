@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology;
+package org.onosproject.net.topology;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * Tests of the topology graph vertex.

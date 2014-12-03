@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.link.impl;
+package org.onosproject.store.link.impl;
 
-import org.onlab.onos.net.LinkKey;
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.net.LinkKey;
+import org.onosproject.store.Timestamp;
 
 import com.google.common.base.MoreObjects;
 

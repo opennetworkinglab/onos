@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.flow.impl;
+package org.onosproject.store.flow.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onlab.onos.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
-import static org.onlab.onos.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
+import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
+import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
 
 import java.util.Collections;
 import org.apache.felix.scr.annotations.Activate;
@@ -27,17 +27,17 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.flow.ReplicaInfo;
-import org.onlab.onos.store.flow.ReplicaInfoEvent;
-import org.onlab.onos.store.flow.ReplicaInfoEventListener;
-import org.onlab.onos.store.flow.ReplicaInfoService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.store.flow.ReplicaInfo;
+import org.onosproject.store.flow.ReplicaInfoEvent;
+import org.onosproject.store.flow.ReplicaInfoEventListener;
+import org.onosproject.store.flow.ReplicaInfoService;
 import org.slf4j.Logger;
 
 /**

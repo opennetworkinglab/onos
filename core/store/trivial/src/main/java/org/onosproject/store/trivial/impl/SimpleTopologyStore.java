@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.ClusterId;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyEvent;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyStore;
-import org.onlab.onos.net.topology.TopologyStoreDelegate;
-import org.onlab.onos.store.AbstractStore;
+import org.onosproject.event.Event;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.ClusterId;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyStore;
+import org.onosproject.net.topology.TopologyStoreDelegate;
+import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.List;

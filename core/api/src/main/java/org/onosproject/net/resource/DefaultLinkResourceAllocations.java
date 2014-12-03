@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.resource;
+package org.onosproject.net.resource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -21,8 +21,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.intent.IntentId;
+import org.onosproject.net.Link;
+import org.onosproject.net.intent.IntentId;
 
 import java.util.Collection;
 import java.util.Collections;

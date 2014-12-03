@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.optical.cfg;
+package org.onosproject.optical.cfg;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderRegistry;
-import org.onlab.onos.net.device.DeviceProviderService;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderRegistry;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceProvider;
+import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * OpticalConfigProvider emulates the SB network provider for optical switches,
@@ -93,7 +93,7 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
     protected OpticalNetworkConfig opticalNetworkConfig;
 
     public OpticalConfigProvider() {
-        super(new ProviderId("optical", "org.onlab.onos.provider" +
+        super(new ProviderId("optical", "org.onosproject.provider" +
                 ".opticalConfig"));
     }
 

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.cluster.Leadership;
-import org.onlab.onos.cluster.LeadershipService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cluster.Leadership;
+import org.onosproject.cluster.LeadershipService;
 
 import java.util.Map;
 

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store;
+package org.onosproject.store;
 
-import org.onlab.onos.event.Event;
+import org.onosproject.event.Event;
 
 /**
  * Entity associated with a store and capable of receiving notifications of

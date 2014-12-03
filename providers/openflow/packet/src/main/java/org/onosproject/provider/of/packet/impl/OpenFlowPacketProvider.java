@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.packet.impl;
+package org.onosproject.provider.of.packet.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,24 +25,24 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
-import org.onlab.onos.net.packet.DefaultInboundPacket;
-import org.onlab.onos.net.packet.DefaultOutboundPacket;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.net.packet.PacketProvider;
-import org.onlab.onos.net.packet.PacketProviderRegistry;
-import org.onlab.onos.net.packet.PacketProviderService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowController;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.OpenFlowSwitch;
-import org.onlab.onos.openflow.controller.PacketListener;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.packet.DefaultInboundPacket;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketProvider;
+import org.onosproject.net.packet.PacketProviderRegistry;
+import org.onosproject.net.packet.PacketProviderService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowController;
+import org.onosproject.openflow.controller.OpenFlowPacketContext;
+import org.onosproject.openflow.controller.OpenFlowSwitch;
+import org.onosproject.openflow.controller.PacketListener;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -75,7 +75,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
      * Creates an OpenFlow link provider.
      */
     public OpenFlowPacketProvider() {
-        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onosproject.provider.openflow"));
     }
 
     @Activate

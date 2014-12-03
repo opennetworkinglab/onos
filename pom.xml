@@ -23,7 +23,7 @@
         <maven>3.0.0</maven>
     </prerequisites>
 
-    <groupId>org.onlab.onos</groupId>
+    <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
@@ -269,34 +269,34 @@
 
             <!-- ONOS related -->
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-misc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-nio</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-osgi</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-junit</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
 
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onos-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onos-api</artifactId>
                 <version>${project.version}</version>
                 <classifier>tests</classifier>
@@ -304,19 +304,19 @@
             </dependency>
 
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onos-of-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-thirdparty</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.onlab.onos</groupId>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onos-of-api</artifactId>
                 <version>${project.version}</version>
                 <classifier>tests</classifier>
@@ -474,7 +474,7 @@
                   <version>3.0.0</version>
                   <dependencies>
                     <dependency>
-                      <groupId>org.onlab.tools</groupId>
+                      <groupId>org.onosproject</groupId>
                       <artifactId>onos-build-conf</artifactId>
                       <version>1.0</version>
                     </dependency>
@@ -530,7 +530,7 @@
                 <version>2.13</version>
                 <dependencies>
                     <dependency>
-                        <groupId>org.onlab.tools</groupId>
+                        <groupId>org.onosproject</groupId>
                         <artifactId>onos-build-conf</artifactId>
                         <version>1.0</version>
                     </dependency>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import static java.lang.String.format;
 

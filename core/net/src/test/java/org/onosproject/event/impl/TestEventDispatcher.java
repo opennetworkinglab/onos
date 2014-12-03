@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event.impl;
+package org.onosproject.event.impl;
 
-import org.onlab.onos.event.DefaultEventSinkRegistry;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.event.EventSink;
+import org.onosproject.event.DefaultEventSinkRegistry;
+import org.onosproject.event.Event;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.EventSink;
 
 import static com.google.common.base.Preconditions.checkState;
 

@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import org.junit.Test;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultLink;
-import org.onlab.onos.net.DefaultPath;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.NetTestTools;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.NetTestTools;
+import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.provider.ProviderId;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.DIRECT;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.PortNumber.portNumber;
 
 public class PathIntentTest extends ConnectivityIntentTest {
     // 111:11 --> 222:22

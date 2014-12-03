@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip.bgp;
+package org.onosproject.sdnip.bgp;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.namedThreads;
@@ -37,8 +37,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.onlab.onos.sdnip.RouteListener;
-import org.onlab.onos.sdnip.RouteUpdate;
+import org.onosproject.sdnip.RouteListener;
+import org.onosproject.sdnip.RouteUpdate;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;

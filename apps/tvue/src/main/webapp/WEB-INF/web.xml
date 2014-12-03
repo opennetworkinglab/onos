@@ -33,9 +33,9 @@
         </init-param>
         <init-param>
             <!--param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>org.onlab.onos.tvue</param-value-->
+            <param-value>org.onosproject.tvue</param-value-->
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onlab.onos.tvue.TopologyResource</param-value>
+            <param-value>org.onosproject.tvue.TopologyResource</param-value>
         </init-param>
         <load-on-startup>10</load-on-startup>
     </servlet>

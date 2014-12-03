@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.metrics.intent;
+package org.onosproject.metrics.intent;
 
 import java.util.List;
 import org.onlab.metrics.EventMetric;
-import org.onlab.onos.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentEvent;
 
 /**
  * Service interface exported by IntentMetrics.

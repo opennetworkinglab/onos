@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -21,26 +21,26 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.host.InterfaceIpAddress;
-import org.onlab.onos.net.intent.AbstractIntentTest;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.sdnip.bgp.BgpConstants;
-import org.onlab.onos.sdnip.config.BgpPeer;
-import org.onlab.onos.sdnip.config.BgpSpeaker;
-import org.onlab.onos.sdnip.config.Interface;
-import org.onlab.onos.sdnip.config.InterfaceAddress;
-import org.onlab.onos.sdnip.config.SdnIpConfigurationService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intent.AbstractIntentTest;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.sdnip.bgp.BgpConstants;
+import org.onosproject.sdnip.config.BgpPeer;
+import org.onosproject.sdnip.config.BgpSpeaker;
+import org.onosproject.sdnip.config.Interface;
+import org.onosproject.sdnip.config.InterfaceAddress;
+import org.onosproject.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;

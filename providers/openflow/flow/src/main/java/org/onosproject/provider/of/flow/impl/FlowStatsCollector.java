@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.flow.impl;
+package org.onosproject.provider.of.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.onos.openflow.controller.OpenFlowSwitch;
-import org.onlab.onos.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.OpenFlowSwitch;
+import org.onosproject.openflow.controller.RoleState;
 import org.onlab.util.Timer;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsRequest;
 import org.projectfloodlight.openflow.types.OFPort;

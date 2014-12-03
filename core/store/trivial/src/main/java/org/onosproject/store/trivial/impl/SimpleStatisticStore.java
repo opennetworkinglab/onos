@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instructions;
-import org.onlab.onos.net.statistic.StatisticStore;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.statistic.StatisticStore;
 import org.slf4j.Logger;
 
 import java.util.Collections;

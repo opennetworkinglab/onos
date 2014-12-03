@@ -1,4 +1,4 @@
-package org.onlab.onos.cluster;
+package org.onosproject.cluster;
 
 import java.util.Objects;
 

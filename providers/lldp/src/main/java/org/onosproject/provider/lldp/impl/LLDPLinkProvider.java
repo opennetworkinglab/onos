@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.lldp.impl;
+package org.onosproject.provider.lldp.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderRegistry;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.packet.PacketContext;
-import org.onlab.onos.net.packet.PacketProcessor;
-import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -90,7 +90,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
      * Creates an OpenFlow link provider.
      */
     public LLDPLinkProvider() {
-        super(new ProviderId("lldp", "org.onlab.onos.provider.lldp"));
+        super(new ProviderId("lldp", "org.onosproject.provider.lldp"));
     }
 
     @Activate

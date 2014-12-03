@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.metrics.topology;
+package org.onosproject.metrics.topology;
 
 import java.util.List;
 import org.onlab.metrics.EventMetric;
-import org.onlab.onos.event.Event;
+import org.onosproject.event.Event;
 
 /**
  * Service interface exported by TopologyMetrics.

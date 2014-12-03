@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.metrics.intent;
+package org.onosproject.metrics.intent;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -29,11 +29,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.EventMetric;
 import org.onlab.metrics.MetricsService;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentService;
 import org.slf4j.Logger;
 
 /**
@@ -83,7 +83,7 @@ public class IntentMetrics implements IntentMetricsService,
     @Activate
     protected void activate() {
         appId =
-            coreService.registerApplication("org.onlab.onos.metrics.intent");
+            coreService.registerApplication("org.onosproject.metrics.intent");
 
         clear();
         registerMetrics();

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.host.impl;
+package org.onosproject.provider.of.host.impl;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -24,23 +24,23 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.host.DefaultHostDescription;
-import org.onlab.onos.net.host.HostDescription;
-import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.HostProviderRegistry;
-import org.onlab.onos.net.host.HostProviderService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowController;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.PacketListener;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.DefaultHostDescription;
+import org.onosproject.net.host.HostDescription;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowController;
+import org.onosproject.openflow.controller.OpenFlowPacketContext;
+import org.onosproject.openflow.controller.PacketListener;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
@@ -77,7 +77,7 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
      * Creates an OpenFlow host provider.
      */
     public OpenFlowHostProvider() {
-        super(new ProviderId("of", "org.onlab.onos.provider.openflow"));
+        super(new ProviderId("of", "org.onosproject.provider.openflow"));
     }
 
     @Activate

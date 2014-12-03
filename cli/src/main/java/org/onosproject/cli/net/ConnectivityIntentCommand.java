@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.constraint.BandwidthConstraint;
-import org.onlab.onos.net.intent.constraint.LambdaConstraint;
-import org.onlab.onos.net.intent.constraint.LinkTypeConstraint;
-import org.onlab.onos.net.resource.Bandwidth;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.Link;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.resource.Bandwidth;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 

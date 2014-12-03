@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.fwd;
+package org.onosproject.fwd;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -27,25 +27,25 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.packet.InboundPacket;
-import org.onlab.onos.net.packet.PacketContext;
-import org.onlab.onos.net.packet.PacketProcessor;
-import org.onlab.onos.net.packet.PacketService;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.topology.TopologyService;
 import org.onlab.packet.Ethernet;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -86,7 +86,7 @@ public class ReactiveForwarding {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onlab.onos.fwd");
+        appId = coreService.registerApplication("org.onosproject.fwd");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         log.info("Started with Application ID {}", appId.id());
     }

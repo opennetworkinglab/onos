@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.impl;
+package org.onosproject.store.cluster.impl;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -28,15 +28,15 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterEvent;
-import org.onlab.onos.cluster.ClusterStore;
-import org.onlab.onos.cluster.ClusterStoreDelegate;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.hz.AbsentInvalidatingLoadingCache;
-import org.onlab.onos.store.hz.AbstractHazelcastStore;
-import org.onlab.onos.store.hz.OptionalCacheLoader;
+import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterStore;
+import org.onosproject.cluster.ClusterStoreDelegate;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.store.hz.AbsentInvalidatingLoadingCache;
+import org.onosproject.store.hz.AbstractHazelcastStore;
+import org.onosproject.store.hz.OptionalCacheLoader;
 import org.onlab.packet.IpAddress;
 
 import java.util.Map;
@@ -44,9 +44,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
-import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_ACTIVATED;
-import static org.onlab.onos.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
-import static org.onlab.onos.cluster.ControllerNode.State;
+import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ACTIVATED;
+import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
+import static org.onosproject.cluster.ControllerNode.State;
 
 /**
  * Distributed implementation of the cluster nodes store.

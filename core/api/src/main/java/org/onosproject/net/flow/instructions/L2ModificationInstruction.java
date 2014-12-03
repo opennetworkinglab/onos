@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow.instructions;
+package org.onosproject.net.flow.instructions;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.demo;
+package org.onosproject.demo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Predicate;
@@ -28,24 +28,24 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentBatchService;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.IntentService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentBatchService;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.net.intent.IntentService;
 import org.slf4j.Logger;
 
 
@@ -108,7 +108,7 @@ public class DemoInstaller implements DemoAPI {
     @Activate
     public void activate() {
         String nodeId = clusterService.getLocalNode().ip().toString();
-        appId = coreService.registerApplication("org.onlab.onos.demo.installer."
+        appId = coreService.registerApplication("org.onosproject.demo.installer."
                                                         + nodeId);
         worker = Executors.newFixedThreadPool(1,
                                               new ThreadFactoryBuilder()

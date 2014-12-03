@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.core;
+package org.onosproject.core;
 
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;

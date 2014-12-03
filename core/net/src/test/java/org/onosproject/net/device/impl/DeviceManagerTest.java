@@ -13,44 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device.impl;
+package org.onosproject.net.device.impl;
 
 import com.google.common.collect.Sets;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.DefaultControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.ControllerNode.State;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.mastership.MastershipServiceAdapter;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.mastership.MastershipTermService;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DefaultDeviceDescription;
-import org.onlab.onos.net.device.DefaultPortDescription;
-import org.onlab.onos.net.device.DeviceAdminService;
-import org.onlab.onos.net.device.DeviceClockProviderService;
-import org.onlab.onos.net.device.DeviceDescription;
-import org.onlab.onos.net.device.DeviceEvent;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceProvider;
-import org.onlab.onos.net.device.DeviceProviderRegistry;
-import org.onlab.onos.net.device.DeviceProviderService;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.device.PortDescription;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.trivial.impl.SimpleDeviceStore;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.ControllerNode.State;
+import org.onosproject.event.Event;
+import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.mastership.MastershipServiceAdapter;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DeviceAdminService;
+import org.onosproject.net.device.DeviceClockProviderService;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceProvider;
+import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.trivial.impl.SimpleDeviceStore;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 
@@ -60,9 +60,9 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.Device.Type.SWITCH;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 
 /**
  * Test codifying the device service & device provider service contracts.

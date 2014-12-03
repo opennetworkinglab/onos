@@ -1,18 +1,18 @@
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleListener;
-import org.onlab.onos.net.flow.FlowRuleService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleService;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;

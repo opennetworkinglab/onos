@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.rest;
+package org.onosproject.rest;
 
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 public class GreetResourceTest extends JerseyTest {
 
     public GreetResourceTest() {
-        super("org.onlab.onos.rest");
+        super("org.onosproject.rest");
     }
 
     @BeforeClass

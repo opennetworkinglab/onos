@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import com.google.common.base.Function;
 import com.google.common.cache.Cache;
@@ -28,24 +28,24 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
-import org.onlab.onos.net.flow.DefaultFlowEntry;
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
-import org.onlab.onos.net.flow.FlowId;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchEvent;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchRequest;
-import org.onlab.onos.net.flow.FlowRuleEvent;
-import org.onlab.onos.net.flow.FlowRuleEvent.Type;
-import org.onlab.onos.net.flow.FlowRuleStore;
-import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
-import org.onlab.onos.net.flow.StoredFlowEntry;
-import org.onlab.onos.store.AbstractStore;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowEntry.FlowEntryState;
+import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import org.onosproject.net.flow.FlowRuleBatchEvent;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleBatchRequest;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleEvent.Type;
+import org.onosproject.net.flow.FlowRuleStore;
+import org.onosproject.net.flow.FlowRuleStoreDelegate;
+import org.onosproject.net.flow.StoredFlowEntry;
+import org.onosproject.store.AbstractStore;
 import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
@@ -62,7 +62,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

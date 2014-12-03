@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.statistic;
+package org.onosproject.net.statistic;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.GroupId;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.flow.FlowRule;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.flow.FlowRule;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public interface StatisticService {
      * Obtain the load for a the ingress to the given link.
      *
      * @param link the link to query.
-     * @return a {@link org.onlab.onos.net.statistic.Load Load}
+     * @return a {@link org.onosproject.net.statistic.Load Load}
      */
     Load load(Link link);
 
@@ -43,7 +43,7 @@ public interface StatisticService {
      * Obtain the load for the given port.
      *
      * @param connectPoint the port to query
-     * @return a {@link org.onlab.onos.net.statistic.Load}
+     * @return a {@link org.onosproject.net.statistic.Load}
      */
     Load load(ConnectPoint connectPoint);
 
@@ -51,7 +51,7 @@ public interface StatisticService {
      * Find the most loaded link along a path.
      *
      * @param path the path to search in
-     * @return the most loaded {@link org.onlab.onos.net.Link}.
+     * @return the most loaded {@link org.onosproject.net.Link}.
      */
     Link max(Path path);
 
@@ -59,7 +59,7 @@ public interface StatisticService {
      * Find the least loaded link along a path.
      *
      * @param path the path to search in
-     * @return the least loaded {@link org.onlab.onos.net.Link}.
+     * @return the least loaded {@link org.onosproject.net.Link}.
      */
     Link min(Path path);
 

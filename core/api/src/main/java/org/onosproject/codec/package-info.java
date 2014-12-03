@@ -17,4 +17,4 @@
 /**
  * Base JSON codec abstraction and a service for tracking various JSON codecs.
  */
-package org.onlab.onos.codec;
+package org.onosproject.codec;

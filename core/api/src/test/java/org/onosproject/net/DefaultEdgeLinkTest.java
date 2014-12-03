@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.net.provider.ProviderId;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.DefaultEdgeLink.createEdgeLink;
-import static org.onlab.onos.net.DefaultLinkTest.cp;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.HostId.hostId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+import static org.onosproject.net.DefaultLinkTest.cp;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.HostId.hostId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Test of the default edge link model entity.

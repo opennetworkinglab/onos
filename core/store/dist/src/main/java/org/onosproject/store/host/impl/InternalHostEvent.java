@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.host.impl;
+package org.onosproject.store.host.impl;
 
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.host.HostDescription;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.net.HostId;
+import org.onosproject.net.host.HostDescription;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.Timestamp;
 
 /**
  * Information published by GossipHostStore to notify peers of a host

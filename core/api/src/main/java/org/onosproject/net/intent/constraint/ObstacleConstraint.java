@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.constraint;
+package org.onosproject.net.intent.constraint;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.resource.LinkResourceService;
 
 import java.util.Collections;
 import java.util.Objects;

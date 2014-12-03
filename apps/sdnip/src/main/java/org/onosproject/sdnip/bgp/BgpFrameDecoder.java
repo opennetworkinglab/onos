@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip.bgp;
+package org.onosproject.sdnip.bgp;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Notifications.MessageHeaderError;
+import org.onosproject.sdnip.bgp.BgpConstants.Notifications.MessageHeaderError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.packet;
+package org.onosproject.net.packet;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.TrafficTreatment.Builder;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment.Builder;
 
 
 public abstract class DefaultPacketContext implements PacketContext {

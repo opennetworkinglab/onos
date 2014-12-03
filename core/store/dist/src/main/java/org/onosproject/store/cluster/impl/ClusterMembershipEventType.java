@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.impl;
+package org.onosproject.store.cluster.impl;
 
 //Not used right now
 public enum ClusterMembershipEventType {

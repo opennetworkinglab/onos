@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.resource.LinkResourceService;
 
 /**
  * Representation of a connectivity constraint capable of evaluating a link

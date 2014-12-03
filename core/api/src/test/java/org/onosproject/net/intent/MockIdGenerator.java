@@ -1,6 +1,6 @@
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import org.onlab.onos.core.IdGenerator;
+import org.onosproject.core.IdGenerator;
 
 import java.util.concurrent.atomic.AtomicLong;
 

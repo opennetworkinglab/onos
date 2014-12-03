@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.mastership.impl;
+package org.onosproject.store.mastership.impl;
 
-import static org.onlab.onos.net.MastershipRole.MASTER;
-import static org.onlab.onos.net.MastershipRole.NONE;
-import static org.onlab.onos.net.MastershipRole.STANDBY;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -25,9 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.net.MastershipRole;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.net.MastershipRole;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
 
 /**
  * A structure that holds node mastership roles associated with a
- * {@link org.onlab.onos.net.DeviceId}. This structure needs to be locked through IMap.
+ * {@link org.onosproject.net.DeviceId}. This structure needs to be locked through IMap.
  */
 final class RoleValue {
 

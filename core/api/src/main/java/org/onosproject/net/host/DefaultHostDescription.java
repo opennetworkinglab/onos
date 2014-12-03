@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
 import java.util.Collections;
 import java.util.Set;
 
-import org.onlab.onos.net.AbstractDescription;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.SparseAnnotations;
+import org.onosproject.net.AbstractDescription;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.SparseAnnotations;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

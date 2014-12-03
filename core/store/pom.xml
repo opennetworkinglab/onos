@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.onlab.onos</groupId>
+        <groupId>org.onosproject</groupId>
         <artifactId>onos-core</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -39,7 +39,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.onlab.onos</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
         </dependency>
 

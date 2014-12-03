@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
@@ -22,7 +22,7 @@ import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.net.Device.Type.SWITCH;
+import static org.onosproject.net.Device.Type.SWITCH;
 
 /**
  * Test of the default device description.

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.link;
+package org.onosproject.net.link;
 
-import org.onlab.onos.event.EventListener;
+import org.onosproject.event.EventListener;
 
 /**
  * Entity capable of receiving infrastructure link related events.

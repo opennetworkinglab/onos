@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -22,14 +22,14 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.intent.IntentState;
-import org.onlab.onos.net.intent.IntentStore;
-import org.onlab.onos.net.intent.IntentStoreDelegate;
-import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
-import org.onlab.onos.store.AbstractStore;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentStore;
+import org.onosproject.net.intent.IntentStoreDelegate;
+import org.onosproject.net.intent.IntentStore.BatchWrite.Operation;
+import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static org.onlab.onos.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)

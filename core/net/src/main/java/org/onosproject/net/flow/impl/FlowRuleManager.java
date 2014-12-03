@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow.impl;
+package org.onosproject.net.flow.impl;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -28,31 +28,31 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
-import org.onlab.onos.net.flow.DefaultFlowEntry;
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchEvent;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchRequest;
-import org.onlab.onos.net.flow.FlowRuleEvent;
-import org.onlab.onos.net.flow.FlowRuleListener;
-import org.onlab.onos.net.flow.FlowRuleProvider;
-import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
-import org.onlab.onos.net.flow.FlowRuleProviderService;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.flow.FlowRuleStore;
-import org.onlab.onos.net.flow.FlowRuleStoreDelegate;
-import org.onlab.onos.net.provider.AbstractProviderRegistry;
-import org.onlab.onos.net.provider.AbstractProviderService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import org.onosproject.net.flow.FlowRuleBatchEvent;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleBatchRequest;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleProvider;
+import org.onosproject.net.flow.FlowRuleProviderRegistry;
+import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.FlowRuleStore;
+import org.onosproject.net.flow.FlowRuleStoreDelegate;
+import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import java.util.HashSet;

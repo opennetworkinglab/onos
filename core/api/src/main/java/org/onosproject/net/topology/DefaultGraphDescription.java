@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology;
+package org.onosproject.net.topology;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
-import org.onlab.onos.net.AbstractDescription;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.SparseAnnotations;
+import org.onosproject.net.AbstractDescription;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.SparseAnnotations;
 import org.slf4j.Logger;
 
 import java.util.Map;

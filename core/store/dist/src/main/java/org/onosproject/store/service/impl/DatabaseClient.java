@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -21,14 +21,14 @@ import net.kuujo.copycat.protocol.SubmitRequest;
 import net.kuujo.copycat.protocol.SubmitResponse;
 import net.kuujo.copycat.spi.protocol.ProtocolClient;
 
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.service.BatchReadRequest;
-import org.onlab.onos.store.service.BatchWriteRequest;
-import org.onlab.onos.store.service.DatabaseException;
-import org.onlab.onos.store.service.ReadResult;
-import org.onlab.onos.store.service.VersionedValue;
-import org.onlab.onos.store.service.WriteResult;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.service.BatchReadRequest;
+import org.onosproject.store.service.BatchWriteRequest;
+import org.onosproject.store.service.DatabaseException;
+import org.onosproject.store.service.ReadResult;
+import org.onosproject.store.service.VersionedValue;
+import org.onosproject.store.service.WriteResult;
 import org.slf4j.Logger;
 
 /**

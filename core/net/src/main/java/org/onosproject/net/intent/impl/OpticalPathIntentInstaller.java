@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
@@ -21,41 +21,41 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.intent.IntentInstaller;
-import org.onlab.onos.net.intent.OpticalPathIntent;
-import org.onlab.onos.net.resource.DefaultLinkResourceRequest;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LambdaResourceAllocation;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceType;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.IntentInstaller;
+import org.onosproject.net.intent.OpticalPathIntent;
+import org.onosproject.net.resource.DefaultLinkResourceRequest;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResourceAllocation;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceType;
+import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 import java.util.List;
 
-import static org.onlab.onos.net.flow.DefaultTrafficTreatment.builder;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Installer for {@link org.onlab.onos.net.intent.OpticalPathIntent optical path connectivity intents}.
+ * Installer for {@link org.onosproject.net.intent.OpticalPathIntent optical path connectivity intents}.
  */
 @Component(immediate = true)
 public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIntent> {
@@ -83,7 +83,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onlab.onos.net.intent");
+        appId = coreService.registerApplication("org.onosproject.net.intent");
         intentManager.registerInstaller(OpticalPathIntent.class, this);
     }
 

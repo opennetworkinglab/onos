@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cluster;
+package org.onosproject.cluster;
 
 import static com.google.common.base.Predicates.notNull;
 import static org.junit.Assert.*;
-import static org.onlab.onos.cluster.ControllerNodeToNodeId.toNodeId;
+import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
 
 import java.util.Arrays;
 import java.util.List;

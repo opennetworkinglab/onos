@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.onlab.onos.net.intent.IntentEvent.Type.FAILED;
-import static org.onlab.onos.net.intent.IntentEvent.Type.INSTALLED;
-import static org.onlab.onos.net.intent.IntentEvent.Type.INSTALL_REQ;
-import static org.onlab.onos.net.intent.IntentEvent.Type.WITHDRAWN;
+import static org.onosproject.net.intent.IntentEvent.Type.FAILED;
+import static org.onosproject.net.intent.IntentEvent.Type.INSTALLED;
+import static org.onosproject.net.intent.IntentEvent.Type.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentEvent.Type.WITHDRAWN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,9 +34,9 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.core.IdGenerator;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
+import org.onosproject.core.IdGenerator;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.resource.LinkResourceAllocations;
 
 /**
  * Suite of tests for the intent service contract.

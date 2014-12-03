@@ -47,15 +47,15 @@ sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
     $ONOS_ROOT/tools/package/bin/onos > bin/onos
 
 # Stage the ONOS bundles
-mkdir -p $KARAF_DIST/system/org/onlab 
-cp -r $M2_REPO/org/onlab $KARAF_DIST/system/org/
+mkdir -p $KARAF_DIST/system/org/onosproject
+cp -r $M2_REPO/org/onosproject $KARAF_DIST/system/org/
 
 export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo}"
 
 # ONOS Patching ----------------------------------------------------------------
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
-perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onlab.onos/onos-features/$ONOS_POM_VERSION/xml/features|" \
+perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution file to load ONOS features
@@ -63,7 +63,7 @@ perl -pi.old -e "s|^(featuresBoot=.*)|\1,$ONOS_FEATURES|" \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
-cp $M2_REPO/org/onlab/onos/onos-branding/$ONOS_POM_VERSION/onos-branding-*.jar \
+cp $M2_REPO/org/onosproject/onos-branding/$ONOS_POM_VERSION/onos-branding-*.jar \
     $ONOS_STAGE/$KARAF_DIST/lib
 
 # Patch in the ONOS version file

@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -30,14 +30,14 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.StoreSerializer;
-import org.onlab.onos.store.service.impl.DatabaseStateMachine.State;
-import org.onlab.onos.store.service.impl.DatabaseStateMachine.TableMetadata;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.impl.DatabaseStateMachine.State;
+import org.onosproject.store.service.impl.DatabaseStateMachine.TableMetadata;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 

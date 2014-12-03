@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import java.util.Set;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.sdnip.config.Interface;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.sdnip.config.Interface;
 import org.onlab.packet.IpAddress;
 
 /**

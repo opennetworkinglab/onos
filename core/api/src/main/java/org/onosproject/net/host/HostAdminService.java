@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.host;
+package org.onosproject.net.host;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.HostId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
 
 /**
  * Service for administering the inventory of end-station hosts.

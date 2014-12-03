@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onlab.onos.openflow.controller.impl;
+package org.onosproject.openflow.controller.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 
@@ -30,10 +30,10 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.driver.OpenFlowAgent;
-import org.onlab.onos.openflow.controller.driver.OpenFlowSwitchDriver;
-import org.onlab.onos.openflow.drivers.DriverManager;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.driver.OpenFlowAgent;
+import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
+import org.onosproject.openflow.drivers.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;

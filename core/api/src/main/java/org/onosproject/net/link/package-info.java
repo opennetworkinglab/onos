@@ -17,4 +17,4 @@
 /**
  * Infrastructure link model &amp; related services API definitions.
  */
-package org.onlab.onos.net.link;
+package org.onosproject.net.link;

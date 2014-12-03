@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow.instructions;
+package org.onosproject.net.flow.instructions;
 
 /**
  * Abstraction of a single traffic treatment step.

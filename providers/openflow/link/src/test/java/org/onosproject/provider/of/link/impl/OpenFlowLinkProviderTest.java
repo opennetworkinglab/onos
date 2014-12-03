@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.link.impl;
+package org.onosproject.provider.of.link.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,21 +31,21 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.link.LinkDescription;
-import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderRegistry;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.OpenFlowSwitch;
-import org.onlab.onos.openflow.controller.OpenFlowSwitchListener;
-import org.onlab.onos.openflow.controller.OpenflowControllerAdapter;
-import org.onlab.onos.openflow.controller.PacketListener;
-import org.onlab.onos.openflow.controller.RoleState;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowPacketContext;
+import org.onosproject.openflow.controller.OpenFlowSwitch;
+import org.onosproject.openflow.controller.OpenFlowSwitchListener;
+import org.onosproject.openflow.controller.OpenflowControllerAdapter;
+import org.onosproject.openflow.controller.PacketListener;
+import org.onosproject.openflow.controller.RoleState;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONLabLddp;
 import org.projectfloodlight.openflow.protocol.OFFactory;

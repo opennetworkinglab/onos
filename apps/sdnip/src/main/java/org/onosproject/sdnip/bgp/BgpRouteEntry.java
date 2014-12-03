@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.sdnip.bgp;
+package org.onosproject.sdnip.bgp;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
-import org.onlab.onos.sdnip.RouteEntry;
-import org.onlab.onos.sdnip.bgp.BgpConstants.Update;
+import org.onosproject.sdnip.RouteEntry;
+import org.onosproject.sdnip.bgp.BgpConstants.Update;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 

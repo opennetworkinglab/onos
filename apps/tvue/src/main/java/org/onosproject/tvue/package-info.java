@@ -17,4 +17,4 @@
 /**
  * Sample topology viewer application.
  */
-package org.onlab.onos.tvue;
+package org.onosproject.tvue;

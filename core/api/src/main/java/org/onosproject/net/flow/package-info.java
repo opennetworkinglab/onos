@@ -17,4 +17,4 @@
 /**
  * Flow rule model &amp; related services API definitions.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;

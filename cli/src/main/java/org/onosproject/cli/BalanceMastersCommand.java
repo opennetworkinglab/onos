@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.mastership.MastershipAdminService;
+import org.onosproject.mastership.MastershipAdminService;
 
 /**
  * Forces device mastership rebalancing.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.metrics.topology.cli;
+package org.onosproject.metrics.topology.cli;
 
 import java.util.List;
 
@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.metrics.topology.TopologyMetricsService;
-import org.onlab.onos.net.topology.TopologyEvent;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.event.Event;
+import org.onosproject.metrics.topology.TopologyMetricsService;
+import org.onosproject.net.topology.TopologyEvent;
 
 /**
  * Command to show the list of last topology events.

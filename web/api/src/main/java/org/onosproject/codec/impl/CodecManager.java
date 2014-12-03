@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.codec.impl;
+package org.onosproject.codec.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.codec.CodecService;
-import org.onlab.onos.codec.JsonCodec;
-import org.onlab.onos.net.Annotations;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Port;
+import org.onosproject.codec.CodecService;
+import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.Link;
+import org.onosproject.net.Port;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

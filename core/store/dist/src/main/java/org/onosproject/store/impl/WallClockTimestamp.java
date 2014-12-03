@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.impl;
+package org.onosproject.store.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.store.Timestamp;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;

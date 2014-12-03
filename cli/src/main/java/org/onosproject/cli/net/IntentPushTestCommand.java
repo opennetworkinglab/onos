@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.DefaultTrafficSelector;
-import org.onlab.onos.net.flow.DefaultTrafficTreatment;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentEvent.Type;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.PointToPointIntent;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentEvent.Type;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 
@@ -45,8 +45,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -204,7 +204,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
      * @return command-line application identifier
      */
     protected ApplicationId appId(Integer id) {
-        return get(CoreService.class).registerApplication("org.onlab.onos.cli-"
+        return get(CoreService.class).registerApplication("org.onosproject.cli-"
                                                                   + (id + appIdBase));
     }
 

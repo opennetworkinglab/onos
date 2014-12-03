@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli;
+package org.onosproject.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.net.device.DeviceService;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyService;
+import org.onosproject.core.CoreService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyService;
 
 /**
  * Provides summary of ONOS model.

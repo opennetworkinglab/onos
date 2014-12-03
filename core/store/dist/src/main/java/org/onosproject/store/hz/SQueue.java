@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.hz;
+package org.onosproject.store.hz;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -22,7 +22,7 @@ import com.hazelcast.core.ItemEvent;
 import com.hazelcast.core.ItemListener;
 import com.hazelcast.monitor.LocalQueueStats;
 
-import org.onlab.onos.store.serializers.StoreSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 
 import java.util.Collection;
 import java.util.Iterator;

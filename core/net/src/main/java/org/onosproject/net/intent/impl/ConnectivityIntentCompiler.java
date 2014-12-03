@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.impl;
+package org.onosproject.net.intent.impl;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -21,17 +21,17 @@ import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.intent.ConnectivityIntent;
-import org.onlab.onos.net.intent.Constraint;
-import org.onlab.onos.net.intent.IntentCompiler;
-import org.onlab.onos.net.intent.IntentExtensionService;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.TopologyEdge;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Path;
+import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.TopologyEdge;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -40,13 +40,13 @@ import java.util.Set;
 
 /**
  * Base class for compilers of various
- * {@link org.onlab.onos.net.intent.ConnectivityIntent connectivity intents}.
+ * {@link org.onosproject.net.intent.ConnectivityIntent connectivity intents}.
  */
 @Component(immediate = true)
 public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         implements IntentCompiler<T> {
 
-    private static final ProviderId PID = new ProviderId("core", "org.onlab.onos.core", true);
+    private static final ProviderId PID = new ProviderId("core", "org.onosproject.core", true);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;

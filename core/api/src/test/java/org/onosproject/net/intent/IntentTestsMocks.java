@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
-import static org.onlab.onos.net.NetTestTools.createPath;
-import static org.onlab.onos.net.NetTestTools.did;
-import static org.onlab.onos.net.NetTestTools.link;
+import static org.onosproject.net.NetTestTools.createPath;
+import static org.onosproject.net.NetTestTools.did;
+import static org.onosproject.net.NetTestTools.link;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,33 +29,33 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.onlab.onos.core.DefaultGroupId;
-import org.onlab.onos.core.GroupId;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.ElementId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.flow.FlowId;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.criteria.Criterion;
-import org.onlab.onos.net.flow.criteria.Criterion.Type;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.resource.BandwidthResourceRequest;
-import org.onlab.onos.net.resource.LambdaResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceListener;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceRequest;
-import org.onlab.onos.net.resource.ResourceType;
-import org.onlab.onos.net.topology.DefaultTopologyEdge;
-import org.onlab.onos.net.topology.DefaultTopologyVertex;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.TopologyVertex;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.Criterion.Type;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.resource.BandwidthResourceRequest;
+import org.onosproject.net.resource.LambdaResourceRequest;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceListener;
+import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceRequest;
+import org.onosproject.net.resource.ResourceType;
+import org.onosproject.net.topology.DefaultTopologyEdge;
+import org.onosproject.net.topology.DefaultTopologyVertex;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.TopologyVertex;
 
 /**
  * Common mocks used by the intent framework tests.

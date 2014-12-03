@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.device;
+package org.onosproject.net.device;
 
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.provider.Provider;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.provider.Provider;
 
 /**
  * Abstraction of a device information provider.
@@ -30,8 +30,8 @@ public interface DeviceProvider extends Provider {
      * Triggers an asynchronous probe of the specified device, intended to
      * determine whether the device is present or not. An indirect result of this
      * should be invocation of
-     * {@link org.onlab.onos.net.device.DeviceProviderService#deviceConnected} )} or
-     * {@link org.onlab.onos.net.device.DeviceProviderService#deviceDisconnected}
+     * {@link org.onosproject.net.device.DeviceProviderService#deviceConnected} )} or
+     * {@link org.onosproject.net.device.DeviceProviderService#deviceDisconnected}
      * at some later point in time.
      *
      * @param deviceId ID of device to be probed

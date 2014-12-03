@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.openflow.controller.driver;
+package org.onosproject.openflow.controller.driver;
 
-import org.onlab.onos.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.types.U64;
 
 /**

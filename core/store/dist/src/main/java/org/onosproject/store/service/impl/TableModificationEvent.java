@@ -1,6 +1,6 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
-import org.onlab.onos.store.service.VersionedValue;
+import org.onosproject.store.service.VersionedValue;
 
 import com.google.common.base.MoreObjects;
 

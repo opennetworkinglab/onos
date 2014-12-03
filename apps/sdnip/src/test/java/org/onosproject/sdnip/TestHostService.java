@@ -1,4 +1,4 @@
-package org.onlab.onos.sdnip;
+package org.onosproject.sdnip;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -7,18 +7,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultHost;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostListener;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.host.PortAddresses;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.sdnip.Router.InternalHostListener;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultHost;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.PortAddresses;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.sdnip.Router.InternalHostListener;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

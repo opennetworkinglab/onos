@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.mastership;
+package org.onosproject.mastership;
 
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 
 /**
  * Service for administering the inventory of device masterships.

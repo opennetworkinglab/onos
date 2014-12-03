@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.trivial.impl;
+package org.onosproject.store.trivial.impl;
 
-import static org.onlab.onos.net.DefaultAnnotations.merge;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_MOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onlab.onos.net.host.HostEvent.Type.HOST_UPDATED;
+import static org.onosproject.net.DefaultAnnotations.merge;
+import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -32,21 +32,21 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.net.Annotations;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultAnnotations;
-import org.onlab.onos.net.DefaultHost;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.HostLocation;
-import org.onlab.onos.net.host.HostDescription;
-import org.onlab.onos.net.host.HostEvent;
-import org.onlab.onos.net.host.HostStore;
-import org.onlab.onos.net.host.HostStoreDelegate;
-import org.onlab.onos.net.host.PortAddresses;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.AbstractStore;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultHost;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostDescription;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostStore;
+import org.onosproject.net.host.HostStoreDelegate;
+import org.onosproject.net.host.PortAddresses;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.AbstractStore;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;

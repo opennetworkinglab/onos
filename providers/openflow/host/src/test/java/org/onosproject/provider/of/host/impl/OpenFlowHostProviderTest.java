@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.host.impl;
+package org.onosproject.provider.of.host.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,20 +24,20 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.host.HostDescription;
-import org.onlab.onos.net.host.HostProvider;
-import org.onlab.onos.net.host.HostProviderRegistry;
-import org.onlab.onos.net.host.HostProviderService;
-import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyServiceAdapter;
-import org.onlab.onos.openflow.controller.Dpid;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
-import org.onlab.onos.openflow.controller.OpenflowControllerAdapter;
-import org.onlab.onos.openflow.controller.PacketListener;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
+import org.onosproject.net.host.HostDescription;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
+import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyServiceAdapter;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowPacketContext;
+import org.onosproject.openflow.controller.OpenflowControllerAdapter;
+import org.onosproject.openflow.controller.PacketListener;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;

@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.link.impl;
+package org.onosproject.net.link.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.link.DefaultLinkDescription;
-import org.onlab.onos.net.link.LinkAdminService;
-import org.onlab.onos.net.link.LinkEvent;
-import org.onlab.onos.net.link.LinkListener;
-import org.onlab.onos.net.link.LinkProvider;
-import org.onlab.onos.net.link.LinkProviderRegistry;
-import org.onlab.onos.net.link.LinkProviderService;
-import org.onlab.onos.net.link.LinkService;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.net.device.impl.DeviceManager;
-import org.onlab.onos.store.trivial.impl.SimpleLinkStore;
+import org.onosproject.event.Event;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkAdminService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.net.device.impl.DeviceManager;
+import org.onosproject.store.trivial.impl.SimpleLinkStore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,10 +49,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.Link.Type.DIRECT;
-import static org.onlab.onos.net.Link.Type.INDIRECT;
-import static org.onlab.onos.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.Link.Type.INDIRECT;
+import static org.onosproject.net.link.LinkEvent.Type.*;
 
 /**
  * Test codifying the link service & link provider service contracts.

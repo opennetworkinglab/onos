@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.optical;
+package org.onosproject.optical;
 
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
@@ -21,25 +21,25 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.CoreService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Host;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.intent.HostToHostIntent;
-import org.onlab.onos.net.intent.Intent;
-import org.onlab.onos.net.intent.IntentEvent;
-import org.onlab.onos.net.intent.IntentListener;
-import org.onlab.onos.net.intent.IntentOperations;
-import org.onlab.onos.net.intent.IntentService;
-import org.onlab.onos.net.intent.IntentState;
-import org.onlab.onos.net.intent.OpticalConnectivityIntent;
-import org.onlab.onos.net.intent.PointToPointIntent;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.PathService;
-import org.onlab.onos.net.topology.TopologyEdge;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Host;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentOperations;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.TopologyEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +81,7 @@ public class OpticalPathProvisioner {
     @Activate
     protected void activate() {
         intentService.addListener(pathProvisioner);
-        appId = coreService.registerApplication("org.onlab.onos.optical");
+        appId = coreService.registerApplication("org.onosproject.optical");
         log.info("Starting optical path provisoning...");
     }
 

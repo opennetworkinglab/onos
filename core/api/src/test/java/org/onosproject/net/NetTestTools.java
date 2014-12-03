@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
-import org.onlab.onos.TestApplicationId;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.provider.ProviderId;
+import org.onosproject.TestApplicationId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 
@@ -26,9 +26,9 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.DeviceId.deviceId;
-import static org.onlab.onos.net.HostId.hostId;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.HostId.hostId;
+import static org.onosproject.net.PortNumber.portNumber;
 import static org.onlab.packet.MacAddress.valueOf;
 import static org.onlab.packet.VlanId.vlanId;
 

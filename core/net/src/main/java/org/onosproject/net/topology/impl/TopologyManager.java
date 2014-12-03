@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology.impl;
+package org.onosproject.net.topology.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -21,29 +21,29 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.provider.AbstractProviderRegistry;
-import org.onlab.onos.net.provider.AbstractProviderService;
-import org.onlab.onos.net.topology.ClusterId;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyEvent;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyListener;
-import org.onlab.onos.net.topology.TopologyProvider;
-import org.onlab.onos.net.topology.TopologyProviderRegistry;
-import org.onlab.onos.net.topology.TopologyProviderService;
-import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.net.topology.TopologyStore;
-import org.onlab.onos.net.topology.TopologyStoreDelegate;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.Event;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.topology.ClusterId;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyProvider;
+import org.onosproject.net.topology.TopologyProviderRegistry;
+import org.onosproject.net.topology.TopologyProviderService;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.net.topology.TopologyStore;
+import org.onosproject.net.topology.TopologyStoreDelegate;
 import org.slf4j.Logger;
 
 import java.util.List;

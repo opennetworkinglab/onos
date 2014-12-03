@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.resource;
+package org.onosproject.net.resource;
 
 import java.util.Set;
 
-import org.onlab.onos.net.Link;
+import org.onosproject.net.Link;
 
 /**
  * Representation of allocated link resources.

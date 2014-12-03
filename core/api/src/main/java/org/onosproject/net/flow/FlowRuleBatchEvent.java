@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
-import org.onlab.onos.event.AbstractEvent;
+import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes flow rule batch event.

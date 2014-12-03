@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow.instructions;
+package org.onosproject.net.flow.instructions;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.onos.net.flow.instructions.L2ModificationInstruction.*;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
 
 import java.util.Objects;
 
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.L0SubType;
-import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.L2SubType;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.L3SubType;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;

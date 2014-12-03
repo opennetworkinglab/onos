@@ -1,4 +1,4 @@
-package org.onlab.onos.core;
+package org.onosproject.core;
 
 /**
  * A generalized interface for ID generation

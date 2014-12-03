@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.concurrent.Future;
 
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
 
 /**
  * Service for injecting flow rules into the environment and for obtaining

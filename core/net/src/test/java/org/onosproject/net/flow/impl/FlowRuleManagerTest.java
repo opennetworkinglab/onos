@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow.impl;
+package org.onosproject.net.flow.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -24,41 +24,41 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.core.ApplicationId;
-import org.onlab.onos.core.DefaultApplicationId;
-import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.net.DefaultDevice;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Device.Type;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
-import org.onlab.onos.net.Port;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.device.DeviceListener;
-import org.onlab.onos.net.device.DeviceServiceAdapter;
-import org.onlab.onos.net.flow.BatchOperation;
-import org.onlab.onos.net.flow.CompletedBatchOperation;
-import org.onlab.onos.net.flow.DefaultFlowEntry;
-import org.onlab.onos.net.flow.DefaultFlowRule;
-import org.onlab.onos.net.flow.FlowEntry;
-import org.onlab.onos.net.flow.FlowEntry.FlowEntryState;
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.FlowRuleBatchEntry;
-import org.onlab.onos.net.flow.FlowRuleBatchOperation;
-import org.onlab.onos.net.flow.FlowRuleEvent;
-import org.onlab.onos.net.flow.FlowRuleListener;
-import org.onlab.onos.net.flow.FlowRuleProvider;
-import org.onlab.onos.net.flow.FlowRuleProviderRegistry;
-import org.onlab.onos.net.flow.FlowRuleProviderService;
-import org.onlab.onos.net.flow.FlowRuleService;
-import org.onlab.onos.net.flow.StoredFlowEntry;
-import org.onlab.onos.net.flow.TrafficSelector;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.criteria.Criterion;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.store.trivial.impl.SimpleFlowRuleStore;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.Device;
+import org.onosproject.net.Device.Type;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.flow.BatchOperation;
+import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowEntry.FlowEntryState;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleProvider;
+import org.onosproject.net.flow.FlowRuleProviderRegistry;
+import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.StoredFlowEntry;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.trivial.impl.SimpleFlowRuleStore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +74,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.flow.FlowRuleEvent.Type.*;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.*;
 
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
@@ -590,7 +590,7 @@ public class FlowRuleManagerTest {
 
         @Override
         public Criterion getCriterion(
-                org.onlab.onos.net.flow.criteria.Criterion.Type type) {
+                org.onosproject.net.flow.criteria.Criterion.Type type) {
             return null;
         }
 

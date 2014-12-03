@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.flow;
+package org.onosproject.net.flow;
 
 import java.util.List;
 
 import org.junit.Test;
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.instructions.Instruction;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -30,8 +30,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onlab.onos.net.flow.instructions.L0ModificationInstruction.L0SubType;
-import static org.onlab.onos.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
+import static org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
+import static org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 
 /**
  * Unit tests for the DefaultTrafficTreatment class.

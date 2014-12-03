@@ -1,8 +1,8 @@
-package org.onlab.onos.store.service.impl;
+package org.onosproject.store.service.impl;
 
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onlab.onos.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
+import static org.onosproject.store.service.impl.ClusterMessagingProtocol.DB_SERIALIZER;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,16 +20,16 @@ import net.kuujo.copycat.Command;
 import net.kuujo.copycat.Query;
 import net.kuujo.copycat.StateMachine;
 
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.service.BatchReadRequest;
-import org.onlab.onos.store.service.BatchWriteRequest;
-import org.onlab.onos.store.service.ReadRequest;
-import org.onlab.onos.store.service.ReadResult;
-import org.onlab.onos.store.service.ReadStatus;
-import org.onlab.onos.store.service.VersionedValue;
-import org.onlab.onos.store.service.WriteRequest;
-import org.onlab.onos.store.service.WriteResult;
-import org.onlab.onos.store.service.WriteStatus;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.service.BatchReadRequest;
+import org.onosproject.store.service.BatchWriteRequest;
+import org.onosproject.store.service.ReadRequest;
+import org.onosproject.store.service.ReadResult;
+import org.onosproject.store.service.ReadStatus;
+import org.onosproject.store.service.VersionedValue;
+import org.onosproject.store.service.WriteRequest;
+import org.onosproject.store.service.WriteResult;
+import org.onosproject.store.service.WriteStatus;
 import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;

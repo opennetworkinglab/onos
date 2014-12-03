@@ -1,15 +1,15 @@
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.cli.Comparators;
-import org.onlab.onos.net.host.HostService;
-import org.onlab.onos.net.host.InterfaceIpAddress;
-import org.onlab.onos.net.host.PortAddresses;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.Comparators;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.host.PortAddresses;
 
 import com.google.common.collect.Lists;
 

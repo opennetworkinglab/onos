@@ -1,4 +1,4 @@
-package org.onlab.onos.store.service;
+package org.onosproject.store.service;
 
 /**
  * Service interface for mutual exclusion primitives.

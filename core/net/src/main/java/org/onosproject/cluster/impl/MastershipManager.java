@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cluster.impl;
+package org.onosproject.cluster.impl;
 
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
@@ -24,25 +24,25 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
-import org.onlab.onos.cluster.ClusterEvent;
-import org.onlab.onos.cluster.ClusterEventListener;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.cluster.RoleInfo;
-import org.onlab.onos.core.MetricsHelper;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.mastership.MastershipAdminService;
-import org.onlab.onos.mastership.MastershipEvent;
-import org.onlab.onos.mastership.MastershipListener;
-import org.onlab.onos.mastership.MastershipService;
-import org.onlab.onos.mastership.MastershipStore;
-import org.onlab.onos.mastership.MastershipStoreDelegate;
-import org.onlab.onos.mastership.MastershipTerm;
-import org.onlab.onos.mastership.MastershipTermService;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.net.MastershipRole;
+import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.core.MetricsHelper;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.mastership.MastershipAdminService;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipStore;
+import org.onosproject.mastership.MastershipStoreDelegate;
+import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -58,8 +58,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
-import static org.onlab.onos.cluster.ControllerNode.State.ACTIVE;
-import static org.onlab.onos.net.MastershipRole.MASTER;
+import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
+import static org.onosproject.net.MastershipRole.MASTER;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)

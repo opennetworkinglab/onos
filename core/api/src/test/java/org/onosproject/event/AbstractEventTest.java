@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.event;
+package org.onosproject.event;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.onos.event.TestEvent.Type.FOO;
+import static org.onosproject.event.TestEvent.Type.FOO;
 
 /**
  * Tests of the base event abstraction.

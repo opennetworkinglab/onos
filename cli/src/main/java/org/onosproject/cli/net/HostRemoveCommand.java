@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.cli.net;
+package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
-import org.onlab.onos.net.HostId;
-import org.onlab.onos.net.host.HostAdminService;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.HostId;
+import org.onosproject.net.host.HostAdminService;
 
 /**
  * Removes an end-station host.

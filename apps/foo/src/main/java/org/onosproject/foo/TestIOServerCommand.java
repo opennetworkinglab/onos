@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.foo;
+package org.onosproject.foo;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.onos.cli.AbstractShellCommand;
+import org.onosproject.cli.AbstractShellCommand;
 
-import static org.onlab.onos.foo.IOLoopTestServer.startStandalone;
+import static org.onosproject.foo.IOLoopTestServer.startStandalone;
 
 /**
  * Starts the test IO loop server.

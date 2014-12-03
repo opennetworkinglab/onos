@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.messaging;
+package org.onosproject.store.cluster.messaging;
 
 import java.io.IOException;
 
-import org.onlab.onos.cluster.NodeId;
+import org.onosproject.cluster.NodeId;
 import org.onlab.util.ByteArraySizeHashPrinter;
 
 import com.google.common.base.MoreObjects;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.cluster.messaging.impl;
+package org.onosproject.store.cluster.messaging.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -31,17 +31,17 @@ import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
 import org.onlab.netty.NettyMessagingService;
-import org.onlab.onos.cluster.ClusterService;
-import org.onlab.onos.cluster.ControllerNode;
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.store.cluster.messaging.ClusterCommunicationService;
-import org.onlab.onos.store.cluster.messaging.ClusterMessage;
-import org.onlab.onos.store.cluster.messaging.ClusterMessageHandler;
-import org.onlab.onos.store.cluster.messaging.MessageSubject;
-import org.onlab.onos.store.serializers.KryoNamespaces;
-import org.onlab.onos.store.serializers.KryoSerializer;
-import org.onlab.onos.store.serializers.impl.ClusterMessageSerializer;
-import org.onlab.onos.store.serializers.impl.MessageSubjectSerializer;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterMessage;
+import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.impl.ClusterMessageSerializer;
+import org.onosproject.store.serializers.impl.MessageSubjectSerializer;
 import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

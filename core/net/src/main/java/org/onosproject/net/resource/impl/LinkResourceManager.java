@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.resource.impl;
+package org.onosproject.net.resource.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -32,26 +32,26 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.onos.event.AbstractListenerRegistry;
-import org.onlab.onos.event.EventDeliveryService;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.intent.IntentId;
-import org.onlab.onos.net.resource.BandwidthResourceAllocation;
-import org.onlab.onos.net.resource.BandwidthResourceRequest;
-import org.onlab.onos.net.resource.DefaultLinkResourceAllocations;
-import org.onlab.onos.net.resource.Lambda;
-import org.onlab.onos.net.resource.LambdaResourceAllocation;
-import org.onlab.onos.net.resource.LambdaResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceAllocations;
-import org.onlab.onos.net.resource.LinkResourceEvent;
-import org.onlab.onos.net.resource.LinkResourceListener;
-import org.onlab.onos.net.resource.LinkResourceRequest;
-import org.onlab.onos.net.resource.LinkResourceService;
-import org.onlab.onos.net.resource.LinkResourceStore;
-import org.onlab.onos.net.resource.LinkResourceStoreDelegate;
-import org.onlab.onos.net.resource.ResourceAllocation;
-import org.onlab.onos.net.resource.ResourceRequest;
-import org.onlab.onos.net.resource.ResourceType;
+import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.Link;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.BandwidthResourceRequest;
+import org.onosproject.net.resource.DefaultLinkResourceAllocations;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResourceAllocation;
+import org.onosproject.net.resource.LambdaResourceRequest;
+import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceEvent;
+import org.onosproject.net.resource.LinkResourceListener;
+import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.LinkResourceStore;
+import org.onosproject.net.resource.LinkResourceStoreDelegate;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceRequest;
+import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
 /**

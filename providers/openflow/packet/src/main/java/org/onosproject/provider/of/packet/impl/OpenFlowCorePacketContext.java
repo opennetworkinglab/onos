@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.packet.impl;
+package org.onosproject.provider.of.packet.impl;
 
-import org.onlab.onos.net.PortNumber;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instruction.Type;
-import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
-import org.onlab.onos.net.packet.DefaultPacketContext;
-import org.onlab.onos.net.packet.InboundPacket;
-import org.onlab.onos.net.packet.OutboundPacket;
-import org.onlab.onos.openflow.controller.OpenFlowPacketContext;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instruction.Type;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.packet.DefaultPacketContext;
+import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.types.OFPort;
 

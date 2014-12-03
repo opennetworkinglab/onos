@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.link;
+package org.onosproject.net.link;
 
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 
 /**
  * Service for administering the inventory of infrastructure links.

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent;
+package org.onosproject.net.intent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.onlab.onos.net.intent.IntentStore.BatchWrite.Operation;
-import org.onlab.onos.store.Store;
+import org.onosproject.net.intent.IntentStore.BatchWrite.Operation;
+import org.onosproject.store.Store;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

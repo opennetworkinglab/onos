@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.topology.impl;
+package org.onosproject.net.topology.impl;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.onos.event.Event;
-import org.onlab.onos.event.impl.TestEventDispatcher;
-import org.onlab.onos.net.ConnectPoint;
-import org.onlab.onos.net.Device;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.Path;
-import org.onlab.onos.net.provider.AbstractProvider;
-import org.onlab.onos.net.provider.ProviderId;
-import org.onlab.onos.net.topology.DefaultGraphDescription;
-import org.onlab.onos.net.topology.GraphDescription;
-import org.onlab.onos.net.topology.LinkWeight;
-import org.onlab.onos.net.topology.Topology;
-import org.onlab.onos.net.topology.TopologyCluster;
-import org.onlab.onos.net.topology.TopologyEdge;
-import org.onlab.onos.net.topology.TopologyEvent;
-import org.onlab.onos.net.topology.TopologyGraph;
-import org.onlab.onos.net.topology.TopologyListener;
-import org.onlab.onos.net.topology.TopologyProvider;
-import org.onlab.onos.net.topology.TopologyProviderRegistry;
-import org.onlab.onos.net.topology.TopologyProviderService;
-import org.onlab.onos.net.topology.TopologyService;
-import org.onlab.onos.store.trivial.impl.SimpleTopologyStore;
+import org.onosproject.event.Event;
+import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.topology.DefaultGraphDescription;
+import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyProvider;
+import org.onosproject.net.topology.TopologyProviderRegistry;
+import org.onosproject.net.topology.TopologyProviderService;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.store.trivial.impl.SimpleTopologyStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,10 +47,10 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.*;
-import static org.onlab.onos.net.NetTestTools.*;
-import static org.onlab.onos.net.PortNumber.portNumber;
-import static org.onlab.onos.net.topology.ClusterId.clusterId;
-import static org.onlab.onos.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
+import static org.onosproject.net.NetTestTools.*;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.topology.ClusterId.clusterId;
+import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
 
 /**
  * Test of the topology subsystem.

@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net.intent.constraint;
+package org.onosproject.net.intent.constraint;
 
 import com.google.common.base.MoreObjects;
-import org.onlab.onos.net.Link;
-import org.onlab.onos.net.resource.LinkResourceService;
+import org.onosproject.net.Link;
+import org.onosproject.net.resource.LinkResourceService;
 
 import java.util.Objects;
 
-import static org.onlab.onos.net.AnnotationKeys.getAnnotatedValue;
+import static org.onosproject.net.AnnotationKeys.getAnnotatedValue;
 
 /**
  * Constraint that evaluates an arbitrary link annotated value is under the specified threshold.

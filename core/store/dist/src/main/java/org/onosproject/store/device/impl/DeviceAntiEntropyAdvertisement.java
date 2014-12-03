@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.device.impl;
+package org.onosproject.store.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
-import org.onlab.onos.cluster.NodeId;
-import org.onlab.onos.net.DeviceId;
-import org.onlab.onos.store.Timestamp;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.store.Timestamp;
 
 
 /**

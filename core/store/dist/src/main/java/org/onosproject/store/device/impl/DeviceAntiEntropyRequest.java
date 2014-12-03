@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.device.impl;
+package org.onosproject.store.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 
-import org.onlab.onos.cluster.NodeId;
+import org.onosproject.cluster.NodeId;
 
 /**
  * Message to request for other peers information.

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.codec.impl;
+package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.onos.codec.CodecContext;
-import org.onlab.onos.codec.JsonCodec;
-import org.onlab.onos.net.Annotations;
+import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.Annotations;
 
 /**
  * Annotations JSON codec.

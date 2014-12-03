@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.store.topology.impl;
+package org.onosproject.store.topology.impl;
 
-import org.onlab.onos.net.DeviceId;
+import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 

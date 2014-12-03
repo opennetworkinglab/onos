@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.net;
+package org.onosproject.net;
 
 import static org.junit.Assert.assertEquals;
-import static org.onlab.onos.net.PortNumber.portNumber;
+import static org.onosproject.net.PortNumber.portNumber;
 
 import org.junit.Test;
 

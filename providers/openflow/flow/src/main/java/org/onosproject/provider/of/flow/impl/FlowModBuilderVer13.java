@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.onos.provider.of.flow.impl;
+package org.onosproject.provider.of.flow.impl;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import org.onlab.onos.net.flow.FlowRule;
-import org.onlab.onos.net.flow.TrafficTreatment;
-import org.onlab.onos.net.flow.instructions.Instruction;
-import org.onlab.onos.net.flow.instructions.Instructions.OutputInstruction;
-import org.onlab.onos.net.flow.instructions.L0ModificationInstruction;
-import org.onlab.onos.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
-import org.onlab.onos.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction;
-import org.onlab.onos.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onlab.packet.Ip4Address;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
