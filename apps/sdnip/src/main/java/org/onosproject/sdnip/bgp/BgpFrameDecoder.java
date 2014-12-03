@@ -93,7 +93,7 @@ class BgpFrameDecoder extends FrameDecoder {
                     bgpSession.prepareBgpNotification(errorCode, errorSubcode,
                                                       null);
                 ctx.getChannel().write(txMessage);
-                bgpSession.closeChannel(ctx);
+                bgpSession.closeSession(ctx);
                 return null;
             }
         }
@@ -116,7 +116,7 @@ class BgpFrameDecoder extends FrameDecoder {
             ChannelBuffer txMessage =
                 bgpSession.prepareBgpNotificationBadMessageLength(length);
             ctx.getChannel().write(txMessage);
-            bgpSession.closeChannel(ctx);
+            bgpSession.closeSession(ctx);
             return null;
         }
 
@@ -169,7 +169,7 @@ class BgpFrameDecoder extends FrameDecoder {
                 bgpSession.prepareBgpNotification(errorCode, errorSubcode,
                                                   data);
             ctx.getChannel().write(txMessage);
-            bgpSession.closeChannel(ctx);
+            bgpSession.closeSession(ctx);
             return null;
         }
         return null;

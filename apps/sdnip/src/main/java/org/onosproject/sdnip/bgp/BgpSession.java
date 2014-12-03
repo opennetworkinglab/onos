@@ -226,13 +226,22 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
-     * Closes the channel.
+     * Closes the session.
+     *
+     * @param ctx the Channel Handler Context
+     */
+    void closeSession(ChannelHandlerContext ctx) {
+        timer.stop();
+        closeChannel(ctx);
+    }
+
+    /**
+     * Closes the netty channel.
      *
      * @param ctx the Channel Handler Context
      */
     void closeChannel(ChannelHandlerContext ctx) {
         isClosed = true;
-        timer.stop();
         ctx.getChannel().close();
     }
 
@@ -320,7 +329,7 @@ public class BgpSession extends SimpleChannelHandler {
             ChannelBuffer txMessage = prepareBgpNotificationBadMessageLength(
                 message.readableBytes() + BgpConstants.BGP_HEADER_LENGTH);
             ctx.getChannel().write(txMessage);
-            closeChannel(ctx);
+            closeSession(ctx);
             return;
         }
 
@@ -345,7 +354,7 @@ public class BgpSession extends SimpleChannelHandler {
             ChannelBuffer txMessage =
                 prepareBgpNotification(errorCode, errorSubcode, data);
             ctx.getChannel().write(txMessage);
-            closeChannel(ctx);
+            closeSession(ctx);
             return;
         }
 
@@ -370,7 +379,7 @@ public class BgpSession extends SimpleChannelHandler {
                 ChannelBuffer txMessage =
                     prepareBgpNotification(errorCode, errorSubcode, null);
                 ctx.getChannel().write(txMessage);
-                closeChannel(ctx);
+                closeSession(ctx);
                 return;
             }
         }
@@ -393,7 +402,7 @@ public class BgpSession extends SimpleChannelHandler {
             ChannelBuffer txMessage =
                 prepareBgpNotification(errorCode, errorSubcode, null);
             ctx.getChannel().write(txMessage);
-            closeChannel(ctx);
+            closeSession(ctx);
             return;
         }
 
@@ -416,7 +425,7 @@ public class BgpSession extends SimpleChannelHandler {
             ChannelBuffer txMessage =
                 prepareBgpNotification(errorCode, errorSubcode, null);
             ctx.getChannel().write(txMessage);
-            closeChannel(ctx);
+            closeSession(ctx);
             return;
         }
         // TODO: Parse the optional parameters (if needed)
@@ -485,7 +494,7 @@ public class BgpSession extends SimpleChannelHandler {
             ChannelBuffer txMessage = prepareBgpNotificationBadMessageLength(
                 message.readableBytes() + BgpConstants.BGP_HEADER_LENGTH);
             ctx.getChannel().write(txMessage);
-            closeChannel(ctx);
+            closeSession(ctx);
             return;
         }
 
@@ -1284,7 +1293,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, null);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1307,7 +1316,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, null);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1335,7 +1344,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, data);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1371,7 +1380,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, data);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1405,7 +1414,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, data);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1442,7 +1451,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, data);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1479,7 +1488,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, data);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1513,7 +1522,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, data);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1536,7 +1545,7 @@ public class BgpSession extends SimpleChannelHandler {
         ChannelBuffer txMessage =
             prepareBgpNotification(errorCode, errorSubcode, null);
         ctx.getChannel().write(txMessage);
-        closeChannel(ctx);
+        closeSession(ctx);
     }
 
     /**
@@ -1602,7 +1611,7 @@ public class BgpSession extends SimpleChannelHandler {
             ChannelBuffer txMessage = prepareBgpNotificationBadMessageLength(
                 message.readableBytes() + BgpConstants.BGP_HEADER_LENGTH);
             ctx.getChannel().write(txMessage);
-            closeChannel(ctx);
+            closeSession(ctx);
             return;
         }
 
