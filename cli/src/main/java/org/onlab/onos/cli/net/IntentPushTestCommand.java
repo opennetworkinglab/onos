@@ -40,6 +40,7 @@ import org.onlab.onos.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -235,6 +236,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
         return deviceString.substring(0, slash);
     }
 
+    private static final EnumSet<IntentEvent.Type> IGNORE_EVENT
+            = EnumSet.of(Type.INSTALL_REQ, Type.WITHDRAW_REQ);
     @Override
     public void event(IntentEvent event) {
         Type expected = add ? Type.INSTALLED : Type.WITHDRAWN;
@@ -245,7 +248,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
             } else {
                 log.warn("install event latch is null");
             }
-        } else if (event.type() != Type.INSTALL_REQ) {
+        } else if (IGNORE_EVENT.contains(event.type())) {
             log.info("Unexpected intent event: {}", event);
         }
     }
