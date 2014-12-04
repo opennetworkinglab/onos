@@ -497,7 +497,7 @@ public class HazelcastLinkResourceStore
                 return res;
             }
         }
-        return null;
+        return res;
     }
 
     @Override
