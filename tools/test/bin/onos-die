@@ -3,4 +3,7 @@
 # Remotely kills and stops the ONOS service on the specified node.
 # -----------------------------------------------------------------------------
 
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
 onos-kill "${1:-$OCI}" && onos-service "${1:-$OCI}" stop
