@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -165,8 +166,14 @@ public class HazelcastIntentBatchQueue
     public void removeIntentOperations(IntentOperations ops) {
         ApplicationId appId = ops.appId();
         synchronized (this) {
-            checkState(outstandingOps.get(appId).equals(ops),
-                       "Operations not found.");
+            IntentOperations outstanding = outstandingOps.get(appId);
+            if (outstanding != null) {
+                checkState(Objects.equals(ops, outstanding),
+                           "Operation {} does not match outstanding operation {}",
+                            ops, outstanding);
+            } else {
+                log.warn("Operation {} not found", ops);
+            }
             SQueue<IntentOperations> queue = batchQueues.get(appId);
             // TODO consider alternatives to remove
             checkState(queue.remove().equals(ops),
