@@ -38,6 +38,13 @@
             <url>https://oss.sonatype.org/content/groups/staging</url>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>oss-staging</id>
+            <name>OSS Staging</name>
+            <url>https://oss.sonatype.org/content/groups/staging</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
