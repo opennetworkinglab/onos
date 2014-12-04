@@ -1,13 +1,14 @@
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.hamcrest.Description;
-import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -36,20 +37,21 @@ import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.store.trivial.impl.SimpleIntentBatchQueue;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.net.intent.IntentState.*;
 import static org.onlab.util.Tools.delay;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * Test intent manager and transitions.
@@ -75,6 +77,185 @@ public class IntentManagerTest {
     protected TestListener listener = new TestListener();
     protected TestIntentCompiler compiler = new TestIntentCompiler();
     protected TestIntentInstaller installer = new TestIntentInstaller();
+
+    private static class TestListener implements IntentListener {
+        final Multimap<IntentEvent.Type, IntentEvent> events = HashMultimap.create();
+        Map<IntentEvent.Type, CountDownLatch> latchMap = Maps.newHashMap();
+
+        @Override
+        public void event(IntentEvent event) {
+            events.put(event.type(), event);
+            if (latchMap.containsKey(event.type())) {
+                latchMap.get(event.type()).countDown();
+            }
+        }
+
+        public int getCounts(IntentEvent.Type type) {
+            return events.get(type).size();
+        }
+
+        public void setLatch(int count, IntentEvent.Type type) {
+            latchMap.put(type, new CountDownLatch(count));
+        }
+
+        public void await(IntentEvent.Type type) {
+            try {
+                assertTrue("Timed out waiting for: " + type,
+                        latchMap.get(type).await(5, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static class TestIntentTracker implements ObjectiveTrackerService {
+        private TopologyChangeDelegate delegate;
+        @Override
+        public void setDelegate(TopologyChangeDelegate delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void unsetDelegate(TopologyChangeDelegate delegate) {
+            if (delegate.equals(this.delegate)) {
+                this.delegate = null;
+            }
+        }
+
+        @Override
+        public void addTrackedResources(IntentId intentId, Collection<NetworkResource> resources) {
+            //TODO
+        }
+
+        @Override
+        public void removeTrackedResources(IntentId intentId, Collection<NetworkResource> resources) {
+            //TODO
+        }
+    }
+
+    private static class MockIntent extends Intent {
+        private static AtomicLong counter = new AtomicLong(0);
+
+        private final Long number;
+        // Nothing new here
+        public MockIntent(Long number) {
+            super(APPID, null);
+            this.number = number;
+        }
+
+        public Long number() {
+            return number;
+        }
+
+        public static Long nextId() {
+            return counter.getAndIncrement();
+        }
+    }
+
+    private static class MockInstallableIntent extends MockIntent {
+        public MockInstallableIntent(Long number) {
+            super(number);
+        }
+
+        @Override
+        public boolean isInstallable() {
+            return true;
+        }
+    }
+
+    private static class TestIntentCompiler implements IntentCompiler<MockIntent> {
+        @Override
+        public List<Intent> compile(MockIntent intent, List<Intent> installable,
+                                    Set<LinkResourceAllocations> resources) {
+            return Lists.newArrayList(new MockInstallableIntent(intent.number()));
+        }
+    }
+
+    private static class TestIntentCompilerError implements IntentCompiler<MockIntent> {
+        @Override
+        public List<Intent> compile(MockIntent intent, List<Intent> installable,
+                                    Set<LinkResourceAllocations> resources) {
+            throw new IntentCompilationException("Compilation always fails");
+        }
+    }
+
+    private static class TestIntentInstaller implements IntentInstaller<MockInstallableIntent> {
+        @Override
+        public List<FlowRuleBatchOperation> install(MockInstallableIntent intent) {
+            FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
+            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr));
+            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        }
+
+        @Override
+        public List<FlowRuleBatchOperation> uninstall(MockInstallableIntent intent) {
+            FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
+            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
+            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        }
+
+        @Override
+        public List<FlowRuleBatchOperation> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
+            FlowRule fr = new IntentTestsMocks.MockFlowRule(oldIntent.number().intValue());
+            FlowRule fr2 = new IntentTestsMocks.MockFlowRule(newIntent.number().intValue());
+            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
+            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr2));
+            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        }
+    }
+
+    private static class TestIntentErrorInstaller implements IntentInstaller<MockInstallableIntent> {
+        @Override
+        public List<FlowRuleBatchOperation> install(MockInstallableIntent intent) {
+            throw new IntentInstallationException("install() always fails");
+        }
+
+        @Override
+        public List<FlowRuleBatchOperation> uninstall(MockInstallableIntent intent) {
+            throw new IntentRemovalException("uninstall() always fails");
+        }
+
+        @Override
+        public List<FlowRuleBatchOperation> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
+            throw new IntentInstallationException("replace() always fails");
+        }
+    }
+
+    /**
+     * Hamcrest matcher to check that a conllection of Intents contains an
+     * Intent with the specified Intent Id.
+     */
+    public static class EntryForIntentMatcher extends TypeSafeMatcher<Collection<Intent>> {
+        private final IntentId id;
+
+        public EntryForIntentMatcher(IntentId idValue) {
+            id = idValue;
+        }
+
+        @Override
+        public boolean matchesSafely(Collection<Intent> intents) {
+            for (Intent intent : intents) {
+                if (intent.id().equals(id)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("an intent with id \" ").
+                    appendText(id.toString()).
+                    appendText("\"");
+        }
+    }
+
+    private static EntryForIntentMatcher hasIntentWithId(IntentId id) {
+        return new EntryForIntentMatcher(id);
+    }
 
     @Before
     public void setUp() {
@@ -253,176 +434,120 @@ public class IntentManagerTest {
         service.submit(intent);
         listener.await(Type.INSTALL_REQ);
         listener.await(Type.FAILED);
-
-    }
-
-    private static class TestListener implements IntentListener {
-        final Multimap<IntentEvent.Type, IntentEvent> events = HashMultimap.create();
-        Map<IntentEvent.Type, CountDownLatch> latchMap = Maps.newHashMap();
-
-        @Override
-        public void event(IntentEvent event) {
-            events.put(event.type(), event);
-            if (latchMap.containsKey(event.type())) {
-                latchMap.get(event.type()).countDown();
-            }
-        }
-
-        public int getCounts(IntentEvent.Type type) {
-            return events.get(type).size();
-        }
-
-        public void setLatch(int count, IntentEvent.Type type) {
-            latchMap.put(type, new CountDownLatch(count));
-        }
-
-        public void await(IntentEvent.Type type) {
-            try {
-                assertTrue("Timed out waiting for: " + type,
-                        latchMap.get(type).await(5, TimeUnit.SECONDS));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static class TestIntentTracker implements ObjectiveTrackerService {
-        private TopologyChangeDelegate delegate;
-        @Override
-        public void setDelegate(TopologyChangeDelegate delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void unsetDelegate(TopologyChangeDelegate delegate) {
-            if (delegate.equals(this.delegate)) {
-                this.delegate = null;
-            }
-        }
-
-        @Override
-        public void addTrackedResources(IntentId intentId, Collection<NetworkResource> resources) {
-            //TODO
-        }
-
-        @Override
-        public void removeTrackedResources(IntentId intentId, Collection<NetworkResource> resources) {
-            //TODO
-        }
-    }
-
-    private static class MockIntent extends Intent {
-        private static AtomicLong counter = new AtomicLong(0);
-
-        private final Long number;
-        // Nothing new here
-        public MockIntent(Long number) {
-            super(APPID, null);
-            this.number = number;
-        }
-
-        public Long number() {
-            return number;
-        }
-
-        public static Long nextId() {
-            return counter.getAndIncrement();
-        }
-    }
-
-    private static class MockInstallableIntent extends MockIntent {
-        public MockInstallableIntent(Long number) {
-            super(number);
-        }
-
-        @Override
-        public boolean isInstallable() {
-            return true;
-        }
-    }
-
-    private static class TestIntentCompiler implements IntentCompiler<MockIntent> {
-        @Override
-        public List<Intent> compile(MockIntent intent, List<Intent> installable,
-                                    Set<LinkResourceAllocations> resources) {
-            return Lists.newArrayList(new MockInstallableIntent(intent.number()));
-        }
-    }
-
-    private static class TestIntentCompilerError implements IntentCompiler<MockIntent> {
-        @Override
-        public List<Intent> compile(MockIntent intent, List<Intent> installable,
-                                    Set<LinkResourceAllocations> resources) {
-            throw new IntentCompilationException("Compilation always fails");
-        }
-    }
-
-    private static class TestIntentInstaller implements IntentInstaller<MockInstallableIntent> {
-        @Override
-        public List<FlowRuleBatchOperation> install(MockInstallableIntent intent) {
-            FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
-            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
-        }
-
-        @Override
-        public List<FlowRuleBatchOperation> uninstall(MockInstallableIntent intent) {
-            FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
-            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
-        }
-
-        @Override
-        public List<FlowRuleBatchOperation> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
-            FlowRule fr = new IntentTestsMocks.MockFlowRule(oldIntent.number().intValue());
-            FlowRule fr2 = new IntentTestsMocks.MockFlowRule(newIntent.number().intValue());
-            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr2));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
-        }
-    }
-
-    private static class TestIntentErrorInstaller implements IntentInstaller<MockInstallableIntent> {
-        @Override
-        public List<FlowRuleBatchOperation> install(MockInstallableIntent intent) {
-            throw new IntentInstallationException("install() always fails");
-        }
-
-        @Override
-        public List<FlowRuleBatchOperation> uninstall(MockInstallableIntent intent) {
-            throw new IntentRemovalException("uninstall() always fails");
-        }
-
-        @Override
-        public List<FlowRuleBatchOperation> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
-            throw new IntentInstallationException("replace() always fails");
-        }
     }
 
     /**
-     * Hamcrest matcher to check that a conllection of Intents contains an
-     * Intent with the specified Intent Id.
+     * Tests handling a future that contains an unresolvable error as a result of
+     * installing an intent.
      */
-    public static class EntryForIntentMatcher extends TypeSafeMatcher<Collection<Intent>> {
-        private final String id;
+    @Test
+    public void errorIntentInstallNeverTrue() {
+        final Long id = MockIntent.nextId();
+        flowRuleService.setFuture(false, 1);
+        MockIntent intent = new MockIntent(id);
+        listener.setLatch(1, Type.WITHDRAWN);
+        listener.setLatch(1, Type.INSTALL_REQ);
+        service.submit(intent);
+        listener.await(Type.INSTALL_REQ);
+        // The delay here forces the retry loop in the intent manager to time out
+        delay(100);
+        flowRuleService.setFuture(false, 1);
+        service.withdraw(intent);
+        listener.await(Type.WITHDRAWN);
+    }
 
-        public EntryForIntentMatcher(String idValue) {
-            id = idValue;
+    /**
+     * Tests that a compiler for a subclass of an intent that already has a
+     * compiler is automatically added.
+     */
+    @Test
+    public void intentSubclassCompile() {
+        class MockIntentSubclass extends MockIntent {
+            public MockIntentSubclass(Long number) {
+                super(number);
+            }
+        }
+        flowRuleService.setFuture(true);
+
+        listener.setLatch(1, Type.INSTALL_REQ);
+        listener.setLatch(1, Type.INSTALLED);
+        Intent intent = new MockIntentSubclass(MockIntent.nextId());
+        service.submit(intent);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.INSTALLED);
+        assertEquals(1L, service.getIntentCount());
+        assertEquals(1L, flowRuleService.getFlowRuleCount());
+
+        final Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> compilers =
+                extensionService.getCompilers();
+        assertEquals(2, compilers.size());
+        assertNotNull(compilers.get(MockIntentSubclass.class));
+        assertNotNull(compilers.get(MockIntent.class));
+    }
+
+    /**
+     * Tests an intent with no compiler.
+     */
+    @Test
+    public void intentWithoutCompiler() {
+        class IntentNoCompiler extends Intent {
+            IntentNoCompiler() {
+                super(APPID, null);
+            }
         }
 
-        @Override
-        public boolean matchesSafely(Collection<Intent> intents) {
-            return hasItem(Matchers.<Intent>hasProperty("id", equalTo(id))).matches(intents);
-        }
+        Intent intent = new IntentNoCompiler();
+        listener.setLatch(1, Type.INSTALL_REQ);
+        listener.setLatch(1, Type.FAILED);
+        service.submit(intent);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.FAILED);
+    }
 
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("an intent with id \" ").
-                    appendText(id).
-                    appendText("\"");
-        }
+    /**
+     * Tests an intent with no installer.
+     */
+    @Test
+    public void intentWithoutInstaller() {
+
+        extensionService.unregisterInstaller(MockInstallableIntent.class);
+
+        MockIntent intent = new MockIntent(MockIntent.nextId());
+        listener.setLatch(1, Type.INSTALL_REQ);
+        listener.setLatch(1, Type.FAILED);
+        service.submit(intent);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.FAILED);
+    }
+
+    /**
+     * Tests that the intent fetching methods are correct.
+     */
+    @Test
+    public void testIntentFetching() {
+        List<Intent> intents;
+
+        flowRuleService.setFuture(true);
+
+        intents = Lists.newArrayList(service.getIntents());
+        assertThat(intents, hasSize(0));
+
+        final MockIntent intent1 = new MockIntent(MockIntent.nextId());
+        final MockIntent intent2 = new MockIntent(MockIntent.nextId());
+
+        listener.setLatch(2, Type.INSTALL_REQ);
+        listener.setLatch(2, Type.INSTALLED);
+        service.submit(intent1);
+        service.submit(intent2);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.INSTALLED);
+        listener.await(Type.INSTALLED);
+
+        intents = Lists.newArrayList(service.getIntents());
+        assertThat(intents, hasSize(2));
+
+        assertThat(intents, hasIntentWithId(intent1.id()));
+        assertThat(intents, hasIntentWithId(intent2.id()));
     }
 }
