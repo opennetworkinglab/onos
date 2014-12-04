@@ -1,7 +1,7 @@
 # Environmental defaults for ONOS build, package and test
 
 # Root of the ONOS source tree
-export ONOS_ROOT=${ONOS_ROOT:-~/onos-next}
+export ONOS_ROOT=${ONOS_ROOT:-~/onos}
 
 # M2 repository and Karaf gold bits
 export M2_REPO=${M2_REPO:-~/.m2/repository}
@@ -24,6 +24,7 @@ export ONOS_BITS=onos-${ONOS_VERSION%~*}
 export ONOS_STAGE_ROOT=${ONOS_STAGE_ROOT:-/tmp}
 export ONOS_STAGE=$ONOS_STAGE_ROOT/$ONOS_BITS
 export ONOS_TAR=$ONOS_STAGE.tar.gz
+export ONOS_ZIP=$ONOS_STAGE.zip
 
 # Defaults for ONOS testing using remote machines.
 # if [ -n "${ONOS_CELL}" -a -f $ONOS_ROOT/tools/test/cells/${ONOS_CELL} ]; then

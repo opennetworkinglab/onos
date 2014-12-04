@@ -29,10 +29,10 @@ public class VersionTest {
 
     @Test
     public void fromParts() {
-        Version v = version(1, 2, 3, "4321");
+        Version v = version(1, 2, "3", "4321");
         assertEquals("wrong major", 1, v.major());
         assertEquals("wrong minor", 2, v.minor());
-        assertEquals("wrong patch", 3, v.patch());
+        assertEquals("wrong patch", "3", v.patch());
         assertEquals("wrong build", "4321", v.build());
     }
 
@@ -41,7 +41,7 @@ public class VersionTest {
         Version v = version("1.2.3.4321");
         assertEquals("wrong major", 1, v.major());
         assertEquals("wrong minor", 2, v.minor());
-        assertEquals("wrong patch", 3, v.patch());
+        assertEquals("wrong patch", "3", v.patch());
         assertEquals("wrong build", "4321", v.build());
     }
 
@@ -50,17 +50,26 @@ public class VersionTest {
         Version v = version("1.2.3-SNAPSHOT");
         assertEquals("wrong major", 1, v.major());
         assertEquals("wrong minor", 2, v.minor());
-        assertEquals("wrong patch", 3, v.patch());
+        assertEquals("wrong patch", "3", v.patch());
         assertEquals("wrong build", "SNAPSHOT", v.build());
+    }
+
+    @Test
+    public void shortNumber() {
+        Version v = version("1.2.3");
+        assertEquals("wrong major", 1, v.major());
+        assertEquals("wrong minor", 2, v.minor());
+        assertEquals("wrong patch", "3", v.patch());
+        assertEquals("wrong build", null, v.build());
     }
 
     @Test
     public void testEquals() {
         new EqualsTester()
-                .addEqualityGroup(version("1.2.3.4321"), version(1, 2, 3, "4321"))
-                .addEqualityGroup(version("1.9.3.4321"), version(1, 9, 3, "4321"))
-                .addEqualityGroup(version("1.2.8.4321"), version(1, 2, 8, "4321"))
-                .addEqualityGroup(version("1.2.3.x"), version(1, 2, 3, "x"))
+                .addEqualityGroup(version("1.2.3.4321"), version(1, 2, "3", "4321"))
+                .addEqualityGroup(version("1.9.3.4321"), version(1, 9, "3", "4321"))
+                .addEqualityGroup(version("1.2.8.4321"), version(1, 2, "8", "4321"))
+                .addEqualityGroup(version("1.2.3.x"), version(1, 2, "3", "x"))
                 .testEquals();
     }
 }

@@ -17,6 +17,8 @@ package org.onosproject.core;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.Integer.parseInt;
 
 /**
@@ -24,22 +26,27 @@ import static java.lang.Integer.parseInt;
  */
 public final class Version {
 
-    public static final String FORMAT = "%d.%d.%d.%s";
+    public static final String FORMAT = "%d.%d.%s.%s";
+    public static final String FORMAT_SHORT = "%d.%d.%s";
+
+    private static final String NEGATIVE = "Version segment cannot be negative";
 
     private final int major;
     private final int minor;
-    private final int patch;
+    private final String patch;
     private final String build;
 
     private final String format;
 
     // Creates a new version descriptor
-    private Version(int major, int minor, int patch, String build) {
+    private Version(int major, int minor, String patch, String build) {
         this.major = major;
         this.minor = minor;
         this.patch = patch;
         this.build = build;
-        this.format = String.format(FORMAT, major, minor, patch, build);
+        this.format = isNullOrEmpty(build) ?
+                String.format(FORMAT_SHORT, major, minor, patch) :
+                String.format(FORMAT, major, minor, patch, build);
     }
 
 
@@ -48,11 +55,13 @@ public final class Version {
      *
      * @param major major version number
      * @param minor minod version number
-     * @param patch version patch number
-     * @param build build string
+     * @param patch version patch segment
+     * @param build optional build string
      * @return version descriptor
      */
-    public static Version version(int major, int minor, int patch, String build) {
+    public static Version version(int major, int minor, String patch, String build) {
+        checkArgument(major > 0, NEGATIVE);
+        checkArgument(minor > 0, NEGATIVE);
         return new Version(major, minor, patch, build);
     }
 
@@ -65,7 +74,7 @@ public final class Version {
     public static Version version(String string) {
         String[] fields = string.split("[.-]");
         return new Version(parseInt(fields[0]), parseInt(fields[1]),
-                           parseInt(fields[2]), fields[3]);
+                           fields[2], fields.length == 4 ? fields[3] : null);
     }
 
     /**
@@ -87,11 +96,11 @@ public final class Version {
     }
 
     /**
-     * Returns the version patch number.
+     * Returns the version patch segment.
      *
      * @return patch number
      */
-    public int patch() {
+    public String patch() {
         return patch;
     }
 
