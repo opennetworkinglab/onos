@@ -1,5 +1,32 @@
 {
     "devices" : [
+        { "alias":  "s1", "uri": "of:0000000000000001", "mac": "000000000001", "annotations": { "name": "CMBR" }, "type": "SWITCH" },
+        { "alias":  "s2", "uri": "of:0000000000000002", "mac": "000000000002", "annotations": { "name": "CHCG" }, "type": "SWITCH" },
+        { "alias":  "s3", "uri": "of:0000000000000003", "mac": "000000000003", "annotations": { "name": "CLEV" }, "type": "SWITCH" },
+        { "alias":  "s4", "uri": "of:0000000000000004", "mac": "000000000004", "annotations": { "name": "RLGH" }, "type": "SWITCH" },
+        { "alias":  "s5", "uri": "of:0000000000000005", "mac": "000000000005", "annotations": { "name": "ATLN" }, "type": "SWITCH" },
+        { "alias":  "s6", "uri": "of:0000000000000006", "mac": "000000000006", "annotations": { "name": "PHLA" }, "type": "SWITCH" },
+        { "alias":  "s7", "uri": "of:0000000000000007", "mac": "000000000007", "annotations": { "name": "WASH" }, "type": "SWITCH" },
+        { "alias":  "s8", "uri": "of:0000000000000008", "mac": "000000000008", "annotations": { "name": "NSVL" }, "type": "SWITCH" },
+        { "alias":  "s9", "uri": "of:0000000000000009", "mac": "000000000009", "annotations": { "name": "STLS" }, "type": "SWITCH" },
+        { "alias": "s10", "uri": "of:000000000000000a", "mac": "00000000000a", "annotations": { "name": "NWOR" }, "type": "SWITCH" },
+        { "alias": "s11", "uri": "of:000000000000000b", "mac": "00000000000b", "annotations": { "name": "HSTN" }, "type": "SWITCH" },
+        { "alias": "s12", "uri": "of:000000000000000c", "mac": "00000000000c", "annotations": { "name": "SNAN" }, "type": "SWITCH" },
+        { "alias": "s13", "uri": "of:000000000000000d", "mac": "00000000000d", "annotations": { "name": "DLLS" }, "type": "SWITCH" },
+        { "alias": "s14", "uri": "of:000000000000000e", "mac": "00000000000e", "annotations": { "name": "ORLD" }, "type": "SWITCH" },
+        { "alias": "s15", "uri": "of:000000000000000f", "mac": "00000000000f", "annotations": { "name": "DNVR" }, "type": "SWITCH" },
+        { "alias": "s16", "uri": "of:0000000000000010", "mac": "000000000010", "annotations": { "name": "KSCY" }, "type": "SWITCH" },
+        { "alias": "s17", "uri": "of:0000000000000011", "mac": "000000000011", "annotations": { "name": "SNFN" }, "type": "SWITCH" },
+        { "alias": "s18", "uri": "of:0000000000000012", "mac": "000000000012", "annotations": { "name": "SCRM" }, "type": "SWITCH" },
+        { "alias": "s19", "uri": "of:0000000000000013", "mac": "000000000013", "annotations": { "name": "PTLD" }, "type": "SWITCH" },
+        { "alias": "s20", "uri": "of:0000000000000014", "mac": "000000000014", "annotations": { "name": "STTL" }, "type": "SWITCH" },
+        { "alias": "s21", "uri": "of:0000000000000015", "mac": "000000000015", "annotations": { "name": "SLKC" }, "type": "SWITCH" },
+        { "alias": "s22", "uri": "of:0000000000000016", "mac": "000000000016", "annotations": { "name": "LA03" }, "type": "SWITCH" },
+        { "alias": "s23", "uri": "of:0000000000000017", "mac": "000000000017", "annotations": { "name": "SNDG" }, "type": "SWITCH" },
+        { "alias": "s24", "uri": "of:0000000000000018", "mac": "000000000018", "annotations": { "name": "PHNX" }, "type": "SWITCH" },
+        { "alias": "s25", "uri": "of:0000000000000019", "mac": "000000000019", "annotations": { "name": "NY54" }, "type": "SWITCH" },
+
+
         {
             "uri": "of:0000ffffffffff01", "mac": "ffffffffffff01", "type": "ROADM",
             "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
@@ -77,7 +104,7 @@
             { "port": 50, "speed": 0, "type": "FIBER" }]
         },
         {
-            "uri": "of:0000ffffffffff0A", "mac": "ffffffffffff0A", "type": "ROADM",
+            "uri": "of:0000ffffffffff0a", "mac": "ffffffffffff0a", "type": "ROADM",
             "mfr": "Linc", "hw": "OE", "sw": "?", "serial": "?",
             "annotations": { "name": "ATL", "latitude": 33.749017, "longitude": -84.394168, "optical.regens": 0 },
             "ports": [ { "port": 10, "speed": 0, "type": "FIBER" },
@@ -99,14 +126,14 @@
         { "src": "of:0000ffffffffff06/30", "dst": "of:0000ffffffffff08/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1918, "durable": "true" } },
         { "src": "of:0000ffffffffff07/20", "dst": "of:0000ffffffffff08/30", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 3625, "durable": "true" } },
         { "src": "of:0000ffffffffff07/30", "dst": "of:0000ffffffffff09/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 3880, "durable": "true" } },
-        { "src": "of:0000ffffffffff08/20", "dst": "of:0000ffffffffff0A/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 838, "durable": "true" } },
-        { "src": "of:0000ffffffffff09/20", "dst": "of:0000ffffffffff0A/20", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1245, "durable": "true" } },
+        { "src": "of:0000ffffffffff08/20", "dst": "of:0000ffffffffff0a/50", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 838, "durable": "true" } },
+        { "src": "of:0000ffffffffff09/20", "dst": "of:0000ffffffffff0a/20", "type": "OPTICAL", "annotations": { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1245, "durable": "true" } },
 
         { "src": "of:0000000000000011/52", "dst": "of:0000ffffffffff01/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
         { "src": "of:0000000000000016/52", "dst": "of:0000ffffffffff04/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
         { "src": "of:000000000000000d/52", "dst": "of:0000ffffffffff06/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
         { "src": "of:0000000000000002/52", "dst": "of:0000ffffffffff07/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
         { "src": "of:0000000000000019/52", "dst": "of:0000ffffffffff09/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } },
-        { "src": "of:0000000000000005/52", "dst": "of:0000ffffffffff0A/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } }
+        { "src": "of:0000000000000005/52", "dst": "of:0000ffffffffff0a/10", "type": "OPTICAL", "annotations": { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" } }
     ]
 }
