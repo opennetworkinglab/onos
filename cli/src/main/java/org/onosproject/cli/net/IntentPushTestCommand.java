@@ -70,7 +70,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     String egressDeviceString = null;
 
 
-    @Argument(index = 2, name = "Intents per appId",
+    @Argument(index = 2, name = "IntentsPerAppId",
             description = "Number of intents per appId",
             required = true, multiValued = false)
     String intentsPerAppId = null;
