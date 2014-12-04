@@ -43,7 +43,7 @@ public class BgpNeighborsListCommand extends AbstractShellCommand {
     private static final String FORMAT_NEIGHBOR_LINE2 =
         "  Remote router ID %s, IP %s, BGP version %d, Hold time %d";
     private static final String FORMAT_NEIGHBOR_LINE3 =
-        "  Local router ID %s, IP %s, BGP version %d, Hold time %d";
+        "  Local  router ID %s, IP %s, BGP version %d, Hold time %d";
 
     @Override
     protected void execute() {

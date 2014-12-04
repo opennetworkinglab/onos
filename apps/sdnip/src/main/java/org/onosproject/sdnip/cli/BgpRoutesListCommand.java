@@ -15,6 +15,7 @@
  */
 package org.onosproject.sdnip.cli;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,24 +26,33 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.sdnip.SdnIpService;
-import org.onosproject.sdnip.bgp.BgpConstants.Update.AsPath;
-import org.onosproject.sdnip.bgp.BgpConstants.Update.Origin;
+import org.onosproject.sdnip.bgp.BgpConstants.Update;
 import org.onosproject.sdnip.bgp.BgpRouteEntry;
+import org.onosproject.sdnip.bgp.BgpSession;
 
 /**
  * Command to show the routes learned through BGP.
  */
 @Command(scope = "onos", name = "bgp-routes",
-         description = "Lists all routes received from BGP")
+         description = "Lists all BGP best routes")
 public class BgpRoutesListCommand extends AbstractShellCommand {
     @Option(name = "-s", aliases = "--summary",
             description = "BGP routes summary",
             required = false, multiValued = false)
     private boolean routesSummary = false;
 
+    @Option(name = "-n", aliases = "--neighbor",
+            description = "Routes from a BGP neighbor",
+            required = false, multiValued = false)
+    private String bgpNeighbor;
+
     private static final String FORMAT_SUMMARY = "Total BGP routes = %d";
-    private static final String FORMAT_ROUTE =
-            "prefix=%s, nexthop=%s, origin=%s, localpref=%s, med=%s, aspath=%s, bgpid=%s";
+    private static final String FORMAT_HEADER =
+        "   Network            Next Hop        Origin LocalPref       MED BGP-ID";
+    private static final String FORMAT_ROUTE_LINE1 =
+        "   %-18s %-15s %6s %9s %9s %-15s";
+    private static final String FORMAT_ROUTE_LINE2 =
+        "                      AsPath %s";
 
     @Override
     protected void execute() {
@@ -54,8 +64,27 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
             return;
         }
 
-        // Print all routes
-        printRoutes(service.getBgpRoutes());
+        BgpSession foundBgpSession = null;
+        if (bgpNeighbor != null) {
+            // Print the routes from a single neighbor (if found)
+            for (BgpSession bgpSession : service.getBgpSessions()) {
+                if (bgpSession.getRemoteBgpId().toString().equals(bgpNeighbor)) {
+                    foundBgpSession = bgpSession;
+                    break;
+                }
+            }
+            if (foundBgpSession == null) {
+                print("BGP neighbor %s not found", bgpNeighbor);
+                return;
+            }
+        }
+
+        // Print the routes
+        if (foundBgpSession != null) {
+            printRoutes(foundBgpSession.getBgpRibIn());
+        } else {
+            printRoutes(service.getBgpRoutes());
+        }
     }
 
     /**
@@ -83,9 +112,11 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(routes));
         } else {
+            print(FORMAT_HEADER);
             for (BgpRouteEntry route : routes) {
                 printRoute(route);
             }
+            print(FORMAT_SUMMARY, routes.size());
         }
     }
 
@@ -96,11 +127,72 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
      */
     private void printRoute(BgpRouteEntry route) {
         if (route != null) {
-            print(FORMAT_ROUTE, route.prefix(), route.nextHop(),
-                  Origin.typeToString(route.getOrigin()),
+            print(FORMAT_ROUTE_LINE1, route.prefix(), route.nextHop(),
+                  Update.Origin.typeToString(route.getOrigin()),
                   route.getLocalPref(), route.getMultiExitDisc(),
-                  route.getAsPath(), route.getBgpSession().getRemoteBgpId());
+                  route.getBgpSession().getRemoteBgpId());
+            print(FORMAT_ROUTE_LINE2, asPath4Cli(route.getAsPath()));
         }
+    }
+
+    /**
+     * Formats the AS Path as a string that can be shown on the CLI.
+     *
+     * @param asPath the AS Path to format
+     * @return the AS Path as a string
+     */
+    private String asPath4Cli(BgpRouteEntry.AsPath asPath) {
+        ArrayList<BgpRouteEntry.PathSegment> pathSegments =
+            asPath.getPathSegments();
+
+        if (pathSegments.isEmpty()) {
+            return "[none]";
+        }
+
+        final StringBuilder builder = new StringBuilder();
+        for (BgpRouteEntry.PathSegment pathSegment : pathSegments) {
+            String prefix = null;
+            String suffix = null;
+            switch (pathSegment.getType()) {
+            case Update.AsPath.AS_SET:
+                prefix = "[AS-Set";
+                suffix = "]";
+                break;
+            case Update.AsPath.AS_SEQUENCE:
+                break;
+            case Update.AsPath.AS_CONFED_SEQUENCE:
+                prefix = "[AS-Confed-Seq";
+                suffix = "]";
+                break;
+            case Update.AsPath.AS_CONFED_SET:
+                prefix = "[AS-Confed-Set";
+                suffix = "]";
+                break;
+            default:
+                builder.append(String.format("(type = %s)",
+                        Update.AsPath.typeToString(pathSegment.getType())));
+                break;
+            }
+
+            if (prefix != null) {
+                if (builder.length() > 0) {
+                    builder.append(" ");        // Separator
+                }
+                builder.append(prefix);
+            }
+            // Print the AS numbers
+            for (Long asn : pathSegment.getSegmentAsNumbers()) {
+                if (builder.length() > 0) {
+                    builder.append(" ");        // Separator
+                }
+                builder.append(String.format("%d", asn));
+            }
+            if (suffix != null) {
+                // No need for separator
+                builder.append(prefix);
+            }
+        }
+        return builder.toString();
     }
 
     /**
@@ -132,7 +224,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         result.put("prefix", route.prefix().toString());
         result.put("nextHop", route.nextHop().toString());
         result.put("bgpId", route.getBgpSession().getRemoteBgpId().toString());
-        result.put("origin", Origin.typeToString(route.getOrigin()));
+        result.put("origin", Update.Origin.typeToString(route.getOrigin()));
         result.put("asPath", json(mapper, route.getAsPath()));
         result.put("localPref", route.getLocalPref());
         result.put("multiExitDisc", route.getMultiExitDisc());
@@ -153,7 +245,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         for (BgpRouteEntry.PathSegment pathSegment : asPath.getPathSegments()) {
             ObjectNode pathSegmentJson = mapper.createObjectNode();
             pathSegmentJson.put("type",
-                                AsPath.typeToString(pathSegment.getType()));
+                                Update.AsPath.typeToString(pathSegment.getType()));
             ArrayNode segmentAsNumbersJson = mapper.createArrayNode();
             for (Long asNumber : pathSegment.getSegmentAsNumbers()) {
                 segmentAsNumbersJson.add(asNumber);

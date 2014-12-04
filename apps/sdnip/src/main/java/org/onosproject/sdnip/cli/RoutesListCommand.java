@@ -31,7 +31,7 @@ import org.onosproject.sdnip.SdnIpService;
  * Command to show the list of routes in SDN-IP's routing table.
  */
 @Command(scope = "onos", name = "routes",
-        description = "Lists all routes known to SDN-IP")
+        description = "Lists all SDN-IP best routes")
 public class RoutesListCommand extends AbstractShellCommand {
     @Option(name = "-s", aliases = "--summary",
             description = "SDN-IP routes summary",
@@ -39,8 +39,10 @@ public class RoutesListCommand extends AbstractShellCommand {
     private boolean routesSummary = false;
 
     private static final String FORMAT_SUMMARY = "Total SDN-IP routes = %d";
+    private static final String FORMAT_HEADER =
+        "   Network            Next Hop";
     private static final String FORMAT_ROUTE =
-            "prefix=%s, nexthop=%s";
+        "   %-18s %-15s";
 
     @Override
     protected void execute() {
@@ -81,9 +83,11 @@ public class RoutesListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(routes));
         } else {
+            print(FORMAT_HEADER);
             for (RouteEntry route : routes) {
                 printRoute(route);
             }
+            print(FORMAT_SUMMARY, routes.size());
         }
     }
 
