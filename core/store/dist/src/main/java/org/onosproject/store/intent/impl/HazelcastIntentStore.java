@@ -113,7 +113,14 @@ public class HazelcastIntentStore
     private Timer getIntentTimer;
     private Timer getIntentStateTimer;
 
-    private String listenerId;
+    // manual near cache of Intent
+    // (Note: IntentId -> Intent is expected to be immutable)
+    // entry will be evicted, when state for that IntentId is removed.
+    private Map<IntentId, Intent> localIntents;
+
+    private String stateListenerId;
+
+    private String intentsListenerId;
 
     private Timer createResponseTimer(String methodName) {
         return createTimer("IntentStore", methodName, "responseTime");
@@ -122,6 +129,8 @@ public class HazelcastIntentStore
     @Override
     @Activate
     public void activate() {
+        localIntents = new ConcurrentHashMap<>();
+
         createIntentTimer = createResponseTimer("createIntent");
         removeIntentTimer = createResponseTimer("removeIntent");
         setInstallableIntentsTimer = createResponseTimer("setInstallableIntents");
@@ -158,6 +167,7 @@ public class HazelcastIntentStore
         // TODO: enable near cache, allow read from backup for this IMap
         IMap<byte[], byte[]> rawIntents = super.theInstance.getMap(INTENTS_MAP_NAME);
         intents = new SMap<>(rawIntents , super.serializer);
+        intentsListenerId = intents.addEntryListener(new RemoteIntentsListener(), true);
 
         MapConfig statesCfg = config.getMapConfig(INTENT_STATES_MAP_NAME);
         statesCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - statesCfg.getBackupCount());
@@ -165,7 +175,7 @@ public class HazelcastIntentStore
         IMap<byte[], byte[]> rawStates = super.theInstance.getMap(INTENT_STATES_MAP_NAME);
         states = new SMap<>(rawStates , super.serializer);
         EntryListener<IntentId, IntentState> listener = new RemoteIntentStateListener();
-        listenerId = states.addEntryListener(listener , true);
+        stateListenerId = states.addEntryListener(listener, true);
 
         transientStates.clear();
 
@@ -180,7 +190,8 @@ public class HazelcastIntentStore
 
     @Deactivate
     public void deactivate() {
-        states.removeEntryListener(listenerId);
+        intents.removeEntryListener(intentsListenerId);
+        states.removeEntryListener(stateListenerId);
         log.info("Stopped");
     }
 
@@ -245,7 +256,15 @@ public class HazelcastIntentStore
     public Intent getIntent(IntentId intentId) {
         Context timer = startTimer(getIntentTimer);
         try {
-            return intents.get(intentId);
+            Intent intent = localIntents.get(intentId);
+            if (intent != null) {
+                return intent;
+            }
+            intent = intents.get(intentId);
+            if (intent != null) {
+                localIntents.put(intentId, intent);
+            }
+            return intent;
         } finally {
             stopTimer(timer);
         }
@@ -605,15 +624,28 @@ public class HazelcastIntentStore
         }
     }
 
+    public final class RemoteIntentsListener extends EntryAdapter<IntentId, Intent> {
+
+        @Override
+        public void entryAdded(EntryEvent<IntentId, Intent> event) {
+            localIntents.put(event.getKey(), event.getValue());
+        }
+
+        @Override
+        public void entryUpdated(EntryEvent<IntentId, Intent> event) {
+            entryAdded(event);
+        }
+    }
+
     public final class RemoteIntentStateListener extends EntryAdapter<IntentId, IntentState> {
 
         @Override
         public void onEntryEvent(EntryEvent<IntentId, IntentState> event) {
+            final IntentId intentId = event.getKey();
             final Member myself = theInstance.getCluster().getLocalMember();
             if (!myself.equals(event.getMember())) {
                 // When Intent state was modified by remote node,
                 // clear local transient state.
-                final IntentId intentId = event.getKey();
                 IntentState oldState = transientStates.remove(intentId);
                 if (oldState != null) {
                     log.debug("{} state updated remotely, removing transient state {}",
@@ -622,9 +654,21 @@ public class HazelcastIntentStore
 
                 if (event.getValue() != null) {
                     // notify if this is not entry removed event
-                    notifyDelegate(IntentEvent.getEvent(event.getValue(), getIntent(intentId)));
+
+                    final Intent intent = getIntent(intentId);
+                    if (intent == null) {
+                        log.warn("no Intent found for {} on Event {}", intentId, event);
+                        return;
+                    }
+                    notifyDelegate(IntentEvent.getEvent(event.getValue(), intent));
+                    // remove IntentCache
+                    localIntents.remove(intentId, intent);
                 }
             }
+
+            // populate manual near cache, to prepare for
+            // transition event to WITHDRAWN
+            getIntent(intentId);
         }
     }
 }
