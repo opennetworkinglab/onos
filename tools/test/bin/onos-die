@@ -1,0 +1,6 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely kills and stops the ONOS service on the specified node.
+# -----------------------------------------------------------------------------
+
+onos-kill "${1:-$OCI}" && onos-service "${1:-$OCI}" stop
