@@ -768,7 +768,7 @@ public class IntentManager
         }
 
         private void buildIntentUpdates() {
-            BatchWrite batchWrite = store.newBatchWrite();
+            BatchWrite batchWrite = BatchWrite.newInstance();
 
             // create context and record new request to store
             for (IntentOperation op : ops.operations()) {
@@ -806,7 +806,7 @@ public class IntentManager
                 return flowRuleService.applyBatch(batch);
             } else {
                 // there are no flow rule batches; finalize the intent update
-                BatchWrite batchWrite = store.newBatchWrite();
+                BatchWrite batchWrite = BatchWrite.newInstance();
                 for (IntentUpdate update : intentUpdates) {
                     update.finalizeStates(batchWrite);
                 }

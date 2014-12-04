@@ -24,7 +24,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class BatchWrite {
+public final class BatchWrite {
 
     public enum OpType {
         CREATE_INTENT,
@@ -35,6 +35,17 @@ public class BatchWrite {
     }
 
     List<Operation> operations = new ArrayList<>();
+
+    private BatchWrite() {}
+
+    /**
+     * Returns a new empty batch write operation builder.
+     *
+     * @return BatchWrite
+     */
+    public static BatchWrite newInstance() {
+        return new BatchWrite();
+    }
 
     public List<Operation> operations() {
         return Collections.unmodifiableList(operations);

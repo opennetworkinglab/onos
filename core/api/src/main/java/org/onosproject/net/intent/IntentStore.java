@@ -110,16 +110,6 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      */
     void removeInstalledIntents(IntentId intentId);
 
-
-    /**
-     * Returns a new empty batch write operation buider.
-     *
-     * @return BatchWrite
-     */
-    default BatchWrite newBatchWrite() {
-        return new BatchWrite();
-    }
-
     /**
      * Execute writes in a batch.
      *
