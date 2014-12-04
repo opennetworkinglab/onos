@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
-          name="onos-1.0.0">
-    <repository>mvn:org.onosproject/onos-features/1.0.0-SNAPSHOT/xml/features</repository>
+          name="onos-@FEATURE-VERSION">
+    <repository>mvn:org.onosproject/onos-features/@ONOS-VERSION/xml/features</repository>
 
-    <feature name="onos-thirdparty-base" version="1.0.0"
+    <feature name="onos-thirdparty-base" version="@FEATURE-VERSION"
              description="ONOS 3rd party dependencies">
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
         <bundle>mvn:org.apache.commons/commons-lang3/3.3.2</bundle>
@@ -45,7 +45,7 @@
         <bundle>mvn:com.esotericsoftware/minlog/1.3.0</bundle>
         <bundle>mvn:org.objenesis/objenesis/2.1</bundle>
 
-        <bundle>mvn:org.onosproject/onlab-nio/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onlab-nio/@ONOS-VERSION</bundle>
 
         <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.4.2</bundle>
         <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.4.2</bundle>
@@ -55,12 +55,12 @@
         <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.13</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13</bundle>
 
-        <bundle>mvn:org.onosproject/onlab-thirdparty/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onlab-thirdparty/@ONOS-VERSION</bundle>
 
         <bundle>mvn:org.mapdb/mapdb/1.0.6</bundle>
     </feature>
 
-    <feature name="onos-thirdparty-web" version="1.0.0"
+    <feature name="onos-thirdparty-web" version="@FEATURE-VERSION"
              description="ONOS 3rd party dependencies">
         <feature>war</feature>
         <feature>onos-thirdparty-base</feature>
@@ -70,158 +70,158 @@
 
     </feature>
 
-    <feature name="onos-api" version="1.0.0"
+    <feature name="onos-api" version="@FEATURE-VERSION"
              description="ONOS services and model API">
         <feature>scr</feature>
         <feature>onos-thirdparty-base</feature>
-        <bundle>mvn:org.onosproject/onlab-misc/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onlab-osgi/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onlab-rest/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onlab-misc/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onlab-osgi/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onlab-rest/@ONOS-VERSION</bundle>
 
-        <bundle>mvn:org.onosproject/onos-api/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-api/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-core" version="1.0.0"
+    <feature name="onos-core" version="@FEATURE-VERSION"
              description="ONOS core components">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-core-net/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-core-dist/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-core-serializers/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onlab-netty/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-core-dist/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-core-serializers/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onlab-netty/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-core-trivial" version="1.0.0"
+    <feature name="onos-core-trivial" version="@FEATURE-VERSION"
              description="ONOS core components">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-core-net/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-core-trivial/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-core-trivial/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-rest" version="1.0.0"
+    <feature name="onos-rest" version="@FEATURE-VERSION"
              description="ONOS REST API components">
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
-        <bundle>mvn:org.onosproject/onos-rest/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-rest/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-gui" version="1.0.0"
+    <feature name="onos-gui" version="@FEATURE-VERSION"
              description="ONOS GUI console components">
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.eclipse.jetty/jetty-websocket/8.1.15.v20140411</bundle>
-        <bundle>mvn:org.onosproject/onos-gui/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-gui/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-cli" version="1.0.0"
+    <feature name="onos-cli" version="@FEATURE-VERSION"
              description="ONOS admin command console components">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-cli/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-cli/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-openflow" version="1.0.0"
+    <feature name="onos-openflow" version="@FEATURE-VERSION"
              description="ONOS OpenFlow API, Controller &amp; Providers">
         <feature>onos-api</feature>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
-        <bundle>mvn:org.onosproject/onos-of-api/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-of-drivers/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-of-ctl/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-of-api/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-of-drivers/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-of-ctl/@ONOS-VERSION</bundle>
 
-        <bundle>mvn:org.onosproject/onos-lldp-provider/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-host-provider/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-device/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-packet/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-flow/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-lldp-provider/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-host-provider/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-of-provider-device/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-of-provider-packet/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-of-provider-flow/@ONOS-VERSION</bundle>
 
     </feature>
 
-    <feature name="onos-app-tvue" version="1.0.0"
+    <feature name="onos-app-tvue" version="@FEATURE-VERSION"
              description="ONOS sample topology viewer application">
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
-        <bundle>mvn:org.onosproject/onos-app-tvue/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-tvue/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-fwd" version="1.0.0"
+    <feature name="onos-app-fwd" version="@FEATURE-VERSION"
              description="ONOS sample forwarding application">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-fwd/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-fwd/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-ifwd" version="1.0.0"
+    <feature name="onos-app-ifwd" version="@FEATURE-VERSION"
              description="ONOS sample forwarding application using intents">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-ifwd/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-ifwd/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-mobility" version="1.0.0"
+    <feature name="onos-app-mobility" version="@FEATURE-VERSION"
              description="ONOS sample mobility application">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-mobility/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-mobility/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-proxyarp" version="1.0.0"
+    <feature name="onos-app-proxyarp" version="@FEATURE-VERSION"
              description="ONOS sample proxyarp application">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-proxyarp/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-proxyarp/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-foo" version="1.0.0"
+    <feature name="onos-app-foo" version="@FEATURE-VERSION"
              description="ONOS sample playground application">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-foo/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onlab-netty/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-foo/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onlab-netty/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-config" version="1.0.0"
+    <feature name="onos-app-config" version="@FEATURE-VERSION"
              description="ONOS network config reader">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-config/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-config/@ONOS-VERSION</bundle>
     </feature>
    
-     <feature name="onos-app-optical" version="1.0.0"
+     <feature name="onos-app-optical" version="@FEATURE-VERSION"
              description="ONOS optical network config">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-optical/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-optical/@ONOS-VERSION</bundle>
      </feature>
 
-    <feature name="onos-app-sdnip" version="1.0.0"
+    <feature name="onos-app-sdnip" version="@FEATURE-VERSION"
              description="SDN-IP peering application">
         <feature>onos-api</feature>
         <feature>onos-app-proxyarp</feature>
         <feature>onos-app-config</feature>
-        <bundle>mvn:org.onosproject/onos-app-sdnip/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-sdnip/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-calendar" version="1.0.0"
+    <feature name="onos-app-calendar" version="@FEATURE-VERSION"
              description="REST interface for scheduling intents from an external calendar">
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
-        <bundle>mvn:org.onosproject/onos-app-calendar/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-calendar/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-metrics" version="1.0.0"
+    <feature name="onos-app-metrics" version="@FEATURE-VERSION"
              description="ONOS metrics applications">
         <feature>onos-app-metrics-intent</feature>
         <feature>onos-app-metrics-topology</feature>
     </feature>
 
-    <feature name="onos-app-metrics-intent" version="1.0.0"
+    <feature name="onos-app-metrics-intent" version="@FEATURE-VERSION"
              description="ONOS intent metrics application">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-metrics-intent/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-metrics-intent/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-metrics-topology" version="1.0.0"
+    <feature name="onos-app-metrics-topology" version="@FEATURE-VERSION"
              description="ONOS topology metrics application">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-metrics-topology/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onos-app-metrics-topology/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-demo" version="1.0.0"
+    <feature name="onos-app-demo" version="@FEATURE-VERSION"
              description="ONOS demo applications">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onlab-misc/1.0.0-SNAPSHOT</bundle>
-        <bundle>mvn:org.onosproject/onos-app-demo/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.onosproject/onlab-misc/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-app-demo/@ONOS-VERSION</bundle>
     </feature>
 
 

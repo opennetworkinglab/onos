@@ -34,6 +34,33 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>${pom.basedir}/features.xml</file>
+                    <outputFile>${pom.basedir}/target/features.xml</outputFile>
+                    <replacements>
+                        <replacement>
+                            <token>@ONOS-VERSION</token>
+                            <value>${project.version}</value>
+                        </replacement>
+                        <replacement>
+                            <token>@FEATURE-VERSION</token>
+                            <value>${project.version}</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>1.9</version>
@@ -47,7 +74,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>features.xml</file>
+                                    <file>target/features.xml</file>
                                     <type>xml</type>
                                     <classifier>features</classifier>
                                 </artifact>
