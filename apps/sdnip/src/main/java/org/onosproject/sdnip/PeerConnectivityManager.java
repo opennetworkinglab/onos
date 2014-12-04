@@ -77,9 +77,13 @@ public class PeerConnectivityManager {
     public void start() {
         if (interfaceService.getInterfaces().isEmpty()) {
             log.warn("No interfaces found in configuration file");
-        } else if (configService.getBgpPeers().isEmpty()) {
+        }
+
+        if (configService.getBgpPeers().isEmpty()) {
             log.warn("No BGP peers found in configuration file");
-        } else if (configService.getBgpSpeakers().isEmpty()) {
+        }
+
+        if (configService.getBgpSpeakers().isEmpty()) {
             log.error("No BGP speakers found in configuration file");
         }
 
