@@ -90,7 +90,7 @@ public class TopologyViewWebSocket
 
     private static final String APP_ID = "org.onosproject.gui";
 
-    private static final long TRAFFIC_FREQUENCY = 2000;
+    private static final long TRAFFIC_FREQUENCY = 5000;
     private static final long SUMMARY_FREQUENCY = 30000;
 
     private static final Comparator<? super ControllerNode> NODE_COMPARATOR =
