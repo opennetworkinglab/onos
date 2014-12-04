@@ -43,6 +43,20 @@
 }
 
 
+#topo svg .noDevsLayer {
+    visibility: hidden;
+}
+
+#topo svg .noDevsLayer text {
+    font-size: 60pt;
+    font-style: italic;
+    fill: #dde;
+}
+
+#topo svg .noDevsBird {
+    fill: #ecd;
+}
+
 /* NODES */
 
 #topo svg .node {

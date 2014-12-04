@@ -122,10 +122,10 @@
 
     // key bindings
     var keyDispatch = {
-        // TODO: remove these "development only" bindings
-        0: testMe,
-        equals: injectStartupEvents,
-        dash: injectTestEvent,
+        // ==== "development mode" ====
+        //0: testMe,
+        //equals: injectStartupEvents,
+        //dash: injectTestEvent,
 
         O: [toggleSummary, 'Toggle ONOS summary pane'],
         I: [toggleInstances, 'Toggle ONOS instances pane'],
@@ -225,6 +225,7 @@
     // D3 selections
     var svg,
         panZoomContainer,
+        noDevices,
         bgImg,
         topoG,
         nodeG,
@@ -396,6 +397,10 @@
         } else {
             hoverMode = hoverModeNone;
         }
+    }
+
+    function showNoDevs(b) {
+        noDevices.style('visibility', visVal(b));
     }
 
     // ==============================
@@ -825,6 +830,8 @@
         var device = data.payload,
             id = device.id,
             d;
+
+        showNoDevs(false);
 
         if (network.lookup[id]) {
             updateDevice(data);
@@ -1507,7 +1514,7 @@
     }
 
     function appendBadge(svg, ox, oy, dim, iid, cls) {
-        appendUse(svg, ox, oy, dim, iid,cls ).classed('badgeIcon', true);
+        appendUse(svg, ox, oy, dim, iid, cls).classed('badgeIcon', true);
     }
 
     function attachUiBadge(svg) {
@@ -2326,6 +2333,11 @@
         // remove from nodes array
         var idx = find(id, network.nodes);
         network.nodes.splice(idx, 1);
+
+        if (!network.nodes.length) {
+            showNoDevs(true);
+        }
+
         // remove from SVG
         updateNodes();
         fResume();
@@ -2770,6 +2782,24 @@
         svg.call(zoom);
     }
 
+
+    function setupNoDevices() {
+        var g = noDevices.append('g');
+        appendBadge(g, 0, 0, 100, '#bird', 'noDevsBird');
+        var text = g.append('text')
+            .text('No devices are connected')
+            .attr({ x: 120, y: 80});
+    }
+
+    function repositionNoDevices() {
+        var g = noDevices.select('g');
+        var box = g.node().getBBox();
+        box.x -= box.width/2;
+        box.y -= box.height/2;
+        g.attr('transform', translate(box.x, box.y));
+    }
+
+
     // ==============================
     // Test harness code
 
@@ -2838,10 +2868,11 @@
     function init(view, ctx, flags) {
         var w = view.width(),
             h = view.height(),
+            logSize = config.logicalSize,
             fcfg = config.force;
 
         // NOTE: view.$div is a D3 selection of the view's div
-        var viewBox = '0 0 ' + config.logicalSize + ' ' + config.logicalSize;
+        var viewBox = '0 0 ' + logSize + ' ' + logSize;
         svg = view.$div.append('svg').attr('viewBox', viewBox);
         setSize(svg, view);
 
@@ -2850,6 +2881,11 @@
 
         panZoomContainer = svg.append('g').attr('id', 'panZoomContainer');
         setupPanZoom();
+
+        noDevices = svg.append('g')
+            .attr('class', 'noDevsLayer')
+            .attr('transform', translate(logSize/2, logSize/2));
+        setupNoDevices();
 
         // group for the topology
         topoG = panZoomContainer.append('g')
@@ -3007,6 +3043,9 @@
                 geoJson = data;
                 loadGeoMap();
             }
+
+            repositionNoDevices();
+            showNoDevs(true);
 
             // finally, connect to the server...
             if (config.useLiveData) {
