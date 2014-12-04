@@ -17,8 +17,7 @@ package org.onosproject.net.topology;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Map;
 
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.ConnectPoint;
@@ -28,7 +27,8 @@ import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;
 import org.slf4j.Logger;
 
-import java.util.Map;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 /**
  * Default implementation of an immutable topology graph data carrier.
@@ -97,7 +97,7 @@ public class DefaultGraphDescription extends AbstractDescription
                 edges.add(new DefaultTopologyEdge(vertexOf(link.src()),
                                                   vertexOf(link.dst()), link));
             } catch (IllegalArgumentException e) {
-                log.debug("Ignoring {}, missing vertex", link, e);
+                log.debug("Ignoring {}, missing vertex", link);
             }
         }
         return edges.build();
