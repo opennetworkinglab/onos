@@ -266,7 +266,7 @@ public class DistributedFlowRuleStore
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
 
         if (!replicaInfo.master().isPresent()) {
-            log.warn("No master for {}", rule);
+            log.warn("Failed to getFlowEntry: No master for {}", rule.deviceId());
             // TODO: should we try returning from backup?
             return null;
         }
@@ -312,7 +312,7 @@ public class DistributedFlowRuleStore
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
 
         if (!replicaInfo.master().isPresent()) {
-            log.warn("No master for {}", deviceId);
+            log.warn("Failed to getFlowEntries: No master for {}", deviceId);
             // TODO: should we try returning from backup?
             return Collections.emptyList();
         }
@@ -369,10 +369,10 @@ public class DistributedFlowRuleStore
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
 
         if (!replicaInfo.master().isPresent()) {
-            log.warn("No master for {}", deviceId);
+            log.warn("Failed to storeBatch: No master for {}", deviceId);
             // TODO: revisit if this should be "success" from Future point of view
             // with every FlowEntry failed
-            return Futures.immediateFailedFuture(new IOException("No master to forward to"));
+            return Futures.immediateFailedFuture(new IOException("Failed to storeBatch: No master for " + deviceId));
         }
 
         final NodeId local = clusterService.getLocalNode().id();
@@ -529,7 +529,7 @@ public class DistributedFlowRuleStore
         }
 
         if (!replicaInfo.master().isPresent()) {
-            log.warn("No master for {}", deviceId);
+            log.warn("Failed to removeFlowRule: No master for {}", deviceId);
             // TODO: revisit if this should be null (="no-op") or Exception
             return null;
         }
