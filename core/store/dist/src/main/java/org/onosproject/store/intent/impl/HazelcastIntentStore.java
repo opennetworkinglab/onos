@@ -508,8 +508,8 @@ public class HazelcastIntentStore
                     if (prevIntentState == null) {
                         log.warn("Intent {} state was already removed", intentId);
                     }
-                    if (prevInstallable == null) {
-                        log.info("Intent {} installable was already removed", intentId);
+                    if (prevInstallable != null) {
+                        log.warn("Intent {} removed installable still found", intentId);
                     }
                 } catch (InterruptedException e) {
                     log.error("Batch write was interrupted while processing {}", op,  e);
