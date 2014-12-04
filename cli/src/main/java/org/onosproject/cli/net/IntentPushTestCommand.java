@@ -153,7 +153,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         for (int app = 0; app < apps; app++) {
             for (int i = 1; i <= intentsPerApp; i++) {
                 TrafficSelector s = selector
-                        .matchEthSrc(MacAddress.valueOf(i))
+                        .matchEthSrc(MacAddress.valueOf(i + app * intentsPerApp))
                         .build();
                 intents.put(app, new PointToPointIntent(appId(app), s, treatment,
                                                         ingress, egress));
