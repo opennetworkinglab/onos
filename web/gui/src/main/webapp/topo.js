@@ -33,17 +33,10 @@
         useLiveData: true,
         fnTrace: true,
         debugOn: false,
-        debug: {
-            showNodeXY: true,
-            showKeyHandler: false
-        },
         birdDim: 400,
         options: {
-            layering: true,
-            collisionPrevention: true,
             showBackground: true
         },
-        backgroundUrl: 'img/us-map.png',
         webSockUrl: 'ws/topology',
         data: {
             live: {
@@ -250,14 +243,6 @@
 
     // ==============================
     // For Debugging / Development
-
-    function note(label, msg) {
-        console.log('NOTE: ' + label + ': ' + msg);
-    }
-
-    function debug(what) {
-        return config.debugOn && config.debug[what];
-    }
 
     function fnTrace(msg, id) {
         if (config.fnTrace) {
@@ -909,8 +894,6 @@
         fStart();
     }
 
-    // TODO: fold updateX(...) methods into one base method; remove duplication
-
     function updateInstance(data) {
         evTrace(data);
         var inst = data.payload,
@@ -975,7 +958,6 @@
         }
     }
 
-    // TODO: fold removeX(...) methods into base method - remove dup code
     function removeInstance(data) {
         evTrace(data);
         var inst = data.payload,
@@ -1147,7 +1129,6 @@
         }
     }
 
-    // request overall summary data
     function requestSummary() {
         sendMessage('requestSummary');
     }
@@ -1228,7 +1209,6 @@
         flash('Multi-Source flow added');
     }
 
-
     function cancelTraffic() {
         sendMessage('cancelTraffic');
     }
@@ -1299,7 +1279,6 @@
             });
         }
     }
-
 
     function showAllTrafficAction() {
         hoverMode = hoverModeAll;
@@ -1416,7 +1395,6 @@
 
             svg.append('rect').attr(rectAttr);
 
-            //appendGlyph(svg, c.nodeOx, c.nodeOy, c.nodeDim, '#node');
             appendBadge(svg, 14, 14, 28, '#bird');
 
             if (d.uiAttached) {
@@ -1770,7 +1748,7 @@
             el.attr('transform', transformLabel(parms));
         });
 
-        // Remove any links that are no longer required.
+        // Remove any labels that are no longer required.
         linkLabel.exit().remove();
     }
 
@@ -1800,8 +1778,7 @@
         // start with the object as is
         var node = device,
             type = device.type,
-            svgCls = type ? 'node device ' + type : 'node device',
-            labels = device.labels || [];
+            svgCls = type ? 'node device ' + type : 'node device';
 
         // Augment as needed...
         node.class = 'device';
@@ -2115,7 +2092,6 @@
             addDeviceIcon(node, box, noLabel, iconGlyphUrl(d));
         });
 
-
         // augment host nodes...
         entering.filter('.host').each(function (d) {
             var node = d3.select(this),
@@ -2263,7 +2239,6 @@
             g;
 
         if (noLabel) {
-            box = emptyBox();
             dx = -cfg.dim/2;
             dy = -cfg.dim/2;
         } else {
@@ -2535,41 +2510,7 @@
         // console.log('[' + rxtx + '] ' + msg);
     }
 
-    // NOTE: Temporary hardcoded example for showing detail pane
-    //       while we fine-
-    //       Probably should not merge this change...
-    function handleTestSend(msg) {
-        if (msg.event === 'requestDetails') {
-            showDetails({
-                event: 'showDetails',
-                sid: 1001,
-                payload: {
-                    "id": "of:0000ffffffffff09",
-                    "type": "roadm",
-                    "propOrder": [
-                        "Name",
-                        "Vendor",
-                        "H/W Version",
-                        "S/W Version",
-                        "-",
-                        "Latitude",
-                        "Longitude",
-                        "Ports"
-                    ],
-                    "props": {
-                        "Name": null,
-                        "Vendor": "Linc",
-                        "H/W Version": "OE",
-                        "S/W Version": "?",
-                        "-": "",
-                        "Latitude": "40.8",
-                        "Longitude": "73.1",
-                        "Ports": "2"
-                    }
-                }
-            });
-        }
-    }
+    function handleTestSend(msg) { }
 
     // ==============================
     // Selection stuff
@@ -2710,7 +2651,6 @@
         addMultiSelectActions();
     }
 
-    // TODO: refactor to consolidate with populateDetails
     function populateSummary(data) {
         summaryPane.empty();
 
@@ -3028,10 +2968,6 @@
         view.setKeys(keyDispatch);
         view.setGestures(gestures);
 
-        // patch in our "button bar" for now
-        // TODO: implement a more official frameworky way of doing this..
-        //addButtonBar(view);
-
         // Load map data asynchronously; complete startup after that..
         loadGeoJsonData();
     }
@@ -3060,15 +2996,13 @@
         stopAntTimer();
     }
 
-    // TODO: move these to config/state portion of script
     var geoJsonUrl = 'json/map/continental_us.json',
         geoJson;
 
     function loadGeoJsonData() {
         d3.json(geoJsonUrl, function (err, data) {
             if (err) {
-                // fall back to USA map background
-                loadStaticMap();
+                console.error('failed to load Map data', err);
             } else {
                 geoJson = data;
                 loadGeoMap();
@@ -3079,28 +3013,6 @@
                 webSock.connect();
             }
         });
-    }
-
-    function showBg() {
-        return visVal(config.options.showBackground);
-    }
-
-    function loadStaticMap() {
-        fnTrace('loadStaticMap', config.backgroundUrl);
-        var w = network.view.width(),
-            h = network.view.height();
-
-        // load the background image
-        bgImg = svg.insert('svg:image', '#topo-G')
-            .attr({
-                id: 'topo-bg',
-                width: w,
-                height: h,
-                'xlink:href': config.backgroundUrl
-            })
-            .style({
-                visibility: showBg()
-            });
     }
 
     function setProjForView(path, topoData) {
