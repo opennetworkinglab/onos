@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
@@ -35,6 +37,22 @@ public final class HostToHostIntent extends ConnectivityIntent {
 
     private final HostId one;
     private final HostId two;
+
+    /**
+     * Creates a new host-to-host intent with the supplied host pair and no
+     * other traffic selection or treatment criteria.
+     *
+     * @param appId     application identifier
+     * @param one       first host
+     * @param two       second host
+     * @throws NullPointerException if {@code one} or {@code two} is null.
+     */
+    public HostToHostIntent(ApplicationId appId, HostId one, HostId two) {
+        this(appId, one, two,
+             DefaultTrafficSelector.builder().build(),
+             DefaultTrafficTreatment.builder().build(),
+             ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)));
+    }
 
     /**
      * Creates a new host-to-host intent with the supplied host pair.
