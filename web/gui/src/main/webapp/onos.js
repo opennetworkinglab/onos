@@ -98,6 +98,7 @@
                 case 189: return 'dash';
                 case 191: return 'slash';
                 case 192: return 'backQuote';
+                case 220: return 'backSlash';
                 default:
                     if ((code >= 48 && code <= 57) ||
                         (code >= 65 && code <= 90)) {
@@ -418,6 +419,7 @@
         function setupGlobalKeys() {
             keyHandler.globalKeys = {
                 slash: [quickHelp, 'Show / hide Quick Help'],
+                backSlash: [quickHelp, 'Show / hide Quick Help'],
                 esc: [escapeKey, 'Dismiss dialog or cancel selections'],
                 T: [toggleTheme, "Toggle theme"]
             };
@@ -425,6 +427,7 @@
             // That is, the view will never see the event for that key.
             keyHandler.maskedKeys = {
                 slash: true,
+                backSlash: true,
                 T: true
             };
         }

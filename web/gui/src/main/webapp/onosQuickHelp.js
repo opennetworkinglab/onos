@@ -55,6 +55,7 @@
         equals: '=',
         dash: '-',
         slash: '/',
+        backSlash: '\\',
         backQuote: '`',
         leftArrow: 'L-arrow',
         upArrow: 'U-arrow',
