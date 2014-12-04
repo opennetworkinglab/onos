@@ -29,6 +29,15 @@
         <version>1</version>
         <relativePath>tools/build/pom.xml</relativePath>
     </parent>
+    
+    <!-- FIXME remove before release -->
+    <repositories>
+        <repository>
+            <id>oss-staging</id>
+            <name>OSS Staging</name>
+            <url>https://oss.sonatype.org/content/groups/staging</url>
+        </repository>
+    </repositories>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
