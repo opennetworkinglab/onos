@@ -72,6 +72,6 @@ echo $ONOS_VERSION > $ONOS_STAGE/VERSION
 # Now package up the ONOS tar file
 cd $ONOS_STAGE_ROOT
 COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
-which -s zip && zip -rq $ONOS_ZIP $ONOS_BITS
+which -a zip && zip -rq $ONOS_ZIP $ONOS_BITS
 ls -l $ONOS_TAR $ONOS_ZIP >&2
 rm -r $ONOS_STAGE
