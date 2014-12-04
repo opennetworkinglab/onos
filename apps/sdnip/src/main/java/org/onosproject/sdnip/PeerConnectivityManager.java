@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -32,10 +36,6 @@ import org.onosproject.sdnip.config.BgpSpeaker;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.InterfaceAddress;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +56,10 @@ public class PeerConnectivityManager {
     /**
      * Creates a new PeerConnectivityManager.
      *
-     * @param appId             the application ID
+     * @param appId              the application ID
      * @param intentSynchronizer the intent synchronizer
-     * @param configService     the SDN-IP config service
-     * @param interfaceService  the interface service
+     * @param configService      the SDN-IP config service
+     * @param interfaceService   the interface service
      */
     public PeerConnectivityManager(ApplicationId appId,
                                    IntentSynchronizer intentSynchronizer,
@@ -75,20 +75,12 @@ public class PeerConnectivityManager {
      * Starts the peer connectivity manager.
      */
     public void start() {
-        // TODO are any of these errors?
         if (interfaceService.getInterfaces().isEmpty()) {
-
-            log.warn("The interface in configuration file is empty. "
-                             + "Thus, the SDN-IP application can not be started.");
+            log.warn("No interfaces found in configuration file");
         } else if (configService.getBgpPeers().isEmpty()) {
-
-            log.warn("The BGP peer in configuration file is empty."
-                             + "Thus, the SDN-IP application can not be started.");
-        } else if (configService.getBgpSpeakers() == null) {
-
-            log.error("The BGP speaker in configuration file is empty. "
-                              + "Thus, the SDN-IP application can not be started.");
-            return;
+            log.warn("No BGP peers found in configuration file");
+        } else if (configService.getBgpSpeakers().isEmpty()) {
+            log.error("No BGP speakers found in configuration file");
         }
 
         setUpConnectivity();
@@ -174,8 +166,7 @@ public class PeerConnectivityManager {
 
         TrafficSelector selector;
 
-        // install intent for BGP path from BGPd to BGP peer matching
-        // destination TCP port 179
+        // Path from BGP speaker to BGP peer matching destination TCP port 179
         selector = buildSelector(IPv4.PROTOCOL_TCP,
                                  bgpdAddress,
                                  bgpdPeerAddress,
@@ -185,8 +176,7 @@ public class PeerConnectivityManager {
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdConnectPoint, bgpdPeerConnectPoint));
 
-        // install intent for BGP path from BGPd to BGP peer matching
-        // source TCP port 179
+        // Path from BGP speaker to BGP peer matching source TCP port 179
         selector = buildSelector(IPv4.PROTOCOL_TCP,
                                  bgpdAddress,
                                  bgpdPeerAddress,
@@ -196,8 +186,7 @@ public class PeerConnectivityManager {
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdConnectPoint, bgpdPeerConnectPoint));
 
-        // install intent for reversed BGP path from BGP peer to BGPd
-        // matching destination TCP port 179
+        // Path from BGP peer to BGP speaker matching destination TCP port 179
         selector = buildSelector(IPv4.PROTOCOL_TCP,
                                  bgpdPeerAddress,
                                  bgpdAddress,
@@ -207,8 +196,7 @@ public class PeerConnectivityManager {
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdPeerConnectPoint, bgpdConnectPoint));
 
-        // install intent for reversed BGP path from BGP peer to BGPd
-        // matching source TCP port 179
+        // Path from BGP peer to BGP speaker matching source TCP port 179
         selector = buildSelector(IPv4.PROTOCOL_TCP,
                                  bgpdPeerAddress,
                                  bgpdAddress,
@@ -218,7 +206,7 @@ public class PeerConnectivityManager {
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdPeerConnectPoint, bgpdConnectPoint));
 
-        // install intent for ICMP path from BGPd to BGP peer
+        // ICMP path from BGP speaker to BGP peer
         selector = buildSelector(IPv4.PROTOCOL_ICMP,
                                  bgpdAddress,
                                  bgpdPeerAddress,
@@ -228,7 +216,7 @@ public class PeerConnectivityManager {
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdConnectPoint, bgpdPeerConnectPoint));
 
-        // install intent for reversed ICMP path from BGP peer to BGPd
+        // ICMP path from BGP peer to BGP speaker
         selector = buildSelector(IPv4.PROTOCOL_ICMP,
                                  bgpdPeerAddress,
                                  bgpdAddress,

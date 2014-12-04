@@ -35,6 +35,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
@@ -50,23 +57,16 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
 import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 
 import com.google.common.collect.Sets;
 
@@ -301,11 +301,6 @@ public class RouterTest extends AbstractIntentTest {
 
         Intent addedIntent =
             intentSynchronizer.getRouteIntents().iterator().next();
-
-        // Construct the existing route entry
-        RouteEntry routeEntry = new RouteEntry(
-                Ip4Prefix.valueOf("1.1.1.0/24"),
-                Ip4Address.valueOf("192.168.10.1"));
 
         // Start to construct a new route entry and new intent
         RouteEntry routeEntryUpdate = new RouteEntry(

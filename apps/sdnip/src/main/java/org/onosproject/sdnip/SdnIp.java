@@ -180,6 +180,13 @@ public class SdnIp implements SdnIpService {
         intentSynchronizer.leaderChanged(isPrimary);
     }
 
+    /**
+     * Converts DPIDs of the form xx:xx:xx:xx:xx:xx:xx to OpenFlow provider
+     * device URIs.
+     *
+     * @param dpid the DPID string to convert
+     * @return the URI string for this device
+     */
     static String dpidToUri(String dpid) {
         return "of:" + dpid.replace(":", "");
     }

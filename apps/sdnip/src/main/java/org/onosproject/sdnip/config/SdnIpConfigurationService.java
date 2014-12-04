@@ -20,8 +20,7 @@ import java.util.Map;
 import org.onlab.packet.IpAddress;
 
 /**
- * Provides information about the layer 3 properties of the network.
- * This is based on IP addresses configured on ports in the network.
+ * Provides information about the BGP elements configured in the network.
  */
 public interface SdnIpConfigurationService {
 

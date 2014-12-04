@@ -15,6 +15,8 @@
  */
 package org.onosproject.sdnip;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.onlab.packet.Ip4Prefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -36,14 +39,15 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
+/**
+ * Synchronizes intents between the in-memory intent store and the
+ * IntentService.
+ */
 public class IntentSynchronizer {
     private static final Logger log =
         LoggerFactory.getLogger(IntentSynchronizer.class);
@@ -148,6 +152,11 @@ public class IntentSynchronizer {
         }
     }
 
+    /**
+     * Signals the synchronizer that the SDN-IP leadership has changed.
+     *
+     * @param isLeader true if this instance is now the leader, otherwise false
+     */
     public void leaderChanged(boolean isLeader) {
         log.debug("SDN-IP Leader changed: {}", isLeader);
 

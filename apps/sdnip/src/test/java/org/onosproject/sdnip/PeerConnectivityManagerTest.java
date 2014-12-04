@@ -15,12 +15,29 @@
  */
 package org.onosproject.sdnip;
 
-import com.google.common.collect.Sets;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -41,23 +58,11 @@ import org.onosproject.sdnip.config.BgpSpeaker;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.InterfaceAddress;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import static org.easymock.EasyMock.*;
+import com.google.common.collect.Sets;
 
 /**
- * Unit tests for PeerConnectivityManager interface.
+ * Unit tests for PeerConnectivityManager.
  */
 public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
@@ -647,10 +652,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         expect(configInfoService.getBgpPeers()).andReturn(
                 peers).anyTimes();
         expect(configInfoService.getBgpSpeakers()).andReturn(
-                null).anyTimes();
+                Collections.emptyMap()).anyTimes();
         replay(configInfoService);
 
         reset(intentService);
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        intentService.execute(builder.build());
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);
