@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------------
 
 projects=$(find $ONOS_ROOT -name '*.java' \
-    -not -path '*/openflowj/*' -and -not -path '.git/*' \
+    -not -path '*/openflowj/*' -and -not -path '.git/*' -and -not -path '*/archetypes/*' \
     -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
     sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
     sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')

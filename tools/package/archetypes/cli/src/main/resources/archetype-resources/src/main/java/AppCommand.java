@@ -13,34 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.bundle;
+package ${package};
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
 
 /**
- * Set of tests of the ONOS application component.
+ * Sample Apache Karaf CLI command
  */
-public class AppComponentTest {
+@Command(scope = "onos", name = "sample",
+         description = "Sample Apache Karaf CLI command")
+public class AppCommand extends AbstractShellCommand {
 
-    private AppComponent component;
-
-    @Before
-    public void setUp() {
-        component = new AppComponent();
-        component.activate();
-
-    }
-
-    @After
-    public void tearDown() {
-        component.deactivate();
-    }
-
-    @Test
-    public void basics() {
-
+    @Override
+    protected void execute() {
+        print("Hello %s", "World");
     }
 
 }

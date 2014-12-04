@@ -1,3 +1,6 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
 /*
  * Copyright 2014 Open Networking Laboratory
  *
@@ -13,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.bundle;
+package ${package};
 
 /**
  * Skeletal ONOS application API.

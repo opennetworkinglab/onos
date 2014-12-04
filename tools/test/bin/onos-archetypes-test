@@ -1,0 +1,18 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Builds a set of projects using ONOS archetypes.
+# -----------------------------------------------------------------------------
+
+export AROOT=/tmp/foo
+export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -Dversion=1.0.0-SNAPSHOT"
+
+for an in api bundle cli; do
+    cd $AROOT
+    rm -fr $AROOT/foo-$an
+    mvn archetype:generate $ARCHETYPE_OPTS \
+        -DarchetypeArtifactId=onos-$an-archetype \
+        -DgroupId=org.foo -DartifactId=foo-$an -Dversion=1.0 \
+        -Dpackage=org.foo.$an -DinteractiveMode=false
+    cd $AROOT/foo-$an
+    mvn clean install
+done

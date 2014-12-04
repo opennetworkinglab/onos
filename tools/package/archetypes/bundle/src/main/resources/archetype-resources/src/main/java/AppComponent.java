@@ -1,3 +1,6 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
 /*
  * Copyright 2014 Open Networking Laboratory
  *
@@ -13,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.bundle;
+package ${package};
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,8 +29,7 @@ import org.slf4j.LoggerFactory;
  * Skeletal ONOS application component.
  */
 @Component(immediate = true)
-@Service
-public class AppComponent implements AppService {
+public class AppComponent {
 
     private static Logger log = LoggerFactory.getLogger(AppComponent.class);
 
