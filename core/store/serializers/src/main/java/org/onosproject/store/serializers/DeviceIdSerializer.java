@@ -15,8 +15,6 @@
  */
 package org.onosproject.store.serializers;
 
-import java.net.URI;
-
 import org.onosproject.net.DeviceId;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -39,12 +37,12 @@ public final class DeviceIdSerializer extends Serializer<DeviceId> {
 
     @Override
     public void write(Kryo kryo, Output output, DeviceId object) {
-        kryo.writeObject(output, object.uri());
+        output.writeString(object.toString());
     }
 
     @Override
     public DeviceId read(Kryo kryo, Input input, Class<DeviceId> type) {
-        final URI uri = kryo.readObject(input, URI.class);
-        return DeviceId.deviceId(uri);
+        final String str = input.readString();
+        return DeviceId.deviceId(str);
     }
 }
