@@ -106,7 +106,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
 
     private OFPort inport() {
-        //FIXME: this has to change in fucking loxi
+        //FIXME: this has to change in loxi
         try {
             return pktin.getInPort();
         } catch (UnsupportedOperationException e) {
