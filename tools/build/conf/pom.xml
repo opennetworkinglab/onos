@@ -2,14 +2,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.onosproject</groupId>
-  <artifactId>onos-build-conf</artifactId>
-  <version>1.0</version>
+    <modelVersion>4.0.0</modelVersion>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+    <parent>
+        <groupId>org.onosproject</groupId>
+        <artifactId>onos-base</artifactId>
+        <version>1</version>
+    </parent>
+
+    <groupId>org.onosproject</groupId>
+    <artifactId>onos-build-conf</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
 </project>
 

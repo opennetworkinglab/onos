@@ -45,13 +45,15 @@
         </dependency>
 
         <dependency>
-            <groupId>net.kuujo.copycat</groupId>
+          <!-- FIXME once fixes get merged to upstream -->
+          <groupId>org.onosproject</groupId>
             <artifactId>copycat</artifactId>
             <version>${copycat.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>net.kuujo.copycat</groupId>
+          <!-- FIXME once fixes get merged to upstream -->
+          <groupId>org.onosproject</groupId>
             <artifactId>copycat-tcp</artifactId>
             <version>${copycat.version}</version>
         </dependency>

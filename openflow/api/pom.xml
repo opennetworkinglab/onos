@@ -33,10 +33,10 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.projectfloodlight</groupId>
-            <artifactId>openflowj</artifactId>
             <!-- FIXME once experimenter gets merged to upstream -->
-            <version>0.3.8-optical_experimenter5</version>
+            <groupId>org.onosproject</groupId>
+            <artifactId>openflowj</artifactId>
+            <version>${openflowj.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
