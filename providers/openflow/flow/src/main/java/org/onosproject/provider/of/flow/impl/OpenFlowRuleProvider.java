@@ -329,7 +329,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             // Do nothing here for now.
         }
 
-        private synchronized void pushFlowMetrics(Dpid dpid, OFStatsReply stats) {
+        private void pushFlowMetrics(Dpid dpid, OFStatsReply stats) {
 
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
             final OFFlowStatsReply replies = (OFFlowStatsReply) stats;

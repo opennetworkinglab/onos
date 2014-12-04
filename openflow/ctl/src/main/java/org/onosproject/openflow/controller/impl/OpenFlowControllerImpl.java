@@ -67,8 +67,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(16,
-            namedThreads("of-event-%d"));
+    private final ExecutorService executorMsgs =
+        Executors.newFixedThreadPool(32,
+                                     namedThreads("of-event-stats-%d"));
+
+    private final ExecutorService executorBarrier =
+        Executors.newFixedThreadPool(4,
+                                     namedThreads("of-event-barrier-%d"));
 
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
@@ -189,6 +194,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 p.handlePacket(pktCtx);
             }
             break;
+        // TODO: Consider using separate threadpool for sensitive messages.
+        //    ie. Back to back error could cause us to starve.
+        case FLOW_REMOVED:
+        case ERROR:
+            executorMsgs.submit(new OFMessageHandler(dpid, msg));
+            break;
         case STATS_REPLY:
             OFStatsReply reply = (OFStatsReply) msg;
             if (reply.getStatsType().equals(OFStatsType.PORT_DESC)) {
@@ -201,14 +212,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 OFFlowStatsReply.Builder rep =
                         OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
                 rep.setEntries(Lists.newLinkedList(stats));
-                executor.submit(new OFMessageHandler(dpid, rep.build()));
+                executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
             }
             break;
-
-        case FLOW_REMOVED:
-        case ERROR:
         case BARRIER_REPLY:
-            executor.submit(new OFMessageHandler(dpid, msg));
+            executorBarrier.submit(new OFMessageHandler(dpid, msg));
             break;
         case EXPERIMENTER:
             // Handle optical port stats
