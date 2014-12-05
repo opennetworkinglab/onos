@@ -26,29 +26,35 @@
 (function (onos){
     'use strict';
 
-    // API's
-    var api = onos.api;
-
     // Config variables
     var w = '100%',
         h = '80%',
         fade = 500,
         vb = '-200 0 400 400';
 
+    // layout configuration
+    var pad = 10,
+        offy = 45,
+        sepYDelta = 20,
+        colXDelta = 16,
+        yTextSpc = 12,
+        offDesc = 8;
+
     // State variables
-    var data = [];
+    var data = [],
+        yCount;
 
     // DOM elements and the like
     var qhdiv = d3.select('#quickhelp'),
         svg = qhdiv.select('svg'),
-        pane,
-        rect,
-        items,
-        keyAgg;
+        pane, rect, items;
 
     // General functions
-    function isA(a) {
-        return $.isArray(a) ? a : null;
+    function isA(a) { return $.isArray(a) ? a : null; }
+    function isS(s) { return typeof s === 'string'; }
+
+    function cap(s) {
+        return s.replace(/^[a-z]/, function (m) { return m.toUpperCase(); });
     }
 
     var keyDisp = {
@@ -63,143 +69,211 @@
         downArrow: 'D-arrow'
     };
 
-    function cap(s) {
-        return s.replace(/^[a-z]/, function (m) { return m.toUpperCase(); });
-    }
-
     function mkKeyDisp(id) {
         var v = keyDisp[id] || id;
         return cap(v);
     }
 
-    // layout configuration
-    var pad = 8,
-        offy = 45,
-        dy = 10,
-        offDesc = 8;
+    function addSeparator(el, i) {
+        var y = sepYDelta/2 - 5;
+        el.append('line')
+            .attr({ 'class': 'qhrowsep', x1: 0, y1: y, x2: 0, y2: y });
+    }
 
-    // D3 magic
-    function updateKeyItems() {
-        var keyItems = items.selectAll('.keyItem')
-            .data(data);
+    function addContent(el, data, ri) {
+        var xCount = 0,
+            clsPfx = 'qh-r' + ri + '-c';
 
-        var entering = keyItems.enter()
-            .append('g')
-            .attr({
-                id: function (d) { return d.id; },
-                class: 'keyItem'
+        function addColumn(el, c, i) {
+            var cls = clsPfx + i,
+                oy = 0,
+                aggKey = el.append('g').attr('visibility', 'hidden'),
+                gcol = el.append('g').attr({
+                   'class': cls,
+                    transform: translate(xCount, 0)
+                });
+
+            c.forEach(function (j) {
+                var k = j[0],
+                    v = j[1];
+
+                if (k !== '-') {
+                    aggKey.append('text').text(k);
+
+                    gcol.append('text').text(k)
+                        .attr({
+                            'class': 'key',
+                            y: oy
+                        });
+                    gcol.append('text').text(v)
+                        .attr({
+                            'class': 'desc',
+                            y: oy
+                        });
+                }
+
+                oy += yTextSpc;
             });
 
-        entering.each(function (d, i) {
+            // adjust position of descriptions, based on widest key
+            var kbox = aggKey.node().getBBox(),
+                ox = kbox.width + offDesc;
+            gcol.selectAll('.desc').attr('x', ox);
+            aggKey.remove();
+
+            // now update x-offset for next column
+            var bbox = gcol.node().getBBox();
+            xCount += bbox.width + colXDelta;
+        }
+
+        data.forEach(function (d, i) {
+            addColumn(el, d, i);
+        });
+
+        // finally, return the height of the row..
+        return el.node().getBBox().height;
+    }
+
+    function updateKeyItems() {
+        var rows = items.selectAll('.qhRow').data(data);
+
+        yCount = offy;
+
+        var entering = rows.enter()
+            .append('g')
+            .attr({
+                'class': 'qhrow'
+            });
+
+        entering.each(function (r, i) {
             var el = d3.select(this),
-                y = offy + dy * i;
+                sep = r.type === 'sep',
+                dy;
 
-            if (d.id[0] === '_') {
-                el.append('line')
-                    .attr({ x1: 0, y1: y, x2: 1, y2: y});
+            el.attr('transform', translate(0, yCount));
+
+            if (sep) {
+                addSeparator(el, i);
+                yCount += sepYDelta;
             } else {
-                el.append('text')
-                    .text(d.key)
-                    .attr({
-                        class: 'key',
-                        x: 0,
-                        y: y
-                    });
-                // NOTE: used for sizing column width...
-                keyAgg.append('text').text(d.key).attr('class', 'key');
-
-                el.append('text')
-                    .text(d.desc)
-                    .attr({
-                        class: 'desc',
-                        x: offDesc,
-                        y: y
-                    });
+                dy = addContent(el, r.data, i);
+                yCount += dy;
             }
         });
 
-        var kbox = keyAgg.node().getBBox();
-        items.selectAll('.desc').attr('x', kbox.width + offDesc);
+        // size the backing rectangle
+        var ibox = items.node().getBBox(),
+            paneW = ibox.width + pad * 2,
+            paneH = ibox.height + offy;
 
-        var box = items.node().getBBox(),
-            paneW = box.width + pad * 2,
-            paneH = box.height + offy;
-
-        items.selectAll('line').attr('x2', box.width);
+        items.selectAll('.qhrowsep').attr('x2', ibox.width);
         items.attr('transform', translate(-paneW/2, -pad));
         rect.attr({
             width: paneW,
             height: paneH,
             transform: translate(-paneW/2-pad, 0)
         });
+
     }
 
     function translate(x, y) {
         return 'translate(' + x + ',' + y + ')';
     }
 
+    function checkFmt(fmt) {
+        // should be a single array of keys,
+        // or array of arrays of keys (one per column).
+        // return null if there is a problem.
+        var a = isA(fmt),
+            n = a && a.length,
+            ns = 0,
+            na = 0;
+
+        if (n) {
+            // it is an array which has some content
+            a.forEach(function (d) {
+                isA(d) && na++;
+                isS(d) && ns++;
+            });
+            if (na === n || ns === n) {
+                // all arrays or all strings...
+                return a;
+            }
+        }
+        return null;
+    }
+
+    function buildBlock(map, fmt) {
+        var b = [];
+        fmt.forEach(function (k) {
+            var v = map.get(k),
+                a = isA(v),
+                d = (a && a[1]);
+
+            // '-' marks a separator; d is the description
+            if (k === '-' || d) {
+                b.push([mkKeyDisp(k), d]);
+            }
+        });
+        return b;
+    }
+
+    function emptyRow() {
+        return { type: 'row', data: []};
+    }
+
+    function mkArrRow(fmt) {
+        var d = emptyRow();
+        d.data.push(fmt);
+        return d;
+    }
+
+    function mkColumnarRow(map, fmt) {
+        var d = emptyRow();
+        fmt.forEach(function (a) {
+            d.data.push(buildBlock(map, a));
+        });
+        return d;
+    }
+
+    function mkMapRow(map, fmt) {
+        var d = emptyRow();
+        d.data.push(buildBlock(map, fmt));
+        return d;
+    }
+
+    function addRow(row) {
+        var d = row || { type: 'sep' };
+        data.push(d);
+    }
+
     function aggregateData(bindings) {
         var hf = '_helpFormat',
             gmap = d3.map(bindings.globalKeys),
+            gfmt = bindings.globalFormat,
             vmap = d3.map(bindings.viewKeys),
-            fmt = vmap.get(hf),
             vgest = bindings.viewGestures,
-            gkeys = gmap.keys(),
-            vkeys,
-            sep = 0;
+            vfmt, vkeys;
 
         // filter out help format entry
+        vfmt = checkFmt(vmap.get(hf));
         vmap.remove(hf);
-        vkeys = vmap.keys(),
 
-        gkeys.sort();
-        vkeys.sort();
+        // if bad (or no) format, fallback to sorted keys
+        if (!vfmt) {
+            vkeys = vmap.keys();
+            vfmt = vkeys.sort();
+        }
 
         data = [];
-        gkeys.forEach(function (k) {
-            addItem('glob', k, gmap.get(k));
-        });
-        addItem('sep');
-        vkeys.forEach(function (k) {
-            addItem('view', k, vmap.get(k));
-        });
-        addItem('sep');
-        vgest.forEach(function (g) {
-            if (g.length === 2) {
-                addItem('gest', g[0], g[1]);
-            }
-        });
 
-
-        function addItem(type, k, d) {
-            var id = type + '-' + k,
-                a = isA(d),
-                desc = a && a[1];
-
-            if (type === 'sep') {
-                data.push({
-                    id: '_' + sep++,
-                    type: type
-                });
-            } else if (type === 'gest') {
-                data.push({
-                    id: id,
-                    type: type,
-                    key: k,
-                    desc: d
-                });
-            } else if (desc) {
-                data.push(
-                    {
-                        id: id,
-                        type: type,
-                        key: mkKeyDisp(k),
-                        desc: desc
-                    }
-                );
-            }
-        }
+        addRow(mkMapRow(gmap, gfmt));
+        addRow();
+        addRow(isA(vfmt[0]) ? mkColumnarRow(vmap, vfmt) : mkMapRow(vmap, vfmt));
+        addRow();
+        addRow(mkArrRow(vgest));
     }
+
 
     function popBind(bindings) {
         pane = svg.append('g')
@@ -220,8 +294,6 @@
             });
 
         items = pane.append('g');
-        keyAgg = pane.append('g').style('visibility', 'hidden');
-
         aggregateData(bindings);
         updateKeyItems();
 

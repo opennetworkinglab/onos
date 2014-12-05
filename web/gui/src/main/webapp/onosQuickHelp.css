@@ -26,7 +26,7 @@
 
 #quickhelp svg {
     position: absolute;
-    bottom: 40px;
+    top: 180px;
     opacity: 1;
 }
 
@@ -36,7 +36,7 @@
 }
 
 #quickhelp svg text.title {
-    font-size: 8pt;
+    font-size: 10pt;
     font-style: italic;
     text-anchor: middle;
     fill: #999;
@@ -46,23 +46,21 @@
     fill: white;
 }
 
-#quickhelp svg g.keyItem line {
+#quickhelp svg g line.qhrowsep {
     stroke: #888;
     stroke-dasharray: 2 2;
 }
 
 #quickhelp svg text {
-    font-size: 5pt;
+    font-size: 7pt;
     alignment-baseline: middle;
 }
 
 #quickhelp svg text.key {
-    font-size: 5pt;
     fill: #add;
 }
 
 #quickhelp svg text.desc {
-    font-size: 5pt;
     fill: #ddd;
 }
 

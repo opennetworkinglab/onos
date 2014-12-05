@@ -417,19 +417,23 @@
         }
 
         function setupGlobalKeys() {
-            keyHandler.globalKeys = {
-                slash: [quickHelp, 'Show / hide Quick Help'],
-                backSlash: [quickHelp, 'Show / hide Quick Help'],
-                esc: [escapeKey, 'Dismiss dialog or cancel selections'],
-                T: [toggleTheme, "Toggle theme"]
-            };
-            // Masked keys are global key handlers that always return true.
-            // That is, the view will never see the event for that key.
-            keyHandler.maskedKeys = {
-                slash: true,
-                backSlash: true,
-                T: true
-            };
+            $.extend(keyHandler, {
+                globalKeys: {
+                    backSlash: [quickHelp, 'Show / hide Quick Help'],
+                    slash: [quickHelp, 'Show / hide Quick Help'],
+                    esc: [escapeKey, 'Dismiss dialog or cancel selections'],
+                    T: [toggleTheme, "Toggle theme"]
+                },
+                globalFormat: ['backSlash', 'slash', 'esc', 'T'],
+
+                // Masked keys are global key handlers that always return true.
+                // That is, the view will never see the event for that key.
+                maskedKeys: {
+                    slash: true,
+                    backSlash: true,
+                    T: true
+                }
+            });
         }
 
         function quickHelp(view, key, code, ev) {
