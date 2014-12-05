@@ -80,9 +80,9 @@ public class ReactiveForwarding {
 
     private ApplicationId appId;
 
-    @Property(name = "enabled", boolValue = true,
-              label = "Enable forwarding; default is true")
-    private boolean isEnabled = true;
+    @Property(name = "packetOutOnly", boolValue = false,
+            label = "Enable packet-out only forwarding; default is false")
+    private boolean packetOutOnly = false;
 
     @Activate
     public void activate() {
@@ -102,16 +102,13 @@ public class ReactiveForwarding {
     @Modified
     public void modified(ComponentContext context) {
         Dictionary properties = context.getProperties();
-        String flag = (String) properties.get("enabled");
+        String flag = (String) properties.get("packetOutOnly");
         if (flag != null) {
             boolean enabled = flag.equals("true");
-            if (isEnabled != enabled) {
-                isEnabled = enabled;
-                if (!isEnabled) {
-                    flowRuleService.removeFlowRulesById(appId);
-                }
-                log.info("Reconfigured. Forwarding is {}",
-                         isEnabled ? "enabled" : "disabled");
+            if (packetOutOnly != enabled) {
+                packetOutOnly = enabled;
+                log.info("Reconfigured. Packet-out only forwarding is {}",
+                         packetOutOnly ? "enabled" : "disabled");
             }
         }
     }
@@ -125,7 +122,7 @@ public class ReactiveForwarding {
         public void process(PacketContext context) {
             // Stop processing if the packet has been handled, since we
             // can't do any more to it.
-            if (!isEnabled || context.isHandled()) {
+            if (context.isHandled()) {
                 return;
             }
 
@@ -230,22 +227,23 @@ public class ReactiveForwarding {
     private void installRule(PacketContext context, PortNumber portNumber) {
         // We don't yet support bufferids in the flowservice so packet out first.
         packetOut(context, portNumber);
+        if (!packetOutOnly) {
+            // Install the flow rule to handle this type of message from now on.
+            Ethernet inPkt = context.inPacket().parsed();
+            TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+            builder.matchEthType(inPkt.getEtherType())
+                    .matchEthSrc(inPkt.getSourceMAC())
+                    .matchEthDst(inPkt.getDestinationMAC())
+                    .matchInport(context.inPacket().receivedFrom().port());
 
-        // Install the flow rule to handle this type of message from now on.
-        Ethernet inPkt = context.inPacket().parsed();
-        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
-        builder.matchEthType(inPkt.getEtherType())
-                .matchEthSrc(inPkt.getSourceMAC())
-                .matchEthDst(inPkt.getDestinationMAC())
-                .matchInport(context.inPacket().receivedFrom().port());
+            TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
+            treat.setOutput(portNumber);
 
-        TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
-        treat.setOutput(portNumber);
+            FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
+                                             builder.build(), treat.build(), PRIORITY, appId, TIMEOUT, false);
 
-        FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                                         builder.build(), treat.build(), PRIORITY, appId, TIMEOUT, false);
-
-        flowRuleService.applyFlowRules(f);
+            flowRuleService.applyFlowRules(f);
+        }
     }
 
 }
