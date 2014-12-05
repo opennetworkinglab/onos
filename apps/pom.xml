@@ -35,7 +35,6 @@
         <module>tvue</module>
         <module>fwd</module>
         <module>ifwd</module>
-        <module>foo</module>
         <module>mobility</module>
         <module>proxyarp</module>
         <module>config</module>
