@@ -18,4 +18,4 @@ ONOS is a new SDN network operating system designed for high availability, perfo
 * SDN-IP application to support interworking with traditional IP networks controlled by distributed routing protocols like BGP.
 * IP-Optical use case demonstration.
 
-Checkout out our [website](http://www.onosproject.org) and our [tools](http://onos.staging.wpengine.com/software/#tools) 
+Checkout out our [website](http://www.onosproject.org) and our [tools](http://www.onosproject.org/software/#tools) 
