@@ -38,13 +38,13 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.HoldTimerExpired;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.MessageHeaderError;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.OpenMessageError;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -444,7 +444,7 @@ public class BgpSession extends SimpleChannelHandler {
             closeSession(ctx);
             return;
         }
-        // TODO: Parse the optional parameters (if needed)
+        // NOTE: Parse the optional parameters (if needed)
         message.readBytes(optParamLen);             // NOTE: data ignored
 
         //
@@ -727,7 +727,7 @@ public class BgpSession extends SimpleChannelHandler {
                 break;
 
             default:
-                // TODO: Parse any new Attribute Types if needed
+                // NOTE: Parse any new Attribute Types if needed
                 if (!optionalBit) {
                     // ERROR: Unrecognized Well-known Attribute
                     actionsBgpUpdateUnrecognizedWellKnownAttribute(

@@ -20,10 +20,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import org.onosproject.sdnip.RouteEntry;
-import org.onosproject.sdnip.bgp.BgpConstants.Update;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onosproject.sdnip.RouteEntry;
+import org.onosproject.sdnip.bgp.BgpConstants.Update;
 
 import com.google.common.base.MoreObjects;
 
@@ -175,7 +175,7 @@ public class BgpRouteEntry extends RouteEntry {
         }
 
         if (firstPathSegment.getSegmentAsNumbers().isEmpty()) {
-            // TODO: Shouldn't happen. Should check during the parsing.
+            // NOTE: Shouldn't happen. Should check during the parsing.
             return BgpConstants.BGP_AS_0;
         }
         return firstPathSegment.getSegmentAsNumbers().get(0);
@@ -381,7 +381,7 @@ public class BgpRouteEntry extends RouteEntry {
                  case Update.AsPath.AS_CONFED_SET:
                      break;             // Ignore
                  default:
-                     // TODO: What to do if the Path Segment type is unknown?
+                     // NOTE: What to do if the Path Segment type is unknown?
                      break;
                  }
              }
