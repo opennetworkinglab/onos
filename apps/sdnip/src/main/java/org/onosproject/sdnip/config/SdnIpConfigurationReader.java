@@ -36,8 +36,6 @@ public class SdnIpConfigurationReader implements SdnIpConfigurationService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    // Current working dir seems to be /opt/onos/apache-karaf-3.0.2
-    // TODO: Set the path to /opt/onos/config
     private static final String CONFIG_DIR = "../config";
     private static final String DEFAULT_CONFIG_FILE = "sdnip.json";
     private String configFileName = DEFAULT_CONFIG_FILE;

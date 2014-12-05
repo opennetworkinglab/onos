@@ -295,10 +295,6 @@ public class IntentSynchronizer {
                     routeIntents.put(prefix, intent);
                 if (isElectedLeader && isActivatedLeader) {
                     if (oldIntent != null) {
-                        //
-                        // TODO: Short-term solution to explicitly withdraw
-                        // instead of using "replace" operation.
-                        //
                         log.trace("SDN-IP Withdrawing old intent: {}",
                                   oldIntent);
                         withdrawBuilder.addWithdrawOperation(oldIntent.id());
@@ -390,7 +386,6 @@ public class IntentSynchronizer {
                         IPCriterion ipCriterion = (IPCriterion) c;
                         Ip4Prefix ip4Prefix = ipCriterion.ip().getIp4Prefix();
                         if (ip4Prefix == null) {
-                            // TODO: For now we support only IPv4
                             continue;
                         }
                         log.trace("SDN-IP Intent Synchronizer: updating " +

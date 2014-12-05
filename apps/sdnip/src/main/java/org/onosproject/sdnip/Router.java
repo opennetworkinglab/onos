@@ -29,6 +29,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -43,11 +48,6 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -294,7 +294,6 @@ public class Router implements RouteListener {
         if (nextHopMacAddress == null) {
             Set<Host> hosts = hostService.getHostsByIp(routeEntry.nextHop());
             if (!hosts.isEmpty()) {
-                // TODO how to handle if multiple hosts are returned?
                 nextHopMacAddress = hosts.iterator().next().mac();
             }
             if (nextHopMacAddress != null) {
@@ -406,7 +405,6 @@ public class Router implements RouteListener {
         }
 
         routesWaitingOnArp.remove(routeEntry.nextHop(), routeEntry);
-        // TODO cancel the request in the ARP manager as well
     }
 
     /**
@@ -420,10 +418,6 @@ public class Router implements RouteListener {
      */
     private void updateMac(Ip4Address ipAddress, MacAddress macAddress) {
         log.debug("Received updated MAC info: {} => {}", ipAddress, macAddress);
-
-        // TODO here we should check whether the next hop for any of our
-        // installed prefixes has changed, not just prefixes pending
-        // installation.
 
         // We synchronize on this to prevent changes to the radix tree
         // while we're pushing intents. If the tree changes, the
@@ -505,7 +499,6 @@ public class Router implements RouteListener {
                 for (IpAddress ip : host.ipAddresses()) {
                     Ip4Address ip4Address = ip.getIp4Address();
                     if (ip4Address == null) {
-                        // TODO: For now we support only IPv4
                         continue;
                     }
                     updateMac(ip4Address, host.mac());
@@ -515,7 +508,6 @@ public class Router implements RouteListener {
                 for (IpAddress ip : host.ipAddresses()) {
                     Ip4Address ip4Address = ip.getIp4Address();
                     if (ip4Address == null) {
-                        // TODO: For now we support only IPv4
                         continue;
                     }
                     ip2Mac.remove(ip4Address);

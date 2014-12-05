@@ -678,8 +678,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     /**
      * Tests a corner case, when there is no Interface configured for one BGP
      * speaker.
-     * TODO: we should add a configuration correctness checking module/method
-     * before testing this corner case.
      */
     @Ignore
     @Test

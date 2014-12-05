@@ -94,7 +94,6 @@ public class PeerConnectivityManager {
      * Stops the peer connectivity manager.
      */
     public void stop() {
-        // TODO: Implement it
     }
 
     /**
