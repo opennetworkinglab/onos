@@ -98,7 +98,6 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVE_REQ;
 
-// TODO: give me a better name
 /**
  * Manages inventory of infrastructure devices using gossip protocol to distribute
  * information.
@@ -167,6 +166,10 @@ public class GossipDeviceStore
 
     private ScheduledExecutorService backgroundExecutor;
 
+    // TODO make these anti-entropy parameters configurable
+    private long initialDelaySec = 5;
+    private long periodSec = 5;
+
 
     @Activate
     public void activate() {
@@ -189,9 +192,6 @@ public class GossipDeviceStore
         backgroundExecutor =
                 newSingleThreadScheduledExecutor(minPriority(namedThreads("device-bg-%d")));
 
-        // TODO: Make these configurable
-        long initialDelaySec = 5;
-        long periodSec = 5;
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
                     initialDelaySec, periodSec, TimeUnit.SECONDS);
@@ -412,7 +412,6 @@ public class GossipDeviceStore
             }
             boolean removed = availableDevices.remove(deviceId);
             if (removed) {
-                // TODO: broadcast ... DOWN only?
                 return new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
             }
             return null;
@@ -885,7 +884,7 @@ public class GossipDeviceStore
             if (e.getKey().equals(primary)) {
                 continue;
             }
-            // TODO: should keep track of Description timestamp
+            // Note: should keep track of Description timestamp in the future
             // and only merge conflicting keys when timestamp is newer.
             // Currently assuming there will never be a key conflict between
             // providers
@@ -913,7 +912,6 @@ public class GossipDeviceStore
         ProviderId primary = pickPrimaryPID(descsMap);
         DeviceDescriptions primDescs = descsMap.get(primary);
         // if no primary, assume not enabled
-        // TODO: revisit this default port enabled/disabled behavior
         boolean isEnabled = false;
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
 
@@ -927,7 +925,7 @@ public class GossipDeviceStore
             if (e.getKey().equals(primary)) {
                 continue;
             }
-            // TODO: should keep track of Description timestamp
+            // Note: should keep track of Description timestamp in the future
             // and only merge conflicting keys when timestamp is newer.
             // Currently assuming there will never be a key conflict between
             // providers
@@ -968,7 +966,6 @@ public class GossipDeviceStore
         return providerDescs.get(pid);
     }
 
-    // TODO: should we be throwing exception?
     private void unicastMessage(NodeId recipient, MessageSubject subject, Object event) throws IOException {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
@@ -977,7 +974,6 @@ public class GossipDeviceStore
         clusterCommunicator.unicast(message, recipient);
     }
 
-    // TODO: should we be throwing exception?
     private void broadcastMessage(MessageSubject subject, Object event) throws IOException {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),

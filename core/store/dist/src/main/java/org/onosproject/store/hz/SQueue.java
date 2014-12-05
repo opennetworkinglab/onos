@@ -30,8 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-// TODO: implementation is incomplete
-
 /**
  * Wrapper around IQueue&lt;byte[]&gt; which serializes/deserializes
  * key and value using StoreSerializer.

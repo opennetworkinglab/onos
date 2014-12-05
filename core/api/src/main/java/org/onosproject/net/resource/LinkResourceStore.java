@@ -51,7 +51,7 @@ public interface LinkResourceStore {
      * Returns resources allocated for an Intent.
      *
      * @param intentId the target Intent's ID
-     * @return allocated resources
+     * @return allocated resources or null if no resource is allocated
      */
     LinkResourceAllocations getAllocations(IntentId intentId);
 

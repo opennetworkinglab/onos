@@ -503,7 +503,7 @@ public class DistributedFlowRuleStore
             }
 
             // TODO: Confirm if this behavior is correct. See SimpleFlowRuleStore
-            // TODO: also update backup.
+            // TODO: also update backup if the behavior is correct.
             flowEntries.put(did, new DefaultFlowEntry(rule));
         } finally {
             flowEntriesLock.writeLock().unlock();
@@ -541,7 +541,7 @@ public class DistributedFlowRuleStore
             Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
             return SERIALIZER.decode(responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
         } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-            // FIXME: throw a FlowStoreException
+            // TODO: Retry against latest master or throw a FlowStoreException
             throw new RuntimeException(e);
         }
     }
@@ -586,8 +586,6 @@ public class DistributedFlowRuleStore
             for (Entry<FlowId, ImmutableList<StoredFlowEntry>> e
                     : backupFlowTable.entrySet()) {
 
-                // TODO: should we be directly updating internal structure or
-                // should we be triggering event?
                 log.trace("loading {}", e.getValue());
                 for (StoredFlowEntry entry : e.getValue()) {
                     flowEntries.remove(did, entry);
@@ -714,7 +712,7 @@ public class DistributedFlowRuleStore
                     // This node is no longer the master holder,
                     // clean local structure
                     removeFromPrimary(did);
-                    // FIXME: probably should stop pending backup activities in
+                    // TODO: probably should stop pending backup activities in
                     // executors to avoid overwriting with old value
                 }
                 break;
@@ -767,7 +765,6 @@ public class DistributedFlowRuleStore
                     } else {
                         success = backupFlowTable.replace(id, original, newValue);
                     }
-                    // TODO retry?
                     if (!success) {
                         log.error("Updating backup failed.");
                     }
@@ -790,7 +787,6 @@ public class DistributedFlowRuleStore
                     } else {
                         success = backupFlowTable.replace(id, original, newValue);
                     }
-                    // TODO retry?
                     if (!success) {
                         log.error("Updating backup failed.");
                     }

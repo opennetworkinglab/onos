@@ -100,7 +100,7 @@ public class ClusterMessagingProtocol
                      // for snapshot
                     .register(State.class)
                     .register(TableMetadata.class)
-                    // TODO: Move this out ?
+                    // TODO: Move this out to API?
                     .register(TableModificationEvent.class)
                     .register(TableModificationEvent.Type.class)
                     .build();

@@ -529,7 +529,7 @@ public class GossipLinkStore
                 continue;
             }
 
-            // TODO: should keep track of Description timestamp
+            // Note: In the long run we should keep track of Description timestamp
             // and only merge conflicting keys when timestamp is newer
             // Currently assuming there will never be a key conflict between
             // providers

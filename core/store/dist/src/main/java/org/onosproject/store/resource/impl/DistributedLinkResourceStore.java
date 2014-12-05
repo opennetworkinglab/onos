@@ -78,7 +78,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
 
     private final Logger log = getLogger(getClass());
 
-    // FIXME: what is the Bandwidth unit?
     private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.valueOf(1_000);
 
     // table to store current allocations
@@ -143,7 +142,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     private Set<? extends ResourceAllocation> getResourceCapacity(ResourceType type, Link link) {
-        // TODO: plugin/provider mechanism to add resource type in the future?
         if (type == ResourceType.BANDWIDTH) {
             return ImmutableSet.of(getBandwidthResourceCapacity(link));
         }
@@ -154,7 +152,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     private Set<LambdaResourceAllocation> getLambdaResourceCapacity(Link link) {
-        // FIXME enumerate all the possible link/port lambdas
         Set<LambdaResourceAllocation> allocations = new HashSet<>();
         try {
             final int waves = Integer.parseInt(link.annotations().value(wavesAnnotation));
@@ -323,7 +320,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
             if (log.isDebugEnabled()) {
                 logFailureDetail(batch, result);
             }
-            // FIXME throw appropriate exception, with what failed.
             checkState(result.isSuccessful(), "Allocation failed");
         }
     }
@@ -389,7 +385,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
                 double bwLeft = bw.bandwidth().toDouble();
                 bwLeft -= ((BandwidthResourceAllocation) req).bandwidth().toDouble();
                 if (bwLeft < 0) {
-                    // FIXME throw appropriate Exception
                     checkState(bwLeft >= 0,
                                "There's no Bandwidth left on %s. %s",
                                link, bwLeft);
@@ -399,7 +394,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
                 // check if allocation should be accepted
                 if (!avail.contains(req)) {
                     // requested lambda was not available
-                    // FIXME throw appropriate exception
                     checkState(avail.contains(req),
                                "Allocating %s on %s failed",
                                req, link);
@@ -433,7 +427,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
         final String dbIntentId = toIntentDbKey(intendId);
         final Collection<Link> links = allocations.links();
 
-        // TODO: does release must happen in a batch?
         boolean success;
         do {
             Builder tx = BatchWriteRequest.newBuilder();
@@ -476,7 +469,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
         checkNotNull(intentId);
         VersionedValue vv = databaseService.get(INTENT_ALLOCATIONS, toIntentDbKey(intentId));
         if (vv == null) {
-            // FIXME: should we return null or LinkResourceAllocations with nothing allocated?
             return null;
         }
         LinkResourceAllocations allocations = decodeIntentAllocations(vv.value());
@@ -486,7 +478,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     private String toLinkDbKey(LinkKey linkid) {
         // introduce cache if necessary
         return linkid.toString();
-        // TODO: Above is irreversible, if we need reverse conversion
+        // Note: Above is irreversible, if we need reverse conversion
         // we may need something like below, due to String only limitation
 //        byte[] bytes = serializer.encode(linkid);
 //        StringBuilder builder = new StringBuilder(bytes.length * 4);

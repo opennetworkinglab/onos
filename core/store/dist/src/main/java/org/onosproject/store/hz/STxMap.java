@@ -28,7 +28,6 @@ import org.onosproject.store.serializers.StoreSerializer;
 import com.hazelcast.core.TransactionalMap;
 import com.hazelcast.query.Predicate;
 
-// TODO: implement Predicate, etc. if we need them.
 /**
  * Wrapper around TransactionalMap&lt;byte[], byte[]&gt; which serializes/deserializes
  * key and value using StoreSerializer.
@@ -100,7 +99,6 @@ public class STxMap<K, V> implements TransactionalMap<K, V> {
 
     @Override
     public V getForUpdate(Object key) {
-        // TODO Auto-generated method stub
         return deserializeVal(m.getForUpdate(serializeKey(key)));
     }
 

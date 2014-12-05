@@ -57,7 +57,7 @@ public class LeadershipManager implements LeadershipService {
     // a unexpected error.
     private static final int WAIT_BEFORE_RETRY_MS = 2000;
 
-    // TODO: Appropriate Thread pool sizing.
+    // TODO: Make Thread pool size configurable.
     private final ScheduledExecutorService threadPool =
             Executors.newScheduledThreadPool(25, namedThreads("leadership-manager-%d"));
 

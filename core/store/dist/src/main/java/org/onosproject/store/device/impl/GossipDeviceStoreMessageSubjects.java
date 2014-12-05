@@ -17,7 +17,6 @@ package org.onosproject.store.device.impl;
 
 import org.onosproject.store.cluster.messaging.MessageSubject;
 
-// TODO: add prefix to assure uniqueness.
 /**
  * MessageSubjects used by GossipDeviceStore peer-peer communication.
  */

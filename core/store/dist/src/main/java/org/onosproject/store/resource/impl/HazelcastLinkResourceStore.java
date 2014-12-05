@@ -76,7 +76,6 @@ public class HazelcastLinkResourceStore
 
     private final Logger log = getLogger(getClass());
 
-    // FIXME: what is the Bandwidth unit?
     private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.valueOf(1_000);
 
     private static final Bandwidth EMPTY_BW = Bandwidth.valueOf(0);
@@ -134,7 +133,6 @@ public class HazelcastLinkResourceStore
     }
 
     private Set<? extends ResourceAllocation> getResourceCapacity(ResourceType type, Link link) {
-        // TODO: plugin/provider mechanism to add resource type in the future?
         if (type == ResourceType.BANDWIDTH) {
             return ImmutableSet.of(getBandwidthResourceCapacity(link));
         }
@@ -145,7 +143,6 @@ public class HazelcastLinkResourceStore
     }
 
     private Set<LambdaResourceAllocation> getLambdaResourceCapacity(Link link) {
-        // FIXME enumerate all the possible link/port lambdas
         Set<LambdaResourceAllocation> allocations = new HashSet<>();
         try {
             final int waves = Integer.parseInt(link.annotations().value(wavesAnnotation));
@@ -335,7 +332,6 @@ public class HazelcastLinkResourceStore
                 double bwLeft = bw.bandwidth().toDouble();
                 bwLeft -= ((BandwidthResourceAllocation) req).bandwidth().toDouble();
                 if (bwLeft < 0) {
-                    // FIXME throw appropriate Exception
                     checkState(bwLeft >= 0,
                                "There's no Bandwidth left on %s. %s",
                                link, bwLeft);
@@ -345,7 +341,6 @@ public class HazelcastLinkResourceStore
                 // check if allocation should be accepted
                 if (!avail.contains(req)) {
                     // requested lambda was not available
-                    // FIXME throw appropriate exception
                     checkState(avail.contains(req),
                                "Allocating %s on %s failed",
                                req, link);
@@ -381,7 +376,8 @@ public class HazelcastLinkResourceStore
 
         boolean success = false;
         do {
-            // TODO: smaller tx unit to lower the chance of collisions?
+            // Note: might want to break it down into smaller tx unit
+            // to lower the chance of collisions.
             TransactionContext tx = theInstance.newTransactionContext();
             tx.beginTransaction();
             try {

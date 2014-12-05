@@ -96,13 +96,11 @@ public class DistributedLockManager implements LockService {
 
     @Override
     public void addListener(LockEventListener listener) {
-        // FIXME:
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void removeListener(LockEventListener listener) {
-        // FIXME:
         throw new UnsupportedOperationException();
     }
 

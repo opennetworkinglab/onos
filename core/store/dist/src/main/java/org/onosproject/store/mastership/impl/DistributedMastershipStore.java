@@ -299,7 +299,7 @@ public class DistributedMastershipStore
                     } else {
                         // no master candidate
                         roleMap.put(deviceId, rv);
-                        // TODO: Should there be new event type for no MASTER?
+                        // TBD: Should there be new event type for no MASTER?
                         return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
                     }
                 case STANDBY:

@@ -88,7 +88,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
-//TODO: multi-provider, annotation not supported.
 /**
  * Manages inventory of end-station hosts in distributed data store
  * that uses optimistic replication and gossip based techniques.

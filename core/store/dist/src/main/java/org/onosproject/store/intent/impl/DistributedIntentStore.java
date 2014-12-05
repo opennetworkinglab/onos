@@ -90,7 +90,7 @@ public class DistributedIntentStore
     private static final String STATES_TABLE = "intent-states";
     private CMap<IntentId, IntentState> states;
 
-    // TODO left behind transient state issue: ONOS-103
+    // TODO transient state issue remains for this impl.: ONOS-103
     // Map to store instance local intermediate state transition
     private transient Map<IntentId, IntentState> transientStates = new ConcurrentHashMap<>();
 
@@ -142,7 +142,7 @@ public class DistributedIntentStore
         getIntentTimer = createResponseTimer("getIntent");
         getIntentStateTimer = createResponseTimer("getIntentState");
 
-        // FIXME: We need a way to add serializer for intents which has been plugged-in.
+        // We need a way to add serializer for intents which has been plugged-in.
         // As a short term workaround, relax Kryo config to
         // registrationRequired=false
         serializer = new KryoSerializer() {
@@ -264,7 +264,6 @@ public class DistributedIntentStore
         }
     }
 
-    // FIXME temporary workaround until we fix our state machine
     private void verify(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
         if (onlyLogTransitionError) {
             if (!expression) {
@@ -488,7 +487,6 @@ public class DistributedIntentStore
             return failed;
         } else {
             // everything failed
-            // FIXME what to do with events?
             return batch.operations();
         }
     }
