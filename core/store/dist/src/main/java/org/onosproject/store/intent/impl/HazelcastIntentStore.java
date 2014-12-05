@@ -99,7 +99,6 @@ public class HazelcastIntentStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MetricsService metricsService;
 
-    // TODO make this configurable
     private boolean onlyLogTransitionError = true;
 
     private Timer createIntentTimer;
@@ -142,7 +141,7 @@ public class HazelcastIntentStore
         getIntentTimer = createResponseTimer("getIntent");
         getIntentStateTimer = createResponseTimer("getIntentState");
 
-        // FIXME: We need a way to add serializer for intents which has been plugged-in.
+        // We need a way to add serializer for intents which has been plugged-in.
         // As a short term workaround, relax Kryo config to
         // registrationRequired=false
         super.activate();
@@ -164,7 +163,6 @@ public class HazelcastIntentStore
         MapConfig intentsCfg = config.getMapConfig(INTENTS_MAP_NAME);
         intentsCfg.setAsyncBackupCount(MapConfig.MAX_BACKUP_COUNT - intentsCfg.getBackupCount());
 
-        // TODO: enable near cache, allow read from backup for this IMap
         IMap<byte[], byte[]> rawIntents = super.theInstance.getMap(INTENTS_MAP_NAME);
         intents = new SMap<>(rawIntents , super.serializer);
         intentsListenerId = intents.addEntryListener(new RemoteIntentsListener(), true);
@@ -556,7 +554,6 @@ public class HazelcastIntentStore
                     }
 
                     log.trace("{} - {} -> {}", intentId, prevIntentState, newState);
-                    // TODO sanity check and log?
                 } catch (InterruptedException e) {
                     log.error("Batch write was interrupted while processing {}", op,  e);
                     failed.add(op);

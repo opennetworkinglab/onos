@@ -39,7 +39,6 @@ public final class Ip4PrefixSerializer extends Serializer<Ip4Prefix> {
     public void write(Kryo kryo, Output output,
             Ip4Prefix object) {
         byte[] octs = object.address().toOctets();
-        // TODO: Writing (and reading) the number of octets is redundant:
         // It is always Ip6Address.BYTE_LENGTH
         output.writeInt(octs.length);
         output.writeBytes(octs);

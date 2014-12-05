@@ -130,7 +130,6 @@ public class DistributedFlowRuleStore
 
     private final AtomicInteger localBatchIdGen = new AtomicInteger();
 
-    // TODO: make this configurable
     private int pendingFutureTimeoutMinutes = 5;
 
     private Cache<Integer, SettableFuture<CompletedBatchOperation>> pendingFutures =
@@ -149,7 +148,6 @@ public class DistributedFlowRuleStore
     private final ExecutorService backupExecutors =
             Executors.newSingleThreadExecutor(namedThreads("async-backups"));
 
-    // TODO make this configurable
     private boolean syncBackup = false;
 
     protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
@@ -163,7 +161,6 @@ public class DistributedFlowRuleStore
         }
     };
 
-    // TODO: make this configurable
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
     private ReplicaInfoEventListener replicaInfoEventListener;
@@ -247,7 +244,7 @@ public class DistributedFlowRuleStore
     }
 
 
-    // TODO: This is not a efficient operation on a distributed sharded
+    // This is not a efficient operation on a distributed sharded
     // flow store. We need to revisit the need for this operation or at least
     // make it device specific.
     @Override
@@ -267,7 +264,6 @@ public class DistributedFlowRuleStore
 
         if (!replicaInfo.master().isPresent()) {
             log.warn("Failed to getFlowEntry: No master for {}", rule.deviceId());
-            // TODO: should we try returning from backup?
             return null;
         }
 
@@ -287,9 +283,9 @@ public class DistributedFlowRuleStore
             Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
             return SERIALIZER.decode(responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
         } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-            // FIXME: throw a FlowStoreException
-            throw new RuntimeException(e);
+            log.warn("Unable to fetch flow store contents from {}", replicaInfo.master().get());
         }
+        return null;
     }
 
     private StoredFlowEntry getFlowEntryInternal(FlowRule rule) {
@@ -313,7 +309,6 @@ public class DistributedFlowRuleStore
 
         if (!replicaInfo.master().isPresent()) {
             log.warn("Failed to getFlowEntries: No master for {}", deviceId);
-            // TODO: should we try returning from backup?
             return Collections.emptyList();
         }
 
@@ -333,9 +328,9 @@ public class DistributedFlowRuleStore
             Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
             return SERIALIZER.decode(responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
         } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-            // FIXME: throw a FlowStoreException
-            throw new RuntimeException(e);
+            log.warn("Unable to fetch flow store contents from {}", replicaInfo.master().get());
         }
+        return null;
     }
 
     private Set<FlowEntry> getFlowEntriesInternal(DeviceId deviceId) {

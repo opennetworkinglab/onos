@@ -88,7 +88,7 @@ public class HazelcastIntentBatchQueue
     private IntentBatchDelegate delegate;
     private InternalLeaderListener leaderListener = new InternalLeaderListener();
     private final Map<ApplicationId, SQueue<IntentOperations>> batchQueues
-            = Maps.newHashMap(); // FIXME make distributed?
+            = Maps.newHashMap();
     private final Set<ApplicationId> myTopics = Sets.newHashSet();
     private final Map<ApplicationId, IntentOperations> outstandingOps
             = Maps.newHashMap();
@@ -158,7 +158,7 @@ public class HazelcastIntentBatchQueue
     public void addIntentOperations(IntentOperations ops) {
         checkNotNull(ops, "Intent operations cannot be null.");
         ApplicationId appId = ops.appId();
-        getQueue(appId).add(ops); // TODO consider using put here
+        getQueue(appId).add(ops);
         dispatchNextOperation(appId);
     }
 
@@ -175,7 +175,6 @@ public class HazelcastIntentBatchQueue
                 log.warn("Operation {} not found", ops);
             }
             SQueue<IntentOperations> queue = batchQueues.get(appId);
-            // TODO consider alternatives to remove
             checkState(queue.remove().equals(ops),
                        "Operations are wrong.");
             outstandingOps.remove(appId);
@@ -214,7 +213,6 @@ public class HazelcastIntentBatchQueue
      */
     private void leaderChanged(String topic, boolean leader) {
         ApplicationId appId = getAppId(topic);
-        //TODO we are using the event caller's thread, should we use our own?
         synchronized (this) {
             if (leader) {
                 myTopics.add(appId);

@@ -164,7 +164,6 @@ public class GossipLinkStore
         backgroundExecutors =
                 newSingleThreadScheduledExecutor(minPriority(namedThreads("link-bg-%d")));
 
-        // TODO: Make these configurable
         long initialDelaySec = 5;
         long periodSec = 5;
         // start anti-entropy thread

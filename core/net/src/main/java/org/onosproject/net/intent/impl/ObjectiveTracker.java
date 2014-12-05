@@ -194,8 +194,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                                 || (linkEvent.type() == LINK_UPDATED &&
                                         linkEvent.subject().isDurable())) {
                             final LinkKey linkKey = linkKey(linkEvent.subject());
-                            Set<IntentId> intentIds = intentsByLink.get(linkKey);
                             synchronized (intentsByLink) {
+                                Set<IntentId> intentIds = intentsByLink.get(linkKey);
                                 log.debug("recompile triggered by LinkDown {} {}", linkKey, intentIds);
                                 toBeRecompiled.addAll(intentIds);
                             }
@@ -206,7 +206,6 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                                 linkEvent.subject().isDurable()));
                     }
                 }
-
                 delegate.triggerCompile(toBeRecompiled, !recompileOnly);
             }
         }

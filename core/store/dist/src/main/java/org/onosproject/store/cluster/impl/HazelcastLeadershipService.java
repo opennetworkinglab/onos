@@ -175,7 +175,7 @@ public class HazelcastLeadershipService implements LeadershipService,
         for (Topic topic : topics.values()) {
             Leadership leadership = new Leadership(topic.topicName(),
                                                    topic.leader(),
-                                                   0L); // TODO: epoch not used
+                                                   0L);
             result.put(topic.topicName(), leadership);
         }
         return result;

@@ -37,7 +37,6 @@ public class Ip6AddressSerializer extends Serializer<Ip6Address> {
     @Override
     public void write(Kryo kryo, Output output, Ip6Address object) {
         byte[] octs = object.toOctets();
-        // TODO: Writing (and reading) the number of octets is redundant:
         // It is always Ip6Address.BYTE_LENGTH
         output.writeInt(octs.length);
         output.writeBytes(octs);

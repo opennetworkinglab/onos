@@ -48,8 +48,10 @@ import org.slf4j.Logger;
 /**
  * Manages inventory of topology snapshots using trivial in-memory
  * structures implementation.
+ *
+ * Note: This component is not distributed per-se. It runs on every
+ * instance and feeds off of other distributed stores.
  */
-//FIXME: I LIE I AM NOT DISTRIBUTED
 @Component(immediate = true)
 @Service
 public class DistributedTopologyStore

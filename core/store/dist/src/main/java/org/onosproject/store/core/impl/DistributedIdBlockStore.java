@@ -51,7 +51,6 @@ public class DistributedIdBlockStore implements IdBlockStore {
 
     @Override
     public IdBlock getIdBlock(String topic) {
-        //TODO need to persist this value across cluster failures
         Long blockBase = theInstance.getAtomicLong(topic).getAndAdd(DEFAULT_BLOCK_SIZE);
         return new IdBlock(blockBase, DEFAULT_BLOCK_SIZE);
     }
