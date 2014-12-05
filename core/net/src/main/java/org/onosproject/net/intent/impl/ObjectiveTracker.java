@@ -178,7 +178,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 return;
             }
 
-            if (event.reasons() == null) {
+            if (event.reasons() == null || event.reasons().isEmpty()) {
                 delegate.triggerCompile(new HashSet<IntentId>(), true);
 
             } else {
