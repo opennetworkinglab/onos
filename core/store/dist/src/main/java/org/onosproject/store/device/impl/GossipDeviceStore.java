@@ -206,8 +206,7 @@ public class GossipDeviceStore
 
         backgroundExecutor.shutdownNow();
         try {
-            boolean timedout = backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS);
-            if (timedout) {
+            if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.error("Timeout during executor shutdown");
             }
         } catch (InterruptedException e) {
