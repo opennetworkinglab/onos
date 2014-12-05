@@ -111,7 +111,6 @@ implements MutableGraph<V, E> {
 
     @Override
     public void removeVertex(V vertex) {
-        // TODO Auto-generated method stub
         if (vertexes != null && edges != null) {
             if (vertexes.contains(vertex)) {
                 vertexes.remove(vertex);
@@ -149,7 +148,6 @@ implements MutableGraph<V, E> {
 
     @Override
     public Graph<V, E> toImmutable() {
-        // TODO Auto-generated method stub
         return null;
     }
 

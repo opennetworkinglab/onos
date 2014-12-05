@@ -17,11 +17,11 @@ package org.onosproject.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DatabaseAdminService;
-import org.onlab.packet.IpAddress;
 
 /**
  * Adds a new controller cluster node.
@@ -34,7 +34,6 @@ public class TabletAddCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String nodeId = null;
 
-    // TODO context aware completer to get IP from ClusterService?
     @Argument(index = 1, name = "ip", description = "Node IP address",
               required = true, multiValued = false)
     String ip = null;

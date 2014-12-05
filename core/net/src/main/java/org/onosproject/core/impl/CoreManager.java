@@ -81,7 +81,6 @@ public class CoreManager implements CoreService {
 
     @Override
     public IdGenerator getIdGenerator(String topic) {
-        // FIXME this should be created lazily (once per topic)
         IdBlockAllocator allocator = new StoreBasedIdBlockAllocator(topic, idBlockStore);
         return new BlockAllocatorBasedIdGenerator(allocator);
     }

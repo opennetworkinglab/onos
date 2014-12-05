@@ -118,9 +118,7 @@ public abstract class BasePacket implements IPacket {
         } catch (final Exception e) {
             throw new RuntimeException("Could not clone packet");
         }
-        // TODO: we are using serialize()/deserialize() to perform the
-        // cloning. Not the most efficient way but simple. We can revisit
-        // if we hit performance problems.
+
         final byte[] data = this.serialize();
         pkt.deserialize(this.serialize(), 0, data.length);
         pkt.setParent(this.parent);

@@ -275,8 +275,8 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
                 this.transitionToEqualSwitch();
             }
         }  else {
+            log.warn("Failed to set role for {}", this.getStringId());
             return;
-            //TODO: tell people that we failed.
         }
     }
 

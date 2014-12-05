@@ -129,10 +129,6 @@ public class IntentMetrics implements IntentMetricsService,
     @Override
     public void event(IntentEvent event) {
         synchronized (lastEvents) {
-            //
-            // TODO: The processing below is incomplete: we don't have
-            // an event equivalent of "Withdraw Requested"
-            //
             switch (event.type()) {
             case INSTALL_REQ:
                 intentSubmittedEventMetric.eventReceived();
@@ -141,7 +137,7 @@ public class IntentMetrics implements IntentMetricsService,
                 intentInstalledEventMetric.eventReceived();
                 break;
             case FAILED:
-                // TODO: Just ignore?
+                // ignore
                 break;
             case WITHDRAW_REQ:
                 intentWithdrawRequestedEventMetric.eventReceived();

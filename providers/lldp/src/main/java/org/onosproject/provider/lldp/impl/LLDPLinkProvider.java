@@ -152,7 +152,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             }
             synchronized (discoverers) {
                 if (!discoverers.containsKey(deviceId)) {
-                    // TODO: ideally, should never reach here
+                    // ideally, should never reach here
                     log.debug("Device mastership changed ({}) {}",
                             event.type(), deviceId);
                     discoverers.put(deviceId, new LinkDiscovery(device,
@@ -220,7 +220,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     ConnectPoint point = new ConnectPoint(deviceId,
                                                           port.number());
                     providerService.linksVanished(point);
-                    // TODO: Don't we need to removePort from ld?
+
                     break;
                 case DEVICE_REMOVED:
                 case DEVICE_SUSPENDED:

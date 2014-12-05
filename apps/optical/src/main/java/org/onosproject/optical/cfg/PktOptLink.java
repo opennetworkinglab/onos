@@ -36,7 +36,6 @@ class PktOptLink {
     }
 
     public PktOptLink() {
-        // TODO Auto-generated constructor stub
     }
 
     public void setSrcNodeName(String name) {

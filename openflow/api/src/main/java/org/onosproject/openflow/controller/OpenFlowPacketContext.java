@@ -26,8 +26,6 @@ import org.projectfloodlight.openflow.types.OFPort;
  */
 public interface OpenFlowPacketContext {
 
-    //TODO: may want to support sending packet out other switches than
-    // the one it came in on.
     /**
      * Blocks further responses (ie. send() calls) on this
      * packet in event.

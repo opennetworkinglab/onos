@@ -37,7 +37,6 @@ class WdmLink {
     }
 
     public WdmLink() {
-        // TODO Auto-generated constructor stub
     }
 
     public void setSrcNodeName(String name) {

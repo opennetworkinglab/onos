@@ -78,7 +78,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
 
         long cookie = flowRule().id().value();
 
-        //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
+
         OFFlowAdd fm = factory().buildFlowAdd()
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
@@ -99,7 +99,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
 
         long cookie = flowRule().id().value();
 
-        //TODO: what to do without bufferid? do we assume that there will be a pktout as well?
+
         OFFlowMod fm = factory().buildFlowModify()
                 .setXid(xid)
                 .setCookie(U64.of(cookie))

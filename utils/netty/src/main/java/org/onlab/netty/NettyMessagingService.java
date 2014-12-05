@@ -86,7 +86,6 @@ public class NettyMessagingService implements MessagingService {
 
     private void initEventLoopGroup() {
         // try Epoll first and if that does work, use nio.
-        // TODO: make this configurable.
         try {
             clientGroup = new EpollEventLoopGroup();
             serverGroup = new EpollEventLoopGroup();
@@ -107,11 +106,9 @@ public class NettyMessagingService implements MessagingService {
     }
 
     public NettyMessagingService() {
-        // TODO: Default port should be configurable.
         this(8080);
     }
 
-    // FIXME: Constructor should not throw exceptions.
     public NettyMessagingService(int port) {
         try {
             localEp = new Endpoint(java.net.InetAddress.getLocalHost().getHostName(), port);
@@ -193,7 +190,6 @@ public class NettyMessagingService implements MessagingService {
 
     @Override
     public void registerHandler(String type, MessageHandler handler) {
-        // TODO: Is this the right semantics for handler registration?
         handlers.putIfAbsent(type, handler);
     }
 
@@ -210,7 +206,6 @@ public class NettyMessagingService implements MessagingService {
         ServerBootstrap b = new ServerBootstrap();
         b.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         b.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
-        // TODO: Need JVM options to configure PooledByteBufAllocator.
         b.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         b.group(serverGroup, clientGroup)
             .channel(serverChannelClass)

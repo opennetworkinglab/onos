@@ -344,7 +344,6 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private void sendProbes(Long portNumber) {
-        // TODO: should have suppression port configuration, not by type
         if (device.type() != Device.Type.ROADM) {
             log.trace("Sending probes out to {}@{}", portNumber, device.id());
             OutboundPacket pkt = this.createOutBoundLLDP(portNumber);

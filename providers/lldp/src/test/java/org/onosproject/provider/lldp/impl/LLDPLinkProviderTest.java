@@ -271,8 +271,6 @@ public class LLDPLinkProviderTest {
 
         @Override
         public void linkVanished(LinkDescription linkDescription) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override

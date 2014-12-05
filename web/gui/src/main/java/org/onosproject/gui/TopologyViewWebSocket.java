@@ -54,7 +54,6 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.Ethernet;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -369,7 +368,6 @@ public class TopologyViewWebSocket
 
         // FIXME: clearly, this is not enough
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
                 .matchEthDst(dstHost.mac()).build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 

@@ -364,7 +364,6 @@ public class OpticalConfigProvider extends AbstractProvider implements DevicePro
 
     @Override
     public void roleChanged(DeviceId device, MastershipRole newRole) {
-        // TODO Auto-generated method stub.
     }
 
     @Override

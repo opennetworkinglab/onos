@@ -51,7 +51,6 @@ public class DefaultEventSinkRegistry implements EventSinkRegistry {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends Event> EventSink<E> getSink(Class<E> eventClass) {
-        // TODO: add implicit registration of descendant classes
         return (EventSink<E>) sinks.get(eventClass);
     }
 

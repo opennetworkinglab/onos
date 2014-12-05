@@ -30,7 +30,6 @@ import org.onosproject.net.topology.TopologyService;
          description = "Lists summary of the current topology")
 public class TopologyCommand extends AbstractShellCommand {
 
-    // TODO: format the time-stamp
     private static final String FMT =
             "time=%s, devices=%d, links=%d, clusters=%d, paths=%d";
 

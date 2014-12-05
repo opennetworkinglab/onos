@@ -137,7 +137,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
         }
     }
 
-    //Todo
     public void processOFPortStatus(OFCircuitPortStatus ps) {
         log.debug("LINC-OE ..OF Port Status :", ps);
 

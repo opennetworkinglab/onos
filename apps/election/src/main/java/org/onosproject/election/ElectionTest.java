@@ -58,7 +58,6 @@ public class ElectionTest {
 
     private ControllerNode localControllerNode;
 
-    // TODO write cli command to get leader
 
     @Activate
     protected void activate() {

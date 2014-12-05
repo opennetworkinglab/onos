@@ -262,7 +262,6 @@ public class IpAddress implements Comparable<IpAddress> {
      */
     public static IpAddress makeMaskedAddress(final IpAddress address,
                                               int prefixLength) {
-        // TODO: The code below should go away and replaced with generics
         if (address instanceof Ip4Address) {
             Ip4Address ip4a = (Ip4Address) address;
             return Ip4Address.makeMaskedAddress(ip4a, prefixLength);

@@ -81,13 +81,9 @@ public class OpenflowControllerAdapter implements OpenFlowController {
 
     @Override
     public void addEventListener(OpenFlowEventListener listener) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void removeEventListener(OpenFlowEventListener listener) {
-        // TODO Auto-generated method stub
-
     }
 }

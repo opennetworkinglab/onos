@@ -672,9 +672,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             subnetIps.add("10.0.3.0");
             subnetIps.add("10.0.1.0");
         }
-        // TODO needed?
-        //if (getId() == 0x2) {
-        //}
+
         if (getId() == 0x3) {
             subnetIps.add("7.7.7.0");
         }
@@ -740,9 +738,6 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
             hostNextHopIps.add(new RouteEntry("10.0.2.1", 4, "00:00:00:00:02:01"));
             hostNextHopIps.add(new RouteEntry("10.0.3.1", 5, "00:00:00:00:03:01"));
         }
-        // TODO needed?
-        //if (getId() == 0x2) {
-        //}
         if (getId() == 0x3) {
             hostNextHopIps.add(new RouteEntry("7.7.7.7", 1, "00:00:07:07:07:07"));
         }

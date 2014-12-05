@@ -186,7 +186,6 @@ public class FlowEntryBuilder {
                 }
                 break;
             case SET_FIELD:
-                // TODO handle 1.3 set field actions correctly
                 break;
             case SET_TP_DST:
             case SET_TP_SRC:

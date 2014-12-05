@@ -49,13 +49,11 @@ public class MetricsListCommand extends AbstractShellCommand {
     protected void execute() {
         MetricsService metricsService = get(MetricsService.class);
 
-        // TODO support filter condition
         MetricFilter filter = MetricFilter.ALL;
 
         TreeMultimap<String, Metric> matched = listMetrics(metricsService, filter);
         matched.asMap().forEach((name, metrics) -> {
             for (Metric metric : metrics) {
-                // TODO JSON version
                 printMetric(name, metric);
             }
         });

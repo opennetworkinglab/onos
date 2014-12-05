@@ -19,7 +19,6 @@ package org.onlab.packet;
  * The class representing a network device chassisId.
  * This class is immutable.
  */
-// TODO: Move this to a reasonable place.
 public final class ChassisId {
 
     private static final long UNKNOWN = 0;

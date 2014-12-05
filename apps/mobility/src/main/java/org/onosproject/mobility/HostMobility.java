@@ -129,7 +129,7 @@ public class HostMobility {
                     }
                 }
             }
-            //TODO: handle ip cleanup
+
             return flowRules;
         }
 

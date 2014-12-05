@@ -258,8 +258,6 @@ public class OpenFlowLinkProviderTest {
 
         @Override
         public void linkVanished(LinkDescription linkDescription) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override

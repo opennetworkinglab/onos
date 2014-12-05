@@ -137,18 +137,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceDisconnected(deviceId);
         } else {
             LOG.trace("Confirmed device {} connection", deviceId);
-            // FIXME require something like below to match javadoc description
-            // but this starts infinite loop with current DeviceManager
-//            final ChassisId cId = new ChassisId(dpid.value());
-//            final Type deviceType = device.type();
-//            DeviceDescription description =
-//                    new DefaultDeviceDescription(deviceId.uri(), deviceType,
-//                                                 sw.manfacturerDescription(),
-//                                                 sw.hardwareDescription(),
-//                                                 sw.softwareDescription(),
-//                                                 sw.serialNumber(),
-//                                                 cId);
-//            providerService.deviceConnected(deviceId, description);
         }
 
         // Prompt an update of port information. We can use any XID for this.
@@ -164,16 +152,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 LOG.warn("Unhandled protocol version");
         }
     }
-
-    // Checks if the OF channel is connected.
-    //private boolean checkChannel(Device device, OpenFlowSwitch sw) {
-    // FIXME if possible, we might want this to be part of
-    // OpenFlowSwitch interface so the driver interface isn't misused.
-    //    if (sw == null || !((OpenFlowSwitchDriver) sw).isConnected()) {
-    //      return false;
-    //      }
-    //    return true;
-    // }
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {

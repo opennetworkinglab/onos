@@ -142,7 +142,6 @@ public class OpenFlowHostProvider extends AbstractProvider implements HostProvid
 
             }
 
-            // TODO: Use DHCP packets as well later...
         }
 
     }

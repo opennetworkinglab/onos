@@ -19,7 +19,7 @@ package org.onlab.thirdparty;
 /**
  * Empty class required to get the onlab-thirdparty module to build properly.
  *
- * TODO Figure out how to remove this.
+ * NOTE Required for shade plugin to operate.
  */
 public class OnlabThirdparty {
 
