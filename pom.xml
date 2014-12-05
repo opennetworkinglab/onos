@@ -29,27 +29,11 @@
         <version>1</version>
         <relativePath>tools/build/pom.xml</relativePath>
     </parent>
-    
-    <!-- FIXME remove before release -->
-    <repositories>
-        <repository>
-            <id>oss-staging</id>
-            <name>OSS Staging</name>
-            <url>https://oss.sonatype.org/content/groups/staging</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>oss-staging</id>
-            <name>OSS Staging</name>
-            <url>https://oss.sonatype.org/content/groups/staging</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System root project</description>
@@ -508,6 +492,7 @@
 
                 <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                <!--
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
@@ -536,6 +521,7 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
+                -->
             </plugins>
         </pluginManagement>
 
