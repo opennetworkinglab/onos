@@ -168,13 +168,14 @@ public class TopologyViewWebSocket
      */
     synchronized boolean isIdle() {
         boolean idle = (System.currentTimeMillis() - lastActive) > MAX_AGE_MS;
-        if (idle || !connection.isOpen()) {
+        if (idle || (connection != null && !connection.isOpen())) {
             return true;
-        }
-        try {
-            control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
-        } catch (IOException e) {
-            log.warn("Unable to send ping message due to: ", e);
+        } else if (connection != null) {
+            try {
+                control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
+            } catch (IOException e) {
+                log.warn("Unable to send ping message due to: ", e);
+            }
         }
         return false;
     }
