@@ -146,7 +146,7 @@ public class BgpSessionManagerTest {
     /**
      * Gets BGP RIB-IN routes by waiting until they are received.
      * <p/>
-     * NOTE: We keep checking once a second the number of received routes,
+     * NOTE: We keep checking once every 10ms the number of received routes,
      * up to 5 seconds.
      *
      * @param bgpSession the BGP session that is expected to receive the
@@ -160,12 +160,12 @@ public class BgpSessionManagerTest {
         throws InterruptedException {
         Collection<BgpRouteEntry> bgpRibIn = bgpSession.getBgpRibIn();
 
-        final int maxChecks = 5;                // Max wait of 5 seconds
+        final int maxChecks = 500;              // Max wait of 5 seconds
         for (int i = 0; i < maxChecks; i++) {
             if (bgpRibIn.size() == expectedRoutes) {
                 break;
             }
-            Thread.sleep(1000);
+            Thread.sleep(10);
             bgpRibIn = bgpSession.getBgpRibIn();
         }
 
@@ -175,7 +175,7 @@ public class BgpSessionManagerTest {
     /**
      * Gets BGP merged routes by waiting until they are received.
      * <p/>
-     * NOTE: We keep checking once a second the number of received routes,
+     * NOTE: We keep checking once every 10ms the number of received routes,
      * up to 5 seconds.
      *
      * @param expectedRoutes the expected number of routes
@@ -186,12 +186,12 @@ public class BgpSessionManagerTest {
         throws InterruptedException {
         Collection<BgpRouteEntry> bgpRoutes = bgpSessionManager.getBgpRoutes();
 
-        final int maxChecks = 5;                // Max wait of 5 seconds
+        final int maxChecks = 500;              // Max wait of 5 seconds
         for (int i = 0; i < maxChecks; i++) {
             if (bgpRoutes.size() == expectedRoutes) {
                 break;
             }
-            Thread.sleep(1000);
+            Thread.sleep(10);
             bgpRoutes = bgpSessionManager.getBgpRoutes();
         }
 
