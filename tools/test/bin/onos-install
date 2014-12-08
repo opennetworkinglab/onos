@@ -21,7 +21,7 @@ shift $OPC
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
 
-scp -q $ONOS_TAR $remote:/tmp
+$(dirname $0)/onos-push-bits $node
 
 ssh $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1

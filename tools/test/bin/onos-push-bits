@@ -1,0 +1,19 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes bits to a remote node in preparation for install.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
+
+locHash=$(cksum $ONOS_TAR | cut -d' ' -f1,2)
+remHash=$(ssh $remote cksum $ONOS_TAR | cut -d' ' -f1,2)
+
+if [ "$locHash" = "$remHash" ]; then
+    echo "ONOS bits $ONOS_TAR already up-to-date on $node..."
+else
+    scp -q $ONOS_TAR $remote:/tmp
+fi
