@@ -133,6 +133,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
         ConnectPoint prev = intent.src();
 
+        //FIXME check for null allocations
         //TODO throw exception if the lambda was not assigned successfully
         for (Link link : intent.path().links()) {
             Lambda la = null;
