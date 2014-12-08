@@ -26,6 +26,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -92,6 +93,7 @@ public class IntentsListCommand extends AbstractShellCommand {
     private class IntentSummaries {
         private IntentSummary summaryAll;
         private IntentSummary summaryConnectivity;
+        private IntentSummary summaryHostToHost;
         private IntentSummary summaryPointToPoint;
         private IntentSummary summaryMultiPointToSinglePoint;
         private IntentSummary summarySinglePointToMultiPoint;
@@ -105,6 +107,7 @@ public class IntentsListCommand extends AbstractShellCommand {
         private void init() {
             summaryAll = new IntentSummary("All");
             summaryConnectivity = new IntentSummary("Connectivity");
+            summaryHostToHost = new IntentSummary("HostToHost");
             summaryPointToPoint = new IntentSummary("PointToPoint");
             summaryMultiPointToSinglePoint =
                 new IntentSummary("MultiPointToSinglePoint");
@@ -140,6 +143,10 @@ public class IntentsListCommand extends AbstractShellCommand {
                     // NOTE: ConnectivityIntent is a base type Intent
                     // continue;
                 }
+                if (intent instanceof HostToHostIntent) {
+                    summaryHostToHost.update(intentState);
+                    continue;
+                }
                 if (intent instanceof PointToPointIntent) {
                     summaryPointToPoint.update(intentState);
                     continue;
@@ -174,6 +181,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode result = mapper.createObjectNode();
             result.put("connectivity", summaryConnectivity.json(mapper));
+            result.put("hostToHost", summaryHostToHost.json(mapper));
             result.put("pointToPoint", summaryPointToPoint.json(mapper));
             result.put("multiPointToSinglePoint",
                        summaryMultiPointToSinglePoint.json(mapper));
@@ -191,6 +199,7 @@ public class IntentsListCommand extends AbstractShellCommand {
          */
         private void printSummary() {
             summaryConnectivity.printState();
+            summaryHostToHost.printState();
             summaryPointToPoint.printState();
             summaryMultiPointToSinglePoint.printState();
             summarySinglePointToMultiPoint.printState();
@@ -335,7 +344,10 @@ public class IntentsListCommand extends AbstractShellCommand {
             }
         }
 
-        if (intent instanceof PointToPointIntent) {
+        if (intent instanceof HostToHostIntent) {
+            HostToHostIntent pi = (HostToHostIntent) intent;
+            print("    host1=%s, host2=%s", pi.one(), pi.two());
+        } else if (intent instanceof PointToPointIntent) {
             PointToPointIntent pi = (PointToPointIntent) intent;
             print("    ingress=%s, egress=%s", pi.ingressPoint(), pi.egressPoint());
         } else if (intent instanceof MultiPointToSinglePointIntent) {
@@ -405,22 +417,22 @@ public class IntentsListCommand extends AbstractShellCommand {
                 pnode.add(link.toString());
             }
             result.set("path", pnode);
-
+        } else if (intent instanceof HostToHostIntent) {
+            HostToHostIntent pi = (HostToHostIntent) intent;
+            result.set("host1", LinksListCommand.json(mapper, pi.one()));
+            result.set("host2", LinksListCommand.json(mapper, pi.two()));
         } else if (intent instanceof PointToPointIntent) {
             PointToPointIntent pi = (PointToPointIntent) intent;
             result.set("ingress", LinksListCommand.json(mapper, pi.ingressPoint()));
             result.set("egress", LinksListCommand.json(mapper, pi.egressPoint()));
-
         } else if (intent instanceof MultiPointToSinglePointIntent) {
             MultiPointToSinglePointIntent pi = (MultiPointToSinglePointIntent) intent;
             result.set("ingress", json(mapper, pi.ingressPoints()));
             result.set("egress", LinksListCommand.json(mapper, pi.egressPoint()));
-
         } else if (intent instanceof SinglePointToMultiPointIntent) {
             SinglePointToMultiPointIntent pi = (SinglePointToMultiPointIntent) intent;
             result.set("ingress", LinksListCommand.json(mapper, pi.ingressPoint()));
             result.set("egress", json(mapper, pi.egressPoints()));
-
         } else if (intent instanceof LinkCollectionIntent) {
             LinkCollectionIntent li = (LinkCollectionIntent) intent;
             result.set("links", LinksListCommand.json(li.links()));

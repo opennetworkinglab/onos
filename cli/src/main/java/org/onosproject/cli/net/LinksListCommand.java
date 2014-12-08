@@ -23,6 +23,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
 
@@ -86,6 +87,19 @@ public class LinksListCommand extends AbstractShellCommand {
         result.put("state", link.state().toString());
         result.set("annotations", annotations(mapper, link.annotations()));
         return result;
+    }
+
+    /**
+     * Produces a JSON object for the specified host ID.
+     *
+     * @param mapper    object mapper
+     * @param hostId    host ID to encode
+     * @return JSON object
+     */
+    public static ObjectNode json(ObjectMapper mapper, HostId hostId) {
+        return mapper.createObjectNode()
+                .put("mac", hostId.mac().toString())
+                .put("vlanId", hostId.vlanId().toString());
     }
 
     /**
