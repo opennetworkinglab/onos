@@ -15,8 +15,11 @@
  */
 package org.onosproject.cli;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.CoreService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.device.DeviceService;
@@ -33,6 +36,25 @@ import org.onosproject.net.topology.TopologyService;
 @Command(scope = "onos", name = "summary",
          description = "Provides summary of ONOS model")
 public class SummaryCommand extends AbstractShellCommand {
+
+    /**
+     * Count the active ONOS controller nodes.
+     *
+     * @param nodes set of all of the controller nodes in the cluster
+     * @return count of active nodes
+     */
+    private int activeNodes(Set<ControllerNode> nodes) {
+        int nodeCount = 0;
+
+        for (final ControllerNode node : nodes) {
+            final ControllerNode.State nodeState =
+                    get(ClusterService.class).getState(node.id());
+            if (nodeState == ControllerNode.State.ACTIVE) {
+                nodeCount++;
+            }
+        }
+        return nodeCount;
+    }
 
     @Override
     protected void execute() {
@@ -55,7 +77,7 @@ public class SummaryCommand extends AbstractShellCommand {
                   get(ClusterService.class).getLocalNode().ip(),
                   get(CoreService.class).version().toString());
             print("nodes=%d, devices=%d, links=%d, hosts=%d, SCC(s)=%s, paths=%d, flows=%d, intents=%d",
-                  get(ClusterService.class).getNodes().size(),
+                  activeNodes(get(ClusterService.class).getNodes()),
                   get(DeviceService.class).getDeviceCount(),
                   get(LinkService.class).getLinkCount(),
                   get(HostService.class).getHostCount(),
