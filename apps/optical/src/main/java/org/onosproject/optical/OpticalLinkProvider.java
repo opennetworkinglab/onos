@@ -137,8 +137,14 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
         Port srcPort = deviceService.getPort(srcId, link.src().port());
         Port dstPort = deviceService.getPort(dstId, link.dst().port());
 
+        if (srcPort == null || dstPort == null) {
+            return; //FIXME remove this in favor of below TODO
+        }
+
         boolean active = deviceService.isAvailable(srcId) &&
                 deviceService.isAvailable(dstId) &&
+                // TODO: should update be queued if src or dstPort is null?
+                //srcPort != null && dstPort != null &&
                 srcPort.isEnabled() && dstPort.isEnabled();
 
         LinkDescription desc = new DefaultLinkDescription(link.src(), link.dst(), OPTICAL);
