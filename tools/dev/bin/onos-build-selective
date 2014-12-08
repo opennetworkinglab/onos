@@ -3,8 +3,9 @@
 # Selectively builds only those projects that contained modified Java files.
 # ----------------------------------------------------------------------------
 
+# TODO: figure out a more elegant way of ignoring disconnected projects
 projects=$(find $ONOS_ROOT -name '*.java' \
-    -not -path '*/openflowj/*' -and -not -path '.git/*' -and -not -path '*/archetypes/*' \
+    -not -path '.git/*' -and -not -path '*/archetypes/*' -and -not -path '*/foo/*' \
     -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
     sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
     sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
