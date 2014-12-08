@@ -1,6 +1,6 @@
 # SDN-IP ProxMox cell
 
-export ONOS_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-openflow,onos-app-tvue,onos-app-config,onos-app-proxyarp,onos-gui,onos-rest"
+export ONOS_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-openflow,onos-app-config,onos-app-proxyarp,onos-gui,onos-rest"
 
 export ONOS_NIC=10.128.4.*
 export OC1="10.128.4.65"
