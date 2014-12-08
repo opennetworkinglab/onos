@@ -16,11 +16,11 @@
         { "mac": "00:00:00:00:00:01", "vlan": -1, "location": "of:0000000000000001/10", "ip": "10.0.1.2, 10.0.2.2",                         "annotations": { "type": "bgpSpeaker", "latitude": 42.292306, "longitude": -104.084378 } },
         { "mac": "00:00:00:00:00:02", "vlan": -1, "location": "of:0000000000000002/10", "ip": "10.0.11.2, 10.0.22.2, 10.0.3.2, 10.0.4.2",   "annotations": { "type": "bgpSpeaker", "latitude": 41.019068, "longitude": -91.079570 } },
         { "mac": "00:00:00:00:00:03", "vlan": -1, "location": "of:0000000000000003/10", "ip": "10.0.33.2, 10.0.44.2",                       "annotations": { "type": "bgpSpeaker", "latitude": 32.043892, "longitude": -105.644437 } },
-        { "mac": "00:00:00:00:01:01", "vlan": -1, "location": "of:0000000000000005/10", "ip": "10.0.1.1",                                   "annotations": { "type": "router", "latitude": 45.637863, "longitude": -125.749416 } },
-        { "mac": "00:00:00:00:01:02", "vlan": -1, "location": "of:0000000000000006/10", "ip": "10.0.11.1",                                  "annotations": { "type": "router", "latitude": 35.459285, "longitude": -125.749416 } },
+        { "mac": "00:00:00:00:01:01", "vlan": -1, "location": "of:0000000000000005/10", "ip": "10.0.1.1",                                   "annotations": { "type": "router", "latitude": 42.985256, "longitude": -127.074018 } },
+        { "mac": "00:00:00:00:01:02", "vlan": -1, "location": "of:0000000000000006/10", "ip": "10.0.11.1",                                  "annotations": { "type": "router", "latitude": 40.593824, "longitude": -127.074018 } },
         { "mac": "00:00:00:00:02:01", "vlan": -1, "location": "of:0000000000000007/10", "ip": "10.0.2.1, 10.0.22.1",                        "annotations": { "type": "router", "latitude": 31.277098, "longitude": -121.35488 } },
         { "mac": "00:00:00:00:03:01", "vlan": -1, "location": "of:0000000000000008/10", "ip": "10.0.3.1, 10.0.33.1",                        "annotations": { "type": "router", "latitude": 39.368502, "longitude": -69.976271 } },
-        { "mac": "00:00:00:00:04:01", "vlan": -1, "location": "of:0000000000000009/10", "ip": "10.0.4.1",                                   "annotations": { "type": "router", "latitude": 36.562831, "longitude": -73.140333 } },
-        { "mac": "00:00:00:00:44:01", "vlan": -1, "location": "of:0000000000000010/10", "ip": "10.0.44.1",                                  "annotations": { "type": "router", "latitude": 30.690461, "longitude": -81.434626 } }
+        { "mac": "00:00:00:00:04:01", "vlan": -1, "location": "of:0000000000000009/10", "ip": "10.0.4.1",                                   "annotations": { "type": "router", "latitude": 34.936264, "longitude": -75.526168 } },
+        { "mac": "00:00:00:00:44:01", "vlan": -1, "location": "of:0000000000000010/10", "ip": "10.0.44.1",                                  "annotations": { "type": "router", "latitude": 32.863420, "longitude": -77.505795 } }
     ]
 }
