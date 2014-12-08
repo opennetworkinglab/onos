@@ -113,12 +113,12 @@ public class NettyMessagingService implements MessagingService {
         try {
             localEp = new Endpoint(java.net.InetAddress.getLocalHost().getHostName(), port);
         } catch (UnknownHostException e) {
-            // bailing out.
-            throw new RuntimeException(e);
+            // Cannot resolve the local host, something is very wrong. Bailing out.
+            throw new IllegalStateException("Cannot resolve local host", e);
         }
     }
 
-    public void activate() throws Exception {
+    public void activate() throws InterruptedException {
         channels.setTestOnBorrow(true);
         channels.setTestOnReturn(true);
         initEventLoopGroup();
