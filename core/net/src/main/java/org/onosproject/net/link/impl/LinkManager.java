@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.State;
@@ -273,9 +274,12 @@ public class LinkManager
     // Removes all links in the specified set and emits appropriate events.
     private void  removeLinks(Set<Link> links, boolean isSoftRemove) {
         for (Link link : links) {
-            if (!deviceService.getDevice(link.src().deviceId()).type().equals(
-                    deviceService.getDevice(link.dst().deviceId()).type())) {
-                //TODO this is aweful. need to be fixed so that we don't down
+            final Device srcDevice = deviceService.getDevice(link.src().deviceId());
+            final Device dstDevice = deviceService.getDevice(link.dst().deviceId());
+            if (srcDevice != null &&
+                    dstDevice != null &&
+                    !srcDevice.type().equals(dstDevice.type())) {
+                //TODO this is awful. need to be fixed so that we don't down
                 // configured links. perhaps add a mechanism to figure out the
                 // state of this link
                 log.info("Ignoring removal of link as device types are " +
