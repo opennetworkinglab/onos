@@ -20,7 +20,6 @@ import java.util.Collection;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
-import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
 
 import com.google.common.base.MoreObjects;
@@ -37,7 +36,7 @@ public class OpticalPathIntent extends Intent {
             ConnectPoint src,
             ConnectPoint dst,
             Path path) {
-        super(appId, ImmutableSet.<NetworkResource>copyOf(path.links()));
+        super(appId, ImmutableSet.copyOf(path.links()));
         this.src = src;
         this.dst = dst;
         this.path = path;
