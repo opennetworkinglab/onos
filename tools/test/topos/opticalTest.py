@@ -28,7 +28,7 @@ class SmallOpticalTopo( Topo ):
         o9ann = { "latitude": 40.8, "longitude": -73.1, "optical.regens": 0 }
         O9 = self.addSwitch( 'JFK-M10', dpid='0000ffffffffff09', annotations=o9ann, cls=OpticalSwitch )
         o10ann = { "latitude": 33.8, "longitude": -84.1, "optical.regens": 0 }
-        O10 = self.addSwitch( 'ATL-S10', dpid='0000ffffffffff0A', annotations=o10ann, cls=OpticalSwitch )
+        O10 = self.addSwitch( 'ATL-S10', dpid='0000ffffffffff0a', annotations=o10ann, cls=OpticalSwitch )
 
         
         SFOR10 = self.addSwitch( 'SFO-R10', dpid='0000ffffffff0001', annotations={"latitude": 37.6, "longitude": -122.3} )

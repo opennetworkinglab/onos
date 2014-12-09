@@ -29,17 +29,17 @@ class BigOpticalTopo( Topo ):
 		o9ann = { "latitude": 46.836379, "longitude":	-100.796917, "optical.regens": 0 }
 		O9 = self.addSwitch( 'BSMRNDJC', dpid='0000ffffffffff09', annotations=o9ann, cls=OpticalSwitch )
 		o10ann = { "latitude": 30.449722, "longitude":	-91.184167, "optical.regens": 0 }
-		O10 = self.addSwitch( 'BTRGLAMA', dpid='0000ffffffffff0A', annotations=o10ann, cls=OpticalSwitch )
+		O10 = self.addSwitch( 'BTRGLAMA', dpid='0000ffffffffff0a', annotations=o10ann, cls=OpticalSwitch )
 		o11ann = { "latitude": 41.881484, "longitude":	-87.640432, "optical.regens": 4 }
-		O11 = self.addSwitch( 'CHCGILCL', dpid='0000ffffffffff0B', annotations=o11ann, cls=OpticalSwitch )
+		O11 = self.addSwitch( 'CHCGILCL', dpid='0000ffffffffff0b', annotations=o11ann, cls=OpticalSwitch )
 		o12ann = { "latitude": 35.224924, "longitude":	-80.837502, "optical.regens": 0 }
-		O12 = self.addSwitch( 'CHRLNCCA', dpid='0000ffffffffff0C', annotations=o12ann, cls=OpticalSwitch )
+		O12 = self.addSwitch( 'CHRLNCCA', dpid='0000ffffffffff0c', annotations=o12ann, cls=OpticalSwitch )
 		o13ann = { "latitude": 32.785278, "longitude":	-79.938056, "optical.regens": 0 }
-		O13 = self.addSwitch( 'CHTNSCDT', dpid='0000ffffffffff0D', annotations=o13ann, cls=OpticalSwitch )
+		O13 = self.addSwitch( 'CHTNSCDT', dpid='0000ffffffffff0d', annotations=o13ann, cls=OpticalSwitch )
 		o14ann = { "latitude": 41.498333, "longitude":	-81.686943, "optical.regens": 0 }
-		O14 = self.addSwitch( 'CLEVOH02', dpid='0000ffffffffff0E', annotations=o14ann, cls=OpticalSwitch )
+		O14 = self.addSwitch( 'CLEVOH02', dpid='0000ffffffffff0e', annotations=o14ann, cls=OpticalSwitch )
 		o15ann = { "latitude": 39.965279, "longitude":	-82.996666, "optical.regens": 0 }
-		O15 = self.addSwitch( 'CLMBOH11', dpid='0000ffffffffff0F', annotations=o15ann, cls=OpticalSwitch )
+		O15 = self.addSwitch( 'CLMBOH11', dpid='0000ffffffffff0f', annotations=o15ann, cls=OpticalSwitch )
 		o16ann = { "latitude": 42.36745, "longitude":	-71.084918, "optical.regens": 0 }
 		O16 = self.addSwitch( 'CMBRMA01', dpid='0000ffffffffff10', annotations=o16ann, cls=OpticalSwitch )
 		o17ann = { "latitude": 39.102778, "longitude":	-84.516944, "optical.regens": 0 }
@@ -61,17 +61,17 @@ class BigOpticalTopo( Topo ):
 		o25ann = { "latitude": 29.748333, "longitude":	-95.36528, "optical.regens": 0 }
 		O25 = self.addSwitch( 'HSTNTX01', dpid='0000ffffffffff19', annotations=o25ann, cls=OpticalSwitch )
 		o26ann = { "latitude": 30.33071, "longitude":	-81.43, "optical.regens": 0 }
-		O26 = self.addSwitch( 'JCVLFLCL', dpid='0000ffffffffff1A', annotations=o26ann, cls=OpticalSwitch )
+		O26 = self.addSwitch( 'JCVLFLCL', dpid='0000ffffffffff1a', annotations=o26ann, cls=OpticalSwitch )
 		o27ann = { "latitude": 39.096649, "longitude":	-94.578716, "optical.regens": 0 }
-		O27 = self.addSwitch( 'KSCYMO09', dpid='0000ffffffffff1B', annotations=o27ann, cls=OpticalSwitch )
+		O27 = self.addSwitch( 'KSCYMO09', dpid='0000ffffffffff1b', annotations=o27ann, cls=OpticalSwitch )
 		o28ann = { "latitude": 40.5899999,"longitude":	-73.6699993, "optical.regens": 0 }
-		O28 = self.addSwitch( 'Island', dpid='0000ffffffffff1C', annotations=o28ann, cls=OpticalSwitch )    
+		O28 = self.addSwitch( 'LGISLAND', dpid='0000ffffffffff1c', annotations=o28ann, cls=OpticalSwitch )    
 		o29ann = { "latitude": 34.051227, "longitude":	-118.252958, "optical.regens": 0 }
-		O29 = self.addSwitch( 'LSANCA03', dpid='0000ffffffffff1D', annotations=o29ann, cls=OpticalSwitch ) # LSANCA03 Connected to packet node 
+		O29 = self.addSwitch( 'LSANCA03', dpid='0000ffffffffff1d', annotations=o29ann, cls=OpticalSwitch ) # LSANCA03 Connected to packet node 
 		o30ann = { "latitude": 36.168056, "longitude":	-115.138889, "optical.regens": 0 }
-		O30 = self.addSwitch( 'LSVGNV02', dpid='0000ffffffffff1E', annotations=o30ann, cls=OpticalSwitch )
+		O30 = self.addSwitch( 'LSVGNV02', dpid='0000ffffffffff1e', annotations=o30ann, cls=OpticalSwitch )
 		o31ann = { "latitude":38.249167, "longitude":	-85.760833, "optical.regens": 0 }
-		O31 = self.addSwitch( 'LSVLKYCS', dpid='0000ffffffffff1F', annotations=o31ann, cls=OpticalSwitch )
+		O31 = self.addSwitch( 'LSVLKYCS', dpid='0000ffffffffff1f', annotations=o31ann, cls=OpticalSwitch )
 		o32ann = { "latitude": 34.740833, "longitude":	-92.271942, "optical.regens": 2 }
 		O32 = self.addSwitch( 'LTRKARFR', dpid='0000ffffffffff20', annotations=o32ann, cls=OpticalSwitch )
 		o33ann = { "latitude": 25.779167, "longitude":	-80.195, "optical.regens": 0 }
@@ -93,17 +93,17 @@ class BigOpticalTopo( Topo ):
 		o41ann = { "latitude": 40.767497, "longitude":	-73.989713, "optical.regens": 0 }
 		O41 = self.addSwitch( 'NYCMNY54', dpid='0000ffffffffff29', annotations=o41ann, cls=OpticalSwitch )
 		o42ann = { "latitude": 35.470833, "longitude":	-97.515274, "optical.regens": 0 }
-		O42 = self.addSwitch( 'OKCYOKCE', dpid='0000ffffffffff2A', annotations=o42ann, cls=OpticalSwitch )
+		O42 = self.addSwitch( 'OKCYOKCE', dpid='0000ffffffffff2a', annotations=o42ann, cls=OpticalSwitch )
 		o43ann = { "latitude": 37.805556, "longitude":	-122.268889, "optical.regens": 2 }
-		O43 = self.addSwitch( 'OKLDCA03', dpid='0000ffffffffff2B', annotations=o43ann, cls=OpticalSwitch )
+		O43 = self.addSwitch( 'OKLDCA03', dpid='0000ffffffffff2b', annotations=o43ann, cls=OpticalSwitch )
 		o44ann = { "latitude": 41.259167, "longitude":-95.940277, "optical.regens": 0 }
-		O44 = self.addSwitch( 'OMAHNENW', dpid='0000ffffffffff2C', annotations=o44ann, cls=OpticalSwitch )
+		O44 = self.addSwitch( 'OMAHNENW', dpid='0000ffffffffff2c', annotations=o44ann, cls=OpticalSwitch )
 		o45ann = { "latitude": 28.543279, "longitude":	-81.377502, "optical.regens": 0 }
-		O45 = self.addSwitch( 'ORLDFLMA', dpid='0000ffffffffff2D', annotations=o45ann, cls=OpticalSwitch )  # ORLDFLMA Connected to packet node 
+		O45 = self.addSwitch( 'ORLDFLMA', dpid='0000ffffffffff2d', annotations=o45ann, cls=OpticalSwitch )  # ORLDFLMA Connected to packet node 
 		o46ann = { "latitude": 39.946446, "longitude":	-75.184139, "optical.regens": 0 }
-		O46 = self.addSwitch( 'PHLAPASL', dpid='0000ffffffffff2E', annotations=o46ann, cls=OpticalSwitch )
+		O46 = self.addSwitch( 'PHLAPASL', dpid='0000ffffffffff2e', annotations=o46ann, cls=OpticalSwitch )
 		o47ann = { "latitude": 33.450361, "longitude":	-112.07709, "optical.regens": 0 }
-		O47 = self.addSwitch( 'PHNXAZMA', dpid='0000ffffffffff2F', annotations=o47ann, cls=OpticalSwitch )  # PHNXAZMA Connected to packet node 
+		O47 = self.addSwitch( 'PHNXAZMA', dpid='0000ffffffffff2f', annotations=o47ann, cls=OpticalSwitch )  # PHNXAZMA Connected to packet node 
 		o48ann = { "latitude":40.441387, "longitude":	-79.995552, "optical.regens": 0 }
 		O48 = self.addSwitch( 'PITBPADG', dpid='0000ffffffffff30', annotations=o48ann, cls=OpticalSwitch )
 		o49ann = { "latitude":41.818889, "longitude":	-71.415278, "optical.regens": 0 }
@@ -125,40 +125,44 @@ class BigOpticalTopo( Topo ):
 		o57ann = { "latitude": 29.429445, "longitude":	-98.488892, "optical.regens": 0 }
 		O57 = self.addSwitch( 'SNANTXCA', dpid='0000ffffffffff39', annotations=o57ann, cls=OpticalSwitch )  # SNANTXCA Connected to packet node 
 		o58ann = { "latitude": 34.418889, "longitude":	-119.7, "optical.regens": 0 }
-		O58 = self.addSwitch( 'SNBBCA01', dpid='0000ffffffffff40', annotations=o58ann, cls=OpticalSwitch )
+		O58 = self.addSwitch( 'SNBBCA01', dpid='0000ffffffffff3a', annotations=o58ann, cls=OpticalSwitch )
 		o59ann = { "latitude":32.746944, "longitude":	-117.158611, "optical.regens": 0 }
-		O59= self.addSwitch( 'SNDGCA02', dpid='0000ffffffffff41', annotations=o59ann, cls=OpticalSwitch )
+		O59 = self.addSwitch( 'SNDGCA02', dpid='0000ffffffffff3b', annotations=o59ann, cls=OpticalSwitch )
 		o60ann = { "latitude":37.785143, "longitude":	-122.397263, "optical.regens": 0 }
-		O60 = self.addSwitch( 'SNFCCA21', dpid='0000ffffffffff42', annotations=o60ann, cls=OpticalSwitch )
+		O60 = self.addSwitch( 'SNFCCA21', dpid='0000ffffffffff3c', annotations=o60ann, cls=OpticalSwitch )
 		o61ann = { "latitude": 37.333333, "longitude":	-121.892778, "optical.regens": 0 }
-		O61 = self.addSwitch( 'SNJSCA02', dpid='0000ffffffffff43', annotations=o61ann, cls=OpticalSwitch )   # SNJSCA02 Connected to packet node 
+		O61 = self.addSwitch( 'SNJSCA02', dpid='0000ffffffffff3d', annotations=o61ann, cls=OpticalSwitch )   # SNJSCA02 Connected to packet node 
 		o62ann = { "latitude": 39.795278, "longitude":	-89.649444, "optical.regens": 0 }
-		O62 = self.addSwitch( 'SPFDILSD', dpid='0000ffffffffff44', annotations=o62ann, cls=OpticalSwitch )
+		O62 = self.addSwitch( 'SPFDILSD', dpid='0000ffffffffff3e', annotations=o62ann, cls=OpticalSwitch )
 		o63ann = { "latitude": 47.654724, "longitude":	-117.419167, "optical.regens": 0 }
-		O63 = self.addSwitch( 'SPKNWA01', dpid='0000ffffffffff45', annotations=o63ann, cls=OpticalSwitch )
+		O63 = self.addSwitch( 'SPKNWA01', dpid='0000ffffffffff3f', annotations=o63ann, cls=OpticalSwitch )
 		o64ann = { "latitude": 38.633335, "longitude":	-90.215279, "optical.regens": 0 }
-		O64 = self.addSwitch( 'STLSMO09', dpid='0000ffffffffff46', annotations=o64ann, cls=OpticalSwitch )
+		O64 = self.addSwitch( 'STLSMO09', dpid='0000ffffffffff40', annotations=o64ann, cls=OpticalSwitch )
 		o65ann = { "latitude": 47.606945, "longitude":	-122.333336, "optical.regens": 0 }
-		O65 = self.addSwitch( 'STTLWA06', dpid='0000ffffffffff47', annotations=o65ann, cls=OpticalSwitch )
+		O65 = self.addSwitch( 'STTLWA06', dpid='0000ffffffffff41', annotations=o65ann, cls=OpticalSwitch )
 		o66ann = { "latitude": 43.049444, "longitude":	-76.1475, "optical.regens": 3 }
-		O66 = self.addSwitch( 'SYRCNYSU', dpid='0000ffffffffff48', annotations=o66ann, cls=OpticalSwitch )
-		o67ann = { "latitude": 28.0225, "longitude": -82.522778, "optical.regens": 0 }
-		O67 = self.addSwitch( 'TAMQFLFN', dpid='0000ffffffffff49', annotations=o67ann, cls=OpticalSwitch )
+		O66 = self.addSwitch( 'SYRCNYSU', dpid='0000ffffffffff42', annotations=o66ann, cls=OpticalSwitch )
+		o67ann = { "latitude": 28.0225,   "longitude": -82.522778, "optical.regens": 0 }
+		O67 = self.addSwitch( 'TAMQFLFN', dpid='0000ffffffffff43', annotations=o67ann, cls=OpticalSwitch )
 		o68ann = { "latitude": 32.224444, "longitude":	-110.968333, "optical.regens": 0 }
-		O68 = self.addSwitch( 'TCSNAZMA', dpid='0000ffffffffff4A', annotations=o68ann, cls=OpticalSwitch )
-		o69ann = { "latitude": 30.456389,"longitude": -84.290833, "optical.regens": 0 }
-		O69 = self.addSwitch( 'TLHSFLAT', dpid='0000ffffffffff4B', annotations=o69ann, cls=OpticalSwitch )
-		o70ann = { "latitude": 41.65,"longitude": -83.538056, "optical.regens": 2 }
-		O70 = self.addSwitch( 'TOLDOH21', dpid='0000ffffffffff4C', annotations=o70ann, cls=OpticalSwitch )
-		o71ann = { "latitude": 36.151669,"longitude": -95.985832, "optical.regens": 0 }
-		O71 = self.addSwitch( 'TULSOKTB', dpid='0000ffffffffff4D', annotations=o71ann, cls=OpticalSwitch )
-		o72ann = { "latitude": 38.88306	,"longitude": -77.01028, "optical.regens": 0 }
-		O72 = self.addSwitch( 'WASHDCSW', dpid='0000ffffffffff4E', annotations=o72ann, cls=OpticalSwitch )  # WASHDCSW  Connected to packet node
-		o73ann = { "latitude": 39.739167,"longitude": -75.553889, "optical.regens": 0 }
-		O73 = self.addSwitch( 'WLMGDE01', dpid='0000ffffffffff4F', annotations=o73ann, cls=OpticalSwitch )
-		o74ann = { "latitude": 26.709391,"longitude": -80.05278, "optical.regens": 0 }
-		O74 = self.addSwitch( 'WPBHFLAN', dpid='0000ffffffffff50', annotations=o74ann, cls=OpticalSwitch )
-  
+		O68 = self.addSwitch( 'TCSNAZMA', dpid='0000ffffffffff44', annotations=o68ann, cls=OpticalSwitch )
+		o69ann = { "latitude": 30.456389, "longitude": -84.290833, "optical.regens": 0 }
+		O69 = self.addSwitch( 'TLHSFLAT', dpid='0000ffffffffff45', annotations=o69ann, cls=OpticalSwitch )
+		o70ann = { "latitude": 41.65,     "longitude": -83.538056, "optical.regens": 2 }
+		O70 = self.addSwitch( 'TOLDOH21', dpid='0000ffffffffff46', annotations=o70ann, cls=OpticalSwitch )
+		o71ann = { "latitude": 36.151669, "longitude": -95.985832, "optical.regens": 0 }
+		O71 = self.addSwitch( 'TULSOKTB', dpid='0000ffffffffff47', annotations=o71ann, cls=OpticalSwitch )
+		o72ann = { "latitude": 38.88306	, "longitude": -77.01028, "optical.regens": 0 }
+		O72 = self.addSwitch( 'WASHDCSW', dpid='0000ffffffffff48', annotations=o72ann, cls=OpticalSwitch )  # WASHDCSW  Connected to packet node
+		o73ann = { "latitude": 39.739167, "longitude": -75.553889, "optical.regens": 0 }
+		O73 = self.addSwitch( 'WLMGDE01', dpid='0000ffffffffff49', annotations=o73ann, cls=OpticalSwitch )
+		o74ann = { "latitude": 26.709391, "longitude": -80.05278, "optical.regens": 0 }
+		O74 = self.addSwitch( 'WPBHFLAN', dpid='0000ffffffffff4a', annotations=o74ann, cls=OpticalSwitch )
+		o75ann = { "latitude": 29.57, "longitude": -96.7, "optical.regens": 0 }
+		O75 = self.addSwitch( 'AUSTTXGR', dpid='0000ffffffffff4b', annotations=o75ann, cls=OpticalSwitch )
+		#o25ann = { "latitude": 29.748333, "longitude":	-95.36528, "optical.regens": 0 }
+		#o57ann = { "latitude": 29.429445, "longitude":	-98.488892, "optical.regens": 0 }
+
 
 		# Packet Layer switches  
 		''' # from opticalTest.py
@@ -195,8 +199,8 @@ class BigOpticalTopo( Topo ):
 		self.addLink( O4, O8, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 271, "durable": "true" }, cls=OpticalLink )  # ATLNGATL  BRHMALMT
 		self.addLink( O4, O12, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 436, "durable": "true" }, cls=OpticalLink )  # ATLNGATL  CHRLNCCA
 		self.addLink( O4, O26, port1=103, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 566, "durable": "true" }, cls=OpticalLink )  # ATLNGATL  JCVLFLCL
-		self.addLink( O5, O25, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 283, "durable": "true" }, cls=OpticalLink )  # AUSTTXGR  HSTNTX01
-		self.addLink( O5, O57, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 141, "durable": "true" }, cls=OpticalLink )  # AUSTTXGR  SNANTXCA
+		self.addLink( O75, O25, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 283, "durable": "true" }, cls=OpticalLink )  # AUSTTXGR  HSTNTX01
+		self.addLink( O75, O57, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 141, "durable": "true" }, cls=OpticalLink )  # AUSTTXGR  SNANTXCA
 		self.addLink( O7, O46, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 170, "durable": "true" }, cls=OpticalLink )  # BLTMMDCH  PHLAPASL
 		self.addLink( O7, O48, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 378, "durable": "true" }, cls=OpticalLink )  # BLTMMDCH  PITBPADG
 		self.addLink( O7, O70, port1=103, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 68, "durable": "true" }, cls=OpticalLink )  # BLTMMDCH  WASHDCSW
@@ -341,31 +345,34 @@ class BigOpticalTopo( Topo ):
 		self.addLink( ATLNGATLR, O4, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=OpticalLink )
 		self.addLink( ATLNGATLR, O4, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=OpticalLink )
 		
-		# Create Hosts 1..11
-		h1 = self.addHost( 'h1' )
-		h2 = self.addHost( 'h2' )
-		h3 = self.addHost( 'h3' )
-		h4 = self.addHost( 'h4' )
-		h5 = self.addHost( 'h5' )
-		h6 = self.addHost( 'h6' )
-		h7 = self.addHost( 'h7' )
-		h8 = self.addHost( 'h8' )
-		h9 = self.addHost( 'h9' )
-		h10 = self.addHost( 'h10' )
-		h11 = self.addHost( 'h11' )
 
 		# Attach hosts to the packet layer switches 
-		self.addLink( SNJSCA02R, h1, port1=1 )
-		self.addLink( SNANTXCAR, h2, port1=1 )
-		self.addLink( ROCHNYXAR, h3, port1=1 )
-		self.addLink( PHNXAZMAR, h4, port1=1 )
-		self.addLink( ORLDFLMAR, h5, port1=1 )
-		self.addLink( NWRKNJ02R, h6, port1=1 )
-		self.addLink( MPLSMNDTR, h7, port1=1 )
-		self.addLink( LSANCA03R, h8, port1=1 )
-		self.addLink( DLLSTXTLR, h9, port1=1 )
-		self.addLink( ATLNGATLR, h10, port1=1 )
-		self.addLink( WASHDCSWR, h11, port1=1 )
+		for i in range( 1, 4 ): #don't make this more than 4!!!!!
+			# Create Hosts 1..11
+			h1 = self.addHost( 'h1d%d' % i, ip='10.0.1.%d/16' % i )
+			h2 = self.addHost( 'h2d%d' % i, ip='10.0.2.%d/16' % i )
+			h3 = self.addHost( 'h3d%d' % i, ip='10.0.3.%d/16' % i )
+			h4 = self.addHost( 'h4d%d' % i, ip='10.0.4.%d/16' % i )
+			h5 = self.addHost( 'h5d%d' % i, ip='10.0.5.%d/16' % i )
+			h6 = self.addHost( 'h6d%d' % i, ip='10.0.6.%d/16' % i )
+			h7 = self.addHost( 'h7d%d' % i, ip='10.0.7.%d/16' % i )
+			h8 = self.addHost( 'h8d%d' % i, ip='10.0.8.%d/16' % i )
+			h9 = self.addHost( 'h9d%d' % i, ip='10.0.9.%d/16' % i )
+			h10 = self.addHost( 'h10d%d' % i, ip='10.0.10.%d/16' % i )
+			h11 = self.addHost( 'h11d%d' % i, ip='10.0.11.%d/16' % i )
+
+			port = i + 6
+			self.addLink( SNJSCA02R, h1, port1=port )
+			self.addLink( SNANTXCAR, h2, port1=port )
+			self.addLink( ROCHNYXAR, h3, port1=port )
+			self.addLink( PHNXAZMAR, h4, port1=port )
+			self.addLink( ORLDFLMAR, h5, port1=port )
+			self.addLink( NWRKNJ02R, h6, port1=port )
+			self.addLink( MPLSMNDTR, h7, port1=port )
+			self.addLink( LSANCA03R, h8, port1=port )
+			self.addLink( DLLSTXTLR, h9, port1=port )
+			self.addLink( ATLNGATLR, h10, port1=port )
+			self.addLink( WASHDCSWR, h11, port1=port )
 
 if __name__ == '__main__':
     import sys
