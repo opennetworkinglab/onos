@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Hello AngularJS</title>
+
+    <script src="../../tp/angular.js"></script>
+</head>
+<body ng-controller="MainCtrl">
+    Hello {{1 + 1}}nd time AngularJS
+
+    <script type="text/javascript">
+        angular.module('notesApp', [])
+                .controller('MainCtrl', [function () {
+                    // controller specific code here
+                    console.log('MainCtrl has been created');
+                }]);
+    </script>
+
+</body>
+</html>

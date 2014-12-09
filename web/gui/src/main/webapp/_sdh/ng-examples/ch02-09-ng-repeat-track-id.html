@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        span {
+            background-color: #cce;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+    <button ng-click="ctrl.changeNotes()">Change Notes</button>
+    <br/>
+
+    DOM Elements change at every click
+    <div ng-repeat="note in ctrl.notes1">
+        {{note.$$hashKey}}
+        <span class="label"> {{note.label}} </span>
+        <span class="author"> {{note.done}} </span>
+    </div>
+    <br/>
+
+    DOM Elements are reused at every click
+    <div ng-repeat="note in ctrl.notes2 track by note.id">
+        {{note.$$hashKey}}
+        <span class="label"> {{note.label}} </span>
+        <span class="author"> {{note.done}} </span>
+    </div>
+
+    <script type="text/javascript">
+        angular.module('notesApp', []).controller('MainCtrl', [
+            function () {
+                var self = this;
+                var notes = [
+                    {id: 1, label: 'First note', done: false, someRandom: 31431},
+                    {id: 2, label: 'Second note', done: false},
+                    {id: 3, label: 'Finished third note', done: true}
+                ];
+                self.notes1 = angular.copy(notes);
+                self.notes2 = angular.copy(notes);
+
+                self.changeNotes = function () {
+                    notes = [
+                        {id: 1, label: 'Changed note', done: false, someRandom: 4242},
+                        {id: 2, label: 'Second note', done: false},
+                        {id: 3, label: 'Finished third note', done: true}
+                    ];
+                    self.notes1 = angular.copy(notes);
+                    self.notes2 = angular.copy(notes);
+                }
+            }
+        ]);
+    </script>
+
+</body>
+</html>

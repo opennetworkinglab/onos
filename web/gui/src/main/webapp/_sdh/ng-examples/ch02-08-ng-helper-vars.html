@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        span {
+            background-color: #cce;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+    <div ng-repeat="note in ctrl.notes">
+        <div>First element: {{$first}}</div>
+        <div>Middle element: {{$middle}}</div>
+        <div>Last element: {{$last}}</div>
+        <div>Index of element: {{$index}}</div>
+        <div>At even position: {{$even}}</div>
+        <div>At odd position: {{$odd}}</div>
+
+        <span class="label"> {{note.label}} </span>
+        <span class="status"> {{note.done}} </span>
+        <br/><br/>
+    </div>
+
+    <script type="text/javascript">
+        angular.module('notesApp', []).controller('MainCtrl', [
+            function () {
+                var self = this;
+                self.notes = [
+                    {id: 1, label: 'First note', done: false},
+                    {id: 2, label: 'Second note', done: false},
+                    {id: 3, label: 'Done note', done: true},
+                    {id: 4, label: 'Last note', done: false}
+                ];
+            }
+        ]);
+    </script>
+
+</body>
+</html>
