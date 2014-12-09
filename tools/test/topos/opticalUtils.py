@@ -220,10 +220,11 @@ def startOE( net ):
         onosDir = os.environ[ 'ONOS_ROOT' ]
     except:
         onosDir = findDir( 'onos' )
-        os.environ[ 'ONOS_ROOT' ] = onosDir
         if not onosDir:
             error( 'Please set ONOS_ROOT environment variable!\n' )
             return False
+        else:
+            os.environ[ 'ONOS_ROOT' ] = onosDir
 
     info( '*** Writing Topology.json file\n' )
     with open( 'Topology.json', 'w' ) as outfile:
@@ -284,7 +285,7 @@ def startOE( net ):
                         intf2 = intfList[ 0 ]
                         intf.node.attach( findTap( intf2.node, intf2.node.ports[ intf2 ] ) )
 
-    info( '*** Press any key to push Topology.json to onos...\n' )
+    info( '*** Press ENTER to push Topology.json to onos...\n' )
     raw_input() # FIXME... we should eventually remove this
     info( '*** Pushing Topology.json to ONOS\n' )
     output = quietRun( '%s/tools/test/bin/onos-topo-cfg %s Topology.json' % ( onosDir, net.controllers[ 0 ].ip ), shell=True )

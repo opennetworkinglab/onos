@@ -192,7 +192,9 @@ public class OpticalPathProvisioner {
                 }
                 // provision both directions
                 intents.addAll(getOpticalPath(one.location(), two.location()));
-                intents.addAll(getOpticalPath(two.location(), one.location()));
+                // note: bi-directional intent is set up
+                // HostToHost Intent requires symmetric path!
+                //intents.addAll(getOpticalPath(two.location(), one.location()));
             } else if (intent instanceof PointToPointIntent) {
                 PointToPointIntent p2pIntent = (PointToPointIntent) intent;
                 intents.addAll(getOpticalPath(p2pIntent.ingressPoint(), p2pIntent.egressPoint()));
@@ -265,8 +267,13 @@ public class OpticalPathProvisioner {
                     Intent opticalIntent = new OpticalConnectivityIntent(appId,
                                                                          srcWdmPoint,
                                                                          dstWdmPoint);
+                    Intent opticalIntent2 = new OpticalConnectivityIntent(appId,
+                                                                         dstWdmPoint,
+                                                                         srcWdmPoint);
                     log.info("Creating optical intent from {} to {}", srcWdmPoint, dstWdmPoint);
+                    log.info("Creating optical intent from {} to {}", dstWdmPoint, srcWdmPoint);
                     connectionList.add(opticalIntent);
+                    connectionList.add(opticalIntent2);
 
                     break;
                 }
