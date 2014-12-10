@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+<form ng-submit="ctrl.submit()" name="myForm">
+    <input type="text"
+           name="uname"
+           placeholder="username"
+           ng-model="ctrl.user.username"
+           required
+           ng-minlength="4"/>
+    <span ng-show="myForm.uname.$error.required">
+        This is a required field
+    </span>
+    <span ng-show="myForm.uname.$error.minlength">
+        Minimum length required is 4
+    </span>
+    <span ng-show="myForm.uname.$invalid">
+        This field is invalid
+    </span>
+    <br/>
+
+    <input type="password"
+           name="pwd"
+           placeholder="password"
+           ng-model="ctrl.user.password"
+           required/>
+    <span ng-show="myForm.pwd.$error.required">
+        This is a required field
+    </span>
+    <br/>
+
+    <input type="submit"
+           value="Submit"
+           ng-disabled="myForm.$invalid"/>
+</form>
+
+<script type="text/javascript">
+    angular.module('notesApp', [])
+        .controller('MainCtrl', [function () {
+            var self = this;
+            self.submit = function () {
+                console.log('Submit: ', self.user);
+            };
+        }]);
+</script>
+
+</body>
+</html>

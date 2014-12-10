@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html ng-app>
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+</head>
+<!-- no controller in this example -->
+<body>
+
+<form novalidate name="myForm">
+    <input type="text"
+           class="username"
+           name="uname"
+           ng-model="ctrl.user.username"
+           required=""
+           placeholder="Username"
+           ng-minlength="4"/>
+
+    <input type="password"
+           class="password"
+           name="pad"
+           ng-model="ctrl.user.password"
+           required=""
+           placeholder="Password"
+           required=""/>
+
+    <p/>
+
+    <ng-form name="profile">
+        <input type="text"
+               name="firstName"
+               ng-model="ctrl.user.profile.firstName"
+               placeholder="First Name"
+               required/>
+        <input type="text"
+               name="middleName"
+               ng-model="ctrl.user.profile.middleName"
+               placeholder="Middle Name"/>
+        <input type="text"
+               name="lastName"
+               ng-model="ctrl.user.profile.lastName"
+               placeholder="Last Name"
+               required/>
+
+        <input type="date"
+               name="dob"
+               placeholder="Date of birth"
+               ng-model="ctrl.user.profile.dob"/>
+    </ng-form>
+
+    <span ng-show="myForm.profile.$invalid">
+        Please fill out the profile information
+    </span>
+
+    <p/>
+
+    <input type="submit"
+           value="Submit"
+           ng-disabled="myForm.$invalid"/>
+</form>
+
+</body>
+</html>

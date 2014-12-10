@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        span {
+            background-color: #cce;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+<form ng-submit="ctrl.submit1()">
+    <input type="text" placeholder="username" ng-model="ctrl.username"/>
+    <input type="password" placeholder="password" ng-model="ctrl.password"/>
+    <input type="submit" value="Submit"/>
+</form>
+
+<!-- Better way of structuring the form data -->
+<form ng-submit="ctrl.submit2()">
+    <input type="text" placeholder="username" ng-model="ctrl.user.username"/>
+    <input type="password" placeholder="password" ng-model="ctrl.user.password"/>
+    <input type="submit" value="Submit"/>
+</form>
+
+<script type="text/javascript">
+    angular.module('notesApp', [])
+        .controller('MainCtrl', [function () {
+            var self = this;
+
+            self.submit1 = function () {
+                // create user object to send to server
+                var user = {username: self.username, password: self.password};
+                console.log('First submit: ', user);
+            };
+            self.submit2 = function () {
+                console.log('Second submit: ', self.user);
+            };
+        }]);
+</script>
+
+</body>
+</html>

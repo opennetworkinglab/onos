@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        span {
+            background-color: #cce;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+<!--
+ - Note, using a form has the advantage of reacting to RETURN triggering
+ - the submit, as well as pressing the submit button.
+ -->
+<form ng-submit="ctrl.submit()">
+    <input type="text" placeholder="username" ng-model="ctrl.user.username"/>
+    <input type="password" placeholder="password" ng-model="ctrl.user.password"/>
+    <input type="submit" value="Submit"/>
+    <p></p>
+    <textarea cols="60" rows="5" ng-model="ctrl.user.notes" placeholder="Notes">
+    </textarea>
+    <p>
+        NOTES:
+        <div>
+        {{ctrl.user.notes}}
+        </div>
+    </p>
+</form>
+
+<script type="text/javascript">
+    angular.module('notesApp', [])
+        .controller('MainCtrl', [function () {
+            var self = this;
+
+            self.submit = function () {
+                console.log('User clicked submit with ', self.user);
+            };
+        }]);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+    <div>
+        <h2>What are your favorite sports?</h2>
+        <div ng-repeat="sport in ctrl.sports">
+            <label ng-bind="sport.label"></label>
+            <div>
+                With binding:
+                <input type="checkbox"
+                       ng-model="sport.selected"
+                       ng-true-value="'YES'"
+                       ng-false-value="'NO'"/>
+            </div>
+            <div>
+                using ng-checked:
+                <input type="checkbox"
+                       ng-checked="sport.selected === 'YES'"/>
+            </div>
+            <div>
+                Current state: {{sport.selected}}
+            </div>
+            <br/>
+        </div>
+
+    </div>
+
+    <script type="text/javascript">
+        angular.module('notesApp', [])
+                .controller('MainCtrl', [function () {
+                    var self = this;
+                    self.sports = [
+                        {label: 'Basketball', selected: 'YES'},
+                        {label: 'Cricket', selected: 'NO'},
+                        {label: 'Soccer', selected: 'NO'},
+                        {label: 'Swimming', selected: 'YES'}
+                    ];
+                }]);
+    </script>
+
+</body>
+</html>

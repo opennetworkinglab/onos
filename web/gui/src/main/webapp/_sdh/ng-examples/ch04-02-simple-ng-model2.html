@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        span {
+            background-color: #cce;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+<input type="text" ng-model="ctrl.username"/>
+<input type="password" ng-model="ctrl.password"/>
+<button ng-click="ctrl.change()">Change values</button>
+<button ng-click="ctrl.submit()">Submit</button>
+
+
+
+
+<script type="text/javascript">
+    angular.module('notesApp', []).controller('MainCtrl', [
+        function () {
+            var self = this;
+            self.change = function () {
+                self.username = 'changed';
+                self.password = 'password';
+            };
+
+            self.submit = function () {
+                console.log('user clicked submit with ',
+                    self.username, self.password);
+            };
+        }
+    ]);
+</script>
+
+</body>
+</html>

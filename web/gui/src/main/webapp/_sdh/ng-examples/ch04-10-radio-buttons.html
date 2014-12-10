@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+    <div>
+        <h2>Radio Buttons</h2>
+        <div ng-init="user.gender = 'female'">
+            <input type="radio"
+                   name="gender"
+                   ng-model="user.gender"
+                   value="male"/>Male
+            <input type="radio"
+                   name="gender"
+                   ng-model="user.gender"
+                   value="female"/>Female
+        </div>
+    </div>
+
+    <div>
+        <h2>Radio Buttons two</h2>
+        <div ng-init="user.gender2 = 'male'; otherGender = 'Other'">
+            <input type="radio"
+                   name="gender2"
+                   ng-model="user.gender2"
+                   value="male"/>Male
+            <input type="radio"
+                   name="gender2"
+                   ng-model="user.gender2"
+                   value="female"/>Female
+            <input type="radio"
+                   name="gender2"
+                   ng-model="user.gender2"
+                   ng-value="otherGender"/>{{otherGender}}
+        </div>
+    </div>
+
+    <div>
+        <h2>Radio Buttons three</h2>
+        <div ng-repeat="ch in ctrl.choices">
+            <input type="radio"
+                   name="choice"
+                   ng-model="user.choice"
+                   ng-value="ch"/>{{ch}}
+
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        angular.module('notesApp', [])
+                .controller('MainCtrl', [function () {
+                    var self = this;
+
+                    self.choices = ['foo', 'bar', 'baz', 'zoo', 'goo'];
+                }]);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        span {
+            background-color: #cce;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+<form ng-submit="ctrl.submit()" name="myForm">
+    <input type="text"
+           placeholder="username"
+           ng-model="ctrl.user.username"
+           required
+           ng-minlength="4"/>
+
+    <input type="password"
+           placeholder="password"
+           ng-model="ctrl.user.password"
+           required/>
+
+    <input type="submit"
+           value="Submit"
+           ng-disabled="myForm.$invalid"/>
+</form>
+
+<script type="text/javascript">
+    angular.module('notesApp', [])
+        .controller('MainCtrl', [function () {
+            var self = this;
+            self.submit = function () {
+                console.log('Submit: ', self.user);
+            };
+        }]);
+</script>
+
+</body>
+</html>

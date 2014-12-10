@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html ng-app="notesApp">
+<head>
+    <title>Notes App</title>
+    <script src="../../tp/angular.js"></script>
+    <style>
+        .username.ng-valid {
+            background-color: greenyellow;
+        }
+        .username.ng-dirty.ng-invalid-required {
+            background-color: hotpink;
+        }
+        .username.ng-dirty.ng-invalid-minlength {
+            background-color: lightpink;
+        }
+    </style>
+</head>
+<body ng-controller="MainCtrl as ctrl">
+
+<form ng-submit="ctrl.submit()" name="myForm">
+    <input type="text"
+           class="username"
+           name="uname"
+           placeholder="username"
+           ng-model="ctrl.user.username"
+           required
+           ng-minlength="4"/>
+
+    <input type="submit"
+           value="Submit"
+           ng-disabled="myForm.$invalid"/>
+</form>
+
+<script type="text/javascript">
+    angular.module('notesApp', [])
+        .controller('MainCtrl', [function () {
+            var self = this;
+            self.submit = function () {
+                console.log('Submit: ', self.user);
+            };
+        }]);
+</script>
+
+</body>
+</html>
