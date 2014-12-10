@@ -78,7 +78,7 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
  * This class tests adding a route, updating a route, deleting a route, and
  * the ARP module answers the MAC address asynchronously.
  */
-public class RouterTestWithAsyncArp extends AbstractIntentTest {
+public class RouterAsyncArpTest extends AbstractIntentTest {
 
     private SdnIpConfigurationService sdnIpConfigService;
     private InterfaceService interfaceService;
