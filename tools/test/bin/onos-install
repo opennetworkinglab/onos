@@ -45,7 +45,8 @@ ssh $remote "
 
     # Remove any previous ON.Lab bits from ~/.m2 repo and re-stage it.
     rm -fr ~/.m2/repository/org/onosproject
-    cp -r $ONOS_INSTALL_DIR/$KARAF_DIST/system/org/onosproject ~/.m2/repository/org/onosproject
+    mkdir -p ~/.m2/repository/org
+    cp -r $ONOS_INSTALL_DIR/$KARAF_DIST/system/org/onosproject ~/.m2/repository/org
 
     # Drop log level for the console
     echo "log4j.logger.org.apache.sshd = WARN" \
