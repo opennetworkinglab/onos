@@ -45,7 +45,7 @@ public class GreetResourceTest extends JerseyTest {
     public void basics() {
         WebResource rs = resource();
         String response = rs.path("greet").get(String.class);
-        assertTrue("incorrect response", response.contains("Whazup "));
+        assertTrue("incorrect response", response.contains("greeting"));
     }
 
 }

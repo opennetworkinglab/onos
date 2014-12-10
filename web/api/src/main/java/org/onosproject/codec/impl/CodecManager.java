@@ -25,6 +25,8 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.slf4j.Logger;
@@ -53,11 +55,13 @@ public class CodecManager implements CodecService {
         registerCodec(Port.class, new PortCodec());
         registerCodec(ConnectPoint.class, new ConnectPointCodec());
         registerCodec(Link.class, new LinkCodec());
+        registerCodec(Host.class, new HostCodec());
+        registerCodec(HostLocation.class, new HostLocationCodec());
         log.info("Started");
     }
 
     @Deactivate
-    public void deativate() {
+    public void deactivate() {
         codecs.clear();
         log.info("Stopped");
     }
