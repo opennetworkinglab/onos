@@ -15,11 +15,20 @@
  */
 package org.onosproject.store.link.impl;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.SetMultimap;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -28,6 +37,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -57,28 +67,20 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.SetMultimap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.minPriority;
+import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.DefaultAnnotations.union;
@@ -87,10 +89,10 @@ import static org.onosproject.net.Link.State.INACTIVE;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.Type.INDIRECT;
 import static org.onosproject.net.LinkKey.linkKey;
-import static org.onosproject.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.onosproject.store.link.impl.GossipLinkStoreMessageSubjects.LINK_ANTI_ENTROPY_ADVERTISEMENT;
-import static org.onlab.util.Tools.minPriority;
-import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -236,7 +238,12 @@ public class GossipLinkStore
         Set<Link> egress = new HashSet<>();
         for (LinkKey linkKey : srcLinks.get(src.deviceId())) {
             if (linkKey.src().equals(src)) {
-                egress.add(links.get(linkKey));
+                Link link = links.get(linkKey);
+                if (link != null) {
+                    egress.add(link);
+                } else {
+                    log.debug("Egress link for {} was null, skipped", linkKey);
+                }
             }
         }
         return egress;
@@ -247,7 +254,12 @@ public class GossipLinkStore
         Set<Link> ingress = new HashSet<>();
         for (LinkKey linkKey : dstLinks.get(dst.deviceId())) {
             if (linkKey.dst().equals(dst)) {
-                ingress.add(links.get(linkKey));
+                Link link = links.get(linkKey);
+                if (link != null) {
+                    ingress.add(link);
+                } else {
+                    log.debug("Ingress link for {} was null, skipped", linkKey);
+                }
             }
         }
         return ingress;
