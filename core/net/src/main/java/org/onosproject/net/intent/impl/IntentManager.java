@@ -757,7 +757,7 @@ public class IntentManager
         private int installAttempt;
 
         public IntentInstallMonitor(IntentOperations ops) {
-            this.ops = ops;
+            this.ops = checkNotNull(ops);
             resetTimeoutLimit();
         }
 
