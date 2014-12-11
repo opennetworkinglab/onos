@@ -52,6 +52,7 @@ import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -743,12 +744,16 @@ public class IntentManager
 
     private class IntentInstallMonitor implements Runnable {
 
-        // TODO make this configurable
+        // TODO make this configurable through a configuration file using @Property mechanism
+        // These fields needs to be moved to the enclosing class and configurable through a configuration file
         private static final int TIMEOUT_PER_OP = 500; // ms
         private static final int MAX_ATTEMPTS = 3;
 
         private final IntentOperations ops;
         private final List<IntentUpdate> intentUpdates = Lists.newArrayList();
+
+        private final Duration timeoutPerOperation;
+        private final int maxAttempts;
 
         // future holding current FlowRuleBatch installation result
         private Future<CompletedBatchOperation> future;
@@ -757,14 +762,22 @@ public class IntentManager
         private int installAttempt;
 
         public IntentInstallMonitor(IntentOperations ops) {
+            this(ops, Duration.ofMillis(TIMEOUT_PER_OP), MAX_ATTEMPTS);
+        }
+
+        public IntentInstallMonitor(IntentOperations ops, Duration timeoutPerOperation, int maxAttempts) {
             this.ops = checkNotNull(ops);
+            this.timeoutPerOperation = checkNotNull(timeoutPerOperation);
+            checkArgument(maxAttempts > 0, "maxAttempts must be larger than 0, but %s", maxAttempts);
+            this.maxAttempts = maxAttempts;
+
             resetTimeoutLimit();
         }
 
         private void resetTimeoutLimit() {
             // FIXME compute reasonable timeouts
             this.endTime = System.currentTimeMillis()
-                           + ops.operations().size() * TIMEOUT_PER_OP;
+                           + ops.operations().size() * timeoutPerOperation.toMillis();
         }
 
         private void buildIntentUpdates() {
@@ -880,12 +893,12 @@ public class IntentManager
                 // reset the timer
                 resetTimeoutLimit();
                 installAttempt++;
-                if (installAttempt == MAX_ATTEMPTS) {
+                if (installAttempt == maxAttempts) {
                     log.warn("Install request timed out: {}", ops);
                     for (IntentUpdate update : intentUpdates) {
                         update.batchFailed();
                     }
-                } else if (installAttempt > MAX_ATTEMPTS) {
+                } else if (installAttempt > maxAttempts) {
                     abandonShip();
                     return;
                 } // else just resubmit the work
