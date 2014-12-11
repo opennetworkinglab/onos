@@ -32,20 +32,15 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
     static final long PEER_AS = 65001;
     static final int PEER_HOLDTIME = 120;       // 120 seconds
     final Ip4Address bgpId;                     // The BGP ID
-    final long localPref;                       // Local preference for routes
-    final long multiExitDisc = 20;              // MED value
-
     ChannelHandlerContext savedCtx;
 
     /**
      * Constructor for given BGP ID.
      *
      * @param bgpId the BGP ID to use
-     * @param localPref the local preference for the routes to use
      */
-    TestBgpPeerChannelHandler(Ip4Address bgpId, long localPref) {
+    TestBgpPeerChannelHandler(Ip4Address bgpId) {
         this.bgpId = bgpId;
-        this.localPref = localPref;
     }
 
     /**
@@ -94,11 +89,17 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
      * Prepares BGP UPDATE message.
      *
      * @param nextHopRouter the next-hop router address for the routes to add
+     * @param localPref the local preference for the routes to use
+     * @param multiExitDisc the MED value
+     * @param asPath the AS path for the routes to add
      * @param addedRoutes the routes to add
      * @param withdrawnRoutes the routes to withdraw
      * @return the message to transmit (BGP header included)
      */
     ChannelBuffer prepareBgpUpdate(Ip4Address nextHopRouter,
+                                   long localPref,
+                                   long multiExitDisc,
+                                   BgpRouteEntry.AsPath asPath,
                                    Collection<Ip4Prefix> addedRoutes,
                                    Collection<Ip4Prefix> withdrawnRoutes) {
         int attrFlags;
@@ -119,23 +120,14 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
         pathAttributes.writeByte(BgpConstants.Update.Origin.TYPE);
         pathAttributes.writeByte(1);                    // Data length
         pathAttributes.writeByte(BgpConstants.Update.Origin.IGP);
-        // AS_PATH: Two Path Segments of 3 ASes each
+
+        // AS_PATH: asPath
         attrFlags = 0x40;                               // Transitive flag
         pathAttributes.writeByte(attrFlags);
         pathAttributes.writeByte(BgpConstants.Update.AsPath.TYPE);
-        pathAttributes.writeByte(16);                   // Data length
-        byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
-        pathAttributes.writeByte(pathSegmentType1);
-        pathAttributes.writeByte(3);                    // Three ASes
-        pathAttributes.writeShort(65010);               // AS=65010
-        pathAttributes.writeShort(65020);               // AS=65020
-        pathAttributes.writeShort(65030);               // AS=65030
-        byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
-        pathAttributes.writeByte(pathSegmentType2);
-        pathAttributes.writeByte(3);                    // Three ASes
-        pathAttributes.writeShort(65041);               // AS=65041
-        pathAttributes.writeShort(65042);               // AS=65042
-        pathAttributes.writeShort(65043);               // AS=65043
+        ChannelBuffer encodedAsPath = encodeAsPath(asPath);
+        pathAttributes.writeByte(encodedAsPath.readableBytes()); // Data length
+        pathAttributes.writeBytes(encodedAsPath);
         // NEXT_HOP: nextHopRouter
         attrFlags = 0x40;                               // Transitive flag
         pathAttributes.writeByte(attrFlags);
@@ -196,6 +188,27 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
                 long nextByte =
                     (value >> ((Ip4Address.BYTE_LENGTH - i - 1) * 8)) & 0xff;
                 message.writeByte((int) nextByte);
+            }
+        }
+
+        return message;
+    }
+
+    /**
+     * Encodes an AS path.
+     *
+     * @param asPath the AS path to encode
+     * @return the buffer with the encoded AS path
+     */
+    private ChannelBuffer encodeAsPath(BgpRouteEntry.AsPath asPath) {
+        ChannelBuffer message =
+            ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
+
+        for (BgpRouteEntry.PathSegment pathSegment : asPath.getPathSegments()) {
+            message.writeByte(pathSegment.getType());
+            message.writeByte(pathSegment.getSegmentAsNumbers().size());
+            for (Long asNumber : pathSegment.getSegmentAsNumbers()) {
+                message.writeShort(asNumber.intValue());
             }
         }
 

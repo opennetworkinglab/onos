@@ -15,7 +15,6 @@
  */
 package org.onosproject.sdnip.bgp;
 
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -30,6 +29,8 @@ import java.util.LinkedList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -58,8 +59,24 @@ public class BgpSessionManagerTest {
         Ip4Address.valueOf("127.0.0.1");
     private static final Ip4Address BGP_PEER1_ID =
         Ip4Address.valueOf("10.0.0.1");
+    private static final Ip4Address BGP_PEER2_ID =
+        Ip4Address.valueOf("10.0.0.2");
+    private static final Ip4Address BGP_PEER3_ID =
+        Ip4Address.valueOf("10.0.0.3");
+    private static final Ip4Address NEXT_HOP1_ROUTER =
+        Ip4Address.valueOf("10.20.30.41");
+    private static final Ip4Address NEXT_HOP2_ROUTER =
+        Ip4Address.valueOf("10.20.30.42");
+    private static final Ip4Address NEXT_HOP3_ROUTER =
+        Ip4Address.valueOf("10.20.30.43");
+
     private static final long DEFAULT_LOCAL_PREF = 10;
+    private static final long BETTER_LOCAL_PREF = 20;
     private static final long DEFAULT_MULTI_EXIT_DISC = 20;
+    private static final long BETTER_MULTI_EXIT_DISC = 30;
+
+    BgpRouteEntry.AsPath asPathShort;
+    BgpRouteEntry.AsPath asPathLong;
 
     // Timeout waiting for a message to be received
     private static final int MESSAGE_TIMEOUT_MS = 5000; // 5s
@@ -68,13 +85,16 @@ public class BgpSessionManagerTest {
     private BgpSessionManager bgpSessionManager;
 
     // Remote Peer state
-    private ClientBootstrap peerBootstrap;
-    private TestBgpPeerChannelHandler peerChannelHandler =
-        new TestBgpPeerChannelHandler(BGP_PEER1_ID, DEFAULT_LOCAL_PREF);
-    private TestBgpPeerFrameDecoder peerFrameDecoder =
-        new TestBgpPeerFrameDecoder();
+    TestBgpPeer peer1 = new TestBgpPeer(BGP_PEER1_ID);
+    TestBgpPeer peer2 = new TestBgpPeer(BGP_PEER2_ID);
+    TestBgpPeer peer3 = new TestBgpPeer(BGP_PEER3_ID);
 
-    // The socket that the Remote Peer should connect to
+    // Local BGP per-peer session state
+    BgpSession bgpSession1;
+    BgpSession bgpSession2;
+    BgpSession bgpSession3;
+
+    // The socket that the remote peers should connect to
     private InetSocketAddress connectToSocket;
 
     private final DummyRouteListener dummyRouteListener =
@@ -88,6 +108,132 @@ public class BgpSessionManagerTest {
         public void update(Collection<RouteUpdate> routeUpdate) {
             // Nothing to do
         }
+    }
+
+    /**
+     * A class to capture the state for a BGP peer.
+     */
+    private final class TestBgpPeer {
+        private final Ip4Address peerId;
+        private ClientBootstrap peerBootstrap;
+        private TestBgpPeerChannelHandler peerChannelHandler;
+        private TestBgpPeerFrameDecoder peerFrameDecoder =
+            new TestBgpPeerFrameDecoder();
+
+        /**
+         * Constructor.
+         *
+         * @param peerId the peer ID
+         */
+        private TestBgpPeer(Ip4Address peerId) {
+            this.peerId = peerId;
+            peerChannelHandler = new TestBgpPeerChannelHandler(peerId);
+        }
+
+        /**
+         * Starts up the BGP peer and connects it to the tested SDN-IP
+         * instance.
+         *
+         * @param connectToSocket the socket to connect to
+         */
+        private void connect(InetSocketAddress connectToSocket)
+            throws InterruptedException {
+            //
+            // Setup the BGP Peer, i.e., the "remote" BGP router that will
+            // initiate the BGP connection, send BGP UPDATE messages, etc.
+            //
+            ChannelFactory channelFactory =
+                new NioClientSocketChannelFactory(
+                        Executors.newCachedThreadPool(),
+                        Executors.newCachedThreadPool());
+            ChannelPipelineFactory pipelineFactory =
+                new ChannelPipelineFactory() {
+                    @Override
+                    public ChannelPipeline getPipeline() throws Exception {
+                        // Setup the transmitting pipeline
+                        ChannelPipeline pipeline = Channels.pipeline();
+                        pipeline.addLast("TestBgpPeerFrameDecoder",
+                                         peerFrameDecoder);
+                        pipeline.addLast("TestBgpPeerChannelHandler",
+                                         peerChannelHandler);
+                        return pipeline;
+                    }
+                };
+
+            peerBootstrap = new ClientBootstrap(channelFactory);
+            peerBootstrap.setOption("child.keepAlive", true);
+            peerBootstrap.setOption("child.tcpNoDelay", true);
+            peerBootstrap.setPipelineFactory(pipelineFactory);
+            peerBootstrap.connect(connectToSocket);
+
+            boolean result;
+            // Wait until the OPEN message is received
+            result = peerFrameDecoder.receivedOpenMessageLatch.await(
+                MESSAGE_TIMEOUT_MS,
+                TimeUnit.MILLISECONDS);
+            assertThat(result, is(true));
+            // Wait until the KEEPALIVE message is received
+            result = peerFrameDecoder.receivedKeepaliveMessageLatch.await(
+                MESSAGE_TIMEOUT_MS,
+                TimeUnit.MILLISECONDS);
+            assertThat(result, is(true));
+
+            for (BgpSession bgpSession : bgpSessionManager.getBgpSessions()) {
+                if (bgpSession.getRemoteBgpId().equals(BGP_PEER1_ID)) {
+                    bgpSession1 = bgpSession;
+                }
+                if (bgpSession.getRemoteBgpId().equals(BGP_PEER2_ID)) {
+                    bgpSession2 = bgpSession;
+                }
+                if (bgpSession.getRemoteBgpId().equals(BGP_PEER3_ID)) {
+                    bgpSession3 = bgpSession;
+                }
+            }
+        }
+    }
+
+    /**
+     * Class that implements a matcher for BgpRouteEntry by considering
+     * the BGP peer the entry was received from.
+     */
+    private static final class BgpRouteEntryAndPeerMatcher
+        extends TypeSafeMatcher<Collection<BgpRouteEntry>> {
+        private final BgpRouteEntry bgpRouteEntry;
+
+        private BgpRouteEntryAndPeerMatcher(BgpRouteEntry bgpRouteEntry) {
+            this.bgpRouteEntry = bgpRouteEntry;
+        }
+
+        @Override
+        public boolean matchesSafely(Collection<BgpRouteEntry> entries) {
+            for (BgpRouteEntry entry : entries) {
+                if (bgpRouteEntry.equals(entry) &&
+                    bgpRouteEntry.getBgpSession() == entry.getBgpSession()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("BGP route entry lookup for entry \"").
+                appendText(bgpRouteEntry.toString()).
+                appendText("\"");
+        }
+    }
+
+    /**
+     * A helper method used for testing whether a collection of
+     * BGP route entries contains an entry from a specific BGP peer.
+     *
+     * @param bgpRouteEntry the BGP route entry to test
+     * @return an instance of BgpRouteEntryAndPeerMatcher that implements
+     * the matching logic
+     */
+    private static BgpRouteEntryAndPeerMatcher hasBgpRouteEntry(
+        BgpRouteEntry bgpRouteEntry) {
+        return new BgpRouteEntryAndPeerMatcher(bgpRouteEntry);
     }
 
     @Before
@@ -106,35 +252,34 @@ public class BgpSessionManagerTest {
         SocketAddress socketAddress = serverChannel.getLocalAddress();
         InetSocketAddress inetSocketAddress =
             (InetSocketAddress) socketAddress;
-
-        //
-        // Setup the BGP Peer, i.e., the "remote" BGP router that will
-        // initiate the BGP connection, send BGP UPDATE messages, etc.
-        //
-        ChannelFactory channelFactory =
-            new NioClientSocketChannelFactory(Executors.newCachedThreadPool(),
-                                              Executors.newCachedThreadPool());
-        ChannelPipelineFactory pipelineFactory = new ChannelPipelineFactory() {
-                @Override
-                public ChannelPipeline getPipeline() throws Exception {
-                    // Setup the transmitting pipeline
-                    ChannelPipeline pipeline = Channels.pipeline();
-                    pipeline.addLast("TestBgpPeerFrameDecoder",
-                                     peerFrameDecoder);
-                    pipeline.addLast("TestBgpPeerChannelHandler",
-                                     peerChannelHandler);
-                    return pipeline;
-                }
-            };
-
-        peerBootstrap = new ClientBootstrap(channelFactory);
-        peerBootstrap.setOption("child.keepAlive", true);
-        peerBootstrap.setOption("child.tcpNoDelay", true);
-        peerBootstrap.setPipelineFactory(pipelineFactory);
-
         InetAddress connectToAddress = InetAddresses.forString("127.0.0.1");
         connectToSocket = new InetSocketAddress(connectToAddress,
                                                 inetSocketAddress.getPort());
+
+        //
+        // Setup the AS Paths
+        //
+        ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
+        byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
+        ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
+        segmentAsNumbers1.add((long) 65010);
+        segmentAsNumbers1.add((long) 65020);
+        segmentAsNumbers1.add((long) 65030);
+        BgpRouteEntry.PathSegment pathSegment1 =
+            new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
+        pathSegments.add(pathSegment1);
+        asPathShort = new BgpRouteEntry.AsPath(new ArrayList(pathSegments));
+        //
+        byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
+        ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
+        segmentAsNumbers2.add((long) 65041);
+        segmentAsNumbers2.add((long) 65042);
+        segmentAsNumbers2.add((long) 65043);
+        BgpRouteEntry.PathSegment pathSegment2 =
+            new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
+        pathSegments.add(pathSegment2);
+        //
+        asPathLong = new BgpRouteEntry.AsPath(pathSegments);
     }
 
     @After
@@ -211,36 +356,46 @@ public class BgpSessionManagerTest {
     @Test
     public void testExchangedBgpOpenMessages()
             throws InterruptedException, TestUtilsException {
-        // Initiate the connection
-        peerBootstrap.connect(connectToSocket);
-
-        // Wait until the OPEN message is received
-        peerFrameDecoder.receivedOpenMessageLatch.await(MESSAGE_TIMEOUT_MS,
-                                                        TimeUnit.MILLISECONDS);
-        // Wait until the KEEPALIVE message is received
-        peerFrameDecoder.receivedKeepaliveMessageLatch.await(MESSAGE_TIMEOUT_MS,
-                                                        TimeUnit.MILLISECONDS);
+        // Initiate the connections
+        peer1.connect(connectToSocket);
+        peer2.connect(connectToSocket);
+        peer3.connect(connectToSocket);
 
         //
         // Test the fields from the BGP OPEN message:
         // BGP version, AS number, BGP ID
         //
-        assertThat(peerFrameDecoder.remoteBgpVersion,
+        assertThat(peer1.peerFrameDecoder.remoteBgpVersion,
                    is(BgpConstants.BGP_VERSION));
-        assertThat(peerFrameDecoder.remoteAs,
+        assertThat(peer1.peerFrameDecoder.remoteAs,
                    is(TestBgpPeerChannelHandler.PEER_AS));
-        assertThat(peerFrameDecoder.remoteBgpIdentifier, is(IP_LOOPBACK_ID));
+        assertThat(peer1.peerFrameDecoder.remoteBgpIdentifier,
+                   is(IP_LOOPBACK_ID));
+        assertThat(peer2.peerFrameDecoder.remoteBgpVersion,
+                   is(BgpConstants.BGP_VERSION));
+        assertThat(peer2.peerFrameDecoder.remoteAs,
+                   is(TestBgpPeerChannelHandler.PEER_AS));
+        assertThat(peer2.peerFrameDecoder.remoteBgpIdentifier,
+                   is(IP_LOOPBACK_ID));
+        assertThat(peer3.peerFrameDecoder.remoteBgpVersion,
+                   is(BgpConstants.BGP_VERSION));
+        assertThat(peer3.peerFrameDecoder.remoteAs,
+                   is(TestBgpPeerChannelHandler.PEER_AS));
+        assertThat(peer3.peerFrameDecoder.remoteBgpIdentifier,
+                   is(IP_LOOPBACK_ID));
 
         //
-        // Test that a BgpSession instance has been created
+        // Test that the BgpSession instances have been created
         //
         assertThat(bgpSessionManager.getMyBgpId(), is(IP_LOOPBACK_ID));
-        assertThat(bgpSessionManager.getBgpSessions(), hasSize(1));
-        BgpSession bgpSession =
-            bgpSessionManager.getBgpSessions().iterator().next();
-        assertThat(bgpSession, notNullValue());
-        long sessionAs = TestUtils.getField(bgpSession, "localAs");
-        assertThat(sessionAs, is(TestBgpPeerChannelHandler.PEER_AS));
+        assertThat(bgpSessionManager.getBgpSessions(), hasSize(3));
+        assertThat(bgpSession1, notNullValue());
+        assertThat(bgpSession2, notNullValue());
+        assertThat(bgpSession3, notNullValue());
+        for (BgpSession bgpSession : bgpSessionManager.getBgpSessions()) {
+            long sessionAs = TestUtils.getField(bgpSession, "localAs");
+            assertThat(sessionAs, is(TestBgpPeerChannelHandler.PEER_AS));
+        }
     }
 
     /**
@@ -248,30 +403,25 @@ public class BgpSessionManagerTest {
      */
     @Test
     public void testProcessedBgpUpdateMessages() throws InterruptedException {
-        BgpSession bgpSession;
-        Ip4Address nextHopRouter;
-        BgpRouteEntry bgpRouteEntry;
         ChannelBuffer message;
-        Collection<BgpRouteEntry> bgpRibIn;
+        BgpRouteEntry bgpRouteEntry;
+        Collection<BgpRouteEntry> bgpRibIn1;
+        Collection<BgpRouteEntry> bgpRibIn2;
+        Collection<BgpRouteEntry> bgpRibIn3;
         Collection<BgpRouteEntry> bgpRoutes;
 
-        // Initiate the connection
-        peerBootstrap.connect(connectToSocket);
-
-        // Wait until the OPEN message is received
-        peerFrameDecoder.receivedOpenMessageLatch.await(MESSAGE_TIMEOUT_MS,
-                                                        TimeUnit.MILLISECONDS);
-        // Wait until the KEEPALIVE message is received
-        peerFrameDecoder.receivedKeepaliveMessageLatch.await(MESSAGE_TIMEOUT_MS,
-                                                        TimeUnit.MILLISECONDS);
-
-        // Get the BGP Session handler
-        bgpSession = bgpSessionManager.getBgpSessions().iterator().next();
+        // Initiate the connections
+        peer1.connect(connectToSocket);
+        peer2.connect(connectToSocket);
+        peer3.connect(connectToSocket);
 
         // Prepare routes to add/delete
-        nextHopRouter = Ip4Address.valueOf("10.20.30.40");
         Collection<Ip4Prefix> addedRoutes = new LinkedList<>();
         Collection<Ip4Prefix> withdrawnRoutes = new LinkedList<>();
+
+        //
+        // Add and delete some routes
+        //
         addedRoutes.add(Ip4Prefix.valueOf("0.0.0.0/0"));
         addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
         addedRoutes.add(Ip4Prefix.valueOf("30.0.0.0/16"));
@@ -282,140 +432,343 @@ public class BgpSessionManagerTest {
         withdrawnRoutes.add(Ip4Prefix.valueOf("80.0.0.0/24"));
         withdrawnRoutes.add(Ip4Prefix.valueOf("90.0.0.0/32"));
         // Write the routes
-        message = peerChannelHandler.prepareBgpUpdate(nextHopRouter,
-                                                      addedRoutes,
-                                                      withdrawnRoutes);
-        peerChannelHandler.savedCtx.getChannel().write(message);
-
+        message = peer1.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP1_ROUTER,
+                        DEFAULT_LOCAL_PREF,
+                        DEFAULT_MULTI_EXIT_DISC,
+                        asPathLong,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer1.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
         // Check that the routes have been received, processed and stored
-        bgpRibIn = waitForBgpRibIn(bgpSession, 5);
-        assertThat(bgpRibIn, hasSize(5));
+        //
+        bgpRibIn1 = waitForBgpRibIn(bgpSession1, 5);
+        assertThat(bgpRibIn1, hasSize(5));
         bgpRoutes = waitForBgpRoutes(5);
         assertThat(bgpRoutes, hasSize(5));
-
-        // Setup the AS Path
-        ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
-        byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
-        ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 65010);
-        segmentAsNumbers1.add((long) 65020);
-        segmentAsNumbers1.add((long) 65030);
-        BgpRouteEntry.PathSegment pathSegment1 =
-            new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
-        pathSegments.add(pathSegment1);
-        //
-        byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
-        ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 65041);
-        segmentAsNumbers2.add((long) 65042);
-        segmentAsNumbers2.add((long) 65043);
-        BgpRouteEntry.PathSegment pathSegment2 =
-            new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
-        pathSegments.add(pathSegment2);
-        //
-        BgpRouteEntry.AsPath asPath = new BgpRouteEntry.AsPath(pathSegments);
-
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("0.0.0.0/0"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("20.0.0.0/8"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("30.0.0.0/16"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("40.0.0.0/24"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("50.0.0.0/32"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
 
+        //
         // Delete some routes
+        //
         addedRoutes = new LinkedList<>();
         withdrawnRoutes = new LinkedList<>();
         withdrawnRoutes.add(Ip4Prefix.valueOf("0.0.0.0/0"));
         withdrawnRoutes.add(Ip4Prefix.valueOf("50.0.0.0/32"));
-
         // Write the routes
-        message = peerChannelHandler.prepareBgpUpdate(nextHopRouter,
-                                                      addedRoutes,
-                                                      withdrawnRoutes);
-        peerChannelHandler.savedCtx.getChannel().write(message);
-
+        message = peer1.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP1_ROUTER,
+                        DEFAULT_LOCAL_PREF,
+                        DEFAULT_MULTI_EXIT_DISC,
+                        asPathLong,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer1.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
         // Check that the routes have been received, processed and stored
-        bgpRibIn = waitForBgpRibIn(bgpSession, 3);
-        assertThat(bgpRibIn, hasSize(3));
+        //
+        bgpRibIn1 = waitForBgpRibIn(bgpSession1, 3);
+        assertThat(bgpRibIn1, hasSize(3));
         bgpRoutes = waitForBgpRoutes(3);
         assertThat(bgpRoutes, hasSize(3));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("20.0.0.0/8"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("30.0.0.0/16"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
         //
         bgpRouteEntry =
-            new BgpRouteEntry(bgpSession,
+            new BgpRouteEntry(bgpSession1,
                               Ip4Prefix.valueOf("40.0.0.0/24"),
-                              nextHopRouter,
+                              NEXT_HOP1_ROUTER,
                               (byte) BgpConstants.Update.Origin.IGP,
-                              asPath,
+                              asPathLong,
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
-        assertThat(bgpRibIn, hasItem(bgpRouteEntry));
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
 
-        // Close the channel and test there are no routes
-        peerChannelHandler.closeChannel();
+
+        // Close the channels and test there are no routes
+        peer1.peerChannelHandler.closeChannel();
+        peer2.peerChannelHandler.closeChannel();
+        peer3.peerChannelHandler.closeChannel();
+        bgpRoutes = waitForBgpRoutes(0);
+        assertThat(bgpRoutes, hasSize(0));
+    }
+
+    /**
+     * Tests the BGP route preference.
+     */
+    @Test
+    public void testBgpRoutePreference() throws InterruptedException {
+        ChannelBuffer message;
+        BgpRouteEntry bgpRouteEntry;
+        Collection<BgpRouteEntry> bgpRibIn1;
+        Collection<BgpRouteEntry> bgpRibIn2;
+        Collection<BgpRouteEntry> bgpRibIn3;
+        Collection<BgpRouteEntry> bgpRoutes;
+        Collection<Ip4Prefix> addedRoutes = new LinkedList<>();
+        Collection<Ip4Prefix> withdrawnRoutes = new LinkedList<>();
+
+        // Initiate the connections
+        peer1.connect(connectToSocket);
+        peer2.connect(connectToSocket);
+        peer3.connect(connectToSocket);
+
+        //
+        // Setup the initial set of routes to Peer1
+        //
+        addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        addedRoutes.add(Ip4Prefix.valueOf("30.0.0.0/16"));
+        // Write the routes
+        message = peer1.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP1_ROUTER,
+                        DEFAULT_LOCAL_PREF,
+                        DEFAULT_MULTI_EXIT_DISC,
+                        asPathLong,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer1.peerChannelHandler.savedCtx.getChannel().write(message);
+        bgpRoutes = waitForBgpRoutes(2);
+        assertThat(bgpRoutes, hasSize(2));
+
+        //
+        // Add a route entry to Peer2 with a better LOCAL_PREF
+        //
+        addedRoutes = new LinkedList<>();
+        withdrawnRoutes = new LinkedList<>();
+        addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        // Write the routes
+        message = peer2.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP2_ROUTER,
+                        BETTER_LOCAL_PREF,
+                        DEFAULT_MULTI_EXIT_DISC,
+                        asPathLong,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer2.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
+        // Check that the routes have been received, processed and stored
+        //
+        bgpRibIn2 = waitForBgpRibIn(bgpSession2, 1);
+        assertThat(bgpRibIn2, hasSize(1));
+        bgpRoutes = waitForBgpRoutes(2);
+        assertThat(bgpRoutes, hasSize(2));
+        //
+        bgpRouteEntry =
+            new BgpRouteEntry(bgpSession2,
+                              Ip4Prefix.valueOf("20.0.0.0/8"),
+                              NEXT_HOP2_ROUTER,
+                              (byte) BgpConstants.Update.Origin.IGP,
+                              asPathLong,
+                              BETTER_LOCAL_PREF);
+        bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
+        assertThat(bgpRibIn2, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+
+        //
+        // Add a route entry to Peer3 with a shorter AS path
+        //
+        addedRoutes = new LinkedList<>();
+        withdrawnRoutes = new LinkedList<>();
+        addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        // Write the routes
+        message = peer3.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP3_ROUTER,
+                        BETTER_LOCAL_PREF,
+                        DEFAULT_MULTI_EXIT_DISC,
+                        asPathShort,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer3.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
+        // Check that the routes have been received, processed and stored
+        //
+        bgpRibIn3 = waitForBgpRibIn(bgpSession3, 1);
+        assertThat(bgpRibIn3, hasSize(1));
+        bgpRoutes = waitForBgpRoutes(2);
+        assertThat(bgpRoutes, hasSize(2));
+        //
+        bgpRouteEntry =
+            new BgpRouteEntry(bgpSession3,
+                              Ip4Prefix.valueOf("20.0.0.0/8"),
+                              NEXT_HOP3_ROUTER,
+                              (byte) BgpConstants.Update.Origin.IGP,
+                              asPathShort,
+                              BETTER_LOCAL_PREF);
+        bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
+        assertThat(bgpRibIn3, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+
+        //
+        // Cleanup in preparation for next test: delete old route entry from
+        // Peer2
+        //
+        addedRoutes = new LinkedList<>();
+        withdrawnRoutes = new LinkedList<>();
+        withdrawnRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        // Write the routes
+        message = peer2.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP2_ROUTER,
+                        BETTER_LOCAL_PREF,
+                        BETTER_MULTI_EXIT_DISC,
+                        asPathShort,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer2.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
+        // Check that the routes have been received, processed and stored
+        //
+        bgpRibIn2 = waitForBgpRibIn(bgpSession2, 0);
+        assertThat(bgpRibIn2, hasSize(0));
+
+        //
+        // Add a route entry to Peer2 with a better MED
+        //
+        addedRoutes = new LinkedList<>();
+        withdrawnRoutes = new LinkedList<>();
+        addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        // Write the routes
+        message = peer2.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP2_ROUTER,
+                        BETTER_LOCAL_PREF,
+                        BETTER_MULTI_EXIT_DISC,
+                        asPathShort,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer2.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
+        // Check that the routes have been received, processed and stored
+        //
+        bgpRibIn2 = waitForBgpRibIn(bgpSession2, 1);
+        assertThat(bgpRibIn2, hasSize(1));
+        bgpRoutes = waitForBgpRoutes(2);
+        assertThat(bgpRoutes, hasSize(2));
+        //
+        bgpRouteEntry =
+            new BgpRouteEntry(bgpSession2,
+                              Ip4Prefix.valueOf("20.0.0.0/8"),
+                              NEXT_HOP2_ROUTER,
+                              (byte) BgpConstants.Update.Origin.IGP,
+                              asPathShort,
+                              BETTER_LOCAL_PREF);
+        bgpRouteEntry.setMultiExitDisc(BETTER_MULTI_EXIT_DISC);
+        assertThat(bgpRibIn2, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+
+        //
+        // Add a route entry to Peer1 with a better (lower) BGP ID
+        //
+        addedRoutes = new LinkedList<>();
+        withdrawnRoutes = new LinkedList<>();
+        addedRoutes.add(Ip4Prefix.valueOf("20.0.0.0/8"));
+        withdrawnRoutes.add(Ip4Prefix.valueOf("30.0.0.0/16"));
+        // Write the routes
+        message = peer1.peerChannelHandler.prepareBgpUpdate(
+                        NEXT_HOP1_ROUTER,
+                        BETTER_LOCAL_PREF,
+                        BETTER_MULTI_EXIT_DISC,
+                        asPathShort,
+                        addedRoutes,
+                        withdrawnRoutes);
+        peer1.peerChannelHandler.savedCtx.getChannel().write(message);
+        //
+        // Check that the routes have been received, processed and stored
+        //
+        bgpRibIn1 = waitForBgpRibIn(bgpSession1, 1);
+        assertThat(bgpRibIn1, hasSize(1));
+        bgpRoutes = waitForBgpRoutes(1);
+        assertThat(bgpRoutes, hasSize(1));
+        //
+        bgpRouteEntry =
+            new BgpRouteEntry(bgpSession1,
+                              Ip4Prefix.valueOf("20.0.0.0/8"),
+                              NEXT_HOP1_ROUTER,
+                              (byte) BgpConstants.Update.Origin.IGP,
+                              asPathShort,
+                              BETTER_LOCAL_PREF);
+        bgpRouteEntry.setMultiExitDisc(BETTER_MULTI_EXIT_DISC);
+        assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+
+
+        // Close the channels and test there are no routes
+        peer1.peerChannelHandler.closeChannel();
+        peer2.peerChannelHandler.closeChannel();
+        peer3.peerChannelHandler.closeChannel();
         bgpRoutes = waitForBgpRoutes(0);
         assertThat(bgpRoutes, hasSize(0));
     }
