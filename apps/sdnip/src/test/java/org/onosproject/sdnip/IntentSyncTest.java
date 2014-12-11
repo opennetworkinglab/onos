@@ -291,24 +291,24 @@ public class IntentSyncTest extends AbstractIntentTest {
         MultiPointToSinglePointIntent intent6 = intentBuilder(
                 routeEntry6.prefix(), "00:00:00:00:00:01",  SW1_ETH1);
 
-        // Set up the bgpRoutes field in Router class and routeIntents fields
+        // Set up the ribTable field in Router class and routeIntents fields
         // in IntentSynchronizer class
-        InvertedRadixTree<RouteEntry> bgpRoutes =
+        InvertedRadixTree<RouteEntry> ribTable =
                 new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry1.prefix()),
-                routeEntry1);
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry3.prefix()),
-                routeEntry3);
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry4Update.prefix()),
-                routeEntry4Update);
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry5.prefix()),
-                routeEntry5);
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry6.prefix()),
-                routeEntry6);
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry7.prefix()),
-                routeEntry7);
-        TestUtils.setField(router, "bgpRoutes", bgpRoutes);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry1.prefix()),
+                     routeEntry1);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry3.prefix()),
+                     routeEntry3);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry4Update.prefix()),
+                     routeEntry4Update);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry5.prefix()),
+                     routeEntry5);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry6.prefix()),
+                     routeEntry6);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry7.prefix()),
+                     routeEntry7);
+        TestUtils.setField(router, "ribTable", ribTable);
 
         ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
         routeIntents =  new ConcurrentHashMap<>();

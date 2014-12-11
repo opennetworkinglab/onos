@@ -268,9 +268,9 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
         // Construct the existing MultiPointToSinglePointIntent intent
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
 
-        // Set up the bgpRoutes field of Router class with existing route, and
+        // Set up the ribTable field of Router class with existing route, and
         // routeIntents field with the corresponding existing intent
-        setBgpRoutesField(routeEntry);
+        setRibTableField(routeEntry);
         setRouteIntentsField(routeEntry, intent);
 
         // Start to construct a new route entry and new intent
@@ -359,9 +359,9 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
         // Construct the existing MultiPointToSinglePointIntent intent
         MultiPointToSinglePointIntent intent = staticIntentBuilder();
 
-        // Set up the bgpRoutes field of Router class with existing route, and
+        // Set up the ribTable field of Router class with existing route, and
         // routeIntents field with the corresponding existing intent
-        setBgpRoutesField(routeEntry);
+        setRibTableField(routeEntry);
         setRouteIntentsField(routeEntry, intent);
 
         // Set up expectation
@@ -412,19 +412,19 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
     }
 
     /**
-     * Sets bgpRoutesField in Router class.
+     * Sets ribTable Field in Router class.
      *
      * @throws TestUtilsException
      */
-    private void setBgpRoutesField(RouteEntry routeEntry)
+    private void setRibTableField(RouteEntry routeEntry)
             throws TestUtilsException {
 
-        InvertedRadixTree<RouteEntry> bgpRoutes =
+        InvertedRadixTree<RouteEntry> ribTable =
                 new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
-        bgpRoutes.put(RouteEntry.createBinaryString(routeEntry.prefix()),
-                routeEntry);
-        TestUtils.setField(router, "bgpRoutes", bgpRoutes);
+        ribTable.put(RouteEntry.createBinaryString(routeEntry.prefix()),
+                     routeEntry);
+        TestUtils.setField(router, "ribTable", ribTable);
     }
 
     /**

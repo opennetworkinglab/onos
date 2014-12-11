@@ -74,7 +74,7 @@ public class Router implements RouteListener {
 
     // Store all route updates in a radix tree.
     // The key in this tree is the binary string of prefix of the route.
-    private InvertedRadixTree<RouteEntry> bgpRoutes;
+    private InvertedRadixTree<RouteEntry> ribTable;
 
     // Stores all incoming route updates in a queue.
     private final BlockingQueue<Collection<RouteUpdate>> routeUpdatesQueue;
@@ -114,7 +114,7 @@ public class Router implements RouteListener {
 
         this.hostListener = new InternalHostListener();
 
-        bgpRoutes = new ConcurrentInvertedRadixTree<>(
+        ribTable = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
         routeUpdatesQueue = new LinkedBlockingQueue<>();
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
@@ -151,7 +151,7 @@ public class Router implements RouteListener {
 
         synchronized (this) {
             // Cleanup all local state
-            bgpRoutes = new ConcurrentInvertedRadixTree<>(
+            ribTable = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
             routeUpdatesQueue.clear();
             routesWaitingOnArp.clear();
@@ -255,8 +255,7 @@ public class Router implements RouteListener {
         Ip4Prefix prefix = routeEntry.prefix();
         Ip4Address nextHop = null;
         RouteEntry foundRouteEntry =
-            bgpRoutes.put(RouteEntry.createBinaryString(prefix),
-                          routeEntry);
+            ribTable.put(RouteEntry.createBinaryString(prefix), routeEntry);
         if (foundRouteEntry != null) {
             nextHop = foundRouteEntry.nextHop();
         }
@@ -394,7 +393,7 @@ public class Router implements RouteListener {
         log.debug("Processing route delete: {}", routeEntry);
         Ip4Prefix prefix = routeEntry.prefix();
 
-        if (bgpRoutes.remove(RouteEntry.createBinaryString(prefix))) {
+        if (ribTable.remove(RouteEntry.createBinaryString(prefix))) {
             //
             // Only withdraw intents if an entry was actually removed from the
             // tree. If no entry was removed, the <prefix, nexthop> wasn't
@@ -435,7 +434,7 @@ public class Router implements RouteListener {
                 Ip4Prefix prefix = routeEntry.prefix();
                 String binaryString = RouteEntry.createBinaryString(prefix);
                 RouteEntry foundRouteEntry =
-                        bgpRoutes.getValueForExactKey(binaryString);
+                    ribTable.getValueForExactKey(binaryString);
                 if (foundRouteEntry != null &&
                     foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
                     // We only push prefix flows if the prefix is still in the
@@ -471,7 +470,7 @@ public class Router implements RouteListener {
      */
     public Collection<RouteEntry> getRoutes() {
         Iterator<KeyValuePair<RouteEntry>> it =
-                bgpRoutes.getKeyValuePairsForKeysStartingWith("").iterator();
+            ribTable.getKeyValuePairsForKeysStartingWith("").iterator();
 
         List<RouteEntry> routes = new LinkedList<>();
 
