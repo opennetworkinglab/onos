@@ -19,6 +19,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
 
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -31,10 +35,6 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openflow.controller.Dpid;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFInstructionType;
@@ -44,6 +44,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetNwDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetNwSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
@@ -52,9 +53,12 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.Masked;
+import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
@@ -152,7 +156,7 @@ public class FlowEntryBuilder {
                 break;
             case SET_VLAN_PCP:
                 OFActionSetVlanPcp pcp = (OFActionSetVlanPcp) act;
-                builder.setVlanId(VlanId.vlanId(pcp.getVlanPcp().getValue()));
+                builder.setVlanPcp(pcp.getVlanPcp().getValue());
                 break;
             case SET_DL_DST:
                 OFActionSetDlDst dldst = (OFActionSetDlDst) act;
@@ -186,6 +190,8 @@ public class FlowEntryBuilder {
                 }
                 break;
             case SET_FIELD:
+                OFActionSetField setField = (OFActionSetField) act;
+                handleSetField(builder, setField.getField());
                 break;
             case SET_TP_DST:
             case SET_TP_SRC:
@@ -216,6 +222,99 @@ public class FlowEntryBuilder {
         }
 
         return builder.build();
+    }
+
+    private void handleSetField(TrafficTreatment.Builder builder, OFOxm<?> oxm) {
+        switch (oxm.getMatchField().id) {
+        case VLAN_PCP:
+            @SuppressWarnings("unchecked")
+            OFOxm<VlanPcp> vlanpcp = (OFOxm<VlanPcp>) oxm;
+            builder.setVlanPcp(vlanpcp.getValue().getValue());
+            break;
+        case VLAN_VID:
+            @SuppressWarnings("unchecked")
+            OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
+            builder.setVlanId(VlanId.vlanId(vlanvid.getValue().getVlan()));
+            break;
+        case ETH_DST:
+            @SuppressWarnings("unchecked")
+            OFOxm<org.projectfloodlight.openflow.types.MacAddress> ethdst =
+                    (OFOxm<org.projectfloodlight.openflow.types.MacAddress>) oxm;
+            builder.setEthDst(MacAddress.valueOf(ethdst.getValue().getLong()));
+            break;
+        case ETH_SRC:
+            @SuppressWarnings("unchecked")
+            OFOxm<org.projectfloodlight.openflow.types.MacAddress> ethsrc =
+                    (OFOxm<org.projectfloodlight.openflow.types.MacAddress>) oxm;
+            builder.setEthSrc(MacAddress.valueOf(ethsrc.getValue().getLong()));
+            break;
+        case IPV4_DST:
+            @SuppressWarnings("unchecked")
+            OFOxm<IPv4Address> ip4dst = (OFOxm<IPv4Address>) oxm;
+            builder.setIpDst(Ip4Address.valueOf(ip4dst.getValue().getInt()));
+            break;
+        case IPV4_SRC:
+            @SuppressWarnings("unchecked")
+            OFOxm<IPv4Address> ip4src = (OFOxm<IPv4Address>) oxm;
+            builder.setIpSrc(Ip4Address.valueOf(ip4src.getValue().getInt()));
+            break;
+        case ARP_OP:
+        case ARP_SHA:
+        case ARP_SPA:
+        case ARP_THA:
+        case ARP_TPA:
+        case BSN_EGR_PORT_GROUP_ID:
+        case BSN_GLOBAL_VRF_ALLOWED:
+        case BSN_IN_PORTS_128:
+        case BSN_L3_DST_CLASS_ID:
+        case BSN_L3_INTERFACE_CLASS_ID:
+        case BSN_L3_SRC_CLASS_ID:
+        case BSN_LAG_ID:
+        case BSN_TCP_FLAGS:
+        case BSN_UDF0:
+        case BSN_UDF1:
+        case BSN_UDF2:
+        case BSN_UDF3:
+        case BSN_UDF4:
+        case BSN_UDF5:
+        case BSN_UDF6:
+        case BSN_UDF7:
+        case BSN_VLAN_XLATE_PORT_GROUP_ID:
+        case BSN_VRF:
+        case ETH_TYPE:
+        case ICMPV4_CODE:
+        case ICMPV4_TYPE:
+        case ICMPV6_CODE:
+        case ICMPV6_TYPE:
+        case IN_PHY_PORT:
+        case IN_PORT:
+        case IPV6_DST:
+        case IPV6_FLABEL:
+        case IPV6_ND_SLL:
+        case IPV6_ND_TARGET:
+        case IPV6_ND_TLL:
+        case IPV6_SRC:
+        case IP_DSCP:
+        case IP_ECN:
+        case IP_PROTO:
+        case METADATA:
+        case MPLS_LABEL:
+        case MPLS_TC:
+        case OCH_SIGID:
+        case OCH_SIGID_BASIC:
+        case OCH_SIGTYPE:
+        case OCH_SIGTYPE_BASIC:
+        case SCTP_DST:
+        case SCTP_SRC:
+        case TCP_DST:
+        case TCP_SRC:
+        case TUNNEL_ID:
+        case UDP_DST:
+        case UDP_SRC:
+        default:
+            log.warn("Set field type {} not yet implemented.", oxm.getMatchField().id);
+            break;
+        }
     }
 
     private TrafficSelector buildSelector() {
