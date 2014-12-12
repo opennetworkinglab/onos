@@ -16,6 +16,7 @@
 package org.onosproject.store.link.impl;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,9 +72,10 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
@@ -502,8 +504,15 @@ public class GossipLinkStore
         }
     }
 
+    /**
+     * Creates concurrent readable, synchronized HashMultimap.
+     *
+     * @return SetMultimap
+     */
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
-        return synchronizedSetMultimap(HashMultimap.<K, V>create());
+        return synchronizedSetMultimap(
+               Multimaps.newSetMultimap(new ConcurrentHashMap<K, Collection<V>>(),
+                                       () -> Sets.newConcurrentHashSet()));
     }
 
     /**
