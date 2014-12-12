@@ -49,7 +49,7 @@ alias ot='onos-test'
 alias ol='onos-log'
 alias ow='onos-watch'
 alias oi='setPrimaryInstance'
-alias go='ob && ot && onos -w'
+# alias go='ob && ot && onos -w'
 alias pub='onos-push-update-bundle'
 
 # Short-hand for tailing the ONOS (karaf) log 
