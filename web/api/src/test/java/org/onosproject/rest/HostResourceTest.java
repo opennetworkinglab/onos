@@ -42,6 +42,7 @@ import org.onosproject.net.provider.ProviderId;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
@@ -54,6 +55,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.onlab.packet.MacAddress.valueOf;
 import static org.onlab.packet.VlanId.vlanId;
 import static org.onosproject.net.PortNumber.portNumber;
@@ -327,6 +329,27 @@ public class HostResourceTest extends JerseyTest {
         String response = rs.path("hosts/00:00:11:00:00:01/1").get(String.class);
         final JsonObject result = JsonObject.readFrom(response);
         assertThat(result, matchesHost(host1));
+    }
+
+    /**
+     * Tests that a fetch of a non-existent object throws an exception.
+     */
+    @Test
+    public void testBadGet() {
+
+            expect(mockHostService.getHost(HostId.hostId("00:00:11:00:00:01/1")))
+                    .andReturn(null)
+                    .anyTimes();
+            replay(mockHostService);
+
+            WebResource rs = resource();
+        try {
+            rs.path("hosts/00:00:11:00:00:01/1").get(String.class);
+            fail("Fetch of non-existent host did not throw an exception");
+        } catch (UniformInterfaceException ex) {
+            assertThat(ex.getMessage(),
+                    containsString("returned a response status of"));
+        }
     }
 
 }
