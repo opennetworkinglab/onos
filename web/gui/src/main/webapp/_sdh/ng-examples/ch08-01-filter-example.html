@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filters in Action</title>
+    <script src="../../tp/angular.js"></script>
+</head>
+<body ng-app="filtersApp">
+
+    <div ng-controller="FilterCtrl as ctrl">
+        <div>
+            Amount as a number: {{ctrl.amount | number}}
+        </div>
+        <div>
+            Total cost as a currency: {{ctrl.totalCost | currency}}
+        </div>
+        <div>
+            Total cost in GBP: {{ctrl.totalCost | currency:'GBP '}}
+        </div>
+        <div>
+            Shout: {{ctrl.name | uppercase}}
+        </div>
+        <div>
+            Whisper: {{ctrl.name | lowercase}}
+        </div>
+        <div>
+            Start time: {{ctrl.startTime | date:'medium'}}
+        </div>
+        <div>
+            as JSON: {{ctrl.struct | json}}
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        angular.module('filtersApp', [])
+                .controller('FilterCtrl', [function () {
+                    var self = this;
+                    self.amount = 1024;
+                    self.totalCost = 4906;
+                    self.name = 'Onos Rocks!';
+                    self.startTime = new Date().getTime();
+                    self.struct = {
+                        foo: 'bar',
+                        baz: 3.1415
+                    };
+                }]);
+    </script>
+</body>
+</html>

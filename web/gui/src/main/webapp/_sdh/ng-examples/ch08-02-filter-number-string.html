@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filters in Action</title>
+    <script src="../../tp/angular.js"></script>
+</head>
+<body ng-app="filtersApp">
+
+    <ul ng-controller="FilterCtrl as ctrl">
+        <li>
+            Amount - {{ctrl.amount}}
+        </li>
+        <li>
+            Amount - Default Currency: {{ctrl.amount | currency}}
+        </li>
+        <li>
+            <!-- Using English pound sign -->
+            Amount - GBP Currency: {{ctrl.amount | currency:'&#163'}}
+        </li>
+        <li>
+            Amount - Number: {{ctrl.amount | number }}
+        </li>
+        <li>
+            Amount - Number (4 decimals): {{ctrl.amount | number:4}}
+        </li>
+        <li>
+            Amount - Yummy &#x3c0 = {{ctrl.pi | number:4 }}
+        </li>
+
+        <li>
+            Name - no filters: {{ctrl.name}}
+        </li>
+        <li>
+            Name - lowercase: {{ctrl.name | lowercase}}
+        </li>
+        <li>
+            Name - uppercase: {{ctrl.name | uppercase}}
+        </li>
+        <li>
+            Name - prefix: {{ctrl.name | limitTo:4}}
+        </li>
+
+        <li>
+            JSON filter: {{ctrl.struct | json}}
+        </li>
+
+        <li>
+            Timestamp: {{ctrl.startTime}}
+        </li>
+        <li>
+            Default Date filter: {{ctrl.startTime | date}}
+        </li>
+        <li>
+            Medium Date filter: {{ctrl.startTime | date:'medium'}}
+        </li>
+        <li>
+            Long Date filter: {{ctrl.startTime | date:'longDate'}}
+        </li>
+        <li>
+            Custom Date filter: {{ctrl.startTime | date:'M/dd, yyyy'}}
+        </li>
+        <li>
+            Custom Time filter: {{ctrl.startTime | date:'h:m a'}}
+        </li>
+    </ul>
+
+    <script type="text/javascript">
+        angular.module('filtersApp', [])
+                .controller('FilterCtrl', [function () {
+                    var self = this;
+                    self.amount = 1024;
+                    self.totalCost = 4906;
+                    self.name = 'Onos Rocks!';
+                    self.startTime = new Date().getTime();
+                    self.struct = {
+                        foo: 'bar',
+                        baz: 3.1415
+                    };
+                    self.pi = Math.PI;
+                }]);
+    </script>
+</body>
+</html>
