@@ -334,7 +334,7 @@ public class DistributedFlowRuleStore
         } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
             log.warn("Unable to fetch flow store contents from {}", replicaInfo.master().get());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private Set<FlowEntry> getFlowEntriesInternal(DeviceId deviceId) {
