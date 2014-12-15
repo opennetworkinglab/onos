@@ -90,8 +90,9 @@ class BgpFrameDecoder extends FrameDecoder {
                 int errorSubcode =
                     MessageHeaderError.CONNECTION_NOT_SYNCHRONIZED;
                 ChannelBuffer txMessage =
-                    bgpSession.prepareBgpNotification(errorCode, errorSubcode,
-                                                      null);
+                    BgpNotification.prepareBgpNotification(errorCode,
+                                                           errorSubcode,
+                                                           null);
                 ctx.getChannel().write(txMessage);
                 bgpSession.closeSession(ctx);
                 return null;
@@ -114,7 +115,7 @@ class BgpFrameDecoder extends FrameDecoder {
             //
             // Send NOTIFICATION and close the connection
             ChannelBuffer txMessage =
-                bgpSession.prepareBgpNotificationBadMessageLength(length);
+                BgpNotification.prepareBgpNotificationBadMessageLength(length);
             ctx.getChannel().write(txMessage);
             bgpSession.closeSession(ctx);
             return null;
@@ -145,16 +146,16 @@ class BgpFrameDecoder extends FrameDecoder {
         //
         switch (type) {
         case BgpConstants.BGP_TYPE_OPEN:
-            bgpSession.processBgpOpen(ctx, message);
+            BgpOpen.processBgpOpen(bgpSession, ctx, message);
             break;
         case BgpConstants.BGP_TYPE_UPDATE:
-            bgpSession.processBgpUpdate(ctx, message);
+            BgpUpdate.processBgpUpdate(bgpSession, ctx, message);
             break;
         case BgpConstants.BGP_TYPE_NOTIFICATION:
-            bgpSession.processBgpNotification(ctx, message);
+            BgpNotification.processBgpNotification(bgpSession, ctx, message);
             break;
         case BgpConstants.BGP_TYPE_KEEPALIVE:
-            bgpSession.processBgpKeepalive(ctx, message);
+            BgpKeepalive.processBgpKeepalive(bgpSession, ctx, message);
             break;
         default:
             //
@@ -166,8 +167,8 @@ class BgpFrameDecoder extends FrameDecoder {
             ChannelBuffer data = ChannelBuffers.buffer(1);
             data.writeByte(type);
             ChannelBuffer txMessage =
-                bgpSession.prepareBgpNotification(errorCode, errorSubcode,
-                                                  data);
+                BgpNotification.prepareBgpNotification(errorCode, errorSubcode,
+                                                       data);
             ctx.getChannel().write(txMessage);
             bgpSession.closeSession(ctx);
             return null;
