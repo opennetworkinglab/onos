@@ -197,18 +197,12 @@ def switchJSON( switch ):
     return configDict
 
 
-def startOE( net, controllerIP=None, controllerPort=None ):
+def startOE( net ):
     "Start the LINC optical emulator within a mininet instance"
     opticalJSON = {}
     linkConfig = []
     devices = []
     
-    # if we are not given a controller IP or Port, we use the first found in Mininet
-    if controllerIP is None:
-        controllerIP = net.controllers[ 0 ].ip
-    if controllerPort is None:
-        controllerPort = net.controllers[ 0 ].port
-
     for switch in net.switches:
         if isinstance( switch, OpticalSwitch ):
             devices.append( switch.json() )
@@ -248,10 +242,19 @@ def startOE( net, controllerIP=None, controllerPort=None ):
         error( "***ERROR: Could not find LINC-config-generator in user's home directory\n" )
         return False
     output = quietRun( '%s/config_generator TopoConfig.json %s/sys.config.template %s %s'
-                    % ( configGen, configGen, controllerIP, controllerPort ), shell=True )
+                    % ( configGen, configGen, net.controllers[ 0 ].ip, net.controllers[ 0 ].port ), shell=True )
     if output:
         error( '***ERROR: Error creating sys.config file: %s\n' % output )
         return False
+
+    info ('*** Setting multiple controllers in sys.config...\n' )
+    searchStr = '{controllers,.*$'
+    ctrlStr = ''
+    for index in range(len(net.controllers)):
+        ctrlStr += '{"Switch%d-Controller","%s",%d,tcp},' % (index, net.controllers[index].ip, net.controllers[index].port)
+    replaceStr = '{controllers,[%s]},' % ctrlStr[:-1]         # Cut off last comma
+    sedCmd = 'sed -i \'s/%s/%s/\' sys.config' % (searchStr, replaceStr)
+    output = quietRun( sedCmd, shell=True )
 
     info( '*** Copying sys.config to linc-oe directory: ', output + '\n' )
     lincDir = findDir( 'linc-oe' )
@@ -285,7 +288,7 @@ def startOE( net, controllerIP=None, controllerPort=None ):
     info( '*** Press ENTER to push Topology.json to onos...\n' )
     raw_input() # FIXME... we should eventually remove this
     info( '*** Pushing Topology.json to ONOS\n' )
-    output = quietRun( '%s/tools/test/bin/onos-topo-cfg %s Topology.json' % ( onosDir, controllerIP ), shell=True )
+    output = quietRun( '%s/tools/test/bin/onos-topo-cfg %s Topology.json' % ( onosDir, net.controllers[ 0 ].ip ), shell=True )
     # successful output contains the two characters '{}'
     # if there is more output than this, there is an issue
     if output.strip( '{}' ):
