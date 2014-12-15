@@ -29,6 +29,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
+import org.onosproject.net.intent.Intent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ public class CodecManager implements CodecService {
         registerCodec(Link.class, new LinkCodec());
         registerCodec(Host.class, new HostCodec());
         registerCodec(HostLocation.class, new HostLocationCodec());
+        registerCodec(Intent.class, new IntentCodec());
         log.info("Started");
     }
 
