@@ -1,0 +1,55 @@
+/*
+ * Copyright 2014 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Masthead -- CSS file
+
+ @author Simon Hunt
+ */
+
+#mast {
+    height: 36px;
+    padding: 4px;
+    vertical-align: baseline;
+}
+
+.light #mast {
+    background-color: #bbb;
+    box-shadow: 0 2px 8px #777;
+}
+.dark #mast {
+    background-color: #444;
+    box-shadow: 0 2px 8px #777;
+}
+
+#mast img.logo {
+    height: 38px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+#mast .title {
+    font-size: 14pt;
+    font-style: italic;
+    vertical-align: 12px;
+}
+
+.light #mast .title {
+    color: #369;
+}
+.dark #mast .title {
+    color: #eee;
+}
