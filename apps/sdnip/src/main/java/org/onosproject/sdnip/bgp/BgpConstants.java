@@ -80,6 +80,71 @@ public final class BgpConstants {
     public static final long BGP_AS_0 = 0;
 
     /**
+     * BGP OPEN related constants.
+     */
+    public static final class Open {
+        /**
+         * Default constructor.
+         * <p>
+         * The constructor is private to prevent creating an instance of
+         * this utility class.
+         */
+        private Open() {
+        }
+
+        /**
+         * BGP OPEN: Optional Parameters related constants.
+         */
+        public static final class OptionalParameters {
+        }
+
+        /**
+         * BGP OPEN: Capabilities related constants (RFC 5492).
+         */
+        public static final class Capabilities {
+            /** BGP OPEN Optional Parameter Type: Capabilities. */
+            public static final int TYPE = 2;
+
+            /** BGP OPEN Optional Parameter minimum length. */
+            public static final int MIN_LENGTH = 2;
+
+            /**
+             * BGP OPEN: Multiprotocol Extensions Capabilities (RFC 4760).
+             */
+            public static final class MultiprotocolExtensions {
+                /** BGP OPEN Multiprotocol Extensions code. */
+                public static final int CODE = 1;
+
+                /** BGP OPEN Multiprotocol Extensions length. */
+                public static final int LENGTH = 4;
+
+                /** BGP OPEN Multiprotocol Extensions AFI: IPv4. */
+                public static final int AFI_IPV4 = 1;
+
+                /** BGP OPEN Multiprotocol Extensions AFI: IPv6. */
+                public static final int AFI_IPV6 = 2;
+
+                /** BGP OPEN Multiprotocol Extensions SAFI: unicast. */
+                public static final int SAFI_UNICAST = 1;
+
+                /** BGP OPEN Multiprotocol Extensions SAFI: multicast. */
+                public static final int SAFI_MULTICAST = 2;
+            }
+
+            /**
+             * BGP OPEN: Support for 4-octet AS Number Capability (RFC 6793).
+             */
+            public static final class As4Octet {
+                /** BGP OPEN Support for 4-octet AS Number Capability code. */
+                public static final int CODE = 65;
+
+                /** BGP OPEN 4-octet AS Number Capability length. */
+                public static final int LENGTH = 4;
+            }
+        }
+    }
+
+    /**
      * BGP UPDATE related constants.
      */
     public static final class Update {

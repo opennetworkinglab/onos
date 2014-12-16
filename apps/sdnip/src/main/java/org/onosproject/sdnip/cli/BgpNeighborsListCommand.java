@@ -43,7 +43,11 @@ public class BgpNeighborsListCommand extends AbstractShellCommand {
     private static final String FORMAT_NEIGHBOR_LINE2 =
         "  Remote router ID %s, IP %s, BGP version %d, Hold time %d";
     private static final String FORMAT_NEIGHBOR_LINE3 =
+        "  Remote AFI/SAFI IPv4 Unicast %s Multicast %s, IPv6 Unicast %s Multicast %s";
+    private static final String FORMAT_NEIGHBOR_LINE4 =
         "  Local  router ID %s, IP %s, BGP version %d, Hold time %d";
+    private static final String FORMAT_NEIGHBOR_LINE5 =
+        "  Local  AFI/SAFI IPv4 Unicast %s Multicast %s, IPv6 Unicast %s Multicast %s";
 
     @Override
     protected void execute() {
@@ -102,10 +106,20 @@ public class BgpNeighborsListCommand extends AbstractShellCommand {
               bgpSession.getRemoteBgpVersion(),
               bgpSession.getRemoteHoldtime());
         print(FORMAT_NEIGHBOR_LINE3,
+              bgpSession.getRemoteIpv4Unicast() ? "YES" : "NO",
+              bgpSession.getRemoteIpv4Multicast() ? "YES" : "NO",
+              bgpSession.getRemoteIpv6Unicast() ? "YES" : "NO",
+              bgpSession.getRemoteIpv6Multicast() ? "YES" : "NO");
+        print(FORMAT_NEIGHBOR_LINE4,
               bgpSession.getLocalBgpId().toString(),
               bgpSession.getLocalAddress().toString(),
               bgpSession.getLocalBgpVersion(),
               bgpSession.getLocalHoldtime());
+        print(FORMAT_NEIGHBOR_LINE5,
+              bgpSession.getLocalIpv4Unicast() ? "YES" : "NO",
+              bgpSession.getLocalIpv4Multicast() ? "YES" : "NO",
+              bgpSession.getLocalIpv6Unicast() ? "YES" : "NO",
+              bgpSession.getLocalIpv6Multicast() ? "YES" : "NO");
     }
 
     /**
@@ -139,12 +153,20 @@ public class BgpNeighborsListCommand extends AbstractShellCommand {
         result.put("remoteAs", bgpSession.getRemoteAs());
         result.put("remoteHoldtime", bgpSession.getRemoteHoldtime());
         result.put("remoteBgpId", bgpSession.getRemoteBgpId().toString());
+        result.put("remoteIpv4Unicast", bgpSession.getRemoteIpv4Unicast());
+        result.put("remoteIpv4Multicast", bgpSession.getRemoteIpv4Multicast());
+        result.put("remoteIpv6Unicast", bgpSession.getRemoteIpv6Unicast());
+        result.put("remoteIpv6Multicast", bgpSession.getRemoteIpv6Multicast());
         //
         result.put("localAddress", bgpSession.getLocalAddress().toString());
         result.put("localBgpVersion", bgpSession.getLocalBgpVersion());
         result.put("localAs", bgpSession.getLocalAs());
         result.put("localHoldtime", bgpSession.getLocalHoldtime());
         result.put("localBgpId", bgpSession.getLocalBgpId().toString());
+        result.put("localIpv4Unicast", bgpSession.getLocalIpv4Unicast());
+        result.put("localIpv4Multicast", bgpSession.getLocalIpv4Multicast());
+        result.put("localIpv6Unicast", bgpSession.getLocalIpv6Unicast());
+        result.put("localIpv6Multicast", bgpSession.getLocalIpv6Multicast());
 
         return result;
     }

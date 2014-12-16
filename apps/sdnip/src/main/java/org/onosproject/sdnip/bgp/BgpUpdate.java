@@ -27,6 +27,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
+import org.onosproject.sdnip.bgp.BgpMessage.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1211,26 +1212,5 @@ final class BgpUpdate {
         }
         data.writeBytes(message, attrLen);
         return data;
-    }
-
-    /**
-     * An exception indicating a parsing error of the BGP message.
-     */
-    private static final class BgpParseException extends Exception {
-        /**
-         * Default constructor.
-         */
-        private BgpParseException() {
-            super();
-        }
-
-        /**
-         * Constructor for a specific exception details message.
-         *
-         * @param message the message with the exception details
-         */
-         private BgpParseException(String message) {
-             super(message);
-         }
     }
 }

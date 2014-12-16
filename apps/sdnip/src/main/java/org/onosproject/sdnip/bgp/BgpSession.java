@@ -61,6 +61,10 @@ public class BgpSession extends SimpleChannelHandler {
     private long remoteAs;                      // 2 octets
     private long remoteHoldtime;                // 2 octets
     private Ip4Address remoteBgpId;             // 4 octets -> IPv4 address
+    private boolean remoteIpv4Unicast;          // Peer IPv4/UNICAST AFI/SAFI
+    private boolean remoteIpv4Multicast;        // Peer IPv4/MULTICAST AFI/SAFI
+    private boolean remoteIpv6Unicast;          // Peer IPv6/UNICAST AFI/SAFI
+    private boolean remoteIpv6Multicast;        // Peer IPv6/MULTICAST AFI/SAFI
     //
     private SocketAddress localAddress;         // Local IP addr/port
     private Ip4Address localIp4Address;         // Local IPv4 address
@@ -68,6 +72,10 @@ public class BgpSession extends SimpleChannelHandler {
     private long localAs;                       // 2 octets
     private long localHoldtime;                 // 2 octets
     private Ip4Address localBgpId;              // 4 octets -> IPv4 address
+    private boolean localIpv4Unicast;        // Local IPv4/UNICAST AFI/SAFI
+    private boolean localIpv4Multicast;      // Local IPv4/MULTICAST AFI/SAFI
+    private boolean localIpv6Unicast;        // Local IPv6/UNICAST AFI/SAFI
+    private boolean localIpv6Multicast;      // Local IPv6/MULTICAST AFI/SAFI
     //
     private long localKeepaliveInterval;        // Keepalive interval
 
@@ -236,6 +244,82 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
+     * Gets the BGP session remote AFI/SAFI configuration for IPv4 unicast.
+     *
+     * @return the BGP session remote AFI/SAFI configuration for IPv4 unicast
+     */
+    public boolean getRemoteIpv4Unicast() {
+        return remoteIpv4Unicast;
+    }
+
+    /**
+     * Sets the BGP session remote AFI/SAFI configuration for IPv4 unicast.
+     */
+    void setRemoteIpv4Unicast() {
+        this.remoteIpv4Unicast = true;
+        // Copy the remote AFI/SAFI setting to the local configuration
+        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
+        // this.localIpv4Unicast = true;
+    }
+
+    /**
+     * Gets the BGP session remote AFI/SAFI configuration for IPv4 multicast.
+     *
+     * @return the BGP session remote AFI/SAFI configuration for IPv4 multicast
+     */
+    public boolean getRemoteIpv4Multicast() {
+        return remoteIpv4Multicast;
+    }
+
+    /**
+     * Sets the BGP session remote AFI/SAFI configuration for IPv4 multicast.
+     */
+    void setRemoteIpv4Multicast() {
+        this.remoteIpv4Multicast = true;
+        // Copy the remote AFI/SAFI setting to the local configuration
+        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
+        // this.localIpv4Multicast = true;
+    }
+
+    /**
+     * Gets the BGP session remote AFI/SAFI configuration for IPv6 unicast.
+     *
+     * @return the BGP session remote AFI/SAFI configuration for IPv6 unicast
+     */
+    public boolean getRemoteIpv6Unicast() {
+        return remoteIpv6Unicast;
+    }
+
+    /**
+     * Sets the BGP session remote AFI/SAFI configuration for IPv6 unicast.
+     */
+    void setRemoteIpv6Unicast() {
+        this.remoteIpv6Unicast = true;
+        // Copy the remote AFI/SAFI setting to the local configuration
+        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
+        // this.localIpv6Unicast = true;
+    }
+
+    /**
+     * Gets the BGP session remote AFI/SAFI configuration for IPv6 multicast.
+     *
+     * @return the BGP session remote AFI/SAFI configuration for IPv6 multicast
+     */
+    public boolean getRemoteIpv6Multicast() {
+        return remoteIpv6Multicast;
+    }
+
+    /**
+     * Sets the BGP session remote AFI/SAFI configuration for IPv6 multicast.
+     */
+    void setRemoteIpv6Multicast() {
+        this.remoteIpv6Multicast = true;
+        // Copy the remote AFI/SAFI setting to the local configuration
+        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
+        // this.localIpv6Multicast = true;
+    }
+
+    /**
      * Gets the BGP session local address.
      *
      * @return the BGP session local address
@@ -287,6 +371,42 @@ public class BgpSession extends SimpleChannelHandler {
      */
     public Ip4Address getLocalBgpId() {
         return localBgpId;
+    }
+
+    /**
+     * Gets the BGP session local AFI/SAFI configuration for IPv4 unicast.
+     *
+     * @return the BGP session local AFI/SAFI configuration for IPv4 unicast
+     */
+    public boolean getLocalIpv4Unicast() {
+        return localIpv4Unicast;
+    }
+
+    /**
+     * Gets the BGP session local AFI/SAFI configuration for IPv4 multicast.
+     *
+     * @return the BGP session local AFI/SAFI configuration for IPv4 multicast
+     */
+    public boolean getLocalIpv4Multicast() {
+        return localIpv4Multicast;
+    }
+
+    /**
+     * Gets the BGP session local AFI/SAFI configuration for IPv6 unicast.
+     *
+     * @return the BGP session local AFI/SAFI configuration for IPv6 unicast
+     */
+    public boolean getLocalIpv6Unicast() {
+        return localIpv6Unicast;
+    }
+
+    /**
+     * Gets the BGP session local AFI/SAFI configuration for IPv6 multicast.
+     *
+     * @return the BGP session local AFI/SAFI configuration for IPv6 multicast
+     */
+    public boolean getLocalIpv6Multicast() {
+        return localIpv6Multicast;
     }
 
     /**

@@ -62,4 +62,25 @@ final class BgpMessage {
         message.writeBytes(payload);
         return message;
     }
+
+    /**
+     * An exception indicating a parsing error of the BGP message.
+     */
+    static final class BgpParseException extends Exception {
+        /**
+         * Default constructor.
+         */
+        private BgpParseException() {
+            super();
+        }
+
+        /**
+         * Constructor for a specific exception details message.
+         *
+         * @param message the message with the exception details
+         */
+        BgpParseException(String message) {
+            super(message);
+        }
+    }
 }

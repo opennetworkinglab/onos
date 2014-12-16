@@ -21,6 +21,9 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.OpenMessageError;
+import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities;
+import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities.MultiprotocolExtensions;
+import org.onosproject.sdnip.bgp.BgpMessage.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,16 +156,16 @@ final class BgpOpen {
             Ip4Address.valueOf((int) message.readUnsignedInt());
         bgpSession.setRemoteBgpId(remoteBgpId);
 
-        // Optional Parameters
-        int optParamLen = message.readUnsignedByte();
-        if (message.readableBytes() < optParamLen) {
+        // Parse the Optional Parameters
+        try {
+            parseOptionalParameters(bgpSession, ctx, message);
+        } catch (BgpParseException e) {
+            // ERROR: Error parsing optional parameters
             log.debug("BGP RX OPEN Error from {}: " +
-                      "Invalid Optional Parameter Length field {}. " +
-                      "Remaining Optional Parameters {}",
-                      bgpSession.getRemoteAddress(), optParamLen,
-                      message.readableBytes());
+                      "Exception parsing Optional Parameters: {}",
+                      bgpSession.getRemoteAddress(), e);
             //
-            // ERROR: Invalid Optional Parameter Length field: Unspecific
+            // ERROR: Invalid Optional Parameters: Unspecific
             //
             // Send NOTIFICATION and close the connection
             int errorCode = OpenMessageError.ERROR_CODE;
@@ -174,8 +177,6 @@ final class BgpOpen {
             bgpSession.closeSession(ctx);
             return;
         }
-        // NOTE: Parse the optional parameters (if needed)
-        message.readBytes(optParamLen);             // NOTE: data ignored
 
         log.debug("BGP RX OPEN message from {}: " +
                   "BGPv{} AS {} BGP-ID {} Holdtime {}",
@@ -213,8 +214,211 @@ final class BgpOpen {
         message.writeShort((int) bgpSession.getLocalAs());
         message.writeShort((int) bgpSession.getLocalHoldtime());
         message.writeInt(bgpSession.getLocalBgpId().toInt());
-        message.writeByte(0);               // No Optional Parameters
+
+        // Prepare the optional BGP Capabilities
+        ChannelBuffer capabilitiesMessage =
+            prepareBgpOpenCapabilities(bgpSession);
+        message.writeByte(capabilitiesMessage.readableBytes());
+        message.writeBytes(capabilitiesMessage);
+
         return BgpMessage.prepareBgpMessage(BgpConstants.BGP_TYPE_OPEN,
                                             message);
+    }
+
+    /**
+     * Parses BGP OPEN Optional Parameters.
+     *
+     * @param bgpSession the BGP Session to use
+     * @param ctx the Channel Handler Context
+     * @param message the message to process
+     * @throws BgpParseException
+     */
+    private static void parseOptionalParameters(BgpSession bgpSession,
+                                                ChannelHandlerContext ctx,
+                                                ChannelBuffer message)
+        throws BgpParseException {
+
+        //
+        // Get and verify the Optional Parameters Length
+        //
+        int optParamLength = message.readUnsignedByte();
+        if (optParamLength > message.readableBytes()) {
+            // ERROR: Invalid Optional Parameter Length
+            String errorMsg = "Invalid Optional Parameter Length field " +
+                optParamLength + ". Remaining Optional Parameters " +
+                message.readableBytes();
+            throw new BgpParseException(errorMsg);
+        }
+        if (optParamLength == 0) {
+            return;                     // No Optional Parameters
+        }
+
+        //
+        // Parse the Optional Parameters
+        //
+        int optParamEnd = message.readerIndex() + optParamLength;
+        while (message.readerIndex() < optParamEnd) {
+            int paramType = message.readUnsignedByte();
+            if (message.readerIndex() >= optParamEnd) {
+                // ERROR: Malformed Optional Parameters
+                String errorMsg = "Malformed Optional Parameters";
+                throw new BgpParseException(errorMsg);
+            }
+            int paramLen = message.readUnsignedByte();
+            if (message.readerIndex() + paramLen > optParamEnd) {
+                // ERROR: Malformed Optional Parameters
+                String errorMsg = "Malformed Optional Parameters";
+                throw new BgpParseException(errorMsg);
+            }
+
+            //
+            // Extract the Optional Parameter Value based on the Parameter Type
+            //
+            switch (paramType) {
+            case Capabilities.TYPE:
+                // Optional Parameter Type: Capabilities
+                if (paramLen < Capabilities.MIN_LENGTH) {
+                    // ERROR: Malformed Capability
+                    String errorMsg = "Malformed Capability Type " + paramType;
+                    throw new BgpParseException(errorMsg);
+                }
+                int capabEnd = message.readerIndex() + paramLen;
+                int capabCode = message.readUnsignedByte();
+                int capabLen = message.readUnsignedByte();
+                if (message.readerIndex() + capabLen > capabEnd) {
+                    // ERROR: Malformed Capability
+                    String errorMsg = "Malformed Capability Type " + paramType;
+                    throw new BgpParseException(errorMsg);
+                }
+
+                switch (capabCode) {
+                case MultiprotocolExtensions.CODE:
+                    // Multiprotocol Extensions Capabilities (RFC 4760)
+                    if (capabLen != MultiprotocolExtensions.LENGTH) {
+                        // ERROR: Multiprotocol Extension Length Error
+                        String errorMsg = "Multiprotocol Extension Length Error";
+                        throw new BgpParseException(errorMsg);
+                    }
+                    // Decode the AFI (2 octets) and SAFI (1 octet)
+                    int afi = message.readUnsignedShort();
+                    int reserved = message.readUnsignedByte();
+                    int safi = message.readUnsignedByte();
+                    log.debug("BGP RX OPEN Capability: AFI = {} SAFI = {}",
+                              afi, safi);
+                    //
+                    // Setup the AFI/SAFI in the BgpSession
+                    //
+                    if (afi == MultiprotocolExtensions.AFI_IPV4 &&
+                        safi == MultiprotocolExtensions.SAFI_UNICAST) {
+                        bgpSession.setRemoteIpv4Unicast();
+                    } else if (afi == MultiprotocolExtensions.AFI_IPV4 &&
+                               safi == MultiprotocolExtensions.SAFI_MULTICAST) {
+                        bgpSession.setRemoteIpv4Multicast();
+                    } else if (afi == MultiprotocolExtensions.AFI_IPV6 &&
+                               safi == MultiprotocolExtensions.SAFI_UNICAST) {
+                        bgpSession.setRemoteIpv6Unicast();
+                    } else if (afi == MultiprotocolExtensions.AFI_IPV6 &&
+                               safi == MultiprotocolExtensions.SAFI_MULTICAST) {
+                        bgpSession.setRemoteIpv6Multicast();
+                    } else {
+                        log.debug("BGP RX OPEN Capability: Unknown AFI = {} SAFI = {}",
+                                  afi, safi);
+                    }
+                    break;
+
+                case Capabilities.As4Octet.CODE:
+                    // Support for 4-octet AS Number Capabilities (RFC 6793)
+                    if (capabLen != Capabilities.As4Octet.LENGTH) {
+                        // ERROR: 4-octet AS Number Capability Length Error
+                        String errorMsg = "4-octet AS Number Capability Length Error";
+                        throw new BgpParseException(errorMsg);
+                    }
+                    long as4Number = message.readUnsignedInt();
+                    // TODO: Implement support for 4-octet AS Numbers
+                    log.debug("BGP RX OPEN Capability:  AS4 Number = {}",
+                              as4Number);
+                    break;
+
+                default:
+                    // Unknown Capability: ignore it
+                    log.debug("BGP RX OPEN Capability Code = {} Length = {}",
+                              capabCode, capabLen);
+                    message.readBytes(capabLen);
+                    break;
+                }
+
+                break;
+
+            default:
+                // Unknown Parameter Type: ignore it
+                log.debug("BGP RX OPEN Parameter Type = {} Length = {}",
+                          paramType, paramLen);
+                message.readBytes(paramLen);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Prepares the Capabilities for the BGP OPEN message.
+     *
+     * @param bgpSession the BGP Session to use
+     * @return the buffer with the BGP Capabilities to transmit
+     */
+    private static ChannelBuffer prepareBgpOpenCapabilities(
+                                        BgpSession bgpSession) {
+        ChannelBuffer message =
+            ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
+
+        //
+        // Write the Multiprotocol Extensions Capabilities
+        //
+
+        // IPv4 unicast
+        if (bgpSession.getLocalIpv4Unicast()) {
+            message.writeByte(Capabilities.TYPE);               // Param type
+            message.writeByte(Capabilities.MIN_LENGTH +
+                              MultiprotocolExtensions.LENGTH);  // Param len
+            message.writeByte(MultiprotocolExtensions.CODE);    // Capab. code
+            message.writeByte(MultiprotocolExtensions.LENGTH);  // Capab. len
+            message.writeShort(MultiprotocolExtensions.AFI_IPV4);
+            message.writeByte(0);               // Reserved field
+            message.writeByte(MultiprotocolExtensions.SAFI_UNICAST);
+        }
+        // IPv4 multicast
+        if (bgpSession.getLocalIpv4Multicast()) {
+            message.writeByte(Capabilities.TYPE);               // Param type
+            message.writeByte(Capabilities.MIN_LENGTH +
+                              MultiprotocolExtensions.LENGTH);  // Param len
+            message.writeByte(MultiprotocolExtensions.CODE);    // Capab. code
+            message.writeByte(MultiprotocolExtensions.LENGTH);  // Capab. len
+            message.writeShort(MultiprotocolExtensions.AFI_IPV4);
+            message.writeByte(0);               // Reserved field
+            message.writeByte(MultiprotocolExtensions.SAFI_MULTICAST);
+        }
+        // IPv6 unicast
+        if (bgpSession.getLocalIpv6Unicast()) {
+            message.writeByte(Capabilities.TYPE);               // Param type
+            message.writeByte(Capabilities.MIN_LENGTH +
+                              MultiprotocolExtensions.LENGTH);  // Param len
+            message.writeByte(MultiprotocolExtensions.CODE);    // Capab. code
+            message.writeByte(MultiprotocolExtensions.LENGTH);  // Capab. len
+            message.writeShort(MultiprotocolExtensions.AFI_IPV6);
+            message.writeByte(0);               // Reserved field
+            message.writeByte(MultiprotocolExtensions.SAFI_UNICAST);
+        }
+        // IPv6 multicast
+        if (bgpSession.getLocalIpv6Multicast()) {
+            message.writeByte(Capabilities.TYPE);               // Param type
+            message.writeByte(Capabilities.MIN_LENGTH +
+                              MultiprotocolExtensions.LENGTH);  // Param len
+            message.writeByte(MultiprotocolExtensions.CODE);    // Capab. code
+            message.writeByte(MultiprotocolExtensions.LENGTH);  // Capab. len
+            message.writeShort(MultiprotocolExtensions.AFI_IPV6);
+            message.writeByte(0);               // Reserved field
+            message.writeByte(MultiprotocolExtensions.SAFI_MULTICAST);
+        }
+
+        return message;
     }
 }
