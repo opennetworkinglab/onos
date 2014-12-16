@@ -15,21 +15,28 @@
  */
 
 /*
- ONOS GUI -- Base Framework
+ ONOS GUI -- General Purpose Functions
 
  @author Simon Hunt
  */
-
-// our one global variable
-var ONOS;
-
-(function () {
+(function (onos) {
     'use strict';
 
-    ONOS = angular.module('onosApp', ['onosMast'])
-        .controller('OnosCtrl', ['KeyService', function (ks) {
-            console.log('OnosCtrl has been created');
-            ks.init();
-        }]);
+    onos.factory('FnService', [function () {
+        return {
+            isF: function (f) {
+                return $.isFunction(f) ? f : null;
+            },
+            isA: function (a) {
+                return $.isArray(a) ? a : null;
+            },
+            isS: function (s) {
+                return typeof s === 'string' ? s : null;
+            },
+            isO: function (o) {
+                return $.isPlainObject(o) ? o : null;
+            }
+        };
+    }]);
 
-}());
+}(ONOS));

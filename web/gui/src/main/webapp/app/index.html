@@ -27,13 +27,13 @@
 
     <script src="../tp/d3.js"></script>
     <script src="../tp/topojson.v1.min.js"></script>
-
-    <!-- NOTE: We are going to see if we can dispense with jQuery... -->
-    <!--<script src="../tp/jquery-2.1.1.min.js"></script>-->
+    <script src="../tp/jquery-2.1.1.min.js"></script>
 
     <!-- ONOS UI Framework included here -->
     <!-- TODO: use a single catenated-minified file here -->
     <script src="onos.js"></script>
+    <script src="fw/lib/fn.js"></script>
+    <script src="fw/lib/keys.js"></script>
     <script src="fw/mast/mast.js"></script>
 
     <!-- Framework and library stylesheets included here -->
@@ -50,16 +50,18 @@
     <!-- TODO: inject style-sheet refs server-side -->
 </head>
 <body class="light" ng-app="onosApp">
-    <div id="mast"
-         ng-controller="MastCtrl as mastCtrl"
-         ng-include="'fw/mast/mast.html'"></div>
+    <div id="frame" ng-controller="OnosCtrl as onosCtrl">
+        <div id="mast"
+             ng-controller="MastCtrl as mastCtrl"
+             ng-include="'fw/mast/mast.html'"></div>
 
-    <div id="view" ng-view></div>
+        <div id="view" ng-view></div>
 
-    <div id="floatpanels"></div>
-    <div id="alerts"></div>
-    <div id="flash"></div>
-    <div id="quickhelp"></div>
-    <div id="deathmask"></div>
+        <div id="floatpanels"></div>
+        <div id="alerts"></div>
+        <div id="flash"></div>
+        <div id="quickhelp"></div>
+        <div id="deathmask"></div>
+    </div>
 </body>
 </html>
