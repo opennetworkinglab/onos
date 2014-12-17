@@ -20,9 +20,7 @@
  @author Simon Hunt
  */
 describe('factory: fw/lib/keys.js', function() {
-    var ks,
-        fs,
-        d3Elem;
+    var ks, fs, d3Elem, elem, last;
 
     beforeEach(module('onosApp'));
 
@@ -30,7 +28,14 @@ describe('factory: fw/lib/keys.js', function() {
         ks = KeyService;
         fs = FnService;
         d3Elem = d3.select('body').append('p').attr('id', 'ptest');
+        elem = d3Elem.node();
         ks.installOn(d3Elem);
+        last = {
+            view: null,
+            key: null,
+            code: null,
+            ev: null
+        };
     }));
 
     afterEach(function () {
@@ -74,45 +79,120 @@ describe('factory: fw/lib/keys.js', function() {
         element.dispatchEvent(ev);
     }
 
+    // === Theme related tests
     it('should start in light theme', function () {
         expect(ks.theme()).toEqual('light');
     });
     it('should toggle to dark theme', function () {
-        jsKeyDown(d3Elem.node(), 84); // 'T'
+        jsKeyDown(elem, 84); // 'T'
         expect(ks.theme()).toEqual('dark');
     });
 
-    // key code lookups
-    // NOTE: should be injecting keydown events, rather than exposing whatKey()
-    it('whatKey: 13', function () {
-        expect(ks.whatKey(13)).toEqual('enter');
+    // === Key binding related tests
+    it('should start with default key bindings', function () {
+        var state = ks.keyBindings(),
+            gk = state.globalKeys,
+            mk = state.maskedKeys,
+            vk = state.viewKeys,
+            vf = state.viewFunction;
+
+        expect(gk.length).toEqual(4);
+        ['backSlash', 'slash', 'esc', 'T'].forEach(function (k) {
+            expect(fs.contains(gk, k)).toBeTruthy();
+        });
+
+        expect(mk.length).toEqual(3);
+        ['backSlash', 'slash', 'T'].forEach(function (k) {
+            expect(fs.contains(mk, k)).toBeTruthy();
+        });
+
+        expect(vk.length).toEqual(0);
+        expect(vf).toBeFalsy();
     });
-    it('whatKey: 16', function () {
-        expect(ks.whatKey(16)).toEqual('shift');
+
+    function bindTestKeys(withDescs) {
+        var keys = ['A', '1', 'F5', 'equals'],
+            kb = {};
+
+        function cb(view, key, code, ev) {
+            last.view = view;
+            last.key = key;
+            last.code = code;
+            last.ev = ev;
+        }
+
+        function bind(k) {
+            return withDescs ? [cb, 'desc for key ' + k] : cb;
+        }
+
+        keys.forEach(function (k) {
+            kb[k] = bind(k);
+        });
+
+        ks.keyBindings(kb);
+    }
+
+    function verifyCall(key, code) {
+        // TODO: update expectation, when view tokens are implemented
+        expect(last.view).toEqual('NotYetAViewToken');
+        last.view = null;
+
+        expect(last.key).toEqual(key);
+        last.key = null;
+
+        expect(last.code).toEqual(code);
+        last.code = null;
+
+        expect(last.ev).toBeTruthy();
+        last.ev = null;
+    }
+
+    function verifyNoCall() {
+        expect(last.view).toBeNull();
+        expect(last.key).toBeNull();
+        expect(last.code).toBeNull();
+        expect(last.ev).toBeNull();
+    }
+
+    function verifyTestKeys() {
+        jsKeyDown(elem, 65); // 'A'
+        verifyCall('A', 65);
+        jsKeyDown(elem, 66); // 'B'
+        verifyNoCall();
+
+        jsKeyDown(elem, 49); // '1'
+        verifyCall('1', 49);
+        jsKeyDown(elem, 50); // '2'
+        verifyNoCall();
+
+        jsKeyDown(elem, 116); // 'F5'
+        verifyCall('F5', 116);
+        jsKeyDown(elem, 117); // 'F6'
+        verifyNoCall();
+
+        jsKeyDown(elem, 187); // 'equals'
+        verifyCall('equals', 187);
+        jsKeyDown(elem, 189); // 'dash'
+        verifyNoCall();
+
+        var vk = ks.keyBindings().viewKeys;
+
+        expect(vk.length).toEqual(4);
+        ['A', '1', 'F5', 'equals'].forEach(function (k) {
+            expect(fs.contains(vk, k)).toBeTruthy();
+        });
+
+        expect(ks.keyBindings().viewFunction).toBeFalsy();
+    }
+
+    it('should allow specific key bindings', function () {
+        bindTestKeys();
+        verifyTestKeys();
     });
-    it('whatKey: 40', function () {
-        expect(ks.whatKey(40)).toEqual('downArrow');
-    });
-    it('whatKey: 65', function () {
-        expect(ks.whatKey(65)).toEqual('A');
-    });
-    it('whatKey: 84', function () {
-        expect(ks.whatKey(84)).toEqual('T');
-    });
-    it('whatKey: 49', function () {
-        expect(ks.whatKey(49)).toEqual('1');
-    });
-    it('whatKey: 55', function () {
-        expect(ks.whatKey(55)).toEqual('7');
-    });
-    it('whatKey: 112', function () {
-        expect(ks.whatKey(112)).toEqual('F1');
-    });
-    it('whatKey: 123', function () {
-        expect(ks.whatKey(123)).toEqual('F12');
-    });
-    it('whatKey: 1', function () {
-        expect(ks.whatKey(1)).toEqual('.');
+
+    it('should allow specific key bindings with descriptions', function () {
+        bindTestKeys(true);
+        verifyTestKeys();
     });
 
 });

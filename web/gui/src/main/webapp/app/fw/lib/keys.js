@@ -144,6 +144,45 @@
         return true;
     }
 
+    function setKeyBindings(keyArg) {
+        var viewKeys,
+            masked = [];
+
+        if (f.isF(keyArg)) {
+            // set general key handler callback
+            keyHandler.viewFn = keyArg;
+        } else {
+            // set specific key filter map
+            viewKeys = d3.map(keyArg).keys();
+            viewKeys.forEach(function (key) {
+                if (keyHandler.maskedKeys[key]) {
+                    masked.push('  Key "' + key + '" is reserved');
+                }
+            });
+
+            if (masked.length) {
+                // TODO: use alert service
+                window.alert('WARNING...\n\nsetKeys():\n' + masked.join('\n'));
+            }
+            keyHandler.viewKeys = keyArg;
+        }
+    }
+
+    function getKeyBindings() {
+        var gkeys = d3.map(keyHandler.globalKeys).keys(),
+            masked = d3.map(keyHandler.maskedKeys).keys(),
+            vkeys = d3.map(keyHandler.viewKeys).keys(),
+            vfn = !!f.isF(keyHandler.viewFn);
+
+        return {
+            globalKeys: gkeys,
+            maskedKeys: masked,
+            viewKeys: vkeys,
+            viewFunction: vfn
+        };
+    }
+
+    // TODO: inject alert service
     onos.factory('KeyService', ['FnService', function (fs) {
         f = fs;
         return {
@@ -154,7 +193,20 @@
             theme: function () {
                 return theme;
             },
-            whatKey: whatKey
+            keyBindings: function (x) {
+                if (x === undefined) {
+                    return getKeyBindings();
+                } else {
+                    setKeyBindings(x);
+                }
+            },
+            gestureNotes: function (g) {
+                if (g === undefined) {
+                    return keyHandler.viewGestures;
+                } else {
+                    keyHandler.viewGestures = f.isA(g) || [];
+                }
+            }
         };
     }]);
 

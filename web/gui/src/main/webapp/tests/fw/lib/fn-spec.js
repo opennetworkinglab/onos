@@ -26,7 +26,8 @@ describe('factory: fw/lib/fn.js', function() {
         someObject = { foo: 'bar'},
         someNumber = 42,
         someString = 'xyyzy',
-        someDate = new Date();
+        someDate = new Date(),
+        stringArray = ['foo', 'bar'];
 
     beforeEach(module('onosApp'));
 
@@ -148,5 +149,21 @@ describe('factory: fw/lib/fn.js', function() {
     });
     it('isO(): the reference for object', function () {
         expect(fs.isO(someObject)).toBe(someObject);
+    });
+
+    // === Tests for contains()
+    it('contains(): false for improper args', function () {
+        expect(fs.contains()).toBeFalsy();
+    });
+    it('contains(): false for non-array', function () {
+        expect(fs.contains(null, 1)).toBeFalsy();
+    });
+    it ('contains(): true for contained item', function () {
+        expect(fs.contains(someArray, 1)).toBeTruthy();
+        expect(fs.contains(stringArray, 'bar')).toBeTruthy();
+    });
+    it ('contains(): false for non-contained item', function () {
+        expect(fs.contains(someArray, 109)).toBeFalsy();
+        expect(fs.contains(stringArray, 'zonko')).toBeFalsy();
     });
 });

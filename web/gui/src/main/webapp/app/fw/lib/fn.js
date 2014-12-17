@@ -22,20 +22,33 @@
 (function (onos) {
     'use strict';
 
+    function isF(f) {
+        return $.isFunction(f) ? f : null;
+    }
+
+    function isA(a) {
+        return $.isArray(a) ? a : null;
+    }
+
+    function isS(s) {
+        return typeof s === 'string' ? s : null;
+    }
+
+    function isO(o) {
+        return $.isPlainObject(o) ? o : null;
+    }
+
+    function contains(a, x) {
+        return isA(a) && a.indexOf(x) > -1;
+    }
+
     onos.factory('FnService', [function () {
         return {
-            isF: function (f) {
-                return $.isFunction(f) ? f : null;
-            },
-            isA: function (a) {
-                return $.isArray(a) ? a : null;
-            },
-            isS: function (s) {
-                return typeof s === 'string' ? s : null;
-            },
-            isO: function (o) {
-                return $.isPlainObject(o) ? o : null;
-            }
+            isF: isF,
+            isA: isA,
+            isS: isS,
+            isO: isO,
+            contains: contains
         };
     }]);
 
