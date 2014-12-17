@@ -147,11 +147,14 @@
     onos.factory('KeyService', ['FnService', function (fs) {
         f = fs;
         return {
-            init: function () {
-                console.log('initializing keydown handler....');
-                d3.select('body').on('keydown', keyIn);
+            installOn: function (elem) {
+                elem.on('keydown', keyIn);
                 setupGlobalKeys();
-            }
+            },
+            theme: function () {
+                return theme;
+            },
+            whatKey: whatKey
         };
     }]);
 

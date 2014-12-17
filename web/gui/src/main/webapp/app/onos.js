@@ -29,7 +29,7 @@ var ONOS;
     ONOS = angular.module('onosApp', ['onosMast'])
         .controller('OnosCtrl', ['KeyService', function (ks) {
             console.log('OnosCtrl has been created');
-            ks.init();
+            ks.installOn(d3.select('body'));
         }]);
 
 }());
