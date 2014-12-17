@@ -1,5 +1,4 @@
 // Karma configuration
-// Generated on Tue Dec 09 2014 10:41:03 GMT-0800 (PST)
 
 module.exports = function(config) {
   config.set({
@@ -15,10 +14,20 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        '../../main/webapp/tp/angular.min.js',
-        '../../main/webapp/tp/angular-mocks.js',
-        '../../main/webapp/_sdh/ng-examples/js/*.js',
-        '../webapp/_sdh/ng-examples/js/*.js'
+        // library code...
+        '../tp/angular.js',
+        '../tp/angular-mocks.js',
+        '../tp/d3.js',
+        '../tp/topojson.v1.min.js',
+        '../tp/jquery-2.1.1.min.js',
+
+        // production code...
+        '../app/onos.js',
+        '../app/fw/lib/*.js',
+        '../app/fw/mast/*.js',
+
+        // unit test code...
+        'fw/lib/*.js'
     ],
 
 
