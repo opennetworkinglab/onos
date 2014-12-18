@@ -256,6 +256,7 @@ public class IntentsResourceTest extends JerseyTest {
     private static IntentJsonArrayMatcher hasIntent(Intent intent) {
         return new IntentJsonArrayMatcher(intent);
     }
+
     @Before
     public void setUp() {
         expect(mockIntentService.getIntents()).andReturn(intents).anyTimes();

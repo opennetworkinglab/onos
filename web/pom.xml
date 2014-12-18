@@ -63,10 +63,7 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
+
 
         <dependency>
             <groupId>com.sun.jersey</groupId>
@@ -131,6 +128,7 @@
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
                             com.google.common.base.*,
+                            com.google.common.collect.*,
                             org.eclipse.jetty.websocket.*,
                             org.onlab.util.*,
                             org.onlab.osgi.*,

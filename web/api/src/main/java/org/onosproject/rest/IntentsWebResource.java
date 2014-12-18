@@ -58,7 +58,7 @@ public class IntentsWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    public Response getHostById(@PathParam("id") long id) {
+    public Response getIntentById(@PathParam("id") long id) {
         final Intent intent = nullIsNotFound(get(IntentService.class)
                         .getIntent(IntentId.valueOf(id)),
                 INTENT_NOT_FOUND);
