@@ -20,30 +20,13 @@
  @author Simon Hunt
  */
 describe('factory: fw/lib/keys.js', function() {
-    var ks, fs, d3Elem, elem, last,
-        mockLog;
+    var ks, fs, $log,
+        d3Elem, elem, last;
 
     beforeEach(module('onosApp'));
 
-    // create mock log to verify warning was logged
-    beforeEach(module(function($provide) {
-        mockLog = {
-            warn: function (msg) {
-                mockLog._last.warn = msg;
-            },
-            _last: {},
-            _check: function (which) {
-                // destructive read
-                var m = mockLog._last[which];
-                mockLog._last[which] = null;
-                return m;
-            }
-        };
-        // tell angular to provide our mock, when '$log' service is requested
-        $provide.value('$log', mockLog);
-    }));
-
-    beforeEach(inject(function (KeyService, FnService) {
+    beforeEach(inject(function (KeyService, FnService, _$log_) {
+        $log = _$log_;
         ks = KeyService;
         fs = FnService;
         d3Elem = d3.select('body').append('p').attr('id', 'ptest');
@@ -217,12 +200,14 @@ describe('factory: fw/lib/keys.js', function() {
     it('should warn about masked keys', function () {
         var k = {'space': cb, 'T': cb},
             count = 0;
+
         function cb() { count++; }
+
+        spyOn($log, 'warn');
 
         ks.keyBindings(k);
 
-        expect(mockLog._check('warn'))
-            .toEqual('setKeyBindings(): Key "T" is reserved');
+        expect($log.warn).toHaveBeenCalledWith('setKeyBindings(): Key "T" is reserved');
 
         // the 'T' key should NOT invoke our callback
         expect(count).toEqual(0);
