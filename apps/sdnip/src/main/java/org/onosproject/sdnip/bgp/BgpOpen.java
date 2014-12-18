@@ -335,6 +335,7 @@ final class BgpOpen {
                     }
                     long as4Number = message.readUnsignedInt();
                     // TODO: Implement support for 4-octet AS Numbers
+                    bgpSession.setRemoteAs4Octet(as4Number);
                     log.debug("BGP RX OPEN Capability:  AS4 Number = {}",
                               as4Number);
                     break;

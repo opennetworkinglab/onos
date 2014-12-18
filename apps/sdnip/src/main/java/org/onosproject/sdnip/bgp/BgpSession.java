@@ -59,6 +59,7 @@ public class BgpSession extends SimpleChannelHandler {
     private Ip4Address remoteIp4Address;        // Peer IPv4 address
     private int remoteBgpVersion;               // 1 octet
     private long remoteAs;                      // 2 octets
+    private long remoteAs4Octet;                // 4 octets
     private long remoteHoldtime;                // 2 octets
     private Ip4Address remoteBgpId;             // 4 octets -> IPv4 address
     private boolean remoteIpv4Unicast;          // Peer IPv4/UNICAST AFI/SAFI
@@ -188,6 +189,15 @@ public class BgpSession extends SimpleChannelHandler {
         // of an explicit BGP peering configuration.
         //
         this.localAs = remoteAs;
+    }
+
+    /**
+     * Sets the BGP session remote 4 octet AS number.
+     *
+     * @param remoteAs4Octet the BGP session remote 4 octet AS number to set
+     */
+    void setRemoteAs4Octet(long remoteAs4Octet) {
+        this.remoteAs4Octet = remoteAs4Octet;
     }
 
     /**
