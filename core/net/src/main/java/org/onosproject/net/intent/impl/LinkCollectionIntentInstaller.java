@@ -15,13 +15,8 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,7 +43,10 @@ import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.PathIntent;
 
-import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Installer for {@link org.onosproject.net.intent.LinkCollectionIntent} path
@@ -79,60 +77,37 @@ public class LinkCollectionIntentInstaller
 
     @Override
     public List<FlowRuleBatchOperation> install(LinkCollectionIntent intent) {
-        Map<DeviceId, Set<PortNumber>> outputMap = new HashMap<DeviceId, Set<PortNumber>>();
-        List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-
-        for (Link link : intent.links()) {
-            if (outputMap.get(link.src().deviceId()) == null) {
-                outputMap.put(link.src().deviceId(), new HashSet<PortNumber>());
-            }
-            outputMap.get(link.src().deviceId()).add(link.src().port());
-
-        }
-
-        for (ConnectPoint egressPoint : intent.egressPoints()) {
-            if (outputMap.get(egressPoint.deviceId()) == null) {
-                outputMap
-                        .put(egressPoint.deviceId(), new HashSet<PortNumber>());
-            }
-            outputMap.get(egressPoint.deviceId()).add(egressPoint.port());
-
-        }
-
-        for (Entry<DeviceId, Set<PortNumber>> entry : outputMap.entrySet()) {
-            rules.add(createBatchEntry(FlowRuleOperation.ADD, intent,
-                                       entry.getKey(), entry.getValue()));
-        }
-
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        return generateBatchOperations(intent, FlowRuleOperation.ADD);
     }
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(LinkCollectionIntent intent) {
-        Map<DeviceId, Set<PortNumber>> outputMap = new HashMap<DeviceId, Set<PortNumber>>();
-        List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+        return generateBatchOperations(intent, FlowRuleOperation.REMOVE);
+    }
+
+    private List<FlowRuleBatchOperation> generateBatchOperations(
+            LinkCollectionIntent intent, FlowRuleOperation operation) {
+
+        SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 
         for (Link link : intent.links()) {
-            if (outputMap.get(link.src().deviceId()) == null) {
-                outputMap.put(link.src().deviceId(), new HashSet<PortNumber>());
-            }
-            outputMap.get(link.src().deviceId()).add(link.src().port());
+            outputPorts.put(link.src().deviceId(), link.src().port());
         }
 
         for (ConnectPoint egressPoint : intent.egressPoints()) {
-            if (outputMap.get(egressPoint.deviceId()) == null) {
-                outputMap
-                        .put(egressPoint.deviceId(), new HashSet<PortNumber>());
-            }
-            outputMap.get(egressPoint.deviceId()).add(egressPoint.port());
+            outputPorts.put(egressPoint.deviceId(), egressPoint.port());
         }
 
-        for (Entry<DeviceId, Set<PortNumber>> entry : outputMap.entrySet()) {
-            rules.add(createBatchEntry(FlowRuleOperation.REMOVE, intent,
-                                       entry.getKey(), entry.getValue()));
-        }
+        FlowRuleBatchOperation batchOperation =
+                new FlowRuleBatchOperation(outputPorts
+                        .keys()
+                        .stream()
+                        .map(deviceId -> createBatchEntry(operation,
+                                                   intent, deviceId,
+                                                   outputPorts.get(deviceId)))
+                        .collect(Collectors.toList()));
 
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        return Collections.singletonList(batchOperation);
     }
 
     @Override
@@ -148,7 +123,7 @@ public class LinkCollectionIntentInstaller
      * @param operation the FlowRuleOperation to use
      * @param intent the link collection intent
      * @param deviceId the device ID for the flow rule
-     * @param outPort the output port of the flow rule
+     * @param outPorts the set of output ports for the flow rule
      * @return the new flow rule batch entry
      */
     private FlowRuleBatchEntry createBatchEntry(FlowRuleOperation operation,
@@ -168,8 +143,9 @@ public class LinkCollectionIntentInstaller
                 .builder(intent.selector()).build();
 
         FlowRule rule = new DefaultFlowRule(deviceId,
-                selector, treatment, 123,
-                appId, new DefaultGroupId((short) (intent.id().fingerprint() &  0xffff)), 0, true);
+                selector, treatment, 123, appId,
+                new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
+                0, true);
 
         return new FlowRuleBatchEntry(operation, rule);
     }

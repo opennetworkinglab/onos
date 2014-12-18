@@ -54,7 +54,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 TrafficTreatment treatment,
                                 Set<Link> links,
                                 ConnectPoint egressPoint) {
-        this(appId, selector , treatment, links, egressPoint, Collections.emptyList());
+        this(appId, selector, treatment, links, egressPoint, Collections.emptyList());
     }
 
     /**

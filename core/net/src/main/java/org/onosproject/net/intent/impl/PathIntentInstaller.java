@@ -94,14 +94,16 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
+            // if this is the last flow rule, apply the intent's treatments
             TrafficTreatment treatment =
-                    // if this is the last flow rule, apply the intent's treatments
                     (links.hasNext() ? builder() : builder(intent.treatment()))
                     .setOutput(link.src().port()).build();
 
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment, 123, //FIXME 123
-                    appId, new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true);
+                    appId,
+                    new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
+                    0, true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule,
                                              intent.id().fingerprint()));
             prev = link.dst();
@@ -124,12 +126,14 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         while (links.hasNext()) {
             builder.matchInport(prev.port());
             Link link = links.next();
-            TrafficTreatment treatment = // if this is the last flow rule, apply the intent's treatments
+            // if this is the last flow rule, apply the intent's treatments
+            TrafficTreatment treatment =
                     (links.hasNext() ? builder() : builder(intent.treatment()))
                             .setOutput(link.src().port()).build();
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                    builder.build(), treatment,
-                    123, appId, new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true);
+                    builder.build(), treatment, 123, appId,
+                    new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
+                    0, true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule,
                                              intent.id().fingerprint()));
             prev = link.dst();
