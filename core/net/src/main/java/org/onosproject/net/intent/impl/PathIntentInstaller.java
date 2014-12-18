@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -100,7 +101,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment, 123, //FIXME 123
-                    appId, (short) (intent.id().fingerprint() & 0xffff), 0, true);
+                    appId, new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule,
                                              intent.id().fingerprint()));
             prev = link.dst();
@@ -128,7 +129,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
                             .setOutput(link.src().port()).build();
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
                     builder.build(), treatment,
-                    123, appId, (short) (intent.id().fingerprint() & 0xffff), 0, true);
+                    123, appId, new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true);
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, rule,
                                              intent.id().fingerprint()));
             prev = link.dst();
