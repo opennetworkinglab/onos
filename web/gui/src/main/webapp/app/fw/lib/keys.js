@@ -23,7 +23,7 @@
     'use strict';
 
     // references to injected services
-    var f;
+    var $log, f;
 
     // internal state
     var keyHandler = {
@@ -156,13 +156,12 @@
             viewKeys = d3.map(keyArg).keys();
             viewKeys.forEach(function (key) {
                 if (keyHandler.maskedKeys[key]) {
-                    masked.push('  Key "' + key + '" is reserved');
+                    masked.push('setKeyBindings(): Key "' + key + '" is reserved');
                 }
             });
 
             if (masked.length) {
-                // TODO: use alert service
-                window.alert('WARNING...\n\nsetKeys():\n' + masked.join('\n'));
+                $log.warn(masked.join('\n'));
             }
             keyHandler.viewKeys = keyArg;
         }
@@ -182,8 +181,8 @@
         };
     }
 
-    // TODO: inject alert service
-    onos.factory('KeyService', ['FnService', function (fs) {
+    onos.factory('KeyService', ['$log', 'FnService', function ($l, fs) {
+        $log = $l;
         f = fs;
         return {
             installOn: function (elem) {

@@ -20,9 +20,28 @@
  @author Simon Hunt
  */
 describe('factory: fw/lib/keys.js', function() {
-    var ks, fs, d3Elem, elem, last;
+    var ks, fs, d3Elem, elem, last,
+        mockLog;
 
     beforeEach(module('onosApp'));
+
+    // create mock log to verify warning was logged
+    beforeEach(module(function($provide) {
+        mockLog = {
+            warn: function (msg) {
+                mockLog._last.warn = msg;
+            },
+            _last: {},
+            _check: function (which) {
+                // destructive read
+                var m = mockLog._last[which];
+                mockLog._last[which] = null;
+                return m;
+            }
+        };
+        // tell angular to provide our mock, when '$log' service is requested
+        $provide.value('$log', mockLog);
+    }));
 
     beforeEach(inject(function (KeyService, FnService) {
         ks = KeyService;
@@ -195,4 +214,45 @@ describe('factory: fw/lib/keys.js', function() {
         verifyTestKeys();
     });
 
+    it('should warn about masked keys', function () {
+        var k = {'space': cb, 'T': cb},
+            count = 0;
+        function cb() { count++; }
+
+        ks.keyBindings(k);
+
+        expect(mockLog._check('warn'))
+            .toEqual('setKeyBindings(): Key "T" is reserved');
+
+        // the 'T' key should NOT invoke our callback
+        expect(count).toEqual(0);
+        jsKeyDown(elem, 84); // 'T'
+        expect(count).toEqual(0);
+
+        // but the 'space' key SHOULD invoke our callback
+        jsKeyDown(elem, 32); // 'space'
+        expect(count).toEqual(1);
+    });
+
+    // === Gesture notes related tests
+    it('should start with no notes', function () {
+        expect(ks.gestureNotes()).toEqual([]);
+    });
+
+    it('should allow us to add nodes', function () {
+        var notes = [
+            ['one', 'something about one'],
+            ['two', 'description of two']
+        ];
+        ks.gestureNotes(notes);
+
+        expect(ks.gestureNotes()).toEqual(notes);
+    });
+
+    it('should ignore non-arrays', function () {
+        ks.gestureNotes({foo:4});
+        expect(ks.gestureNotes()).toEqual([]);
+    });
+
+    // Consider adding test to ensure array contains 2-tuples of strings
 });
