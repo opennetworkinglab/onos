@@ -23,12 +23,38 @@
 (function () {
     'use strict';
 
-    angular.module('onosApp', ['onosUtil', 'onosMast'])
-        .controller('OnosCtrl', ['$log', 'KeyService', 'ThemeService',
-        function (_$log_, ks, ts) {
+    var coreDependencies = [
+        'ngRoute',
+        'onosUtil',
+        'onosMast'
+    ];
+
+    var viewDependencies = [
+        // TODO: inject view dependencies server side
+        // NOTE: 'ov' == 'Onos View'...
+        // {INJECTED-VIEW-MODULE-DEPENDENCIES}
+        'ovSample',
+        'ovTopo',
+        // NOTE: dummy element allows all previous entries to end with comma
+        '___dummy___'
+    ];
+
+    var dependencies = coreDependencies.concat(viewDependencies);
+    dependencies.pop(); // remove dummy
+
+    angular.module('onosApp', dependencies)
+
+        .controller('OnosCtrl', [
+            '$log', '$route', '$routeParams', '$location',
+            'KeyService', 'ThemeService',
+
+        function (_$log_, $route, $routeParams, $location, ks, ts) {
             var $log = _$log_,
                 self = this;
 
+            self.$route = $route;
+            self.$routeParams = $routeParams;
+            self.$location = $location;
             self.version = '1.1.0';
 
             // initialize onos (main app) controller here...
@@ -36,6 +62,28 @@
             ks.installOn(d3.select('body'));
 
             $log.log('OnosCtrl has been created');
+
+            $log.debug('route: ', self.$route);
+            $log.debug('routeParams: ', self.$routeParams);
+            $log.debug('location: ', self.$location);
+        }])
+
+        .config(['$routeProvider', function ($routeProvider) {
+            // TODO: figure out a way of handling contributed views...
+            $routeProvider
+                .when('/', {
+                    controller: 'OvSampleCtrl',
+                    controllerAs: 'ctrl',
+                    templateUrl: 'view/sample/sample.html'
+                })
+                .when('/topo', {
+                    controller: 'OvTopoCtrl',
+                    controllerAs: 'ctrl',
+                    templateUrl: 'view/topo/topo.html'
+                })
+                .otherwise({
+                    redirectTo: '/'
+                })
         }]);
 
 }());

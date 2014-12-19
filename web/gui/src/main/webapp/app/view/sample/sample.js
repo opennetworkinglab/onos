@@ -15,32 +15,20 @@
  */
 
 /*
- ONOS GUI -- core -- CSS file
+ ONOS GUI -- Sample View Module
 
  @author Simon Hunt
  */
 
-html {
-    font-family: sans-serif;
-    -webkit-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
-    height: 100%;
-}
+(function () {
+    'use strict';
+    angular.module('ovSample', ['onosUtil'])
+        .controller('OvSampleCtrl', ['$log', function (_$log_) {
+            var self = this,
+                $log = _$log_;
 
-/*
-   overflow hidden is to ensure that the body does not expand to account
-   for any flyout panes, that are positioned "off screen".
- */
-body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-}
+            self.message = 'Hey there folks!';
 
-#view {
-    padding: 6px;
-}
-
-#view h2 {
-    color: #800;
-}
+         $log.log('OvSampleCtrl has been created');
+        }]);
+}());
