@@ -20,12 +20,13 @@
  @author Simon Hunt
  */
 describe('factory: fw/lib/keys.js', function() {
-    var ks, fs, $log,
+    var $log, ks, fs,
         d3Elem, elem, last;
+  
 
-    beforeEach(module('onosApp'));
+    beforeEach(module('onosUtil'));
 
-    beforeEach(inject(function (KeyService, FnService, _$log_) {
+    beforeEach(inject(function (_$log_, KeyService, FnService) {
         $log = _$log_;
         ks = KeyService;
         fs = FnService;
@@ -44,12 +45,7 @@ describe('factory: fw/lib/keys.js', function() {
         d3.select('#ptest').remove();
     });
 
-    it('should have injected stuff defined', function () {
-        expect(ONOS).toBeDefined();
-        expect(ks).toBeDefined();
-        expect(fs).toBeDefined();
-    });
-
+    // Code to emulate key presses....
     // NOTE: kinda messy, but it seems to get the job done.
     function jsKeyDown(element, code) {
         var ev = document.createEvent('KeyboardEvent');
@@ -82,6 +78,8 @@ describe('factory: fw/lib/keys.js', function() {
     }
 
     // === Theme related tests
+    // TODO: fix these tests once we have ThemeService
+/*
     it('should start in light theme', function () {
         expect(ks.theme()).toEqual('light');
     });
@@ -89,6 +87,7 @@ describe('factory: fw/lib/keys.js', function() {
         jsKeyDown(elem, 84); // 'T'
         expect(ks.theme()).toEqual('dark');
     });
+*/
 
     // === Key binding related tests
     it('should start with default key bindings', function () {
@@ -201,7 +200,10 @@ describe('factory: fw/lib/keys.js', function() {
         var k = {'space': cb, 'T': cb},
             count = 0;
 
-        function cb() { count++; }
+        function cb(token, key, code, ev) {
+            count++;
+            //console.debug('count = ' + count, token, key, code);
+        }
 
         spyOn($log, 'warn');
 

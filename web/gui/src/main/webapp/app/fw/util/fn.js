@@ -15,25 +15,42 @@
  */
 
 /*
- ONOS GUI -- Main Application Module
+ ONOS GUI -- Util -- General Purpose Functions
 
  @author Simon Hunt
  */
-
 (function () {
     'use strict';
 
-    angular.module('onosApp', ['onosUtil', 'onosMast'])
-        .controller('OnosCtrl', ['$log', 'KeyService', function (_$log_, ks) {
-            var $log = _$log_,
-                self = this;
+    function isF(f) {
+        return $.isFunction(f) ? f : null;
+    }
 
-            self.version = '1.1.0';
+    function isA(a) {
+        return $.isArray(a) ? a : null;
+    }
 
-            // initialize onos (main app) controller here...
-            ks.installOn(d3.select('body'));
+    function isS(s) {
+        return typeof s === 'string' ? s : null;
+    }
 
-            $log.log('OnosCtrl has been created');
-        }]);
+    function isO(o) {
+        return $.isPlainObject(o) ? o : null;
+    }
+
+    function contains(a, x) {
+        return isA(a) && a.indexOf(x) > -1;
+    }
+
+    angular.module('onosUtil')
+        .factory('FnService', [function () {
+            return {
+                isF: isF,
+                isA: isA,
+                isS: isS,
+                isO: isO,
+                contains: contains
+            };
+    }]);
 
 }());

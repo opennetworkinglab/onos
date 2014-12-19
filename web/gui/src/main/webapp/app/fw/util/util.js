@@ -15,41 +15,13 @@
  */
 
 /*
- ONOS GUI -- General Purpose Functions
+ ONOS GUI -- Utilities Module
 
  @author Simon Hunt
  */
-(function (onos) {
+(function () {
     'use strict';
 
-    function isF(f) {
-        return $.isFunction(f) ? f : null;
-    }
+    angular.module('onosUtil', []);
 
-    function isA(a) {
-        return $.isArray(a) ? a : null;
-    }
-
-    function isS(s) {
-        return typeof s === 'string' ? s : null;
-    }
-
-    function isO(o) {
-        return $.isPlainObject(o) ? o : null;
-    }
-
-    function contains(a, x) {
-        return isA(a) && a.indexOf(x) > -1;
-    }
-
-    onos.factory('FnService', [function () {
-        return {
-            isF: isF,
-            isA: isA,
-            isS: isS,
-            isO: isO,
-            contains: contains
-        };
-    }]);
-
-}(ONOS));
+}());

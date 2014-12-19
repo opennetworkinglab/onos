@@ -22,12 +22,15 @@ module.exports = function(config) {
         '../tp/jquery-2.1.1.min.js',
 
         // production code...
+        // make sure modules are defined first...
         '../app/onos.js',
-        '../app/fw/lib/*.js',
-        '../app/fw/mast/*.js',
+        '../app/fw/util/util.js',
+        // now load services etc. that augment the modules
+        '../app/**/*.js',
 
         // unit test code...
-        'fw/lib/*.js'
+        'app/*-spec.js',
+        'app/**/*-spec.js'
     ],
 
 

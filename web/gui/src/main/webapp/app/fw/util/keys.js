@@ -15,11 +15,11 @@
  */
 
 /*
- ONOS GUI -- Key Handler Service
+ ONOS GUI -- Util -- Key Handler Service
 
  @author Simon Hunt
  */
-(function (onos) {
+(function () {
     'use strict';
 
     // references to injected services
@@ -80,6 +80,8 @@
             vk = kh.viewKeys[key],
             vcb = f.isF(vk) || (f.isA(vk) && f.isF(vk[0])) || f.isF(kh.viewFn),
             token = getViewToken();
+
+        d3.event.stopPropagation();
 
         // global callback?
         if (gcb && gcb(token, key, keyCode, event)) {
@@ -181,32 +183,33 @@
         };
     }
 
-    onos.factory('KeyService', ['$log', 'FnService', function ($l, fs) {
-        $log = $l;
-        f = fs;
-        return {
-            installOn: function (elem) {
-                elem.on('keydown', keyIn);
-                setupGlobalKeys();
-            },
-            theme: function () {
-                return theme;
-            },
-            keyBindings: function (x) {
-                if (x === undefined) {
-                    return getKeyBindings();
-                } else {
-                    setKeyBindings(x);
+    angular.module('onosUtil')
+        .factory('KeyService', ['$log', 'FnService', function ($l, fs) {
+            $log = $l;
+            f = fs;
+            return {
+                installOn: function (elem) {
+                    elem.on('keydown', keyIn);
+                    setupGlobalKeys();
+                },
+                theme: function () {
+                    return theme;
+                },
+                keyBindings: function (x) {
+                    if (x === undefined) {
+                        return getKeyBindings();
+                    } else {
+                        setKeyBindings(x);
+                    }
+                },
+                gestureNotes: function (g) {
+                    if (g === undefined) {
+                        return keyHandler.viewGestures;
+                    } else {
+                        keyHandler.viewGestures = f.isA(g) || [];
+                    }
                 }
-            },
-            gestureNotes: function (g) {
-                if (g === undefined) {
-                    return keyHandler.viewGestures;
-                } else {
-                    keyHandler.viewGestures = f.isA(g) || [];
-                }
-            }
-        };
+            };
     }]);
 
-}(ONOS));
+}());

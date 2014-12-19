@@ -15,25 +15,23 @@
  */
 
 /*
- ONOS GUI -- Main Application Module
+ ONOS GUI -- Masthead Controller - Unit Tests
 
  @author Simon Hunt
  */
+describe('Controller: MastCtrl', function () {
+    // instantiate the masthead module
+    beforeEach(module('onosMast'));
 
-(function () {
-    'use strict';
+    var $log, ctrl;
 
-    angular.module('onosApp', ['onosUtil', 'onosMast'])
-        .controller('OnosCtrl', ['$log', 'KeyService', function (_$log_, ks) {
-            var $log = _$log_,
-                self = this;
+    // we need an instance of the controller
+    beforeEach(inject(function(_$log_, $controller) {
+        $log = _$log_;
+        ctrl = $controller('MastCtrl');
+    }));
 
-            self.version = '1.1.0';
-
-            // initialize onos (main app) controller here...
-            ks.installOn(d3.select('body'));
-
-            $log.log('OnosCtrl has been created');
-        }]);
-
-}());
+    it('should start with no radio buttons', function () {
+        expect(ctrl.radio).toBeNull();
+    });
+});

@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- General Purpose Functions - Unit Tests
+ ONOS GUI -- Util -- General Purpose Functions - Unit Tests
 
  @author Simon Hunt
  */
@@ -29,19 +29,11 @@ describe('factory: fw/lib/fn.js', function() {
         someDate = new Date(),
         stringArray = ['foo', 'bar'];
 
-    beforeEach(module('onosApp'));
+    beforeEach(module('onosUtil'));
 
     beforeEach(inject(function (FnService) {
         fs = FnService;
     }));
-
-    it('should have ONOS defined', function () {
-        expect(ONOS).toBeDefined();
-    });
-
-    it('should have FnService defined', function () {
-        expect(fs).toBeDefined();
-    });
 
 
     // === Tests for isF()
@@ -158,11 +150,11 @@ describe('factory: fw/lib/fn.js', function() {
     it('contains(): false for non-array', function () {
         expect(fs.contains(null, 1)).toBeFalsy();
     });
-    it ('contains(): true for contained item', function () {
+    it('contains(): true for contained item', function () {
         expect(fs.contains(someArray, 1)).toBeTruthy();
         expect(fs.contains(stringArray, 'bar')).toBeTruthy();
     });
-    it ('contains(): false for non-contained item', function () {
+    it('contains(): false for non-contained item', function () {
         expect(fs.contains(someArray, 109)).toBeFalsy();
         expect(fs.contains(stringArray, 'zonko')).toBeFalsy();
     });

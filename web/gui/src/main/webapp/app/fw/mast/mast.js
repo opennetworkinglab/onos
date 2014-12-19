@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Masthead
+ ONOS GUI -- Masthead Module
 
  @author Simon Hunt
  */
@@ -23,9 +23,14 @@
     'use strict';
 
     angular.module('onosMast', [])
-        .controller('MastCtrl', [function () {
-            // controller logic here
-            console.log('MastCtrl has been created');
+        .controller('MastCtrl', ['$log', function (_$log_) {
+            var $log = _$log_,
+                self = this;
+
+            // initialize mast controller here...
+            self.radio = null;
+
+            $log.log('MastCtrl has been created');
         }]);
 
 }());
