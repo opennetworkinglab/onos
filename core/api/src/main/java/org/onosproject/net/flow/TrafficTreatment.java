@@ -19,9 +19,11 @@ import java.util.List;
 
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficTreatment.Builder;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 /**
@@ -155,12 +157,12 @@ public interface TrafficTreatment {
         public Builder popMpls();
 
         /**
-         * Pops MPLS ether type.
+         * Pops MPLS ether type and set the new ethertype.
          *
-         * @param ethType Ethernet type to set
+         * @param etherType an ether type
          * @return a treatment builder.
          */
-        public Builder popMpls(short ethType);
+        public Builder popMpls(Short etherType);
 
         /**
          * Sets the mpls label.
@@ -168,7 +170,7 @@ public interface TrafficTreatment {
          * @param mplsLabel MPLS label.
          * @return a treatment builder.
          */
-        public Builder setMpls(Integer mplsLabel);
+        public Builder setMpls(MplsLabel mplsLabel);
 
         /**
          * Decrement MPLS TTL.
@@ -199,6 +201,8 @@ public interface TrafficTreatment {
          * @return traffic treatment
          */
         TrafficTreatment build();
+
+
     }
 
 }

@@ -20,6 +20,7 @@ import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
@@ -186,8 +187,8 @@ public class CriteriaTest {
     Criterion matchTargetLlAddr2 =
         Criteria.matchIPv6NDTargetLinkLayerAddress(llMac2);
 
-    int mpls1 = 1;
-    int mpls2 = 2;
+    MplsLabel mpls1 = MplsLabel.mplsLabel(1);
+    MplsLabel mpls2 = MplsLabel.mplsLabel(2);
     Criterion matchMpls1 = Criteria.matchMplsLabel(mpls1);
     Criterion sameAsMatchMpls1 = Criteria.matchMplsLabel(mpls1);
     Criterion matchMpls2 = Criteria.matchMplsLabel(mpls2);

@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
@@ -184,7 +185,7 @@ public class SimpleGroupStoreTest {
                     .setEthDst(MacAddress.valueOf("00:00:00:00:00:02"))
                     .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
                     .pushMpls()
-                    .setMpls(106);
+                    .setMpls(MplsLabel.mplsLabel(106));
             buckets.add(DefaultGroupBucket.createSelectGroupBucket(
                                                         tBuilder.build()));
         }
@@ -244,7 +245,7 @@ public class SimpleGroupStoreTest {
                     .setEthDst(MacAddress.valueOf("00:00:00:00:00:03"))
                     .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
                     .pushMpls()
-                    .setMpls(106);
+                    .setMpls(MplsLabel.mplsLabel(106));
             toAddBuckets.add(DefaultGroupBucket.createSelectGroupBucket(
                                                         tBuilder.build()));
         }
@@ -347,7 +348,7 @@ public class SimpleGroupStoreTest {
                     .setEthDst(MacAddress.valueOf("00:00:00:00:00:02"))
                     .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
                     .pushMpls()
-                    .setMpls(106);
+                    .setMpls(MplsLabel.mplsLabel(106));
             buckets.add(DefaultGroupBucket.createSelectGroupBucket(
                     tBuilder.build()));
         }

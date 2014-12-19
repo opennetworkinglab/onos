@@ -20,6 +20,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import java.util.Objects;
 
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 /**
@@ -287,14 +288,14 @@ public abstract class L2ModificationInstruction implements Instruction {
     public static final class ModMplsLabelInstruction extends
     L2ModificationInstruction {
 
-        private final Integer mplsLabel;
+        private final MplsLabel mplsLabel;
 
-        public ModMplsLabelInstruction(Integer mplsLabel) {
+        public ModMplsLabelInstruction(MplsLabel mplsLabel) {
             this.mplsLabel = mplsLabel;
         }
 
         public Integer label() {
-            return mplsLabel;
+            return mplsLabel.toInt();
         }
 
         @Override
@@ -304,8 +305,8 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("mpls", mplsLabel.intValue()).toString();
+            return toStringHelper(type().toString())
+                    .add("mpls", mplsLabel).toString();
         }
 
         @Override

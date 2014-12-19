@@ -87,6 +87,8 @@ import org.onosproject.net.intent.IntentOperation;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.MplsIntent;
+import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
@@ -113,6 +115,9 @@ import org.onosproject.net.resource.Lambda;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LambdaResourceRequest;
 import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.MplsLabel;
+import org.onosproject.net.resource.MplsLabelResourceAllocation;
+import org.onosproject.net.resource.MplsLabelResourceRequest;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.service.BatchReadRequest;
 import org.onosproject.store.service.BatchWriteRequest;
@@ -345,6 +350,14 @@ public final class KryoNamespaces {
             .register(WriteStatus.class)
             .register(VersionedValue.class)
             .register(DefaultGroupId.class)
+            .register(
+                    MplsIntent.class,
+                    MplsPathIntent.class,
+                    MplsLabelResourceAllocation.class,
+                    MplsLabelResourceRequest.class,
+                    MplsLabel.class,
+                    org.onlab.packet.MplsLabel.class
+                    )
 
             .build();
 

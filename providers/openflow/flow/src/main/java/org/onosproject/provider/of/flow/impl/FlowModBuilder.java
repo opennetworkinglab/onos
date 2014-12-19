@@ -362,7 +362,7 @@ public abstract class FlowModBuilder {
                 break;
             case MPLS_LABEL:
                 Criteria.MplsCriterion mp = (Criteria.MplsCriterion) c;
-                mBuilder.setExact(MatchField.MPLS_LABEL, U32.of(mp.label()));
+                mBuilder.setExact(MatchField.MPLS_LABEL, U32.of(mp.label().toInt()));
                 break;
             case IPV6_EXTHDR:
                 Criteria.IPv6ExthdrFlagsCriterion exthdrFlagsCriterion =

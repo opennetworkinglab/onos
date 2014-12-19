@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
@@ -527,16 +528,16 @@ public class InstructionsTest {
                    is(not(equalTo(modIPv6FlowLabelInstruction2.hashCode()))));
     }
 
-    private Instruction modMplsLabelInstruction1 = Instructions.modMplsLabel(1);
-    private Instruction sameAsModMplsLabelInstruction1 = Instructions.modMplsLabel(1);
-    private Instruction modMplsLabelInstruction2 = Instructions.modMplsLabel(2);
+    private Instruction modMplsLabelInstruction1 = Instructions.modMplsLabel(MplsLabel.mplsLabel(1));
+    private Instruction sameAsModMplsLabelInstruction1 = Instructions.modMplsLabel(MplsLabel.mplsLabel(1));
+    private Instruction modMplsLabelInstruction2 = Instructions.modMplsLabel(MplsLabel.mplsLabel(2));
 
     /**
      * Test the modMplsLabel method.
      */
     @Test
     public void testModMplsMethod() {
-        final Instruction instruction = Instructions.modMplsLabel(33);
+        final Instruction instruction = Instructions.modMplsLabel(MplsLabel.mplsLabel(33));
         final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                 checkAndConvert(instruction,
                         Instruction.Type.L2MODIFICATION,

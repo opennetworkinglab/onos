@@ -43,6 +43,8 @@ import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceEvent;
 import org.onosproject.net.resource.LinkResourceStore;
+import org.onosproject.net.resource.MplsLabel;
+import org.onosproject.net.resource.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceAllocationException;
 import org.onosproject.net.resource.ResourceType;
@@ -103,6 +105,9 @@ public class HazelcastLinkResourceStore
     // Link annotation key name to use as max lambda
     private String wavesAnnotation = AnnotationKeys.OPTICAL_WAVES;
 
+    // Max MPLS labels: 2^20 – 1
+    private int maxMplsLabel = 0xFFFFF;
+
     @Override
     @Activate
     public void activate() {
@@ -141,6 +146,9 @@ public class HazelcastLinkResourceStore
         if (type == ResourceType.LAMBDA) {
             return getLambdaResourceCapacity(link);
         }
+        if (type == ResourceType.MPLS_LABEL) {
+            return getMplsResourceCapacity();
+        }
         return null;
     }
 
@@ -178,6 +186,17 @@ public class HazelcastLinkResourceStore
             bandwidth = DEFAULT_BANDWIDTH;
         }
         return new BandwidthResourceAllocation(bandwidth);
+    }
+
+    private Set<MplsLabelResourceAllocation> getMplsResourceCapacity() {
+        Set<MplsLabelResourceAllocation> allocations = new HashSet<>();
+        //Ignoring reserved labels of 0 through 15
+        for (int i = 16; i <= maxMplsLabel; i++) {
+            allocations.add(new MplsLabelResourceAllocation(MplsLabel
+                    .valueOf(i)));
+
+        }
+        return allocations;
     }
 
     private Map<ResourceType, Set<? extends ResourceAllocation>> getResourceCapacity(Link link) {
@@ -275,6 +294,33 @@ public class HazelcastLinkResourceStore
                 break;
             }
 
+            case MPLS_LABEL:
+                Set<? extends ResourceAllocation> mpls = caps.get(type);
+                if (mpls == null || mpls.isEmpty()) {
+                    // nothing left
+                    break;
+                }
+                Set<MplsLabelResourceAllocation> freeLabel = new HashSet<>();
+                for (ResourceAllocation r : mpls) {
+                    if (r instanceof MplsLabelResourceAllocation) {
+                        freeLabel.add((MplsLabelResourceAllocation) r);
+                    }
+                }
+
+                // enumerate current allocations, removing resources
+                for (LinkResourceAllocations alloc : allocations) {
+                    Set<ResourceAllocation> types = alloc
+                            .getResourceAllocation(link);
+                    for (ResourceAllocation a : types) {
+                        if (a instanceof MplsLabelResourceAllocation) {
+                            freeLabel.remove(a);
+                        }
+                    }
+                }
+
+                free.put(type, freeLabel);
+                break;
+
             default:
                 break;
             }
@@ -353,6 +399,18 @@ public class HazelcastLinkResourceStore
                                 "Unable to allocate lambda for link {} lambda is {}",
                                     link,
                                     lambdaAllocation.lambda().toInt()));
+                }
+            } else if (req instanceof MplsLabelResourceAllocation) {
+                MplsLabelResourceAllocation mplsAllocation = (MplsLabelResourceAllocation) req;
+                if (!avail.contains(req)) {
+                    throw new ResourceAllocationException(
+                                                          PositionalParameterStringFormatter
+                                                                  .format("Unable to allocate MPLS label for link "
+                                                                          + "{} MPLS label is {}",
+                                                                          link,
+                                                                          mplsAllocation
+                                                                                  .mplsLabel()
+                                                                                  .toString()));
                 }
             }
         }

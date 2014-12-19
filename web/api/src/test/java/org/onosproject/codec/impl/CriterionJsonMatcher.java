@@ -397,7 +397,7 @@ public final class CriterionJsonMatcher extends
      * @return true if the JSON matches the criterion, false otherwise.
      */
     private boolean matchCriterion(Criteria.MplsCriterion criterion) {
-        final int label = criterion.label();
+        final int label = criterion.label().toInt();
         final int jsonLabel = jsonCriterion.get("label").intValue();
         if (label != jsonLabel) {
             description.appendText("label was " + Integer.toString(jsonLabel));

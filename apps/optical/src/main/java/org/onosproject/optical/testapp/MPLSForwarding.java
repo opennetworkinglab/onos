@@ -40,6 +40,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MplsLabel;
 import org.slf4j.Logger;
 
 /**
@@ -98,7 +99,7 @@ public class MPLSForwarding {
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
         int inport = 1;
         int outport = 2;
-        Integer mplsLabel = 101;
+        MplsLabel mplsLabel = MplsLabel.mplsLabel(101);
         Integer switchNumber = uglyMap.get(device.id());
         if (switchNumber == null) {
             return;

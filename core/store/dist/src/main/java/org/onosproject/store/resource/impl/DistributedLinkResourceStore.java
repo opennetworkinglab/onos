@@ -42,6 +42,8 @@ import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceEvent;
 import org.onosproject.net.resource.LinkResourceStore;
+import org.onosproject.net.resource.MplsLabel;
+import org.onosproject.net.resource.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceAllocationException;
 import org.onosproject.net.resource.ResourceType;
@@ -105,8 +107,9 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     // Link annotation key name to use as max lambda
     private String wavesAnnotation = AnnotationKeys.OPTICAL_WAVES;
 
+    // Max MPLS labels: 2^20 – 1
+    private int maxMplsLabel = 0xFFFFF;
     private StoreSerializer serializer;
-
 
     void createTable(String tableName) {
         boolean tableReady = false;
@@ -150,6 +153,9 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
         if (type == ResourceType.LAMBDA) {
             return getLambdaResourceCapacity(link);
         }
+        if (type == ResourceType.MPLS_LABEL) {
+            return getMplsResourceCapacity();
+        }
         return null;
     }
 
@@ -187,6 +193,17 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
             bandwidth = DEFAULT_BANDWIDTH;
         }
         return new BandwidthResourceAllocation(bandwidth);
+    }
+
+    private Set<MplsLabelResourceAllocation> getMplsResourceCapacity() {
+        Set<MplsLabelResourceAllocation> allocations = new HashSet<>();
+        //Ignoring reserved labels of 0 through 15
+        for (int i = 16; i <= maxMplsLabel; i++) {
+            allocations.add(new MplsLabelResourceAllocation(MplsLabel
+                    .valueOf(i)));
+
+        }
+        return allocations;
     }
 
     private Map<ResourceType, Set<? extends ResourceAllocation>> getResourceCapacity(Link link) {
@@ -273,6 +290,34 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
                 free.put(type, freeL);
                 break;
             }
+            case MPLS_LABEL:
+            {
+                Set<? extends ResourceAllocation> mpls = caps.get(type);
+                if (mpls == null || mpls.isEmpty()) {
+                    // nothing left
+                    break;
+                }
+                Set<MplsLabelResourceAllocation> freeLabel = new HashSet<>();
+                for (ResourceAllocation r : mpls) {
+                    if (r instanceof MplsLabelResourceAllocation) {
+                        freeLabel.add((MplsLabelResourceAllocation) r);
+                    }
+                }
+
+                // enumerate current allocations, removing resources
+                for (LinkResourceAllocations alloc : allocations) {
+                    Set<ResourceAllocation> types = alloc
+                            .getResourceAllocation(link);
+                    for (ResourceAllocation a : types) {
+                        if (a instanceof MplsLabelResourceAllocation) {
+                            freeLabel.remove(a);
+                        }
+                    }
+                }
+
+                free.put(type, freeLabel);
+                break;
+            }
 
             default:
                 break;
@@ -298,7 +343,6 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
                        encodeIntentAllocations(alloc));
     }
 
-
     @Override
     public void allocateResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
@@ -313,8 +357,9 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
         }
 
         BatchWriteRequest batch = tx.build();
-//        log.info("Intent: {}", databaseService.getAll(INTENT_ALLOCATIONS));
-//        log.info("Link: {}", databaseService.getAll(LINK_RESOURCE_ALLOCATIONS));
+//         log.info("Intent: {}", databaseService.getAll(INTENT_ALLOCATIONS));
+//         log.info("Link: {}",
+        // databaseService.getAll(LINK_RESOURCE_ALLOCATIONS));
 
         BatchWriteResult result = databaseService.batchWrite(batch);
         if (!result.isSuccessful()) {
@@ -407,6 +452,21 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
                                     link,
                                     lambdaAllocation.lambda().toInt()));
                 }
+            } else if (req instanceof MplsLabelResourceAllocation) {
+
+                final MplsLabelResourceAllocation mplsAllocation = (MplsLabelResourceAllocation) req;
+                // check if allocation should be accepted
+                if (!avail.contains(req)) {
+                    // requested mpls label was not available
+                    throw new ResourceAllocationException(
+                                                          PositionalParameterStringFormatter
+                                                                  .format("Unable to allocate MPLS label for "
+                                                                          + "link {} MPLS label is {}",
+                                                                          link,
+                                                                          mplsAllocation
+                                                                                  .mplsLabel()
+                                                                                  .toString()));
+                }
             }
         }
         // all requests allocatable => add allocation
@@ -466,8 +526,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
 
         // Issue events to force recompilation of intents.
 
-        final List<LinkResourceAllocations> releasedResources =
-                ImmutableList.of(allocations);
+        final List<LinkResourceAllocations> releasedResources = ImmutableList.of(allocations);
         return new LinkResourceEvent(
                 LinkResourceEvent.Type.ADDITIONAL_RESOURCES_AVAILABLE,
                 releasedResources);
@@ -485,32 +544,32 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     }
 
     private String toLinkDbKey(LinkKey linkid) {
-        // introduce cache if necessary
+//         introduce cache if necessary
         return linkid.toString();
-        // Note: Above is irreversible, if we need reverse conversion
-        // we may need something like below, due to String only limitation
-//        byte[] bytes = serializer.encode(linkid);
-//        StringBuilder builder = new StringBuilder(bytes.length * 4);
-//        boolean isFirst = true;
-//        for (byte b : bytes) {
-//            if (!isFirst) {
-//                builder.append(',');
-//            }
-//            builder.append(b);
-//            isFirst = false;
-//        }
-//        return builder.toString();
+//         Note: Above is irreversible, if we need reverse conversion
+//         we may need something like below, due to String only limitation
+//         byte[] bytes = serializer.encode(linkid);
+//         StringBuilder builder = new StringBuilder(bytes.length * 4);
+//         boolean isFirst = true;
+//         for (byte b : bytes) {
+//         if (!isFirst) {
+//         builder.append(',');
+//         }
+//         builder.append(b);
+//         isFirst = false;
+//         }
+//         return builder.toString();
     }
 
-//    private LinkKey toLinkKey(String linkKey) {
-//        String[] bytes = linkKey.split(",");
-//        ByteBuffer buf = ByteBuffer.allocate(bytes.length);
-//        for (String bs : bytes) {
-//            buf.put(Byte.parseByte(bs));
-//        }
-//        buf.flip();
-//        return serializer.decode(buf);
-//    }
+//     private LinkKey toLinkKey(String linkKey) {
+//     String[] bytes = linkKey.split(",");
+//     ByteBuffer buf = ByteBuffer.allocate(bytes.length);
+//     for (String bs : bytes) {
+//     buf.put(Byte.parseByte(bs));
+//     }
+//     buf.flip();
+//     return serializer.decode(buf);
+//     }
 
     private String toIntentDbKey(IntentId intentid) {
         return intentid.toString();
@@ -565,16 +624,16 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
         Map<String, VersionedValue> all = databaseService.getAll(INTENT_ALLOCATIONS);
 
         return FluentIterable.from(all.values())
-            .transform(new Function<VersionedValue, LinkResourceAllocations>() {
+                .transform(new Function<VersionedValue, LinkResourceAllocations>() {
 
-                @Override
-                public LinkResourceAllocations apply(VersionedValue input) {
-                    if (input == null || input.value() == null) {
-                        return null;
-                    }
-                    return decodeIntentAllocations(input.value());
-                }
-            })
-            .filter(notNull());
+                               @Override
+                               public LinkResourceAllocations apply(VersionedValue input) {
+                                   if (input == null || input.value() == null) {
+                                       return null;
+                                   }
+                                   return decodeIntentAllocations(input.value());
+                               }
+                           })
+                           .filter(notNull());
     }
 }

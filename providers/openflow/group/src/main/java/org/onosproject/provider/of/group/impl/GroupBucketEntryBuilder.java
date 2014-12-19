@@ -16,8 +16,10 @@
 package org.onosproject.provider.of.group.impl;
 
 import com.google.common.collect.Lists;
+
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -263,7 +265,7 @@ public class GroupBucketEntryBuilder {
             case MPLS_LABEL:
                 @SuppressWarnings("unchecked")
                 OFOxm<U32> labelId = (OFOxm<U32>) oxm;
-                builder.setMpls((int) labelId.getValue().getValue());
+                builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
                 break;
             case ARP_OP:
             case ARP_SHA:

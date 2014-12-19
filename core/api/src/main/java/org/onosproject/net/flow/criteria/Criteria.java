@@ -18,11 +18,13 @@ package org.onosproject.net.flow.criteria;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
+
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 /**
@@ -338,7 +340,7 @@ public final class Criteria {
      * @param mplsLabel MPLS label (20 bits)
      * @return match criterion
      */
-    public static Criterion matchMplsLabel(int mplsLabel) {
+    public static Criterion matchMplsLabel(MplsLabel mplsLabel) {
         return new MplsCriterion(mplsLabel);
     }
 
@@ -1510,15 +1512,10 @@ public final class Criteria {
      */
     public static final class MplsCriterion implements Criterion {
         private static final int MASK = 0xfffff;
-        private final int mplsLabel;            // MPLS label: 20 bits
+        private final MplsLabel mplsLabel;
 
-        /**
-         * Constructor.
-         *
-         * @param mplsLabel the MPLS label to match (20 bits)
-         */
-        public MplsCriterion(int mplsLabel) {
-            this.mplsLabel = mplsLabel & MASK;
+        public MplsCriterion(MplsLabel mplsLabel) {
+            this.mplsLabel = mplsLabel;
         }
 
         @Override
@@ -1526,19 +1523,14 @@ public final class Criteria {
             return Type.MPLS_LABEL;
         }
 
-        /**
-         * Gets the MPLS label to match.
-         *
-         * @return the MPLS label to match (20 bits)
-         */
-        public int label() {
+        public MplsLabel label() {
             return mplsLabel;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                .add("label", Long.toHexString(mplsLabel)).toString();
+                    .add("mpls", mplsLabel).toString();
         }
 
         @Override

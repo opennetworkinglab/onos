@@ -28,6 +28,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
@@ -251,7 +252,7 @@ public class DefaultTrafficSelectorTest {
         assertThat(selector, hasCriterionWithType(Type.IPV6_ND_TLL));
 
         selector = DefaultTrafficSelector.builder()
-                .matchMplsLabel(3).build();
+                .matchMplsLabel(MplsLabel.mplsLabel(3)).build();
         assertThat(selector, hasCriterionWithType(Type.MPLS_LABEL));
 
         selector = DefaultTrafficSelector.builder()

@@ -21,6 +21,7 @@ import java.util.List;
 import org.junit.Test;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
@@ -54,8 +55,6 @@ import com.google.common.collect.ImmutableList;
 import static org.onosproject.codec.impl.IntentJsonMatcher.matchesIntent;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.hid;
-
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -123,7 +122,7 @@ public class IntentCodecTest extends AbstractIntentTest {
         DeviceId did3 = did("device3");
         final TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchIPProtocol((byte) 3)
-                .matchMplsLabel(4)
+                .matchMplsLabel(MplsLabel.mplsLabel(4))
                 .matchOpticalSignalType((short) 5)
                 .matchLambda((short) 6)
                 .matchEthDst(MacAddress.BROADCAST)
@@ -131,7 +130,7 @@ public class IntentCodecTest extends AbstractIntentTest {
                 .build();
         final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setLambda((short) 33)
-                .setMpls(44)
+                .setMpls(MplsLabel.mplsLabel(44))
                 .setOutput(PortNumber.CONTROLLER)
                 .setEthDst(MacAddress.BROADCAST)
                 .build();

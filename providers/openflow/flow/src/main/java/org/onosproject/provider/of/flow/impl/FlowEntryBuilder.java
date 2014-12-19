@@ -16,11 +16,13 @@
 package org.onosproject.provider.of.flow.impl;
 
 import com.google.common.collect.Lists;
+
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
@@ -309,7 +311,7 @@ public class FlowEntryBuilder {
         case MPLS_LABEL:
             @SuppressWarnings("unchecked")
             OFOxm<U32> labelId = (OFOxm<U32>) oxm;
-            builder.setMpls((int) labelId.getValue().getValue());
+            builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
             break;
         case ARP_OP:
         case ARP_SHA:
@@ -471,6 +473,9 @@ public class FlowEntryBuilder {
                 break;
             case UDP_DST:
                 builder.matchUdpDst((short) match.get(MatchField.UDP_DST).getPort());
+            case MPLS_LABEL:
+                builder.matchMplsLabel(MplsLabel.mplsLabel((int) match.get(MatchField.MPLS_LABEL)
+                                            .getValue()));
                 break;
             case SCTP_SRC:
                 builder.matchSctpSrc((short) match.get(MatchField.SCTP_SRC).getPort());
@@ -537,10 +542,6 @@ public class FlowEntryBuilder {
             case IPV6_ND_TLL:
                 mac = MacAddress.valueOf(match.get(MatchField.IPV6_ND_TLL).getLong());
                 builder.matchIPv6NDTargetLinkLayerAddress(mac);
-                break;
-            case MPLS_LABEL:
-                builder.matchMplsLabel((int) match.get(MatchField.MPLS_LABEL)
-                                            .getValue());
                 break;
             case IPV6_EXTHDR:
                 builder.matchIPv6ExthdrFlags((int) match.get(MatchField.IPV6_EXTHDR)

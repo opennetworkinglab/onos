@@ -22,6 +22,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 /**
@@ -297,7 +298,7 @@ public interface TrafficSelector {
          * @param mplsLabel a MPLS label.
          * @return a selection builder
          */
-        public Builder matchMplsLabel(Integer mplsLabel);
+        public Builder matchMplsLabel(MplsLabel mplsLabel);
 
         /**
          * Matches on IPv6 Extension Header pseudo-field fiags.

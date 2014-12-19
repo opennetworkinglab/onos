@@ -285,7 +285,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
             final Criteria.MplsCriterion mplsCriterion =
                     (Criteria.MplsCriterion) criterion;
-            return root.put("label", mplsCriterion.label());
+            return root.put("label", mplsCriterion.label().toInt());
         }
     }
 

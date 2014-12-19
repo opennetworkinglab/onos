@@ -117,6 +117,17 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
         }
 
         /**
+         * Adds Mpls request.
+         *
+         * @return self
+         */
+        @Override
+        public Builder addMplsRequest() {
+            resources.add(new MplsLabelResourceRequest());
+            return this;
+        }
+
+        /**
          * Adds bandwidth request with bandwidth value.
          *
          * @param bandwidth bandwidth value to be requested

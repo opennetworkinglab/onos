@@ -15,22 +15,21 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Represents types for link resources.
+ * Representation of a request for lambda resource.
  */
-public enum ResourceType {
-    /**
-     * Lambda resource type.
-     */
-    LAMBDA,
+public class MplsLabelResourceRequest implements ResourceRequest {
 
-    /**
-     * Bandwidth resource type.
-     */
-    BANDWIDTH,
+    @Override
+    public ResourceType type() {
+        return ResourceType.MPLS_LABEL;
+    }
 
-    /**
-     * MPLS label resource type.
-     */
-    MPLS_LABEL,
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .toString();
+    }
 }

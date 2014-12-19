@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
@@ -374,7 +375,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchMplsLabelTest() {
-        Criterion criterion = Criteria.matchMplsLabel(0xffffe);
+        Criterion criterion = Criteria.matchMplsLabel(MplsLabel.mplsLabel(0xffffe));
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }

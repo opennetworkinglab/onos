@@ -17,8 +17,10 @@ package org.onosproject.net.flow;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
@@ -222,12 +224,12 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder popMpls(short etherType) {
+        public Builder popMpls(Short etherType) {
             return add(Instructions.popMpls(etherType));
         }
 
         @Override
-        public Builder setMpls(Integer mplsLabel) {
+        public Builder setMpls(MplsLabel mplsLabel) {
             return add(Instructions.modMplsLabel(mplsLabel));
         }
 

@@ -60,6 +60,13 @@ public interface LinkResourceRequest extends ResourceRequest {
         public Builder addLambdaRequest();
 
         /**
+        * Adds MPLS request.
+        *
+        * @return self
+        */
+       public Builder addMplsRequest();
+
+        /**
          * Adds bandwidth request with bandwidth value.
          *
          * @param bandwidth bandwidth value to be requested

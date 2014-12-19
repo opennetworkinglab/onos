@@ -49,6 +49,9 @@ import org.onosproject.net.resource.LinkResourceRequest;
 import org.onosproject.net.resource.LinkResourceService;
 import org.onosproject.net.resource.LinkResourceStore;
 import org.onosproject.net.resource.LinkResourceStoreDelegate;
+import org.onosproject.net.resource.MplsLabel;
+import org.onosproject.net.resource.MplsLabelResourceAllocation;
+import org.onosproject.net.resource.MplsLabelResourceRequest;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
@@ -104,6 +107,7 @@ public class LinkResourceManager implements LinkResourceService {
         return lambdas;
     }
 
+
     /**
      * Returns available lambdas on specified links.
      *
@@ -121,13 +125,36 @@ public class LinkResourceManager implements LinkResourceService {
         return lambdas;
     }
 
+
+    /**
+     * Returns available MPLS label on specified link.
+     *
+     * @param link the link
+     * @return available MPLS labels on specified link
+     */
+    private Iterable<MplsLabel> getAvailableMplsLabels(Link link) {
+        Set<ResourceAllocation> resAllocs = store.getFreeResources(link);
+        if (resAllocs == null) {
+            return Collections.emptySet();
+        }
+        Set<MplsLabel> mplsLabels = new HashSet<>();
+        for (ResourceAllocation res : resAllocs) {
+            if (res.type() == ResourceType.MPLS_LABEL) {
+
+                mplsLabels.add(((MplsLabelResourceAllocation) res).mplsLabel());
+            }
+        }
+
+        return mplsLabels;
+    }
+
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
         // TODO Concatenate multiple bandwidth requests.
         // TODO Support multiple lambda resource requests.
         // TODO Throw appropriate exception.
-
         Set<ResourceAllocation> allocs = new HashSet<>();
+        Map<Link, Set<ResourceAllocation>> allocsPerLink = new HashMap<>();
         for (ResourceRequest r : req.resources()) {
             switch (r.type()) {
             case BANDWIDTH:
@@ -144,6 +171,24 @@ public class LinkResourceManager implements LinkResourceService {
                     return null;
                 }
                 break;
+            case MPLS_LABEL:
+                for (Link link : req.links()) {
+                    if (allocsPerLink.get(link) == null) {
+                        allocsPerLink.put(link,
+                                          new HashSet<ResourceAllocation>());
+                    }
+                    Iterator<MplsLabel> mplsIter = getAvailableMplsLabels(link)
+                            .iterator();
+                    if (mplsIter.hasNext()) {
+                        allocsPerLink.get(link)
+                                .add(new MplsLabelResourceAllocation(mplsIter
+                                             .next()));
+                    } else {
+                        log.info("Failed to allocate MPLS resource.");
+                        break;
+                    }
+                }
+                break;
             default:
                 break;
             }
@@ -151,7 +196,8 @@ public class LinkResourceManager implements LinkResourceService {
 
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         for (Link link : req.links()) {
-            allocations.put(link, allocs);
+            allocations.put(link, new HashSet<ResourceAllocation>(allocs));
+            allocations.get(link).addAll(allocsPerLink.get(link));
         }
         LinkResourceAllocations result =
                 new DefaultLinkResourceAllocations(req, allocations);
@@ -203,6 +249,8 @@ public class LinkResourceManager implements LinkResourceService {
             case LAMBDA:
                 result.add(new LambdaResourceRequest());
                 break;
+            case MPLS_LABEL:
+                result.add(new MplsLabelResourceRequest());
             default:
                 break;
             }
