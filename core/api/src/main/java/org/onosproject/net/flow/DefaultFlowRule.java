@@ -63,13 +63,6 @@ public class DefaultFlowRule implements FlowRule {
         this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(0), timeout, permanent);
     }
 
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority, ApplicationId appId,
-                           short groupId, int timeout, boolean permanent) {
-        this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(groupId), timeout, permanent);
-    }
-
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            GroupId groupId, int timeout, boolean permanent) {

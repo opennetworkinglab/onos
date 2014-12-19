@@ -22,6 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -54,7 +55,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
 
     private final Logger log = getLogger(getClass());
 
-    public static final long RETRY_INTERVAL_MILLIS = 2000;
+    public static final Duration RETRY_INTERVAL = Duration.ofMillis(2000);
 
     private final ClusterService clusterService;
     private final ClusterCommunicationService clusterCommunicator;
@@ -179,7 +180,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
                 }
                 byte[] response = clusterCommunicator
                     .sendAndReceive(message, remoteNode.id())
-                    .get(RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+                    .get(RETRY_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
                 if (!connectionOK.getAndSet(true)) {
                     log.info("Connectivity to {} restored", remoteNode);
                 }

@@ -38,6 +38,7 @@
                 org.onosproject.rest.DevicesWebResource,
                 org.onosproject.rest.LinksWebResource,
                 org.onosproject.rest.HostsWebResource,
+                org.onosproject.rest.IntentsWebResource,
                 org.onosproject.rest.ConfigResource
             </param-value>
         </init-param>

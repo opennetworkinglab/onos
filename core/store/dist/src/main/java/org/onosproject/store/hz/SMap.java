@@ -47,7 +47,6 @@ import com.hazelcast.mapreduce.aggregation.Supplier;
 import com.hazelcast.monitor.LocalMapStats;
 import com.hazelcast.query.Predicate;
 
-// TODO: implement Predicate, etc. if we need them.
 /**
  * Wrapper around IMap&lt;byte[], byte[]&gt; which serializes/deserializes
  * key and value using StoreSerializer.
@@ -298,21 +297,39 @@ public class SMap<K, V> implements IMap<K, V> {
         return m.addLocalEntryListener(new BaseEntryListener(listener));
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public String addLocalEntryListener(EntryListener<K, V> listener,
             Predicate<K, V> predicate, boolean includeValue) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public String addLocalEntryListener(EntryListener<K, V> listener,
             Predicate<K, V> predicate, K key, boolean includeValue) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public String addInterceptor(MapInterceptor interceptor) {
         throw new UnsupportedOperationException();
@@ -341,21 +358,39 @@ public class SMap<K, V> implements IMap<K, V> {
                 serializeKey(key), includeValue);
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public String addEntryListener(EntryListener<K, V> listener,
             Predicate<K, V> predicate, boolean includeValue) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public String addEntryListener(EntryListener<K, V> listener,
             Predicate<K, V> predicate, K key, boolean includeValue) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public EntryView<K, V> getEntryView(K key) {
         throw new UnsupportedOperationException();
@@ -386,21 +421,39 @@ public class SMap<K, V> implements IMap<K, V> {
         return deserializeEntrySet(m.entrySet());
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Set<K> keySet(Predicate predicate) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Set<java.util.Map.Entry<K, V>> entrySet(Predicate predicate) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Collection<V> values(Predicate predicate) {
@@ -412,14 +465,26 @@ public class SMap<K, V> implements IMap<K, V> {
         return deserializeKeySet(m.localKeySet());
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Set<K> localKeySet(Predicate predicate) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public void addIndex(String attribute, boolean ordered) {
         throw new UnsupportedOperationException();
@@ -430,14 +495,26 @@ public class SMap<K, V> implements IMap<K, V> {
         return m.getLocalMapStats();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Object executeOnKey(K key, EntryProcessor entryProcessor) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Map<K, Object> executeOnKeys(Set<K> keys,
@@ -445,7 +522,13 @@ public class SMap<K, V> implements IMap<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public void submitToKey(K key, EntryProcessor entryProcessor,
@@ -453,21 +536,39 @@ public class SMap<K, V> implements IMap<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Future submitToKey(K key, EntryProcessor entryProcessor) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Map<K, Object> executeOnEntries(EntryProcessor entryProcessor) {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @SuppressWarnings("rawtypes")
     @Override
     public Map<K, Object> executeOnEntries(EntryProcessor entryProcessor,
@@ -475,7 +576,13 @@ public class SMap<K, V> implements IMap<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public <SuppliedValue, Result> Result aggregate(
             Supplier<K, V, SuppliedValue> supplier,
@@ -484,7 +591,13 @@ public class SMap<K, V> implements IMap<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // marking method not implemented
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated not implemented yet
+     * @throws UnsupportedOperationException not implemented yet
+     */
+    @Deprecated
     @Override
     public <SuppliedValue, Result> Result aggregate(
             Supplier<K, V, SuppliedValue> supplier,

@@ -255,7 +255,7 @@ public class LinkManager
             checkNotNull(connectPoint, "Connect point cannot be null");
             checkValidity();
 
-            log.info("Links for connection point {} vanished", connectPoint);
+            log.debug("Links for connection point {} vanished", connectPoint);
             // FIXME: This will remove links registered by other providers
             removeLinks(getLinks(connectPoint), true);
         }
@@ -265,7 +265,7 @@ public class LinkManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
 
-            log.info("Links for device {} vanished", deviceId);
+            log.debug("Links for device {} vanished", deviceId);
             removeLinks(getDeviceLinks(deviceId), true);
         }
     }
@@ -276,7 +276,10 @@ public class LinkManager
             LinkEvent event = isSoftRemove ?
                     store.removeOrDownLink(link.src(), link.dst()) :
                     store.removeLink(link.src(), link.dst());
-            post(event);
+            if (event != null) {
+                log.info("Link {} removed/vanished", event.subject());
+                post(event);
+            }
         }
     }
 

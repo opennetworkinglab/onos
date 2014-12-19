@@ -81,7 +81,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
 
         // Print the routes
         if (foundBgpSession != null) {
-            printRoutes(foundBgpSession.getBgpRibIn());
+            printRoutes(foundBgpSession.bgpRibIn().values());
         } else {
             printRoutes(service.getBgpRoutes());
         }

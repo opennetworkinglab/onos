@@ -77,7 +77,7 @@ function cell {
     if [ -n "$1" ]; then
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
-        unset ONOS_CELL ONOS_NIC ONOS_FEATURES
+        unset ONOS_CELL ONOS_NIC ONOS_FEATURES ONOS_USER ONOS_GROUP
         unset OC0 OC1 OC2 OC3 OC4 OC5 OC6 OC7 OC8 OC9 OCN OCI
         export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1

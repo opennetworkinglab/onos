@@ -33,4 +33,5 @@ export ONOS_ZIP=$ONOS_STAGE.zip
 export ONOS_INSTALL_DIR="/opt/onos"     # Installation directory on remote
 export OCI="${OCI:-192.168.56.101}"     # ONOS Controller Instance
 export ONOS_USER="${ONOS_USER:-sdn}"    # ONOS user on remote system
+export ONOS_GROUP="${ONOS_GROUP:-sdn}"  # ONOS group on remote system
 export ONOS_PWD="rocks"                 # ONOS user password on remote system

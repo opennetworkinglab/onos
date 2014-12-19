@@ -417,10 +417,13 @@ public class DistributedFlowRuleStore
                 } else if (op.equals(FlowRuleOperation.ADD)) {
                     StoredFlowEntry flowEntry = new DefaultFlowEntry(flowRule);
                     DeviceId deviceId = flowRule.deviceId();
-                    if (!flowEntries.containsEntry(deviceId, flowEntry)) {
-                        flowEntries.put(deviceId, flowEntry);
-                        toAdd.add(batchEntry);
-                    }
+                    Collection<StoredFlowEntry> ft = flowEntries.get(deviceId);
+
+                    // always add requested FlowRule
+                    // Note: 2 equal FlowEntry may have different treatment
+                    ft.remove(flowEntry);
+                    ft.add(flowEntry);
+                    toAdd.add(batchEntry);
                 }
             }
             if (toAdd.isEmpty() && toRemove.isEmpty()) {
