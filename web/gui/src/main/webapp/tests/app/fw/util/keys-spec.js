@@ -19,7 +19,7 @@
 
  @author Simon Hunt
  */
-describe('factory: fw/lib/keys.js', function() {
+describe('factory: fw/util/keys.js', function() {
     var $log, ks, fs,
         d3Elem, elem, last;
   

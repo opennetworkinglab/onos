@@ -19,7 +19,7 @@
 
  @author Simon Hunt
  */
-describe('factory: fw/lib/fn.js', function() {
+describe('factory: fw/util/fn.js', function() {
     var fs,
         someFunction = function () {},
         someArray = [1, 2, 3],

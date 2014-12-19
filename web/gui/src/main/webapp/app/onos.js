@@ -24,13 +24,15 @@
     'use strict';
 
     angular.module('onosApp', ['onosUtil', 'onosMast'])
-        .controller('OnosCtrl', ['$log', 'KeyService', function (_$log_, ks) {
+        .controller('OnosCtrl', ['$log', 'KeyService', 'ThemeService',
+        function (_$log_, ks, ts) {
             var $log = _$log_,
                 self = this;
 
             self.version = '1.1.0';
 
             // initialize onos (main app) controller here...
+            ts.init();
             ks.installOn(d3.select('body'));
 
             $log.log('OnosCtrl has been created');

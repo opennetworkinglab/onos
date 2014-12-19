@@ -23,7 +23,7 @@
     'use strict';
 
     // references to injected services
-    var $log, f;
+    var $log, fs, ts;
 
     // internal state
     var keyHandler = {
@@ -32,8 +32,7 @@
             viewKeys: {},
             viewFn: null,
             viewGestures: []
-        },
-        theme = 'light';
+        };
 
     // TODO: we need to have the concept of view token here..
     function getViewToken() {
@@ -76,9 +75,9 @@
             key = whatKey(keyCode),
             kh = keyHandler,
             gk = kh.globalKeys[key],
-            gcb = f.isF(gk) || (f.isA(gk) && f.isF(gk[0])),
+            gcb = fs.isF(gk) || (fs.isA(gk) && fs.isF(gk[0])),
             vk = kh.viewKeys[key],
-            vcb = f.isF(vk) || (f.isA(vk) && f.isF(vk[0])) || f.isF(kh.viewFn),
+            vcb = fs.isF(vk) || (fs.isA(vk) && fs.isF(vk[0])) || fs.isF(kh.viewFn),
             token = getViewToken();
 
         d3.event.stopPropagation();
@@ -137,12 +136,7 @@
     }
 
     function toggleTheme(view, key, code, ev) {
-        var body = d3.select('body');
-        theme = (theme === 'light') ? 'dark' : 'light';
-        body.classed('light dark', false);
-        body.classed(theme, true);
-        // TODO: emit theme-change event to current view...
-        //theme(view);
+        ts.toggleTheme();
         return true;
     }
 
@@ -150,7 +144,7 @@
         var viewKeys,
             masked = [];
 
-        if (f.isF(keyArg)) {
+        if (fs.isF(keyArg)) {
             // set general key handler callback
             keyHandler.viewFn = keyArg;
         } else {
@@ -173,7 +167,7 @@
         var gkeys = d3.map(keyHandler.globalKeys).keys(),
             masked = d3.map(keyHandler.maskedKeys).keys(),
             vkeys = d3.map(keyHandler.viewKeys).keys(),
-            vfn = !!f.isF(keyHandler.viewFn);
+            vfn = !!fs.isF(keyHandler.viewFn);
 
         return {
             globalKeys: gkeys,
@@ -184,16 +178,16 @@
     }
 
     angular.module('onosUtil')
-        .factory('KeyService', ['$log', 'FnService', function ($l, fs) {
-            $log = $l;
-            f = fs;
+        .factory('KeyService', ['$log', 'FnService', 'ThemeService',
+        function (_$log_, _fs_, _ts_) {
+            $log = _$log_;
+            fs = _fs_;
+            ts = _ts_;
+
             return {
                 installOn: function (elem) {
                     elem.on('keydown', keyIn);
                     setupGlobalKeys();
-                },
-                theme: function () {
-                    return theme;
                 },
                 keyBindings: function (x) {
                     if (x === undefined) {
@@ -206,7 +200,7 @@
                     if (g === undefined) {
                         return keyHandler.viewGestures;
                     } else {
-                        keyHandler.viewGestures = f.isA(g) || [];
+                        keyHandler.viewGestures = fs.isA(g) || [];
                     }
                 }
             };
