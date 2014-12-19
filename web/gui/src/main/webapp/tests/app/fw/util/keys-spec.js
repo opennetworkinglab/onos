@@ -77,18 +77,6 @@ describe('factory: fw/util/keys.js', function() {
         element.dispatchEvent(ev);
     }
 
-    // === Theme related tests
-    // TODO: fix these tests once we have ThemeService
-/*
-    it('should start in light theme', function () {
-        expect(ks.theme()).toEqual('light');
-    });
-    it('should toggle to dark theme', function () {
-        jsKeyDown(elem, 84); // 'T'
-        expect(ks.theme()).toEqual('dark');
-    });
-*/
-
     // === Key binding related tests
     it('should start with default key bindings', function () {
         var state = ks.keyBindings(),

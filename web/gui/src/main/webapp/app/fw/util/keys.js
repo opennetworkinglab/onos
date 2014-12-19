@@ -115,6 +115,7 @@
 
     function quickHelp(view, key, code, ev) {
         // TODO: show quick help
+        // delegate to QuickHelp service.
         //libApi.quickHelp.show(keyHandler);
         console.log('QUICK-HELP');
         return true;
@@ -122,6 +123,7 @@
 
     function escapeKey(view, key, code, ev) {
         // TODO: plumb in handling of alerts and quick help dismissal
+        // We will delegate to the Alert / QuickHelp Services as appropriate.
 /*
         if (alerts.open) {
             closeAlerts();
