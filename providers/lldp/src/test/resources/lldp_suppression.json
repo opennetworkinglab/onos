@@ -1,0 +1,6 @@
+{
+  "deviceId" : [ "of:2222000000000000" ],
+  "deviceType" : [ "ROADM" ],
+  "annotation" : { "no-lldp" : null, "sendLLDP" : "false" }
+}
+

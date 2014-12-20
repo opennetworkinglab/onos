@@ -18,6 +18,8 @@ package org.onosproject.provider.lldp.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.mastership.MastershipEvent;
@@ -38,8 +40,16 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
+import java.io.IOException;
+import java.util.Dictionary;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,6 +66,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
+
+
+    private static final String PROP_USE_BDDP = "useBDDP";
+
+    private static final String PROP_LLDP_SUPPRESSION = "lldpSuppression";
+
+    private static final String DEFAULT_LLDP_SUPPRESSION_CONFIG = "../config/lldp_suppression.json";
 
     private final Logger log = getLogger(getClass());
 
@@ -75,16 +92,25 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     private ScheduledExecutorService executor;
 
-    private final boolean useBDDP = true;
+    @Property(name = PROP_USE_BDDP, boolValue = true,
+            label = "use BDDP for link discovery")
+    private boolean useBDDP = true;
 
     private static final long INIT_DELAY = 5;
     private static final long DELAY = 5;
+
+    @Property(name = PROP_LLDP_SUPPRESSION, value = DEFAULT_LLDP_SUPPRESSION_CONFIG,
+            label = "Path to LLDP suppression configuration file")
+    private String filePath = DEFAULT_LLDP_SUPPRESSION_CONFIG;
+
 
     private final InternalLinkProvider listener = new InternalLinkProvider();
 
     private final InternalRoleListener roleListener = new InternalRoleListener();
 
     protected final Map<DeviceId, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
+
+    private SuppressionRules rules;
 
     /**
      * Creates an OpenFlow link provider.
@@ -95,6 +121,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Activate
     public void activate() {
+        loadSuppressionRules();
+
         providerService = providerRegistry.register(this);
         deviceService.addListener(listener);
         packetSevice.addProcessor(listener, 0);
@@ -102,10 +130,19 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
         LinkDiscovery ld;
         for (Device device : deviceService.getAvailableDevices()) {
+            if (rules.isSuppressed(device)) {
+                log.debug("LinkDiscovery from {} disabled by configuration", device.id());
+                continue;
+            }
             ld = new LinkDiscovery(device, packetSevice, masterService,
                               providerService, useBDDP);
             discoverers.put(device.id(), ld);
             for (Port p : deviceService.getPorts(device.id())) {
+                if (rules.isSuppressed(p)) {
+                    log.debug("LinkDiscovery from {}@{} disabled by configuration",
+                              p.number(), device.id());
+                    continue;
+                }
                 if (!p.number().isLogical()) {
                     ld.addPort(p);
                 }
@@ -134,6 +171,45 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         log.info("Stopped");
     }
 
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            return;
+        }
+        @SuppressWarnings("rawtypes")
+        Dictionary properties = context.getProperties();
+
+        String s = (String) properties.get(PROP_USE_BDDP);
+        if (Strings.isNullOrEmpty(s)) {
+            useBDDP = true;
+        } else {
+            useBDDP = Boolean.valueOf(s);
+        }
+        s = (String) properties.get(PROP_LLDP_SUPPRESSION);
+        if (Strings.isNullOrEmpty(s)) {
+            filePath = DEFAULT_LLDP_SUPPRESSION_CONFIG;
+        } else {
+            filePath = s;
+        }
+
+        loadSuppressionRules();
+    }
+
+    private void loadSuppressionRules() {
+        SuppressionRulesStore store = new SuppressionRulesStore(filePath);
+        try {
+            rules = store.read();
+        } catch (IOException e) {
+            log.info("Failed to load {}, using built-in rules", filePath);
+            // default rule to suppress ROADM to maintain compatibility
+            rules = new SuppressionRules(ImmutableSet.of(),
+                                         EnumSet.of(Device.Type.ROADM),
+                                         ImmutableMap.of());
+        }
+
+        // should refresh discoverers when we need dynamic reconfiguration
+    }
+
     private class InternalRoleListener implements MastershipListener {
 
         @Override
@@ -148,6 +224,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             Device device = deviceService.getDevice(deviceId);
             if (device == null) {
                 log.warn("Device {} doesn't exist, or isn't there yet", deviceId);
+                return;
+            }
+            if (rules.isSuppressed(device)) {
                 return;
             }
             synchronized (discoverers) {
@@ -180,20 +259,24 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_UPDATED:
-                synchronized (discoverers) {
-                    ld = discoverers.get(deviceId);
-                    if (ld == null) {
-                        log.debug("Device added ({}) {}", event.type(),
-                                    deviceId);
-                        discoverers.put(deviceId, new LinkDiscovery(device,
-                                packetSevice, masterService, providerService,
-                                useBDDP));
-                    } else {
-                        if (ld.isStopped()) {
-                            log.debug("Device restarted ({}) {}", event.type(),
-                                    deviceId);
-                            ld.start();
-                        }
+                    synchronized (discoverers) {
+                        ld = discoverers.get(deviceId);
+                        if (ld == null) {
+                            if (rules.isSuppressed(device)) {
+                                log.debug("LinkDiscovery from {} disabled by configuration", device.id());
+                                return;
+                            }
+                            log.debug("Device added ({}) {}", event.type(),
+                                      deviceId);
+                            discoverers.put(deviceId, new LinkDiscovery(device,
+                                                                        packetSevice, masterService, providerService,
+                                                                        useBDDP));
+                        } else {
+                            if (ld.isStopped()) {
+                                log.debug("Device restarted ({}) {}", event.type(),
+                                          deviceId);
+                                ld.start();
+                            }
                         }
                     }
                     break;
@@ -202,6 +285,11 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     if (port.isEnabled()) {
                         ld = discoverers.get(deviceId);
                         if (ld == null) {
+                            return;
+                        }
+                        if (rules.isSuppressed(port)) {
+                            log.debug("LinkDiscovery from {}@{} disabled by configuration",
+                                      port.number(), device.id());
                             return;
                         }
                         if (!port.number().isLogical()) {
@@ -280,6 +368,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             try {
                 LinkDiscovery ld = null;
                 for (Device dev : deviceService.getDevices()) {
+                    if (rules.isSuppressed(dev)) {
+                        continue;
+                    }
                     DeviceId did = dev.id();
                     synchronized (discoverers) {
                         if (!discoverers.containsKey(did)) {
@@ -287,6 +378,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                                     masterService, providerService, useBDDP);
                             discoverers.put(did, ld);
                             for (Port p : deviceService.getPorts(did)) {
+                                if (rules.isSuppressed(p)) {
+                                    continue;
+                                }
                                 if (!p.number().isLogical()) {
                                     ld.addPort(p);
                                 }

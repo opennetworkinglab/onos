@@ -344,14 +344,12 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private void sendProbes(Long portNumber) {
-        if (device.type() != Device.Type.ROADM) {
-            log.trace("Sending probes out to {}@{}", portNumber, device.id());
-            OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
-            pktService.emit(pkt);
-            if (useBDDP) {
-                OutboundPacket bpkt = this.createOutBoundBDDP(portNumber);
-                pktService.emit(bpkt);
-            }
+        log.trace("Sending probes out to {}@{}", portNumber, device.id());
+        OutboundPacket pkt = this.createOutBoundLLDP(portNumber);
+        pktService.emit(pkt);
+        if (useBDDP) {
+            OutboundPacket bpkt = this.createOutBoundBDDP(portNumber);
+            pktService.emit(bpkt);
         }
     }
 
