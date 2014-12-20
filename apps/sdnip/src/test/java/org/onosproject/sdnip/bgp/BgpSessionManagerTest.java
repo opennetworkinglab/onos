@@ -303,7 +303,7 @@ public class BgpSessionManagerTest {
     private Collection<BgpRouteEntry> waitForBgpRibIn(BgpSession bgpSession,
                                                       long expectedRoutes)
         throws InterruptedException {
-        Collection<BgpRouteEntry> bgpRibIn = bgpSession.bgpRibIn().values();
+        Collection<BgpRouteEntry> bgpRibIn = bgpSession.bgpRibIn4().values();
 
         final int maxChecks = 500;              // Max wait of 5 seconds
         for (int i = 0; i < maxChecks; i++) {
@@ -311,7 +311,7 @@ public class BgpSessionManagerTest {
                 break;
             }
             Thread.sleep(10);
-            bgpRibIn = bgpSession.bgpRibIn().values();
+            bgpRibIn = bgpSession.bgpRibIn4().values();
         }
 
         return bgpRibIn;

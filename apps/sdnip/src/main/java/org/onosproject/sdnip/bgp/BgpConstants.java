@@ -376,6 +376,46 @@ public final class BgpConstants {
             /** BGP UPDATE Attributes Type Code AGGREGATOR length. */
             public static final int LENGTH = 6;
         }
+
+        /**
+         * BGP UPDATE: MP_REACH_NLRI related constants.
+         */
+        public static final class MpReachNlri {
+            /**
+             * Default constructor.
+             * <p>
+             * The constructor is private to prevent creating an instance of
+             * this utility class.
+             */
+            private MpReachNlri() {
+            }
+
+            /** BGP UPDATE Attributes Type Code MP_REACH_NLRI. */
+            public static final int TYPE = 14;
+
+            /** BGP UPDATE Attributes Type Code MP_REACH_NLRI min length. */
+            public static final int MIN_LENGTH = 5;
+        }
+
+        /**
+         * BGP UPDATE: MP_UNREACH_NLRI related constants.
+         */
+        public static final class MpUnreachNlri {
+            /**
+             * Default constructor.
+             * <p>
+             * The constructor is private to prevent creating an instance of
+             * this utility class.
+             */
+            private MpUnreachNlri() {
+            }
+
+            /** BGP UPDATE Attributes Type Code MP_UNREACH_NLRI. */
+            public static final int TYPE = 15;
+
+            /** BGP UPDATE Attributes Type Code MP_UNREACH_NLRI min length. */
+            public static final int MIN_LENGTH = 3;
+        }
     }
 
     /**
