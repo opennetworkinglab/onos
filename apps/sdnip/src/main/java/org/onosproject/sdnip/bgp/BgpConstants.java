@@ -227,6 +227,12 @@ public final class BgpConstants {
             /** BGP UPDATE Attributes Type Code AS_PATH. */
             public static final int TYPE = 2;
 
+            /** BGP AS length. */
+            public static final int AS_LENGTH = 2;
+
+            /** BGP 4 Octet AS length (RFC 6793). */
+            public static final int AS_4OCTET_LENGTH = 4;
+
             /** BGP UPDATE AS_PATH Type: AS_SET. */
             public static final int AS_SET = 1;
 

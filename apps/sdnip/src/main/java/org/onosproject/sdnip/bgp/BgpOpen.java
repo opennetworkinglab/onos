@@ -23,6 +23,7 @@ import org.onosproject.sdnip.bgp.BgpConstants.Notifications;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.OpenMessageError;
 import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities;
 import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities.MultiprotocolExtensions;
+import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities.As4Octet;
 import org.onosproject.sdnip.bgp.BgpMessage.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -334,8 +335,14 @@ final class BgpOpen {
                         throw new BgpParseException(errorMsg);
                     }
                     long as4Number = message.readUnsignedInt();
-                    // TODO: Implement support for 4-octet AS Numbers
+
+                    bgpSession.setRemoteAs4OctetCapability();
                     bgpSession.setRemoteAs4Octet(as4Number);
+
+                    // Copy remote 4-octet AS Number Capabilities and AS Number.
+                    // This is temporary setting until local AS number configuration is supported.
+                    bgpSession.setLocalAs4OctetCapability();
+                    bgpSession.setRemoteAs(as4Number);
                     log.debug("BGP RX OPEN Capability:  AS4 Number = {}",
                               as4Number);
                     break;
@@ -420,6 +427,15 @@ final class BgpOpen {
             message.writeByte(MultiprotocolExtensions.SAFI_MULTICAST);
         }
 
+        // 4 octet AS path capability
+        if (bgpSession.getLocalAs4OctetCapability()) {
+            message.writeByte(Capabilities.TYPE);               // Param type
+            message.writeByte(Capabilities.MIN_LENGTH +
+                              As4Octet.LENGTH);                 // Param len
+            message.writeByte(As4Octet.CODE);                   // Capab, code
+            message.writeByte(As4Octet.LENGTH);                 // Capab, len
+            message.writeInt((int) bgpSession.getLocalAs());
+        }
         return message;
     }
 }

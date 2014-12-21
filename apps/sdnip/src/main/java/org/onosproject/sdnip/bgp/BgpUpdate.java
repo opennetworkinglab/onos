@@ -26,6 +26,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onosproject.sdnip.bgp.BgpConstants.Update.AsPath;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
 import org.onosproject.sdnip.bgp.BgpMessage.BgpParseException;
 import org.slf4j.Logger;
@@ -610,17 +611,30 @@ final class BgpUpdate {
                 throw new BgpParseException(errorMsg);
             }
 
+            // 4-octet AS number handling.
+            int asPathLen;
+            if (bgpSession.isAs4OctetCapable()) {
+                asPathLen = AsPath.AS_4OCTET_LENGTH;
+            } else {
+                asPathLen = AsPath.AS_LENGTH;
+            }
+
             // Parse the AS numbers
-            if (2 * pathSegmentLength > attrLen) {
+            if (asPathLen * pathSegmentLength > attrLen) {
                 // ERROR: Malformed AS_PATH
                 actionsBgpUpdateMalformedAsPath(bgpSession, ctx);
                 String errorMsg = "Malformed AS Path";
                 throw new BgpParseException(errorMsg);
             }
-            attrLen -= (2 * pathSegmentLength);
+            attrLen -= (asPathLen * pathSegmentLength);
             ArrayList<Long> segmentAsNumbers = new ArrayList<>();
             while (pathSegmentLength-- > 0) {
-                long asNumber = message.readUnsignedShort();
+                long asNumber;
+                if (asPathLen == AsPath.AS_4OCTET_LENGTH) {
+                    asNumber = message.readUnsignedInt();
+                } else {
+                    asNumber = message.readUnsignedShort();
+                }
                 segmentAsNumbers.add(asNumber);
             }
 

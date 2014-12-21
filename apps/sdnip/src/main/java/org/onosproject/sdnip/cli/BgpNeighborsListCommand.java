@@ -48,6 +48,8 @@ public class BgpNeighborsListCommand extends AbstractShellCommand {
         "  Local  router ID %s, IP %s, BGP version %d, Hold time %d";
     private static final String FORMAT_NEIGHBOR_LINE5 =
         "  Local  AFI/SAFI IPv4 Unicast %s Multicast %s, IPv6 Unicast %s Multicast %s";
+    private static final String FORMAT_NEIGHBOR_LINE6 =
+        "  4 Octet AS Capability: %s %s";
 
     @Override
     protected void execute() {
@@ -120,6 +122,11 @@ public class BgpNeighborsListCommand extends AbstractShellCommand {
               bgpSession.getLocalIpv4Multicast() ? "YES" : "NO",
               bgpSession.getLocalIpv6Unicast() ? "YES" : "NO",
               bgpSession.getLocalIpv6Multicast() ? "YES" : "NO");
+        if (bgpSession.getLocalAs4OctetCapability() || bgpSession.getRemoteAs4OctetCapability()) {
+            print(FORMAT_NEIGHBOR_LINE6,
+                  bgpSession.getLocalAs4OctetCapability() ? "Advertised" : "",
+                  bgpSession.getRemoteAs4OctetCapability() ? "Received" : "");
+        }
     }
 
     /**

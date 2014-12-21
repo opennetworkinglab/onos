@@ -66,6 +66,7 @@ public class BgpSession extends SimpleChannelHandler {
     private boolean remoteIpv4Multicast;        // Peer IPv4/MULTICAST AFI/SAFI
     private boolean remoteIpv6Unicast;          // Peer IPv6/UNICAST AFI/SAFI
     private boolean remoteIpv6Multicast;        // Peer IPv6/MULTICAST AFI/SAFI
+    private boolean remoteAs4OctetCapability;   // Peer 4 octet AS path capability
     //
     private SocketAddress localAddress;         // Local IP addr/port
     private Ip4Address localIp4Address;         // Local IPv4 address
@@ -77,6 +78,7 @@ public class BgpSession extends SimpleChannelHandler {
     private boolean localIpv4Multicast;      // Local IPv4/MULTICAST AFI/SAFI
     private boolean localIpv6Unicast;        // Local IPv6/UNICAST AFI/SAFI
     private boolean localIpv6Multicast;      // Local IPv6/MULTICAST AFI/SAFI
+    private boolean localAs4OctetCapability;    // Local 4 octet AS path capability
     //
     private long localKeepaliveInterval;        // Keepalive interval
 
@@ -188,7 +190,7 @@ public class BgpSession extends SimpleChannelHandler {
         // In the future the local AS number should be configured as part
         // of an explicit BGP peering configuration.
         //
-        this.localAs = remoteAs;
+        setLocalAs(remoteAs);
     }
 
     /**
@@ -330,6 +332,47 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
+     * Gets the BGP session remote 4 octet AS path capability.
+     *
+     * @return true when the BGP session remote has 4 octet AS path capability
+     */
+    public boolean getRemoteAs4OctetCapability() {
+        return remoteAs4OctetCapability;
+    }
+
+    /**
+     * Sets the BGP session remote 4 octet AS path capability.
+     */
+    void setRemoteAs4OctetCapability() {
+        this.remoteAs4OctetCapability = true;
+    }
+
+    /**
+     * Gets the BGP session local 4 octet AS path capability.
+     *
+     * @return true when the BGP session local has 4 octet AS path capability
+     */
+    public boolean getLocalAs4OctetCapability() {
+        return localAs4OctetCapability;
+    }
+
+    /**
+     * Sets the BGP session local 4 octet AS path capability.
+     */
+    void setLocalAs4OctetCapability() {
+        this.localAs4OctetCapability = true;
+    }
+
+    /**
+     * Gets the BGP session 4 octet AS path capability.
+     *
+     * @return true when the BGP session is 4 octet AS path capable
+     */
+    public boolean isAs4OctetCapable() {
+        return getRemoteAs4OctetCapability() && getLocalAs4OctetCapability();
+    }
+
+    /**
      * Gets the BGP session local address.
      *
      * @return the BGP session local address
@@ -363,6 +406,15 @@ public class BgpSession extends SimpleChannelHandler {
      */
     public long getLocalAs() {
         return localAs;
+    }
+
+    /**
+     * Sets the BGP session local AS number.
+     *
+     * @param localAs the BGP session local AS number to set
+     */
+    public void setLocalAs(long localAs) {
+        this.localAs = localAs;
     }
 
     /**
