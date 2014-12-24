@@ -118,6 +118,18 @@
         <bundle>mvn:org.onosproject/onos-cli/@ONOS-VERSION</bundle>
     </feature>
 
+    <feature name="onos-null" version="@FEATURE-VERSION"
+            description="ONOS Null providers">
+        <feature>onos-api</feature>
+
+        <bundle>mvn:org.onosproject/onos-null-provider-device/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-null-provider-link/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-null-provider-host/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-null-provider-packet/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-null-provider-flow/@ONOS-VERSION</bundle>
+
+    </feature>
+
     <feature name="onos-openflow" version="@FEATURE-VERSION"
              description="ONOS OpenFlow API, Controller &amp; Providers">
         <feature>onos-api</feature>

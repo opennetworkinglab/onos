@@ -21,56 +21,32 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
+        <artifactId>onos-providers</artifactId>
         <version>1.1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-providers</artifactId>
+    <artifactId>onos-null-providers</artifactId>
     <packaging>pom</packaging>
 
-    <description>ONOS information providers &amp; control/management protocol adapter</description>
+    <description>ONOS null protocol adapters</description>
 
     <modules>
-        <module>openflow</module>
-        <module>lldp</module>
+        <module>device</module>
+        <module>link</module>
         <module>host</module>
-        <module>null</module>
+        <module>packet</module>
+        <module>flow</module>
     </modules>
 
     <dependencies>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>
