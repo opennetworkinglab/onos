@@ -49,6 +49,7 @@ public class Ethernet extends BasePacket {
         Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_ARP, ARP.class);
         Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_RARP, ARP.class);
         Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_IPV4, IPv4.class);
+        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_IPV6, IPv6.class);
         Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_LLDP, LLDP.class);
         Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_BSN, LLDP.class);
     }
