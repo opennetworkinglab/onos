@@ -46,6 +46,10 @@ import org.onosproject.net.topology.TopologyService;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IPacket;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.NeighborAdvertisement;
+import org.onlab.packet.NeighborSolicitation;
 import org.onlab.packet.VlanId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -155,22 +159,43 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
 
-            // Potentially a new or moved host
+            // ARP: possible new hosts, update both location and IP
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
-                IpAddress ip =
-                        IpAddress.valueOf(IpAddress.Version.INET,
-                                          arp.getSenderProtocolAddress());
+                IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET, arp.getSenderProtocolAddress());
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
+            // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                //Do not learn new ip from ip packet.
                 HostDescription hdescr =
                         new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc);
                 providerService.hostDetected(hid, hdescr);
 
+            // NeighborAdvertisement and NeighborSolicitation: possible new hosts, update both location and IP
+            // IPv6: update location only
+            } else if (eth.getEtherType() == Ethernet.TYPE_IPV6) {
+                IpAddress ip = null;
+                IPv6 ipv6 = (IPv6) eth.getPayload();
+
+                IPacket iPkt = ipv6;
+                while (iPkt != null) {
+                    if (iPkt instanceof NeighborAdvertisement || iPkt instanceof NeighborSolicitation) {
+                        IpAddress sourceAddress =
+                                IpAddress.valueOf(IpAddress.Version.INET6, ipv6.getSourceAddress());
+                        // Ignore DAD packets, in which source address is all zeros.
+                        if (!sourceAddress.isZero()) {
+                            ip = sourceAddress;
+                            break;
+                        }
+                    }
+                    iPkt = iPkt.getPayload();
+                }
+                HostDescription hdescr = (ip == null) ?
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc) :
+                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
+                providerService.hostDetected(hid, hdescr);
             }
         }
     }

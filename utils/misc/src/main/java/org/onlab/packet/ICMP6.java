@@ -23,8 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Implements ICMPv6 packet format.
- *
+ * Implements ICMPv6 packet format. (RFC 4443)
  */
 public class ICMP6 extends BasePacket {
     public static final byte HEADER_LENGTH = 4; // bytes
@@ -37,6 +36,7 @@ public class ICMP6 extends BasePacket {
             new HashMap<>();
 
     static {
+        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.NEIGHBOR_SOLICITATION, NeighborSolicitation.class);
         ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.NEIGHBOR_ADVERTISEMENT, NeighborAdvertisement.class);
     }
 
@@ -45,15 +45,18 @@ public class ICMP6 extends BasePacket {
     protected short checksum;
 
     /**
-     * @return the icmpType
+     * Gets ICMP6 type.
+     *
+     * @return the ICMP6 type
      */
     public byte getIcmpType() {
         return this.icmpType;
     }
 
     /**
-     * @param icmpType
-     *            to set
+     * Sets ICMP6 type.
+     *
+     * @param icmpType the ICMP type to set
      * @return this
      */
     public ICMP6 setIcmpType(final byte icmpType) {
@@ -62,15 +65,18 @@ public class ICMP6 extends BasePacket {
     }
 
     /**
-     * @return the icmp code
+     * Gets ICMP6 code.
+     *
+     * @return the ICMP6 code
      */
     public byte getIcmpCode() {
         return this.icmpCode;
     }
 
     /**
-     * @param icmpCode
-     *            code to set
+     * Sets ICMP6 code.
+     *
+     * @param icmpCode the ICMP6 code to set
      * @return this
      */
     public ICMP6 setIcmpCode(final byte icmpCode) {
@@ -79,6 +85,8 @@ public class ICMP6 extends BasePacket {
     }
 
     /**
+     * Gets checksum.
+     *
      * @return the checksum
      */
     public short getChecksum() {
@@ -86,8 +94,9 @@ public class ICMP6 extends BasePacket {
     }
 
     /**
-     * @param checksum
-     *            the checksum to set
+     * Sets checksum.
+     *
+     * @param checksum the checksum to set
      * @return this
      */
     public ICMP6 setChecksum(final short checksum) {
@@ -95,11 +104,6 @@ public class ICMP6 extends BasePacket {
         return this;
     }
 
-    /**
-     * Serializes the packet. Will compute and set the following fields if they
-     * are set to specific values at the time serialize is called: -checksum : 0
-     * -length : 0
-     */
     @Override
     public byte[] serialize() {
         byte[] payloadData = null;

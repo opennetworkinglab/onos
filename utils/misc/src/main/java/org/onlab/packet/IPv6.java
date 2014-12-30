@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Implements IPv6 packet format. (RFC 2460)
  */
 public class IPv6 extends BasePacket {
     public static final byte FIXED_HEADER_LENGTH = 40; // bytes
@@ -43,7 +43,7 @@ public class IPv6 extends BasePacket {
     }
 
     protected byte version;
-    protected byte diffServ;
+    protected byte trafficClass;
     protected int flowLabel;
     protected short payloadLength;
     protected byte nextHeader;
@@ -52,7 +52,7 @@ public class IPv6 extends BasePacket {
     protected byte[] destinationAddress = new byte[Ip6Address.BYTE_LENGTH];
 
     /**
-     * Default constructor that sets the version to 4.
+     * Default constructor that sets the version to 6.
      */
     public IPv6() {
         super();
@@ -60,15 +60,18 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * @return the version
+     * Gets IP version.
+     *
+     * @return the IP version
      */
     public byte getVersion() {
         return this.version;
     }
 
     /**
-     * @param version
-     *            the version to set
+     * Sets IP version.
+     *
+     * @param version the IP version to set
      * @return this
      */
     public IPv6 setVersion(final byte version) {
@@ -77,32 +80,38 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * @return the diffServ
+     * Gets traffic class.
+     *
+     * @return the traffic class
      */
-    public byte getDiffServ() {
-        return this.diffServ;
+    public byte getTrafficClass() {
+        return this.trafficClass;
     }
 
     /**
-     * @param diffServ
-     *            the diffServ to set
+     * Sets traffic class.
+     *
+     * @param trafficClass the traffic class to set
      * @return this
      */
-    public IPv6 setDiffServ(final byte diffServ) {
-        this.diffServ = diffServ;
+    public IPv6 setTrafficClass(final byte trafficClass) {
+        this.trafficClass = trafficClass;
         return this;
     }
 
     /**
-     * @return the flowLabel
+     * Gets flow label.
+     *
+     * @return the flow label
      */
     public int getFlowLabel() {
         return this.flowLabel;
     }
 
     /**
-     * @param flowLabel
-     *            the flowLabel to set
+     * Sets flow label.
+     *
+     * @param flowLabel the flow label to set
      * @return this
      */
     public IPv6 setFlowLabel(final int flowLabel) {
@@ -111,15 +120,18 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * @return the nextHeader
+     * Gets next header.
+     *
+     * @return the next header
      */
     public byte getNextHeader() {
         return this.nextHeader;
     }
 
     /**
-     * @param nextHeader
-     *            the nextHeader to set
+     * Sets next header.
+     *
+     * @param nextHeader the next header to set
      * @return this
      */
     public IPv6 setNextHeader(final byte nextHeader) {
@@ -128,15 +140,18 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * @return the hopLimit
+     * Gets hop limit.
+     *
+     * @return the hop limit
      */
     public byte getHopLimit() {
         return this.hopLimit;
     }
 
     /**
-     * @param hopLimit
-     *            the hopLimit to set
+     * Sets hop limit.
+     *
+     * @param hopLimit the hop limit to set
      * @return this
      */
     public IPv6 setHopLimit(final byte hopLimit) {
@@ -145,15 +160,18 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * @return the sourceAddress
+     * Gets source address.
+     *
+     * @return the IPv6 source address
      */
     public byte[] getSourceAddress() {
         return this.sourceAddress;
     }
 
     /**
-     * @param sourceAddress
-     *            the sourceAddress to set
+     * Sets source address.
+     *
+     * @param sourceAddress the IPv6 source address to set
      * @return this
      */
     public IPv6 setSourceAddress(final byte[] sourceAddress) {
@@ -162,15 +180,18 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * @return the destinationAddress
+     * Gets destination address.
+     *
+     * @return the IPv6 destination address
      */
     public byte[] getDestinationAddress() {
         return this.destinationAddress;
     }
 
     /**
-     * @param destinationAddress
-     *            the destinationAddress to set
+     * Sets destination address.
+     *
+     * @param destinationAddress the IPv6 destination address to set
      * @return this
      */
     public IPv6 setDestinationAddress(final byte[] destinationAddress) {
@@ -191,7 +212,7 @@ public class IPv6 extends BasePacket {
         final byte[] data = new byte[FIXED_HEADER_LENGTH + payloadLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
-        bb.putInt((this.version & 0xf) << 28 | (this.diffServ & 0xff) << 20 | this.flowLabel & 0xfffff);
+        bb.putInt((this.version & 0xf) << 28 | (this.trafficClass & 0xff) << 20 | this.flowLabel & 0xfffff);
         bb.putShort(this.payloadLength);
         bb.put(this.nextHeader);
         bb.put(this.hopLimit);
@@ -213,7 +234,7 @@ public class IPv6 extends BasePacket {
 
         iscratch = bb.getInt();
         this.version = (byte) (iscratch >> 28 & 0xf);
-        this.diffServ = (byte) (iscratch >> 20 & 0xff);
+        this.trafficClass = (byte) (iscratch >> 20 & 0xff);
         this.flowLabel = iscratch & 0xfffff;
         this.payloadLength = bb.getShort();
         this.nextHeader = bb.get();
@@ -255,7 +276,7 @@ public class IPv6 extends BasePacket {
         for (int i = 0; i < 4; i++) {
             result = prime * result + bb.getInt();
         }
-        result = prime * result + this.diffServ;
+        result = prime * result + this.trafficClass;
         result = prime * result + this.flowLabel;
         result = prime * result + this.hopLimit;
         result = prime * result + this.nextHeader;
@@ -288,7 +309,7 @@ public class IPv6 extends BasePacket {
         if (!Arrays.equals(this.destinationAddress, other.destinationAddress)) {
             return false;
         }
-        if (this.diffServ != other.diffServ) {
+        if (this.trafficClass != other.trafficClass) {
             return false;
         }
         if (this.flowLabel != other.flowLabel) {

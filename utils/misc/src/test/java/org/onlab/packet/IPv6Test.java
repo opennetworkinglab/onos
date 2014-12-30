@@ -73,7 +73,7 @@ public class IPv6Test {
         IPv6 ipv6 = new IPv6();
         ipv6.setPayload(udp);
         ipv6.setVersion((byte) 6);
-        ipv6.setDiffServ((byte) 0x93);
+        ipv6.setTrafficClass((byte) 0x93);
         ipv6.setFlowLabel(0x13579);
         ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
         ipv6.setHopLimit((byte) 32);
@@ -92,7 +92,7 @@ public class IPv6Test {
         ipv6.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(ipv6.getVersion(), is((byte) 6));
-        assertThat(ipv6.getDiffServ(), is((byte) 0x93));
+        assertThat(ipv6.getTrafficClass(), is((byte) 0x93));
         assertThat(ipv6.getFlowLabel(), is(0x13579));
         assertThat(ipv6.getNextHeader(), is(IPv6.PROTOCOL_UDP));
         assertThat(ipv6.getHopLimit(), is((byte) 32));
@@ -108,7 +108,7 @@ public class IPv6Test {
         IPv6 packet1 = new IPv6();
         packet1.setPayload(udp);
         packet1.setVersion((byte) 6);
-        packet1.setDiffServ((byte) 0x93);
+        packet1.setTrafficClass((byte) 0x93);
         packet1.setFlowLabel(0x13579);
         packet1.setNextHeader(IPv6.PROTOCOL_UDP);
         packet1.setHopLimit((byte) 32);
@@ -118,7 +118,7 @@ public class IPv6Test {
         IPv6 packet2 = new IPv6();
         packet2.setPayload(udp);
         packet2.setVersion((byte) 6);
-        packet2.setDiffServ((byte) 0x93);
+        packet2.setTrafficClass((byte) 0x93);
         packet2.setFlowLabel(0x13579);
         packet2.setNextHeader(IPv6.PROTOCOL_UDP);
         packet2.setHopLimit((byte) 32);

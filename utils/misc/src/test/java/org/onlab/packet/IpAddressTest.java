@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
 
 /**
@@ -700,6 +701,28 @@ public class IpAddressTest {
         IpAddress ipAddressMasked;
 
         ipAddressMasked = IpAddress.makeMaskedAddress(ipAddress, 129);
+    }
+
+    /**
+     * Tests if address is zero for IPv4.
+     */
+    @Test
+    public void testIsZeroIPv4() {
+        IpAddress normalIP = IpAddress.valueOf("10.0.0.1");
+        IpAddress zeroIP = IpAddress.valueOf("0.0.0.0");
+        assertFalse(normalIP.isZero());
+        assertTrue(zeroIP.isZero());
+    }
+
+    /**
+     * Tests if address is zero for IPv6.
+     */
+    @Test
+    public void testIsZeroIPv6() {
+        IpAddress normalIP = IpAddress.valueOf("fe80::1");
+        IpAddress zeroIP = IpAddress.valueOf("::");
+        assertFalse(normalIP.isZero());
+        assertTrue(zeroIP.isZero());
     }
 
     /**

@@ -274,6 +274,20 @@ public class IpAddress implements Comparable<IpAddress> {
         }
     }
 
+    /**
+     * Check if this IP address is zero.
+     *
+     * @return true if this address is zero.
+     */
+    public boolean isZero() {
+        for (byte b : octets) {
+            if (b != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public int compareTo(IpAddress o) {
         // Compare first the version
