@@ -84,10 +84,15 @@ public class ReactiveForwarding {
             label = "Enable packet-out only forwarding; default is false")
     private boolean packetOutOnly = false;
 
+    @Property(name = "ipv6Forwarding", boolValue = false,
+            label = "Enable IPv6 forwarding; default is false")
+    private boolean ipv6Forwarding = false;
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         appId = coreService.registerApplication("org.onosproject.fwd");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        readComponentConfiguration(context);
         log.info("Started with Application ID {}", appId.id());
     }
 
@@ -101,16 +106,49 @@ public class ReactiveForwarding {
 
     @Modified
     public void modified(ComponentContext context) {
-        Dictionary properties = context.getProperties();
-        String flag = (String) properties.get("packetOutOnly");
-        if (flag != null) {
-            boolean enabled = flag.equals("true");
-            if (packetOutOnly != enabled) {
-                packetOutOnly = enabled;
-                log.info("Reconfigured. Packet-out only forwarding is {}",
-                         packetOutOnly ? "enabled" : "disabled");
-            }
+        readComponentConfiguration(context);
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        boolean packetOutOnlyEnabled = isPropertyEnabled(properties, "packetOutOnly");
+        if (packetOutOnly != packetOutOnlyEnabled) {
+            packetOutOnly = packetOutOnlyEnabled;
+            log.info("Configured. Packet-out only forwarding is {}",
+                    packetOutOnly ? "enabled" : "disabled");
         }
+        boolean ipv6ForwardingEnabled = isPropertyEnabled(properties, "ipv6Forwarding");
+        if (ipv6Forwarding != ipv6ForwardingEnabled) {
+            ipv6Forwarding = ipv6ForwardingEnabled;
+            log.info("Configured. IPv6 forwarding is {}",
+                    ipv6Forwarding ? "enabled" : "disabled");
+        }
+    }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return true when the propertyName is defined and set to true
+     */
+    private static boolean isPropertyEnabled(Dictionary<?, ?> properties, String propertyName) {
+        boolean enabled = false;
+        try {
+            String flag = (String) properties.get(propertyName);
+            if (flag != null) {
+                enabled = flag.equals("true");
+            }
+        } catch (ClassCastException e) {
+            // No propertyName defined.
+            enabled = false;
+        }
+        return enabled;
     }
 
     /**
@@ -129,8 +167,13 @@ public class ReactiveForwarding {
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
 
-            // Bail if this is deemed to be a control or IPv6 multicast packet.
-            if (isControlPacket(ethPkt) || isIpv6Multicast(ethPkt)) {
+            // Bail if this is deemed to be a control packet.
+            if (isControlPacket(ethPkt)) {
+                return;
+            }
+
+            // Skip IPv6 multicast packet when IPv6 forward is disabled.
+            if (!ipv6Forwarding && isIpv6Multicast(ethPkt)) {
                 return;
             }
 
