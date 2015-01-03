@@ -16,24 +16,25 @@
 
 
 
-package org.onlab.packet;
+package org.onlab.packet.ndp;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.packet.Data;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
 /**
- * Tests for class {@link org.onlab.packet.NeighborSolicitation}.
+ * Tests for class {@link NeighborAdvertisement}.
  */
-public class NeighborSolicitationTest {
+public class NeighborAdvertisementTest {
     private static final byte[] TARGET_ADDRESS = {
             (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
             (byte) 0xca, (byte) 0x2a, (byte) 0x14, (byte) 0xff, (byte) 0xfe, (byte) 0x35, (byte) 0x26, (byte) 0xce
-    };
-    private static final byte[] TARGET_ADDRESS2 = {
-            (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
-            (byte) 0xe6, (byte) 0xce, (byte) 0x8f, (byte) 0xff, (byte) 0xfe, (byte) 0x54, (byte) 0x37, (byte) 0xc8
     };
     private static Data data;
     private static byte[] bytePacket;
@@ -45,7 +46,7 @@ public class NeighborSolicitationTest {
 
         byte[] bytePayload = data.serialize();
         byte[] byteHeader = {
-                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                (byte) 0xe0, (byte) 0x00, (byte) 0x00, (byte) 0x00,
                 (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
                 (byte) 0xca, (byte) 0x2a, (byte) 0x14, (byte) 0xff, (byte) 0xfe, (byte) 0x35, (byte) 0x26, (byte) 0xce
         };
@@ -59,10 +60,14 @@ public class NeighborSolicitationTest {
      */
     @Test
     public void testSerialize() {
-        NeighborSolicitation ns = new NeighborSolicitation();
-        ns.setTargetAddress(TARGET_ADDRESS);
+        NeighborAdvertisement na = new NeighborAdvertisement();
+        na.setRouterFlag((byte) 1);
+        na.setSolicitedFlag((byte) 1);
+        na.setOverrideFlag((byte) 1);
+        na.setTargetAddress(TARGET_ADDRESS);
+        na.setPayload(data);
 
-        assertArrayEquals(ns.serialize(), bytePacket);
+        assertArrayEquals(na.serialize(), bytePacket);
     }
 
     /**
@@ -70,10 +75,13 @@ public class NeighborSolicitationTest {
      */
     @Test
     public void testDeserialize() {
-        NeighborSolicitation ns = new NeighborSolicitation();
-        ns.deserialize(bytePacket, 0, bytePacket.length);
+        NeighborAdvertisement na = new NeighborAdvertisement();
+        na.deserialize(bytePacket, 0, bytePacket.length);
 
-        assertArrayEquals(ns.getTargetAddress(), TARGET_ADDRESS);
+        assertThat(na.getRouterFlag(), is((byte) 1));
+        assertThat(na.getSolicitedFlag(), is((byte) 1));
+        assertThat(na.getOverrideFlag(), is((byte) 1));
+        assertArrayEquals(na.getTargetAddress(), TARGET_ADDRESS);
     }
 
     /**
@@ -81,13 +89,19 @@ public class NeighborSolicitationTest {
      */
     @Test
     public void testEqual() {
-        NeighborSolicitation ns1 = new NeighborSolicitation();
-        ns1.setTargetAddress(TARGET_ADDRESS);
+        NeighborAdvertisement na1 = new NeighborAdvertisement();
+        na1.setRouterFlag((byte) 1);
+        na1.setSolicitedFlag((byte) 1);
+        na1.setOverrideFlag((byte) 1);
+        na1.setTargetAddress(TARGET_ADDRESS);
 
-        NeighborSolicitation ns2 = new NeighborSolicitation();
-        ns2.setTargetAddress(TARGET_ADDRESS2);
+        NeighborAdvertisement na2 = new NeighborAdvertisement();
+        na2.setRouterFlag((byte) 1);
+        na2.setSolicitedFlag((byte) 1);
+        na2.setOverrideFlag((byte) 0);
+        na2.setTargetAddress(TARGET_ADDRESS);
 
-        assertTrue(ns1.equals(ns1));
-        assertFalse(ns1.equals(ns2));
+        assertTrue(na1.equals(na1));
+        assertFalse(na1.equals(na2));
     }
 }

@@ -16,21 +16,31 @@
 
 
 
-package org.onlab.packet;
+package org.onlab.packet.ndp;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.packet.Data;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
- * Tests for class {@link NeighborAdvertisement}.
+ * Tests for class {@link Redirect}.
  */
-public class NeighborAdvertisementTest {
+public class RedirectTest {
     private static final byte[] TARGET_ADDRESS = {
             (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+    };
+    private static final byte[] DESTINATION_ADDRESS = {
+            (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
             (byte) 0xca, (byte) 0x2a, (byte) 0x14, (byte) 0xff, (byte) 0xfe, (byte) 0x35, (byte) 0x26, (byte) 0xce
+    };
+    private static final byte[] DESTINATION_ADDRESS2 = {
+            (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
+            (byte) 0xe6, (byte) 0xce, (byte) 0x8f, (byte) 0xff, (byte) 0xfe, (byte) 0x54, (byte) 0x37, (byte) 0xc8
     };
     private static Data data;
     private static byte[] bytePacket;
@@ -42,7 +52,9 @@ public class NeighborAdvertisementTest {
 
         byte[] bytePayload = data.serialize();
         byte[] byteHeader = {
-                (byte) 0xe0, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
                 (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
                 (byte) 0xca, (byte) 0x2a, (byte) 0x14, (byte) 0xff, (byte) 0xfe, (byte) 0x35, (byte) 0x26, (byte) 0xce
         };
@@ -56,13 +68,12 @@ public class NeighborAdvertisementTest {
      */
     @Test
     public void testSerialize() {
-        NeighborAdvertisement na = new NeighborAdvertisement();
-        na.setRouterFlag((byte) 1);
-        na.setSolicitedFlag((byte) 1);
-        na.setOverrideFlag((byte) 1);
-        na.setTargetAddress(TARGET_ADDRESS);
+        Redirect rd = new Redirect();
+        rd.setTargetAddress(TARGET_ADDRESS);
+        rd.setDestinationAddress(DESTINATION_ADDRESS);
+        rd.setPayload(data);
 
-        assertArrayEquals(na.serialize(), bytePacket);
+        assertArrayEquals(rd.serialize(), bytePacket);
     }
 
     /**
@@ -70,13 +81,11 @@ public class NeighborAdvertisementTest {
      */
     @Test
     public void testDeserialize() {
-        NeighborAdvertisement na = new NeighborAdvertisement();
-        na.deserialize(bytePacket, 0, bytePacket.length);
+        Redirect rd = new Redirect();
+        rd.deserialize(bytePacket, 0, bytePacket.length);
 
-        assertThat(na.getRouterFlag(), is((byte) 1));
-        assertThat(na.getSolicitedFlag(), is((byte) 1));
-        assertThat(na.getOverrideFlag(), is((byte) 1));
-        assertArrayEquals(na.getTargetAddress(), TARGET_ADDRESS);
+        assertArrayEquals(rd.getTargetAddress(), TARGET_ADDRESS);
+        assertArrayEquals(rd.getDestinationAddress(), DESTINATION_ADDRESS);
     }
 
     /**
@@ -84,19 +93,15 @@ public class NeighborAdvertisementTest {
      */
     @Test
     public void testEqual() {
-        NeighborAdvertisement na1 = new NeighborAdvertisement();
-        na1.setRouterFlag((byte) 1);
-        na1.setSolicitedFlag((byte) 1);
-        na1.setOverrideFlag((byte) 1);
-        na1.setTargetAddress(TARGET_ADDRESS);
+        Redirect rd1 = new Redirect();
+        rd1.setTargetAddress(TARGET_ADDRESS);
+        rd1.setDestinationAddress(DESTINATION_ADDRESS);
 
-        NeighborAdvertisement na2 = new NeighborAdvertisement();
-        na2.setRouterFlag((byte) 1);
-        na2.setSolicitedFlag((byte) 1);
-        na2.setOverrideFlag((byte) 0);
-        na2.setTargetAddress(TARGET_ADDRESS);
+        Redirect rd2 = new Redirect();
+        rd2.setTargetAddress(TARGET_ADDRESS);
+        rd2.setDestinationAddress(DESTINATION_ADDRESS2);
 
-        assertTrue(na1.equals(na1));
-        assertFalse(na1.equals(na2));
+        assertTrue(rd1.equals(rd1));
+        assertFalse(rd1.equals(rd2));
     }
 }

@@ -18,6 +18,11 @@
 
 package org.onlab.packet;
 
+import org.onlab.packet.ndp.NeighborAdvertisement;
+import org.onlab.packet.ndp.NeighborSolicitation;
+import org.onlab.packet.ndp.Redirect;
+import org.onlab.packet.ndp.RouterAdvertisement;
+import org.onlab.packet.ndp.RouterSolicitation;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +37,16 @@ public class ICMP6 extends BasePacket {
     public static final byte ROUTER_ADVERTISEMENT = (byte) 0x86;
     public static final byte NEIGHBOR_SOLICITATION = (byte) 0x87;
     public static final byte NEIGHBOR_ADVERTISEMENT = (byte) 0x88;
+    public static final byte REDIRECT = (byte) 0x89;
     public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP =
             new HashMap<>();
 
     static {
+        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.ROUTER_SOLICITATION, RouterSolicitation.class);
+        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.ROUTER_ADVERTISEMENT, RouterAdvertisement.class);
         ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.NEIGHBOR_SOLICITATION, NeighborSolicitation.class);
         ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.NEIGHBOR_ADVERTISEMENT, NeighborAdvertisement.class);
+        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.REDIRECT, Redirect.class);
     }
 
     protected byte icmpType;

@@ -16,7 +16,12 @@
 
 
 
-package org.onlab.packet;
+package org.onlab.packet.ndp;
+
+import org.onlab.packet.BasePacket;
+import org.onlab.packet.Data;
+import org.onlab.packet.IPacket;
+import org.onlab.packet.Ip6Address;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -24,73 +29,10 @@ import java.util.Arrays;
 /**
  * Implements ICMPv6 Neighbor Solicitation packet format. (RFC 4861)
  */
-public class NeighborAdvertisement extends BasePacket {
+public class NeighborSolicitation extends BasePacket {
     public static final byte HEADER_LENGTH = 20; // bytes
 
-    protected byte routerFlag;
-    protected byte solicitedFlag;
-    protected byte overrideFlag;
     protected byte[] targetAddress = new byte[Ip6Address.BYTE_LENGTH];
-
-    /**
-     * Gets router flag.
-     *
-     * @return the router flag
-     */
-    public byte getRouterFlag() {
-        return this.routerFlag;
-    }
-
-    /**
-     * Sets router flag.
-     *
-     * @param routerFlag the router flag to set
-     * @return this
-     */
-    public NeighborAdvertisement setRouterFlag(final byte routerFlag) {
-        this.routerFlag = routerFlag;
-        return this;
-    }
-
-    /**
-     * Gets solicited flag.
-     *
-     * @return the solicited flag
-     */
-    public byte getSolicitedFlag() {
-        return this.solicitedFlag;
-    }
-
-    /**
-     * Sets solicited flag.
-     *
-     * @param solicitedFlag the solicited flag to set
-     * @return this
-     */
-    public NeighborAdvertisement setSolicitedFlag(final byte solicitedFlag) {
-        this.solicitedFlag = solicitedFlag;
-        return this;
-    }
-
-    /**
-     * Gets override flag.
-     *
-     * @return the override flag
-     */
-    public byte getOverrideFlag() {
-        return this.overrideFlag;
-    }
-
-    /**
-     * Sets override flag.
-     *
-     * @param overrideFlag the override flag to set
-     * @return this
-     */
-    public NeighborAdvertisement setOverrideFlag(final byte overrideFlag) {
-        this.overrideFlag = overrideFlag;
-        return this;
-    }
 
     /**
      * Gets target address.
@@ -107,7 +49,7 @@ public class NeighborAdvertisement extends BasePacket {
      * @param targetAddress the target IPv6 address to set
      * @return this
      */
-    public NeighborAdvertisement setTargetAddress(final byte[] targetAddress) {
+    public NeighborSolicitation setTargetAddress(final byte[] targetAddress) {
         this.targetAddress = Arrays.copyOfRange(targetAddress, 0, Ip6Address.BYTE_LENGTH);
         return this;
     }
@@ -125,7 +67,7 @@ public class NeighborAdvertisement extends BasePacket {
         final byte[] data = new byte[HEADER_LENGTH + payloadLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
-        bb.putInt((this.routerFlag & 0x1) << 31 | (this.solicitedFlag & 0x1) << 30 | (this.overrideFlag & 0x1) << 29);
+        bb.putInt(0);
         bb.put(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
         if (payloadData != null) {
             bb.put(payloadData);
@@ -137,12 +79,8 @@ public class NeighborAdvertisement extends BasePacket {
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        int iscratch;
 
-        iscratch = bb.getInt();
-        this.routerFlag = (byte) (iscratch >> 31 & 0x1);
-        this.solicitedFlag = (byte) (iscratch >> 30 & 0x1);
-        this.overrideFlag = (byte) (iscratch >> 29 & 0x1);
+        bb.getInt();
         bb.get(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
 
         this.payload = new Data();
@@ -163,9 +101,6 @@ public class NeighborAdvertisement extends BasePacket {
         final int prime = 5807;
         int result = super.hashCode();
         ByteBuffer bb;
-        result = prime * result + this.routerFlag;
-        result = prime * result + this.solicitedFlag;
-        result = prime * result + this.overrideFlag;
         bb = ByteBuffer.wrap(this.targetAddress);
         for (int i = 0; i < 4; i++) {
             result = prime * result + bb.getInt();
@@ -186,19 +121,10 @@ public class NeighborAdvertisement extends BasePacket {
         if (!super.equals(obj)) {
             return false;
         }
-        if (!(obj instanceof NeighborAdvertisement)) {
+        if (!(obj instanceof NeighborSolicitation)) {
             return false;
         }
-        final NeighborAdvertisement other = (NeighborAdvertisement) obj;
-        if (this.routerFlag != other.routerFlag) {
-            return false;
-        }
-        if (this.solicitedFlag != other.solicitedFlag) {
-            return false;
-        }
-        if (this.overrideFlag != other.overrideFlag) {
-            return false;
-        }
+        final NeighborSolicitation other = (NeighborSolicitation) obj;
         if (!Arrays.equals(this.targetAddress, other.targetAddress)) {
             return false;
         }

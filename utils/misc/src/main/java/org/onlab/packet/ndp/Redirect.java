@@ -16,18 +16,24 @@
 
 
 
-package org.onlab.packet;
+package org.onlab.packet.ndp;
+
+import org.onlab.packet.BasePacket;
+import org.onlab.packet.Data;
+import org.onlab.packet.IPacket;
+import org.onlab.packet.Ip6Address;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Implements ICMPv6 Neighbor Solicitation packet format. (RFC 4861)
+ * Implements ICMPv6 Redirect packet format. (RFC 4861)
  */
-public class NeighborSolicitation extends BasePacket {
-    public static final byte HEADER_LENGTH = 20; // bytes
+public class Redirect extends BasePacket {
+    public static final byte HEADER_LENGTH = 36; // bytes
 
     protected byte[] targetAddress = new byte[Ip6Address.BYTE_LENGTH];
+    protected byte[] destinationAddress = new byte[Ip6Address.BYTE_LENGTH];
 
     /**
      * Gets target address.
@@ -44,8 +50,28 @@ public class NeighborSolicitation extends BasePacket {
      * @param targetAddress the target IPv6 address to set
      * @return this
      */
-    public NeighborSolicitation setTargetAddress(final byte[] targetAddress) {
+    public Redirect setTargetAddress(final byte[] targetAddress) {
         this.targetAddress = Arrays.copyOfRange(targetAddress, 0, Ip6Address.BYTE_LENGTH);
+        return this;
+    }
+
+    /**
+     * Gets destination address.
+     *
+     * @return the destination IPv6 address
+     */
+    public byte[] getDestinationAddress() {
+        return this.destinationAddress;
+    }
+
+    /**
+     * Sets destination address.
+     *
+     * @param destinationAddress the destination IPv6 address to set
+     * @return this
+     */
+    public Redirect setDestinationAddress(final byte[] destinationAddress) {
+        this.destinationAddress = Arrays.copyOfRange(destinationAddress, 0, Ip6Address.BYTE_LENGTH);
         return this;
     }
 
@@ -64,6 +90,8 @@ public class NeighborSolicitation extends BasePacket {
 
         bb.putInt(0);
         bb.put(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
+        bb.put(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
+
         if (payloadData != null) {
             bb.put(payloadData);
         }
@@ -77,6 +105,7 @@ public class NeighborSolicitation extends BasePacket {
 
         bb.getInt();
         bb.get(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
+        bb.get(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
 
         this.payload = new Data();
         this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
@@ -100,6 +129,10 @@ public class NeighborSolicitation extends BasePacket {
         for (int i = 0; i < 4; i++) {
             result = prime * result + bb.getInt();
         }
+        bb = ByteBuffer.wrap(this.destinationAddress);
+        for (int i = 0; i < 4; i++) {
+            result = prime * result + bb.getInt();
+        }
         return result;
     }
 
@@ -116,11 +149,14 @@ public class NeighborSolicitation extends BasePacket {
         if (!super.equals(obj)) {
             return false;
         }
-        if (!(obj instanceof NeighborSolicitation)) {
+        if (!(obj instanceof Redirect)) {
             return false;
         }
-        final NeighborSolicitation other = (NeighborSolicitation) obj;
+        final Redirect other = (Redirect) obj;
         if (!Arrays.equals(this.targetAddress, other.targetAddress)) {
+            return false;
+        }
+        if (!Arrays.equals(this.destinationAddress, other.destinationAddress)) {
             return false;
         }
         return true;
