@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,25 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
+import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.DefaultLinkResourceAllocations;
+import org.onosproject.net.resource.DefaultLinkResourceRequest;
+import org.onosproject.net.resource.Lambda;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceRequest;
 import org.onosproject.net.resource.LinkResourceStore;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceAllocationException;
 import org.onosproject.net.resource.ResourceType;
 import org.onosproject.store.hz.StoreService;
 import org.onosproject.store.hz.TestStoreManager;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 
@@ -190,5 +198,104 @@ public class HazelcastLinkResourceStoreTest {
             super.storeService = storeMgr;
         }
 
+    }
+
+    /**
+     * Tests a successful bandwidth allocation.
+     */
+    @Test
+    public void testSuccessfulBandwidthAllocation() {
+        final Link link = newLink("of:1", 1, "of:2", 2);
+
+        final LinkResourceRequest request =
+                DefaultLinkResourceRequest.builder(IntentId.valueOf(1),
+                        ImmutableSet.of(link))
+                .build();
+        final ResourceAllocation allocation =
+                new BandwidthResourceAllocation(Bandwidth.valueOf(900000.0));
+        final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
+
+        final LinkResourceAllocations allocations =
+                new DefaultLinkResourceAllocations(request, ImmutableMap.of(link, allocationSet));
+
+        store.allocateResources(allocations);
+    }
+
+    /**
+     * Tests a unsuccessful bandwidth allocation.
+     */
+    @Test
+    public void testUnsuccessfulBandwidthAllocation() {
+        final Link link = newLink("of:1", 1, "of:2", 2);
+
+        final LinkResourceRequest request =
+                DefaultLinkResourceRequest.builder(IntentId.valueOf(1),
+                        ImmutableSet.of(link))
+                        .build();
+        final ResourceAllocation allocation =
+                new BandwidthResourceAllocation(Bandwidth.valueOf(9000000.0));
+        final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
+
+        final LinkResourceAllocations allocations =
+                new DefaultLinkResourceAllocations(request, ImmutableMap.of(link, allocationSet));
+
+        boolean gotException = false;
+        try {
+            store.allocateResources(allocations);
+        } catch (ResourceAllocationException rae) {
+            assertEquals(true, rae.getMessage().contains("Unable to allocate bandwidth for link"));
+            gotException = true;
+        }
+        assertEquals(true, gotException);
+    }
+
+    /**
+     * Tests a successful bandwidth allocation.
+     */
+    @Test
+    public void testSuccessfulLambdaAllocation() {
+        final Link link = newLink("of:1", 1, "of:2", 2);
+
+        final LinkResourceRequest request =
+                DefaultLinkResourceRequest.builder(IntentId.valueOf(1),
+                        ImmutableSet.of(link))
+                        .build();
+        final ResourceAllocation allocation =
+                new BandwidthResourceAllocation(Bandwidth.valueOf(900000.0));
+        final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
+
+        final LinkResourceAllocations allocations =
+                new DefaultLinkResourceAllocations(request, ImmutableMap.of(link, allocationSet));
+
+        store.allocateResources(allocations);
+    }
+
+    /**
+     * Tests a unsuccessful bandwidth allocation.
+     */
+    @Test
+    public void testUnsuccessfulLambdaAllocation() {
+        final Link link = newLink("of:1", 1, "of:2", 2);
+
+        final LinkResourceRequest request =
+                DefaultLinkResourceRequest.builder(IntentId.valueOf(1),
+                        ImmutableSet.of(link))
+                        .build();
+        final ResourceAllocation allocation =
+                new LambdaResourceAllocation(Lambda.valueOf(33));
+        final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
+
+        final LinkResourceAllocations allocations =
+                new DefaultLinkResourceAllocations(request, ImmutableMap.of(link, allocationSet));
+        store.allocateResources(allocations);
+
+        boolean gotException = false;
+        try {
+            store.allocateResources(allocations);
+        } catch (ResourceAllocationException rae) {
+            assertEquals(true, rae.getMessage().contains("Unable to allocate lambda for link"));
+            gotException = true;
+        }
+        assertEquals(true, gotException);
     }
 }

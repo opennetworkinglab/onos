@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.trivial.impl;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,14 +28,20 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
+import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
+import org.onosproject.net.resource.Lambda;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceStore;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceAllocationException;
+import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
+
+import com.google.common.collect.ImmutableSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -63,7 +70,7 @@ public class SimpleLinkResourceStoreTest {
      * @param port2 destination port
      * @return created {@link Link} object
      */
-    private Link newLink(String dev1, int port1, String dev2, int port2) {
+    private static Link newLink(String dev1, int port1, String dev2, int port2) {
         Annotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.OPTICAL_WAVES, "80")
                 .set(AnnotationKeys.BANDWIDTH, "1000000")
@@ -166,5 +173,134 @@ public class SimpleLinkResourceStoreTest {
         final Set<LambdaResourceAllocation> res = getLambdaObjs(freeRes);
         assertNotNull(res);
         assertEquals(80, res.size());
+    }
+
+    public static class MockLinkResourceBandwidthAllocations implements LinkResourceAllocations {
+        final double allocationAmount;
+
+        MockLinkResourceBandwidthAllocations(Double allocationAmount) {
+            this.allocationAmount = allocationAmount;
+        }
+        @Override
+        public Set<ResourceAllocation> getResourceAllocation(Link link) {
+            final ResourceAllocation allocation =
+                    new BandwidthResourceAllocation(Bandwidth.valueOf(allocationAmount));
+            final Set<ResourceAllocation> allocations = new HashSet<>();
+            allocations.add(allocation);
+            return allocations;
+        }
+
+        @Override
+        public IntentId intendId() {
+            return null;
+        }
+
+        @Override
+        public Collection<Link> links() {
+            return ImmutableSet.of(newLink("of:1", 1, "of:2", 2));
+        }
+
+        @Override
+        public Set<ResourceRequest> resources() {
+            return null;
+        }
+
+        @Override
+        public ResourceType type() {
+            return null;
+        }
+    }
+
+    public static class MockLinkResourceLambdaAllocations implements LinkResourceAllocations {
+        final int allocatedLambda;
+
+        MockLinkResourceLambdaAllocations(int allocatedLambda) {
+            this.allocatedLambda = allocatedLambda;
+        }
+        @Override
+        public Set<ResourceAllocation> getResourceAllocation(Link link) {
+            final ResourceAllocation allocation =
+                    new LambdaResourceAllocation(Lambda.valueOf(allocatedLambda));
+            final Set<ResourceAllocation> allocations = new HashSet<>();
+            allocations.add(allocation);
+            return allocations;
+        }
+
+        @Override
+        public IntentId intendId() {
+            return null;
+        }
+
+        @Override
+        public Collection<Link> links() {
+            return ImmutableSet.of(newLink("of:1", 1, "of:2", 2));
+        }
+
+        @Override
+        public Set<ResourceRequest> resources() {
+            return null;
+        }
+
+        @Override
+        public ResourceType type() {
+            return null;
+        }
+    }
+
+    /**
+     * Tests a successful bandwidth allocation.
+     */
+    @Test
+    public void testSuccessfulBandwidthAllocation() {
+        final LinkResourceAllocations allocations =
+                new MockLinkResourceBandwidthAllocations(900.0);
+        store.allocateResources(allocations);
+    }
+
+    /**
+     * Tests an unsuccessful bandwidth allocation.
+     */
+    @Test
+    public void testUnsuccessfulBandwidthAllocation() {
+        final LinkResourceAllocations allocations =
+                new MockLinkResourceBandwidthAllocations(2000000000.0);
+        boolean gotException = false;
+        try {
+            store.allocateResources(allocations);
+        } catch (ResourceAllocationException rae) {
+            assertEquals(true, rae.getMessage().contains("Unable to allocate bandwidth for link"));
+            gotException = true;
+        }
+        assertEquals(true, gotException);
+    }
+
+    /**
+     * Tests a successful lambda allocation.
+     */
+    @Test
+    public void testSuccessfulLambdaAllocation() {
+        final LinkResourceAllocations allocations =
+                new MockLinkResourceLambdaAllocations(1);
+        store.allocateResources(allocations);
+    }
+
+    /**
+     * Tests an unsuccessful lambda allocation.
+     */
+    @Test
+    public void testUnsuccessfulLambdaAllocation() {
+        final LinkResourceAllocations allocations =
+                new MockLinkResourceLambdaAllocations(1);
+        store.allocateResources(allocations);
+
+        boolean gotException = false;
+
+        try {
+            store.allocateResources(allocations);
+        } catch (ResourceAllocationException rae) {
+            assertEquals(true, rae.getMessage().contains("Unable to allocate lambda for link"));
+            gotException = true;
+        }
+        assertEquals(true, gotException);
     }
 }
