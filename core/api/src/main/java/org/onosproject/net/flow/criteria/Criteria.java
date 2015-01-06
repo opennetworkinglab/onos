@@ -298,7 +298,8 @@ public final class Criteria {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("ethType", Long.toHexString(ethType)).toString();
+                    .add("ethType", Long.toHexString(ethType & 0xffff))
+                    .toString();
         }
 
         @Override
@@ -396,7 +397,8 @@ public final class Criteria {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("protocol", Long.toHexString(proto)).toString();
+                    .add("protocol", Long.toHexString(proto & 0xff))
+                    .toString();
         }
 
         @Override
@@ -542,7 +544,7 @@ public final class Criteria {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("tcpPort", tcpPort).toString();
+                    .add("tcpPort", tcpPort & 0xffff).toString();
         }
 
         @Override
@@ -589,7 +591,7 @@ public final class Criteria {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("mpls", mplsLabel.intValue()).toString();
+                    .add("mpls", mplsLabel & 0xffffffffL).toString();
         }
 
         @Override
@@ -639,7 +641,7 @@ public final class Criteria {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("lambda", lambda).toString();
+                    .add("lambda", lambda & 0xffff).toString();
         }
 
         @Override
@@ -686,7 +688,7 @@ public final class Criteria {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("signalType", signalType).toString();
+                    .add("signalType", signalType & 0xffff).toString();
         }
 
         @Override
