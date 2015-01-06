@@ -185,11 +185,17 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 if (m.getVersion() == OFVersion.OF_13) {
                     log.debug("Received {} Hello from {}", m.getVersion(),
                             h.channel.getRemoteAddress());
+                    h.sendHandshakeHelloMessage();
                     h.ofVersion = OFVersion.OF_13;
                 } else if (m.getVersion() == OFVersion.OF_10) {
                     log.debug("Received {} Hello from {} - switching to OF "
                             + "version 1.0", m.getVersion(),
                             h.channel.getRemoteAddress());
+                    OFHello hi =
+                            h.factory10.buildHello()
+                                    .setXid(h.handshakeTransactionIds--)
+                                    .build();
+                    h.channel.write(Collections.singletonList(hi));
                     h.ofVersion = OFVersion.OF_10;
                 } else {
                     log.error("Received Hello of version {} from switch at {}. "
@@ -1026,7 +1032,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         channel = e.getChannel();
         log.info("New switch connection from {}",
                 channel.getRemoteAddress());
-        sendHandshakeHelloMessage();
+        /*
+            hack to wait for the switch to tell us what it's
+            max version is. This is not spec compliant and should
+            be removed as soon as switches behave better.
+         */
+        //sendHandshakeHelloMessage();
         setState(ChannelState.WAIT_HELLO);
     }
 
