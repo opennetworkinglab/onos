@@ -15,11 +15,8 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
+import org.onlab.packet.Ip4Address;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -30,13 +27,13 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanId
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
-import org.onlab.packet.Ip4Address;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.MacAddress;
@@ -48,12 +45,18 @@ import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Flow mod builder for OpenFlow 1.0.
  */
 public class FlowModBuilderVer10 extends FlowModBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(FlowModBuilderVer10.class);
+    private static final int OFPCML_NO_BUFFER = 0xffff;
 
     private final TrafficTreatment treatment;
 
@@ -151,8 +154,12 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 break;
             case OUTPUT:
                 OutputInstruction out = (OutputInstruction) i;
-                acts.add(factory().actions().buildOutput().setPort(
-                        OFPort.of((int) out.port().toLong())).build());
+                OFActionOutput.Builder action = factory().actions().buildOutput()
+                        .setPort(OFPort.of((int) out.port().toLong()));
+                if (out.port().equals(PortNumber.CONTROLLER)) {
+                    action.setMaxLen(OFPCML_NO_BUFFER);
+                }
+                acts.add(action.build());
                 break;
             case L0MODIFICATION:
             case GROUP:

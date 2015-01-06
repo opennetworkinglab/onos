@@ -15,19 +15,18 @@
  */
 package org.onosproject.net.flow;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flow.instructions.Instructions;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Default traffic treatment implementation.
@@ -152,8 +151,13 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public void drop() {
-            add(Instructions.createDrop());
+        public Builder drop() {
+            return add(Instructions.createDrop());
+        }
+
+        @Override
+        public Builder punt() {
+            return add(Instructions.createOutput(PortNumber.CONTROLLER));
         }
 
         @Override
