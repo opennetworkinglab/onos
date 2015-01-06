@@ -158,4 +158,34 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.contains(someArray, 109)).toBeFalsy();
         expect(fs.contains(stringArray, 'zonko')).toBeFalsy();
     });
+
+    // === Tests for areFunctions()
+    it('areFunctions(): false for non-array', function () {
+        expect(fs.areFunctions({}, 'not-an-array')).toBeFalsy();
+    });
+    it('areFunctions(): true for empty-array', function () {
+        expect(fs.areFunctions({}, [])).toBeTruthy();
+    });
+    it('areFunctions(): true for some api', function () {
+        expect(fs.areFunctions({
+            a: function () {},
+            b: function () {}
+        }, ['b', 'a'])).toBeTruthy();
+    });
+    it('areFunctions(): false for some other api', function () {
+        expect(fs.areFunctions({
+            a: function () {},
+            b: 'not-a-function'
+        }, ['b', 'a'])).toBeFalsy();
+    });
+    it('areFunctions(): extraneous stuff ignored', function () {
+        expect(fs.areFunctions({
+            a: function () {},
+            b: function () {},
+            c: 1,
+            d: 'foo'
+        }, ['a', 'b'])).toBeTruthy();
+    });
+
+
 });

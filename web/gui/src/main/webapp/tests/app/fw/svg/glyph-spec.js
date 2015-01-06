@@ -20,16 +20,24 @@
  @author Simon Hunt
  */
 describe('factory: fw/svg/glyph.js', function() {
-    var gs;
+    var $log, fs, gs;
 
-    beforeEach(module('onosSvg'));
+    beforeEach(module('onosUtil', 'onosSvg'));
 
-    beforeEach(inject(function (GlyphService) {
+    beforeEach(inject(function (_$log_, FnService, GlyphService) {
+        $log = _$log_;
+        fs = FnService;
         gs = GlyphService;
     }));
 
     it('should define GlyphService', function () {
         expect(gs).toBeDefined();
+    });
+
+    it('should define four functions', function () {
+        expect(fs.areFunctions(gs, [
+            'init', 'register', 'ids', 'loadDefs'
+        ])).toBeTruthy();
     });
 
     // TODO: unit tests for glyph functions

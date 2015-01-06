@@ -22,14 +22,38 @@
 (function () {
     'use strict';
 
-    var $log;
+    var $log,
+        glyphs = d3.map();
 
     angular.module('onosSvg')
         .factory('GlyphService', ['$log', function (_$log_) {
             $log = _$log_;
 
+
+            function init() {
+                // TODO: load the core set of glyphs
+
+            }
+
+            function register(viewBox, data, overwrite) {
+                // TODO: register specified glyph definitions
+
+            }
+
+            function ids() {
+                return glyphs.keys();
+            }
+
+            function loadDefs(defs) {
+                // TODO: clear defs element, then load all glyph definitions
+
+            }
+
             return {
-                tbd: function () {}
+                init: init,
+                register: register,
+                ids: ids,
+                loadDefs: loadDefs
             };
         }]);
 

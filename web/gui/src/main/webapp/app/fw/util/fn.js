@@ -42,6 +42,23 @@
         return isA(a) && a.indexOf(x) > -1;
     }
 
+    // Returns true if all names in the array are defined as functions
+    // on the given api object; false otherwise.
+    function areFunctions(api, fnNames) {
+        if (!isA(fnNames)) {
+            return false;
+        }
+        var n = fnNames.length,
+            i, name;
+        for (i=0; i<n; i++) {
+            name = fnNames[i];
+            if (!isF(api[name])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     angular.module('onosUtil')
         .factory('FnService', [function () {
             return {
@@ -49,7 +66,8 @@
                 isA: isA,
                 isS: isS,
                 isO: isO,
-                contains: contains
+                contains: contains,
+                areFunctions: areFunctions
             };
     }]);
 
