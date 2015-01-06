@@ -4,6 +4,7 @@ module.exports = function(config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
+    // the path is relative to this (karma.conf.js) file
     basePath: '',
 
 
@@ -17,6 +18,7 @@ module.exports = function(config) {
         // library code...
         '../tp/angular.js',
         '../tp/angular-mocks.js',
+        '../tp/angular-route.js',
         '../tp/d3.js',
         '../tp/topojson.v1.min.js',
         '../tp/jquery-2.1.1.min.js',
