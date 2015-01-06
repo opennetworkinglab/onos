@@ -6,10 +6,11 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-while getopts fn o; do
+while getopts fnm: o; do
     case "$o" in
         f) uninstall=true;;
         n) nostart=true;;
+        m) mvn_settings=$OPTARG;;
     esac
 done
 let OPC=$OPTIND-1
@@ -22,6 +23,8 @@ node=${1:-$OCI}
 remote=$ONOS_USER@$node
 
 $(dirname $0)/onos-push-bits $node
+
+[ ! -z "$mvn_settings" ] && scp -q $mvn_settings $remote:/tmp/settings.xml
 
 ssh $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
@@ -49,6 +52,8 @@ ssh $remote "
     # Remove any previous ON.Lab bits from ~/.m2 repo and re-stage it.
     rm -fr ~/.m2/repository/org/onosproject
     cp -r $ONOS_INSTALL_DIR/$KARAF_DIST/system/org/onosproject ~/.m2/repository/org/onosproject
+
+    [ ! -z "$mvn_settings" ] && cp /tmp/settings.xml ~/.m2/settings.xml
 
     # Drop log level for the console
     echo "log4j.logger.org.apache.sshd = WARN" \
