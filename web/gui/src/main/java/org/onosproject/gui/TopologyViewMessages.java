@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014,2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -61,8 +63,6 @@ import org.onosproject.net.statistic.Load;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
-import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
