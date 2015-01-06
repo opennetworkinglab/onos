@@ -146,11 +146,13 @@ function vicell() {
        printf "${cdf} : no such cell\n" && return 1
   fi
 
-  if [ -z "$EDITOR" ]; then
-    vi ${cpath}${cdf}
+  if [ -z "${EDITOR}" ] || [ -x "$(which ${EDITOR})" ]; then
+    unset EDITOR && vi ${cpath}${cdf}
   else
     $EDITOR ${cpath}${cdf}
   fi
   ($apply) && cell ${cdf}
-
 }
+
+# autocomplete for certain utilities
+. ${ONOS_ROOT}/tools/test/bin/ogroup-opts

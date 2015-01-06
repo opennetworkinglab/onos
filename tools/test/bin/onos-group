@@ -1,0 +1,90 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Allows a select group of commands to be sent to all ONOS instances in a cell.
+# -----------------------------------------------------------------------------
+
+set -o pipefail
+IFS=$'\n'
+
+source ogroup-opts
+
+function err() {
+    printf '%s: %s: %s\n' "$(basename $0)" "$1" "$2" >&2
+    usage >&2
+    exit 1
+}
+
+function usage() {
+cat << EOF
+
+usage: $(basename $0) <help|[command]>
+
+Sends a command to all ONOS instances in the current cell. Currently supported
+commands are: $GOPTS
+
+options:
+    [command]  : A command to send to the instances.
+    help       : Displays this message and exits.
+
+notes:
+    Hitting <TAB> will display the options for $(basename $0).
+
+EOF
+}
+
+# gets the utility name
+function getcmd() {
+  # check that utility can be run in "batch-mode"
+  local isgopt=false
+  for c in $(printf '%s' "$GOPTS" | tr ' ' $'\n'); do
+    [ "$c" = "$1" ] && isgopt=true && break
+  done
+  if $isgopt ; then
+    printf 'onos-%s' "$1"
+  else
+    err 'unsupported command' "$1"
+  fi
+}
+
+# early sanity check for instances/arguments
+[ -z "$1" ] && usage && exit 0
+
+OCIS=( $(env | sed -ne 's:OC[0-9]=\(.*\):\1 :g p' | sort -k1) )
+if [ -z "$OCIS" ]; then
+  printf "no controller instances, quitting early" >&2 && exit 0
+fi
+
+CMD_HELP=false
+while [ $# -gt 0 ]; do
+  case "$1" in
+    'help')
+      usage && exit 0
+      ;;
+    '-'?)
+      err 'invalid flag' "$1" && exit 1
+      ;;
+     *)
+      cmd=$(getcmd $1) || exit 1
+      shift
+      # grab flags aimed at the utility being called.
+      argv=( $@ )
+      args=()
+      for i in "${!argv[@]}"; do
+        # 'help' is a parameter for us; '-h' is for the command
+        [ "${argv[$i]}" = 'help' ] && break
+        [ "${argv[$i]}" = '-h' ] && CMD_HELP=true
+        args[$i]="${argv[$i]}"
+        shift
+      done
+      continue
+      ;;
+  esac
+  shift
+done
+
+( $CMD_HELP ) && $cmd '-h' && exit 0 
+
+# TODO: verbose-mode and cleanup
+for i in ${OCIS[@]}; do
+  ${cmd} $(echo ${args[@]}) "$i" 2>/dev/null &
+done

@@ -1,0 +1,14 @@
+# tab completion settings for onos-group.
+
+# options available to onos-group
+GOPTS='install kill patch-vm push-keys uninstall'
+
+function _ogroup-opts () {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+
+  if [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $( compgen -W "$GOPTS help" -- $cur ) )
+  fi
+}
+
+complete -F _ogroup-opts onos-group
