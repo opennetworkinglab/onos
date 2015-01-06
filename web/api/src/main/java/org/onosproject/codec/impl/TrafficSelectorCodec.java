@@ -37,9 +37,10 @@ public class TrafficSelectorCodec extends JsonCodec<TrafficSelector> {
         final ArrayNode jsonCriteria = result.putArray("criteria");
 
         if (selector.criteria() != null) {
-            for (final Criterion criterion :selector.criteria()) {
-                // TODO: would be better to have a codec that understands criteria
-                jsonCriteria.add(criterion.toString());
+            final JsonCodec<Criterion> criterionCodec =
+                    context.codec(Criterion.class);
+            for (final Criterion criterion : selector.criteria()) {
+                jsonCriteria.add(criterionCodec.encode(criterion, context));
             }
         }
 

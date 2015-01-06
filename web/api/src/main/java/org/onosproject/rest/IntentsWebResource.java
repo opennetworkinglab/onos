@@ -22,9 +22,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.PointToPointIntent;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -62,7 +64,14 @@ public class IntentsWebResource extends AbstractWebResource {
         final Intent intent = nullIsNotFound(get(IntentService.class)
                         .getIntent(IntentId.valueOf(id)),
                 INTENT_NOT_FOUND);
-        final ObjectNode root = codec(Intent.class).encode(intent, this);
+        final ObjectNode root;
+        if (intent instanceof HostToHostIntent) {
+            root = codec(HostToHostIntent.class).encode((HostToHostIntent) intent, this);
+        } else if (intent instanceof PointToPointIntent) {
+            root = codec(PointToPointIntent.class).encode((PointToPointIntent) intent, this);
+        } else {
+            root = codec(Intent.class).encode(intent, this);
+        }
         return ok(root.toString()).build();
     }
 }

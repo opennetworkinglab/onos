@@ -50,13 +50,13 @@ public class FlowEntryCodec extends JsonCodec<FlowEntry> {
 
         if (flowEntry.treatment() != null) {
             final JsonCodec<TrafficTreatment> treatmentCodec =
-                    new TrafficTreatmentCodec();
+                    context.codec(TrafficTreatment.class);
             result.set("treatment", treatmentCodec.encode(flowEntry.treatment(), context));
         }
 
         if (flowEntry.selector() != null) {
             final JsonCodec<TrafficSelector> selectorCodec =
-                    new TrafficSelectorCodec();
+                    context.codec(TrafficSelector.class);
             result.set("selector", selectorCodec.encode(flowEntry.selector(), context));
         }
 

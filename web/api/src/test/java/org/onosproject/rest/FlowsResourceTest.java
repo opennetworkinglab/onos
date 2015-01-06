@@ -49,7 +49,6 @@ import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 import com.google.common.collect.ImmutableSet;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -313,15 +312,17 @@ public class FlowsResourceTest extends JerseyTest {
                 }
                 for (final Instruction instruction : flow.treatment().instructions()) {
                     boolean instructionFound = false;
-                    final String instructionString = instruction.toString();
                     for (int instructionIndex = 0; instructionIndex < jsonInstructions.size(); instructionIndex++) {
-                        final JsonValue value = jsonInstructions.get(instructionIndex);
-                        if (value.asString().equals(instructionString)) {
+                        final String jsonType =
+                                jsonInstructions.get(instructionIndex)
+                                        .asObject().get("type").asString();
+                        final String instructionType = instruction.type().name();
+                        if (jsonType.equals(instructionType)) {
                             instructionFound = true;
                         }
                     }
                     if (!instructionFound) {
-                        reason = "instruction " + instructionString;
+                        reason = "instruction " + instruction.toString();
                         return false;
                     }
                 }
@@ -338,15 +339,18 @@ public class FlowsResourceTest extends JerseyTest {
                 }
                 for (final Criterion criterion : flow.selector().criteria()) {
                     boolean criterionFound = false;
-                    final String criterionString = criterion.toString();
+
                     for (int criterionIndex = 0; criterionIndex < jsonCriteria.size(); criterionIndex++) {
-                        final JsonValue value = jsonCriteria.get(criterionIndex);
-                        if (value.asString().equals(criterionString)) {
+                        final String jsonType =
+                                jsonCriteria.get(criterionIndex)
+                                        .asObject().get("type").asString();
+                        final String criterionType = criterion.type().name();
+                        if (jsonType.equals(criterionType)) {
                             criterionFound = true;
                         }
                     }
                     if (!criterionFound) {
-                        reason = "criterion " + criterionString;
+                        reason = "criterion " + criterion.toString();
                         return false;
                     }
                 }

@@ -20,6 +20,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ethernet;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.Annotations;
@@ -32,7 +33,12 @@ import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,10 +67,16 @@ public class CodecManager implements CodecService {
         registerCodec(Link.class, new LinkCodec());
         registerCodec(Host.class, new HostCodec());
         registerCodec(HostLocation.class, new HostLocationCodec());
+        registerCodec(HostToHostIntent.class, new HostToHostIntentCodec());
+        registerCodec(PointToPointIntent.class, new PointToPointIntentCodec());
         registerCodec(Intent.class, new IntentCodec());
+        registerCodec(ConnectivityIntent.class, new ConnectivityIntentCodec());
         registerCodec(FlowEntry.class, new FlowEntryCodec());
         registerCodec(TrafficTreatment.class, new TrafficTreatmentCodec());
         registerCodec(TrafficSelector.class, new TrafficSelectorCodec());
+        registerCodec(Instruction.class, new InstructionCodec());
+        registerCodec(Criterion.class, new CriterionCodec());
+        registerCodec(Ethernet.class, new EthernetCodec());
         log.info("Started");
     }
 

@@ -34,7 +34,8 @@ public class HostCodec extends AnnotatedCodec<Host> {
     @Override
     public ObjectNode encode(Host host, CodecContext context) {
         checkNotNull(host, "Host cannot be null");
-        final JsonCodec<HostLocation> locationCodec = new HostLocationCodec();
+        final JsonCodec<HostLocation> locationCodec =
+                context.codec(HostLocation.class);
         final ObjectNode result = context.mapper().createObjectNode()
                 .put("id", host.id().toString())
                 .put("mac", host.mac().toString())

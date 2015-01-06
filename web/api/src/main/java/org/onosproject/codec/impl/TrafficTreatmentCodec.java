@@ -37,9 +37,10 @@ public class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
         final ArrayNode jsonInstructions = result.putArray("instructions");
 
         if (treatment.instructions() != null) {
+            final JsonCodec<Instruction> instructionCodec =
+                    context.codec(Instruction.class);
             for (final Instruction instruction : treatment.instructions()) {
-                // TODO: would be better to have a codec that understands instructions
-                jsonInstructions.add(instruction.toString());
+                jsonInstructions.add(instructionCodec.encode(instruction, context));
             }
         }
 
