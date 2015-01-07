@@ -22,7 +22,8 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs;
 
-    var vbBird = '352 224 113 112',
+    var numBaseGlyphs = 11,
+        vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10';
 
@@ -50,7 +51,7 @@ describe('factory: fw/svg/glyph.js', function() {
 
     it('should load the base set of glyphs', function () {
         gs.init();
-        expect(gs.ids().length).toEqual(11);
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
     });
 
     function verifyGlyphLoaded(id, vbox, prefix) {
@@ -106,5 +107,65 @@ describe('factory: fw/svg/glyph.js', function() {
     it('should load the uiAttached glyph', function() {
         gs.init();
         verifyGlyphLoaded('uiAttached', vbBadge, 'M2,2.5a.5,.5');
+    });
+
+    // define some glyphs that we want to install
+
+    var testVbox = '0 0 1 1',
+        dTriangle = 'M.5,.2l.3,.6,h-.6z',
+        dDiamond = 'M.2,.5l.3,-.3l.3,.3l-.3,.3z',
+        newGlyphs = {
+            triangle: dTriangle,
+            diamond: dDiamond
+        },
+        dupGlyphs = {
+            router: dTriangle,
+            switch: dDiamond
+        },
+        idCollision = 'GlyphService.register(): ID collision: ';
+
+    it('should install new glyphs', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.register(testVbox, newGlyphs);
+        expect(ok).toBeTruthy();
+        expect($log.warn).not.toHaveBeenCalled();
+
+        expect(gs.ids().length).toEqual(numBaseGlyphs + 2);
+        verifyGlyphLoaded('triangle', testVbox, 'M.5,.2');
+        verifyGlyphLoaded('diamond', testVbox, 'M.2,.5');
+    });
+
+    it('should not overwrite glyphs with dup IDs', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.register(testVbox, dupGlyphs);
+        expect(ok).toBeFalsy();
+        expect($log.warn).toHaveBeenCalledWith(idCollision + '"switch"');
+        expect($log.warn).toHaveBeenCalledWith(idCollision + '"router"');
+
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        // verify original glyphs still exist...
+        verifyGlyphLoaded('router', vbGlyph, 'M10,55A45,45');
+        verifyGlyphLoaded('switch', vbGlyph, 'M10,20a10');
+    });
+
+    it('should replace glyphs if asked nicely', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.register(testVbox, dupGlyphs, true);
+        expect(ok).toBeTruthy();
+        expect($log.warn).not.toHaveBeenCalled();
+
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        // verify glyphs have been overwritten...
+        verifyGlyphLoaded('router', testVbox, 'M.5,.2');
+        verifyGlyphLoaded('switch', testVbox, 'M.2,.5');
     });
 });

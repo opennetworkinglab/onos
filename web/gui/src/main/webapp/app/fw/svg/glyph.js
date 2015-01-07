@@ -23,7 +23,8 @@
     'use strict';
 
     var $log,
-        glyphs = d3.map();
+        glyphs = d3.map(),
+        msgGS = 'GlyphService.';
 
     // ----------------------------------------------------------------------
     // Base set of Glyphs...
@@ -119,13 +120,6 @@
 
     // ----------------------------------------------------------------------
 
-    function reg(vbox, data) {
-        d3.map(data).keys().forEach(function (key) {
-            glyphs.set(key, {id: key, vb: vbox, d: data[key]});
-        });
-    }
-
-
     angular.module('onosSvg')
         .factory('GlyphService', ['$log', function (_$log_) {
             $log = _$log_;
@@ -133,14 +127,30 @@
             function init() {
                 // start with a fresh map
                 glyphs = d3.map();
-                reg(birdViewBox, birdData);
-                reg(glyphViewBox, glyphData);
-                reg(badgeViewBox, badgeData);
+                register(birdViewBox, birdData);
+                register(glyphViewBox, glyphData);
+                register(badgeViewBox, badgeData);
             }
 
             function register(viewBox, data, overwrite) {
-                // TODO: register specified glyph definitions
+                var dmap = d3.map(data),
+                    dups = [],
+                    ok, msg;
 
+                dmap.forEach(function (key, value) {
+                    if (!overwrite && glyphs.get(key)) {
+                        dups.push(key);
+                    } else {
+                        glyphs.set(key, {id: key, vb: viewBox, d: value});
+                    }
+                });
+                ok = (dups.length == 0);
+                if (!ok) {
+                    dups.forEach(function (id) {
+                        $log.warn(msgGS + 'register(): ID collision: "'+id+'"');
+                    });
+                }
+                return ok;
             }
 
             function ids() {
