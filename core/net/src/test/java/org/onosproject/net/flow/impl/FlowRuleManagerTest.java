@@ -110,7 +110,7 @@ public class FlowRuleManagerTest {
         mgr.addListener(listener);
         provider = new TestProvider(PID);
         providerService = registry.register(provider);
-        appId = new TestApplicationId((short) 0, "FlowRuleManagerTest");
+        appId = new TestApplicationId(0, "FlowRuleManagerTest");
         assertTrue("provider should be registered",
                    registry.getProviders().contains(provider.id()));
     }
@@ -639,8 +639,7 @@ public class FlowRuleManagerTest {
     }
 
     public class TestApplicationId extends DefaultApplicationId {
-
-        public TestApplicationId(short id, String name) {
+        public TestApplicationId(int id, String name) {
             super(id, name);
         }
     }

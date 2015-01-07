@@ -35,6 +35,7 @@
                 org.onosproject.rest.exceptions.ServerErrorMapper,
                 org.onosproject.rest.JsonBodyWriter,
 
+                org.onosproject.rest.ApplicationsWebResource,
                 org.onosproject.rest.DevicesWebResource,
                 org.onosproject.rest.LinksWebResource,
                 org.onosproject.rest.HostsWebResource,

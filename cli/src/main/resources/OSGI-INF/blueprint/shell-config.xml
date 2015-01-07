@@ -21,6 +21,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.ApplicationInstallCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.MetricsListCommand"/>
         </command>
 

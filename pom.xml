@@ -161,6 +161,12 @@
             </dependency>
 
             <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>1.10</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>4.0</version>
@@ -313,6 +319,13 @@
                 <version>${project.version}</version>
                 <classifier>tests</classifier>
                 <scope>test</scope>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-core-common</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>

@@ -22,6 +22,7 @@
              description="ONOS 3rd party dependencies">
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
         <bundle>mvn:org.apache.commons/commons-lang3/3.3.2</bundle>
+        <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
         <bundle>mvn:io.netty/netty-common/4.0.23.Final</bundle>
@@ -86,6 +87,7 @@
              description="ONOS core components">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-core-common/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-dist/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-serializers/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onlab-netty/@ONOS-VERSION</bundle>
@@ -95,6 +97,7 @@
              description="ONOS core components">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-core-common/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-trivial/@ONOS-VERSION</bundle>
     </feature>
 

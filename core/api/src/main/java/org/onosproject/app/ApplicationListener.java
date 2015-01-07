@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.app;
+
+import org.onosproject.event.EventListener;
 
 /**
- * Implementation of JSON codec factory and of the builtin codecs.
+ * Entity capable of receiving application related events.
  */
-package org.onosproject.json.impl;
+public interface ApplicationListener extends EventListener<ApplicationEvent> {
+}

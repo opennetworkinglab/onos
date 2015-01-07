@@ -18,6 +18,7 @@ package org.onosproject.core;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Application identifier.
@@ -33,8 +34,9 @@ public class DefaultApplicationId implements ApplicationId {
      * @param id   application identifier
      * @param name application name
      */
-    public DefaultApplicationId(Short id, String name) {
-        this.id = id;
+    public DefaultApplicationId(int id, String name) {
+        checkArgument(0 <= id && id <= Short.MAX_VALUE, "id is outside range");
+        this.id = (short) id;
         this.name = name;
     }
 

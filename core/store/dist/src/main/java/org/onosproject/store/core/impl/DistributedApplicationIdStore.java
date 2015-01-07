@@ -103,6 +103,11 @@ public class DistributedApplicationIdStore
         return appId;
     }
 
+    @Override
+    public ApplicationId getAppId(String name) {
+        return appIdsByName.get(name);
+    }
+
     private void primeAppIds() {
         for (DefaultApplicationId appId : appIdsByName.values()) {
             appIds.put(appId.id(), appId);
@@ -113,7 +118,7 @@ public class DistributedApplicationIdStore
     public ApplicationId registerApplication(String name) {
         DefaultApplicationId appId = appIdsByName.get(name);
         if (appId == null) {
-            short id = (short) lastAppId.getAndIncrement();
+            int id = (int) lastAppId.getAndIncrement();
             appId = putIfAbsent(appIdsByName, name,
                                 new DefaultApplicationId(id, name));
         }

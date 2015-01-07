@@ -51,6 +51,11 @@ public class SimpleApplicationIdStore implements ApplicationIdStore {
     }
 
     @Override
+    public ApplicationId getAppId(String name) {
+        return appIdsByName.get(name);
+    }
+
+    @Override
     public ApplicationId registerApplication(String name) {
         DefaultApplicationId appId = appIdsByName.get(name);
         if (appId == null) {

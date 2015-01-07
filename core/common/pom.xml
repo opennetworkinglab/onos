@@ -26,16 +26,17 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-json</artifactId>
+    <artifactId>onos-core-common</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS JSON encode/decode facilities</description>
+    <description>ONOS utilities common to the core modules</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
@@ -44,10 +45,14 @@
         </dependency>
 
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-core-trivial</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
         </dependency>
 
         <dependency>

@@ -33,9 +33,9 @@
 
     <modules>
         <module>api</module>
+        <module>common</module>
         <module>net</module>
         <module>store</module>
-        <module>json</module>
     </modules>
 
     <dependencies>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.json.impl;
 
 /**
- * Created by tom on 10/16/14.
+ * Common facilities for construction of application management subsystem.
  */
-public class DeleteMe {
-}
+package org.onosproject.common.app;

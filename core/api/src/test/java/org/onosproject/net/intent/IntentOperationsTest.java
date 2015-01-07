@@ -45,7 +45,7 @@ public class IntentOperationsTest {
     final TrafficSelector selector = new IntentTestsMocks.MockSelector();
     final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
 
-    private final ApplicationId appId = new DefaultApplicationId((short) 1, "IntentOperationsTest");
+    private final ApplicationId appId = new DefaultApplicationId(1, "IntentOperationsTest");
 
     private Intent intent;
     protected IdGenerator idGenerator = new MockIdGenerator();

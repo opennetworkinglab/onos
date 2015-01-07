@@ -133,8 +133,8 @@ public class HostLocationProviderTest {
     private CoreService coreService;
     private TestHostProviderService providerService;
 
-    private ApplicationId appId = new DefaultApplicationId((short) 100,
-                "org.onosproject.provider.host");
+    private ApplicationId appId =
+            new DefaultApplicationId(100, "org.onosproject.provider.host");
 
     @Before
     public void setUp() {

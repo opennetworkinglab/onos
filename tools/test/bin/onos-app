@@ -1,0 +1,20 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Tool to manage ONOS applications using REST API.
+# -----------------------------------------------------------------------------
+
+node=${1:-$OCI}
+cmd=${2:-list}
+app=${3}
+
+export URL=http://$node:8181/onos/v1/applications
+export HDR="-HContent-Type:application/octet-stream"
+export curl="curl -sS"
+
+case $cmd in
+    list) $curl -X GET $URL;;
+    install) $curl -X POST $HDR $URL --data-binary @$app;;
+    uninstall) $curl -X DELETE $URL/$app;;
+    activate) $curl -X POST $URL/$app/active;;
+    deactivate) $curl -X DELETE $URL/$app/active;;
+esac

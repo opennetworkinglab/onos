@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.onosproject.core;
+// FIXME: Move to org.onosproject.app package
 
 import java.util.Set;
 
@@ -31,10 +32,19 @@ public interface ApplicationIdStore {
 
     /**
      * Returns an existing application id from a given id.
+     *
      * @param id the short value of the id
-     * @return an application id
+     * @return an application id; null if no such app registered
      */
     ApplicationId getAppId(Short id);
+
+    /**
+     * Returns registered application id from the given name.
+     *
+     * @param name application name
+     * @return an application id; null if no such app registered
+     */
+    ApplicationId getAppId(String name);
 
     /**
      * Registers a new application by its name, which is expected

@@ -62,8 +62,7 @@ import static org.junit.Assert.fail;
 public class IntentsResourceTest extends ResourceTest {
     final IntentService mockIntentService = createMock(IntentService.class);
     final HashSet<Intent> intents = new HashSet<>();
-    private static final ApplicationId APP_ID =
-            new DefaultApplicationId((short) 1, "test");
+    private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
     private IdGenerator mockGenerator;
 
     /**

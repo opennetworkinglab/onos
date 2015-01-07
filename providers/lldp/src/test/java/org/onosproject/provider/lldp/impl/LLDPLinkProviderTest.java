@@ -97,8 +97,8 @@ public class LLDPLinkProviderTest {
     private PacketProcessor testProcessor;
     private DeviceListener deviceListener;
 
-    private ApplicationId appId = new DefaultApplicationId((short) 100,
-                "org.onosproject.provider.lldp");
+    private ApplicationId appId =
+            new DefaultApplicationId(100, "org.onosproject.provider.lldp");
 
     @Before
     public void setUp() {

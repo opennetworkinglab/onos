@@ -15,6 +15,8 @@
  */
 package org.onlab.util;
 
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.walkFileTree;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.BufferedReader;
@@ -24,6 +26,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
@@ -39,7 +46,7 @@ public abstract class Tools {
     private Tools() {
     }
 
-    private static final Logger TOOLS_LOG = getLogger(Tools.class);
+    private static final Logger log = getLogger(Tools.class);
 
     /**
      * Returns a thread factory that produces threads named according to the
@@ -51,12 +58,12 @@ public abstract class Tools {
     public static ThreadFactory namedThreads(String pattern) {
         return new ThreadFactoryBuilder()
                 .setNameFormat(pattern)
-                // FIXME remove UncaughtExceptionHandler before release
+                        // FIXME remove UncaughtExceptionHandler before release
                 .setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 
                     @Override
                     public void uncaughtException(Thread t, Throwable e) {
-                        TOOLS_LOG.error("Uncaught exception on {}", t.getName(), e);
+                        log.error("Uncaught exception on {}", t.getName(), e);
                     }
                 }).build();
     }
@@ -69,9 +76,9 @@ public abstract class Tools {
      */
     public static ThreadFactory minPriority(ThreadFactory factory) {
         return new ThreadFactoryBuilder()
-                    .setThreadFactory(factory)
-                    .setPriority(Thread.MIN_PRIORITY)
-                    .build();
+                .setThreadFactory(factory)
+                .setPriority(Thread.MIN_PRIORITY)
+                .build();
     }
 
     /**
@@ -127,7 +134,7 @@ public abstract class Tools {
     public static List<String> slurp(File path) {
         try {
             BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
+                    new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
 
             List<String> lines = new ArrayList<>();
             String line;
@@ -138,6 +145,58 @@ public abstract class Tools {
 
         } catch (IOException e) {
             return null;
+        }
+    }
+
+
+    /**
+     * Purges the specified directory path.&nbsp;Use with great caution since
+     * no attempt is made to check for symbolic links, which could result in
+     * deletion of unintended files.
+     *
+     * @param path directory to be removed
+     * @throws java.io.IOException if unable to remove contents
+     */
+    public static void removeDirectory(String path) throws IOException {
+        walkFileTree(Paths.get(path), new DirectoryDeleter());
+    }
+
+    /**
+     * Purges the specified directory path.&nbsp;Use with great caution since
+     * no attempt is made to check for symbolic links, which could result in
+     * deletion of unintended files.
+     *
+     * @param dir directory to be removed
+     * @throws java.io.IOException if unable to remove contents
+     */
+    public static void removeDirectory(File dir) throws IOException {
+        walkFileTree(Paths.get(dir.getAbsolutePath()), new DirectoryDeleter());
+    }
+
+
+    private static class DirectoryDeleter extends SimpleFileVisitor<Path> {
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
+                throws IOException {
+            if (attributes.isRegularFile()) {
+                delete(file);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path directory, IOException ioe)
+                throws IOException {
+            delete(directory);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException ioe)
+                throws IOException {
+            log.warn("Unable to delete file {}", file);
+            log.warn("Boom", ioe);
+            return FileVisitResult.CONTINUE;
         }
     }
 
