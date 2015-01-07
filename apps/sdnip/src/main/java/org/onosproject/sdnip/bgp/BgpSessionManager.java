@@ -22,7 +22,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -37,10 +36,11 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.onosproject.sdnip.RouteListener;
-import org.onosproject.sdnip.RouteUpdate;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
+import org.onosproject.sdnip.RouteListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 public class BgpSessionManager {
     private static final Logger log =
         LoggerFactory.getLogger(BgpSessionManager.class);
+
     boolean isShutdown = true;
     private Channel serverChannel;     // Listener for incoming BGP connections
     private ServerBootstrap serverBootstrap;
@@ -58,8 +59,10 @@ public class BgpSessionManager {
         new ConcurrentHashMap<>();
     private Ip4Address myBgpId;        // Same BGP ID for all peers
 
-    private BgpRouteSelector bgpRouteSelector = new BgpRouteSelector();
-    private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRoutes =
+    private BgpRouteSelector bgpRouteSelector = new BgpRouteSelector(this);
+    private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRoutes4 =
+        new ConcurrentHashMap<>();
+    private ConcurrentMap<Ip6Prefix, BgpRouteEntry> bgpRoutes6 =
         new ConcurrentHashMap<>();
 
     private final RouteListener routeListener;
@@ -74,6 +77,24 @@ public class BgpSessionManager {
     }
 
     /**
+     * Checks whether the BGP Session Manager is shutdown.
+     *
+     * @return true if the BGP Session Manager is shutdown, otherwise false
+     */
+    boolean isShutdown() {
+        return this.isShutdown;
+    }
+
+    /**
+     * Gets the route listener.
+     *
+     * @return the route listener to use
+     */
+    RouteListener getRouteListener() {
+        return routeListener;
+    }
+
+    /**
      * Gets the BGP sessions.
      *
      * @return the BGP sessions
@@ -83,12 +104,62 @@ public class BgpSessionManager {
     }
 
     /**
-     * Gets the BGP routes.
+     * Gets the selected IPv4 BGP routes among all BGP sessions.
      *
-     * @return the BGP routes
+     * @return the selected IPv4 BGP routes among all BGP sessions
      */
-    public Collection<BgpRouteEntry> getBgpRoutes() {
-        return bgpRoutes.values();
+    public Collection<BgpRouteEntry> getBgpRoutes4() {
+        return bgpRoutes4.values();
+    }
+
+    /**
+     * Gets the selected IPv6 BGP routes among all BGP sessions.
+     *
+     * @return the selected IPv6 BGP routes among all BGP sessions
+     */
+    public Collection<BgpRouteEntry> getBgpRoutes6() {
+        return bgpRoutes6.values();
+    }
+
+    /**
+     * Finds a BGP route for a prefix. The prefix can be either IPv4 or IPv6.
+     *
+     * @param prefix the prefix to use
+     * @return the BGP route if found, otherwise null
+     */
+    BgpRouteEntry findBgpRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            return bgpRoutes4.get(prefix.getIp4Prefix());               // IPv4
+        }
+        return bgpRoutes6.get(prefix.getIp6Prefix());                   // IPv6
+    }
+
+    /**
+     * Adds a BGP route. The route can be either IPv4 or IPv6.
+     *
+     * @param bgpRouteEntry the BGP route entry to use
+     */
+    void addBgpRoute(BgpRouteEntry bgpRouteEntry) {
+        if (bgpRouteEntry.version() == Ip4Address.VERSION) {
+            bgpRoutes4.put(bgpRouteEntry.prefix().getIp4Prefix(),       // IPv4
+                           bgpRouteEntry);
+        } else {
+            bgpRoutes6.put(bgpRouteEntry.prefix().getIp6Prefix(),       // IPv6
+                           bgpRouteEntry);
+        }
+    }
+
+    /**
+     * Removes a BGP route for a prefix. The prefix can be either IPv4 or IPv6.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            return (bgpRoutes4.remove(prefix.getIp4Prefix()) != null);  // IPv4
+        }
+        return (bgpRoutes6.remove(prefix.getIp6Prefix()) != null);      // IPv6
     }
 
     /**
@@ -187,9 +258,9 @@ public class BgpSessionManager {
         log.debug("BGP Session Manager start.");
         isShutdown = false;
 
-        ChannelFactory channelFactory =
-            new NioServerSocketChannelFactory(Executors.newCachedThreadPool(namedThreads("BGP-SM-boss-%d")),
-                                              Executors.newCachedThreadPool(namedThreads("BGP-SM-worker-%d")));
+        ChannelFactory channelFactory = new NioServerSocketChannelFactory(
+                Executors.newCachedThreadPool(namedThreads("BGP-SM-boss-%d")),
+                Executors.newCachedThreadPool(namedThreads("BGP-SM-worker-%d")));
         ChannelPipelineFactory pipelineFactory = new ChannelPipelineFactory() {
                 @Override
                 public ChannelPipeline getPipeline() throws Exception {
@@ -230,173 +301,5 @@ public class BgpSessionManager {
         isShutdown = true;
         allChannels.close().awaitUninterruptibly();
         serverBootstrap.releaseExternalResources();
-    }
-
-    /**
-     * Class to receive and process the BGP routes from each BGP Session/Peer.
-     */
-    class BgpRouteSelector {
-        /**
-         * Processes route entry updates: added/updated and deleted route
-         * entries.
-         *
-         * @param bgpSession the BGP session the route entry updates were
-         * received on
-         * @param addedBgpRouteEntries the added/updated route entries to
-         * process
-         * @param deletedBgpRouteEntries the deleted route entries to process
-         */
-        synchronized void routeUpdates(BgpSession bgpSession,
-                        Collection<BgpRouteEntry> addedBgpRouteEntries,
-                        Collection<BgpRouteEntry> deletedBgpRouteEntries) {
-            Collection<RouteUpdate> routeUpdates = new LinkedList<>();
-            RouteUpdate routeUpdate;
-
-            if (isShutdown) {
-                return;         // Ignore any leftover updates if shutdown
-            }
-            // Process the deleted route entries
-            for (BgpRouteEntry bgpRouteEntry : deletedBgpRouteEntries) {
-                routeUpdate = processDeletedRoute(bgpSession, bgpRouteEntry);
-                if (routeUpdate != null) {
-                    routeUpdates.add(routeUpdate);
-                }
-            }
-
-            // Process the added/updated route entries
-            for (BgpRouteEntry bgpRouteEntry : addedBgpRouteEntries) {
-                routeUpdate = processAddedRoute(bgpSession, bgpRouteEntry);
-                if (routeUpdate != null) {
-                    routeUpdates.add(routeUpdate);
-                }
-            }
-            routeListener.update(routeUpdates);
-        }
-
-        /**
-         * Processes an added/updated route entry.
-         *
-         * @param bgpSession the BGP session the route entry update was
-         * received on
-         * @param bgpRouteEntry the added/updated route entry
-         * @return the result route update that should be forwarded to the
-         * Route Listener, or null if no route update should be forwarded
-         */
-        private RouteUpdate processAddedRoute(BgpSession bgpSession,
-                                              BgpRouteEntry bgpRouteEntry) {
-            RouteUpdate routeUpdate;
-            BgpRouteEntry bestBgpRouteEntry =
-                bgpRoutes.get(bgpRouteEntry.prefix());
-
-            //
-            // Install the new route entry if it is better than the
-            // current best route.
-            //
-            if ((bestBgpRouteEntry == null) ||
-                bgpRouteEntry.isBetterThan(bestBgpRouteEntry)) {
-                bgpRoutes.put(bgpRouteEntry.prefix(), bgpRouteEntry);
-                routeUpdate =
-                    new RouteUpdate(RouteUpdate.Type.UPDATE, bgpRouteEntry);
-                return routeUpdate;
-            }
-
-            //
-            // If the route entry arrived on the same BGP Session as
-            // the current best route, then elect the next best route
-            // and install it.
-            //
-            if (bestBgpRouteEntry.getBgpSession() !=
-                bgpRouteEntry.getBgpSession()) {
-                return null;            // Nothing to do
-            }
-
-            // Find the next best route
-            bestBgpRouteEntry = findBestBgpRoute(bgpRouteEntry.prefix());
-            if (bestBgpRouteEntry == null) {
-                //
-                // TODO: Shouldn't happen. Install the new route as a
-                // pre-caution.
-                //
-                log.debug("BGP next best route for prefix {} is missing. " +
-                          "Adding the route that is currently processed.",
-                          bgpRouteEntry.prefix());
-                bestBgpRouteEntry = bgpRouteEntry;
-            }
-            // Install the next best route
-            bgpRoutes.put(bestBgpRouteEntry.prefix(), bestBgpRouteEntry);
-            routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
-                                          bestBgpRouteEntry);
-            return routeUpdate;
-        }
-
-        /**
-         * Processes a deleted route entry.
-         *
-         * @param bgpSession the BGP session the route entry update was
-         * received on
-         * @param bgpRouteEntry the deleted route entry
-         * @return the result route update that should be forwarded to the
-         * Route Listener, or null if no route update should be forwarded
-         */
-        private RouteUpdate processDeletedRoute(BgpSession bgpSession,
-                                                BgpRouteEntry bgpRouteEntry) {
-            RouteUpdate routeUpdate;
-            BgpRouteEntry bestBgpRouteEntry =
-                bgpRoutes.get(bgpRouteEntry.prefix());
-
-            //
-            // Remove the route entry only if it was the best one.
-            // Install the the next best route if it exists.
-            //
-            // NOTE: We intentionally use "==" instead of method equals(),
-            // because we need to check whether this is same object.
-            //
-            if (bgpRouteEntry != bestBgpRouteEntry) {
-                return null;            // Nothing to do
-            }
-
-            //
-            // Find the next best route
-            //
-            bestBgpRouteEntry = findBestBgpRoute(bgpRouteEntry.prefix());
-            if (bestBgpRouteEntry != null) {
-                // Install the next best route
-                bgpRoutes.put(bestBgpRouteEntry.prefix(),
-                              bestBgpRouteEntry);
-                routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
-                                              bestBgpRouteEntry);
-                return routeUpdate;
-            }
-
-            //
-            // No route found. Remove the route entry
-            //
-            bgpRoutes.remove(bgpRouteEntry.prefix());
-            routeUpdate = new RouteUpdate(RouteUpdate.Type.DELETE,
-                                          bgpRouteEntry);
-            return routeUpdate;
-        }
-
-        /**
-         * Finds the best route entry among all BGP Sessions.
-         *
-         * @param prefix the prefix of the route
-         * @return the best route if found, otherwise null
-         */
-        private BgpRouteEntry findBestBgpRoute(Ip4Prefix prefix) {
-            BgpRouteEntry bestRoute = null;
-
-            // Iterate across all BGP Sessions and select the best route
-            for (BgpSession bgpSession : bgpSessions.values()) {
-                BgpRouteEntry route = bgpSession.findBgpRouteEntry(prefix);
-                if (route == null) {
-                    continue;
-                }
-                if ((bestRoute == null) || route.isBetterThan(bestRoute)) {
-                    bestRoute = route;
-                }
-            }
-            return bestRoute;
-        }
     }
 }

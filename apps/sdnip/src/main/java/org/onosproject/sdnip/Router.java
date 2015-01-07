@@ -30,9 +30,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -67,23 +67,20 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 public class Router implements RouteListener {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
-    // For routes announced by local BGP daemon in SDN network,
-    // the next hop will be 0.0.0.0.
-    private static final Ip4Address LOCAL_NEXT_HOP =
-        Ip4Address.valueOf("0.0.0.0");
 
     // Store all route updates in a radix tree.
     // The key in this tree is the binary string of prefix of the route.
-    private InvertedRadixTree<RouteEntry> ribTable;
+    private InvertedRadixTree<RouteEntry> ribTable4;
+    private InvertedRadixTree<RouteEntry> ribTable6;
 
     // Stores all incoming route updates in a queue.
     private final BlockingQueue<Collection<RouteUpdate>> routeUpdatesQueue;
 
-    // The Ip4Address is the next hop address of each route update.
-    private final SetMultimap<Ip4Address, RouteEntry> routesWaitingOnArp;
+    // The IpAddress is the next hop address of each route update.
+    private final SetMultimap<IpAddress, RouteEntry> routesWaitingOnArp;
 
     // The IPv4 address to MAC address mapping
-    private final Map<Ip4Address, MacAddress> ip2Mac;
+    private final Map<IpAddress, MacAddress> ip2Mac;
 
     private final ApplicationId appId;
     private final IntentSynchronizer intentSynchronizer;
@@ -114,11 +111,13 @@ public class Router implements RouteListener {
 
         this.hostListener = new InternalHostListener();
 
-        ribTable = new ConcurrentInvertedRadixTree<>(
+        ribTable4 = new ConcurrentInvertedRadixTree<>(
+                new DefaultByteArrayNodeFactory());
+        ribTable6 = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
         routeUpdatesQueue = new LinkedBlockingQueue<>();
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
-                HashMultimap.<Ip4Address, RouteEntry>create());
+                HashMultimap.<IpAddress, RouteEntry>create());
         ip2Mac = new ConcurrentHashMap<>();
 
         bgpUpdatesExecutor = Executors.newSingleThreadExecutor(
@@ -151,7 +150,9 @@ public class Router implements RouteListener {
 
         synchronized (this) {
             // Cleanup all local state
-            ribTable = new ConcurrentInvertedRadixTree<>(
+            ribTable4 = new ConcurrentInvertedRadixTree<>(
+                new DefaultByteArrayNodeFactory());
+            ribTable6 = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
             routeUpdatesQueue.clear();
             routesWaitingOnArp.clear();
@@ -195,15 +196,103 @@ public class Router implements RouteListener {
     }
 
     /**
+     * Gets all IPv4 routes from the RIB.
+     *
+     * @return all IPv4 routes from the RIB
+     */
+    public Collection<RouteEntry> getRoutes4() {
+        Iterator<KeyValuePair<RouteEntry>> it =
+            ribTable4.getKeyValuePairsForKeysStartingWith("").iterator();
+
+        List<RouteEntry> routes = new LinkedList<>();
+
+        while (it.hasNext()) {
+            KeyValuePair<RouteEntry> entry = it.next();
+            routes.add(entry.getValue());
+        }
+
+        return routes;
+    }
+
+    /**
+     * Gets all IPv6 routes from the RIB.
+     *
+     * @return all IPv6 routes from the RIB
+     */
+    public Collection<RouteEntry> getRoutes6() {
+        Iterator<KeyValuePair<RouteEntry>> it =
+            ribTable6.getKeyValuePairsForKeysStartingWith("").iterator();
+
+        List<RouteEntry> routes = new LinkedList<>();
+
+        while (it.hasNext()) {
+            KeyValuePair<RouteEntry> entry = it.next();
+            routes.add(entry.getValue());
+        }
+
+        return routes;
+    }
+
+    /**
+     * Finds a route in the RIB for a prefix. The prefix can be either IPv4 or
+     * IPv6.
+     *
+     * @param prefix the prefix to use
+     * @return the route if found, otherwise null
+     */
+    RouteEntry findRibRoute(IpPrefix prefix) {
+        String binaryString = RouteEntry.createBinaryString(prefix);
+        if (prefix.version() == Ip4Address.VERSION) {
+            // IPv4
+            return ribTable4.getValueForExactKey(binaryString);
+        }
+        // IPv6
+        return ribTable6.getValueForExactKey(binaryString);
+    }
+
+    /**
+     * Adds a route to the RIB. The route can be either IPv4 or IPv6.
+     *
+     * @param routeEntry the route entry to use
+     */
+    void addRibRoute(RouteEntry routeEntry) {
+        if (routeEntry.prefix().version() == Ip4Address.VERSION) {
+            // IPv4
+            ribTable4.put(RouteEntry.createBinaryString(routeEntry.prefix()),
+                          routeEntry);
+        } else {
+            // IPv6
+            ribTable6.put(RouteEntry.createBinaryString(routeEntry.prefix()),
+                          routeEntry);
+        }
+    }
+
+    /**
+     * Removes a route for a prefix from the RIB. The prefix can be either IPv4
+     * or IPv6.
+     *
+     * @param prefix the prefix to use
+     * @return true if the rotue was found and removed, otherwise false
+     */
+    boolean removeRibRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            // IPv4
+            return ribTable4.remove(RouteEntry.createBinaryString(prefix));
+        }
+        // IPv6
+        return ribTable6.remove(RouteEntry.createBinaryString(prefix));
+    }
+
+    /**
      * Processes route updates.
      *
      * @param routeUpdates the route updates to process
      */
     void processRouteUpdates(Collection<RouteUpdate> routeUpdates) {
         synchronized (this) {
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
+            Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
                 submitIntents = new LinkedList<>();
-            Collection<Ip4Prefix> withdrawPrefixes = new LinkedList<>();
+            Collection<IpPrefix> withdrawPrefixes = new LinkedList<>();
             MultiPointToSinglePointIntent intent;
 
             for (RouteUpdate update : routeUpdates) {
@@ -249,28 +338,32 @@ public class Router implements RouteListener {
      */
     private MultiPointToSinglePointIntent processRouteAdd(
                 RouteEntry routeEntry,
-                Collection<Ip4Prefix> withdrawPrefixes) {
+                Collection<IpPrefix> withdrawPrefixes) {
         log.debug("Processing route add: {}", routeEntry);
 
-        Ip4Prefix prefix = routeEntry.prefix();
-        Ip4Address nextHop = null;
-        RouteEntry foundRouteEntry =
-            ribTable.put(RouteEntry.createBinaryString(prefix), routeEntry);
-        if (foundRouteEntry != null) {
-            nextHop = foundRouteEntry.nextHop();
+        // Find the old next-hop if we are updating an old route entry
+        IpAddress oldNextHop = null;
+        RouteEntry oldRouteEntry = findRibRoute(routeEntry.prefix());
+        if (oldRouteEntry != null) {
+            oldNextHop = oldRouteEntry.nextHop();
         }
 
-        if (nextHop != null && !nextHop.equals(routeEntry.nextHop())) {
-            // There was an existing nexthop for this prefix. This update
-            // supersedes that, so we need to remove the old flows for this
-            // prefix from the switches
+        // Add the new route to the RIB
+        addRibRoute(routeEntry);
+
+        if (oldNextHop != null) {
+            if (oldNextHop.equals(routeEntry.nextHop())) {
+                return null;            // No change
+            }
+            //
+            // Update an existing nexthop for the prefix.
+            // We need to remove the old flows for this prefix from the
+            // switches before the new flows are added.
+            //
             withdrawPrefixes.add(routeEntry.prefix());
         }
-        if (nextHop != null && nextHop.equals(routeEntry.nextHop())) {
-            return null;
-        }
 
-        if (routeEntry.nextHop().equals(LOCAL_NEXT_HOP)) {
+        if (routeEntry.nextHop().isZero()) {
             // Route originated by SDN domain
             // We don't handle these at the moment
             log.debug("Own route {} to {}",
@@ -321,8 +414,8 @@ public class Router implements RouteListener {
      * @return the generated intent, or null if no intent should be submitted
      */
     private MultiPointToSinglePointIntent generateRouteIntent(
-                Ip4Prefix prefix,
-                Ip4Address nextHopIpAddress,
+                IpPrefix prefix,
+                IpAddress nextHopIpAddress,
                 MacAddress nextHopMacAddress) {
 
         // Find the attachment point (egress interface) of the next hop
@@ -362,10 +455,18 @@ public class Router implements RouteListener {
         }
 
         // Match the destination IP prefix at the first hop
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+        TrafficSelector selector;
+        if (prefix.version() == Ip4Address.VERSION) {
+            selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(prefix)
                 .build();
+        } else {
+            selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV6)
+                .matchIPDst(prefix)
+                .build();
+        }
 
         // Rewrite the destination MAC address
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -389,11 +490,11 @@ public class Router implements RouteListener {
      * intents will be withdrawn
      */
     private void processRouteDelete(RouteEntry routeEntry,
-                                    Collection<Ip4Prefix> withdrawPrefixes) {
+                                    Collection<IpPrefix> withdrawPrefixes) {
         log.debug("Processing route delete: {}", routeEntry);
-        Ip4Prefix prefix = routeEntry.prefix();
+        boolean isRemoved = removeRibRoute(routeEntry.prefix());
 
-        if (ribTable.remove(RouteEntry.createBinaryString(prefix))) {
+        if (isRemoved) {
             //
             // Only withdraw intents if an entry was actually removed from the
             // tree. If no entry was removed, the <prefix, nexthop> wasn't
@@ -415,26 +516,26 @@ public class Router implements RouteListener {
      * @param ipAddress the IP address that an event was received for
      * @param macAddress the most recently known MAC address for the IP address
      */
-    private void updateMac(Ip4Address ipAddress, MacAddress macAddress) {
-        log.debug("Received updated MAC info: {} => {}", ipAddress, macAddress);
+    private void updateMac(IpAddress ipAddress, MacAddress macAddress) {
+        log.debug("Received updated MAC info: {} => {}", ipAddress,
+                  macAddress);
 
-        // We synchronize on this to prevent changes to the radix tree
+        //
+        // We synchronize on "this" to prevent changes to the Radix tree
         // while we're pushing intents. If the tree changes, the
-        // tree and intents could get out of sync.
+        // tree and the intents could get out of sync.
+        //
         synchronized (this) {
-            Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>>
+            Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
                 submitIntents = new LinkedList<>();
             MultiPointToSinglePointIntent intent;
 
             Set<RouteEntry> routesToPush =
-                    routesWaitingOnArp.removeAll(ipAddress);
+                routesWaitingOnArp.removeAll(ipAddress);
 
             for (RouteEntry routeEntry : routesToPush) {
                 // These will always be adds
-                Ip4Prefix prefix = routeEntry.prefix();
-                String binaryString = RouteEntry.createBinaryString(prefix);
-                RouteEntry foundRouteEntry =
-                    ribTable.getValueForExactKey(binaryString);
+                RouteEntry foundRouteEntry = findRibRoute(routeEntry.prefix());
                 if (foundRouteEntry != null &&
                     foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
                     // We only push prefix flows if the prefix is still in the
@@ -442,10 +543,11 @@ public class Router implements RouteListener {
                     // update.
                     // The prefix could have been removed while we were waiting
                     // for the ARP, or the next hop could have changed.
-                    intent = generateRouteIntent(prefix, ipAddress,
-                                                 macAddress);
+                    intent = generateRouteIntent(routeEntry.prefix(),
+                                                 ipAddress, macAddress);
                     if (intent != null) {
-                        submitIntents.add(Pair.of(prefix, intent));
+                        submitIntents.add(Pair.of(routeEntry.prefix(),
+                                                  intent));
                     }
                 } else {
                     log.debug("{} has been revoked before the MAC was resolved",
@@ -454,32 +556,13 @@ public class Router implements RouteListener {
             }
 
             if (!submitIntents.isEmpty()) {
-                Collection<Ip4Prefix> withdrawPrefixes = new LinkedList<>();
+                Collection<IpPrefix> withdrawPrefixes = new LinkedList<>();
                 intentSynchronizer.updateRouteIntents(submitIntents,
                                                       withdrawPrefixes);
             }
 
             ip2Mac.put(ipAddress, macAddress);
         }
-    }
-
-    /**
-     * Gets the SDN-IP routes.
-     *
-     * @return the SDN-IP routes
-     */
-    public Collection<RouteEntry> getRoutes() {
-        Iterator<KeyValuePair<RouteEntry>> it =
-            ribTable.getKeyValuePairsForKeysStartingWith("").iterator();
-
-        List<RouteEntry> routes = new LinkedList<>();
-
-        while (it.hasNext()) {
-            KeyValuePair<RouteEntry> entry = it.next();
-            routes.add(entry.getValue());
-        }
-
-        return routes;
     }
 
     /**
@@ -495,21 +578,13 @@ public class Router implements RouteListener {
             case HOST_ADDED:
                 // FALLTHROUGH
             case HOST_UPDATED:
-                for (IpAddress ip : host.ipAddresses()) {
-                    Ip4Address ip4Address = ip.getIp4Address();
-                    if (ip4Address == null) {
-                        continue;
-                    }
-                    updateMac(ip4Address, host.mac());
+                for (IpAddress ipAddress : host.ipAddresses()) {
+                    updateMac(ipAddress, host.mac());
                 }
                 break;
             case HOST_REMOVED:
-                for (IpAddress ip : host.ipAddresses()) {
-                    Ip4Address ip4Address = ip.getIp4Address();
-                    if (ip4Address == null) {
-                        continue;
-                    }
-                    ip2Mac.remove(ip4Address);
+                for (IpAddress ipAddress : host.ipAddresses()) {
+                    ip2Mac.remove(ipAddress);
                 }
                 break;
             default:

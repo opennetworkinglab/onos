@@ -38,7 +38,10 @@ public class RoutesListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean routesSummary = false;
 
-    private static final String FORMAT_SUMMARY = "Total SDN-IP routes = %d";
+    private static final String FORMAT_SUMMARY_V4 =
+        "Total SDN-IP IPv4 routes = %d";
+    private static final String FORMAT_SUMMARY_V6 =
+        "Total SDN-IP IPv6 routes = %d";
     private static final String FORMAT_HEADER =
         "   Network            Next Hop";
     private static final String FORMAT_ROUTE =
@@ -50,44 +53,62 @@ public class RoutesListCommand extends AbstractShellCommand {
 
         // Print summary of the routes
         if (routesSummary) {
-            printSummary(service.getRoutes());
+            printSummary(service.getRoutes4(), service.getRoutes6());
             return;
         }
 
         // Print all routes
-        printRoutes(service.getRoutes());
+        printRoutes(service.getRoutes4(), service.getRoutes6());
     }
 
     /**
      * Prints summary of the routes.
      *
-     * @param routes the routes
+     * @param routes4 the IPv4 routes
+     * @param routes6 the IPv6 routes
      */
-    private void printSummary(Collection<RouteEntry> routes) {
+    private void printSummary(Collection<RouteEntry> routes4,
+                              Collection<RouteEntry> routes6) {
         if (outputJson()) {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode result = mapper.createObjectNode();
-            result.put("totalRoutes", routes.size());
+            result.put("totalRoutes4", routes4.size());
+            result.put("totalRoutes6", routes6.size());
             print("%s", result);
         } else {
-            print(FORMAT_SUMMARY, routes.size());
+            print(FORMAT_SUMMARY_V4, routes4.size());
+            print(FORMAT_SUMMARY_V6, routes6.size());
         }
     }
 
     /**
      * Prints all routes.
      *
-     * @param routes the routes to print
+     * @param routes4 the IPv4 routes to print
+     * @param routes6 the IPv6 routes to print
      */
-    private void printRoutes(Collection<RouteEntry> routes) {
+    private void printRoutes(Collection<RouteEntry> routes4,
+                             Collection<RouteEntry> routes6) {
         if (outputJson()) {
-            print("%s", json(routes));
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode result = mapper.createObjectNode();
+            result.put("routes4", json(routes4));
+            result.put("routes6", json(routes6));
+            print("%s", result);
         } else {
+            // The IPv4 routes
             print(FORMAT_HEADER);
-            for (RouteEntry route : routes) {
+            for (RouteEntry route : routes4) {
                 printRoute(route);
             }
-            print(FORMAT_SUMMARY, routes.size());
+            print(FORMAT_SUMMARY_V4, routes4.size());
+            print("");                  // Empty separator line
+            // The IPv6 routes
+            print(FORMAT_HEADER);
+            for (RouteEntry route : routes6) {
+                printRoute(route);
+            }
+            print(FORMAT_SUMMARY_V6, routes6.size());
         }
     }
 

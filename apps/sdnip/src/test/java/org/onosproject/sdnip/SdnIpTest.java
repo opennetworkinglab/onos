@@ -59,10 +59,10 @@ import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 
 import com.google.common.collect.Sets;
@@ -226,7 +226,7 @@ public class SdnIpTest extends AbstractIntentTest {
         reset(intentService);
 
         for (RouteUpdate update : routeUpdates) {
-            Ip4Address nextHopAddress = update.routeEntry().nextHop();
+            IpAddress nextHopAddress = update.routeEntry().nextHop();
 
             // Find out the egress ConnectPoint
             ConnectPoint egressConnectPoint = getConnectPoint(nextHopAddress);
@@ -255,7 +255,7 @@ public class SdnIpTest extends AbstractIntentTest {
 
         latch.await(5000, TimeUnit.MILLISECONDS);
 
-        assertEquals(router.getRoutes().size(), numRoutes);
+        assertEquals(router.getRoutes4().size(), numRoutes);
         assertEquals(intentSynchronizer.getRouteIntents().size(),
                      numRoutes);
 
@@ -286,7 +286,7 @@ public class SdnIpTest extends AbstractIntentTest {
         reset(intentService);
 
         for (RouteUpdate update : routeUpdates) {
-            Ip4Address nextHopAddress = update.routeEntry().nextHop();
+            IpAddress nextHopAddress = update.routeEntry().nextHop();
 
             // Find out the egress ConnectPoint
             ConnectPoint egressConnectPoint = getConnectPoint(nextHopAddress);
@@ -333,7 +333,7 @@ public class SdnIpTest extends AbstractIntentTest {
 
         deleteCount.await(5000, TimeUnit.MILLISECONDS);
 
-        assertEquals(0, router.getRoutes().size());
+        assertEquals(0, router.getRoutes4().size());
         assertEquals(0, intentSynchronizer.getRouteIntents().size());
         verify(intentService);
     }

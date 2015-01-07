@@ -61,8 +61,8 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.sdnip.config.Interface;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -308,10 +308,10 @@ public class IntentSyncTest extends AbstractIntentTest {
                      routeEntry6);
         ribTable.put(RouteEntry.createBinaryString(routeEntry7.prefix()),
                      routeEntry7);
-        TestUtils.setField(router, "ribTable", ribTable);
+        TestUtils.setField(router, "ribTable4", ribTable);
 
-        ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
-        routeIntents =  new ConcurrentHashMap<>();
+        ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent>
+            routeIntents =  new ConcurrentHashMap<>();
         routeIntents.put(routeEntry1.prefix(), intent1);
         routeIntents.put(routeEntry3.prefix(), intent3);
         routeIntents.put(routeEntry4Update.prefix(), intent4Update);
@@ -364,12 +364,12 @@ public class IntentSyncTest extends AbstractIntentTest {
         intentSynchronizer.synchronizeIntents();
 
         // Verify
-        assertEquals(router.getRoutes().size(), 6);
-        assertTrue(router.getRoutes().contains(routeEntry1));
-        assertTrue(router.getRoutes().contains(routeEntry3));
-        assertTrue(router.getRoutes().contains(routeEntry4Update));
-        assertTrue(router.getRoutes().contains(routeEntry5));
-        assertTrue(router.getRoutes().contains(routeEntry6));
+        assertEquals(router.getRoutes4().size(), 6);
+        assertTrue(router.getRoutes4().contains(routeEntry1));
+        assertTrue(router.getRoutes4().contains(routeEntry3));
+        assertTrue(router.getRoutes4().contains(routeEntry4Update));
+        assertTrue(router.getRoutes4().contains(routeEntry5));
+        assertTrue(router.getRoutes4().contains(routeEntry6));
 
         assertEquals(intentSynchronizer.getRouteIntents().size(), 6);
         assertTrue(intentSynchronizer.getRouteIntents().contains(intent1));
@@ -390,12 +390,17 @@ public class IntentSyncTest extends AbstractIntentTest {
      * @param egressPoint to which packets should be sent
      * @return the constructed MultiPointToSinglePointIntent
      */
-    private MultiPointToSinglePointIntent intentBuilder(Ip4Prefix ipPrefix,
+    private MultiPointToSinglePointIntent intentBuilder(IpPrefix ipPrefix,
             String nextHopMacAddress, ConnectPoint egressPoint) {
 
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipPrefix);
+        if (ipPrefix.version() == Ip4Address.VERSION) {
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);   // IPv4
+        } else {
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);   // IPv6
+        }
+        selectorBuilder.matchIPDst(ipPrefix);
 
         TrafficTreatment.Builder treatmentBuilder =
                 DefaultTrafficTreatment.builder();

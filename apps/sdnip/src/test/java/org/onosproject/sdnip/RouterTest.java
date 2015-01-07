@@ -36,10 +36,10 @@ import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -278,8 +278,8 @@ public class RouterTest extends AbstractIntentTest {
         router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 1);
-        assertTrue(router.getRoutes().contains(routeEntry));
+        assertEquals(router.getRoutes4().size(), 1);
+        assertTrue(router.getRoutes4().contains(routeEntry));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
         Intent firstIntent =
             intentSynchronizer.getRouteIntents().iterator().next();
@@ -349,8 +349,8 @@ public class RouterTest extends AbstractIntentTest {
         router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 1);
-        assertTrue(router.getRoutes().contains(routeEntryUpdate));
+        assertEquals(router.getRoutes4().size(), 1);
+        assertTrue(router.getRoutes4().contains(routeEntryUpdate));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
         Intent firstIntent =
             intentSynchronizer.getRouteIntents().iterator().next();
@@ -393,7 +393,7 @@ public class RouterTest extends AbstractIntentTest {
         router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 0);
+        assertEquals(router.getRoutes4().size(), 0);
         assertEquals(intentSynchronizer.getRouteIntents().size(), 0);
         verify(intentService);
     }
@@ -422,8 +422,8 @@ public class RouterTest extends AbstractIntentTest {
         router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 1);
-        assertTrue(router.getRoutes().contains(routeEntry));
+        assertEquals(router.getRoutes4().size(), 1);
+        assertTrue(router.getRoutes4().contains(routeEntry));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 0);
         verify(intentService);
     }

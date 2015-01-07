@@ -25,8 +25,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
 import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities.MultiprotocolExtensions;
@@ -112,7 +112,7 @@ final class BgpUpdate {
         for (Ip4Prefix prefix : withdrawnPrefixes) {
             log.debug("BGP RX UPDATE message WITHDRAWN from {}: {}",
                       bgpSession.getRemoteAddress(), prefix);
-            BgpRouteEntry bgpRouteEntry = bgpSession.bgpRibIn4().get(prefix);
+            BgpRouteEntry bgpRouteEntry = bgpSession.findBgpRoute(prefix);
             if (bgpRouteEntry != null) {
                 decodedBgpRoutes.deletedUnicastRoutes4.put(prefix,
                                                            bgpRouteEntry);
@@ -134,35 +134,30 @@ final class BgpUpdate {
         //
         // Update the BGP RIB-IN
         //
-        Collection<BgpRouteEntry> bgpRoutes;
-        //
-        bgpRoutes = decodedBgpRoutes.deletedUnicastRoutes4.values();
-        for (BgpRouteEntry bgpRouteEntry : bgpRoutes) {
-            bgpSession.bgpRibIn4().remove(bgpRouteEntry.prefix());
+        for (Ip4Prefix ip4Prefix :
+                 decodedBgpRoutes.deletedUnicastRoutes4.keySet()) {
+            bgpSession.removeBgpRoute(ip4Prefix);
         }
         //
-        bgpRoutes = decodedBgpRoutes.addedUnicastRoutes4.values();
-        for (BgpRouteEntry bgpRouteEntry : bgpRoutes) {
-            bgpSession.bgpRibIn4().put(bgpRouteEntry.prefix(), bgpRouteEntry);
+        for (BgpRouteEntry bgpRouteEntry :
+                 decodedBgpRoutes.addedUnicastRoutes4.values()) {
+            bgpSession.addBgpRoute(bgpRouteEntry);
         }
         //
-        bgpRoutes = decodedBgpRoutes.deletedUnicastRoutes6.values();
-        for (BgpRouteEntry bgpRouteEntry : bgpRoutes) {
-            bgpSession.bgpRibIn6().remove(bgpRouteEntry.prefix());
+        for (Ip6Prefix ip6Prefix :
+                 decodedBgpRoutes.deletedUnicastRoutes6.keySet()) {
+            bgpSession.removeBgpRoute(ip6Prefix);
         }
         //
-        bgpRoutes = decodedBgpRoutes.addedUnicastRoutes6.values();
-        // TODO: fix/enable for IPv6
-        /*
-        for (BgpRouteEntry bgpRouteEntry : bgpRoutes) {
-            bgpSession.bgpRibIn6().put(bgpRouteEntry.prefix(), bgpRouteEntry);
+        for (BgpRouteEntry bgpRouteEntry :
+                 decodedBgpRoutes.addedUnicastRoutes6.values()) {
+            bgpSession.addBgpRoute(bgpRouteEntry);
         }
-        */
 
         //
         // Push the updates to the BGP Merged RIB
         //
-        BgpSessionManager.BgpRouteSelector bgpRouteSelector =
+        BgpRouteSelector bgpRouteSelector =
             bgpSession.getBgpSessionManager().getBgpRouteSelector();
         bgpRouteSelector.routeUpdates(bgpSession,
                                 decodedBgpRoutes.addedUnicastRoutes4.values(),
@@ -408,7 +403,7 @@ final class BgpUpdate {
 
             // The deleted IPv4 routes
             for (Ip4Prefix prefix : mpNlri.nlri4) {
-                bgpRouteEntry = bgpSession.bgpRibIn4().get(prefix);
+                bgpRouteEntry = bgpSession.findBgpRoute(prefix);
                 if (bgpRouteEntry != null) {
                     decodedBgpRoutes.deletedUnicastRoutes4.put(prefix,
                                                                bgpRouteEntry);
@@ -417,7 +412,7 @@ final class BgpUpdate {
 
             // The deleted IPv6 routes
             for (Ip6Prefix prefix : mpNlri.nlri6) {
-                bgpRouteEntry = bgpSession.bgpRibIn6().get(prefix);
+                bgpRouteEntry = bgpSession.findBgpRoute(prefix);
                 if (bgpRouteEntry != null) {
                     decodedBgpRoutes.deletedUnicastRoutes6.put(prefix,
                                                                bgpRouteEntry);
@@ -456,8 +451,6 @@ final class BgpUpdate {
             }
 
             // The added IPv6 routes
-            // TODO: fix/enable for IPv6
-            /*
             for (Ip6Prefix prefix : mpNlri.nlri6) {
                 bgpRouteEntry =
                     new BgpRouteEntry(bgpSession, prefix, mpNlri.nextHop6,
@@ -479,7 +472,6 @@ final class BgpUpdate {
                 decodedBgpRoutes.addedUnicastRoutes6.put(prefix,
                                                          bgpRouteEntry);
             }
-            */
         }
     }
 

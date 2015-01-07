@@ -20,7 +20,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +33,7 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
@@ -120,41 +120,110 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
-     * Gets the BGP RIB-IN IPv4 routing entries.
+     * Gets the IPv4 BGP RIB-IN routing entries.
      *
-     * @return the BGP RIB-IN IPv4 routing entries
+     * @return the IPv4 BGP RIB-IN routing entries
      */
-    public Map<Ip4Prefix, BgpRouteEntry> bgpRibIn4() {
-        return bgpRibIn4;
+    public Collection<BgpRouteEntry> getBgpRibIn4() {
+        return bgpRibIn4.values();
     }
 
     /**
-     * Gets the BGP RIB-IN IPv6 routing entries.
+     * Gets the IPv6 BGP RIB-IN routing entries.
      *
-     * @return the BGP RIB-IN IPv6 routing entries
+     * @return the IPv6 BGP RIB-IN routing entries
      */
-    public Map<Ip6Prefix, BgpRouteEntry> bgpRibIn6() {
-        return bgpRibIn6;
+    public Collection<BgpRouteEntry> getBgpRibIn6() {
+        return bgpRibIn6.values();
     }
 
     /**
-     * Finds a BGP IPv4 routing entry in the BGP RIB-IN.
+     * Finds an IPv4 BGP routing entry for a prefix in the IPv4 BGP RIB-IN.
      *
      * @param prefix the IPv4 prefix of the route to search for
      * @return the IPv4 BGP routing entry if found, otherwise null
      */
-    public BgpRouteEntry findBgpRouteEntry(Ip4Prefix prefix) {
+    public BgpRouteEntry findBgpRoute(Ip4Prefix prefix) {
         return bgpRibIn4.get(prefix);
     }
 
     /**
-     * Finds a BGP IPv6 routing entry in the BGP RIB-IN.
+     * Finds an IPv6 BGP routing entry for a prefix in the IPv6 BGP RIB-IN.
      *
      * @param prefix the IPv6 prefix of the route to search for
      * @return the IPv6 BGP routing entry if found, otherwise null
      */
-    public BgpRouteEntry findBgpRouteEntry(Ip6Prefix prefix) {
+    public BgpRouteEntry findBgpRoute(Ip6Prefix prefix) {
         return bgpRibIn6.get(prefix);
+    }
+
+    /**
+     * Finds a BGP routing entry for a prefix in the BGP RIB-IN. The prefix
+     * can be either IPv4 or IPv6.
+     *
+     * @param prefix the IP prefix of the route to search for
+     * @return the BGP routing entry if found, otherwise null
+     */
+    public BgpRouteEntry findBgpRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            // IPv4 prefix
+            Ip4Prefix ip4Prefix = prefix.getIp4Prefix();
+            return bgpRibIn4.get(ip4Prefix);
+        }
+
+        // IPv6 prefix
+        Ip6Prefix ip6Prefix = prefix.getIp6Prefix();
+        return bgpRibIn6.get(ip6Prefix);
+    }
+
+    /**
+     * Adds a BGP route. The route can be either IPv4 or IPv6.
+     *
+     * @param bgpRouteEntry the BGP route entry to use
+     */
+    void addBgpRoute(BgpRouteEntry bgpRouteEntry) {
+        if (bgpRouteEntry.version() == Ip4Address.VERSION) {
+            // IPv4 route
+            Ip4Prefix ip4Prefix = bgpRouteEntry.prefix().getIp4Prefix();
+            bgpRibIn4.put(ip4Prefix, bgpRouteEntry);
+        } else {
+            // IPv6 route
+            Ip6Prefix ip6Prefix = bgpRouteEntry.prefix().getIp6Prefix();
+            bgpRibIn6.put(ip6Prefix, bgpRouteEntry);
+        }
+    }
+
+    /**
+     * Removes an IPv4 BGP route for a prefix.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(Ip4Prefix prefix) {
+        return (bgpRibIn4.remove(prefix) != null);
+    }
+
+    /**
+     * Removes an IPv6 BGP route for a prefix.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(Ip6Prefix prefix) {
+        return (bgpRibIn6.remove(prefix) != null);
+    }
+
+    /**
+     * Removes a BGP route for a prefix. The prefix can be either IPv4 or IPv6.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            return (bgpRibIn4.remove(prefix.getIp4Prefix()) != null);   // IPv4
+        }
+        return (bgpRibIn6.remove(prefix.getIp6Prefix()) != null);       // IPv6
     }
 
     /**
@@ -551,7 +620,7 @@ public class BgpSession extends SimpleChannelHandler {
 
     @Override
     public void channelClosed(ChannelHandlerContext ctx,
-                            ChannelStateEvent channelEvent) {
+                              ChannelStateEvent channelEvent) {
         bgpSessionManager.removeSessionChannel(channelEvent.getChannel());
     }
 
@@ -622,7 +691,7 @@ public class BgpSession extends SimpleChannelHandler {
         bgpRibIn6 = new ConcurrentHashMap<>();
 
         // Push the updates to the BGP Merged RIB
-        BgpSessionManager.BgpRouteSelector bgpRouteSelector =
+        BgpRouteSelector bgpRouteSelector =
             bgpSessionManager.getBgpRouteSelector();
         Collection<BgpRouteEntry> addedRoutes = Collections.emptyList();
         bgpRouteSelector.routeUpdates(this, addedRoutes, deletedRoutes4);
