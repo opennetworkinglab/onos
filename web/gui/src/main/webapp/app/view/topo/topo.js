@@ -22,13 +22,65 @@
 
 (function () {
     'use strict';
-    angular.module('ovTopo', ['onosUtil'])
-        .controller('OvTopoCtrl', ['$log', function (_$log_) {
-            var self = this,
-                $log = _$log_;
+
+    var moduleDependencies = [
+        'onosUtil',
+        'onosSvg'
+    ];
+
+    // references to injected services etc.
+    var $log, ks, gs;
+
+    // DOM elements
+    var defs;
+
+    // Internal state
+    // ...
+
+    // Note: "exported" state should be properties on 'self' variable
+
+    var keyBindings = {
+        W: [logWarning, 'log a warning'],
+        E: [logError, 'log an error']
+    };
+
+    // -----------------
+    // these functions are necessarily temporary examples....
+    function logWarning() {
+        $log.warn('You have been warned!');
+    }
+    function logError() {
+        $log.error('You are erroneous!');
+    }
+    // -----------------
+
+    function setUpKeys() {
+        ks.keyBindings(keyBindings);
+    }
+
+    function setUpDefs() {
+        defs = d3.select('#ov-topo svg').append('defs');
+        gs.loadDefs(defs);
+    }
+
+
+    angular.module('ovTopo', moduleDependencies)
+
+        .controller('OvTopoCtrl', [
+            '$log', 'KeyService', 'GlyphService',
+
+        function (_$log_, _ks_, _gs_) {
+            var self = this;
+
+            $log = _$log_;
+            ks = _ks_;
+            gs = _gs_;
 
             self.message = 'Topo View Rocks!';
 
-         $log.log('OvTopoCtrl has been created');
+            setUpKeys();
+            setUpDefs();
+
+            $log.log('OvTopoCtrl has been created');
         }]);
 }());

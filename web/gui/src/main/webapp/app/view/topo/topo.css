@@ -27,3 +27,7 @@
     font-style: italic;
     color: seagreen;
 }
+
+#ov-topo svg {
+    background-color: #88f;
+}

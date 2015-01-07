@@ -23,43 +23,43 @@
 (function () {
     'use strict';
 
-    var coreDependencies = [
+    var moduleDependencies = [
+        // view modules...
+        // TODO: inject view dependencies server side
+        // {INJECTED-VIEW-MODULE-DEPENDENCIES}
+        // NOTE: 'ov' == 'Onos View'...
+        'ovSample',
+        'ovTopo',
+        // (end of view modules)
+
+        // core modules...
         'ngRoute',
         'onosUtil',
+        'onosSvg',
         'onosMast'
     ];
 
-    var viewDependencies = [
-        // TODO: inject view dependencies server side
-        // NOTE: 'ov' == 'Onos View'...
-        // {INJECTED-VIEW-MODULE-DEPENDENCIES}
-        'ovSample',
-        'ovTopo',
-        // NOTE: dummy element allows all previous entries to end with comma
-        '___dummy___'
-    ];
+    var $log;
 
-    var dependencies = coreDependencies.concat(viewDependencies);
-    dependencies.pop(); // remove dummy
-
-    angular.module('onosApp', dependencies)
+    angular.module('onosApp', moduleDependencies)
 
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
-            'KeyService', 'ThemeService',
+            'KeyService', 'ThemeService', 'GlyphService',
 
-        function (_$log_, $route, $routeParams, $location, ks, ts) {
-            var $log = _$log_,
-                self = this;
+        function (_$log_, $route, $routeParams, $location, ks, ts, gs) {
+            var self = this;
 
+            $log = _$log_;
             self.$route = $route;
             self.$routeParams = $routeParams;
             self.$location = $location;
             self.version = '1.1.0';
 
-            // initialize onos (main app) controller here...
+            // initialize services...
             ts.init();
             ks.installOn(d3.select('body'));
+            gs.init();
 
             $log.log('OnosCtrl has been created');
 
