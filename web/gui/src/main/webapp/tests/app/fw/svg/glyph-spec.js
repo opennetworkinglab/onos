@@ -20,7 +20,7 @@
  @author Simon Hunt
  */
 describe('factory: fw/svg/glyph.js', function() {
-    var $log, fs, gs;
+    var $log, fs, gs, d3Elem;
 
     var numBaseGlyphs = 11,
         vbBird = '352 224 113 112',
@@ -33,7 +33,12 @@ describe('factory: fw/svg/glyph.js', function() {
         $log = _$log_;
         fs = FnService;
         gs = GlyphService;
+        d3Elem = d3.select('body').append('defs').attr('id', 'myDefs');
     }));
+
+    afterEach(function () {
+        d3.select('#myDefs').remove();
+    });
 
     it('should define GlyphService', function () {
         expect(gs).toBeDefined();
@@ -167,5 +172,36 @@ describe('factory: fw/svg/glyph.js', function() {
         // verify glyphs have been overwritten...
         verifyGlyphLoaded('router', testVbox, 'M.5,.2');
         verifyGlyphLoaded('switch', testVbox, 'M.2,.5');
+    });
+
+    function verifyPathPrefix(elem, prefix) {
+        var plen = prefix.length,
+            d = elem.select('path').attr('d');
+        expect(d.slice(0, plen)).toEqual(prefix);
+    }
+
+    it('should load base glyphs into the DOM', function () {
+        gs.init();
+        gs.loadDefs(d3Elem);
+        expect(d3Elem.selectAll('symbol').size()).toEqual(numBaseGlyphs);
+
+        // verify bgpSpeaker
+        var bs = d3Elem.select('#bgpSpeaker');
+        expect(bs.size()).toEqual(1);
+        expect(bs.attr('viewBox')).toEqual(vbGlyph);
+        verifyPathPrefix(bs, 'M10,40a45,35');
+    });
+
+    it('should load custom glyphs into the DOM', function () {
+        gs.init();
+        gs.register(testVbox, newGlyphs);
+        gs.loadDefs(d3Elem);
+        expect(d3Elem.selectAll('symbol').size()).toEqual(numBaseGlyphs + 2);
+
+        // verify diamond
+        var dia = d3Elem.select('#diamond');
+        expect(dia.size()).toEqual(1);
+        expect(dia.attr('viewBox')).toEqual(testVbox);
+        verifyPathPrefix(dia, 'M.2,.5l.3,-.3');
     });
 });

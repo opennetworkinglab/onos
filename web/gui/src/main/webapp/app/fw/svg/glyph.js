@@ -161,9 +161,17 @@
                 return glyphs.get(id);
             }
 
+            // Note: defs should be a D3 selection of a single <defs> element
             function loadDefs(defs) {
-                // TODO: clear defs element, then load all glyph definitions
+                // remove all existing content
+                defs.html(null);
 
+                // load up the currently registered glyphs
+                glyphs.values().forEach(function (g) {
+                    defs.append('symbol')
+                        .attr({ id: g.id, viewBox: g.vb })
+                        .append('path').attr('d', g.d);
+                });
             }
 
             return {
