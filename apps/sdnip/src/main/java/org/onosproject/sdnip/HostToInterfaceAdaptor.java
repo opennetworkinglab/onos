@@ -19,12 +19,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.sdnip.config.Interface;
-import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
 
