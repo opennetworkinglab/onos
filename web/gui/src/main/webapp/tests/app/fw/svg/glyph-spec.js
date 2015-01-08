@@ -38,6 +38,7 @@ describe('factory: fw/svg/glyph.js', function() {
 
     afterEach(function () {
         d3.select('#myDefs').remove();
+        gs.clear();
     });
 
     it('should define GlyphService', function () {
@@ -57,6 +58,13 @@ describe('factory: fw/svg/glyph.js', function() {
     it('should load the base set of glyphs', function () {
         gs.init();
         expect(gs.ids().length).toEqual(numBaseGlyphs);
+    });
+
+    it('should remove glyphs on clear', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        gs.clear();
+        expect(gs.ids().length).toEqual(0);
     });
 
     function verifyGlyphLoaded(id, vbox, prefix) {

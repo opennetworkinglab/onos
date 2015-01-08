@@ -124,9 +124,13 @@
         .factory('GlyphService', ['$log', function (_$log_) {
             $log = _$log_;
 
-            function init() {
+            function clear() {
                 // start with a fresh map
                 glyphs = d3.map();
+            }
+
+            function init() {
+                clear();
                 register(birdViewBox, birdData);
                 register(glyphViewBox, glyphData);
                 register(badgeViewBox, badgeData);
@@ -175,6 +179,7 @@
             }
 
             return {
+                clear: clear,
                 init: init,
                 register: register,
                 ids: ids,
