@@ -20,17 +20,80 @@
  @author Simon Hunt
  */
 describe('factory: fw/svg/map.js', function() {
-    var ms;
+    var $log, fs, ms, d3Elem, geomap;
 
-    beforeEach(module('onosSvg'));
+    var urlPrefix = 'data/map/';
 
-    beforeEach(inject(function (MapService) {
+    beforeEach(module('onosUtil', 'onosSvg'));
+
+    beforeEach(inject(function (_$log_, FnService, MapService) {
+        $log = _$log_;
+        fs = FnService;
         ms = MapService;
+        ms.clearCache();
+        // TODO: d3Elem = d3.select('body').append('...').attr('id', 'myFoo');
     }));
+
+    afterEach(function () {
+        // TODO d3.select('#myFoo').remove();
+    });
 
     it('should define MapService', function () {
         expect(ms).toBeDefined();
     });
 
-    // TODO: unit tests for map functions
+    it('should define api functions', function () {
+        expect(fs.areFunctions(ms, [
+            'clearCache', 'fetchGeoMap'
+        ])).toBeTruthy();
+    });
+
+    it('should return null when no parameters given', function () {
+        geomap = ms.fetchGeoMap();
+        expect(geomap).toBeNull();
+    });
+
+    it('should augment the id of a bundled map', function () {
+        var id = '*foo';
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap).toBeDefined();
+        expect(geomap.id).toBe(id);
+        expect(geomap.url).toBe('data/map/foo.json');
+    });
+
+    it('should treat an external id as the url itself', function () {
+        var id = 'some/path/to/foo';
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap).toBeDefined();
+        expect(geomap.id).toBe(id);
+        expect(geomap.url).toBe(id + '.json');
+    });
+
+    it('should cache the returned objects', function () {
+        var id = 'foo';
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap).toBeDefined();
+        expect(geomap.wasCached).toBeFalsy();
+        expect(geomap.tagged).toBeUndefined();
+
+        geomap.tagged = 'I woz here';
+
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap).toBeDefined();
+        expect(geomap.wasCached).toBeTruthy();
+        expect(geomap.tagged).toEqual('I woz here');
+    });
+
+    it('should clear the cache when asked', function () {
+        var id = 'foo';
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap.wasCached).toBeFalsy();
+
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap.wasCached).toBeTruthy();
+
+        ms.clearCache();
+        geomap = ms.fetchGeoMap(id);
+        expect(geomap.wasCached).toBeFalsy();
+    });
 });

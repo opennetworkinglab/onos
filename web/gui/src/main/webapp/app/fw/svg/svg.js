@@ -22,6 +22,6 @@
 (function () {
     'use strict';
 
-    angular.module('onosSvg', []);
+    angular.module('onosSvg', ['onosUtil']);
 
 }());
