@@ -16,21 +16,20 @@
 package org.onosproject.openflow.drivers;
 
 
+import java.util.Collections;
+import java.util.List;
+
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriverFactory;
-
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A simple implementation of a driver manager that differentiates between
@@ -63,8 +62,7 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             return new OFSwitchImplCPqD13(dpid, desc, cpqdUsePipeline13);
         }
 
-        if (vendor.startsWith("Nicira") &&
-                hw.startsWith("Open vSwitch")) {
+        if (hw.startsWith("Open vSwitch")) {
             if (ofv == OFVersion.OF_10) {
                 return new OFSwitchImplOVS10(dpid, desc);
             } else if (ofv == OFVersion.OF_13) {
