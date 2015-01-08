@@ -67,7 +67,6 @@
         <bundle>mvn:com.sun.jersey/jersey-core/1.18.1</bundle>
         <bundle>mvn:com.sun.jersey/jersey-server/1.18.1</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/1.18.1</bundle>
-
     </feature>
 
     <feature name="onos-api" version="@FEATURE-VERSION"
@@ -76,7 +75,6 @@
         <feature>onos-thirdparty-base</feature>
         <bundle>mvn:org.onosproject/onlab-misc/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onlab-osgi/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onlab-rest/@ONOS-VERSION</bundle>
 
         <bundle>mvn:org.onosproject/onos-api/@ONOS-VERSION</bundle>
     </feature>
@@ -101,6 +99,7 @@
              description="ONOS REST API components">
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
+        <bundle>mvn:org.onosproject/onlab-rest/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-rest/@ONOS-VERSION</bundle>
     </feature>
 
@@ -109,6 +108,7 @@
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
         <bundle>mvn:org.eclipse.jetty/jetty-websocket/8.1.15.v20140411</bundle>
+        <bundle>mvn:org.onosproject/onlab-rest/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-gui/@ONOS-VERSION</bundle>
     </feature>
 
@@ -138,6 +138,7 @@
              description="ONOS sample topology viewer application">
         <feature>onos-api</feature>
         <feature>onos-thirdparty-web</feature>
+        <bundle>mvn:org.onosproject/onlab-rest/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-app-tvue/@ONOS-VERSION</bundle>
     </feature>
 
@@ -229,7 +230,5 @@
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-app-election/@ONOS-VERSION</bundle>
     </feature>
-
-
 
 </features>
