@@ -267,7 +267,7 @@ public class TopologyViewWebSocket
     }
 
     // Sends the specified data to the client.
-    private synchronized void sendMessage(ObjectNode data) {
+    protected synchronized void sendMessage(ObjectNode data) {
         try {
             if (connection.isOpen()) {
                 connection.sendMessage(data.toString());
