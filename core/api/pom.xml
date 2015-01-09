@@ -46,6 +46,16 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <!-- FIXME once experimenter gets merged to upstream -->
+            <groupId>org.onosproject</groupId>
+            <artifactId>openflowj</artifactId>
+            <version>${openflowj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
