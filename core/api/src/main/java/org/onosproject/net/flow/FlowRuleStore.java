@@ -94,4 +94,12 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * @return flow_removed event, or null if nothing removed
      */
     FlowRuleEvent removeFlowRule(FlowEntry rule);
+    
+    void storeFlowRule(DeviceId fpid, OFMessage message);
+    
+    Future<SncflowCompletedOperation> storeBatch(SncFlowRuleEntry flowentry);
+    
+    Iteratble<OFMessage> getOFMessage(DeviceId fpid);
+    
+    void batchOperationComplete(SncFlowRuleBatchEvent event);
 }
