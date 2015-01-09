@@ -18,6 +18,7 @@ package org.onosproject.net.flow;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 
 import java.util.concurrent.Future;
 
@@ -74,4 +75,16 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     public void removeListener(FlowRuleListener listener) {
 
     }
+
+	@Override
+	public void applySncBatch(SncFlowRuleEntry flowentry) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Iterable<OFMessage> getOFMessages(DeviceId fpid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

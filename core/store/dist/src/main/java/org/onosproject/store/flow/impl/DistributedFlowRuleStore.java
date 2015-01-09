@@ -988,7 +988,7 @@ public class DistributedFlowRuleStore extends
 		}
 	}
 	@Override
-	public Iterable<OFMessage> getOFMessage(DeviceId deviceId) {
+	public Iterable<OFMessage> getOFMessages(DeviceId deviceId) {
 		
 		ReplicaInfo replicaInfo = replicaInfoManager
 				.getReplicaInfoFor(deviceId);

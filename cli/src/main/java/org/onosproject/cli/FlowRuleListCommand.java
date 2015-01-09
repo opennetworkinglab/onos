@@ -52,9 +52,9 @@ public class FlowRuleListCommand extends AbstractShellCommand {
     protected void execute() {
         FlowRuleService  flowRuleService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class); 
-        Iterator<Device> devices = deviceService.getDevices();
+        Iterable<Device> devices = deviceService.getDevices();
         for (Device d: devices) {
-        	Iterator<OFMessage> ofs = flowRuleService.getOFMessages(d.id);
+        	Iterator<OFMessage> ofs = flowRuleService.getOFMessages(d.id());
         	for (OFMessage msg : ofs) {
         		if (msg instanceof OFFlowMod) {
 	        		OFFlowMod ofMod = (OFFlowMod) msg;
@@ -70,28 +70,5 @@ public class FlowRuleListCommand extends AbstractShellCommand {
         		
         	}
         }
-    }
-    
-    protected Map<Device,List<FlowEntry>> getSortedFlows(DeviceService deviceService, FlowRuleService service){
-    	Map<Device,List<FlowEntry>> flows = Maps.newHashMap();
-    	List<FlowEntry> rules;
-    	FlowEntryState s = null;
-    	Iterator<Device> devices = deviceService.getDevices();
-    	for (Device d : devices) {
-    		if (s == null) {
-    			rules = newArrayList(service.getFlowEntries(d.id()));
-    		}else{
-    			rules = newArrayList();
-    			for (FlowEntry f : service.getFlowEntries(d.id())){
-    				if (f.state().equals(s)) {
-    					rules.add(f);
-    				}
-    			}
-    		}
-    		Collections.sort(rules, Comparators.FLOW_RULE_COMPARATOR);
-    		flows.put(d, rules);
-    	}
-    	return flows;
-    	
     }
 }

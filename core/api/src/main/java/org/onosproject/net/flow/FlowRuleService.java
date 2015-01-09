@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 
 /**
  * Service for injecting flow rules into the environment and for obtaining
@@ -113,4 +114,8 @@ public interface FlowRuleService {
      * @param listener flow rule listener
      */
     void removeListener(FlowRuleListener listener);
+
+    void applySncBatch(SncFlowRuleEntry flowentry);
+
+    Iterable<OFMessage> getOFMessages(DeviceId fpid);
 }

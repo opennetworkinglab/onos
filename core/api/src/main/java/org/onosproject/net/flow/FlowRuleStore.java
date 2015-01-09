@@ -100,7 +100,7 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
     
     Future<SncFlowCompletedOperation> storeBatch(SncFlowRuleEntry flowentry);
     
-    Iterable<OFMessage> getOFMessage(DeviceId fpid);
+    Iterable<OFMessage> getOFMessages(DeviceId fpid);
     
     void batchOperationComplete(SncFlowRuleEvent event);
 }
