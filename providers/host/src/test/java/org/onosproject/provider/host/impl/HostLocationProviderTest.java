@@ -15,10 +15,19 @@
  */
 package org.onosproject.provider.host.impl;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultHost;
@@ -31,6 +40,8 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -56,6 +67,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Set;
@@ -118,10 +130,29 @@ public class HostLocationProviderTest {
     private final TestPacketService packetService = new TestPacketService();
 
     private PacketProcessor testProcessor;
+    private CoreService coreService;
+    private FlowRuleService flowRuleService;
     private TestHostProviderService providerService;
+
+    private ApplicationId appId = new DefaultApplicationId((short) 100,
+                "org.onosproject.provider.host");
 
     @Before
     public void setUp() {
+
+        coreService = createMock(CoreService.class);
+        expect(coreService.registerApplication(appId.name()))
+            .andReturn(appId).anyTimes();
+        replay(coreService);
+
+        flowRuleService = createMock(FlowRuleService.class);
+        flowRuleService.applyFlowRules(anyObject(FlowRule.class));
+        expectLastCall().anyTimes();
+        replay(flowRuleService);
+
+        provider.coreService = coreService;
+        provider.flowRuleService = flowRuleService;
+
         provider.providerRegistry = hostRegistry;
         provider.topologyService = topoService;
         provider.pktService = packetService;
@@ -189,8 +220,9 @@ public class HostLocationProviderTest {
     @After
     public void tearDown() {
         provider.deactivate();
+        provider.coreService = null;
+        provider.flowRuleService = null;
         provider.providerRegistry = null;
-
     }
 
     private class TestHostRegistry implements HostProviderRegistry {
@@ -338,6 +370,11 @@ public class HostLocationProviderTest {
         @Override
         public void addListener(DeviceListener listener) {
             this.listener = listener;
+        }
+
+        @Override
+        public Iterable<Device> getDevices() {
+            return Collections.emptyList();
         }
     }
 
