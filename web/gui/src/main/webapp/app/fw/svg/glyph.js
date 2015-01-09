@@ -139,7 +139,7 @@
             function register(viewBox, data, overwrite) {
                 var dmap = d3.map(data),
                     dups = [],
-                    ok, msg;
+                    ok;
 
                 dmap.forEach(function (key, value) {
                     if (!overwrite && glyphs.get(key)) {

@@ -20,9 +20,7 @@
  @author Simon Hunt
  */
 describe('factory: fw/svg/map.js', function() {
-    var $log, fs, ms, d3Elem, geomap;
-
-    var urlPrefix = 'data/map/';
+    var $log, fs, ms, d3Elem, promise;
 
     beforeEach(module('onosUtil', 'onosSvg'));
 
@@ -49,51 +47,61 @@ describe('factory: fw/svg/map.js', function() {
     });
 
     it('should return null when no parameters given', function () {
-        geomap = ms.fetchGeoMap();
-        expect(geomap).toBeNull();
+        promise = ms.fetchGeoMap();
+        expect(promise).toBeNull();
     });
 
     it('should augment the id of a bundled map', function () {
         var id = '*foo';
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap).toBeDefined();
-        expect(geomap.id).toBe(id);
-        expect(geomap.url).toBe('data/map/foo.json');
+        promise = ms.fetchGeoMap(id);
+        expect(promise.meta).toBeDefined();
+        expect(promise.meta.id).toBe(id);
+        expect(promise.meta.url).toBe('../data/map/foo.json');
     });
 
     it('should treat an external id as the url itself', function () {
         var id = 'some/path/to/foo';
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap).toBeDefined();
-        expect(geomap.id).toBe(id);
-        expect(geomap.url).toBe(id + '.json');
+        promise = ms.fetchGeoMap(id);
+        expect(promise.meta).toBeDefined();
+        expect(promise.meta.id).toBe(id);
+        expect(promise.meta.url).toBe(id + '.json');
     });
 
     it('should cache the returned objects', function () {
         var id = 'foo';
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap).toBeDefined();
-        expect(geomap.wasCached).toBeFalsy();
-        expect(geomap.tagged).toBeUndefined();
+        promise = ms.fetchGeoMap(id);
+        expect(promise).toBeDefined();
+        expect(promise.meta.wasCached).toBeFalsy();
+        expect(promise.tagged).toBeUndefined();
 
-        geomap.tagged = 'I woz here';
+        promise.tagged = 'I woz here';
 
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap).toBeDefined();
-        expect(geomap.wasCached).toBeTruthy();
-        expect(geomap.tagged).toEqual('I woz here');
+        promise = ms.fetchGeoMap(id);
+        expect(promise).toBeDefined();
+        expect(promise.meta.wasCached).toBeTruthy();
+        expect(promise.tagged).toEqual('I woz here');
     });
 
     it('should clear the cache when asked', function () {
         var id = 'foo';
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap.wasCached).toBeFalsy();
+        promise = ms.fetchGeoMap(id);
+        expect(promise.meta.wasCached).toBeFalsy();
 
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap.wasCached).toBeTruthy();
+        promise = ms.fetchGeoMap(id);
+        expect(promise.meta.wasCached).toBeTruthy();
 
         ms.clearCache();
-        geomap = ms.fetchGeoMap(id);
-        expect(geomap.wasCached).toBeFalsy();
+        promise = ms.fetchGeoMap(id);
+        expect(promise.meta.wasCached).toBeFalsy();
+    });
+
+    it('should load USA into cache', function () {
+        var id = '*continental_us';
+        promise = ms.fetchGeoMap(id);
+        expect(promise).toBeDefined();
+        expect(promise.meta.id).toBe(id);
+        expect(promise.meta.url).toBe('../data/map/continental_us.json');
+        // TODO: WIP -- after a pause, the data should be there!!!
+
     });
 });

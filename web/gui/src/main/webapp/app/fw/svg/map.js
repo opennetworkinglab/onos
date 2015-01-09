@@ -42,12 +42,12 @@
     'use strict';
 
     // injected references
-    var $log, fs;
+    var $log, $http, $q, fs;
 
     // internal state
     var maps = d3.map(),
         msgMs = 'MapService.',
-        bundledUrlPrefix = 'data/map/';
+        bundledUrlPrefix = '../data/map/';
 
     function getUrl(id) {
         if (id[0] === '*') {
@@ -57,38 +57,61 @@
     }
 
     angular.module('onosSvg')
-        .factory('MapService', ['$log', 'FnService',
+        .factory('MapService', ['$log', '$http', '$q', 'FnService',
 
-        function (_$log_, _fs_) {
+        function (_$log_, _$http_, _$q_, _fs_) {
             $log = _$log_;
+            $http = _$http_;
+            $q = _$q_;
             fs = _fs_;
 
             function clearCache() {
                 maps = d3.map();
             }
 
+            // NOTE: It is expected that mapLayer is a D3 selection of the
+            //       <g> element (a child of zoomLayer) into which the map
+            //       path data will be rendered.
+            function renderMap(mapLayer) {
+                // TODO ---
+                $log.log('Hey, let\'s render the map...');
+            }
+
             function fetchGeoMap(id) {
                 if (!fs.isS(id)) {
                     return null;
                 }
+                var url = getUrl(id);
 
-                var geomap = maps.get(id);
+                var promise = maps.get(id);
 
-                if (!geomap) {
+                if (!promise) {
                     // need to fetch the data and build the object...
-                    geomap = {
-                        id: id,
-                        url: getUrl(id),
-                        wasCached: false
-                    };
-                    // TODO: use $http service to load map data asynchronously
+                    var deferred = $q.defer();
+                    promise = deferred.promise;
 
-                    maps.set(id, geomap);
+                    $http.get(url)
+                        .success(function (data) {
+                            deferred.resolve(data);
+                        })
+                        .error(function (msg, code) {
+                            deferred.reject(msg);
+                            $log.warn(msg, code);
+                        });
+
+                    promise.meta = {
+                        id: id,
+                        url: url,
+                        wasCached: false,
+                        render: renderMap
+                    };
+
+                    maps.set(id, promise);
                 } else {
-                    geomap.wasCached = true;
+                    promise.meta.wasCached = true;
                 }
 
-                return geomap;
+                return promise;
             }
 
             return {

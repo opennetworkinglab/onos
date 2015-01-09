@@ -29,7 +29,7 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs;
+    var $log, ks, zs, gs, ms;
 
     // DOM elements
     var svg, defs;
@@ -106,14 +106,15 @@
     angular.module('ovTopo', moduleDependencies)
 
         .controller('OvTopoCtrl', [
-            '$log', 'KeyService', 'ZoomService', 'GlyphService',
+            '$log', 'KeyService', 'ZoomService', 'GlyphService', 'MapService',
 
-        function (_$log_, _ks_, _zs_, _gs_) {
+        function (_$log_, _ks_, _zs_, _gs_, _ms_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
             zs = _zs_;
             gs = _gs_;
+            ms = _ms_;
 
             // exported state
             self.message = 'Topo View Rocks!';
