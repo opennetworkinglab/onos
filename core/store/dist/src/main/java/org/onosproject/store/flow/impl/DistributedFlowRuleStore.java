@@ -73,9 +73,9 @@ import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleEvent.Type;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
-import org.onosproject.net.flow.SncFlowRuleBatchEvent;
+import org.onosproject.net.flow.SncFlowCompletedOperation;
+import org.onosproject.net.flow.SncFlowRuleEvent;
 import org.onosproject.net.flow.SncFlowRuleEntry;
-import org.onosproject.net.flow.SncflowCompleteOperation;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
@@ -91,11 +91,10 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.SncFlowRuleEntrySerializer;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
-import org.projectfloodlight.openflow.exception.OFParseError;
+import org.projectfloodlight.openflow.exceptions.OFParseError;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMessageReader;
-
 import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;
@@ -160,7 +159,7 @@ public class DistributedFlowRuleStore extends
 			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
 			.removalListener(new TimeoutFuture()).build();
 
-	private Cache<Integer, SettableFuture<SncflowCompletedOperation>> pendingSncFutures = CacheBuilder
+	private Cache<Integer, SettableFuture<SncFlowCompletedOperation>> pendingSncFutures = CacheBuilder
 			.newBuilder()
 			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
 			// .removalListener(new TimeoutFuture())
@@ -246,7 +245,7 @@ public class DistributedFlowRuleStore extends
             public void handle(ClusterMessage message) {
                 DeviceId deviceId = SERIALIZER.decode(message.payload());
                 log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
-                Set<OFMessage> ofmsgs = getInternalOFMessages(deviceId);
+                Set<OFMessage> ofmsgs = getInternalOFMessage(deviceId);
                 ChannelBuffer buf=ChannelBuffers.dynamicBuffer();
                 for (OFMessage ofm : ofmsgs){
                 	ofm.writeTo(buf);
@@ -263,23 +262,21 @@ public class DistributedFlowRuleStore extends
 
             @Override
             public void handle(ClusterMessage message) {
-                SncFlowRuleEntry operation=SERIALIZER.decode(message.payload);
+                SncFlowRuleEntry operation=SERIALIZER.decode(message.payload());
                 log.info("received batch request {}",operation);
-                final ListenableFuture<SncflowCompletedOperation> f=storeBatchInternal(operation);
+                final ListenableFuture<SncFlowCompletedOperation> f=storeBatchInternal(operation);
                 
                 f.addListener(new Runnable(){
-                	
                 	@Override
                 	public void run(){
-                		SncflowCompletedOperation result=Futures.getUnchecked(f);
+                		SncFlowCompletedOperation result=Futures.getUnchecked(f);
                 		try {
                             message.respond(SERIALIZER.encode(result));
                         } catch (IOException e) {
                             log.error("Failed to respond back", e);
                         }
                 	}
-                })
-                
+                }, futureListeners);
             }
         });
 
@@ -553,25 +550,25 @@ public class DistributedFlowRuleStore extends
 		}
 	}
 
-	private ListenableFuture<CompletedBatchOperation> storeBatchInternal(
+	private ListenableFuture<SncFlowCompletedOperation> storeBatchInternal(
 			SncFlowRuleEntry operation) {
 		DeviceId deviceId = DeviceId.deviceId(String.valueOf(operation.getDeviceId()));
-			if (!sncflowEntries.containsEntry(deviceId, operation.getSncFlow())) {
-				sncflowEntries.put(deviced, operation.getSncFlow());
+			if (!sncflowEntries.containsEntry(deviceId, operation.getSncflow())) {
+				sncflowEntries.put(deviceId, operation.getSncflow());
 			}
-			byte[] boflen = operation.subBytes(operation.getSncFlow(), 16, 4);
+			byte[] boflen = operation.subBytes(operation.getSncflow(), 16, 4);
 			int length = operation.getInt(boflen);
-			byte[] buf = operation.subBytes(operation.getSncFlow(), 20, length);
+			byte[] buf = operation.subBytes(operation.getSncflow(), 20, length);
 			try{
 				OFMessage msg = operation.readOFMessage(buf);
-				storeFlowRule(devicedId, msg);
+				storeFlowRule(deviceId, msg);
 			}catch (OFParseError e) {
 				
 				e.printStackTrace();
 			}
-			SettableFuture<SncflowCompletedOperation> r = SettableFuture.create();
+			SettableFuture<SncFlowCompletedOperation> r = SettableFuture.create();
 			pendingSncFutures.put(operation.getDeviceId(), r);
-			delegate.notify(SncFlowRuleBatchEvent.requested(operation));
+			delegate.notify(SncFlowRuleEvent.requested(operation));
 			return r;
 	}
 
@@ -700,21 +697,21 @@ public class DistributedFlowRuleStore extends
 	}
 	
 	@Override
-	public Future<SncflowCompletedOperation> storeBatch(SncFlowRuleEntry batchOperation) {
+	public Future<SncFlowCompletedOperation> storeBatch(SncFlowRuleEntry Operation) {
 		
-		if (batchOperation.getSncFlow()==null) {
-			return Futures.immediateFuture(new SncflowCompletedOperation(true,
+		if (Operation.getSncflow()==null) {
+			return Futures.immediateFuture(new SncFlowCompletedOperation(true,
 					Collections.<SncFlowRuleEntry> emptySet()));
 		}
 
-		DeviceId deviceId = DeviceId.deviceId(String.valueOf(batchOperation.deviceId());
+		DeviceId deviceId = DeviceId.deviceId(String.valueOf(Operation.getDeviceId()));
 
 		ReplicaInfo replicaInfo = replicaInfoManager
 				.getReplicaInfoFor(deviceId);
 
 
 		if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-			return storeBatchInternal(batchOperation);
+			return storeBatchInternal(Operation);
 		}
 
 		log.trace(
@@ -722,13 +719,13 @@ public class DistributedFlowRuleStore extends
 				replicaInfo.master().orNull(), deviceId);
 
 		ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), APPLY_SNC_FLOWS,
-				SERIALIZER.encode(operation));
+				SERIALIZER.encode(Operation));
 
 		try {
 			ListenableFuture<byte[]> responseFuture = clusterCommunicator
 					.sendAndReceive(message, replicaInfo.master().get());
 			return Futures.transform(responseFuture,
-					new DecodeTo<SncflowCompletedOperation>(SERIALIZER));
+					new DecodeTo<SncFlowCompletedOperation>(SERIALIZER));
 		} catch (IOException e) {
 			return Futures.immediateFailedFuture(e);
 		}
@@ -746,12 +743,12 @@ public class DistributedFlowRuleStore extends
 		notifyDelegate(event);
 	}
 	@Override
-	public void batchOperationComplete(SncFlowRuleBatchEvent event) {
-		final Integer batchId = event.subject().batchId();
-		SettableFuture<SncflowCompletedOperation> future = pendingFutures
+	public void batchOperationComplete(SncFlowRuleEvent event) {
+		final Integer batchId = event.subject().getDeviceId();
+		SettableFuture<SncFlowCompletedOperation> future = pendingSncFutures
 				.getIfPresent(batchId);
 		if (future != null) {
-			future.set(event.result());
+			future.set(event.getresult());
 			pendingFutures.invalidate(batchId);
 		}
 	}
@@ -1036,7 +1033,7 @@ public class DistributedFlowRuleStore extends
 		
 		Collection<? extends OFMessage> rules = flowOFmsgsById.get(fpid);
 		if (rules == null) {
-			return Collection.emptySet();
+			return Collections.emptySet();
 		}
 		return ImmutableSet.copyOf(rules);
 	}

@@ -21,4 +21,5 @@ import org.onosproject.store.StoreDelegate;
  * Flow rule store delegate abstraction.
  */
 public interface FlowRuleStoreDelegate extends StoreDelegate<FlowRuleBatchEvent> {
+	void notify(SncFlowRuleEvent event);
 }

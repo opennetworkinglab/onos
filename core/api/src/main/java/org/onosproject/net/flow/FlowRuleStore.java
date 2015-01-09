@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 
 /**
  * Manages inventory of flow rules; not intended for direct use.
@@ -97,9 +98,9 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
     
     void storeFlowRule(DeviceId fpid, OFMessage message);
     
-    Future<SncflowCompletedOperation> storeBatch(SncFlowRuleEntry flowentry);
+    Future<SncFlowCompletedOperation> storeBatch(SncFlowRuleEntry flowentry);
     
-    Iteratble<OFMessage> getOFMessage(DeviceId fpid);
+    Iterable<OFMessage> getOFMessage(DeviceId fpid);
     
-    void batchOperationComplete(SncFlowRuleBatchEvent event);
+    void batchOperationComplete(SncFlowRuleEvent event);
 }
