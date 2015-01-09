@@ -31,6 +31,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
@@ -41,7 +43,12 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
@@ -72,11 +79,19 @@ public class ProxyArpManager implements ProxyArpService {
 
     private final Logger log = getLogger(getClass());
 
+    private static final int FLOW_RULE_PRIORITY = 40000;
+
     private static final String MAC_ADDR_NULL = "Mac address cannot be null.";
     private static final String REQUEST_NULL = "Arp request cannot be null.";
     private static final String REQUEST_NOT_ARP = "Ethernet frame does not contain ARP request.";
     private static final String NOT_ARP_REQUEST = "ARP is not a request.";
     private static final String NOT_ARP_REPLY = "ARP is not a reply.";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -96,15 +111,22 @@ public class ProxyArpManager implements ProxyArpService {
     private final Multimap<Device, PortNumber> externalPorts =
             HashMultimap.<Device, PortNumber>create();
 
+    private ApplicationId appId;
+
     /**
      * Listens to both device service and link service to determine
      * whether a port is internal or external.
      */
     @Activate
     public void activate() {
+        appId =
+            coreService.registerApplication("org.onosproject.net.proxyarp");
+
         deviceService.addListener(new InternalDeviceListener());
         linkService.addListener(new InternalLinkListener());
         determinePortLocations();
+        pushRules();
+
         log.info("Started");
     }
 
@@ -396,6 +418,36 @@ public class ProxyArpManager implements ProxyArpService {
         return eth;
     }
 
+    /**
+     * Pushes flow rules to all devices.
+     */
+    private void pushRules() {
+        for (Device device : deviceService.getDevices()) {
+            pushRules(device);
+        }
+    }
+
+    /**
+     * Pushes flow rules to the device to receive control packets that need
+     * to be processed.
+     *
+     * @param device the device to push the rules to
+     */
+    private synchronized void pushRules(Device device) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+
+        // Get all ARP packets
+        sbuilder.matchEthType(Ethernet.TYPE_ARP);
+        tbuilder.punt();
+        FlowRule flowArp =
+            new DefaultFlowRule(device.id(),
+                                sbuilder.build(), tbuilder.build(),
+                                FLOW_RULE_PRIORITY, appId, 0, true);
+
+        flowRuleService.applyFlowRules(flowArp);
+    }
+
     public class InternalLinkListener implements LinkListener {
 
         @Override
@@ -440,6 +492,8 @@ public class ProxyArpManager implements ProxyArpService {
             Device device = event.subject();
             switch (event.type()) {
                 case DEVICE_ADDED:
+                    pushRules(device);
+                    break;
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_SUSPENDED:
                 case DEVICE_UPDATED:

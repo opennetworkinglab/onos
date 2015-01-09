@@ -15,6 +15,11 @@
  */
 package org.onosproject.provider.lldp.impl;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -25,6 +30,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
@@ -38,6 +46,8 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
@@ -80,13 +90,32 @@ public class LLDPLinkProviderTest {
     private final TestDeviceService deviceService = new TestDeviceService();
     private final TestMasterShipService masterService = new TestMasterShipService();
 
+    private CoreService coreService;
+    private FlowRuleService flowRuleService;
     private TestLinkProviderService providerService;
 
     private PacketProcessor testProcessor;
     private DeviceListener deviceListener;
 
+    private ApplicationId appId = new DefaultApplicationId((short) 100,
+                "org.onosproject.provider.lldp");
+
     @Before
     public void setUp() {
+
+        coreService = createMock(CoreService.class);
+        expect(coreService.registerApplication(appId.name()))
+            .andReturn(appId).anyTimes();
+        replay(coreService);
+
+        flowRuleService = createMock(FlowRuleService.class);
+        flowRuleService.applyFlowRules(anyObject(FlowRule.class),
+                                       anyObject(FlowRule.class));
+        expectLastCall().anyTimes();
+        replay(flowRuleService);
+
+        provider.coreService = coreService;
+        provider.flowRuleService = flowRuleService;
 
         provider.deviceService = deviceService;
         provider.packetSevice = packetService;
@@ -178,6 +207,8 @@ public class LLDPLinkProviderTest {
     @After
     public void tearDown() {
         provider.deactivate();
+        provider.coreService = null;
+        provider.flowRuleService = null;
         provider.providerRegistry = null;
         provider.deviceService = null;
         provider.packetSevice = null;

@@ -22,6 +22,9 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.Ethernet;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -32,6 +35,13 @@ import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
@@ -67,7 +77,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
-
     private static final String PROP_USE_BDDP = "useBDDP";
 
     private static final String PROP_LLDP_SUPPRESSION = "lldpSuppression";
@@ -75,6 +84,14 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     private static final String DEFAULT_LLDP_SUPPRESSION_CONFIG = "../config/lldp_suppression.json";
 
     private final Logger log = getLogger(getClass());
+
+    private static final int FLOW_RULE_PRIORITY = 40000;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry providerRegistry;
@@ -111,6 +128,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     protected final Map<DeviceId, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
 
     private SuppressionRules rules;
+    private ApplicationId appId;
 
     /**
      * Creates an OpenFlow link provider.
@@ -121,6 +139,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Activate
     public void activate() {
+        appId =
+            coreService.registerApplication("org.onosproject.provider.lldp");
+
         loadSuppressionRules();
 
         providerService = providerRegistry.register(this);
@@ -152,6 +173,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         executor = newSingleThreadScheduledExecutor(namedThreads("device-sync-%d"));
         executor.scheduleAtFixedRate(new SyncDeviceInfoTask(), INIT_DELAY,
                 DELAY, TimeUnit.SECONDS);
+
+        pushRules();
 
         log.info("Started");
     }
@@ -210,6 +233,48 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         // should refresh discoverers when we need dynamic reconfiguration
     }
 
+    /**
+     * Pushes flow rules to all devices.
+     */
+    private void pushRules() {
+        for (Device device : deviceService.getDevices()) {
+            pushRules(device);
+        }
+    }
+
+    /**
+     * Pushes flow rules to the device to receive control packets that need
+     * to be processed.
+     *
+     * @param device the device to push the rules to
+     */
+    private synchronized void pushRules(Device device) {
+        TrafficSelector.Builder sbuilder;
+        TrafficTreatment.Builder tbuilder;
+
+        // Get all LLDP packets
+        sbuilder = DefaultTrafficSelector.builder();
+        tbuilder = DefaultTrafficTreatment.builder();
+        sbuilder.matchEthType(Ethernet.TYPE_LLDP);
+        tbuilder.punt();
+        FlowRule flowLldp =
+            new DefaultFlowRule(device.id(),
+                                sbuilder.build(), tbuilder.build(),
+                                FLOW_RULE_PRIORITY, appId, 0, true);
+
+        // Get all BDDP packets
+        sbuilder = DefaultTrafficSelector.builder();
+        tbuilder = DefaultTrafficTreatment.builder();
+        sbuilder.matchEthType(Ethernet.TYPE_BSN);
+        tbuilder.punt();
+        FlowRule flowBddp =
+            new DefaultFlowRule(device.id(),
+                                sbuilder.build(), tbuilder.build(),
+                                FLOW_RULE_PRIORITY, appId, 0, true);
+
+        flowRuleService.applyFlowRules(flowLldp, flowBddp);
+    }
+
     private class InternalRoleListener implements MastershipListener {
 
         @Override
@@ -258,6 +323,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             final DeviceId deviceId = device.id();
             switch (event.type()) {
                 case DEVICE_ADDED:
+                    pushRules(device);
+                    // FALLTHROUGH
                 case DEVICE_UPDATED:
                     synchronized (discoverers) {
                         ld = discoverers.get(deviceId);
