@@ -51,6 +51,9 @@
         <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.4.2</bundle>
         <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.4.2</bundle>
 
+        <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
+        <bundle>mvn:commons-collections/commons-collections/3.2.1</bundle>
+
         <!-- FIXME: we should switch to use fasterxml jackson -->
         <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.13</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13</bundle>

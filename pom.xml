@@ -54,7 +54,8 @@
 
     <scm>
         <connection>scm:git:https://gerrit.onosproject.org/onos</connection>
-        <developerConnection>scm:git:https://gerrit.onosproject.org/onos</developerConnection>
+        <developerConnection>scm:git:https://gerrit.onosproject.org/onos
+        </developerConnection>
         <url>http://gerrit.onosproject.org/</url>
     </scm>
 
@@ -163,6 +164,12 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>4.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>1.10</version>
             </dependency>
 
             <dependency>
@@ -417,7 +424,8 @@
                         <redirectTestOutputToFile>true
                         </redirectTestOutputToFile>
                         <printSummary>true</printSummary>
-                        <excludedGroups>org.onlab.junit.IntegrationTest</excludedGroups>
+                        <excludedGroups>org.onlab.junit.IntegrationTest
+                        </excludedGroups>
                     </configuration>
                 </plugin>
 
@@ -474,20 +482,21 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                  <groupId>org.codehaus.mojo</groupId>
-                  <artifactId>findbugs-maven-plugin</artifactId>
-                  <version>3.0.0</version>
-                  <dependencies>
-                    <dependency>
-                      <groupId>org.onosproject</groupId>
-                      <artifactId>onos-build-conf</artifactId>
-                      <version>1.0</version>
-                    </dependency>
-                  </dependencies>
-                  <configuration>
-                    <effort>Max</effort>
-                    <excludeFilterFile>onos/findbugs-suppressions.xml</excludeFilterFile>
-                  </configuration>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.onosproject</groupId>
+                            <artifactId>onos-build-conf</artifactId>
+                            <version>1.0</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <effort>Max</effort>
+                        <excludeFilterFile>onos/findbugs-suppressions.xml
+                        </excludeFilterFile>
+                    </configuration>
                 </plugin>
 
                 <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
@@ -550,8 +559,10 @@
                 </dependencies>
                 <configuration>
                     <!-- begin: workaround for unexpected NullPointerException on Eclipse -->
-                    <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                    <testSourceDirectory>${project.build.testSourceDirectory}</testSourceDirectory>
+                    <sourceDirectory>${project.build.sourceDirectory}
+                    </sourceDirectory>
+                    <testSourceDirectory>${project.build.testSourceDirectory}
+                    </testSourceDirectory>
                     <!-- end: workaround for unexpected NullPointerException on Eclipse -->
                     <configLocation>onos/checkstyle.xml</configLocation>
                     <suppressionsLocation>onos/suppressions.xml

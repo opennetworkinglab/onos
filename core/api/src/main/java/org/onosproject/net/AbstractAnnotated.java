@@ -16,13 +16,12 @@
 package org.onosproject.net;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.net.DefaultAnnotations.EMPTY;
 
 /**
  * Base abstraction of an annotated entity.
  */
 public abstract class AbstractAnnotated implements Annotated {
-
-    private static final Annotations EMPTY = DefaultAnnotations.builder().build();
 
     private final Annotations annotations;
 
