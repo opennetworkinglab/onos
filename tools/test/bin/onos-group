@@ -49,7 +49,7 @@ function getcmd() {
 # early sanity check for instances/arguments
 [ -z "$1" ] && usage && exit 0
 
-OCIS=( $(env | sed -ne 's:OC[0-9]=\(.*\):\1 :g p' | sort -k1) )
+OCIS=( $(env | sed -ne 's:OC[0-9]\{1,\}=\(.*\):\1 :g p' | sort -k1) )
 if [ -z "$OCIS" ]; then
   printf "no controller instances, quitting early" >&2 && exit 0
 fi
