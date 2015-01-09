@@ -51,10 +51,16 @@ import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
+import org.onosproject.net.flow.SncFlowRuleBatchEvent;
+import org.onosproject.net.flow.SncFlowRuleEntry;
+import org.onosproject.net.flow.SncflowCompletedOperation;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.slf4j.Logger;
 
+import java.util.Colletions;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -436,6 +442,29 @@ public class FlowRuleManager
                 break;
             }
         }
+        @Override
+        public void notify(SncFlowRuleBatchEvent event){
+        	//TODO 
+        	switch (event.type()) {
+        	case BATCH_OPERATION_REQUESTED:
+        		//send it
+        		SncFlowRuleEntry entry = event.subject();
+        		FlowRuleProvider flowRuleProvider =
+        				getProvider(new ProviderId("igp","org.onlab.onos.provider.igp"));
+        		flowRuleProvider.applyRule(entry.getSncFlow());
+        		//do not have transation, assume it install success
+        		SncflowCompleteOperation result = new SncflowCompleteOperation(true,
+        				Collections.<SncFlowRuleEntry>emptySet());
+        		store.batchOperationComplete(SncFlowRuleBactchEvent.completed(entry, result));
+        		break;
+        	case BATCH_OPERATION_COMPLETED:
+        		
+        		break;
+        	default:
+        		break;
+        	}
+        	
+        }
     }
 
     private class FlowRuleBatchFuture implements Future<CompletedBatchOperation> {
@@ -575,5 +604,15 @@ public class FlowRuleManager
                 }
             }
         }
+    }
+    
+    @Override
+    public void applySncBatch(SncFlowRuleEntry flowentry) {
+    	store.storeBatch(flowentry);
+    }
+    public Iterable<OFMessage> getOFMessages(DeviceId fpid){
+    	// TODO
+    	
+    	return store.getOFMesseges(fpid);
     }
 }
