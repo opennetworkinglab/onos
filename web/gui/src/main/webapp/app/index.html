@@ -39,6 +39,7 @@
     <script src="fw/util/keys.js"></script>
 
     <script src="fw/mast/mast.js"></script>
+    <script src="fw/nav/nav.js"></script>
 
     <script src="fw/svg/svg.js"></script>
     <script src="fw/svg/glyph.js"></script>
@@ -50,6 +51,7 @@
     <!-- TODO: use a single catenated-minified file here -->
     <link rel="stylesheet" href="onos.css">
     <link rel="stylesheet" href="fw/mast/mast.css">
+    <link rel="stylesheet" href="fw/nav/nav.css">
 
     <!-- This is where contributed javascript will get injected -->
     <!-- {INJECTED-JAVASCRIPT} -->
@@ -70,6 +72,10 @@
              ng-include="'fw/mast/mast.html'"></div>
 
         <div id="view" ng-view></div>
+
+        <div id="nav"
+             ng-controller="NavCtrl as navCtrl"
+             ng-include="'fw/nav/nav.html'"></div>
 
         <div id="floatpanels"></div>
         <div id="alerts"></div>

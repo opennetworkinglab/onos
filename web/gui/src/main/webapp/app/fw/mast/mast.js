@@ -22,13 +22,21 @@
 (function () {
     'use strict';
 
-    angular.module('onosMast', [])
-        .controller('MastCtrl', ['$log', function (_$log_) {
-            var $log = _$log_,
-                self = this;
+    var $log;
+
+    angular.module('onosMast', ['onosNav'])
+        .controller('MastCtrl', ['$log', 'NavService', function (_$log_, ns) {
+            var self = this;
+
+            $log = _$log_;
 
             // initialize mast controller here...
             self.radio = null;
+
+            // delegate to NavService
+            self.toggleNav = function () {
+                ns.toggleNav();
+            };
 
             $log.log('MastCtrl has been created');
         }]);

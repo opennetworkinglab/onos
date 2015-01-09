@@ -15,47 +15,58 @@
  */
 
 /*
- ONOS GUI -- Masthead -- CSS file
+ ONOS GUI -- Navigation -- CSS file
 
  @author Simon Hunt
+ @author Bri Prebilic Cole
  */
 
-#mast {
-    height: 36px;
+#nav {
+    position: absolute;
+    top: 50px;
+    left: 8px;
+    width: 160px;
+    height: 100px;
     padding: 4px;
-    vertical-align: baseline;
+    z-index: 3000;
+    visibility: hidden;
 }
 
-.light #mast {
-    background-color: #bbb;
+.light #nav {
+    background-color: #ccf;
     box-shadow: 0 2px 8px #777;
 }
-.dark #mast {
+.dark #nav {
     background-color: #444;
     box-shadow: 0 2px 8px #777;
 }
 
-#mast img.logo {
-    height: 38px;
-    padding-left: 8px;
-    padding-right: 8px;
-    cursor: pointer;
+#nav ul li {
+    font-size: 10pt;
 }
 
-#mast img.logo:hover {
-    /* need something better */
-    /*background-color: #888;*/
-}
 
-#mast .title {
-    font-size: 14pt;
+#nav h2 {
+    font-size: 12pt;
+    margin: 0;
+}
+#nav h3 {
+    font-size: 8pt;
     font-style: italic;
-    vertical-align: 12px;
+    margin: 0;
 }
 
-.light #mast .title {
-    color: #369;
+.light #nav h2,
+.light #nav h3 {
+    color: black;
 }
-.dark #mast .title {
-    color: #eee;
+
+.dark #nav h2,
+.dark #nav h3 {
+    color: #ddd;
 }
+
+.dark #nav a {
+    color: #ddd;
+}
+
