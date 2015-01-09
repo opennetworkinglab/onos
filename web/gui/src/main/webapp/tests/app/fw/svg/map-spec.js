@@ -20,20 +20,21 @@
  @author Simon Hunt
  */
 describe('factory: fw/svg/map.js', function() {
-    var $log, fs, ms, d3Elem, promise;
+    var $log, $httpBackend, fs, ms, d3Elem, promise;
 
     beforeEach(module('onosUtil', 'onosSvg'));
 
-    beforeEach(inject(function (_$log_, FnService, MapService) {
+    beforeEach(inject(function (_$log_, _$httpBackend_, FnService, MapService) {
         $log = _$log_;
+        $httpBackend = _$httpBackend_;
         fs = FnService;
         ms = MapService;
-        ms.clearCache();
-        // TODO: d3Elem = d3.select('body').append('...').attr('id', 'myFoo');
+        //ms.clearCache();
+        d3Elem = d3.select('body').append('svg').append('g').attr('id', 'mapLayer');
     }));
 
     afterEach(function () {
-        // TODO d3.select('#myFoo').remove();
+        d3.select('svg').remove();
     });
 
     it('should define MapService', function () {
@@ -42,9 +43,53 @@ describe('factory: fw/svg/map.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ms, [
-            'clearCache', 'fetchGeoMap'
+            'loadMapInto'
         ])).toBeTruthy();
     });
+
+    var fakeMapId = '../tests/app/fw/svg/fake-map-data',
+        fakeMapUrl = fakeMapId + '.json';
+
+    var fakeMapData = {
+        "type": "Topology",
+        "objects": {
+            "states": {
+                "type": "GeometryCollection",
+                "geometries": [
+                    { "type": "Polygon", "arcs": [[0, 1]]},
+                    { "type": "Polygon", "arcs": [[2, 3]]}
+                ]
+            }
+        },
+        "arcs": [
+            [ [6347, 2300], [ -16, -9], [ -22, 1], [ -5, 3], [ 9, 6], [ 27, 7], [ 7, -8]],
+            [ [6447, 2350], [ -4, -4], [ -19, -41], [ -66, -14], [ 4, 9], [ 14, 2]],
+            [ [6290, 2347], [ -2, 83], [ -2, 76], [ -2, 75], [ -2, 76], [ -2, 76], [ -2, 75]],
+            [ [6329, 4211], [ -3, 6], [ -2, 4], [ 2, 1], [ 28, -1], [ 28, 0]]
+        ],
+        "transform": {
+            "scale": [0.005772872856602365, 0.0024829805705001468],
+            "translate": [-124.70997774915153, 24.542349340056283]
+        }
+    };
+
+
+    it('should load map into layer', function () {
+        $httpBackend.expectGET(fakeMapUrl).respond(fakeMapData);
+
+        var obj = ms.loadMapInto(d3Elem, fakeMapId);
+        //$httpBackend.flush();
+        // TODO: figure out how to test this function as a black box test.
+
+        expect(obj).toBeTruthy();
+        debugger;
+
+        // todo: assert that paths are added to map layer element
+    });
+
+/*
+
+
 
     it('should return null when no parameters given', function () {
         promise = ms.fetchGeoMap();
@@ -95,13 +140,18 @@ describe('factory: fw/svg/map.js', function() {
         expect(promise.meta.wasCached).toBeFalsy();
     });
 
-    it('should load USA into cache', function () {
-        var id = '*continental_us';
-        promise = ms.fetchGeoMap(id);
-        expect(promise).toBeDefined();
-        expect(promise.meta.id).toBe(id);
-        expect(promise.meta.url).toBe('../data/map/continental_us.json');
-        // TODO: WIP -- after a pause, the data should be there!!!
+
+    it('should log a warning if data fails to load', function () {
+        $httpBackend.expectGET(mapurl).respond(404, 'Not found');
+        spyOn($log, 'warn');
+
+        promise = ms.fetchGeoMap(mapid);
+        $httpBackend.flush();
+        expect(promise.mapdata).toBeUndefined();
+        expect($log.warn)
+            .toHaveBeenCalledWith('Failed to retrieve map data: ' + mapurl,
+                                    404, 'Not found');
 
     });
+*/
 });

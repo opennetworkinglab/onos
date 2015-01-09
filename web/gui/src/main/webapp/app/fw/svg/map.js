@@ -42,11 +42,10 @@
     'use strict';
 
     // injected references
-    var $log, $http, $q, fs;
+    var $log, $http, fs;
 
     // internal state
-    var maps = d3.map(),
-        msgMs = 'MapService.',
+    var mapCache = d3.map(),
         bundledUrlPrefix = '../data/map/';
 
     function getUrl(id) {
@@ -57,56 +56,42 @@
     }
 
     angular.module('onosSvg')
-        .factory('MapService', ['$log', '$http', '$q', 'FnService',
-
-        function (_$log_, _$http_, _$q_, _fs_) {
+        .factory('MapService', ['$log', '$http', 'FnService',
+        function (_$log_, _$http_, _fs_) {
             $log = _$log_;
             $http = _$http_;
-            $q = _$q_;
             fs = _fs_;
 
-            function clearCache() {
-                maps = d3.map();
-            }
-
-            // NOTE: It is expected that mapLayer is a D3 selection of the
-            //       <g> element (a child of zoomLayer) into which the map
-            //       path data will be rendered.
-            function renderMap(mapLayer) {
-                // TODO ---
-                $log.log('Hey, let\'s render the map...');
-            }
 
             function fetchGeoMap(id) {
                 if (!fs.isS(id)) {
                     return null;
                 }
-                var url = getUrl(id);
-
-                var promise = maps.get(id);
+                var url = getUrl(id),
+                    promise = mapCache.get(id);
 
                 if (!promise) {
-                    // need to fetch the data and build the object...
-                    var deferred = $q.defer();
-                    promise = deferred.promise;
-
-                    $http.get(url)
-                        .success(function (data) {
-                            deferred.resolve(data);
-                        })
-                        .error(function (msg, code) {
-                            deferred.reject(msg);
-                            $log.warn(msg, code);
-                        });
+                    // need to fetch the data, build the object,
+                    // cache it, and return it.
+                    promise = $http.get(url);
 
                     promise.meta = {
                         id: id,
                         url: url,
-                        wasCached: false,
-                        render: renderMap
+                        wasCached: false
                     };
 
-                    maps.set(id, promise);
+                    promise.then(function (response) {
+                            // success
+                            promise.mapdata = response.data;
+                        }, function (response) {
+                            // error
+                            $log.warn('Failed to retrieve map data: ' + url,
+                                response.status, response.data);
+                        });
+
+                    mapCache.set(id, promise);
+
                 } else {
                     promise.meta.wasCached = true;
                 }
@@ -114,9 +99,66 @@
                 return promise;
             }
 
+            var geoMapProj;
+
+            function setProjForView(path, topoData) {
+                var dim = 1000;
+
+                // start with unit scale, no translation..
+                geoMapProj.scale(1).translate([0, 0]);
+
+                // figure out dimensions of map data..
+                var b = path.bounds(topoData),
+                    x1 = b[0][0],
+                    y1 = b[0][1],
+                    x2 = b[1][0],
+                    y2 = b[1][1],
+                    dx = x2 - x1,
+                    dy = y2 - y1,
+                    x = (x1 + x2) / 2,
+                    y = (y1 + y2) / 2;
+
+                // size map to 95% of minimum dimension to fill space..
+                var s = .95 / Math.min(dx / dim, dy / dim);
+                var t = [dim / 2 - s * x, dim / 2 - s * y];
+
+                // set new scale, translation on the projection..
+                geoMapProj.scale(s).translate(t);
+            }
+
+
+            function loadMapInto(mapLayer, id) {
+                var mapObject = fetchGeoMap(id);
+                if (!mapObject) {
+                    $log.warn('Failed to load map: ' + id);
+                    return null;
+                }
+
+                var mapdata = mapObject.mapdata,
+                    topoData, path;
+
+                mapObject.then(function () {
+                    // extracts the topojson data into geocoordinate-based geometry
+                    topoData = topojson.feature(mapdata, mapdata.objects.states);
+
+                    // see: http://bl.ocks.org/mbostock/4707858
+                    geoMapProj = d3.geo.mercator();
+                    path = d3.geo.path().projection(geoMapProj);
+
+                    setProjForView(path, topoData);
+
+                    mapLayer.selectAll('path')
+                        .data(topoData.features)
+                        .enter()
+                        .append('path')
+                        .attr('d', path);
+                });
+                // TODO: review whether we should just return true (not the map object)
+                return mapObject;
+            }
+
             return {
-                clearCache: clearCache,
-                fetchGeoMap: fetchGeoMap
+                loadMapInto: loadMapInto
             };
         }]);
 
