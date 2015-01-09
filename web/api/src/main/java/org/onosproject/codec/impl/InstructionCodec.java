@@ -147,7 +147,7 @@ public class InstructionCodec extends JsonCodec<Instruction> {
             case OUTPUT:
                 final Instructions.OutputInstruction outputInstruction =
                         (Instructions.OutputInstruction) instruction;
-                result.put("portNumber", outputInstruction.port().toLong());
+                result.put("port", outputInstruction.port().toLong());
                 break;
 
             case DROP:

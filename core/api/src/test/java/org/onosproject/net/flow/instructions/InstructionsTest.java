@@ -94,6 +94,8 @@ public class InstructionsTest {
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanPcpInstruction.class);
         assertThatClassIsImmutable(L3ModificationInstruction.ModIPInstruction.class);
+        assertThatClassIsImmutable(L2ModificationInstruction.ModMplsLabelInstruction.class);
+        assertThatClassIsImmutable(L2ModificationInstruction.PushHeaderInstructions.class);
     }
 
     //  DropInstruction

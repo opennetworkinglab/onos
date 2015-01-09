@@ -36,13 +36,23 @@ public class EthernetCodec extends JsonCodec<Ethernet> {
     public ObjectNode encode(Ethernet ethernet, CodecContext context) {
         checkNotNull(ethernet, "Ethernet cannot be null");
 
-        return context.mapper().createObjectNode()
-                .put("destinationMacAddress", ethernet.getDestinationMAC().toString())
-                .put("sourceMacAddress", ethernet.getSourceMAC().toString())
-                .put("priorityCode", ethernet.getPriorityCode())
+        final ObjectNode result = context.mapper().createObjectNode()
                 .put("vlanId", ethernet.getVlanID())
                 .put("etherType", ethernet.getEtherType())
+                .put("priorityCode", ethernet.getPriorityCode())
                 .put("pad", ethernet.isPad());
+
+        if (ethernet.getDestinationMAC() != null) {
+            result.put("destMac",
+                       ethernet.getDestinationMAC().toString());
+        }
+
+        if (ethernet.getSourceMAC() != null) {
+            result.put("srcMac",
+                       ethernet.getSourceMAC().toString());
+        }
+
+        return result;
     }
 
 }
