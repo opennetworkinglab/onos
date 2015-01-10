@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,13 @@
 
 package org.onlab.packet;
 
+import org.onlab.packet.ipv6.Authentication;
+import org.onlab.packet.ipv6.DestinationOptions;
+import org.onlab.packet.ipv6.EncapSecurityPayload;
+import org.onlab.packet.ipv6.Fragment;
+import org.onlab.packet.ipv6.IExtensionHeader;
+import org.onlab.packet.ipv6.HopByHopOptions;
+import org.onlab.packet.ipv6.Routing;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,13 +33,20 @@ import java.util.Map;
 /**
  * Implements IPv6 packet format. (RFC 2460)
  */
-public class IPv6 extends BasePacket {
+public class IPv6 extends BasePacket implements IExtensionHeader {
     public static final byte FIXED_HEADER_LENGTH = 40; // bytes
 
-    // TODO: Implement extension header.
     public static final byte PROTOCOL_TCP = 0x6;
     public static final byte PROTOCOL_UDP = 0x11;
     public static final byte PROTOCOL_ICMP6 = 0x3A;
+    public static final byte PROTOCOL_HOPOPT = 0x00;
+    public static final byte PROTOCOL_ROUTING = 0x2B;
+    public static final byte PROTOCOL_FRAG = 0x2C;
+    public static final byte PROTOCOL_ESP = 0x32;
+    public static final byte PROTOCOL_AH = 0x33;
+    public static final byte PROTOCOL_DSTOPT = 0x3C;
+
+
     public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP =
             new HashMap<>();
 
@@ -40,6 +54,12 @@ public class IPv6 extends BasePacket {
         IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_ICMP6, ICMP6.class);
         IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_TCP, TCP.class);
         IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_UDP, UDP.class);
+        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_HOPOPT, HopByHopOptions.class);
+        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_ROUTING, Routing.class);
+        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_FRAG, Fragment.class);
+        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_ESP, EncapSecurityPayload.class);
+        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_AH, Authentication.class);
+        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_DSTOPT, DestinationOptions.class);
     }
 
     protected byte version;
@@ -119,21 +139,12 @@ public class IPv6 extends BasePacket {
         return this;
     }
 
-    /**
-     * Gets next header.
-     *
-     * @return the next header
-     */
+    @Override
     public byte getNextHeader() {
         return this.nextHeader;
     }
 
-    /**
-     * Sets next header.
-     *
-     * @param nextHeader the next header to set
-     * @return this
-     */
+    @Override
     public IPv6 setNextHeader(final byte nextHeader) {
         this.nextHeader = nextHeader;
         return this;
