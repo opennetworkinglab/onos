@@ -125,7 +125,10 @@ public class NeighborAdvertisement extends BasePacket {
             payloadData = this.payload.serialize();
         }
 
-        int payloadLength = payloadData == null ? 0 : (short) payloadData.length;
+        int payloadLength = 0;
+        if (payloadData != null) {
+            payloadLength = payloadData.length;
+        }
 
         final byte[] data = new byte[HEADER_LENGTH + payloadLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);

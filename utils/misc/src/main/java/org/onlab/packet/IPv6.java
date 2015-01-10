@@ -218,7 +218,10 @@ public class IPv6 extends BasePacket implements IExtensionHeader {
             payloadData = this.payload.serialize();
         }
 
-        this.payloadLength = payloadData == null ? 0 : (short) payloadData.length;
+        this.payloadLength = 0;
+        if (payloadData != null) {
+            this.payloadLength = (short) payloadData.length;
+        }
 
         final byte[] data = new byte[FIXED_HEADER_LENGTH + payloadLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
