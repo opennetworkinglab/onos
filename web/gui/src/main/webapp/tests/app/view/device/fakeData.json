@@ -1,0 +1,88 @@
+{
+  "devices": [
+    {
+      "id": "of:0000000000000001",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    },
+    {
+      "id": "of:0000000000000004",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    },
+    {
+      "id": "of:0000000000000005",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    },
+    {
+      "id": "of:0000000000000002",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    },
+    {
+      "id": "of:0000000000000003",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    },
+    {
+      "id": "of:0000000000000006",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    },
+    {
+      "id": "of:0000000000000007",
+      "available": true,
+      "role": "MASTER",
+      "mfr": "Nicira, Inc.",
+      "hw": "Open vSwitch",
+      "sw": "2.0.1",
+      "serial": "None",
+      "annotations": {
+        "protocol": "OF_10"
+      }
+    }
+  ]
+}

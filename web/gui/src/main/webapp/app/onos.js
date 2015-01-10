@@ -30,6 +30,7 @@
         // NOTE: 'ov' == 'Onos View'...
         'ovSample',
         'ovTopo',
+        'ovDevice',
         // (end of view modules)
 
         // core modules...
@@ -80,6 +81,11 @@
                     controller: 'OvTopoCtrl',
                     controllerAs: 'ctrl',
                     templateUrl: 'view/topo/topo.html'
+                })
+                .when('/device', {
+                    controller: 'OvDeviceCtrl',
+                    controllerAs: 'ctrl',
+                    templateUrl: 'view/device/device.html'
                 })
                 .otherwise({
                     redirectTo: '/'
