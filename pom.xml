@@ -69,7 +69,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netty4.version>4.0.23.Final</netty4.version>
         <copycat.version>0.3.0.onos</copycat.version>
-        <openflowj.version>0.3.7.oe</openflowj.version>
+        <openflowj.version>0.3.8.oe</openflowj.version>
     </properties>
 
     <distributionManagement>
