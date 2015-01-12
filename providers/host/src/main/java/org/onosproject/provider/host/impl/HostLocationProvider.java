@@ -15,6 +15,11 @@
  */
 package org.onosproject.provider.host.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Dictionary;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -22,6 +27,14 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPacket;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
+import org.onlab.packet.ndp.NeighborAdvertisement;
+import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -52,21 +65,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
-import org.onlab.packet.ARP;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IPacket;
-import org.onlab.packet.IPv6;
-import org.onlab.packet.ndp.NeighborAdvertisement;
-import org.onlab.packet.ndp.NeighborSolicitation;
-import org.onlab.packet.VlanId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
-
-import java.util.Dictionary;
-import java.util.Set;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -199,6 +199,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 return;
             }
             Ethernet eth = context.inPacket().parsed();
+
+            if (eth == null) {
+                return;
+            }
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
             ConnectPoint heardOn = context.inPacket().receivedFrom();

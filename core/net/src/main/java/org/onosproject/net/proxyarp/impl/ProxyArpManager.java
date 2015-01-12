@@ -31,6 +31,12 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -61,12 +67,6 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
-import org.onlab.packet.ARP;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
@@ -309,7 +309,7 @@ public class ProxyArpManager implements ProxyArpService {
     public boolean handleArp(PacketContext context) {
         InboundPacket pkt = context.inPacket();
         Ethernet ethPkt = pkt.parsed();
-        if (ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
+        if (ethPkt != null && ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
             ARP arp = (ARP) ethPkt.getPayload();
             if (arp.getOpCode() == ARP.OP_REPLY) {
                 forward(ethPkt);

@@ -33,6 +33,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.ONOSLLDP;
+import org.onlab.util.Timer;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -47,9 +50,6 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.ONOSLLDP;
-import org.onlab.util.Timer;
 import org.slf4j.Logger;
 
 // TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen for flow_removed messages
@@ -208,6 +208,10 @@ public class LinkDiscovery implements TimerTask {
      */
     public boolean handleLLDP(PacketContext context) {
         Ethernet eth = context.inPacket().parsed();
+        if (eth == null) {
+            return false;
+        }
+
         ONOSLLDP onoslldp = ONOSLLDP.parseONOSLLDP(eth);
         if (onoslldp != null) {
             final PortNumber dstPort =

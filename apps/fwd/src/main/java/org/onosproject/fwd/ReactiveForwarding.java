@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.Ethernet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Host;
@@ -46,7 +47,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
-import org.onlab.packet.Ethernet;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -166,6 +166,10 @@ public class ReactiveForwarding {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
+
+            if (ethPkt == null) {
+                return;
+            }
 
             // Bail if this is deemed to be a control packet.
             if (isControlPacket(ethPkt)) {

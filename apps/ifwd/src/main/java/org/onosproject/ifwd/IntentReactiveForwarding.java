@@ -15,11 +15,14 @@
  */
 package org.onosproject.ifwd;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.Ethernet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Host;
@@ -39,10 +42,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
-import org.onlab.packet.Ethernet;
 import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * WORK-IN-PROGRESS: Sample reactive forwarding application using intent framework.
@@ -99,6 +99,10 @@ public class IntentReactiveForwarding {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
+
+            if (ethPkt == null) {
+                return;
+            }
 
             HostId srcId = HostId.hostId(ethPkt.getSourceMAC());
             HostId dstId = HostId.hostId(ethPkt.getDestinationMAC());
