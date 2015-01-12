@@ -31,13 +31,21 @@ public final class PortNumber {
     private static final long MAX_NUMBER = (2L * Integer.MAX_VALUE) + 1;
 
 
-    public static final PortNumber IN_PORT = new PortNumber(-8);
-    public static final PortNumber TABLE = new PortNumber(-7);
-    public static final PortNumber NORMAL = new PortNumber(-6);
-    public static final PortNumber FLOOD = new PortNumber(-5);
-    public static final PortNumber ALL = new PortNumber(-4);
-    public static final PortNumber LOCAL = new PortNumber(-2);
-    public static final PortNumber CONTROLLER = new PortNumber(-3);
+    static final long IN_PORT_NUMBER = -8L;
+    static final long TABLE_NUMBER = -7L;
+    static final long NORMAL_NUMBER = -6L;
+    static final long FLOOD_NUMBER = -5L;
+    static final long ALL_NUMBER = -4L;
+    static final long LOCAL_NUMBER = -2L;
+    static final long CONTROLLER_NUMBER = -3L;
+
+    public static final PortNumber IN_PORT = new PortNumber(IN_PORT_NUMBER);
+    public static final PortNumber TABLE = new PortNumber(TABLE_NUMBER);
+    public static final PortNumber NORMAL = new PortNumber(NORMAL_NUMBER);
+    public static final PortNumber FLOOD = new PortNumber(FLOOD_NUMBER);
+    public static final PortNumber ALL = new PortNumber(ALL_NUMBER);
+    public static final PortNumber LOCAL = new PortNumber(LOCAL_NUMBER);
+    public static final PortNumber CONTROLLER = new PortNumber(CONTROLLER_NUMBER);
 
     private final long number;
 
@@ -85,9 +93,32 @@ public final class PortNumber {
         return number;
     }
 
+    private String decodeLogicalPort() {
+        if (number == CONTROLLER_NUMBER) {
+            return "CONTROLLER";
+        } else if (number == LOCAL_NUMBER) {
+            return "LOCAL";
+        } else if (number == ALL_NUMBER) {
+            return "ALL";
+        } else if (number == FLOOD_NUMBER) {
+            return "FLOOD";
+        } else if (number == NORMAL_NUMBER) {
+            return "NORMAL";
+        } else if (number == TABLE_NUMBER) {
+            return "TABLE";
+        } else if (number == IN_PORT_NUMBER) {
+            return "IN_PORT";
+        }
+        return "UNKNOWN";
+    }
+
     @Override
     public String toString() {
-        return UnsignedLongs.toString(number);
+        if (!isLogical()) {
+            return UnsignedLongs.toString(number);
+        } else {
+            return decodeLogicalPort();
+        }
     }
 
     @Override
