@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -41,6 +42,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
@@ -62,6 +64,7 @@ import org.slf4j.LoggerFactory;
 public class FlowModBuilderVer13 extends FlowModBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(FlowModBuilderVer10.class);
+    private static final int OFPCML_NO_BUFFER = 0xffff;
 
     private final TrafficTreatment treatment;
 
@@ -174,8 +177,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 break;
             case OUTPUT:
                 OutputInstruction out = (OutputInstruction) i;
-                actions.add(factory().actions().buildOutput().setPort(
-                        OFPort.of((int) out.port().toLong())).build());
+                OFActionOutput.Builder action = factory().actions().buildOutput()
+                        .setPort(OFPort.of((int) out.port().toLong()));
+                if (out.port().equals(PortNumber.CONTROLLER)) {
+                    action.setMaxLen(OFPCML_NO_BUFFER);
+                }
+                actions.add(action.build());
                 break;
             case GROUP:
             default:
