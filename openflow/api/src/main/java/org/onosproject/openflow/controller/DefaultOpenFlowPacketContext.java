@@ -16,6 +16,7 @@
 package org.onosproject.openflow.controller;
 
 
+import java.nio.BufferUnderflowException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -85,8 +86,12 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     @Override
     public Ethernet parsed() {
         Ethernet eth = new Ethernet();
-        eth.deserialize(pktin.getData(), 0, pktin.getTotalLen());
-        return eth;
+        try {
+            eth.deserialize(pktin.getData(), 0, pktin.getData().length);
+            return eth;
+        } catch (BufferUnderflowException e) {
+            return null;
+        }
     }
 
     @Override
