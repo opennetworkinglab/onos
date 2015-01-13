@@ -56,6 +56,8 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
                           service.intentSubmittedEventMetric());
             result = json(mapper, result, "intentInstalled",
                           service.intentInstalledEventMetric());
+            result = json(mapper, result, "intentFailed",
+                          service.intentFailedEventMetric());
             result = json(mapper, result, "intentWithdrawRequested",
                           service.intentWithdrawRequestedEventMetric());
             result = json(mapper, result, "intentWithdrawn",
@@ -66,6 +68,8 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
                              service.intentSubmittedEventMetric());
             printEventMetric("Installed",
                              service.intentInstalledEventMetric());
+            printEventMetric("Failed",
+                             service.intentFailedEventMetric());
             printEventMetric("Withdraw Requested",
                              service.intentWithdrawRequestedEventMetric());
             printEventMetric("Withdrawn",

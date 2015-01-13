@@ -65,6 +65,7 @@ public class IntentMetrics implements IntentMetricsService,
     private static final String COMPONENT_NAME = "Intent";
     private static final String FEATURE_SUBMITTED_NAME = "Submitted";
     private static final String FEATURE_INSTALLED_NAME = "Installed";
+    private static final String FEATURE_FAILED_NAME = "Failed";
     private static final String FEATURE_WITHDRAW_REQUESTED_NAME =
         "WithdrawRequested";
     private static final String FEATURE_WITHDRAWN_NAME = "Withdrawn";
@@ -72,11 +73,13 @@ public class IntentMetrics implements IntentMetricsService,
     // Event metrics:
     //  - Intent Submitted API operation
     //  - Intent Installed operation completion
+    //  - Intent Failed compilation or installation
     //  - Intent Withdraw Requested API operation
     //  - Intent Withdrawn operation completion
     //
     private EventMetric intentSubmittedEventMetric;
     private EventMetric intentInstalledEventMetric;
+    private EventMetric intentFailedEventMetric;
     private EventMetric intentWithdrawRequestedEventMetric;
     private EventMetric intentWithdrawnEventMetric;
 
@@ -117,6 +120,11 @@ public class IntentMetrics implements IntentMetricsService,
     }
 
     @Override
+    public EventMetric intentFailedEventMetric() {
+        return intentFailedEventMetric;
+    }
+
+    @Override
     public EventMetric intentWithdrawRequestedEventMetric() {
         return intentWithdrawRequestedEventMetric;
     }
@@ -137,7 +145,7 @@ public class IntentMetrics implements IntentMetricsService,
                 intentInstalledEventMetric.eventReceived();
                 break;
             case FAILED:
-                // ignore
+                intentFailedEventMetric.eventReceived();
                 break;
             case WITHDRAW_REQ:
                 intentWithdrawRequestedEventMetric.eventReceived();
@@ -181,6 +189,9 @@ public class IntentMetrics implements IntentMetricsService,
         intentInstalledEventMetric =
             new EventMetric(metricsService, COMPONENT_NAME,
                             FEATURE_INSTALLED_NAME);
+        intentFailedEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_FAILED_NAME);
         intentWithdrawRequestedEventMetric =
             new EventMetric(metricsService, COMPONENT_NAME,
                             FEATURE_WITHDRAW_REQUESTED_NAME);
@@ -190,6 +201,7 @@ public class IntentMetrics implements IntentMetricsService,
 
         intentSubmittedEventMetric.registerMetrics();
         intentInstalledEventMetric.registerMetrics();
+        intentFailedEventMetric.registerMetrics();
         intentWithdrawRequestedEventMetric.registerMetrics();
         intentWithdrawnEventMetric.registerMetrics();
     }
@@ -200,6 +212,7 @@ public class IntentMetrics implements IntentMetricsService,
     private void removeMetrics() {
         intentSubmittedEventMetric.removeMetrics();
         intentInstalledEventMetric.removeMetrics();
+        intentFailedEventMetric.removeMetrics();
         intentWithdrawRequestedEventMetric.removeMetrics();
         intentWithdrawnEventMetric.removeMetrics();
     }

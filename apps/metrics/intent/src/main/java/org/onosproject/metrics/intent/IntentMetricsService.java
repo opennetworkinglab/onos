@@ -45,6 +45,13 @@ public interface IntentMetricsService {
     public EventMetric intentInstalledEventMetric();
 
     /**
+     * Gets the Event Metric for the intent FAILED events.
+     *
+     * @return the Event Metric for the intent FAILED events.
+     */
+    public EventMetric intentFailedEventMetric();
+
+    /**
      * Gets the Event Metric for the intent WITHDRAW_REQ events.
      *
      * @return the Event Metric for the intent WITHDRAW_REQ events.
