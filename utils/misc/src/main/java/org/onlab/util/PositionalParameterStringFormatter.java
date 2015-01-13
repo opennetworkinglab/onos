@@ -41,7 +41,7 @@ public final class PositionalParameterStringFormatter {
             if (!current.contains("{}")) {
                 return current;
             }
-            current = current.replaceFirst("\\{\\}", parameter.toString());
+            current = current.replaceFirst("\\{\\}", String.valueOf(parameter));
         }
         return current;
     }
