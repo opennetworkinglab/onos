@@ -17,12 +17,7 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.onlab.netty.Endpoint;
-import org.onlab.netty.InternalMessage;
-import org.onlab.netty.KryoSerializer.EndPointSerializer;
-import org.onlab.netty.KryoSerializer.InternalMessageSerializer;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.store.serializers.KryoSerializer;
-import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.ipran.serializers.KryoSerializer;
 import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;
@@ -50,20 +45,10 @@ public class IpranConnector {
             })
             .build();
     
-    protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-                serializerPool = KryoNamespace
-                                .newBuilder()
-                                .register(byte[].class)
-                                .register(new InternalMessageSerializer(), InternalMessage.class)
-                                .register(new EndPointSerializer(), Endpoint.class)
-                                .build();
-        }
-    };
+    protected static final KryoSerializer SERIALIZER = new KryoSerializer();
     
     
-    public enum messageType {
+    public static enum messageType {
 
         /**
          * To hand shake with ipran

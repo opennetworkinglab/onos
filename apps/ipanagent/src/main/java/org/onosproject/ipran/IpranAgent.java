@@ -7,6 +7,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.netty.Endpoint;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.LeadershipEvent;
@@ -14,10 +15,15 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.store.serializers.DecodeTo;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
+
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 @Component(immediate = true)
 public class IpranAgent {
@@ -28,7 +34,7 @@ public class IpranAgent {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentService intentService;
+    protected FlowRuleService flowService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -41,7 +47,7 @@ public class IpranAgent {
     private ApplicationId appId;
     private ControllerNode localControllerNode;
     private IpranConnector ipranConnector;
-
+    private static final int DEFAULT_IPRAN_PORT = 2000;
     
     @Activate
     protected void activate() {
@@ -74,7 +80,11 @@ public class IpranAgent {
             // TODO Auto-generated method stub
             log.debug("Topology Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
-            
+            Endpoint host = new Endpoint(localControllerNode.id().toString(), DEFAULT_IPRAN_PORT);
+            ListenableFuture<byte[]> responseFuture = ipranConnector
+                    .sendAndRecvMsg(host, IpranConnector.messageType.TOPO_CHANGED.toString(), null);
+            Futures.transform(responseFuture, new DecodeTo<String>((StoreSerializer) IpranConnector.SERIALIZER));
+            return;
         }
     }
     /**

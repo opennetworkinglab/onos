@@ -34,9 +34,9 @@
     </dependency>
     
     <dependency>
-     <groupId>org.onosproject</groupId>
-     <artifactId>onos-core-serializers</artifactId>
-     <version>${project.version}</version>
+       <groupId>org.onosproject</groupId>
+       <artifactId>onos-core-serializers</artifactId>
+       <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>
