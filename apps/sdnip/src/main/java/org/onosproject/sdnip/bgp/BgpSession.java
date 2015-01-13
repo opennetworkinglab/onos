@@ -702,6 +702,8 @@ public class BgpSession extends SimpleChannelHandler {
 
     /**
      * Restarts the BGP KeepaliveTimer.
+     *
+     * @param ctx the Channel Handler Context to use
      */
     void restartKeepaliveTimer(ChannelHandlerContext ctx) {
         if (localKeepaliveInterval == 0) {
@@ -747,6 +749,8 @@ public class BgpSession extends SimpleChannelHandler {
 
     /**
      * Restarts the BGP Session Timeout Timer.
+     *
+     * @param ctx the Channel Handler Context to use
      */
     void restartSessionTimeoutTimer(ChannelHandlerContext ctx) {
         if (remoteHoldtime == 0) {

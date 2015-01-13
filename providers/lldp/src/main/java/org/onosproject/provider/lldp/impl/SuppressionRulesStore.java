@@ -85,7 +85,7 @@ public class SuppressionRulesStore {
      * Returns SuppressionRules.
      *
      * @return SuppressionRules
-     * @throws IOException
+     * @throws IOException if error occurred while reading the data
      */
     public SuppressionRules read() throws IOException {
         final Set<DeviceId> suppressedDevice = new HashSet<>();
@@ -143,7 +143,7 @@ public class SuppressionRulesStore {
      * Writes the given SuppressionRules.
      *
      * @param rules SuppressionRules
-     * @throws IOException
+     * @throws IOException if error occurred while writing the data
      */
     public void write(SuppressionRules rules) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
