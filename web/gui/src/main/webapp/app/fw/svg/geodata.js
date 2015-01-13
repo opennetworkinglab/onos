@@ -15,20 +15,25 @@
  */
 
 /*
- ONOS GUI -- SVG -- Map Service
+ ONOS GUI -- SVG -- GeoData Service
 
  @author Simon Hunt
  */
 
 /*
-    The Map Service provides a simple API for loading geographical maps into
-    an SVG layer. For example, as a background to the Topology View.
+ The GeoData Service caches GeoJSON map data, and provides supporting
+ projections for mapping into SVG layers.
 
-    e.g.  var ok = MapService.loadMapInto(svgLayer, '*continental-us');
+ A GeoMap object can be fetched by ID. IDs that start with an asterisk
+ identify maps bundled with the GUI. IDs that do not start with an
+ asterisk are assumed to be URLs to externally provided data (exact
+ format to be decided).
 
-    The Map Service makes use of the GeoDataService to load the required data
-    from the server.
-*/
+ e.g.  var geomap = GeoDataService.fetchGeoMap('*continental-us');
+
+ Note that, since the GeoMap instance is cached / shared, it should
+ contain no state.
+ */
 
 (function () {
     'use strict';
@@ -37,7 +42,7 @@
     var $log, $http, fs;
 
     // internal state
-    var mapCache = d3.map(),
+    var cache = d3.map(),
         bundledUrlPrefix = '../data/map/';
 
     function getUrl(id) {
@@ -48,19 +53,27 @@
     }
 
     angular.module('onosSvg')
-        .factory('MapService', ['$log', '$http', 'FnService',
+        .factory('GeoDataService', ['$log', '$http', 'FnService',
         function (_$log_, _$http_, _fs_) {
             $log = _$log_;
             $http = _$http_;
             fs = _fs_;
 
+            // start afresh...
+            function clearCache() {
+                cache = d3.map();
+            }
+
+            // returns a promise decorated with:
+            //   .meta -- id, url, and whether the data was cached
+            //   .mapdata -- geojson data (on response from server)
 
             function fetchGeoMap(id) {
                 if (!fs.isS(id)) {
                     return null;
                 }
                 var url = getUrl(id),
-                    promise = mapCache.get(id);
+                    promise = cache.get(id);
 
                 if (!promise) {
                     // need to fetch the data, build the object,
@@ -74,15 +87,15 @@
                     };
 
                     promise.then(function (response) {
-                            // success
-                            promise.mapdata = response.data;
-                        }, function (response) {
-                            // error
-                            $log.warn('Failed to retrieve map data: ' + url,
-                                response.status, response.data);
-                        });
+                        // success
+                        promise.mapdata = response.data;
+                    }, function (response) {
+                        // error
+                        $log.warn('Failed to retrieve map data: ' + url,
+                            response.status, response.data);
+                    });
 
-                    mapCache.set(id, promise);
+                    cache.set(id, promise);
 
                 } else {
                     promise.meta.wasCached = true;
@@ -91,8 +104,7 @@
                 return promise;
             }
 
-            var geoMapProj;
-
+            // TODO: clean up implementation of projection...
             function setProjForView(path, topoData) {
                 var dim = 1000;
 
@@ -119,39 +131,9 @@
             }
 
 
-            function loadMapInto(mapLayer, id) {
-                var mapObject = fetchGeoMap(id);
-                if (!mapObject) {
-                    $log.warn('Failed to load map: ' + id);
-                    return null;
-                }
-
-                var mapdata = mapObject.mapdata,
-                    topoData, path;
-
-                mapObject.then(function () {
-                    // extracts the topojson data into geocoordinate-based geometry
-                    topoData = topojson.feature(mapdata, mapdata.objects.states);
-
-                    // see: http://bl.ocks.org/mbostock/4707858
-                    geoMapProj = d3.geo.mercator();
-                    path = d3.geo.path().projection(geoMapProj);
-
-                    setProjForView(path, topoData);
-
-                    mapLayer.selectAll('path')
-                        .data(topoData.features)
-                        .enter()
-                        .append('path')
-                        .attr('d', path);
-                });
-                // TODO: review whether we should just return true (not the map object)
-                return mapObject;
-            }
-
             return {
-                loadMapInto: loadMapInto
+                clearCache: clearCache,
+                fetchGeoMap: fetchGeoMap
             };
         }]);
-
 }());

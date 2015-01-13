@@ -82,76 +82,8 @@ describe('factory: fw/svg/map.js', function() {
         // TODO: figure out how to test this function as a black box test.
 
         expect(obj).toBeTruthy();
-        debugger;
 
         // todo: assert that paths are added to map layer element
     });
 
-/*
-
-
-
-    it('should return null when no parameters given', function () {
-        promise = ms.fetchGeoMap();
-        expect(promise).toBeNull();
-    });
-
-    it('should augment the id of a bundled map', function () {
-        var id = '*foo';
-        promise = ms.fetchGeoMap(id);
-        expect(promise.meta).toBeDefined();
-        expect(promise.meta.id).toBe(id);
-        expect(promise.meta.url).toBe('../data/map/foo.json');
-    });
-
-    it('should treat an external id as the url itself', function () {
-        var id = 'some/path/to/foo';
-        promise = ms.fetchGeoMap(id);
-        expect(promise.meta).toBeDefined();
-        expect(promise.meta.id).toBe(id);
-        expect(promise.meta.url).toBe(id + '.json');
-    });
-
-    it('should cache the returned objects', function () {
-        var id = 'foo';
-        promise = ms.fetchGeoMap(id);
-        expect(promise).toBeDefined();
-        expect(promise.meta.wasCached).toBeFalsy();
-        expect(promise.tagged).toBeUndefined();
-
-        promise.tagged = 'I woz here';
-
-        promise = ms.fetchGeoMap(id);
-        expect(promise).toBeDefined();
-        expect(promise.meta.wasCached).toBeTruthy();
-        expect(promise.tagged).toEqual('I woz here');
-    });
-
-    it('should clear the cache when asked', function () {
-        var id = 'foo';
-        promise = ms.fetchGeoMap(id);
-        expect(promise.meta.wasCached).toBeFalsy();
-
-        promise = ms.fetchGeoMap(id);
-        expect(promise.meta.wasCached).toBeTruthy();
-
-        ms.clearCache();
-        promise = ms.fetchGeoMap(id);
-        expect(promise.meta.wasCached).toBeFalsy();
-    });
-
-
-    it('should log a warning if data fails to load', function () {
-        $httpBackend.expectGET(mapurl).respond(404, 'Not found');
-        spyOn($log, 'warn');
-
-        promise = ms.fetchGeoMap(mapid);
-        $httpBackend.flush();
-        expect(promise.mapdata).toBeUndefined();
-        expect($log.warn)
-            .toHaveBeenCalledWith('Failed to retrieve map data: ' + mapurl,
-                                    404, 'Not found');
-
-    });
-*/
 });
