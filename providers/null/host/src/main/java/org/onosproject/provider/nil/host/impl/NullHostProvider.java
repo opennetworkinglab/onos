@@ -26,6 +26,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -129,6 +130,11 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
     private class InternalHostProvider implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            if (!deviceService.getRole(event.subject().id())
+                    .equals(MastershipRole.MASTER)) {
+                log.info("Local node is not master for device", event.subject().id());
+                return;
+            }
             switch (event.type()) {
 
                 case DEVICE_ADDED:
