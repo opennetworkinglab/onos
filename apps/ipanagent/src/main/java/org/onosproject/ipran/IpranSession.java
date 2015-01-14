@@ -3,6 +3,9 @@ import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -18,6 +21,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.onlab.netty.Endpoint;
 import org.onosproject.ipran.serializers.KryoSerializer;
+import org.onosproject.net.flow.SncFlowRuleEntry;
+import org.onosproject.net.topology.TopologyListener;
 import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;
@@ -27,13 +32,15 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
-public class IpranConnector {
+public class IpranSession {
     private final Logger log = getLogger(getClass());
     boolean isShutdown = true;
     private ChannelFuture ipranChannel;     // connect to ipran connections
     private ClientBootstrap clientBootstrap;
     private final AtomicLong messageIdGenerator = new AtomicLong(0);
     private static final int DEFAULT_IPRAN_PORT = 2000;
+    InetSocketAddress listenAddress;
+    protected Set<IpranSessionListener> SessionListener = new HashSet<>();
     private final Cache<Long, SettableFuture<byte[]>> responseFutures = CacheBuilder.newBuilder()
             .maximumSize(100000)
             .expireAfterWrite(10, TimeUnit.SECONDS)
@@ -92,8 +99,7 @@ public class IpranConnector {
                     return pipeline;
                 }
             };
-        InetSocketAddress listenAddress =
-            new InetSocketAddress(DEFAULT_IPRAN_PORT);
+        listenAddress = new InetSocketAddress(DEFAULT_IPRAN_PORT);
 
         clientBootstrap = new ClientBootstrap(channelFactory);
         clientBootstrap.setPipelineFactory(pipelineFactory);
@@ -107,14 +113,30 @@ public class IpranConnector {
     }
 
     /**
-     * Stops the BGP Session Manager operation.
+     * Stops the Ipran Connection.
      */
     public void stop() {
         isShutdown = true;
         clientBootstrap.releaseExternalResources();
+        responseFutures.cleanUp();
     }
+
+    public void addListener(IpranSessionListener listener) {
+        SessionListener.add(listener);
+    }
+
+    public void removeListener(IpranSessionListener listener) {
+        SessionListener.remove(listener);
+    }
+
+    public void notify(Collection<SncFlowRuleEntry> flowUpdates) {
+        for (IpranSessionListener listener : SessionListener) {
+            listener.update(flowUpdates);
+        }
+    } 
+    
     /**
-     * send msg to ipran, make sure the connection has been built
+     * send msg to ipran, make sure the connection has been built.
      */   
     public ListenableFuture<byte[]>  sendAndRecvMsg(Endpoint host, String type, byte[] data) {
         SettableFuture<byte[]> futureResponse = SettableFuture.create();
@@ -129,7 +151,7 @@ public class IpranConnector {
         if(ipranChannel.getChannel() !=null) {
             ipranChannel.getChannel().write(message);
         } else {
-            this.start();
+            clientBootstrap.connect(listenAddress);
             ipranChannel.getChannel().write(message);
         }
         return futureResponse;

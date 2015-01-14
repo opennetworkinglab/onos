@@ -35,6 +35,7 @@
         <module>openflow</module>
         <module>lldp</module>
         <module>host</module>
+        <module>igp</module>
     </modules>
 
     <dependencies>
