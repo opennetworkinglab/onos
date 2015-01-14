@@ -20,8 +20,10 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -48,6 +50,17 @@ public class ConnectivityIntentCodec extends JsonCodec<ConnectivityIntent> {
             final JsonCodec<TrafficTreatment> treatmentCodec =
                     context.codec(TrafficTreatment.class);
             result.set("treatment", treatmentCodec.encode(intent.treatment(), context));
+        }
+
+        if (intent.constraints() != null) {
+            final ArrayNode jsonConstraints = result.putArray("constraints");
+
+            if (intent.constraints() != null) {
+                for (final Constraint constraint : intent.constraints()) {
+                    // TODO: constraint should have its own codec
+                    jsonConstraints.add(constraint.toString());
+                }
+            }
         }
 
         return result;

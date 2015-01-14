@@ -50,6 +50,7 @@ public class CriterionCodec extends JsonCodec<Criterion> {
             case ETH_SRC:
             case ETH_DST:
                 final Criteria.EthCriterion ethCriterion = (Criteria.EthCriterion) criterion;
+                result.put("mac", ethCriterion.mac().toString());
                 break;
 
             case ETH_TYPE:
@@ -60,6 +61,8 @@ public class CriterionCodec extends JsonCodec<Criterion> {
 
             case IPV4_SRC:
             case IPV6_SRC:
+            case IPV4_DST:
+            case IPV6_DST:
                 final Criteria.IPCriterion iPCriterion = (Criteria.IPCriterion) criterion;
                 result.put("ip", iPCriterion.ip().toString());
                 break;

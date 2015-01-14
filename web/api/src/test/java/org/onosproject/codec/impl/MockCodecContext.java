@@ -28,6 +28,9 @@ public final class MockCodecContext implements CodecContext {
     private ObjectMapper mapper = new ObjectMapper();
     private CodecManager manager = new CodecManager();
 
+    /**
+     * Constructs a new mock codec context.
+     */
     public MockCodecContext() {
         manager.activate();
     }

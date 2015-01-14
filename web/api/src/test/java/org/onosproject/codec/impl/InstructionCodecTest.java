@@ -44,7 +44,7 @@ public class InstructionCodecTest {
     JsonCodec<Instruction> instructionCodec;
 
     /**
-     * Sets up for each tests.  Creates a context and fetches the instruction
+     * Sets up for each test.  Creates a context and fetches the instruction
      * codec.
      */
     @Before

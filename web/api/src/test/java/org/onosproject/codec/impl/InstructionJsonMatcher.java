@@ -31,11 +31,11 @@ import static org.onosproject.net.flow.instructions.L3ModificationInstruction.*;
 /**
  * Hamcrest matcher for instructions.
  */
-public class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> {
+public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> {
 
     private final Instruction instruction;
 
-    public InstructionJsonMatcher(Instruction instructionValue) {
+    private InstructionJsonMatcher(Instruction instructionValue) {
         instruction = instructionValue;
     }
 
@@ -134,7 +134,7 @@ public class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
     }
 
     /**
-     * Matches the contents of a mod lambda instruction.
+     * Matches the contents of a mod Ethernet instruction.
      *
      * @param instructionJson JSON instruction to match
      * @return true if contents match, false otherwise
@@ -262,7 +262,7 @@ public class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
     }
 
     /**
-     * Matches the contents of a mod ip instruction.
+     * Matches the contents of a mod MPLS label instruction.
      *
      * @param instructionJson JSON instruction to match
      * @return true if contents match, false otherwise

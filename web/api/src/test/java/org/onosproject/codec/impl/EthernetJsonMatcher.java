@@ -24,12 +24,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * Hamcrest matcher for ethernet objects.
  */
-public class EthernetJsonMatcher extends TypeSafeMatcher<JsonNode> {
+public final class EthernetJsonMatcher extends TypeSafeMatcher<JsonNode> {
 
     private final Ethernet ethernet;
     private String reason = "";
 
-    public EthernetJsonMatcher(Ethernet ethernetValue) {
+    private EthernetJsonMatcher(Ethernet ethernetValue) {
         ethernet = ethernetValue;
     }
 
