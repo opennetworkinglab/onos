@@ -30,10 +30,14 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -58,6 +62,7 @@ public class ReactiveForwarding {
 
     private static final int TIMEOUT = 10;
     private static final int PRIORITY = 10;
+    private static final int PUNT_RULE_PRIORITY = 5;
 
     private final Logger log = getLogger(getClass());
 
@@ -72,6 +77,9 @@ public class ReactiveForwarding {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -91,6 +99,8 @@ public class ReactiveForwarding {
     @Activate
     public void activate(ComponentContext context) {
         appId = coreService.registerApplication("org.onosproject.fwd");
+        deviceService.addListener(new InternalDeviceListener());
+        pushRules();
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         readComponentConfiguration(context);
         log.info("Started with Application ID {}", appId.id());
@@ -290,6 +300,58 @@ public class ReactiveForwarding {
                                              builder.build(), treat.build(), PRIORITY, appId, TIMEOUT, false);
 
             flowRuleService.applyFlowRules(f);
+        }
+    }
+
+    /**
+     * Pushes flow rules to all devices.
+     */
+    private void pushRules() {
+        for (Device device : deviceService.getDevices()) {
+            pushRules(device);
+        }
+    }
+
+    /**
+     * Pushes flow rules to the device to receive packets that need
+     * to be processed.
+     *
+     * @param device the device to push the rules to
+     */
+    private synchronized void pushRules(Device device) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+
+        // Get all IPv4 packets
+        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        tbuilder.punt();
+        FlowRule flowArp =
+            new DefaultFlowRule(device.id(),
+                                sbuilder.build(), tbuilder.build(),
+                                PUNT_RULE_PRIORITY, appId, 0, true);
+
+        flowRuleService.applyFlowRules(flowArp);
+    }
+
+    public class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                    pushRules(device);
+                    break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                case DEVICE_SUSPENDED:
+                case DEVICE_UPDATED:
+                case DEVICE_REMOVED:
+                case PORT_ADDED:
+                case PORT_UPDATED:
+                case PORT_REMOVED:
+                default:
+                    break;
+            }
         }
     }
 
