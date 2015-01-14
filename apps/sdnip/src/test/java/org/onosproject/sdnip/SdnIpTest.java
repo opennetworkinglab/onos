@@ -42,6 +42,13 @@ import org.junit.experimental.categories.Category;
 import org.onlab.junit.IntegrationTest;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -52,18 +59,12 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.MacAddress;
 
 import com.google.common.collect.Sets;
 
@@ -148,7 +149,8 @@ public class SdnIpTest extends AbstractIntentTest {
                 IpAddress.valueOf("192.168.10.101"),
                 IpPrefix.valueOf("192.168.10.0/24")));
         Interface sw1Eth1 = new Interface(SW1_ETH1,
-                interfaceIpAddresses1, MacAddress.valueOf("00:00:00:00:00:01"));
+                interfaceIpAddresses1, MacAddress.valueOf("00:00:00:00:00:01"),
+                VlanId.NONE);
         interfaces.add(sw1Eth1);
 
         Set<InterfaceIpAddress> interfaceIpAddresses2 = Sets.newHashSet();
@@ -156,7 +158,8 @@ public class SdnIpTest extends AbstractIntentTest {
                 IpAddress.valueOf("192.168.20.101"),
                 IpPrefix.valueOf("192.168.20.0/24")));
         Interface sw2Eth1 = new Interface(SW2_ETH1,
-                interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"));
+                interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"),
+                VlanId.NONE);
         interfaces.add(sw2Eth1);
 
         Set<InterfaceIpAddress> interfaceIpAddresses3 = Sets.newHashSet();
@@ -164,7 +167,8 @@ public class SdnIpTest extends AbstractIntentTest {
                 IpAddress.valueOf("192.168.30.101"),
                 IpPrefix.valueOf("192.168.30.0/24")));
         Interface sw3Eth1 = new Interface(SW3_ETH1,
-                interfaceIpAddresses3, MacAddress.valueOf("00:00:00:00:00:03"));
+                interfaceIpAddresses3, MacAddress.valueOf("00:00:00:00:00:03"),
+                VlanId.NONE);
         interfaces.add(sw3Eth1);
 
         expect(interfaceService.getInterface(SW1_ETH1)).andReturn(

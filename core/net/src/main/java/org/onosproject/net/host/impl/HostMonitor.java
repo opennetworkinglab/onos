@@ -15,17 +15,14 @@
  */
 package org.onosproject.net.host.impl;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onlab.util.Timer;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -43,11 +40,15 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.ProviderId;
-import org.onlab.packet.ARP;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.util.Timer;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Monitors hosts on the dataplane to detect changes in host data.
@@ -182,7 +183,8 @@ public class HostMonitor implements TimerTask {
                     for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
                         if (ia.subnetAddress().contains(targetIp)) {
                             sendProbe(device.id(), port, targetIp,
-                                      ia.ipAddress(), portAddresses.mac());
+                                      ia.ipAddress(), portAddresses.mac(),
+                                      portAddresses.vlan());
                         }
                     }
                 }
@@ -191,8 +193,8 @@ public class HostMonitor implements TimerTask {
     }
 
     private void sendProbe(DeviceId deviceId, Port port, IpAddress targetIp,
-            IpAddress sourceIp, MacAddress sourceMac) {
-        Ethernet arpPacket = buildArpRequest(targetIp, sourceIp, sourceMac);
+            IpAddress sourceIp, MacAddress sourceMac, VlanId vlan) {
+        Ethernet arpPacket = buildArpRequest(targetIp, sourceIp, sourceMac, vlan);
 
         List<Instruction> instructions = new ArrayList<>();
         instructions.add(Instructions.createOutput(port.number()));
@@ -209,7 +211,7 @@ public class HostMonitor implements TimerTask {
     }
 
     private Ethernet buildArpRequest(IpAddress targetIp, IpAddress sourceIp,
-            MacAddress sourceMac) {
+            MacAddress sourceMac, VlanId vlan) {
 
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
@@ -228,6 +230,10 @@ public class HostMonitor implements TimerTask {
                 .setDestinationMACAddress(MacAddress.BROADCAST)
                 .setSourceMACAddress(sourceMac)
                 .setPayload(arp);
+
+        if (!vlan.equals(VlanId.NONE)) {
+            ethernet.setVlanID(vlan.toShort());
+        }
 
         return ethernet;
     }

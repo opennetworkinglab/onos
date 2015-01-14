@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
@@ -34,6 +35,7 @@ public class Interface {
     private final ConnectPoint connectPoint;
     private final Set<InterfaceIpAddress> ipAddresses;
     private final MacAddress macAddress;
+    private final VlanId vlan;
 
     /**
      * Creates an Interface based on a connection point, a set of interface
@@ -45,10 +47,11 @@ public class Interface {
      */
     public Interface(ConnectPoint connectPoint,
                      Set<InterfaceIpAddress> ipAddresses,
-                     MacAddress macAddress) {
+                     MacAddress macAddress, VlanId vlan) {
         this.connectPoint = connectPoint;
         this.ipAddresses = Sets.newHashSet(ipAddresses);
         this.macAddress = macAddress;
+        this.vlan = vlan;
     }
 
     /**
@@ -60,6 +63,7 @@ public class Interface {
         connectPoint = portAddresses.connectPoint();
         ipAddresses = Sets.newHashSet(portAddresses.ipAddresses());
         macAddress = portAddresses.mac();
+        vlan = portAddresses.vlan();
     }
 
     /**
@@ -76,18 +80,27 @@ public class Interface {
      *
      * @return the set of interface IP addresses
      */
-   public Set<InterfaceIpAddress> ipAddresses() {
+    public Set<InterfaceIpAddress> ipAddresses() {
         return ipAddresses;
     }
 
-   /**
-    * Retrieves the MAC address that is assigned to the interface.
-    *
-    * @return the MAC address
-    */
-   public MacAddress mac() {
-       return macAddress;
-   }
+    /**
+     * Retrieves the MAC address that is assigned to the interface.
+     *
+     * @return the MAC address
+     */
+    public MacAddress mac() {
+        return macAddress;
+    }
+
+    /**
+     * Retrieves the VLAN ID that is assigned to the interface.
+     *
+     * @return the VLAN ID
+     */
+    public VlanId vlan() {
+        return vlan;
+    }
 
     @Override
     public boolean equals(Object other) {
@@ -99,12 +112,13 @@ public class Interface {
 
         return  connectPoint.equals(otherInterface.connectPoint) &&
                 ipAddresses.equals(otherInterface.ipAddresses) &&
-                macAddress.equals(otherInterface.macAddress);
+                macAddress.equals(otherInterface.macAddress) &&
+                vlan.equals(otherInterface.vlan);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectPoint, ipAddresses, macAddress);
+        return Objects.hash(connectPoint, ipAddresses, macAddress, vlan);
     }
 
     @Override
@@ -113,6 +127,7 @@ public class Interface {
                 .add("connectPoint", connectPoint)
                 .add("ipAddresses", ipAddresses)
                 .add("macAddress", macAddress)
+                .add("vlan", vlan)
                 .toString();
     }
 }

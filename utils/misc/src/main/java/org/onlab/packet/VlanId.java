@@ -25,7 +25,13 @@ public class VlanId {
     // Based on convention used elsewhere? Check and change if needed
     public static final short UNTAGGED = (short) 0xffff;
 
+    // In a traffic selector, this means that a VLAN ID must be present, but
+    // can have any value. We use the same value as OpenFlow, but this is not
+    // required.
+    public static final short ANY_VALUE = (short) 0x1000;
+
     public static final VlanId NONE = VlanId.vlanId(UNTAGGED);
+    public static final VlanId ANY = VlanId.vlanId(ANY_VALUE);
 
     // A VLAN ID is actually 12 bits of a VLAN tag.
     public static final short MAX_VLAN = 4095;
@@ -45,6 +51,10 @@ public class VlanId {
     public static VlanId vlanId(short value) {
         if (value == UNTAGGED) {
             return new VlanId();
+        }
+
+        if (value == ANY_VALUE) {
+            return new VlanId(ANY_VALUE);
         }
 
         if (value > MAX_VLAN) {
@@ -83,6 +93,9 @@ public class VlanId {
 
     @Override
     public String toString() {
+        if (this.value == ANY_VALUE) {
+            return "Any";
+        }
         return String.valueOf(this.value);
     }
 }

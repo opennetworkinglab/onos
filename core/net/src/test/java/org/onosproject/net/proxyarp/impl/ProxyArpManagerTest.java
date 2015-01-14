@@ -216,10 +216,12 @@ public class ProxyArpManagerTest {
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
             PortAddresses pa1 =
                 new PortAddresses(cp, Sets.newHashSet(ia1),
-                                  MacAddress.valueOf(2 * i - 1));
+                                  MacAddress.valueOf(2 * i - 1),
+                                  VlanId.vlanId((short) 1));
             PortAddresses pa2 =
                     new PortAddresses(cp, Sets.newHashSet(ia2),
-                                      MacAddress.valueOf(2 * i));
+                                      MacAddress.valueOf(2 * i),
+                                      VlanId.NONE);
 
             addresses.add(pa1);
             addresses.add(pa2);
@@ -269,7 +271,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#reply(Ethernet)} in the case where the
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is known.
      * Verifies the correct ARP reply is sent out the correct port.
      */
@@ -297,7 +299,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#reply(Ethernet)} in the case where the
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is not known.
      * Verifies the ARP request is flooded out the correct edge ports.
      */
@@ -320,7 +322,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#reply(Ethernet)} in the case where the
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is known for that IP address, but is not on the same
      * VLAN as the source host.
      * Verifies the ARP request is flooded out the correct edge ports.
@@ -421,7 +423,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#forward(Ethernet)} in the case where the
+     * Tests {@link ProxyArpManager#forward(Ethernet, ConnectPoint)} in the case where the
      * destination host is known.
      * Verifies the correct ARP request is sent out the correct port.
      */
@@ -444,7 +446,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#forward(Ethernet)} in the case where the
+     * Tests {@link ProxyArpManager#forward(Ethernet, ConnectPoint)} in the case where the
      * destination host is not known.
      * Verifies the correct ARP request is flooded out the correct edge ports.
      */

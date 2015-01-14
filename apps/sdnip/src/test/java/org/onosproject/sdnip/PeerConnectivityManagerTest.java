@@ -38,6 +38,7 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -189,7 +190,8 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                                    IpPrefix.valueOf("192.168.10.0/24"));
         Interface intfsw1eth1 = new Interface(s1Eth1,
                 Collections.singleton(ia1),
-                MacAddress.valueOf("00:00:00:00:00:01"));
+                MacAddress.valueOf("00:00:00:00:00:01"),
+                VlanId.NONE);
 
         configuredInterfaces.put(interfaceSw1Eth1, intfsw1eth1);
         String interfaceSw2Eth1 = "s2-eth1";
@@ -198,7 +200,8 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                                    IpPrefix.valueOf("192.168.20.0/24"));
         Interface intfsw2eth1 = new Interface(s2Eth1,
                 Collections.singleton(ia2),
-                MacAddress.valueOf("00:00:00:00:00:02"));
+                MacAddress.valueOf("00:00:00:00:00:02"),
+                VlanId.NONE);
         configuredInterfaces.put(interfaceSw2Eth1, intfsw2eth1);
 
         interfaceService = createMock(InterfaceService.class);

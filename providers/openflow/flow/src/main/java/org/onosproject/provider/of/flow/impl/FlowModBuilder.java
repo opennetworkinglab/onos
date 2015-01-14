@@ -15,10 +15,11 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -26,16 +27,14 @@ import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.Criteria.VlanPcpCriterion;
-import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -59,6 +58,8 @@ import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Builder for OpenFlow flow mods based on FlowRules.
@@ -199,8 +200,14 @@ public abstract class FlowModBuilder {
                 break;
             case VLAN_VID:
                 VlanIdCriterion vid = (VlanIdCriterion) c;
-                mBuilder.setExact(MatchField.VLAN_VID,
-                        OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
+
+                if (vid.vlanId().equals(VlanId.ANY)) {
+                    mBuilder.setMasked(MatchField.VLAN_VID, OFVlanVidMatch.PRESENT,
+                                       OFVlanVidMatch.PRESENT);
+                } else {
+                    mBuilder.setExact(MatchField.VLAN_VID,
+                            OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
+                }
                 break;
             case TCP_DST:
                 tp = (TcpPortCriterion) c;

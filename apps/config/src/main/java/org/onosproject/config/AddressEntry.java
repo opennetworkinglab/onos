@@ -27,6 +27,7 @@ public class AddressEntry {
     private long portNumber;
     private List<String> ipAddresses;
     private String macAddress;
+    private Short vlan;
 
     public String getDpid() {
         return dpid;
@@ -62,5 +63,14 @@ public class AddressEntry {
     @JsonProperty("mac")
     public void setMacAddress(String macAddress) {
         this.macAddress = macAddress;
+    }
+
+    public Short getVlan() {
+        return vlan;
+    }
+
+    @JsonProperty("vlan")
+    public void setVlan(short vlan) {
+        this.vlan = vlan;
     }
 }

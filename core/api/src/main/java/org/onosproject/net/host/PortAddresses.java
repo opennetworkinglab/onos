@@ -20,8 +20,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.onosproject.net.ConnectPoint;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onosproject.net.ConnectPoint;
 
 import com.google.common.base.MoreObjects;
 
@@ -33,6 +34,7 @@ public class PortAddresses {
     private final ConnectPoint connectPoint;
     private final Set<InterfaceIpAddress> ipAddresses;
     private final MacAddress macAddress;
+    private final VlanId vlan;
 
     /**
      * Constructs a PortAddresses object for the given connection point, with a
@@ -42,14 +44,16 @@ public class PortAddresses {
      * @param connectPoint the connection point these addresses are for
      * @param ipAddresses a set of interface IP addresses
      * @param mac a MAC address
+     * @param vlan a VLAN ID
      */
     public PortAddresses(ConnectPoint connectPoint,
-            Set<InterfaceIpAddress> ipAddresses, MacAddress mac) {
+            Set<InterfaceIpAddress> ipAddresses, MacAddress mac, VlanId vlan) {
         this.connectPoint = connectPoint;
         this.ipAddresses = (ipAddresses == null) ?
             Collections.<InterfaceIpAddress>emptySet()
             : new HashSet<>(ipAddresses);
         this.macAddress = mac;
+        this.vlan = vlan;
     }
 
     /**
@@ -79,6 +83,15 @@ public class PortAddresses {
         return macAddress;
     }
 
+    /**
+     * Returns the VLAN ID.
+     *
+     * @return the VLAN ID
+     */
+    public VlanId vlan() {
+        return vlan;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -93,12 +106,13 @@ public class PortAddresses {
 
         return Objects.equals(this.connectPoint, otherPa.connectPoint)
                 && Objects.equals(this.ipAddresses, otherPa.ipAddresses)
-                && Objects.equals(this.macAddress, otherPa.macAddress);
+                && Objects.equals(this.macAddress, otherPa.macAddress)
+                && Objects.equals(this.vlan, otherPa.vlan);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectPoint, ipAddresses, macAddress);
+        return Objects.hash(connectPoint, ipAddresses, macAddress, vlan);
     }
 
     @Override
@@ -107,6 +121,7 @@ public class PortAddresses {
             .add("connect-point", connectPoint)
             .add("ip-addresses", ipAddresses)
             .add("mac-address", macAddress)
+            .add("vlan", vlan)
             .toString();
     }
 }

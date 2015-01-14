@@ -30,10 +30,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -272,7 +273,7 @@ public class Router implements RouteListener {
      * or IPv6.
      *
      * @param prefix the prefix to use
-     * @return true if the rotue was found and removed, otherwise false
+     * @return true if the route was found and removed, otherwise false
      */
     boolean removeRibRoute(IpPrefix prefix) {
         if (prefix.version() == Ip4Address.VERSION) {
@@ -455,25 +456,26 @@ public class Router implements RouteListener {
         }
 
         // Match the destination IP prefix at the first hop
-        TrafficSelector selector;
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (prefix.version() == Ip4Address.VERSION) {
-            selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(prefix)
-                .build();
+            selector.matchEthType(Ethernet.TYPE_IPV4);
         } else {
-            selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV6)
-                .matchIPDst(prefix)
-                .build();
+            selector.matchEthType(Ethernet.TYPE_IPV6);
         }
+        selector.matchIPDst(prefix);
 
         // Rewrite the destination MAC address
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setEthDst(nextHopMacAddress)
-                .build();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
+                .setEthDst(nextHopMacAddress);
+        if (!egressInterface.vlan().equals(VlanId.NONE)) {
+            treatment.setVlanId(egressInterface.vlan());
+            // If we set VLAN ID, we have to make sure a VLAN tag exists.
+            // TODO support no VLAN -> VLAN routing
+            selector.matchVlanId(VlanId.ANY);
+        }
 
-        return new MultiPointToSinglePointIntent(appId, selector, treatment,
+        return new MultiPointToSinglePointIntent(appId, selector.build(),
+                                                 treatment.build(),
                                                  ingressPorts, egressPort);
     }
 

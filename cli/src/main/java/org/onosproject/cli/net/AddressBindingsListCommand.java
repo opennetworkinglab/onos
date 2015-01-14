@@ -36,7 +36,7 @@ import com.google.common.collect.Lists;
 public class AddressBindingsListCommand extends AbstractShellCommand {
 
     private static final String FORMAT =
-            "port=%s/%s, ip(s)=%s, mac=%s";
+            "port=%s/%s, ip(s)=%s, mac=%s, vlan=%s";
 
     @Override
     protected void execute() {
@@ -49,7 +49,7 @@ public class AddressBindingsListCommand extends AbstractShellCommand {
 
         for (PortAddresses pa : addresses) {
             print(FORMAT, pa.connectPoint().deviceId(), pa.connectPoint().port(),
-                    printIpAddresses(pa.ipAddresses()), pa.mac());
+                    printIpAddresses(pa.ipAddresses()), pa.mac(), pa.vlan());
         }
     }
 

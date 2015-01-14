@@ -28,15 +28,16 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -115,7 +116,8 @@ public class NetworkConfigReader {
                 try {
                     String[] splits = strIp.split("/");
                     if (splits.length != 2) {
-                        throw new IllegalArgumentException("Invalid IP address and prefix length format");
+                        throw new IllegalArgumentException(
+                            "Invalid IP address and prefix length format");
                     }
                     // NOTE: IpPrefix will mask-out the bits after the prefix length.
                     IpPrefix subnet = IpPrefix.valueOf(strIp);
@@ -138,8 +140,21 @@ public class NetworkConfigReader {
                 }
             }
 
+            VlanId vlan = null;
+            if (entry.getVlan() == null) {
+                vlan = VlanId.NONE;
+            } else {
+                try {
+                    vlan = VlanId.vlanId(entry.getVlan());
+                } catch (IllegalArgumentException e) {
+                    log.warn("Bad format for VLAN id in config: {}",
+                             entry.getVlan());
+                    vlan = VlanId.NONE;
+                }
+            }
+
             PortAddresses addresses = new PortAddresses(cp,
-                        interfaceIpAddresses, macAddress);
+                        interfaceIpAddresses, macAddress, vlan);
             hostAdminService.bindAddressesToPort(addresses);
         }
     }

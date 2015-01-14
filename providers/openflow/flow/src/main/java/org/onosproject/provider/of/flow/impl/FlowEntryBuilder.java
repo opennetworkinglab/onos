@@ -15,10 +15,7 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
@@ -63,7 +60,9 @@ import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class FlowEntryBuilder {
     private final Logger log = getLogger(getClass());
@@ -380,8 +379,19 @@ public class FlowEntryBuilder {
                 builder.matchVlanPcp(vlanPcp);
                 break;
             case VLAN_VID:
-                VlanId vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
-                builder.matchVlanId(vlanId);
+                VlanId vlanId = null;
+                if (match.isPartiallyMasked(MatchField.VLAN_VID)) {
+                    Masked<OFVlanVidMatch> masked = match.getMasked(MatchField.VLAN_VID);
+                    if (masked.getValue().equals(OFVlanVidMatch.PRESENT)
+                            && masked.getMask().equals(OFVlanVidMatch.PRESENT)) {
+                        vlanId = VlanId.ANY;
+                    }
+                } else {
+                    vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                }
+                if (vlanId != null) {
+                    builder.matchVlanId(vlanId);
+                }
                 break;
             case TCP_DST:
                 builder.matchTcpDst((short) match.get(MatchField.TCP_DST).getPort());

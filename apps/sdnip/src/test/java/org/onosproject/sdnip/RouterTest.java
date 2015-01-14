@@ -36,10 +36,10 @@ import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -95,6 +95,10 @@ public class RouterTest extends AbstractIntentTest {
             DeviceId.deviceId("of:0000000000000003"),
             PortNumber.portNumber(1));
 
+    private static final ConnectPoint SW4_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000004"),
+            PortNumber.portNumber(1));
+
     private static final ApplicationId APPID = new ApplicationId() {
         @Override
         public short id() {
@@ -146,6 +150,10 @@ public class RouterTest extends AbstractIntentTest {
         peers.put(IpAddress.valueOf(peer2Sw2Eth1),
                 new BgpPeer("00:00:00:00:00:00:00:02", 1, peer2Sw2Eth1));
 
+        String peer1Sw4Eth1 = "192.168.40.1";
+        peers.put(IpAddress.valueOf(peer1Sw4Eth1),
+                new BgpPeer("00:00:00:00:00:00:00:04", 1, peer1Sw4Eth1));
+
         sdnIpConfigService = createMock(SdnIpConfigurationService.class);
         expect(sdnIpConfigService.getBgpPeers()).andReturn(peers).anyTimes();
         replay(sdnIpConfigService);
@@ -166,7 +174,8 @@ public class RouterTest extends AbstractIntentTest {
                                    IpPrefix.valueOf("192.168.10.0/24"));
         Interface sw1Eth1 = new Interface(SW1_ETH1,
                 Sets.newHashSet(ia1),
-                MacAddress.valueOf("00:00:00:00:00:01"));
+                MacAddress.valueOf("00:00:00:00:00:01"),
+                VlanId.NONE);
 
         expect(interfaceService.getInterface(SW1_ETH1)).andReturn(sw1Eth1).anyTimes();
         interfaces.add(sw1Eth1);
@@ -176,7 +185,8 @@ public class RouterTest extends AbstractIntentTest {
                                    IpPrefix.valueOf("192.168.20.0/24"));
         Interface sw2Eth1 = new Interface(SW2_ETH1,
                 Sets.newHashSet(ia2),
-                MacAddress.valueOf("00:00:00:00:00:02"));
+                MacAddress.valueOf("00:00:00:00:00:02"),
+                VlanId.NONE);
 
         expect(interfaceService.getInterface(SW2_ETH1)).andReturn(sw2Eth1).anyTimes();
         interfaces.add(sw2Eth1);
@@ -186,10 +196,22 @@ public class RouterTest extends AbstractIntentTest {
                                    IpPrefix.valueOf("192.168.30.0/24"));
         Interface sw3Eth1 = new Interface(SW3_ETH1,
                 Sets.newHashSet(ia3),
-                MacAddress.valueOf("00:00:00:00:00:03"));
+                MacAddress.valueOf("00:00:00:00:00:03"),
+                VlanId.NONE);
 
         expect(interfaceService.getInterface(SW3_ETH1)).andReturn(sw3Eth1).anyTimes();
         interfaces.add(sw3Eth1);
+
+        InterfaceIpAddress ia4 =
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
+                                       IpPrefix.valueOf("192.168.40.0/24"));
+            Interface sw4Eth1 = new Interface(SW4_ETH1,
+                    Sets.newHashSet(ia4),
+                    MacAddress.valueOf("00:00:00:00:00:04"),
+                    VlanId.vlanId((short) 1));
+
+            expect(interfaceService.getInterface(SW4_ETH1)).andReturn(sw4Eth1).anyTimes();
+            interfaces.add(sw4Eth1);
 
         expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
 
@@ -228,6 +250,18 @@ public class RouterTest extends AbstractIntentTest {
         hostService.startMonitoringIp(host2Address);
         expectLastCall().anyTimes();
 
+        // Next hop on a VLAN
+        IpAddress host3Address = IpAddress.valueOf("192.168.40.1");
+        Host host3 = new DefaultHost(ProviderId.NONE, HostId.NONE,
+                MacAddress.valueOf("00:00:00:00:00:03"), VlanId.vlanId((short) 1),
+                new HostLocation(SW4_ETH1, 1),
+                Sets.newHashSet(host3Address));
+
+        expect(hostService.getHostsByIp(host3Address))
+                .andReturn(Sets.newHashSet(host3)).anyTimes();
+        hostService.startMonitoringIp(host3Address);
+        expectLastCall().anyTimes();
+
 
         replay(hostService);
     }
@@ -255,11 +289,72 @@ public class RouterTest extends AbstractIntentTest {
         Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
         ingressPoints.add(SW2_ETH1);
         ingressPoints.add(SW3_ETH1);
+        ingressPoints.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 new MultiPointToSinglePointIntent(APPID,
                         selectorBuilder.build(), treatmentBuilder.build(),
                         ingressPoints, SW1_ETH1);
+
+        // Set up test expectation
+        reset(intentService);
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intent);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                                builder.build()));
+        replay(intentService);
+
+        // Call the processRouteUpdates() method in Router class
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
+
+        // Verify
+        assertEquals(router.getRoutes4().size(), 1);
+        assertTrue(router.getRoutes4().contains(routeEntry));
+        assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
+        Intent firstIntent =
+            intentSynchronizer.getRouteIntents().iterator().next();
+        IntentKey firstIntentKey = new IntentKey(firstIntent);
+        IntentKey intentKey = new IntentKey(intent);
+        assertTrue(firstIntentKey.equals(intentKey));
+        verify(intentService);
+    }
+
+    /**
+     * This method tests adding a route entry.
+     */
+    @Test
+    public void testRouteAddWithVlan() throws TestUtilsException {
+        // Construct a route entry
+        RouteEntry routeEntry = new RouteEntry(
+                Ip4Prefix.valueOf("3.3.3.0/24"),
+                Ip4Address.valueOf("192.168.40.1"));
+
+        // Construct a MultiPointToSinglePointIntent intent
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                       .matchIPDst(routeEntry.prefix())
+                       .matchVlanId(VlanId.ANY);
+
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder();
+        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:03"))
+                        .setVlanId(VlanId.vlanId((short) 1));
+
+        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
+        ingressPoints.add(SW1_ETH1);
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
+
+        MultiPointToSinglePointIntent intent =
+                new MultiPointToSinglePointIntent(APPID,
+                        selectorBuilder.build(), treatmentBuilder.build(),
+                        ingressPoints, SW4_ETH1);
 
         // Set up test expectation
         reset(intentService);
@@ -321,6 +416,7 @@ public class RouterTest extends AbstractIntentTest {
         Set<ConnectPoint> ingressPointsNew = new HashSet<ConnectPoint>();
         ingressPointsNew.add(SW1_ETH1);
         ingressPointsNew.add(SW3_ETH1);
+        ingressPointsNew.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent intentNew =
                 new MultiPointToSinglePointIntent(APPID,

@@ -29,6 +29,10 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -36,9 +40,6 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.sdnip.config.Interface;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -76,7 +77,8 @@ public class HostToInterfaceAdaptorTest {
                                    IpPrefix.valueOf("192.168.1.0/24"));
         createPortAddressesAndInterface(CP1,
                 Sets.newHashSet(ia11),
-                MacAddress.valueOf("00:00:00:00:00:01"));
+                MacAddress.valueOf("00:00:00:00:00:01"),
+                VlanId.NONE);
 
         // Two addresses in the same subnet
         InterfaceIpAddress ia21 =
@@ -87,7 +89,8 @@ public class HostToInterfaceAdaptorTest {
                                    IpPrefix.valueOf("192.168.2.0/24"));
         createPortAddressesAndInterface(CP2,
                 Sets.newHashSet(ia21, ia22),
-                MacAddress.valueOf("00:00:00:00:00:02"));
+                MacAddress.valueOf("00:00:00:00:00:02"),
+                VlanId.vlanId((short) 4));
 
         // Two addresses in different subnets
         InterfaceIpAddress ia31 =
@@ -98,7 +101,8 @@ public class HostToInterfaceAdaptorTest {
                                    IpPrefix.valueOf("192.168.4.0/24"));
         createPortAddressesAndInterface(CP3,
                 Sets.newHashSet(ia31, ia41),
-                MacAddress.valueOf("00:00:00:00:00:03"));
+                MacAddress.valueOf("00:00:00:00:00:03"),
+                VlanId.NONE);
 
         expect(hostService.getAddressBindings()).andReturn(portAddresses).anyTimes();
 
@@ -114,16 +118,17 @@ public class HostToInterfaceAdaptorTest {
      * @param cp the connect point
      * @param ipAddresses the set of interface IP addresses
      * @param mac the MAC address
+     * @param vlan the VLAN ID
      */
     private void createPortAddressesAndInterface(
             ConnectPoint cp, Set<InterfaceIpAddress> ipAddresses,
-            MacAddress mac) {
-        PortAddresses pa = new PortAddresses(cp, ipAddresses, mac);
+            MacAddress mac, VlanId vlan) {
+        PortAddresses pa = new PortAddresses(cp, ipAddresses, mac, vlan);
         portAddresses.add(pa);
         expect(hostService.getAddressBindingsForPort(cp)).andReturn(
                 Collections.singleton(pa)).anyTimes();
 
-        Interface intf = new Interface(cp, ipAddresses, mac);
+        Interface intf = new Interface(cp, ipAddresses, mac, vlan);
         interfaces.put(cp, intf);
     }
 

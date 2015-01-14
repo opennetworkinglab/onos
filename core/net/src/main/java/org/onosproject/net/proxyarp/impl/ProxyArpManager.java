@@ -15,16 +15,9 @@
  */
 package org.onosproject.net.proxyarp.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -62,9 +55,15 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import java.nio.ByteBuffer;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
 @Service
@@ -131,6 +130,8 @@ public class ProxyArpManager implements ProxyArpService {
         checkArgument(arp.getOpCode() == ARP.OP_REQUEST, NOT_ARP_REQUEST);
         checkNotNull(inPort);
 
+        VlanId vlan = VlanId.vlanId(eth.getVlanID());
+
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
         if (isOutsidePort(inPort)) {
@@ -159,7 +160,8 @@ public class ProxyArpManager implements ProxyArpService {
             boolean matched = false;
             for (PortAddresses pa : sourceAddresses) {
                 for (InterfaceIpAddress ia : pa.ipAddresses()) {
-                    if (ia.ipAddress().equals(source)) {
+                    if (ia.ipAddress().equals(source) &&
+                            pa.vlan().equals(vlan)) {
                         matched = true;
                         sendTo(eth, pa.connectPoint());
                     }
@@ -173,7 +175,6 @@ public class ProxyArpManager implements ProxyArpService {
 
         // Continue with normal proxy ARP case
 
-        VlanId vlan = VlanId.vlanId(eth.getVlanID());
         Set<Host> hosts = hostService.getHostsByIp(
                         Ip4Address.valueOf(arp.getTargetProtocolAddress()));
 

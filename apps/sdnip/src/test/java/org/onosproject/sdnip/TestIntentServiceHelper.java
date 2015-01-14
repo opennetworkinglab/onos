@@ -15,6 +15,8 @@
  */
 package org.onosproject.sdnip;
 
+import static org.easymock.EasyMock.reportMatcher;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,8 +27,6 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentOperation;
 import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
-
-import static org.easymock.EasyMock.reportMatcher;
 
 /**
  * Helper class for testing operations submitted to the IntentService.
@@ -187,7 +187,7 @@ public final class TestIntentServiceHelper {
          * @param submitIntents the SUBMIT intents
          * @param withdrawIntentIds the WITHDRAW intents IDs
          * @param replaceIntents the REPLACE intents
-         * @param updateIntents the UPDATE intens
+         * @param updateIntents the UPDATE intents
          */
         private void extractIntents(IntentOperations intentOperations,
                                     List<IntentKey> submitIntents,

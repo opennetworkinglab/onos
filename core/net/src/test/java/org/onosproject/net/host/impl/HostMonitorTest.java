@@ -37,6 +37,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -130,7 +131,7 @@ public class HostMonitorTest {
 
         ConnectPoint cp = new ConnectPoint(devId, portNum);
         PortAddresses pa =
-            new PortAddresses(cp, Collections.singleton(IA1), sourceMac);
+            new PortAddresses(cp, Collections.singleton(IA1), sourceMac, VlanId.NONE);
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.<Host>emptySet()).anyTimes();
@@ -165,6 +166,76 @@ public class HostMonitorTest {
         final byte[] pktData = new byte[packet.data().remaining()];
         packet.data().get(pktData);
         eth.deserialize(pktData, 0, pktData.length);
+        assertEquals(Ethernet.VLAN_UNTAGGED, eth.getVlanID());
+        ARP arp = (ARP) eth.getPayload();
+        assertArrayEquals(SOURCE_ADDR.toOctets(),
+                          arp.getSenderProtocolAddress());
+        assertArrayEquals(sourceMac.toBytes(),
+                          arp.getSenderHardwareAddress());
+        assertArrayEquals(TARGET_IP_ADDR.toOctets(),
+                          arp.getTargetProtocolAddress());
+    }
+
+    @Test
+    public void testMonitorHostDoesNotExistWithVlan() throws Exception {
+
+        HostManager hostManager = createMock(HostManager.class);
+
+        DeviceId devId = DeviceId.deviceId("fake");
+        short vlan = 5;
+
+        Device device = createMock(Device.class);
+        expect(device.id()).andReturn(devId).anyTimes();
+        replay(device);
+
+        PortNumber portNum = PortNumber.portNumber(1L);
+
+        Port port = createMock(Port.class);
+        expect(port.number()).andReturn(portNum).anyTimes();
+        replay(port);
+
+        TestDeviceService deviceService = new TestDeviceService();
+        deviceService.addDevice(device, Collections.singleton(port));
+
+        ConnectPoint cp = new ConnectPoint(devId, portNum);
+        PortAddresses pa =
+            new PortAddresses(cp, Collections.singleton(IA1), sourceMac,
+                              VlanId.vlanId(vlan));
+
+        expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
+                .andReturn(Collections.<Host>emptySet()).anyTimes();
+        expect(hostManager.getAddressBindingsForPort(cp))
+                .andReturn(Collections.singleton(pa)).anyTimes();
+        replay(hostManager);
+
+        TestPacketService packetService = new TestPacketService();
+
+
+        // Run the test
+        hostMonitor = new HostMonitor(deviceService, packetService, hostManager);
+
+        hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
+        hostMonitor.run(null);
+
+
+        // Check that a packet was sent to our PacketService and that it has
+        // the properties we expect
+        assertEquals(1, packetService.packets.size());
+        OutboundPacket packet = packetService.packets.get(0);
+
+        // Check the output port is correct
+        assertEquals(1, packet.treatment().instructions().size());
+        Instruction instruction = packet.treatment().instructions().get(0);
+        assertTrue(instruction instanceof OutputInstruction);
+        OutputInstruction oi = (OutputInstruction) instruction;
+        assertEquals(portNum, oi.port());
+
+        // Check the output packet is correct (well the important bits anyway)
+        Ethernet eth = new Ethernet();
+        final byte[] pktData = new byte[packet.data().remaining()];
+        packet.data().get(pktData);
+        eth.deserialize(pktData, 0, pktData.length);
+        assertEquals(vlan, eth.getVlanID());
         ARP arp = (ARP) eth.getPayload();
         assertArrayEquals(SOURCE_ADDR.toOctets(),
                           arp.getSenderProtocolAddress());
