@@ -55,7 +55,7 @@ public abstract class ConnectivityIntent extends Intent {
      * @param resources required network resources (optional)
      * @param selector  traffic selector
      * @param treatment treatment
-     * @throws NullPointerException if the selector or treatement is null
+     * @throws NullPointerException if the selector or treatment is null
      */
     protected ConnectivityIntent(ApplicationId appId,
                                  Collection<NetworkResource> resources,
@@ -76,7 +76,7 @@ public abstract class ConnectivityIntent extends Intent {
      * @param selector    traffic selector
      * @param treatment   treatment
      * @param constraints optional prioritized list of constraints
-     * @throws NullPointerException if the selector or treatement is null
+     * @throws NullPointerException if the selector or treatment is null
      */
     protected ConnectivityIntent(ApplicationId appId,
                                  Collection<NetworkResource> resources,
