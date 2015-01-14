@@ -32,7 +32,7 @@
     var $log, ks, zs, gs, ms;
 
     // DOM elements
-    var svg, defs;
+    var svg, defs, zoomLayer, map;
 
     // Internal state
     var zoomer;
@@ -91,7 +91,7 @@
     }
 
     function setUpZoom() {
-        var zoomLayer = svg.append('g').attr('id', 'topo-zoomlayer');
+        zoomLayer = svg.append('g').attr('id', 'topo-zoomlayer');
         zoomer = zs.createZoomer({
             svg: svg,
             zoomLayer: zoomLayer,
@@ -100,6 +100,13 @@
         });
     }
 
+
+    // --- Background Map ------------------------------------------------
+
+    function setUpMap() {
+        map = zoomLayer.append('g').attr('id', '#topo-map');
+        ms.loadMapInto(map, '*continental_us');
+    }
 
     // --- Controller Definition -----------------------------------------
 
@@ -124,6 +131,7 @@
             setUpKeys();
             setUpDefs();
             setUpZoom();
+            setUpMap();
 
             $log.log('OvTopoCtrl has been created');
         }]);
