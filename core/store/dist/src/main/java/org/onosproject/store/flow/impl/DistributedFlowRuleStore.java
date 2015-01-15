@@ -134,12 +134,6 @@ public class DistributedFlowRuleStore extends
 	private final Multimap<DeviceId, StoredFlowEntry> flowEntries = ArrayListMultimap
 			.<DeviceId, StoredFlowEntry> create();
 
-	private final Multimap<DeviceId, OFMessage> flowOFmsgsById = ArrayListMultimap
-			.<DeviceId, OFMessage> create();
-
-	private final Multimap<DeviceId, byte[]> sncflowEntries = ArrayListMultimap
-			.<DeviceId, byte[]> create();
-
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
 	protected ReplicaInfoService replicaInfoManager;
 

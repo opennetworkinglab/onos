@@ -19,10 +19,6 @@
         <command>
             <action class="org.onosproject.cli.SummaryCommand"/>
         </command>
-        
-        <command>
-            <action class="org.onosproject.cli.FlowRuleListCommand"/>
-        </command>
 
         <command>
             <action class="org.onosproject.cli.MetricsListCommand"/>
