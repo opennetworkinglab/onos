@@ -48,6 +48,7 @@
         <module>apps</module>
         <module>features</module>
         <module>tools/package/branding</module>
+        <module>igp</module>
     </modules>
 
     <url>http://onosproject.org/</url>
