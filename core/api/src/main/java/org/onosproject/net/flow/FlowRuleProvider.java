@@ -60,5 +60,4 @@ public interface FlowRuleProvider extends Provider {
      */
     Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
 
-    void applyRule(byte[] data);
 }

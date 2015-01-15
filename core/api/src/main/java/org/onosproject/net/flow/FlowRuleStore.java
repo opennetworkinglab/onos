@@ -19,7 +19,6 @@ import java.util.concurrent.Future;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 
 /**
  * Manages inventory of flow rules; not intended for direct use.
