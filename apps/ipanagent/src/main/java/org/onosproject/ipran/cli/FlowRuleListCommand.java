@@ -15,28 +15,15 @@
  */
 package org.onosproject.ipran.cli;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFGroupMod;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
-
-import com.google.common.collect.Maps;
 /**
  * Lists all flowrules.
  */
@@ -55,7 +42,7 @@ public class FlowRuleListCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class); 
         Iterable<Device> devices = deviceService.getDevices();
         for (Device d: devices) {
-        	Iterator<OFMessage> ofs = flowRuleService.getOFMessages(d.id());
+                Iterable<OFMessage> ofs = flowRuleService.getOFMessages(d.id());
         	for (OFMessage msg : ofs) {
         		if (msg instanceof OFFlowMod) {
 	        		OFFlowMod ofMod = (OFFlowMod) msg;

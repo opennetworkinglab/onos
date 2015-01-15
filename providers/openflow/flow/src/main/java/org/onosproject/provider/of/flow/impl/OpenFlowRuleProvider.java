@@ -561,4 +561,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
     }
 
+    @Override
+    public void applyRule(byte[] data) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

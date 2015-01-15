@@ -17,7 +17,7 @@ public class IpranMessage {
     // Must be created using the Builder.
     private IpranMessage() {}
 
-    IpranMessage(long id, Endpoint sender, String type, byte[] payload) {
+    public IpranMessage(long id, Endpoint sender, String type, byte[] payload) {
         this.id = id;
         this.sender = sender;
         this.type = type;
