@@ -15,6 +15,14 @@
  */
 package org.onosproject.openflow.drivers;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -56,14 +64,6 @@ import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.util.HexString;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Stanford University,
@@ -107,15 +107,11 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
     private final Map<Integer, OFGroup> l2groups;
 
-    private final boolean usePipeline13;
-
-    public OFSwitchImplCPqD13(Dpid dpid, OFDescStatsReply desc, boolean usePipeline13) {
+    public OFSwitchImplCPqD13(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
         driverHandshakeComplete = new AtomicBoolean(false);
         l2groups = new ConcurrentHashMap<Integer, OFGroup>();
         setSwitchDescription(desc);
-
-        this.usePipeline13 = usePipeline13;
     }
 
     /* (non-Javadoc)
@@ -136,12 +132,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         }
         startDriverHandshakeCalled = true;
         factory = this.factory();
-        if (!usePipeline13) {
-            // Send packet-in to controller if a packet misses the first table
-            populateTableMissEntry(0, true, false, false, 0);
-        } //else {
-        // configureSwitch();
-        //}
+
         sendBarrier(true);
     }
 

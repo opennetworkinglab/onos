@@ -15,6 +15,11 @@
  */
 package org.onosproject.openflow.drivers;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
@@ -31,11 +36,6 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.TableId;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Nicira, Inc. Make
@@ -132,12 +132,9 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
         }
     }
 
-
     private void configureSwitch() {
-        populateTableMissEntry(0, true, false, false, 0);
         sendBarrier(true);
     }
-
 
     private void sendBarrier(boolean finalBarrier) {
         int xid = getNextTransactionId();
