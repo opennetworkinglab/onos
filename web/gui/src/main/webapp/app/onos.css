@@ -37,6 +37,13 @@ body {
     overflow: hidden;
 }
 
+body.light {
+    background-color: white;
+}
+body.dark {
+    background-color: #2b2b2b;
+}
+
 #view {
     padding: 6px;
     width: 100%;
