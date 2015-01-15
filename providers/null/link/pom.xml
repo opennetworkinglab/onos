@@ -31,4 +31,11 @@
 
     <description>ONOS Null link provider</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
