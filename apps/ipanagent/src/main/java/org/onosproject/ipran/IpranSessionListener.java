@@ -2,7 +2,8 @@ package org.onosproject.ipran;
 
 import java.util.Collection;
 
-import org.onosproject.net.flow.SncFlowRuleEntry;
+import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+
 
 public interface IpranSessionListener {
     /**
@@ -10,5 +11,5 @@ public interface IpranSessionListener {
      *
      * @param routeUpdates the collection with updated route information
      */
-    public void update(Collection<SncFlowRuleEntry> routeUpdates);
+    public void update(Collection<FlowRuleExtendEntry> routeUpdates);
 }

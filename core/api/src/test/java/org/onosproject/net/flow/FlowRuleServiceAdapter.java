@@ -77,7 +77,7 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     }
 
 	@Override
-	public void applySncBatch(SncFlowRuleEntry flowentry) {
+	public void applySncBatch(FlowRuleExtendEntry flowentry) {
 		// TODO Auto-generated method stub
 		
 	}

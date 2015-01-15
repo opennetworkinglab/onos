@@ -1,11 +1,13 @@
-package org.onosproject.net.flow;
+package org.onosproject.net.flowextend;
+
+import java.util.Collection;
 
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.flow.FlowRuleBatchEvent.Type;
 
-public final class SncFlowRuleEvent extends AbstractEvent<SncFlowRuleEvent.Type, SncFlowRuleEntry> {
+public final class FlowRuleBatchExtendEvent extends AbstractEvent<FlowRuleBatchExtendEvent.Type, Collection<FlowRuleExtendEntry>> {
 
-	private final SncFlowCompletedOperation result;
+	private final FlowExtendCompletedOperation result;
 
 	/**
      * Type of sncflow rule events.
@@ -26,9 +28,9 @@ public final class SncFlowRuleEvent extends AbstractEvent<SncFlowRuleEvent.Type,
         BATCH_OPERATION_COMPLETED,
     }
 	
-	public SncFlowRuleEvent(Type type, SncFlowRuleEntry subject,
-			SncFlowCompletedOperation result) {
-		super(type, subject);
+	public FlowRuleBatchExtendEvent(Type type, Collection<FlowRuleExtendEntry> request,
+			FlowExtendCompletedOperation result) {
+		super(type, request);
 		this.result = result;
 	}
 
@@ -37,8 +39,8 @@ public final class SncFlowRuleEvent extends AbstractEvent<SncFlowRuleEvent.Type,
      * @param request batch operation request.
      * @return event.
      */
-    public static SncFlowRuleEvent requested(SncFlowRuleEntry request) {
-    	SncFlowRuleEvent event = new SncFlowRuleEvent(Type.BATCH_OPERATION_REQUESTED, request, null);
+    public static FlowRuleBatchExtendEvent requested(Collection<FlowRuleExtendEntry> request) {
+        FlowRuleBatchExtendEvent event = new FlowRuleBatchExtendEvent(Type.BATCH_OPERATION_REQUESTED, request, null);
         return event;
     }
 
@@ -48,8 +50,8 @@ public final class SncFlowRuleEvent extends AbstractEvent<SncFlowRuleEvent.Type,
      * @param result completed batch operation result.
      * @return event.
      */
-    public static SncFlowRuleEvent completed(SncFlowRuleEntry request, SncFlowCompletedOperation result) {
-    	SncFlowRuleEvent event = new SncFlowRuleEvent(Type.BATCH_OPERATION_COMPLETED, request, result);
+    public static FlowRuleBatchExtendEvent completed(Collection<FlowRuleExtendEntry> request, FlowExtendCompletedOperation result) {
+        FlowRuleBatchExtendEvent event = new FlowRuleBatchExtendEvent(Type.BATCH_OPERATION_COMPLETED, request, result);
         return event;
     }
 
@@ -57,7 +59,7 @@ public final class SncFlowRuleEvent extends AbstractEvent<SncFlowRuleEvent.Type,
      * Returns the result of this batch operation.
      * @return batch operation result.
      */
-    public SncFlowCompletedOperation getresult() {
+    public FlowExtendCompletedOperation getresult() {
         return result;
     }
 

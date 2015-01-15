@@ -1,4 +1,4 @@
-package org.onosproject.net.flow;
+package org.onosproject.net.flowextend;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -6,11 +6,11 @@ import org.projectfloodlight.openflow.exceptions.OFParseError;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMessageReader;
 
-public class SncFlowRuleEntry {
+public class FlowRuleExtendEntry {
    private int deviceId;
    private int length;
    private byte[] sncflow;
-   public SncFlowRuleEntry(Integer fpid, byte[] data) {
+   public FlowRuleExtendEntry(Integer fpid, byte[] data) {
 	   this.setDeviceId(fpid);
 	   this.setLength(length);
 	   this.setSncflow(data);

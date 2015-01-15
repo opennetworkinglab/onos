@@ -21,8 +21,8 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.SncFlowRuleEntry;
+import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowextend.FlowRuleExtendService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
@@ -43,7 +43,7 @@ public class IpranAgent {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowService;
+    protected FlowRuleExtendService flowService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -67,7 +67,7 @@ public class IpranAgent {
     private ControllerNode localControllerNode;
     private IpranSession ipranConnector;
     // Stores all incoming route updates in a queue.
-    private BlockingQueue<Collection<SncFlowRuleEntry>> flowUpdatesQueue;
+    private BlockingQueue<Collection<FlowRuleExtendEntry>> flowUpdatesQueue;
     private static final int DEFAULT_IPRAN_PORT = 2000;
     private  ExecutorService flowUpdatesExecutor;
     
@@ -90,7 +90,18 @@ public class IpranAgent {
                                             .setNameFormat("ipran-flow-updates-%d").build());
         pocessFlowUpdate();
     }
-
+    
+    @Deactivate
+    protected void deactivate() {
+        ipranConnector.stop();
+        leadershipService.withdraw(appId.name());
+        leadershipService.removeListener(leadershipEventListener);
+        topologyService.removeListener(topologyListener);
+        ipranConnector.removeListener(sessionListener);
+        flowUpdatesExecutor.shutdown();
+        flowUpdatesQueue.clear();
+        log.info("IPRAN Stopped");
+    }
     private void pocessFlowUpdate() {
         flowUpdatesExecutor.execute(new Runnable() {
             @Override
@@ -104,15 +115,13 @@ public class IpranAgent {
         try {
             while (!interrupted) {
                 try {
-                    Collection<SncFlowRuleEntry> flowUpdates =
+                    Collection<FlowRuleExtendEntry> flowUpdates =
                             flowUpdatesQueue.take();
                     /* here should make some change:
                      * first, use batch service interface
                      * second, add asynchronous transaction
                      */
-                    for (SncFlowRuleEntry flow : flowUpdates){
-                            flowService.applySncBatch(flow);
-                    }
+                    flowService.applyBatch(flowUpdates);
                 } catch (InterruptedException e) {
                     log.debug("Interrupted while taking from updates queue", e);
                     interrupted = true;
@@ -125,17 +134,6 @@ public class IpranAgent {
                 Thread.currentThread().interrupt();
             }
         }
-    }
-    @Deactivate
-    protected void deactivate() {
-        ipranConnector.stop();
-        leadershipService.withdraw(appId.name());
-        leadershipService.removeListener(leadershipEventListener);
-        topologyService.removeListener(topologyListener);
-        ipranConnector.removeListener(sessionListener);
-        flowUpdatesExecutor.shutdown();
-        flowUpdatesQueue.clear();
-        log.info("IPRAN Stopped");
     }
   /**
    * A listener for Topology Events.
@@ -192,7 +190,7 @@ public class IpranAgent {
     private class InnerSessionEventListener
         implements IpranSessionListener {
         @Override
-        public void update(Collection<SncFlowRuleEntry> flowUpdates) {
+        public void update(Collection<FlowRuleExtendEntry> flowUpdates) {
             // TODO Auto-generated method stub
             try {
                 flowUpdatesQueue.put(flowUpdates);
