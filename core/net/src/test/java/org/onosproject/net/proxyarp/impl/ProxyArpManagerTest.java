@@ -18,7 +18,6 @@ package org.onosproject.net.proxyarp.impl;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -33,9 +32,13 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.Device;
@@ -48,8 +51,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostService;
@@ -58,15 +60,10 @@ import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.ProviderId;
-import org.onlab.packet.ARP;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 
 import com.google.common.collect.Sets;
 
@@ -102,14 +99,9 @@ public class ProxyArpManagerTest {
     private ProxyArpManager proxyArp;
 
     private TestPacketService packetService;
-
-    private CoreService coreService;
     private DeviceService deviceService;
-    private FlowRuleService flowRuleService;
     private LinkService linkService;
     private HostService hostService;
-    private ApplicationId appId = new DefaultApplicationId((short) 100,
-                "org.onosproject.net.proxyarp");
 
     @Before
     public void setUp() throws Exception {
@@ -123,9 +115,7 @@ public class ProxyArpManagerTest {
         proxyArp.hostService = hostService;
 
         createTopology();
-        proxyArp.coreService = coreService;
         proxyArp.deviceService = deviceService;
-        proxyArp.flowRuleService = flowRuleService;
         proxyArp.linkService = linkService;
 
         proxyArp.activate();
@@ -142,16 +132,6 @@ public class ProxyArpManagerTest {
      * addresses configured.
      */
     private void createTopology() {
-        coreService = createMock(CoreService.class);
-        expect(coreService.registerApplication(appId.name()))
-            .andReturn(appId).anyTimes();
-        replay(coreService);
-
-        flowRuleService = createMock(FlowRuleService.class);
-        flowRuleService.applyFlowRules(anyObject(FlowRule.class));
-        expectLastCall().anyTimes();
-        replay(flowRuleService);
-
         deviceService = createMock(DeviceService.class);
         linkService = createMock(LinkService.class);
 
@@ -601,6 +581,11 @@ public class ProxyArpManagerTest {
         @Override
         public void emit(OutboundPacket packet) {
             packets.add(packet);
+        }
+
+        @Override
+        public void requestPackets(TrafficSelector selector,
+                                   PacketPriority priority, ApplicationId appId) {
         }
     }
 }

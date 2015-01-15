@@ -45,13 +45,8 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -59,6 +54,7 @@ import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
@@ -77,13 +73,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     private final Logger log = getLogger(getClass());
 
-    private static final int FLOW_RULE_PRIORITY = 40000;
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry providerRegistry;
@@ -128,7 +119,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         providerService = providerRegistry.register(this);
         pktService.addProcessor(processor, 1);
         deviceService.addListener(deviceListener);
-        pushRules();
+
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
+        pktService.requestPackets(selectorBuilder.build(),
+                                  PacketPriority.CONTROL, appId);
 
         log.info("Started");
     }
@@ -159,36 +155,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Override
     public void triggerProbe(Host host) {
         log.info("Triggering probe on device {}", host);
-    }
-
-    /**
-     * Pushes flow rules to all devices.
-     */
-    private void pushRules() {
-        for (Device device : deviceService.getDevices()) {
-            pushRules(device);
-        }
-    }
-
-    /**
-     * Pushes flow rules to the device to receive control packets that need
-     * to be processed.
-     *
-     * @param device the device to push the rules to
-     */
-    private synchronized void pushRules(Device device) {
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-
-        // Get all ARP packets
-        sbuilder.matchEthType(Ethernet.TYPE_ARP);
-        tbuilder.punt();
-        FlowRule flowArp =
-            new DefaultFlowRule(device.id(),
-                                sbuilder.build(), tbuilder.build(),
-                                FLOW_RULE_PRIORITY, appId, 0, true);
-
-        flowRuleService.applyFlowRules(flowArp);
     }
 
     private class InternalHostProvider implements PacketProcessor {
@@ -265,7 +231,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             Device device = event.subject();
             switch (event.type()) {
             case DEVICE_ADDED:
-                pushRules(device);
                 break;
             case DEVICE_AVAILABILITY_CHANGED:
                 if (hostRemovalEnabled &&

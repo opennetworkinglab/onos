@@ -15,6 +15,9 @@
  */
 package org.onosproject.net.packet;
 
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.TrafficSelector;
+
 /**
  * Service for intercepting data plane packets and for emitting synthetic
  * outbound packets.
@@ -35,12 +38,27 @@ public interface PacketService {
      */
     void addProcessor(PacketProcessor processor, int priority);
 
+    // TODO allow processors to register for particular types of packets
+
     /**
      * Removes the specified processor from the processing pipeline.
      *
      * @param processor packet processor
      */
     void removeProcessor(PacketProcessor processor);
+
+    /**
+     * Requests that packets matching the given selector are punted from the
+     * dataplane to the controller.
+     *
+     * @param selector the traffic selector used to match packets
+     * @param priority the priority of the rule
+     * @param appId the application ID of the requester
+     */
+    void requestPackets(TrafficSelector selector, PacketPriority priority,
+                        ApplicationId appId);
+
+    // TODO add API to allow applications to revoke requests when they deactivate
 
     /**
      * Emits the specified outbound packet onto the network.

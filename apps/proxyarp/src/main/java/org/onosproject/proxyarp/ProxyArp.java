@@ -22,9 +22,13 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.Ethernet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
@@ -35,7 +39,6 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 public class ProxyArp {
-
 
     private final Logger log = getLogger(getClass());
 
@@ -56,6 +59,13 @@ public class ProxyArp {
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.proxyarp");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
+
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selectorBuilder.build(),
+                                     PacketPriority.CONTROL, appId);
+
         log.info("Started with Application ID {}", appId.id());
     }
 
