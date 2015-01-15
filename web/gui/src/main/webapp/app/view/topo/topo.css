@@ -29,5 +29,13 @@
 }
 
 #ov-topo svg {
-    background-color: #dde;
+    background-color: #fff;
+    border: 1px solid red;
+}
+
+#ov-topo svg #topo-map {
+    stroke-width: 2px;
+    /*stroke: #eee;*/
+    stroke: #445;
+    fill: transparent;
 }

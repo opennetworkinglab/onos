@@ -44,6 +44,37 @@
 
     angular.module('onosApp', moduleDependencies)
 
+        // Create a resize directive, that we can apply to elements to
+        // respond to window resize events.
+        .directive('resize', ['$window', function ($window) {
+            return function (scope, element, attrs) {
+                var w = angular.element($window);
+                scope.$watch(function () {
+                    return {
+                        h: window.innerHeight,
+                        w: window.innerWidth
+                    };
+                }, function (newVal, oldVal) {
+                    scope.windowHeight = newVal.h;
+                    scope.windowWidth = newVal.w;
+
+                    scope.resizeWithOffset = function (offH, offW) {
+                        var oh = offH || 0,
+                            ow = offW || 0;
+                        scope.$eval(attrs.notifier);
+                        return {
+                            height: (newVal.h - oh) + 'px',
+                            width: (newVal.w - ow) + 'px'
+                        };
+                    };
+                }, true);
+
+                w.bind('resize', function () {
+                    scope.$apply();
+                });
+            };
+        }])
+
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService',

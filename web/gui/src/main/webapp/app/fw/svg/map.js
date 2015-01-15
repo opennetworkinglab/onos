@@ -44,7 +44,7 @@
             fs = _fs_;
             gds = _gds_;
 
-            function loadMapInto(mapLayer, id) {
+            function loadMapInto(mapLayer, id, opts) {
                 var promise = gds.fetchTopoData(id);
                 if (!promise) {
                     $log.warn('Failed to load map: ' + id);
@@ -52,7 +52,7 @@
                 }
 
                 promise.then(function () {
-                    var gen = gds.createPathGenerator(promise.topodata);
+                    var gen = gds.createPathGenerator(promise.topodata, opts);
 
                     mapLayer.selectAll('path')
                         .data(gen.geodata.features)

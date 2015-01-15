@@ -29,10 +29,10 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms;
+    var $log, $window, ks, zs, gs, ms;
 
     // DOM elements
-    var svg, defs, zoomLayer, map;
+    var ovtopo, svg, defs, zoomLayer, map;
 
     // Internal state
     var zoomer;
@@ -104,8 +104,22 @@
     // --- Background Map ------------------------------------------------
 
     function setUpMap() {
-        map = zoomLayer.append('g').attr('id', '#topo-map');
+        map = zoomLayer.append('g').attr('id', 'topo-map');
+        //ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
         ms.loadMapInto(map, '*continental_us');
+
+        // temp code for calibration
+        var points = [
+            [0, 0], [0, 1000], [1000, 0], [1000, 1000]
+        ];
+        map.selectAll('circle')
+            .data(points)
+            .enter()
+            .append('circle')
+            .attr('cx', function (d) { return d[0]; })
+            .attr('cy', function (d) { return d[1]; })
+            .attr('r', 5)
+            .style('fill', 'red');
     }
 
     // --- Controller Definition -----------------------------------------
@@ -113,21 +127,26 @@
     angular.module('ovTopo', moduleDependencies)
 
         .controller('OvTopoCtrl', [
-            '$log', 'KeyService', 'ZoomService', 'GlyphService', 'MapService',
+            '$log', '$window',
+            'KeyService', 'ZoomService', 'GlyphService', 'MapService',
 
-        function (_$log_, _ks_, _zs_, _gs_, _ms_) {
+        function (_$log_, _$window_, _ks_, _zs_, _gs_, _ms_) {
             var self = this;
             $log = _$log_;
+            $window = _$window_;
             ks = _ks_;
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
 
-            // exported state
-            self.message = 'Topo View Rocks!';
+            self.notifyResize = function () {
+                $log.log('Hey, we changed size');
+            };
 
             // svg layer and initialization of components
-            svg = d3.select('#ov-topo svg');
+            ovtopo = d3.select('#ov-topo');
+            svg = ovtopo.select('svg');
+
             setUpKeys();
             setUpDefs();
             setUpZoom();

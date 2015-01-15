@@ -39,6 +39,8 @@ body {
 
 #view {
     padding: 6px;
+    width: 100%;
+    height: 100%;
 }
 
 #view h2 {

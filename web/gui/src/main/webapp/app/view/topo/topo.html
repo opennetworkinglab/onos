@@ -1,4 +1,7 @@
 <!-- Topology View partial HTML -->
 <div id="ov-topo">
-    <svg viewBox="0 0 1000 1000"></svg>
+    <svg viewBox="0 0 1000 1000"
+         resize
+         ng-style="resizeWithOffset(56, 12)"
+         notifier="notifyResize(params)"></svg>
 </div>
