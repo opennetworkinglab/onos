@@ -51,16 +51,10 @@ import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
-import org.onosproject.net.flow.SncFlowCompletedOperation;
-import org.onosproject.net.flow.SncFlowRuleEntry;
-import org.onosproject.net.flow.SncFlowRuleEvent;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
-import org.onosproject.net.provider.ProviderId;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -582,16 +576,5 @@ public class FlowRuleManager
                 }
             }
         }
-    }
-    
-    @Override
-    public void applySncBatch(SncFlowRuleEntry flowentry) {
-    	store.storeBatch(flowentry);
-    }
-
-    public Iterable<OFMessage> getOFMessages(DeviceId fpid){
-    	// TODO
-    	
-    	return store.getOFMessages(fpid);
     }
 }

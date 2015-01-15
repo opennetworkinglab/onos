@@ -26,13 +26,6 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
  * Manages inventory of flow rules; not intended for direct use.
  */
 public interface FlowRuleExtendStore extends Store<FlowRuleBatchExtendEvent, FlowRuleExtendStoreDelegate> {
-    /**
-     * Returns the flow entries associated with a device.
-     *
-     * @param deviceId the device ID
-     * @return the flow entries
-     */
-    Iterable<FlowRuleExtendEntry> getFlowEntries(DeviceId deviceId);
 
     /**
      * Stores a batch of flow rules.

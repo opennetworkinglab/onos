@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -76,9 +77,11 @@ import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flowextend.FlowExtendCompletedOperation;
 import org.onosproject.net.flowextend.FlowRuleBatchExtendEvent;
+import org.onosproject.net.flowextend.FlowRuleBatchExtendRequest;
 import org.onosproject.net.flowextend.FlowRuleExtendEntry;
 import org.onosproject.net.flowextend.FlowRuleExtendStore;
 import org.onosproject.net.flowextend.FlowRuleExtendStoreDelegate;
+import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
@@ -122,8 +125,8 @@ import com.hazelcast.core.IMap;
 @Component(immediate = true)
 @Service
 public class DistributedFlowRuleExtendStore extends
-                AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
-		implements FlowRuleStore, FlowRuleExtendStore {
+                AbstractStore<FlowRuleBatchExtendEvent, FlowRuleExtendStoreDelegate>
+		implements FlowRuleExtendStore {
 
 	private final Logger log = getLogger(getClass());
 
@@ -131,14 +134,12 @@ public class DistributedFlowRuleExtendStore extends
 	// read/write needs to be locked
 	private final ReentrantReadWriteLock flowEntriesLock = new ReentrantReadWriteLock();
 	// store entries as a pile of rules, no info about device tables
-	private final Multimap<DeviceId, StoredFlowEntry> flowEntries = ArrayListMultimap
-			.<DeviceId, StoredFlowEntry> create();
 
 	private final Multimap<DeviceId, OFMessage> flowOFmsgsById = ArrayListMultimap
 			.<DeviceId, OFMessage> create();
 
-	private final Multimap<DeviceId, byte[]> extendflowEntries = ArrayListMultimap
-			.<DeviceId, byte[]> create();
+	private final Multimap<DeviceId, FlowRuleExtendEntry> extendflowEntries = ArrayListMultimap
+			.<DeviceId, FlowRuleExtendEntry> create();
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
 	protected ReplicaInfoService replicaInfoManager;
@@ -151,32 +152,20 @@ public class DistributedFlowRuleExtendStore extends
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
 	protected DeviceService deviceService;
-
+	
 	private final AtomicInteger localBatchIdGen = new AtomicInteger();
 
 	private int pendingFutureTimeoutMinutes = 5;
 
-	private Cache<Integer, SettableFuture<CompletedBatchOperation>> pendingFutures = CacheBuilder
-			.newBuilder()
-			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
-			.removalListener(new TimeoutFuture()).build();
-
-	private Cache<DeviceId, SettableFuture<FlowExtendCompletedOperation>> pendingExtendFutures = CacheBuilder
+	private Cache<Integer, SettableFuture<FlowExtendCompletedOperation>> pendingExtendFutures = CacheBuilder
 			.newBuilder()
 			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
 			// .removalListener(new TimeoutFuture())
 			.build();
 
-	// Cache of SMaps used for backup data. each SMap contain device flow table
-	private LoadingCache<DeviceId, SMap<FlowId, ImmutableList<StoredFlowEntry>>> smaps;
-
 	private final ExecutorService futureListeners = Executors
 			.newCachedThreadPool(namedThreads("flowstore-peer-responders"));
 
-	private final ExecutorService backupExecutors = Executors
-			.newSingleThreadExecutor(namedThreads("async-backups"));
-
-	private boolean syncBackup = false;
 
 	protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
 		@Override
@@ -195,52 +184,11 @@ public class DistributedFlowRuleExtendStore extends
 
 	private ReplicaInfoEventListener replicaInfoEventListener;
 
-	@Override
     @Activate
     public void activate() {
 
-        super.serializer = SERIALIZER;
-        super.theInstance = storeService.getHazelcastInstance();
-
-        // Cache to create SMap on demand
-        smaps = CacheBuilder.newBuilder()
-                    .softValues()
-                    .build(new SMapLoader());
-
         final NodeId local = clusterService.getLocalNode().id();
 
-        clusterCommunicator.addSubscriber(APPLY_BATCH_FLOWS, new OnStoreBatch(local));
-
-        clusterCommunicator.addSubscriber(GET_FLOW_ENTRY, new ClusterMessageHandler() {
-
-            @Override
-            public void handle(ClusterMessage message) {
-                FlowRule rule = SERIALIZER.decode(message.payload());
-                log.trace("received get flow entry request for {}", rule);
-                FlowEntry flowEntry = getFlowEntryInternal(rule);
-                try {
-                    message.respond(SERIALIZER.encode(flowEntry));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
-            }
-        });
-
-        clusterCommunicator.addSubscriber(GET_DEVICE_FLOW_ENTRIES, new ClusterMessageHandler() {
-
-            @Override
-            public void handle(ClusterMessage message) {
-                DeviceId deviceId = SERIALIZER.decode(message.payload());
-                log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
-                Set<FlowEntry> flowEntries = getFlowEntriesInternal(deviceId);
-                try {
-                    message.respond(SERIALIZER.encode(flowEntries));
-                } catch (IOException e) {
-                    log.error("Failed to respond to peer's getFlowEntries request", e);
-                }
-            }
-        });
-        
         clusterCommunicator.addSubscriber(GET_DEVICE_EXTENDFLOW_ENTRIES, new ClusterMessageHandler() {
 
             @Override
@@ -248,7 +196,7 @@ public class DistributedFlowRuleExtendStore extends
                 DeviceId deviceId = SERIALIZER.decode(message.payload());
                 log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
                 Set<OFMessage> ofmsgs = getInternalOFMessage(deviceId);
-                ChannelBuffer buf=ChannelBuffers.dynamicBuffer();
+                ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
                 for (OFMessage ofm : ofmsgs){
                 	ofm.writeTo(buf);
                 }
@@ -264,6 +212,8 @@ public class DistributedFlowRuleExtendStore extends
 
             @Override
             public void handle(ClusterMessage message) {
+                ChannelBuffer buf = ChannelBuffers.wrappedBuffer(message.payload());
+                //here should add a decode process
                 Collection<FlowRuleExtendEntry> operation=SERIALIZER.decode(message.payload());
                 log.info("received batch request {}",operation);
                 final ListenableFuture<FlowExtendCompletedOperation> f = storeBatchInternal(operation);
@@ -282,21 +232,6 @@ public class DistributedFlowRuleExtendStore extends
             }
         });
 
-        clusterCommunicator.addSubscriber(REMOVE_FLOW_ENTRY, new ClusterMessageHandler() {
-
-            @Override
-            public void handle(ClusterMessage message) {
-                FlowEntry rule = SERIALIZER.decode(message.payload());
-                log.trace("received get flow entry request for {}", rule);
-                FlowRuleEvent event = removeFlowRuleInternal(rule);
-                try {
-                    message.respond(SERIALIZER.encode(event));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
-            }
-        });
-
         replicaInfoEventListener = new InternalReplicaInfoEventListener();
 
         replicaInfoManager.addListener(replicaInfoEventListener);
@@ -306,513 +241,23 @@ public class DistributedFlowRuleExtendStore extends
 
 	@Deactivate
 	public void deactivate() {
-		clusterCommunicator.removeSubscriber(REMOVE_FLOW_ENTRY);
-		clusterCommunicator.removeSubscriber(GET_DEVICE_FLOW_ENTRIES);
-		clusterCommunicator.removeSubscriber(GET_FLOW_ENTRY);
-		clusterCommunicator.removeSubscriber(APPLY_BATCH_FLOWS);
 		clusterCommunicator.removeSubscriber(APPLY_EXTEND_FLOWS);
 		clusterCommunicator.removeSubscriber(GET_DEVICE_EXTENDFLOW_ENTRIES);
 		replicaInfoManager.removeListener(replicaInfoEventListener);
 		log.info("Stopped");
 	}
 
-	// This is not a efficient operation on a distributed sharded
-	// flow store. We need to revisit the need for this operation or at least
-	// make it device specific.
-	@Override
-	public int getFlowRuleCount() {
-		// implementing in-efficient operation for debugging purpose.
-		int sum = 0;
-		for (Device device : deviceService.getDevices()) {
-			final DeviceId did = device.id();
-			sum += Iterables.size(getFlowEntries(did));
-		}
-		return sum;
-	}
-
-	@Override
-	public FlowEntry getFlowEntry(FlowRule rule) {
-		ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule
-				.deviceId());
-
-		if (!replicaInfo.master().isPresent()) {
-			log.warn("Failed to getFlowEntry: No master for {}",
-					rule.deviceId());
-			return null;
-		}
-
-		if (replicaInfo.master().get()
-				.equals(clusterService.getLocalNode().id())) {
-			return getFlowEntryInternal(rule);
-		}
-
-		log.trace(
-				"Forwarding getFlowEntry to {}, which is the primary (master) for device {}",
-				replicaInfo.master().orNull(), rule.deviceId());
-
-		ClusterMessage message = new ClusterMessage(clusterService
-				.getLocalNode().id(), FlowStoreMessageSubjects.GET_FLOW_ENTRY,
-				SERIALIZER.encode(rule));
-
-		try {
-			Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(
-					message, replicaInfo.master().get());
-			return SERIALIZER.decode(responseFuture.get(
-					FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
-		} catch (IOException | TimeoutException | ExecutionException
-				| InterruptedException e) {
-			log.warn("Unable to fetch flow store contents from {}", replicaInfo
-					.master().get());
-		}
-		return null;
-	}
-
-	private StoredFlowEntry getFlowEntryInternal(FlowRule rule) {
-		flowEntriesLock.readLock().lock();
-		try {
-			for (StoredFlowEntry f : flowEntries.get(rule.deviceId())) {
-				if (f.equals(rule)) {
-					return f;
-				}
-			}
-		} finally {
-			flowEntriesLock.readLock().unlock();
-		}
-		return null;
-	}
-
-	@Override
-	public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-
-		ReplicaInfo replicaInfo = replicaInfoManager
-				.getReplicaInfoFor(deviceId);
-
-		if (!replicaInfo.master().isPresent()) {
-			log.warn("Failed to getFlowEntries: No master for {}", deviceId);
-			return Collections.emptyList();
-		}
-
-		if (replicaInfo.master().get()
-				.equals(clusterService.getLocalNode().id())) {
-			return getFlowEntriesInternal(deviceId);
-		}
-
-		log.trace(
-				"Forwarding getFlowEntries to {}, which is the primary (master) for device {}",
-				replicaInfo.master().orNull(), deviceId);
-
-		ClusterMessage message = new ClusterMessage(clusterService
-				.getLocalNode().id(), GET_DEVICE_FLOW_ENTRIES,
-				SERIALIZER.encode(deviceId));
-
-		try {
-			Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(
-					message, replicaInfo.master().get());
-			return SERIALIZER.decode(responseFuture.get(
-					FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
-		} catch (IOException | TimeoutException | ExecutionException
-				| InterruptedException e) {
-			log.warn("Unable to fetch flow store contents from {}", replicaInfo
-					.master().get());
-		}
-		return Collections.emptyList();
-	}
-
-	private Set<FlowEntry> getFlowEntriesInternal(DeviceId deviceId) {
-		flowEntriesLock.readLock().lock();
-		try {
-			Collection<? extends FlowEntry> rules = flowEntries.get(deviceId);
-			if (rules == null) {
-				return Collections.emptySet();
-			}
-			return ImmutableSet.copyOf(rules);
-		} finally {
-			flowEntriesLock.readLock().unlock();
-		}
-	}
-
-	@Override
-	public void storeFlowRule(FlowRule rule) {
-		storeBatch(new FlowRuleBatchOperation(
-				Arrays.asList(new FlowRuleBatchEntry(FlowRuleOperation.ADD,
-						rule))));
-	}
-
-	@Override
-	public Future<CompletedBatchOperation> storeBatch(
-			FlowRuleBatchOperation operation) {
-
-		if (operation.getOperations().isEmpty()) {
-			return Futures.immediateFuture(new CompletedBatchOperation(true,
-					Collections.<FlowRule> emptySet()));
-		}
-
-		DeviceId deviceId = operation.getOperations().get(0).getTarget()
-				.deviceId();
-
-		ReplicaInfo replicaInfo = replicaInfoManager
-				.getReplicaInfoFor(deviceId);
-
-		if (!replicaInfo.master().isPresent()) {
-			log.warn("Failed to storeBatch: No master for {}", deviceId);
-			// TODO: revisit if this should be "success" from Future point of
-			// view
-			// with every FlowEntry failed
-			return Futures.immediateFailedFuture(new IOException(
-					"Failed to storeBatch: No master for " + deviceId));
-		}
-
-		final NodeId local = clusterService.getLocalNode().id();
-		if (replicaInfo.master().get().equals(local)) {
-			return storeBatchInternal(operation);
-		}
-
-		log.trace(
-				"Forwarding storeBatch to {}, which is the primary (master) for device {}",
-				replicaInfo.master().orNull(), deviceId);
-
-		ClusterMessage message = new ClusterMessage(local, APPLY_BATCH_FLOWS,
-				SERIALIZER.encode(operation));
-
-		try {
-			ListenableFuture<byte[]> responseFuture = clusterCommunicator
-					.sendAndReceive(message, replicaInfo.master().get());
-			return Futures.transform(responseFuture,
-					new DecodeTo<CompletedBatchOperation>(SERIALIZER));
-		} catch (IOException e) {
-			return Futures.immediateFailedFuture(e);
-		}
-	}
-
-	private ListenableFuture<CompletedBatchOperation> storeBatchInternal(
-			FlowRuleBatchOperation operation) {
-
-		final List<FlowRuleBatchEntry> toRemove = new ArrayList<>();
-		final List<FlowRuleBatchEntry> toAdd = new ArrayList<>();
-		DeviceId did = null;
-
-		flowEntriesLock.writeLock().lock();
-		try {
-			for (FlowRuleBatchEntry batchEntry : operation.getOperations()) {
-				FlowRule flowRule = batchEntry.getTarget();
-				FlowRuleOperation op = batchEntry.getOperator();
-				if (did == null) {
-					did = flowRule.deviceId();
-				}
-				if (op.equals(FlowRuleOperation.REMOVE)) {
-					StoredFlowEntry entry = getFlowEntryInternal(flowRule);
-					if (entry != null) {
-						entry.setState(FlowEntryState.PENDING_REMOVE);
-						toRemove.add(batchEntry);
-					}
-				} else if (op.equals(FlowRuleOperation.ADD)) {
-					StoredFlowEntry flowEntry = new DefaultFlowEntry(flowRule);
-					DeviceId deviceId = flowRule.deviceId();
-					if (!flowEntries.containsEntry(deviceId, flowEntry)) {
-
-						flowEntries.put(deviceId, flowEntry);
-
-						toAdd.add(batchEntry);
-					}
-				}
-			}
-			if (toAdd.isEmpty() && toRemove.isEmpty()) {
-				return Futures.immediateFuture(new CompletedBatchOperation(
-						true, Collections.<FlowRule> emptySet()));
-			}
-
-			// create remote backup copies
-			updateBackup(did, toAdd, toRemove);
-		} finally {
-			flowEntriesLock.writeLock().unlock();
-		}
-
-		SettableFuture<CompletedBatchOperation> r = SettableFuture.create();
-		final int batchId = localBatchIdGen.incrementAndGet();
-
-		pendingFutures.put(batchId, r);
-		notifyDelegate(FlowRuleBatchEvent.requested(new FlowRuleBatchRequest(
-				batchId, toAdd, toRemove)));
-
-		return r;
-	}
-
-	private void updateBackup(final DeviceId deviceId,
-			final List<FlowRuleBatchEntry> toAdd,
-			final List<FlowRuleBatchEntry> list) {
-
-		Future<?> submit = backupExecutors.submit(new UpdateBackup(deviceId,
-				toAdd, list));
-
-		if (syncBackup) {
-			// wait for backup to complete
-			try {
-				submit.get();
-			} catch (InterruptedException | ExecutionException e) {
-				log.error("Failed to create backups", e);
-			}
-		}
-	}
-
-	private void updateBackup(DeviceId deviceId, List<FlowRuleBatchEntry> toAdd) {
-
-		updateBackup(deviceId, toAdd,
-				Collections.<FlowRuleBatchEntry> emptyList());
-	}
-
-	@Override
-	public void deleteFlowRule(FlowRule rule) {
-		storeBatch(new FlowRuleBatchOperation(
-				Arrays.asList(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE,
-						rule))));
-	}
-
-	@Override
-	public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
-		ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule
-				.deviceId());
-		final NodeId localId = clusterService.getLocalNode().id();
-		if (localId.equals(replicaInfo.master().orNull())) {
-			return addOrUpdateFlowRuleInternal(rule);
-		}
-
-		log.warn("Tried to update FlowRule {} state,"
-				+ " while the Node was not the master.", rule);
-		return null;
-	}
-
-	private FlowRuleEvent addOrUpdateFlowRuleInternal(FlowEntry rule) {
-		final DeviceId did = rule.deviceId();
-
-		flowEntriesLock.writeLock().lock();
-		try {
-			// check if this new rule is an update to an existing entry
-			StoredFlowEntry stored = getFlowEntryInternal(rule);
-			if (stored != null) {
-				stored.setBytes(rule.bytes());
-				stored.setLife(rule.life());
-				stored.setPackets(rule.packets());
-				if (stored.state() == FlowEntryState.PENDING_ADD) {
-					stored.setState(FlowEntryState.ADDED);
-					FlowRuleBatchEntry entry = new FlowRuleBatchEntry(
-							FlowRuleOperation.ADD, stored);
-					updateBackup(did, Arrays.asList(entry));
-					return new FlowRuleEvent(Type.RULE_ADDED, rule);
-				}
-				return new FlowRuleEvent(Type.RULE_UPDATED, rule);
-			}
-
-			// TODO: Confirm if this behavior is correct. See
-			// SimpleFlowRuleStore
-			// TODO: also update backup if the behavior is correct.
-			flowEntries.put(did, new DefaultFlowEntry(rule));
-		} finally {
-			flowEntriesLock.writeLock().unlock();
-		}
-		return null;
-
-	}
-
-	@Override
-	public FlowRuleEvent removeFlowRule(FlowEntry rule) {
-		final DeviceId deviceId = rule.deviceId();
-		ReplicaInfo replicaInfo = replicaInfoManager
-				.getReplicaInfoFor(deviceId);
-
-		final NodeId localId = clusterService.getLocalNode().id();
-		if (localId.equals(replicaInfo.master().orNull())) {
-			// bypass and handle it locally
-			return removeFlowRuleInternal(rule);
-		}
-
-		if (!replicaInfo.master().isPresent()) {
-			log.warn("Failed to removeFlowRule: No master for {}", deviceId);
-			// TODO: revisit if this should be null (="no-op") or Exception
-			return null;
-		}
-
-		log.trace(
-				"Forwarding removeFlowRule to {}, which is the primary (master) for device {}",
-				replicaInfo.master().orNull(), deviceId);
-
-		ClusterMessage message = new ClusterMessage(clusterService
-				.getLocalNode().id(), REMOVE_FLOW_ENTRY,
-				SERIALIZER.encode(rule));
-
-		try {
-			Future<byte[]> responseFuture = clusterCommunicator.sendAndReceive(
-					message, replicaInfo.master().get());
-			return SERIALIZER.decode(responseFuture.get(
-					FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
-		} catch (IOException | TimeoutException | ExecutionException
-				| InterruptedException e) {
-			// TODO: Retry against latest master or throw a FlowStoreException
-			throw new RuntimeException(e);
-		}
-	}
-
-	private FlowRuleEvent removeFlowRuleInternal(FlowEntry rule) {
-		final DeviceId deviceId = rule.deviceId();
-		flowEntriesLock.writeLock().lock();
-		try {
-			// This is where one could mark a rule as removed and still keep it
-			// in the store.
-			final boolean removed = flowEntries.remove(deviceId, rule);
-			FlowRuleBatchEntry entry = new FlowRuleBatchEntry(
-					FlowRuleOperation.REMOVE, rule);
-			updateBackup(deviceId,
-					Collections.<FlowRuleBatchEntry> emptyList(),
-					Arrays.asList(entry));
-			if (removed) {
-				return new FlowRuleEvent(RULE_REMOVED, rule);
-			} else {
-				return null;
-			}
-		} finally {
-			flowEntriesLock.writeLock().unlock();
-		}
-	}
-	
-	@Override
-	public void storeFlowRule(DeviceId fpid, OFMessage message) {
-		flowOFmsgsById.put(fpid, message);
-	}
-
-	@Override
-	public void batchOperationComplete(FlowRuleBatchEvent event) {
-		final Integer batchId = event.subject().batchId();
-		SettableFuture<CompletedBatchOperation> future = pendingFutures
-				.getIfPresent(batchId);
-		if (future != null) {
-			future.set(event.result());
-			pendingFutures.invalidate(batchId);
-		}
-		notifyDelegate(event);
-	}
-
-	private void loadFromBackup(final DeviceId did) {
-
-		flowEntriesLock.writeLock().lock();
-		try {
-			log.debug("Loading FlowRules for {} from backups", did);
-			SMap<FlowId, ImmutableList<StoredFlowEntry>> backupFlowTable = smaps
-					.get(did);
-			for (Entry<FlowId, ImmutableList<StoredFlowEntry>> e : backupFlowTable
-					.entrySet()) {
-
-				log.trace("loading {}", e.getValue());
-				for (StoredFlowEntry entry : e.getValue()) {
-					flowEntries.remove(did, entry);
-					flowEntries.put(did, entry);
-				}
-			}
-		} catch (ExecutionException e) {
-			log.error("Failed to load backup flowtable for {}", did, e);
-		} finally {
-			flowEntriesLock.writeLock().unlock();
-		}
-	}
-
 	private void removeFromPrimary(final DeviceId did) {
-		Collection<StoredFlowEntry> removed = null;
+		Collection<OFMessage> OFremoved = null;
+		Collection<FlowRuleExtendEntry> removed = null;
 		flowEntriesLock.writeLock().lock();
 		try {
-			removed = flowEntries.removeAll(did);
+		    OFremoved = flowOFmsgsById.removeAll(did);
+		    removed = extendflowEntries.removeAll(did);
 		} finally {
 			flowEntriesLock.writeLock().unlock();
 		}
 		log.trace("removedFromPrimary {}", removed);
-	}
-
-	private static final class TimeoutFuture implements
-			RemovalListener<Integer, SettableFuture<CompletedBatchOperation>> {
-		@Override
-		public void onRemoval(
-				RemovalNotification<Integer, SettableFuture<CompletedBatchOperation>> notification) {
-			// wrapping in ExecutionException to support Future.get
-			notification.getValue()
-					.setException(
-							new ExecutionException("Timed out",
-									new TimeoutException()));
-		}
-	}
-
-	private final class OnStoreBatch implements ClusterMessageHandler {
-		private final NodeId local;
-
-		private OnStoreBatch(NodeId local) {
-			this.local = local;
-		}
-
-		@Override
-		public void handle(final ClusterMessage message) {
-			FlowRuleBatchOperation operation = SERIALIZER.decode(message
-					.payload());
-			log.debug("received batch request {}", operation);
-
-			final DeviceId deviceId = operation.getOperations().get(0)
-					.getTarget().deviceId();
-			ReplicaInfo replicaInfo = replicaInfoManager
-					.getReplicaInfoFor(deviceId);
-			if (!local.equals(replicaInfo.master().orNull())) {
-
-				Set<FlowRule> failures = new HashSet<>(operation.size());
-				for (FlowRuleBatchEntry op : operation.getOperations()) {
-					failures.add(op.getTarget());
-				}
-				CompletedBatchOperation allFailed = new CompletedBatchOperation(
-						false, failures);
-				// This node is no longer the master, respond as all failed.
-				// TODO: we might want to wrap response in envelope
-				// to distinguish sw programming failure and hand over
-				// it make sense in the latter case to retry immediately.
-				try {
-					message.respond(SERIALIZER.encode(allFailed));
-				} catch (IOException e) {
-					log.error("Failed to respond back", e);
-				}
-				return;
-			}
-
-			final ListenableFuture<CompletedBatchOperation> f = storeBatchInternal(operation);
-
-			f.addListener(new Runnable() {
-
-				@Override
-				public void run() {
-					CompletedBatchOperation result;
-					try {
-						result = f.get();
-					} catch (InterruptedException | ExecutionException e) {
-						log.error("Batch operation failed", e);
-						// create everything failed response
-						Set<FlowRule> failures = new HashSet<>(operation.size());
-						for (FlowRuleBatchEntry op : operation.getOperations()) {
-							failures.add(op.getTarget());
-						}
-						result = new CompletedBatchOperation(false, failures);
-					}
-					try {
-						message.respond(SERIALIZER.encode(result));
-					} catch (IOException e) {
-						log.error("Failed to respond back", e);
-					}
-				}
-			}, futureListeners);
-		}
-	}
-
-	private final class SMapLoader extends
-			CacheLoader<DeviceId, SMap<FlowId, ImmutableList<StoredFlowEntry>>> {
-
-		@Override
-		public SMap<FlowId, ImmutableList<StoredFlowEntry>> load(DeviceId id)
-				throws Exception {
-			IMap<byte[], byte[]> map = theInstance.getMap("flowtable_"
-					+ id.toString());
-			return new SMap<FlowId, ImmutableList<StoredFlowEntry>>(map,
-					SERIALIZER);
-		}
 	}
 
 	private final class InternalReplicaInfoEventListener implements
@@ -826,16 +271,10 @@ public class DistributedFlowRuleExtendStore extends
 
 			switch (event.type()) {
 			case MASTER_CHANGED:
-				if (local.equals(rInfo.master().orNull())) {
+				if (!local.equals(rInfo.master().orNull())) {
 					// This node is the new master, populate local structure
 					// from backup
-					loadFromBackup(did);
-				} else {
-					// This node is no longer the master holder,
-					// clean local structure
-					removeFromPrimary(did);
-					// TODO: probably should stop pending backup activities in
-					// executors to avoid overwriting with old value
+				        removeFromPrimary(did);
 				}
 				break;
 			default:
@@ -845,86 +284,6 @@ public class DistributedFlowRuleExtendStore extends
 		}
 	}
 
-	// Task to update FlowEntries in backup HZ store
-	// TODO: Should be refactored to contain only one list and not
-	// toAdd and toRemove
-	private final class UpdateBackup implements Runnable {
-
-		private final DeviceId deviceId;
-		private final List<FlowRuleBatchEntry> toAdd;
-		private final List<FlowRuleBatchEntry> toRemove;
-
-		public UpdateBackup(DeviceId deviceId, List<FlowRuleBatchEntry> toAdd,
-				List<FlowRuleBatchEntry> list) {
-			this.deviceId = checkNotNull(deviceId);
-			this.toAdd = checkNotNull(toAdd);
-			this.toRemove = checkNotNull(list);
-		}
-
-		@Override
-		public void run() {
-			try {
-				log.trace("update backup {} +{} -{}", deviceId, toAdd, toRemove);
-				final SMap<FlowId, ImmutableList<StoredFlowEntry>> backupFlowTable = smaps
-						.get(deviceId);
-				// Following should be rewritten using async APIs
-				for (FlowRuleBatchEntry bEntry : toAdd) {
-					final FlowRule entry = bEntry.getTarget();
-					final FlowId id = entry.id();
-					ImmutableList<StoredFlowEntry> original = backupFlowTable
-							.get(id);
-					List<StoredFlowEntry> list = new ArrayList<>();
-					if (original != null) {
-						list.addAll(original);
-					}
-
-					list.remove(bEntry.getTarget());
-					list.add((StoredFlowEntry) entry);
-
-					ImmutableList<StoredFlowEntry> newValue = ImmutableList
-							.copyOf(list);
-					boolean success;
-					if (original == null) {
-						success = (backupFlowTable.putIfAbsent(id, newValue) == null);
-					} else {
-						success = backupFlowTable.replace(id, original,
-								newValue);
-					}
-					if (!success) {
-						log.error("Updating backup failed.");
-					}
-				}
-				for (FlowRuleBatchEntry bEntry : toRemove) {
-					final FlowRule entry = bEntry.getTarget();
-					final FlowId id = entry.id();
-					ImmutableList<StoredFlowEntry> original = backupFlowTable
-							.get(id);
-					List<StoredFlowEntry> list = new ArrayList<>();
-					if (original != null) {
-						list.addAll(original);
-					}
-
-					list.remove(bEntry.getTarget());
-
-					ImmutableList<StoredFlowEntry> newValue = ImmutableList
-							.copyOf(list);
-					boolean success;
-					if (original == null) {
-						success = (backupFlowTable.putIfAbsent(id, newValue) == null);
-					} else {
-						success = backupFlowTable.replace(id, original,
-								newValue);
-					}
-					if (!success) {
-						log.error("Updating backup failed.");
-					}
-				}
-			} catch (ExecutionException e) {
-				log.error("Failed to write to backups", e);
-			}
-
-		}
-	}
 	@Override
 	public Iterable<OFMessage> getOFMessages(DeviceId deviceId) {
 		
@@ -967,66 +326,58 @@ public class DistributedFlowRuleExtendStore extends
 		return null;
 	}
 	
-	public Set<OFMessage> getInternalOFMessage(DeviceId fpid) {
+	public Set<OFMessage> getInternalOFMessage(DeviceId deviceId) {
 		
-		Collection<? extends OFMessage> rules = flowOFmsgsById.get(fpid);
+		Collection<? extends OFMessage> rules = flowOFmsgsById.get(deviceId);
 		if (rules == null) {
 			return Collections.emptySet();
 		}
 		return ImmutableSet.copyOf(rules);
 	}
 
-    @Override
-    public void setDelegate(FlowRuleExtendStoreDelegate delegate) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void unsetDelegate(FlowRuleExtendStoreDelegate delegate) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public Future<FlowExtendCompletedOperation> storeBatch(Collection<FlowRuleExtendEntry> batchOperation) {
-        // TODO Auto-generated method stub
-    if (Operation.getSncflow()==null) {
-            return Futures.immediateFuture(new FlowExtendCompletedOperation(true,
+        @Override
+        public Future<FlowExtendCompletedOperation> storeBatch(Collection<FlowRuleExtendEntry> batchOperation) {
+               // TODO Auto-generated method stub
+              if (batchOperation.isEmpty()) {
+               return Futures.immediateFuture(new FlowExtendCompletedOperation(true,
                             Collections.<FlowRuleExtendEntry> emptySet()));
-    }
+              }
+              // here should make some changes because all the collection belongs to one deviceId
+             DeviceId deviceId = getBatchDeviceId(batchOperation);
 
-    DeviceId deviceId = DeviceId.deviceId(String.valueOf(batchOperation.getDeviceId()));
+             ReplicaInfo replicaInfo = replicaInfoManager
+                            .getReplicaInfoFor(deviceId);
 
-    ReplicaInfo replicaInfo = replicaInfoManager
-                    .getReplicaInfoFor(deviceId);
+             if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+                   return storeBatchInternal(batchOperation);
+             }
 
+             log.trace(
+                   "Forwarding storeBatch to {}, which is the primary (master) for device {}",
+                   replicaInfo.master().orNull(), deviceId);
+             
+             ChannelBuffer buf=ChannelBuffers.dynamicBuffer();
+             for (FlowRuleExtendEntry op : batchOperation){
+                     buf.writeBytes(SERIALIZER.encode(op));;
+             }
+             ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), APPLY_EXTEND_FLOWS,
+                     buf.array());
 
-    if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-            return storeBatchInternal(batchOperation);
-    }
-
-    log.trace(
-                    "Forwarding storeBatch to {}, which is the primary (master) for device {}",
-                    replicaInfo.master().orNull(), deviceId);
-
-    ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), APPLY_EXTEND_FLOWS,
-                    SERIALIZER.encode(batchOperation));
-
-    try {
-            ListenableFuture<byte[]> responseFuture = clusterCommunicator
+            try {
+              ListenableFuture<byte[]> responseFuture = clusterCommunicator
                             .sendAndReceive(message, replicaInfo.master().get());
-            return Futures.transform(responseFuture,
+              //here should add another decode process 
+              return Futures.transform(responseFuture,
                             new DecodeTo<FlowExtendCompletedOperation>(SERIALIZER));
-    } catch (IOException e) {
-            return Futures.immediateFailedFuture(e);
-    }
+            } catch (IOException e) {
+              return Futures.immediateFailedFuture(e);
+        }
     }
 
     @Override
     public void batchOperationComplete(FlowRuleBatchExtendEvent event) {
         // TODO Auto-generated method stub
-        final Integer batchId = event.subject().getDeviceId();
+        final Integer batchId = event.subject().batchId();
         SettableFuture<FlowExtendCompletedOperation> future = pendingExtendFutures
                         .getIfPresent(batchId);
         if (future != null) {
@@ -1036,24 +387,48 @@ public class DistributedFlowRuleExtendStore extends
     }
 
     private ListenableFuture<FlowExtendCompletedOperation> storeBatchInternal(
-      Collection<FlowRuleExtendEntry> operation) {
-         DeviceId deviceId = DeviceId.deviceId(String.valueOf(operation.getDeviceId()));
-         if (!sncflowEntries.containsEntry(deviceId, operation.getSncflow())) {
-                 sncflowEntries.put(deviceId, operation.getSncflow());
-         }
-         byte[] boflen = operation.subBytes(operation.getSncflow(), 16, 4);
-         int length = operation.getInt(boflen);
-         byte[] buf = operation.subBytes(operation.getSncflow(), 20, length);
-         try{
-                 OFMessage msg = operation.readOFMessage(buf);
-                 storeFlowRule(deviceId, msg);
-            }catch (OFParseError e) {
+      Collection<FlowRuleExtendEntry> batchOperation) {
+        for(FlowRuleExtendEntry operation : batchOperation) {
+             DeviceId deviceId = DeviceId.deviceId(String.valueOf(operation.getDeviceId()));
+             if (!extendflowEntries.containsEntry(deviceId, operation)) {
+                    extendflowEntries.put(deviceId, operation);
+             }
+             byte[] boflen = operation.subBytes(operation.getFlowEntryExtend(), 16, 4);
+             int length = operation.getInt(boflen);
+             byte[] buf = operation.subBytes(operation.getFlowEntryExtend(), 20, length);
+             try{
+                    OFMessage msg = operation.readOFMessage(buf);
+                    storeFlowRule(deviceId, msg);
+             }catch (OFParseError e) {
                                                                                       
-                 e.printStackTrace();
+                    e.printStackTrace();
+             }
+        }
+         SettableFuture<FlowExtendCompletedOperation> r = SettableFuture.create();
+         final int batchId = localBatchIdGen.incrementAndGet();
+         pendingExtendFutures.put(batchId, r);
+         delegate.notify(FlowRuleBatchExtendEvent.requested(new FlowRuleBatchExtendRequest(batchId, batchOperation)));
+         return r;
+    }
+
+    @Override
+    public void storeFlowRule(DeviceId deviceId, OFMessage message) {
+        // TODO Auto-generated method stub
+        flowOFmsgsById.remove(deviceId, message);
+        flowOFmsgsById.put(deviceId, message);
+    }
+
+    private DeviceId getBatchDeviceId(Collection<FlowRuleExtendEntry> batchOperation) {
+        Iterator<FlowRuleExtendEntry> head = batchOperation.iterator();
+        FlowRuleExtendEntry headOp = head.next();
+        boolean sameId = true; 
+        for(FlowRuleExtendEntry operation : batchOperation) {
+            if(operation.getDeviceId() != headOp.getDeviceId()) {
+                log.warn("this batch does not apply on one device Id ");
+                sameId = false;
+                break;
             }
-                 SettableFuture<FlowExtendCompletedOperation> r = SettableFuture.create();
-                 pendingSncFutures.put(deviceId, r);
-                 delegate.notify(FlowRuleBatchExtendEvent.requested(operation));
-                 return r;
+        }
+        return sameId? DeviceId.deviceId(String.valueOf(headOp.getDeviceId())) : null;
     }
 }

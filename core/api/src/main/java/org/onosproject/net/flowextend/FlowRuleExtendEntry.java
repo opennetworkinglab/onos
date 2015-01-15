@@ -9,11 +9,11 @@ import org.projectfloodlight.openflow.protocol.OFMessageReader;
 public class FlowRuleExtendEntry {
    private int deviceId;
    private int length;
-   private byte[] sncflow;
+   private byte[] flowEntryExtend;
    public FlowRuleExtendEntry(Integer fpid, byte[] data) {
 	   this.setDeviceId(fpid);
 	   this.setLength(length);
-	   this.setSncflow(data);
+	   this.setFlowEntryExtend(data);
    }
    public int getDeviceId() {
 	   return deviceId;
@@ -27,11 +27,11 @@ public class FlowRuleExtendEntry {
    public void setLength(int length) {
 	  this.length = length;
    }
-   public byte[] getSncflow() {
-	  return sncflow;
+   public byte[] getFlowEntryExtend() {
+	  return flowEntryExtend;
    }
-   public void setSncflow(byte[] sncflow) {
-	  this.sncflow = sncflow;
+   public void setFlowEntryExtend(byte[] flowEntryExtend) {
+	  this.flowEntryExtend = flowEntryExtend;
    }
 
    public byte[] subBytes(byte[] src, int begin, int len) {

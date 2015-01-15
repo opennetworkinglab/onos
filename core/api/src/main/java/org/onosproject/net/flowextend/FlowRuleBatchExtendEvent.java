@@ -1,13 +1,11 @@
 package org.onosproject.net.flowextend;
 
-import java.util.Collection;
 
 import org.onosproject.event.AbstractEvent;
-import org.onosproject.net.flow.FlowRuleBatchEvent.Type;
 
-public final class FlowRuleBatchExtendEvent extends AbstractEvent<FlowRuleBatchExtendEvent.Type, Collection<FlowRuleExtendEntry>> {
+public final class FlowRuleBatchExtendEvent extends AbstractEvent<FlowRuleBatchExtendEvent.Type, FlowRuleBatchExtendRequest> {
 
-	private final FlowExtendCompletedOperation result;
+    private final FlowExtendCompletedOperation result;
 
 	/**
      * Type of sncflow rule events.
@@ -28,7 +26,7 @@ public final class FlowRuleBatchExtendEvent extends AbstractEvent<FlowRuleBatchE
         BATCH_OPERATION_COMPLETED,
     }
 	
-	public FlowRuleBatchExtendEvent(Type type, Collection<FlowRuleExtendEntry> request,
+	public FlowRuleBatchExtendEvent(Type type, FlowRuleBatchExtendRequest request,
 			FlowExtendCompletedOperation result) {
 		super(type, request);
 		this.result = result;
@@ -39,7 +37,7 @@ public final class FlowRuleBatchExtendEvent extends AbstractEvent<FlowRuleBatchE
      * @param request batch operation request.
      * @return event.
      */
-    public static FlowRuleBatchExtendEvent requested(Collection<FlowRuleExtendEntry> request) {
+    public static FlowRuleBatchExtendEvent requested(FlowRuleBatchExtendRequest request) {
         FlowRuleBatchExtendEvent event = new FlowRuleBatchExtendEvent(Type.BATCH_OPERATION_REQUESTED, request, null);
         return event;
     }
@@ -50,7 +48,7 @@ public final class FlowRuleBatchExtendEvent extends AbstractEvent<FlowRuleBatchE
      * @param result completed batch operation result.
      * @return event.
      */
-    public static FlowRuleBatchExtendEvent completed(Collection<FlowRuleExtendEntry> request, FlowExtendCompletedOperation result) {
+    public static FlowRuleBatchExtendEvent completed(FlowRuleBatchExtendRequest request, FlowExtendCompletedOperation result) {
         FlowRuleBatchExtendEvent event = new FlowRuleBatchExtendEvent(Type.BATCH_OPERATION_COMPLETED, request, result);
         return event;
     }
