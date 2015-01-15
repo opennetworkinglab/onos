@@ -29,7 +29,7 @@
     ];
 
     // references to injected services etc.
-    var $log, $window, ks, zs, gs, ms;
+    var $log, ks, zs, gs, ms;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, map;
@@ -86,8 +86,8 @@
             sc = zoomer.scale();
         $log.log('ZOOM: translate = ' + tr + ', scale = ' + sc);
 
-        // TODO: keep the map lines constant width while zooming
-        //bgImg.style('stroke-width', 2.0 / scale + 'px');
+        // keep the map lines constant width while zooming
+        map.style('stroke-width', (2.0 / sc) + 'px');
     }
 
     function setUpZoom() {
@@ -101,13 +101,14 @@
     }
 
 
+    // callback invoked when the SVG view has been resized..
+    function svgResized(w, h) {
+        // not used now, but may be required later...
+    }
+
     // --- Background Map ------------------------------------------------
 
-    function setUpMap() {
-        map = zoomLayer.append('g').attr('id', 'topo-map');
-        //ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
-        ms.loadMapInto(map, '*continental_us');
-
+    function showCallibrationPoints() {
         // temp code for calibration
         var points = [
             [0, 0], [0, 1000], [1000, 0], [1000, 1000]
@@ -122,25 +123,31 @@
             .style('fill', 'red');
     }
 
+    function setUpMap() {
+        map = zoomLayer.append('g').attr('id', 'topo-map');
+        //ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
+        ms.loadMapInto(map, '*continental_us');
+        //showCallibrationPoints();
+    }
+
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
 
         .controller('OvTopoCtrl', [
-            '$log', '$window',
+            '$log',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
 
-        function (_$log_, _$window_, _ks_, _zs_, _gs_, _ms_) {
+        function (_$log_, _ks_, _zs_, _gs_, _ms_) {
             var self = this;
             $log = _$log_;
-            $window = _$window_;
             ks = _ks_;
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
 
             self.notifyResize = function () {
-                $log.log('Hey, we changed size');
+                svgResized(svg.style('width'), svg.style('height'));
             };
 
             // svg layer and initialization of components

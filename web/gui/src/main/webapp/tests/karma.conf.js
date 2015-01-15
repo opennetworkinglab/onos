@@ -26,6 +26,7 @@ module.exports = function(config) {
         // production code...
         // make sure modules are defined first...
         '../app/onos.js',
+        '../app/directives.js',
         '../app/fw/util/util.js',
         '../app/fw/svg/svg.js',
         // now load services etc. that augment the modules

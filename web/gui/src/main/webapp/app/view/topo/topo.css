@@ -20,22 +20,15 @@
  @author Simon Hunt
  */
 
-#ov-topo .msg {
-    font-family: "Bookman", Georgia, "Times New Roman", serif;
-    font-size: 40pt;
-    font-weight: bold;
-    font-style: italic;
-    color: seagreen;
-}
-
 #ov-topo svg {
     background-color: #fff;
-    border: 1px solid red;
+    /* For Debugging the placement of the SVG layer... */
+    /*border: 1px solid red;*/
 }
 
 #ov-topo svg #topo-map {
     stroke-width: 2px;
     /*stroke: #eee;*/
-    stroke: #445;
+    stroke: #88b;
     fill: transparent;
 }
