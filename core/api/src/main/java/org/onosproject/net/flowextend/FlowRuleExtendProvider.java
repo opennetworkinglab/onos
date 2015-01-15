@@ -13,5 +13,7 @@ public interface FlowRuleExtendProvider extends Provider{
      * throws SomeKindOfException that indicates which ones were applied and
      *                  which ones failed
      */
+	
+	static final int POLL_INTERVAL = 10;
     void applyFlowRule(Collection<FlowRuleExtendEntry> flowRules);
 }
