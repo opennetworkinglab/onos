@@ -26,7 +26,7 @@ public final class FlowStoreMessageSubjects {
     public static final  MessageSubject APPLY_BATCH_FLOWS
         = new MessageSubject("peer-forward-apply-batch");
  
-    public static final  MessageSubject APPLY_SNC_FLOWS
+    public static final  MessageSubject APPLY_EXTEND_FLOWS
     = new MessageSubject("peer-forward-apply-batch");
 
     public static final MessageSubject GET_FLOW_ENTRY
@@ -35,7 +35,7 @@ public final class FlowStoreMessageSubjects {
     public static final MessageSubject GET_DEVICE_FLOW_ENTRIES
         = new MessageSubject("peer-forward-get-device-flow-entries");
 
-    public static final MessageSubject GET_DEVICE_SNCFLOW_ENTRIES
+    public static final MessageSubject GET_DEVICE_EXTENDFLOW_ENTRIES
     = new MessageSubject("peer-forward-get-device-flow-entries");
 
     public static final MessageSubject REMOVE_FLOW_ENTRY

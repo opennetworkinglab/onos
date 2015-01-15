@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flow;
+package org.onosproject.net.flowextend;
 
-import org.onosproject.store.StoreDelegate;
+import org.onosproject.net.provider.ProviderService;
 
 /**
- * Flow rule store delegate abstraction.
+ * Service through which flow rule providers can inject information into
+ * the core.
  */
-public interface FlowRuleStoreDelegate extends StoreDelegate<FlowRuleBatchEvent> {
+public interface FlowRuleExtendProviderService extends ProviderService<FlowRuleExtendProvider> {
+
 }

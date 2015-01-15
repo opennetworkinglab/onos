@@ -443,29 +443,6 @@ public class FlowRuleManager
                 break;
             }
         }
-        @Override
-        public void notify(SncFlowRuleEvent event){
-        	//TODO 
-        	switch (event.type()) {
-        	case BATCH_OPERATION_REQUESTED:
-        		//send it
-        		SncFlowRuleEntry entry = event.subject();
-        		FlowRuleProvider flowRuleProvider =
-        				getProvider(new ProviderId("igp","org.onlab.onos.provider.igp"));
-        		flowRuleProvider.applyRule(entry.getSncflow());
-        		//do not have transation, assume it install success
-        		SncFlowCompletedOperation result = new SncFlowCompletedOperation(true,
-        				Collections.<SncFlowRuleEntry>emptySet());
-        		store.batchOperationComplete(SncFlowRuleEvent.completed(entry, result));
-        		break;
-        	case BATCH_OPERATION_COMPLETED:
-        		
-        		break;
-        	default:
-        		break;
-        	}
-        	
-        }
     }
 
     private class FlowRuleBatchFuture implements Future<CompletedBatchOperation> {

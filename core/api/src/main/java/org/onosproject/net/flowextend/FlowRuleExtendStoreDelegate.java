@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flow;
+package org.onosproject.net.flowextend;
 
 import org.onosproject.store.StoreDelegate;
 
 /**
- * Flow rule store delegate abstraction.
+ * Flow rule extend store delegate abstraction. 
  */
-public interface FlowRuleStoreDelegate extends StoreDelegate<FlowRuleBatchEvent> {
+public interface FlowRuleExtendStoreDelegate extends StoreDelegate<FlowRuleBatchExtendEvent> {
 }

@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
-import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.onosproject.net.flowextend.FlowRuleExtendEntry;
 
 /**
  * Service for injecting flow rules into the environment and for obtaining
@@ -82,7 +82,7 @@ public interface FlowRuleService {
      * @param id the id to look up
      * @return collection of flow rules
      */
-    Iterable<FlowRule> getFlowRulesById(ApplicationId id);
+    Iterable<FlowRuleExtendEntry> getFlowRulesById(ApplicationId id);
 
     /**
      * Returns a list of rules filterd by application and group id.
@@ -91,7 +91,7 @@ public interface FlowRuleService {
      * @param groupId the groupid to lookup
      * @return collection of flow rules
      */
-    Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId);
+    Iterable<FlowRuleExtendEntry> getFlowRulesByGroupId(ApplicationId appId, short groupId);
 
     /**
      * Applies a batch operation of FlowRules.
@@ -114,8 +114,4 @@ public interface FlowRuleService {
      * @param listener flow rule listener
      */
     void removeListener(FlowRuleListener listener);
-
-    void applySncBatch(SncFlowRuleEntry flowentry);
-
-    Iterable<OFMessage> getOFMessages(DeviceId fpid);
 }

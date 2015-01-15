@@ -21,8 +21,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.onlab.netty.Endpoint;
 import org.onosproject.ipran.serializers.KryoSerializer;
-import org.onosproject.net.flow.SncFlowRuleEntry;
-import org.onosproject.net.topology.TopologyListener;
 import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;

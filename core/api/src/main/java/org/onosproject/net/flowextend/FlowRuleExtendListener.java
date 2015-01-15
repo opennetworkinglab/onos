@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flow;
+package org.onosproject.net.flowextend;
 
-import org.onosproject.store.StoreDelegate;
+import org.onosproject.event.EventListener;
 
 /**
- * Flow rule store delegate abstraction.
+ * Entity capable of receiving flow rule related events.
  */
-public interface FlowRuleStoreDelegate extends StoreDelegate<FlowRuleBatchEvent> {
+public interface FlowRuleExtendListener extends EventListener<FlowRuleExtendEvent> {
 }

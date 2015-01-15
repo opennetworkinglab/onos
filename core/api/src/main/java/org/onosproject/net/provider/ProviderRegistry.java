@@ -23,8 +23,8 @@ import java.util.Set;
  * @param <P> type of the information provider
  * @param <S> type of the provider service
  */
-public interface ProviderRegistry<P extends Provider, S extends ProviderService<P>> {
 
+public interface ProviderRegistry<P extends Provider, S extends ProviderService<P>> {
     /**
      * Registers the supplied provider with the core.
      *
