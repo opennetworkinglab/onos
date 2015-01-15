@@ -121,9 +121,9 @@ import com.hazelcast.core.IMap;
  */
 @Component(immediate = true)
 @Service
-public class DistributedFlowRuleStore extends
-		AbstractHazelcastStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
-		implements FlowRuleStore {
+public class DistributedFlowRuleExtendStore extends
+                AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
+		implements FlowRuleStore, FlowRuleExtendStore {
 
 	private final Logger log = getLogger(getClass());
 
@@ -137,7 +137,7 @@ public class DistributedFlowRuleStore extends
 	private final Multimap<DeviceId, OFMessage> flowOFmsgsById = ArrayListMultimap
 			.<DeviceId, OFMessage> create();
 
-	private final Multimap<DeviceId, byte[]> sncflowEntries = ArrayListMultimap
+	private final Multimap<DeviceId, byte[]> extendflowEntries = ArrayListMultimap
 			.<DeviceId, byte[]> create();
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -160,6 +160,12 @@ public class DistributedFlowRuleStore extends
 			.newBuilder()
 			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
 			.removalListener(new TimeoutFuture()).build();
+
+	private Cache<DeviceId, SettableFuture<FlowExtendCompletedOperation>> pendingExtendFutures = CacheBuilder
+			.newBuilder()
+			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
+			// .removalListener(new TimeoutFuture())
+			.build();
 
 	// Cache of SMaps used for backup data. each SMap contain device flow table
 	private LoadingCache<DeviceId, SMap<FlowId, ImmutableList<StoredFlowEntry>>> smaps;
