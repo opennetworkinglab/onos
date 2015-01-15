@@ -26,29 +26,24 @@
 
     var urlSuffix = '/onos/v1/devices';
 
-    // TODO : refactor into remote service
-    function buildUrl($loc) {
-        return $loc.protocol() + '://' + $loc.host() + ':' + $loc.port();
-    }
-
     angular.module('ovDevice', [])
-        .controller('OvDeviceCtrl', ['$log', '$http', '$location',
+        .controller('OvDeviceCtrl', ['$log', '$location',
         function ($log, $http, $loc) {
             var self = this;
             self.deviceData = [];
-            var url = buildUrl($loc) + urlSuffix;
-            $log.log(url);
+            //var url = buildUrl($loc) + urlSuffix;
+            //$log.log(url);
 
-            $http.get(url).then(
-                //success
-                function (response) {
-                    self.deviceData = response.data.devices;
-                },
-                //failure
-                function (response) {
-                    $log.warn('Failed to get device data ', response.status);
-                }
-            );
+            //$http.get(url).then(
+            //    //success
+            //    function (response) {
+            //        self.deviceData = response.data.devices;
+            //    },
+            //    //failure
+            //    function (response) {
+            //        $log.warn('Failed to get device data ', response.status);
+            //    }
+            //);
 
             $log.log('OvDeviceCtrl has been created');
         }]);
