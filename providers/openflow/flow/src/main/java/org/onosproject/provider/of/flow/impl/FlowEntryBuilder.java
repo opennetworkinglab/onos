@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
@@ -56,6 +57,7 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.VlanPcp;
@@ -398,6 +400,34 @@ public class FlowEntryBuilder {
                 builder.matchOpticalSignalType(match.get(MatchField
                                                                  .OCH_SIGTYPE).getValue());
                 break;
+            case IPV6_DST:
+                Ip6Prefix dipv6;
+                if (match.isPartiallyMasked(MatchField.IPV6_DST)) {
+                    Masked<IPv6Address> maskedIp = match.getMasked(MatchField.IPV6_DST);
+                    dipv6 = Ip6Prefix.valueOf(
+                            maskedIp.getValue().getBytes(),
+                            maskedIp.getMask().asCidrMaskLength());
+                } else {
+                    dipv6 = Ip6Prefix.valueOf(
+                            match.get(MatchField.IPV6_DST).getBytes(),
+                            Ip6Prefix.MAX_MASK_LENGTH);
+                }
+                builder.matchIPv6Dst(dipv6);
+                break;
+            case IPV6_SRC:
+                Ip6Prefix sipv6;
+                if (match.isPartiallyMasked(MatchField.IPV6_SRC)) {
+                    Masked<IPv6Address> maskedIp = match.getMasked(MatchField.IPV6_SRC);
+                    sipv6 = Ip6Prefix.valueOf(
+                            maskedIp.getValue().getBytes(),
+                            maskedIp.getMask().asCidrMaskLength());
+                } else {
+                    sipv6 = Ip6Prefix.valueOf(
+                            match.get(MatchField.IPV6_SRC).getBytes(),
+                            Ip6Prefix.MAX_MASK_LENGTH);
+                }
+                builder.matchIPv6Src(sipv6);
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
@@ -408,12 +438,10 @@ public class FlowEntryBuilder {
             case ICMPV6_CODE:
             case ICMPV6_TYPE:
             case IN_PHY_PORT:
-            case IPV6_DST:
             case IPV6_FLABEL:
             case IPV6_ND_SLL:
             case IPV6_ND_TARGET:
             case IPV6_ND_TLL:
-            case IPV6_SRC:
             case IP_DSCP:
             case IP_ECN:
             case METADATA:
@@ -425,8 +453,6 @@ public class FlowEntryBuilder {
             case UDP_SRC:
             default:
                 log.warn("Match type {} not yet implemented.", field.id);
-
-
             }
         }
         return builder.build();

@@ -84,11 +84,18 @@ public class CriteriaTest {
 
     private static final String IP1 = "1.2.3.4/24";
     private static final String IP2 = "5.6.7.8/24";
+    private static final String IPV61 = "fe80::1/64";
+    private static final String IPV62 = "fc80::2/64";
     private IpPrefix ip1 = IpPrefix.valueOf(IP1);
     private IpPrefix ip2 = IpPrefix.valueOf(IP2);
+    private IpPrefix ipv61 = IpPrefix.valueOf(IPV61);
+    private IpPrefix ipv62 = IpPrefix.valueOf(IPV62);
     Criterion matchIp1 = Criteria.matchIPSrc(ip1);
     Criterion sameAsMatchIp1 = Criteria.matchIPSrc(ip1);
     Criterion matchIp2 = Criteria.matchIPSrc(ip2);
+    Criterion matchIpv61 = Criteria.matchIPSrc(ipv61);
+    Criterion sameAsMatchIpv61 = Criteria.matchIPSrc(ipv61);
+    Criterion matchIpv62 = Criteria.matchIPSrc(ipv62);
 
     short lambda1 = 1;
     short lambda2 = 2;
@@ -384,6 +391,32 @@ public class CriteriaTest {
     }
 
     /**
+     * Test the matchIPSrc method.
+     */
+    @Test
+    public void testMatchIPv6SrcMethod() {
+        Criterion matchIpv6Src = Criteria.matchIPv6Src(ipv61);
+        Criteria.IPCriterion ipCriterion =
+                checkAndConvert(matchIpv6Src,
+                        Criterion.Type.IPV6_SRC,
+                        Criteria.IPCriterion.class);
+        assertThat(ipCriterion.ip(), is(ipv61));
+    }
+
+    /**
+     * Test the matchIPDst method.
+     */
+    @Test
+    public void testMatchIPv6DstMethod() {
+        Criterion matchIPv6Dst = Criteria.matchIPv6Dst(ipv61);
+        Criteria.IPCriterion ipCriterion =
+                checkAndConvert(matchIPv6Dst,
+                        Criterion.Type.IPV6_DST,
+                        Criteria.IPCriterion.class);
+        assertThat(ipCriterion.ip(), is(equalTo(ipv61)));
+    }
+
+    /**
      * Test the equals() method of the IpCriterion class.
      */
     @Test
@@ -391,6 +424,11 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchIp1, sameAsMatchIp1)
                 .addEqualityGroup(matchIp2)
+                .testEquals();
+
+        new EqualsTester()
+                .addEqualityGroup(matchIpv61, sameAsMatchIpv61)
+                .addEqualityGroup(matchIpv62)
                 .testEquals();
     }
 

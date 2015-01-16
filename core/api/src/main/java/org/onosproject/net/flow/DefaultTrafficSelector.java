@@ -184,6 +184,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchIPv6Src(IpPrefix ip) {
+            return add(Criteria.matchIPv6Src(ip));
+        }
+
+        @Override
+        public Builder matchIPv6Dst(IpPrefix ip) {
+            return add(Criteria.matchIPv6Dst(ip));
+        }
+
+        @Override
         public Builder matchMplsLabel(Integer mplsLabel) {
             return add(Criteria.matchMplsLabel(mplsLabel));
         }

@@ -115,7 +115,7 @@ public interface TrafficSelector {
         public Builder matchIPProtocol(Byte proto);
 
         /**
-         * Matches a l3 address.
+         * Matches a l3 IPv4 address.
          *
          * @param ip a l3 address
          * @return a selection builder
@@ -123,7 +123,7 @@ public interface TrafficSelector {
         public Builder matchIPSrc(IpPrefix ip);
 
         /**
-         * Matches a l3 address.
+         * Matches a l3 IPv4 address.
          *
          * @param ip a l3 address
          * @return a selection builder
@@ -146,6 +146,21 @@ public interface TrafficSelector {
          */
         public Builder matchTcpDst(Short tcpPort);
 
+        /**
+         * Matches a l3 IPv6 address.
+         *
+         * @param ip a l3 IPv6 address
+         * @return a selection builder
+         */
+        public Builder matchIPv6Src(IpPrefix ip);
+
+        /**
+         * Matches a l3 IPv6 address.
+         *
+         * @param ip a l3 IPv6 address
+         * @return a selection builder
+         */
+        public Builder matchIPv6Dst(IpPrefix ip);
 
         /**
          * Matches on a MPLS label .

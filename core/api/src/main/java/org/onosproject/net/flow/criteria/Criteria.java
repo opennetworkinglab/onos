@@ -18,7 +18,6 @@ package org.onosproject.net.flow.criteria;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
-
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onlab.packet.IpPrefix;
@@ -109,9 +108,9 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on IP source field using the specified value.
+     * Creates a match on IPv4 source field using the specified value.
      *
-     * @param ip ip source value
+     * @param ip ipv4 source value
      * @return match criterion
      */
     public static Criterion matchIPSrc(IpPrefix ip) {
@@ -119,9 +118,9 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on IP destination field using the specified value.
+     * Creates a match on IPv4 destination field using the specified value.
      *
-     * @param ip ip source value
+     * @param ip ipv4 source value
      * @return match criterion
      */
     public static Criterion matchIPDst(IpPrefix ip) {
@@ -146,6 +145,26 @@ public final class Criteria {
      */
     public static Criterion matchTcpDst(Short tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_DST);
+    }
+
+    /**
+     * Creates a match on IPv6 source field using the specified value.
+     *
+     * @param ip ipv6 source value
+     * @return match criterion
+     */
+    public static Criterion matchIPv6Src(IpPrefix ip) {
+        return new IPCriterion(ip, Type.IPV6_SRC);
+    }
+
+    /**
+     * Creates a match on IPv6 destination field using the specified value.
+     *
+     * @param ip ipv6 source value
+     * @return match criterion
+     */
+    public static Criterion matchIPv6Dst(IpPrefix ip) {
+        return new IPCriterion(ip, Type.IPV6_DST);
     }
 
     /**

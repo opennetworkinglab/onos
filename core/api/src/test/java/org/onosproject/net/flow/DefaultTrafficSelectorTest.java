@@ -129,6 +129,7 @@ public class DefaultTrafficSelectorTest {
         final short shortValue = 33;
         final byte byteValue = 44;
         final IpPrefix ipPrefixValue = IpPrefix.valueOf("192.168.1.0/24");
+        final IpPrefix ipv6PrefixValue = IpPrefix.valueOf("fe80::1/64");
 
         selector = DefaultTrafficSelector.builder()
                 .matchInport(PortNumber.portNumber(11)).build();
@@ -173,6 +174,14 @@ public class DefaultTrafficSelectorTest {
         selector = DefaultTrafficSelector.builder()
                 .matchTcpDst(shortValue).build();
         assertThat(selector, hasCriterionWithType(Type.TCP_DST));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchIPv6Src(ipv6PrefixValue).build();
+        assertThat(selector, hasCriterionWithType(Type.IPV6_SRC));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchIPv6Dst(ipv6PrefixValue).build();
+        assertThat(selector, hasCriterionWithType(Type.IPV6_DST));
 
         selector = DefaultTrafficSelector.builder()
                 .matchMplsLabel(3).build();

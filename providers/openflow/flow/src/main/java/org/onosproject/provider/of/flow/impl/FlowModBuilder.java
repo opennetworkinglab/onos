@@ -17,6 +17,8 @@ package org.onosproject.provider.of.flow.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -41,6 +43,7 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.IpProtocol;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.Masked;
@@ -134,6 +137,7 @@ public abstract class FlowModBuilder {
         EthCriterion eth;
         IPCriterion ip;
         Ip4Prefix ip4Prefix;
+        Ip6Prefix ip6Prefix;
         TcpPortCriterion tp;
         for (Criterion c : selector.criteria()) {
             switch (c.type()) {
@@ -220,6 +224,36 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.OCH_SIGTYPE,
                                   U8.of(sc.signalType()));
                 break;
+            case IPV6_DST:
+                ip = (IPCriterion) c;
+                ip6Prefix = ip.ip().getIp6Prefix();
+                if (ip6Prefix.prefixLength() != Ip6Prefix.MAX_MASK_LENGTH) {
+                    Ip6Address maskAddr =
+                            Ip6Address.makeMaskPrefix(ip6Prefix.prefixLength());
+                    Masked<IPv6Address> maskedIp =
+                            Masked.of(IPv6Address.of(ip6Prefix.address().toString()),
+                                    IPv6Address.of(maskAddr.toString()));
+                    mBuilder.setMasked(MatchField.IPV6_DST, maskedIp);
+                } else {
+                    mBuilder.setExact(MatchField.IPV6_DST,
+                            IPv6Address.of(ip6Prefix.address().toString()));
+                }
+                break;
+            case IPV6_SRC:
+                ip = (IPCriterion) c;
+                ip6Prefix = ip.ip().getIp6Prefix();
+                if (ip6Prefix.prefixLength() != Ip6Prefix.MAX_MASK_LENGTH) {
+                    Ip6Address maskAddr =
+                            Ip6Address.makeMaskPrefix(ip6Prefix.prefixLength());
+                    Masked<IPv6Address> maskedIp =
+                            Masked.of(IPv6Address.of(ip6Prefix.address().toString()),
+                                    IPv6Address.of(maskAddr.toString()));
+                    mBuilder.setMasked(MatchField.IPV6_SRC, maskedIp);
+                } else {
+                    mBuilder.setExact(MatchField.IPV6_SRC,
+                            IPv6Address.of(ip6Prefix.address().toString()));
+                }
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
@@ -230,13 +264,11 @@ public abstract class FlowModBuilder {
             case ICMPV6_CODE:
             case ICMPV6_TYPE:
             case IN_PHY_PORT:
-            case IPV6_DST:
             case IPV6_EXTHDR:
             case IPV6_FLABEL:
             case IPV6_ND_SLL:
             case IPV6_ND_TARGET:
             case IPV6_ND_TLL:
-            case IPV6_SRC:
             case IP_DSCP:
             case IP_ECN:
             case METADATA:
