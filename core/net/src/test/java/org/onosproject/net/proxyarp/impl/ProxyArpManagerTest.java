@@ -239,7 +239,7 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#known(Ip4Address)} in the case where the
+     * Tests {@link ProxyArpManager#isKnown(Ip4Address)} in the case where the
      * IP address is not known.
      * Verifies the method returns false.
      */
@@ -248,11 +248,11 @@ public class ProxyArpManagerTest {
         expect(hostService.getHostsByIp(IP1)).andReturn(Collections.<Host>emptySet());
         replay(hostService);
 
-        assertFalse(proxyArp.known(IP1));
+        assertFalse(proxyArp.isKnown(IP1));
     }
 
     /**
-     * Tests {@link ProxyArpManager#known(Ip4Address)} in the case where the
+     * Tests {@link ProxyArpManager#isKnown(Ip4Address)} in the case where the
      * IP address is known.
      * Verifies the method returns true.
      */
@@ -265,7 +265,7 @@ public class ProxyArpManagerTest {
                 .andReturn(Sets.newHashSet(host1, host2));
         replay(hostService);
 
-        assertTrue(proxyArp.known(IP1));
+        assertTrue(proxyArp.isKnown(IP1));
     }
 
     /**
@@ -314,7 +314,7 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
-        proxyArp.reply(arpRequest, getLocation(5));
+        proxyArp.reply(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
     }
@@ -341,7 +341,7 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
-        proxyArp.reply(arpRequest, getLocation(5));
+        proxyArp.reply(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
     }
@@ -435,7 +435,7 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
 
-        proxyArp.forward(arpRequest);
+        proxyArp.forward(arpRequest, LOC2);
 
         assertEquals(1, packetService.packets.size());
         OutboundPacket packet = packetService.packets.get(0);
@@ -455,18 +455,20 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
 
-        proxyArp.forward(arpRequest);
+        proxyArp.forward(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
     }
 
     /**
-     * Verifies that the given packet was flooded out all available edge ports.
+     * Verifies that the given packet was flooded out all available edge ports,
+     * except for the input port.
      *
      * @param packet the packet that was expected to be flooded
      */
     private void verifyFlood(Ethernet packet) {
-        assertEquals(NUM_FLOOD_PORTS, packetService.packets.size());
+        // There should be 1 less than NUM_FLOOD_PORTS; the inPort should be excluded.
+        assertEquals(NUM_FLOOD_PORTS - 1, packetService.packets.size());
 
         Collections.sort(packetService.packets,
             new Comparator<OutboundPacket>() {
@@ -476,7 +478,8 @@ public class ProxyArpManagerTest {
                 }
             });
 
-        for (int i = 0; i < NUM_FLOOD_PORTS; i++) {
+
+        for (int i = 0; i < NUM_FLOOD_PORTS - 1; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(NUM_ADDRESS_PORTS + i + 1),
                     PortNumber.portNumber(1));
 

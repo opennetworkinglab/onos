@@ -15,10 +15,10 @@
  */
 package org.onosproject.net.proxyarp;
 
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.packet.PacketContext;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.packet.PacketContext;
 
 /**
  * Service for processing arp requests on behalf of applications.
@@ -32,7 +32,7 @@ public interface ProxyArpService {
      * @param addr an IPv4 address
      * @return true if know, false otherwise
      */
-    boolean known(Ip4Address addr);
+    boolean isKnown(Ip4Address addr);
 
     /**
      * Sends a reply for a given request. If the host is not known then the arp
@@ -48,8 +48,9 @@ public interface ProxyArpService {
      * destination is not known.
      *
      * @param eth an ethernet frame containing an ARP request.
+     * @param inPort the port the request was received on
      */
-    void forward(Ethernet eth);
+    void forward(Ethernet eth, ConnectPoint inPort);
 
     /**
      * Handles a arp packet.

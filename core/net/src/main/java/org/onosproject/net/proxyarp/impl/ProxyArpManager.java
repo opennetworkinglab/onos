@@ -116,7 +116,7 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     @Override
-    public boolean known(Ip4Address addr) {
+    public boolean isKnown(Ip4Address addr) {
         checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
@@ -189,7 +189,7 @@ public class ProxyArpManager implements ProxyArpService {
         }
 
         if (src == null || dst == null) {
-            flood(eth);
+            flood(eth, inPort);
             return;
         }
 
@@ -263,7 +263,7 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     @Override
-    public void forward(Ethernet eth) {
+    public void forward(Ethernet eth, ConnectPoint inPort) {
         checkNotNull(eth, REQUEST_NULL);
         checkArgument(eth.getEtherType() == Ethernet.TYPE_ARP,
                 REQUEST_NOT_ARP);
@@ -274,7 +274,7 @@ public class ProxyArpManager implements ProxyArpService {
                 VlanId.vlanId(eth.getVlanID())));
 
         if (h == null) {
-            flood(eth);
+            flood(eth, inPort);
         } else {
             TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
             builder.setOutput(h.location().port());
@@ -291,7 +291,7 @@ public class ProxyArpManager implements ProxyArpService {
         if (ethPkt != null && ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
             ARP arp = (ARP) ethPkt.getPayload();
             if (arp.getOpCode() == ARP.OP_REPLY) {
-                forward(ethPkt);
+                forward(ethPkt, context.inPacket().receivedFrom());
             } else if (arp.getOpCode() == ARP.OP_REQUEST) {
                 reply(ethPkt, context.inPacket().receivedFrom());
             }
@@ -305,14 +305,14 @@ public class ProxyArpManager implements ProxyArpService {
      * Flood the arp request at all edges in the network.
      * @param request the arp request.
      */
-    private void flood(Ethernet request) {
+    private void flood(Ethernet request, ConnectPoint inPort) {
         TrafficTreatment.Builder builder = null;
         ByteBuffer buf = ByteBuffer.wrap(request.serialize());
 
         synchronized (externalPorts) {
             for (Entry<Device, PortNumber> entry : externalPorts.entries()) {
                 ConnectPoint cp = new ConnectPoint(entry.getKey().id(), entry.getValue());
-                if (isOutsidePort(cp)) {
+                if (isOutsidePort(cp) || cp.equals(inPort)) {
                     continue;
                 }
 
