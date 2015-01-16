@@ -186,8 +186,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             Device.Type deviceType = sw.isOptical() ? Device.Type.ROADM :
                     Device.Type.SWITCH;
             ChassisId cId = new ChassisId(dpid.value());
+
             SparseAnnotations annotations = DefaultAnnotations.builder()
-                    .set("protocol", sw.factory().getVersion().toString()).build();
+                    .set("protocol", sw.factory().getVersion().toString())
+                    .set("channelId", sw.channelId())
+                    .build();
+
             DeviceDescription description =
                     new DefaultDeviceDescription(did.uri(), deviceType,
                                                  sw.manufacturerDescription(),

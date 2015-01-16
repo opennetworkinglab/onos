@@ -17,11 +17,15 @@
 package org.onosproject.openflow.controller.driver;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
@@ -48,6 +52,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected Channel channel;
+    protected String channelId;
 
     private boolean connected;
     protected boolean startDriverHandshakeCalled = false;
@@ -123,7 +128,23 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     @Override
     public final void setChannel(Channel channel) {
         this.channel = channel;
+        final SocketAddress address = channel.getRemoteAddress();
+        if (address instanceof InetSocketAddress) {
+            final InetSocketAddress inetAddress = (InetSocketAddress) address;
+            final IpAddress ipAddress = IpAddress.valueOf(inetAddress.getAddress());
+            if (ipAddress.version() == Ip4Address.VERSION) {
+                channelId = ipAddress.toString() + ':' + inetAddress.getPort();
+            } else {
+                channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();
+            }
+        }
     };
+
+    @Override
+    public String channelId() {
+        return channelId;
+    }
+
 
     //************************
     // Switch features related
