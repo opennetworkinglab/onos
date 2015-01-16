@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
 import org.onosproject.net.provider.ProviderRegistry;
 
 /**
  * Abstraction for a flow rule provider registry.
  */
-public interface FlowRuleExtendProviderRegistry
-        extends ProviderRegistry<FlowRuleExtendProvider, FlowRuleExtendProviderService> {
+public interface FlowRuleExtProviderRegistry
+        extends ProviderRegistry<FlowRuleExtProvider, FlowRuleExtProviderService> {
 }

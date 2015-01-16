@@ -13,46 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
 import java.util.Collection;
 import java.util.concurrent.Future;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
-import org.projectfloodlight.openflow.protocol.OFMessage;
+
+import com.esotericsoftware.kryo.Serializer;
 
 /**
  * Manages inventory of flow rules; not intended for direct use.
  */
-public interface FlowRuleExtendStore extends Store<FlowRuleBatchExtendEvent, FlowRuleExtendStoreDelegate> {
+public interface FlowRuleExtStore extends Store<FlowRuleBatchExtEvent, FlowRuleExtStoreDelegate> {
 
     /**
-     * Stores a batch of flow rules.
+     * Stores a batch of flow extension rules.
      *
      * @param batchOperation batch of flow rules.
      *           A batch can contain flow rules for a single device only.
      * @return Future response indicating success/failure of the batch operation
      * all the way down to the device.
      */
-    Future<FlowExtendCompletedOperation> storeBatch(Collection<FlowRuleExtendEntry> batchOperation);
+    Future<FlowExtCompletedOperation> storeBatch(Collection<FlowRuleExtEntry> batchOperation);
 
     /**
      * Invoked on the completion of a storeBatch operation.
      *
      * @param event flow rule batch event
      */
-    void batchOperationComplete(FlowRuleBatchExtendEvent event);
+    void batchOperationComplete(FlowRuleBatchExtEvent event);
+
 
     /**
      * @param deviceId the device ID
-     * @param message partly parsed from OF1.4 -> OF1.3, lost some info
+     * @return message parsed from byte stream
      */
-    void storeFlowRule(DeviceId deviceId, OFMessage message);
+    Iterable<?> getExtMessages(DeviceId deviceId);
 
     /**
-     * @param deviceId the device ID
-     * @return message partly parsed from OF1.4 -> OF1.3, lost some info
-     */
-    Iterable<OFMessage> getOFMessages(DeviceId fpid);
+     * @param classT the class flowEntryExtension can be decoded to.
+     * @param serializer the serializer apps provide using to decode flowEntryExtension
+     */    
+    void registerSerializer(Class<?> classT, Serializer<?> serializer);
 }

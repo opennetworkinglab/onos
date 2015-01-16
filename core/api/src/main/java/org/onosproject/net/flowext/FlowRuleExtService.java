@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
 import java.util.Collection;
 import java.util.concurrent.Future;
+
 import org.onosproject.net.DeviceId;
-import org.projectfloodlight.openflow.protocol.OFMessage;
+
+import com.esotericsoftware.kryo.Serializer;
 
 /**
  * Service for injecting extended flow rules into the environment. This implements
@@ -26,7 +28,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
  * of the flow rules lies with the controller and the devices hold only the
  * 'cached' copy.
  */
-public interface FlowRuleExtendService {
+public interface FlowRuleExtService {
 
     /**
      * Returns the collection of flow entries applied on the specified device.
@@ -36,33 +38,40 @@ public interface FlowRuleExtendService {
      * @param deviceId device identifier
      * @return collection of flow rules
      */
-    Iterable<FlowRuleExtendEntry> getFlowEntries(DeviceId deviceId);
+    Iterable<FlowRuleExtEntry> getFlowEntries(DeviceId deviceId);
 
     /**
-     * Applies a batch operation of FlowRules.
+     * Applies a batch operation of FlowRules, this batch can be divided 
+     * into many sub-batch by deviceId
      *
      * @param batch batch operation to apply
      * @return future indicating the state of the batch operation
      */
-    Future<FlowExtendCompletedOperation> applyBatch(Collection<FlowRuleExtendEntry> batch);
+    Future<FlowExtCompletedOperation> applyBatch(Collection<FlowRuleExtEntry> batch);
 
     /**
      * Adds the specified flow rule listener.
      *
      * @param listener flow rule listener
      */
-    void addListener(FlowRuleExtendListener listener);
+    void addListener(FlowRuleExtListener listener);
 
     /**
      * Removes the specified flow rule listener.
      *
      * @param listener flow rule listener
      */
-    void removeListener(FlowRuleExtendListener listener);
+    void removeListener(FlowRuleExtListener listener);
 
     /**
      * @param deviceId the device ID
-     * @return message partly parsed from OF1.4 -> OF1.3, lost some info
+     * @return message parsed from byte[] -> the specific serializer , lost some info
      */
-    Iterable<OFMessage> getOFMessages(DeviceId fpid);
+    Iterable<?> getExtMessages(DeviceId deviceId);
+    
+    /**
+     * @param classT the class flowEntryExtension can be decoded to.
+     * @param serializer the serializer apps provide using to decode flowEntryExtension
+     */    
+    void registerSerializer(Class<?> classT, Serializer<?> serializer);
 }

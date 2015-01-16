@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
-import org.onosproject.net.provider.ProviderService;
+import java.util.Collection;
+public class FlowRuleBatchExtRequest {
 
-/**
- * Service through which flow rule providers can inject information into
- * the core.
- */
-public interface FlowRuleExtendProviderService extends ProviderService<FlowRuleExtendProvider> {
+    private final int batchId;
+    /*
+     * Concern all the entry as to add, because the bytes contains the information
+     * of to-add or to-delete, 
+     */   
+    private final Collection<FlowRuleExtEntry> toAdd;
 
+    public FlowRuleBatchExtRequest(int batchId, Collection<FlowRuleExtEntry> toAdd) {
+        this.batchId = batchId;
+        this.toAdd = toAdd;
+    }
+
+    public Collection<FlowRuleExtEntry> getBatch(){
+        return toAdd;
+    }
+    public int batchId() {
+        return batchId;
+    }
 }

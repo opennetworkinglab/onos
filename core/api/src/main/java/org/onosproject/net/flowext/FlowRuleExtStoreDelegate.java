@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
-import java.util.Collection;
-public class FlowRuleBatchExtendRequest {
+import org.onosproject.store.StoreDelegate;
 
-    private final int batchId;
-    private final Collection<FlowRuleExtendEntry> toAdd;
-
-    public FlowRuleBatchExtendRequest(int batchId, Collection<FlowRuleExtendEntry> toAdd) {
-        this.batchId = batchId;
-        this.toAdd = toAdd;
-    }
-
-    public Collection<FlowRuleExtendEntry> getBatch(){
-        return toAdd;
-    }
-    public int batchId() {
-        return batchId;
-    }
+/**
+ * Flow rule extend store delegate abstraction. 
+ */
+public interface FlowRuleExtStoreDelegate extends StoreDelegate<FlowRuleBatchExtEvent> {
 }

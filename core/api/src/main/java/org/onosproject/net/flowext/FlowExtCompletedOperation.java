@@ -1,16 +1,16 @@
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
 import java.util.Set;
 
 import org.onosproject.net.flow.BatchOperationResult;
 
-public class FlowExtendCompletedOperation implements BatchOperationResult<FlowRuleExtendEntry> {
+public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleExtEntry> {
     private final boolean success;
-    private final Set<FlowRuleExtendEntry> failures;
+    private final Set<FlowRuleExtEntry> failures;
 
     
-	public FlowExtendCompletedOperation(boolean success,
-			Set<FlowRuleExtendEntry> failures) {
+	public FlowExtCompletedOperation(boolean success,
+			Set<FlowRuleExtEntry> failures) {
 		this.success = success;
 		this.failures = failures;
 	}
@@ -22,7 +22,7 @@ public class FlowExtendCompletedOperation implements BatchOperationResult<FlowRu
 	}
 
 	@Override
-	public Set<FlowRuleExtendEntry> failedItems() {
+	public Set<FlowRuleExtEntry> failedItems() {
 		// TODO Auto-generated method stub
 		return failures;
 	}

@@ -25,10 +25,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.igp.controller.IGPController;
 import org.onosproject.igp.controller.IgpSwitch;
 import org.onosproject.igp.controller.IgpSwitchListener;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
-import org.onosproject.net.flowextend.FlowRuleExtendProvider;
-import org.onosproject.net.flowextend.FlowRuleExtendProviderRegistry;
-import org.onosproject.net.flowextend.FlowRuleExtendProviderService;
+import org.onosproject.net.flowext.FlowRuleExtEntry;
+import org.onosproject.net.flowext.FlowRuleExtProvider;
+import org.onosproject.net.flowext.FlowRuleExtProviderRegistry;
+import org.onosproject.net.flowext.FlowRuleExtProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class IgpFlowRuleProvider extends AbstractProvider implements
-		FlowRuleExtendProvider {
+		FlowRuleExtProvider {
 
 	enum BatchState {
 		STARTED, FINISHED, CANCELLED
@@ -50,7 +50,7 @@ public class IgpFlowRuleProvider extends AbstractProvider implements
 	private final Logger log = getLogger(getClass());
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-	protected FlowRuleExtendProviderRegistry providerRegistry;
+	protected FlowRuleExtProviderRegistry providerRegistry;
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
 	protected IGPController controller;
@@ -80,7 +80,7 @@ public class IgpFlowRuleProvider extends AbstractProvider implements
 		log.info("Stopped");
 	}
 
-	private void applyRule(FlowRuleExtendEntry flowRule) {
+	private void applyRule(FlowRuleExtEntry flowRule) {
 		IgpSwitch sw = controller
 				.getSwitch(flowRule.getDeviceId());
 		sw.sendMsg(flowRule);
@@ -101,10 +101,10 @@ public class IgpFlowRuleProvider extends AbstractProvider implements
 	}
 
 	@Override
-	public void applyFlowRule(Collection<FlowRuleExtendEntry> flowRules) {
+	public void applyFlowRule(Collection<FlowRuleExtEntry> flowRules) {
 		// TODO Auto-generated method stub
 		// TODO Auto-generated method stub
-		for (FlowRuleExtendEntry flowRule : flowRules) {
+		for (FlowRuleExtEntry flowRule : flowRules) {
 			applyRule(flowRule);
 		}
 		

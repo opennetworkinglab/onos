@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
 import org.onosproject.event.EventListener;
 
 /**
  * Entity capable of receiving flow rule related events.
  */
-public interface FlowRuleExtendListener extends EventListener<FlowRuleExtendEvent> {
+public interface FlowRuleExtListener extends EventListener<FlowRuleExtEvent> {
 }

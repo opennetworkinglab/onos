@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowextend;
+package org.onosproject.net.flowext;
 
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes flow rule event.
  */
-public class FlowRuleExtendEvent extends AbstractEvent<FlowRuleExtendEvent.Type, FlowRuleExtendEntry> {
+public class FlowRuleExtEvent extends AbstractEvent<FlowRuleExtEvent.Type, FlowRuleExtEntry> {
 
     /**
      * Type of flow rule events.
@@ -60,7 +60,7 @@ public class FlowRuleExtendEvent extends AbstractEvent<FlowRuleExtendEvent.Type,
      * @param type     flow rule event type
      * @param flowRule event flow rule subject
      */
-    public FlowRuleExtendEvent(Type type, FlowRuleExtendEntry flowRule) {
+    public FlowRuleExtEvent(Type type, FlowRuleExtEntry flowRule) {
         super(type, flowRule);
     }
 
@@ -71,7 +71,7 @@ public class FlowRuleExtendEvent extends AbstractEvent<FlowRuleExtendEvent.Type,
      * @param flowRule event flow rule subject
      * @param time     occurrence time
      */
-    public FlowRuleExtendEvent(Type type, FlowRuleExtendEntry flowRule, long time) {
+    public FlowRuleExtEvent(Type type, FlowRuleExtEntry flowRule, long time) {
         super(type, flowRule, time);
     }
 

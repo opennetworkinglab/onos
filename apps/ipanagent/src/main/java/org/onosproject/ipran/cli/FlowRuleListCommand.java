@@ -19,13 +19,13 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flowextend.FlowRuleExtendService;
+import org.onosproject.net.flowext.FlowRuleExtService;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFGroupMod;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 /**
- * Lists all flowruleextends.
+ * Lists all flowruleexts.
  */
 @Command(scope = "onos", name = "ofmessages",
          description = "Lists all FlowRules")
@@ -38,7 +38,7 @@ public class FlowRuleListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        FlowRuleExtendService  flowRuleService = get(FlowRuleExtendService.class);
+        FlowRuleExtService  flowRuleService = get(FlowRuleExtService.class);
         DeviceService deviceService = get(DeviceService.class); 
         Iterable<Device> devices = deviceService.getDevices();
         for (Device d: devices) {

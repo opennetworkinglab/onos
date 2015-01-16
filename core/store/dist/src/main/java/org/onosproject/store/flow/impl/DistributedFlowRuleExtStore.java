@@ -15,26 +15,16 @@
  */
 package org.onosproject.store.flow.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.namedThreads;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.APPLY_BATCH_FLOWS;
 import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.APPLY_EXTEND_FLOWS;
 import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_DEVICE_EXTENDFLOW_ENTRIES;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_DEVICE_FLOW_ENTRIES;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_FLOW_ENTRY;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.REMOVE_FLOW_ENTRY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -56,31 +46,14 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.CompletedBatchOperation;
-import org.onosproject.net.flow.DefaultFlowEntry;
-import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowEntry.FlowEntryState;
-import org.onosproject.net.flow.FlowId;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onosproject.net.flow.FlowRuleBatchEvent;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.flow.FlowRuleBatchRequest;
-import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleEvent.Type;
-import org.onosproject.net.flow.FlowRuleStore;
-import org.onosproject.net.flow.FlowRuleStoreDelegate;
-import org.onosproject.net.flow.StoredFlowEntry;
-import org.onosproject.net.flowextend.FlowExtendCompletedOperation;
-import org.onosproject.net.flowextend.FlowRuleBatchExtendEvent;
-import org.onosproject.net.flowextend.FlowRuleBatchExtendRequest;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
-import org.onosproject.net.flowextend.FlowRuleExtendStore;
-import org.onosproject.net.flowextend.FlowRuleExtendStoreDelegate;
+import org.onosproject.net.flowext.FlowExtCompletedOperation;
+import org.onosproject.net.flowext.FlowRuleBatchExtEvent;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
+import org.onosproject.net.flowext.FlowRuleExtEntry;
+import org.onosproject.net.flowext.FlowRuleExtStore;
+import org.onosproject.net.flowext.FlowRuleExtStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
@@ -89,10 +62,8 @@ import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoEvent;
 import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
-import org.onosproject.store.hz.AbstractHazelcastStore;
-import org.onosproject.store.hz.SMap;
 import org.onosproject.store.serializers.DecodeTo;
-import org.onosproject.store.serializers.FlowRuleExtendEntrySerializer;
+import org.onosproject.store.serializers.FlowRuleExtEntrySerializer;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
@@ -102,21 +73,15 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMessageReader;
 import org.slf4j.Logger;
 
+import com.esotericsoftware.kryo.Serializer;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.hazelcast.core.IMap;
 
 /**
  * Manages inventory of flow rules using a distributed state management
@@ -124,22 +89,19 @@ import com.hazelcast.core.IMap;
  */
 @Component(immediate = true)
 @Service
-public class DistributedFlowRuleExtendStore extends
-                AbstractStore<FlowRuleBatchExtendEvent, FlowRuleExtendStoreDelegate>
-		implements FlowRuleExtendStore {
+public class DistributedFlowRuleExtStore extends
+                AbstractStore<FlowRuleBatchExtEvent, FlowRuleExtStoreDelegate>
+		implements FlowRuleExtStore {
 
 	private final Logger log = getLogger(getClass());
 
 	// primary data:
 	// read/write needs to be locked
 	private final ReentrantReadWriteLock flowEntriesLock = new ReentrantReadWriteLock();
+
 	// store entries as a pile of rules, no info about device tables
-
-	private final Multimap<DeviceId, OFMessage> flowOFmsgsById = ArrayListMultimap
-			.<DeviceId, OFMessage> create();
-
-	private final Multimap<DeviceId, FlowRuleExtendEntry> extendflowEntries = ArrayListMultimap
-			.<DeviceId, FlowRuleExtendEntry> create();
+	private final Multimap<DeviceId, FlowRuleExtEntry> extendflowEntries = ArrayListMultimap
+			.<DeviceId, FlowRuleExtEntry> create();
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
 	protected ReplicaInfoService replicaInfoManager;
@@ -157,7 +119,7 @@ public class DistributedFlowRuleExtendStore extends
 
 	private int pendingFutureTimeoutMinutes = 5;
 
-	private Cache<Integer, SettableFuture<FlowExtendCompletedOperation>> pendingExtendFutures = CacheBuilder
+	private Cache<Integer, SettableFuture<FlowExtCompletedOperation>> pendingExtendFutures = CacheBuilder
 			.newBuilder()
 			.expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
 			// .removalListener(new TimeoutFuture())
@@ -174,9 +136,8 @@ public class DistributedFlowRuleExtendStore extends
 					.newBuilder()
 					.register(DistributedStoreSerializers.STORE_COMMON)
 					.nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
-					.register(FlowRuleEvent.class)
-					.register(new FlowRuleExtendEntrySerializer(),
-					              FlowRuleExtendEntry.class).build();
+					.register(new FlowRuleExtEntrySerializer(),
+					              FlowRuleExtEntry.class).build();
 		}
 	};
 
@@ -195,10 +156,10 @@ public class DistributedFlowRuleExtendStore extends
             public void handle(ClusterMessage message) {
                 DeviceId deviceId = SERIALIZER.decode(message.payload());
                 log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
-                Set<OFMessage> ofmsgs = getInternalOFMessage(deviceId);
+                Set<FlowRuleExtEntry> ofmsgs = getInternalMessage(deviceId);
                 ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-                for (OFMessage ofm : ofmsgs){
-                	ofm.writeTo(buf);
+                for (FlowRuleExtEntry ofm : ofmsgs){
+                	buf.writeBytes(SERIALIZER.encode(ofm));
                 }
                 try {
                     message.respond(buf.array());
@@ -214,14 +175,14 @@ public class DistributedFlowRuleExtendStore extends
             public void handle(ClusterMessage message) {
                 ChannelBuffer buf = ChannelBuffers.wrappedBuffer(message.payload());
                 //here should add a decode process
-                Collection<FlowRuleExtendEntry> operation=SERIALIZER.decode(message.payload());
+                Collection<FlowRuleExtEntry> operation=SERIALIZER.decode(message.payload());
                 log.info("received batch request {}",operation);
-                final ListenableFuture<FlowExtendCompletedOperation> f = storeBatchInternal(operation);
+                final ListenableFuture<FlowExtCompletedOperation> f = storeBatchInternal(operation);
                 
                 f.addListener(new Runnable(){
                 	@Override
                 	public void run(){
-                	    FlowExtendCompletedOperation result = Futures.getUnchecked(f);
+                	    FlowExtCompletedOperation result = Futures.getUnchecked(f);
                 		try {
                             message.respond(SERIALIZER.encode(result));
                         } catch (IOException e) {
@@ -248,11 +209,9 @@ public class DistributedFlowRuleExtendStore extends
 	}
 
 	private void removeFromPrimary(final DeviceId did) {
-		Collection<OFMessage> OFremoved = null;
-		Collection<FlowRuleExtendEntry> removed = null;
+		Collection<FlowRuleExtEntry> removed = null;
 		flowEntriesLock.writeLock().lock();
 		try {
-		    OFremoved = flowOFmsgsById.removeAll(did);
 		    removed = extendflowEntries.removeAll(did);
 		} finally {
 			flowEntriesLock.writeLock().unlock();
@@ -285,7 +244,7 @@ public class DistributedFlowRuleExtendStore extends
 	}
 
 	@Override
-	public Iterable<OFMessage> getOFMessages(DeviceId deviceId) {
+	public Iterable<?> getExtMessages(DeviceId deviceId) {
 		
 		ReplicaInfo replicaInfo = replicaInfoManager
 				.getReplicaInfoFor(deviceId);
@@ -296,7 +255,8 @@ public class DistributedFlowRuleExtendStore extends
 		}
 
 		if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-			return getInternalOFMessage(deviceId);
+		    
+			return getInternalMessage(deviceId);
 		}
 
 		log.trace(
@@ -310,6 +270,7 @@ public class DistributedFlowRuleExtendStore extends
 			ListenableFuture<byte[]> responseFuture = clusterCommunicator
 					.sendAndReceive(message, replicaInfo.master().get());
 			byte[] bytes = responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			//make some change about buffer
 			ChannelBuffer cbf = ChannelBuffers.wrappedBuffer(bytes);
 			OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
 			Collection<OFMessage> rules = new ArrayList();
@@ -326,9 +287,9 @@ public class DistributedFlowRuleExtendStore extends
 		return null;
 	}
 	
-	public Set<OFMessage> getInternalOFMessage(DeviceId deviceId) {
+	public Set<FlowRuleExtEntry> getInternalMessage(DeviceId deviceId) {
 		
-		Collection<? extends OFMessage> rules = flowOFmsgsById.get(deviceId);
+		Collection<FlowRuleExtEntry> rules = extendflowEntries.get(deviceId);
 		if (rules == null) {
 			return Collections.emptySet();
 		}
@@ -336,11 +297,11 @@ public class DistributedFlowRuleExtendStore extends
 	}
 
         @Override
-        public Future<FlowExtendCompletedOperation> storeBatch(Collection<FlowRuleExtendEntry> batchOperation) {
+        public Future<FlowExtCompletedOperation> storeBatch(Collection<FlowRuleExtEntry> batchOperation) {
                // TODO Auto-generated method stub
               if (batchOperation.isEmpty()) {
-               return Futures.immediateFuture(new FlowExtendCompletedOperation(true,
-                            Collections.<FlowRuleExtendEntry> emptySet()));
+               return Futures.immediateFuture(new FlowExtCompletedOperation(true,
+                            Collections.<FlowRuleExtEntry> emptySet()));
               }
               // here should make some changes because all the collection belongs to one deviceId
              DeviceId deviceId = getBatchDeviceId(batchOperation);
@@ -357,7 +318,7 @@ public class DistributedFlowRuleExtendStore extends
                    replicaInfo.master().orNull(), deviceId);
              
              ChannelBuffer buf=ChannelBuffers.dynamicBuffer();
-             for (FlowRuleExtendEntry op : batchOperation){
+             for (FlowRuleExtEntry op : batchOperation){
                      buf.writeBytes(SERIALIZER.encode(op));;
              }
              ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), APPLY_EXTEND_FLOWS,
@@ -368,17 +329,17 @@ public class DistributedFlowRuleExtendStore extends
                             .sendAndReceive(message, replicaInfo.master().get());
               //here should add another decode process 
               return Futures.transform(responseFuture,
-                            new DecodeTo<FlowExtendCompletedOperation>(SERIALIZER));
+                            new DecodeTo<FlowExtCompletedOperation>(SERIALIZER));
             } catch (IOException e) {
               return Futures.immediateFailedFuture(e);
         }
     }
 
     @Override
-    public void batchOperationComplete(FlowRuleBatchExtendEvent event) {
+    public void batchOperationComplete(FlowRuleBatchExtEvent event) {
         // TODO Auto-generated method stub
         final Integer batchId = event.subject().batchId();
-        SettableFuture<FlowExtendCompletedOperation> future = pendingExtendFutures
+        SettableFuture<FlowExtCompletedOperation> future = pendingExtendFutures
                         .getIfPresent(batchId);
         if (future != null) {
                 future.set(event.getresult());
@@ -386,43 +347,26 @@ public class DistributedFlowRuleExtendStore extends
         }
     }
 
-    private ListenableFuture<FlowExtendCompletedOperation> storeBatchInternal(
-      Collection<FlowRuleExtendEntry> batchOperation) {
-        for(FlowRuleExtendEntry operation : batchOperation) {
+    private ListenableFuture<FlowExtCompletedOperation> storeBatchInternal(
+      Collection<FlowRuleExtEntry> batchOperation) {
+        for(FlowRuleExtEntry operation : batchOperation) {
              DeviceId deviceId = DeviceId.deviceId(String.valueOf(operation.getDeviceId()));
              if (!extendflowEntries.containsEntry(deviceId, operation)) {
                     extendflowEntries.put(deviceId, operation);
              }
-             byte[] boflen = operation.subBytes(operation.getFlowEntryExtend(), 16, 4);
-             int length = operation.getInt(boflen);
-             byte[] buf = operation.subBytes(operation.getFlowEntryExtend(), 20, length);
-             try{
-                    OFMessage msg = operation.readOFMessage(buf);
-                    storeFlowRule(deviceId, msg);
-             }catch (OFParseError e) {
-                                                                                      
-                    e.printStackTrace();
-             }
         }
-         SettableFuture<FlowExtendCompletedOperation> r = SettableFuture.create();
+         SettableFuture<FlowExtCompletedOperation> r = SettableFuture.create();
          final int batchId = localBatchIdGen.incrementAndGet();
          pendingExtendFutures.put(batchId, r);
-         delegate.notify(FlowRuleBatchExtendEvent.requested(new FlowRuleBatchExtendRequest(batchId, batchOperation)));
+         delegate.notify(FlowRuleBatchExtEvent.requested(new FlowRuleBatchExtRequest(batchId, batchOperation)));
          return r;
     }
 
-    @Override
-    public void storeFlowRule(DeviceId deviceId, OFMessage message) {
-        // TODO Auto-generated method stub
-        flowOFmsgsById.remove(deviceId, message);
-        flowOFmsgsById.put(deviceId, message);
-    }
-
-    private DeviceId getBatchDeviceId(Collection<FlowRuleExtendEntry> batchOperation) {
-        Iterator<FlowRuleExtendEntry> head = batchOperation.iterator();
-        FlowRuleExtendEntry headOp = head.next();
+    private DeviceId getBatchDeviceId(Collection<FlowRuleExtEntry> batchOperation) {
+        Iterator<FlowRuleExtEntry> head = batchOperation.iterator();
+        FlowRuleExtEntry headOp = head.next();
         boolean sameId = true; 
-        for(FlowRuleExtendEntry operation : batchOperation) {
+        for(FlowRuleExtEntry operation : batchOperation) {
             if(operation.getDeviceId() != headOp.getDeviceId()) {
                 log.warn("this batch does not apply on one device Id ");
                 sameId = false;
@@ -430,5 +374,11 @@ public class DistributedFlowRuleExtendStore extends
             }
         }
         return sameId? DeviceId.deviceId(String.valueOf(headOp.getDeviceId())) : null;
+    }
+
+    @Override
+    public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
+        // TODO Auto-generated method stub
+        
     }
 }
