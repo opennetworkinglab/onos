@@ -37,7 +37,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
 
     /**
      * Sets a new sameness threshold for comparing cost values; default is
-     * is {@code 0.000000001}.
+     * is {@link Double#MIN_VALUE}.
      *
      * @param threshold fractional double value
      */
