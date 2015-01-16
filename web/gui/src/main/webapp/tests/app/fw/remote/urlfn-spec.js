@@ -28,7 +28,7 @@ describe('factory: fw/remote/urlfn.js', function () {
     beforeEach(module(function($provide) {
        $provide.factory('$location', function (){
         return {
-            protocol: function () { return '$http'; },
+            protocol: function () { return 'http'; },
             host: function () { return 'foo'; },
             port: function () { return '80'; }
         };
@@ -53,6 +53,6 @@ describe('factory: fw/remote/urlfn.js', function () {
     });
 
     it('should build the url prefix', function () {
-       expect(ufs.urlPrefix()).toEqual('$http://foo:80');
+       expect(ufs.urlPrefix()).toEqual('http://foo:80');
     });
 });

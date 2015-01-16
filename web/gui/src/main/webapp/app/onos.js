@@ -37,6 +37,7 @@
         'ngRoute',
         'onosUtil',
         'onosSvg',
+        'onosRemote',
         'onosMast'
     ];
 

@@ -2,7 +2,13 @@
 <div id="ov-device">
     <h2>Device View</h2>
 
-    <table>
+    <table class="summary-list">
+        <tr>
+            <th>ID</th>
+            <th>Manufacturer</th>
+            <th>Hardware Version</th>
+            <th>Software Version</th>
+        </tr>
         <tr ng-repeat="dev in ctrl.deviceData">
             <!-- add more property fields for table from device data -->
             <td>{{dev.id}}</td>

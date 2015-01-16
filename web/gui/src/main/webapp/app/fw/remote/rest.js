@@ -25,17 +25,94 @@
 
     var $log;
 
+    var urlSuffix = '/ui/rs/';
+
+
+
+    // TODO: remove temporary test code
+    var fakeData = {
+        '1': {
+            "devices": [{
+                "id": "of:0000000000000001",
+                "available": true,
+                "role": "MASTER",
+                "mfr": "Nicira, Inc.",
+                "hw": "Open vSwitch",
+                "sw": "2.0.1",
+                "serial": "None",
+                "annotations": {
+                    "protocol": "OF_10"
+                }
+            },
+                {
+                    "id": "of:0000000000000004",
+                    "available": true,
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                }]
+        },
+        '2': {
+            "devices": [{
+                "id": "of:0000000000000002",
+                "available": true,
+                "role": "MASTER",
+                "mfr": "Nicira, Inc.",
+                "hw": "Open vSwitch",
+                "sw": "2.0.0",
+                "serial": "None",
+                "annotations": {
+                    "protocol": "OF_10"
+                }
+            },
+                {
+                    "id": "of:0000000000000006",
+                    "available": true,
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.1.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                }]
+        },
+        'empty': {
+            devices: []
+        }
+    };
+
+    function getFakeData(url) {
+        var id = url.slice(5);
+
+        return fakeData[id] || fakeData.empty;
+    }
+
     angular.module('onosRemote')
-        .factory('RestService', ['$log', '$http', function (_$log_, $http) {
+        .factory('RestService', ['$log', '$http', 'UrlFnService',
+        function (_$log_, $http, ufs) {
             $log = _$log_;
 
             function get(url, callback) {
-                $http.get(url).then(function (response) {
+                // TODO: remove temporary test code
+                if (url.match(/^test\//)) {
+                    callback(getFakeData(url));
+                    return;
+                }
+                var fullUrl = ufs.urlPrefix() + urlSuffix + url;
+
+                $http.get(fullUrl).then(function (response) {
                     // success
                     callback(response.data);
                 }, function (response) {
                     // error
-                    $log.warn('Failed to retrieve JSON data: ' + url,
+                    $log.warn('Failed to retrieve JSON data: ' + fullUrl,
                         response.status, response.data);
                 });
             }

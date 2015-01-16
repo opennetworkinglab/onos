@@ -25,6 +25,16 @@ describe('factory: fw/remote/rest.js', function() {
 
     beforeEach(module('onosUtil', 'onosRemote'));
 
+    beforeEach(module(function($provide) {
+        $provide.factory('$location', function (){
+            return {
+                protocol: function () { return 'http'; },
+                host: function () { return 'foo'; },
+                port: function () { return '80'; }
+            };
+        })
+    }));
+
     beforeEach(inject(function (_$log_, _$httpBackend_, FnService, RestService) {
         $log = _$log_;
         $httpBackend = _$httpBackend_;
@@ -50,10 +60,10 @@ describe('factory: fw/remote/rest.js', function() {
     it('should fetch remote data', function () {
         var called = 0,
             capture = null;
-        $httpBackend.expectGET('/bar').respond(mockData);
+        $httpBackend.whenGET(/.*/).respond(mockData);
         spyOn($log, 'warn');
 
-        rs.get('/bar', function (data) {
+        rs.get('bar', function (data) {
             called++;
             capture = data;
         });
@@ -69,10 +79,10 @@ describe('factory: fw/remote/rest.js', function() {
     it('should fail to fetch remote data', function () {
         var called = 0,
             capture = null;
-        $httpBackend.expectGET('/bar').respond(404, 'Not Found');
+        $httpBackend.whenGET(/.*/).respond(404, 'Not Found');
         spyOn($log, 'warn');
 
-        rs.get('/bar', function (data) {
+        rs.get('bar', function (data) {
             called++;
             capture = data;
         });
@@ -82,9 +92,8 @@ describe('factory: fw/remote/rest.js', function() {
         $httpBackend.flush();
         expect(called).toEqual(0);
         expect(capture).toBeNull();
-        expect($log.warn)
-            .toHaveBeenCalledWith('Failed to retrieve JSON data: /bar',
-                                    404, 'Not Found');
+        expect($log.warn).toHaveBeenCalledWith(
+            'Failed to retrieve JSON data: http://foo:80/ui/rs/bar', 404, 'Not Found');
     });
 
 });

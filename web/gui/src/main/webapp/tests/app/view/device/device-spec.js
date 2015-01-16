@@ -21,58 +21,40 @@
  */
 describe('Controller: OvDeviceCtrl', function () {
     // instantiate the Device module
-    beforeEach(module('ovDevice'));
+    beforeEach(module('ovDevice', 'onosRemote'));
 
     var $log, $controller, ctrl, $mockHttp;
 
     var fakeData = {
-        "devices": [
-        {
+        "devices": [{
             "id": "of:0000000000000001",
             "available": true,
-            "role": "MASTER",
             "mfr": "Nicira, Inc.",
             "hw": "Open vSwitch",
-            "sw": "2.0.1",
-            "serial": "None",
-            "annotations": {
-                "protocol": "OF_10"
-            }
+            "sw": "2.0.1"
         },
         {
             "id": "of:0000000000000004",
             "available": true,
-            "role": "MASTER",
             "mfr": "Nicira, Inc.",
             "hw": "Open vSwitch",
-            "sw": "2.0.1",
-            "serial": "None",
-            "annotations": {
-                "protocol": "OF_10"
-            }
+            "sw": "2.0.1"
         }]
     };
 
-    // we need an instance of the controller
     beforeEach(inject(function(_$log_, _$controller_, $httpBackend) {
         $log = _$log_;
         $controller = _$controller_;
         $mockHttp = $httpBackend;
 
-        $mockHttp.whenGET(/devices/).respond(fakeData);
-
+        $mockHttp.whenGET(/\/device$/).respond(fakeData);
     }));
-
-    //afterEach($mockHttp.resetExpectations);
 
     it('should be an empty array', function () {
         ctrl = $controller('OvDeviceCtrl');
         expect(ctrl.deviceData).toEqual([]);
+        $mockHttp.flush();
+        expect(ctrl.deviceData).toEqual(fakeData.devices);
     });
 
-    //it('should have data in it', function () {
-    //    ctrl = $controller('OvDeviceCtrl');
-    //    //$mockHttp.flush();
-    //    expect(ctrl.deviceData).toEqual(fakeData.devices);
-    //})
 });

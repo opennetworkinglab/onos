@@ -15,29 +15,36 @@
  */
 
 /*
- ONOS GUI -- Sample View Module
+ ONOS GUI -- common -- CSS file
 
  @author Simon Hunt
  @author Bri Prebilic Cole
  */
 
-(function () {
-    'use strict';
+table.summary-list {
+    /*border: 1px solid red;*/
+    margin: 4px 50px;
+    font-size: 10pt;
+}
 
-    angular.module('ovDevice', [])
-        .controller('OvDeviceCtrl', ['$log', '$location', 'RestService',
-        function ($log, $location, rs) {
-            var self = this;
-            self.deviceData = [];
+table.summary-list th {
+    padding: 5px;
+}
+.light table.summary-list th {
+    background-color: #bbb;
+}
+.dark table.summary-list th {
+    background-color: #444;
+    color: #ddd;
+}
 
-            // TODO: remove test code
-            var testCase = $location.search().test;
-            var url = testCase ? 'test/' + testCase : 'device';
-
-            rs.get(url, function (data) {
-                self.deviceData = data.devices;
-            });
-
-            $log.log('OvDeviceCtrl has been created');
-        }]);
-}());
+table.summary-list td {
+    padding: 5px;
+}
+.light table.summary-list td {
+    background-color: #ddd;
+}
+.dark table.summary-list td {
+    background-color: #666;
+    color: #ddd;
+}

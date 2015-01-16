@@ -50,6 +50,9 @@ body.dark {
     height: 100%;
 }
 
-#view h2 {
+.light #view h2 {
     color: #800;
+}
+.dark #view h2 {
+    color: #d88;
 }
