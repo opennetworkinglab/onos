@@ -69,11 +69,12 @@ public class DeviceGuiResource extends BaseResource {
      */
     private ObjectNode deviceJson(DeviceService service, Device device) {
         boolean available = service.isAvailable(device.id());
+        // pick the appropriate id for the icon to appear in the table row
         String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
         ObjectNode result = mapper.createObjectNode();
         result.put("id", device.id().toString())
-                .put("available", service.isAvailable(device.id()))
+                .put("available", available)
                 .put("_iconid_available", iconId)
                 .put("type", device.type().toString())
                 .put("role", service.getRole(device.id()).toString())
