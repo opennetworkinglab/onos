@@ -142,4 +142,9 @@ public interface OpenFlowSwitch {
      */
     public boolean isOptical();
 
+    /**
+     * Identifies the channel used to communicate with the switch.
+     */
+    public String channelId();
+
 }

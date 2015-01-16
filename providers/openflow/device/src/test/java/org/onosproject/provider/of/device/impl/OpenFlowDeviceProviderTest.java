@@ -383,7 +383,12 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
-        public void returnRoleReply(RoleState requested, RoleState reponse) {
+        public void returnRoleReply(RoleState requested, RoleState response) {
+        }
+
+        @Override
+        public String channelId() {
+            return "1.2.3.4:1";
         }
 
     }
