@@ -28,8 +28,6 @@ import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.SncFlowRuleEntry;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -116,17 +114,5 @@ public class MockFlowRuleService implements FlowRuleService {
     public void removeListener(FlowRuleListener listener) {
 
     }
-
-	@Override
-	public void applySncBatch(SncFlowRuleEntry flowentry) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Iterable<OFMessage> getOFMessages(DeviceId fpid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
 

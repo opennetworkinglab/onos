@@ -572,12 +572,6 @@ public class FlowRuleManagerTest {
             }
         }
 
-		@Override
-		public void applyRule(byte[] data) {
-			// TODO Auto-generated method stub
-			
-		}
-
     }
 
     private class TestSelector implements TrafficSelector {
