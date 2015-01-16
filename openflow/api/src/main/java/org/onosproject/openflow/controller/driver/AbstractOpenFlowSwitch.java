@@ -347,7 +347,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     }
 
     @Override
-    public String manfacturerDescription() {
+    public String manufacturerDescription() {
         return this.desc.getMfrDesc();
     }
 

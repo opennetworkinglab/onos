@@ -88,7 +88,7 @@ public interface OpenFlowSwitch {
      * fetch the manufacturer description.
      * @return the description
      */
-    public String manfacturerDescription();
+    public String manufacturerDescription();
 
     /**
      * fetch the datapath description.

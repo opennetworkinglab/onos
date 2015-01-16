@@ -381,7 +381,7 @@ public class OpenFlowPacketProviderTest {
         }
 
         @Override
-        public String manfacturerDescription() {
+        public String manufacturerDescription() {
             return null;
         }
 

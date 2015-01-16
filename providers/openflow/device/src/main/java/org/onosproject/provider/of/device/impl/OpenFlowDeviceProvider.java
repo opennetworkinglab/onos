@@ -188,7 +188,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     .set("protocol", sw.factory().getVersion().toString()).build();
             DeviceDescription description =
                     new DefaultDeviceDescription(did.uri(), deviceType,
-                                                 sw.manfacturerDescription(),
+                                                 sw.manufacturerDescription(),
                                                  sw.hardwareDescription(),
                                                  sw.softwareDescription(),
                                                  sw.serialNumber(),

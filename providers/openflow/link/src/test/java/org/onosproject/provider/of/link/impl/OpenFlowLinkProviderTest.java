@@ -448,7 +448,7 @@ public class OpenFlowLinkProviderTest {
         }
 
         @Override
-        public String manfacturerDescription() {
+        public String manufacturerDescription() {
             return null;
         }
 

@@ -344,7 +344,7 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
-        public String manfacturerDescription() {
+        public String manufacturerDescription() {
             return null;
         }
 
