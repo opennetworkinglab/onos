@@ -163,6 +163,22 @@ public interface TrafficSelector {
         public Builder matchIPv6Dst(IpPrefix ip);
 
         /**
+         * Matches a ICMPv6 type.
+         *
+         * @param icmpv6Type a ICMPv6 type
+         * @return a selection builder
+         */
+        public Builder matchIcmpv6Type(Byte icmpv6Type);
+
+        /**
+         * Matches a ICMPv6 code.
+         *
+         * @param icmpv6Code a ICMPv6 code
+         * @return a selection builder
+         */
+        public Builder matchIcmpv6Code(Byte icmpv6Code);
+
+        /**
          * Matches on a MPLS label .
          * @param mplsLabel a MPLS label.
          * @return a selection builder

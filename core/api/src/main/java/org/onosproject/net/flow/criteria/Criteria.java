@@ -167,6 +167,26 @@ public final class Criteria {
         return new IPCriterion(ip, Type.IPV6_DST);
     }
 
+    /*
+     * Creates a match on ICMPv6 type field using the specified value.
+     *
+     * @param icmpv6Type ICMPv6 type
+     * @return match criterion
+     */
+    public static Criterion matchIcmpv6Type(Byte icmpv6Type) {
+        return new Icmpv6TypeCriterion(icmpv6Type);
+    }
+
+    /**
+     * Creates a match on ICMPv6 code field using the specified value.
+     *
+     * @param icmpv6Code ICMPv6 code
+     * @return match criterion
+     */
+    public static Criterion matchIcmpv6Code(Byte icmpv6Code) {
+        return new Icmpv6CodeCriterion(icmpv6Code);
+    }
+
     /**
      * Creates a match on MPLS label.
      * @param mplsLabel MPLS label
@@ -582,6 +602,96 @@ public final class Criteria {
                         Objects.equals(type, that.type);
 
 
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Implementation of ICMPv6 type criterion.
+     */
+    public static final class Icmpv6TypeCriterion implements Criterion {
+
+        private final Byte icmpv6Type;
+
+        public Icmpv6TypeCriterion(Byte icmpv6Type) {
+            this.icmpv6Type = icmpv6Type;
+        }
+
+        @Override
+        public Type type() {
+            return Type.ICMPV6_TYPE;
+        }
+
+        public Byte icmpv6Type() {
+            return icmpv6Type;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("icmpv6Type", icmpv6Type & 0xff).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(icmpv6Type, type());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof Icmpv6TypeCriterion) {
+                Icmpv6TypeCriterion that = (Icmpv6TypeCriterion) obj;
+                return Objects.equals(icmpv6Type, that.icmpv6Type) &&
+                        Objects.equals(this.type(), that.type());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Implementation of ICMPv6 code criterion.
+     */
+    public static final class Icmpv6CodeCriterion implements Criterion {
+
+        private final Byte icmpv6Code;
+
+        public Icmpv6CodeCriterion(Byte icmpv6Code) {
+            this.icmpv6Code = icmpv6Code;
+        }
+
+        @Override
+        public Type type() {
+            return Type.ICMPV6_CODE;
+        }
+
+        public Byte icmpv6Code() {
+            return icmpv6Code;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("icmpv6Code", icmpv6Code & 0xff).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(icmpv6Code, type());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof Icmpv6CodeCriterion) {
+                Icmpv6CodeCriterion that = (Icmpv6CodeCriterion) obj;
+                return Objects.equals(icmpv6Code, that.icmpv6Code) &&
+                        Objects.equals(this.type(), that.type());
             }
             return false;
         }

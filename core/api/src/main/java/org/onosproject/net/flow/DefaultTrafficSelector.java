@@ -194,6 +194,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchIcmpv6Type(Byte icmpv6Type) {
+            return add(Criteria.matchIcmpv6Type(icmpv6Type));
+        }
+
+        @Override
+        public Builder matchIcmpv6Code(Byte icmpv6Code) {
+            return add(Criteria.matchIcmpv6Code(icmpv6Code));
+        }
+
+        @Override
         public Builder matchMplsLabel(Integer mplsLabel) {
             return add(Criteria.matchMplsLabel(mplsLabel));
         }

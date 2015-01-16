@@ -428,6 +428,14 @@ public class FlowEntryBuilder {
                 }
                 builder.matchIPv6Src(sipv6);
                 break;
+            case ICMPV6_TYPE:
+                byte icmpv6type = (byte) match.get(MatchField.ICMPV6_TYPE).getValue();
+                builder.matchIcmpv6Type(icmpv6type);
+                break;
+            case ICMPV6_CODE:
+                byte icmpv6code = (byte) match.get(MatchField.ICMPV6_CODE).getValue();
+                builder.matchIcmpv6Code(icmpv6code);
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
@@ -435,8 +443,6 @@ public class FlowEntryBuilder {
             case ARP_TPA:
             case ICMPV4_CODE:
             case ICMPV4_TYPE:
-            case ICMPV6_CODE:
-            case ICMPV6_TYPE:
             case IN_PHY_PORT:
             case IPV6_FLABEL:
             case IPV6_ND_SLL:

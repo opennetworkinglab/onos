@@ -31,6 +31,8 @@ import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.Criteria.VlanPcpCriterion;
+import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -254,6 +256,16 @@ public abstract class FlowModBuilder {
                             IPv6Address.of(ip6Prefix.address().toString()));
                 }
                 break;
+            case ICMPV6_TYPE:
+                Icmpv6TypeCriterion icmpv6type = (Icmpv6TypeCriterion) c;
+                mBuilder.setExact(MatchField.ICMPV6_TYPE,
+                        U8.of(icmpv6type.icmpv6Type().byteValue()));
+                break;
+            case ICMPV6_CODE:
+                Icmpv6CodeCriterion icmpv6code = (Icmpv6CodeCriterion) c;
+                mBuilder.setExact(MatchField.ICMPV6_CODE,
+                        U8.of(icmpv6code.icmpv6Code().byteValue()));
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
@@ -261,8 +273,6 @@ public abstract class FlowModBuilder {
             case ARP_TPA:
             case ICMPV4_CODE:
             case ICMPV4_TYPE:
-            case ICMPV6_CODE:
-            case ICMPV6_TYPE:
             case IN_PHY_PORT:
             case IPV6_EXTHDR:
             case IPV6_FLABEL:
