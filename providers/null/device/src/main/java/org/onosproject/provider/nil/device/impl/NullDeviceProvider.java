@@ -116,7 +116,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     @Activate
     public void activate(ComponentContext context) {
         providerService = providerRegistry.register(this);
-        if (modified(context)) {
+        if (!modified(context)) {
             deviceBuilder.submit(new DeviceCreator(true));
         }
         log.info("Started");
@@ -173,6 +173,9 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             chgd |= true;
         }
         log.info("Using settings numDevices={}, numPorts={}", numDevices, numPorts);
+        if (chgd) {
+            deviceBuilder.submit(new DeviceCreator(true));
+        }
         return chgd;
     }
 

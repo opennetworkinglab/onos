@@ -18,8 +18,6 @@ package org.onosproject.net.flow;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.provider.Provider;
 
-import java.util.concurrent.Future;
-
 /**
  * Abstraction of a flow rule provider.
  */
@@ -56,8 +54,7 @@ public interface FlowRuleProvider extends Provider {
      * Installs a batch of flow rules. Each flowrule is associated to an
      * operation which results in either addition, removal or modification.
      * @param batch a batch of flow rules
-     * @return a future indicating the status of this execution
      */
-    Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch);
+    void executeBatch(FlowRuleBatchOperation batch);
 
 }

@@ -46,10 +46,10 @@ public class FlowRuleBatchOperationTest {
         final LinkedList<FlowRuleBatchEntry> ops3 = new LinkedList<>();
         ops3.add(entry3);
 
-        final FlowRuleBatchOperation operation1 = new FlowRuleBatchOperation(ops1);
-        final FlowRuleBatchOperation sameAsOperation1 = new FlowRuleBatchOperation(ops1);
-        final FlowRuleBatchOperation operation2 = new FlowRuleBatchOperation(ops2);
-        final FlowRuleBatchOperation operation3 = new FlowRuleBatchOperation(ops3);
+        final FlowRuleBatchOperation operation1 = new FlowRuleBatchOperation(ops1, null, 0);
+        final FlowRuleBatchOperation sameAsOperation1 = new FlowRuleBatchOperation(ops1, null, 0);
+        final FlowRuleBatchOperation operation2 = new FlowRuleBatchOperation(ops2, null, 0);
+        final FlowRuleBatchOperation operation3 = new FlowRuleBatchOperation(ops3, null, 0);
 
         new EqualsTester()
                 .addEqualityGroup(operation1, sameAsOperation1)

@@ -108,7 +108,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
                                              intent.id().fingerprint()));
             prev = link.dst();
         }
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        //FIXME this should change to new api.
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules, null, 0));
     }
 
     @Override
@@ -138,7 +139,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
                                              intent.id().fingerprint()));
             prev = link.dst();
         }
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        // FIXME this should change to new api
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules, null, 0));
     }
 
     @Override

@@ -31,7 +31,7 @@ public class TestEventDispatcher extends DefaultEventSinkRegistry
 
     @Override
     @SuppressWarnings("unchecked")
-    public void post(Event event) {
+    public synchronized void post(Event event) {
         EventSink sink = getSink(event.getClass());
         checkState(sink != null, "No sink for event %s", event);
         sink.process(event);

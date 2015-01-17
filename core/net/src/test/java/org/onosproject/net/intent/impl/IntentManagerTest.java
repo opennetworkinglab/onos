@@ -201,7 +201,7 @@ public class IntentManagerTest {
             FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
             List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+            return Lists.newArrayList(new FlowRuleBatchOperation(rules, fr.deviceId(), 0));
         }
 
         @Override
@@ -209,7 +209,7 @@ public class IntentManagerTest {
             FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
             List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+            return Lists.newArrayList(new FlowRuleBatchOperation(rules, fr.deviceId(), 0));
         }
 
         @Override
@@ -219,7 +219,7 @@ public class IntentManagerTest {
             List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
             rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr2));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+            return Lists.newArrayList(new FlowRuleBatchOperation(rules, fr.deviceId(), 0));
         }
     }
 

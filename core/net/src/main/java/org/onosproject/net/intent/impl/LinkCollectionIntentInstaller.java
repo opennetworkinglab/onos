@@ -98,6 +98,7 @@ public class LinkCollectionIntentInstaller
             outputPorts.put(egressPoint.deviceId(), egressPoint.port());
         }
 
+        //FIXME change to new api
         FlowRuleBatchOperation batchOperation =
                 new FlowRuleBatchOperation(outputPorts
                         .keys()
@@ -105,7 +106,7 @@ public class LinkCollectionIntentInstaller
                         .map(deviceId -> createBatchEntry(operation,
                                                    intent, deviceId,
                                                    outputPorts.get(deviceId)))
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()), null, 0);
 
         return Collections.singletonList(batchOperation);
     }

@@ -1151,6 +1151,7 @@ public class IntentManager
          */
         protected Future<CompletedBatchOperation> applyNextBatch(List<CompletedIntentUpdate> updates) {
             //TODO test this. (also, maybe save this batch)
+
             FlowRuleBatchOperation batch = createFlowRuleBatchOperation(updates);
             if (batch.size() > 0) {
                 //FIXME apply batch might throw an exception
@@ -1165,7 +1166,7 @@ public class IntentManager
         }
 
         private FlowRuleBatchOperation createFlowRuleBatchOperation(List<CompletedIntentUpdate> intentUpdates) {
-            FlowRuleBatchOperation batch = new FlowRuleBatchOperation(Collections.emptyList());
+            FlowRuleBatchOperation batch = new FlowRuleBatchOperation(Collections.emptyList(), null, 0);
             for (CompletedIntentUpdate update : intentUpdates) {
                 FlowRuleBatchOperation currentBatch = update.currentBatch();
                 if (currentBatch != null) {

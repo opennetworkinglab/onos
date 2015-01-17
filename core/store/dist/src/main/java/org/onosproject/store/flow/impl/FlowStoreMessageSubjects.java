@@ -34,4 +34,7 @@ public final class FlowStoreMessageSubjects {
 
     public static final MessageSubject REMOVE_FLOW_ENTRY
         = new MessageSubject("peer-forward-remove-flow-entry");
+
+    public static final MessageSubject REMOTE_APPLY_COMPLETED
+            = new MessageSubject("peer-apply-completed");
 }

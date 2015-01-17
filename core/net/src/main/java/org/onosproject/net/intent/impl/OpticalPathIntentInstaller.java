@@ -181,6 +181,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
                                             true);
         rules.add(new FlowRuleBatchEntry(operation, rule));
 
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules));
+        //FIXME change to new api
+        return Lists.newArrayList(new FlowRuleBatchOperation(rules, null, 0));
     }
 }

@@ -66,6 +66,11 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     }
 
     @Override
+    public void apply(FlowRuleOperations ops) {
+
+    }
+
+    @Override
     public void addListener(FlowRuleListener listener) {
 
     }

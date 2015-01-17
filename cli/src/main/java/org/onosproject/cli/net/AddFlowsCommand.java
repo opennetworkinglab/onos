@@ -19,29 +19,30 @@ package org.onosproject.cli.net;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onlab.packet.MacAddress;
 
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Installs many many flows.
@@ -49,6 +50,8 @@ import java.util.concurrent.Future;
 @Command(scope = "onos", name = "add-flows",
          description = "Installs a number of test flow rules - for testing only")
 public class AddFlowsCommand extends AbstractShellCommand {
+
+    private CountDownLatch latch;
 
     @Argument(index = 0, name = "flowPerDevice", description = "Number of flows to add per device",
               required = true, multiValued = false)
@@ -63,6 +66,9 @@ public class AddFlowsCommand extends AbstractShellCommand {
 
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);
+        CoreService coreService = get(CoreService.class);
+
+        ApplicationId appId = coreService.registerApplication("onos.test.flow.installer");
 
         int flowsPerDevice = Integer.parseInt(flows);
         int num = Integer.parseInt(numOfRuns);
@@ -70,48 +76,72 @@ public class AddFlowsCommand extends AbstractShellCommand {
         ArrayList<Long> results = Lists.newArrayList();
         Iterable<Device> devices = deviceService.getDevices();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.portNumber(1)).build();
+                .setOutput(PortNumber.portNumber(RandomUtils.nextInt())).build();
         TrafficSelector.Builder sbuilder;
-        Set<FlowRuleBatchEntry> rules = Sets.newHashSet();
-        Set<FlowRuleBatchEntry> remove = Sets.newHashSet();
+        FlowRuleOperations.Builder rules = FlowRuleOperations.builder();
+        FlowRuleOperations.Builder remove = FlowRuleOperations.builder();
+
         for (Device d : devices) {
             for (int i = 0; i < flowsPerDevice; i++) {
                 sbuilder = DefaultTrafficSelector.builder();
-                sbuilder.matchEthSrc(MacAddress.valueOf(i))
-                        .matchEthDst(MacAddress.valueOf(Integer.MAX_VALUE - i));
-                rules.add(new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD,
-                                                    new DefaultFlowRule(d.id(), sbuilder.build(), treatment,
-                                                                        100, (long) 0, 10, false)));
-                remove.add(new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.REMOVE,
-                                                 new DefaultFlowRule(d.id(), sbuilder.build(), treatment,
-                                                                     100, (long) 0, 10, false)));
+
+                sbuilder.matchEthSrc(MacAddress.valueOf(RandomUtils.nextInt() * i))
+                        .matchEthDst(MacAddress.valueOf((Integer.MAX_VALUE - i) * RandomUtils.nextInt()));
+
+
+                int randomPriority = RandomUtils.nextInt();
+                rules.add(new DefaultFlowRule(d.id(), sbuilder.build(), treatment,
+                                              randomPriority, appId, 10, false));
+                remove.remove(new DefaultFlowRule(d.id(), sbuilder.build(), treatment,
+                                                  randomPriority, appId, 10, false));
 
             }
         }
-        boolean isSuccess = true;
+
         for (int i = 0; i < num; i++) {
-            long startTime = System.currentTimeMillis();
-            Future<CompletedBatchOperation> op = flowService.applyBatch(
-                    new FlowRuleBatchOperation(rules));
+
+            latch = new CountDownLatch(2);
+            flowService.apply(rules.build(new FlowRuleOperationsContext() {
+
+                private final Stopwatch timer = Stopwatch.createStarted();
+
+                @Override
+                public void onSuccess(FlowRuleOperations ops) {
+
+                    timer.stop();
+                    results.add(timer.elapsed(TimeUnit.MILLISECONDS));
+                    if (results.size() == num) {
+                        if (outputJson()) {
+                            print("%s", json(new ObjectMapper(), true, results));
+                        } else {
+                            printTime(true, results);
+                        }
+                    }
+                    latch.countDown();
+                }
+            }));
+
+
+            flowService.apply(remove.build(new FlowRuleOperationsContext() {
+                @Override
+                public void onSuccess(FlowRuleOperations ops) {
+                    latch.countDown();
+                }
+            }));
             try {
-                isSuccess &= op.get().isSuccess();
-            } catch (InterruptedException | ExecutionException e) {
+                latch.await();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            long endTime = System.currentTimeMillis();
-            results.add(endTime - startTime);
-            flowService.applyBatch(
-                    new FlowRuleBatchOperation(remove));
+
         }
-        if (outputJson()) {
-            print("%s", json(new ObjectMapper(), isSuccess, results));
-        } else {
-            printTime(isSuccess, results);
-        }
+
 
 
 
     }
+
+
 
     private Object json(ObjectMapper mapper, boolean isSuccess, ArrayList<Long> elapsed) {
         ObjectNode result = mapper.createObjectNode();

@@ -40,4 +40,13 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      */
     void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
 
+    /**
+     * Indicates to the core that the requested batch operation has
+     * been completed.
+     *
+     * @param batchId the batch which was processed
+     * @param operation the resulting outcome of the operation
+     */
+    void batchOperationCompleted(long batchId, CompletedBatchOperation operation);
+
 }

@@ -15,12 +15,37 @@
  */
 package org.onosproject.net.flow;
 
+import org.onosproject.net.DeviceId;
+
 import java.util.Collection;
 
+/**
+ * Class used with the flow subsystem to process per device
+ * batches.
+ */
 public class FlowRuleBatchOperation
     extends BatchOperation<FlowRuleBatchEntry> {
 
-    public FlowRuleBatchOperation(Collection<FlowRuleBatchEntry> operations) {
+    /**
+     * This id is used to cary to id of the original
+     * FlowOperations and track where this batch operation
+     * came from. The id is unique cluster wide.
+     */
+    private final long id;
+    private final DeviceId deviceId;
+
+    public FlowRuleBatchOperation(Collection<FlowRuleBatchEntry> operations,
+                                  DeviceId deviceId, long flowOperationId) {
         super(operations);
+        this.id = flowOperationId;
+        this.deviceId = deviceId;
+    }
+
+    public DeviceId deviceId() {
+        return this.deviceId;
+    }
+
+    public long id() {
+        return id;
     }
 }

@@ -35,6 +35,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openflow.controller.Dpid;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFInstructionType;
@@ -74,13 +75,16 @@ public class FlowEntryBuilder {
 
     private final OFFlowStatsEntry stat;
     private final OFFlowRemoved removed;
+    private final OFFlowMod flowMod;
 
     private final Match match;
     private final List<OFAction> actions;
 
     private final Dpid dpid;
 
-    private final boolean addedRule;
+    public enum FlowType { STAT, REMOVED, MOD }
+
+    private final FlowType type;
 
 
     public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
@@ -89,7 +93,8 @@ public class FlowEntryBuilder {
         this.actions = getActions(entry);
         this.dpid = dpid;
         this.removed = null;
-        this.addedRule = true;
+        this.flowMod = null;
+        this.type = FlowType.STAT;
     }
 
     public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed) {
@@ -99,26 +104,48 @@ public class FlowEntryBuilder {
         this.dpid = dpid;
         this.actions = null;
         this.stat = null;
-        this.addedRule = false;
+        this.flowMod = null;
+        this.type = FlowType.REMOVED;
 
     }
 
-    public FlowEntry build() {
-        if (addedRule) {
-            FlowRule rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
-                    buildSelector(), buildTreatment(), stat.getPriority(),
-                    stat.getCookie().getValue(), stat.getIdleTimeout(), false);
-            return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
-                    stat.getDurationSec(), stat.getPacketCount().getValue(),
-                    stat.getByteCount().getValue());
+    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm) {
+        this.match = fm.getMatch();
+        this.dpid = dpid;
+        this.actions = fm.getActions();
+        this.type = FlowType.MOD;
+        this.flowMod = fm;
+        this.stat = null;
+        this.removed = null;
+    }
 
-        } else {
-            FlowRule rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
-                    buildSelector(), null, removed.getPriority(),
-                   removed.getCookie().getValue(), removed.getIdleTimeout(), false);
-            return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
-                    removed.getPacketCount().getValue(), removed.getByteCount().getValue());
+    public FlowEntry build(FlowEntryState... state) {
+        FlowRule rule;
+        switch (this.type) {
+            case STAT:
+                rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
+                                      buildSelector(), buildTreatment(), stat.getPriority(),
+                                      stat.getCookie().getValue(), stat.getIdleTimeout(), false);
+                return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
+                                      stat.getDurationSec(), stat.getPacketCount().getValue(),
+                                      stat.getByteCount().getValue());
+            case REMOVED:
+                rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
+                                      buildSelector(), null, removed.getPriority(),
+                                      removed.getCookie().getValue(), removed.getIdleTimeout(), false);
+                return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
+                                      removed.getPacketCount().getValue(), removed.getByteCount().getValue());
+            case MOD:
+                FlowEntryState flowState = state.length > 0 ? state[0] : FlowEntryState.FAILED;
+                rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
+                                      buildSelector(), buildTreatment(), flowMod.getPriority(),
+                                      flowMod.getCookie().getValue(), flowMod.getIdleTimeout(), false);
+                return new DefaultFlowEntry(rule, flowState, 0, 0, 0);
+            default:
+                log.error("Unknown flow type : {}", this.type);
+                return null;
         }
+
     }
 
     private List<OFAction> getActions(OFFlowStatsEntry entry) {

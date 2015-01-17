@@ -59,15 +59,17 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.flow.CompletedBatchOperation;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchEvent;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleBatchRequest;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -162,6 +164,7 @@ public final class KryoNamespaces {
             .register(Collections.emptySet().getClass())
             .register(Optional.class)
             .register(Collections.emptyList().getClass())
+            .register(Collections.unmodifiableSet(Collections.emptySet()).getClass())
             .build();
 
     /**
@@ -255,6 +258,9 @@ public final class KryoNamespaces {
                     L3ModificationInstruction.L3SubType.class,
                     L3ModificationInstruction.ModIPInstruction.class,
                     RoleInfo.class,
+                    FlowRuleBatchEvent.class,
+                    FlowRuleBatchEvent.Type.class,
+                    FlowRuleBatchRequest.class,
                     FlowRuleBatchOperation.class,
                     CompletedBatchOperation.class,
                     FlowRuleBatchEntry.class,

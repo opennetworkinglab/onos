@@ -15,17 +15,18 @@
  */
 package org.onosproject.net.flow;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.junit.Test;
 import org.onosproject.net.intent.IntentTestsMocks;
 
-import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.ADD;
+import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.REMOVE;
 
 /**
  * Unit tests for the FlowRuleBatchRequest class.
@@ -40,22 +41,19 @@ public class FlowRuleBatchRequestTest {
     public void testConstruction() {
         final FlowRule rule1 = new IntentTestsMocks.MockFlowRule(1);
         final FlowRule rule2 = new IntentTestsMocks.MockFlowRule(2);
-        final List<FlowRuleBatchEntry> toAdd = new LinkedList<>();
-        toAdd.add(new FlowRuleBatchEntry(ADD, rule1));
-        final List<FlowRuleBatchEntry> toRemove = new LinkedList<>();
-        toRemove.add(new FlowRuleBatchEntry(REMOVE, rule2));
+        final Set<FlowRuleBatchEntry> batch = new HashSet<>();
+        batch.add(new FlowRuleBatchEntry(ADD, rule1));
+
+        batch.add(new FlowRuleBatchEntry(REMOVE, rule2));
 
 
         final FlowRuleBatchRequest request =
-                new FlowRuleBatchRequest(1, toAdd, toRemove);
+                new FlowRuleBatchRequest(1, batch);
 
-        assertThat(request.toAdd(), hasSize(1));
-        assertThat(request.toAdd().get(0), is(rule1));
-        assertThat(request.toRemove(), hasSize(1));
-        assertThat(request.toRemove().get(0), is(rule2));
-        assertThat(request.batchId(), is(1));
+        assertThat(request.ops(), hasSize(2));
+        assertThat(request.batchId(), is(1L));
 
-        final FlowRuleBatchOperation op = request.asBatchOperation();
+        final FlowRuleBatchOperation op = request.asBatchOperation(rule1.deviceId());
         assertThat(op.size(), is(2));
 
         final List<FlowRuleBatchEntry> ops = op.getOperations();

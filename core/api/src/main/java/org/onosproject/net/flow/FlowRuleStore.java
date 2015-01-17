@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.flow;
 
-import java.util.concurrent.Future;
-
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
 
@@ -54,6 +52,7 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      *
      * @param rule the flow rule to add
      */
+    @Deprecated
     void storeFlowRule(FlowRule rule);
 
     /**
@@ -61,10 +60,9 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      *
      * @param batchOperation batch of flow rules.
      *           A batch can contain flow rules for a single device only.
-     * @return Future response indicating success/failure of the batch operation
-     * all the way down to the device.
+     *
      */
-    Future<CompletedBatchOperation> storeBatch(FlowRuleBatchOperation batchOperation);
+    void storeBatch(FlowRuleBatchOperation batchOperation);
 
     /**
      * Invoked on the completion of a storeBatch operation.

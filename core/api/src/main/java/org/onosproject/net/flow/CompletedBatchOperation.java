@@ -21,6 +21,7 @@ import java.util.Set;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.DeviceId;
 
 /**
  * Representation of a completed flow rule batch operation.
@@ -30,19 +31,22 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
     private final boolean success;
     private final Set<FlowRule> failures;
     private final Set<Long> failedIds;
+    private final DeviceId deviceId;
 
     /**
      * Creates a new batch completion result.
      *
-     * @param success  indicates whether the completion is successful.
+     * @param success  indicates whether the completion is successful
      * @param failures set of any failures encountered
      * @param failedIds (optional) set of failed operation ids
+     * @param deviceId the device this operation completed for
      */
     public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures,
-                                   Set<Long> failedIds) {
+                                   Set<Long> failedIds, DeviceId deviceId) {
         this.success = success;
         this.failures = ImmutableSet.copyOf(failures);
         this.failedIds = ImmutableSet.copyOf(failedIds);
+        this.deviceId = deviceId;
     }
 
     /**
@@ -51,10 +55,12 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
      * @param success  indicates whether the completion is successful.
      * @param failures set of any failures encountered
      */
-    public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures) {
+    public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures,
+                                   DeviceId deviceId) {
         this.success = success;
         this.failures = ImmutableSet.copyOf(failures);
         this.failedIds = Collections.emptySet();
+        this.deviceId = deviceId;
     }
 
 
@@ -73,12 +79,17 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
         return failedIds;
     }
 
+    public DeviceId deviceId() {
+        return this.deviceId;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("success?", success)
                 .add("failedItems", failures)
                 .add("failedIds", failedIds)
+                .add("deviceId", deviceId)
                 .toString();
     }
 }

@@ -16,11 +16,13 @@
 package org.onosproject.net.flow;
 
 import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.DeviceId;
 
 /**
  * Describes flow rule batch event.
  */
 public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.Type, FlowRuleBatchRequest> {
+
 
     /**
      * Type of flow rule events.
@@ -42,14 +44,17 @@ public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.T
     }
 
     private final CompletedBatchOperation result;
+    private final DeviceId deviceId;
 
     /**
      * Constructs a new FlowRuleBatchEvent.
-     * @param request batch operation request.
+     *
+     * @param request batch operation request
+     * @param deviceId the device this batch will be processed on
      * @return event.
      */
-    public static FlowRuleBatchEvent requested(FlowRuleBatchRequest request) {
-        FlowRuleBatchEvent event = new FlowRuleBatchEvent(Type.BATCH_OPERATION_REQUESTED, request, null);
+    public static FlowRuleBatchEvent requested(FlowRuleBatchRequest request, DeviceId deviceId) {
+        FlowRuleBatchEvent event = new FlowRuleBatchEvent(Type.BATCH_OPERATION_REQUESTED, request, deviceId);
         return event;
     }
 
@@ -73,13 +78,36 @@ public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.T
     }
 
     /**
+     * Returns the deviceId for this batch.
+     * @return device id
+     */
+    public DeviceId deviceId() {
+        return deviceId;
+    }
+
+    /**
      * Creates an event of a given type and for the specified flow rule batch.
      *
      * @param type    flow rule batch event type
-     * @param batch    event flow rule batch subject
+     * @param request event flow rule batch subject
+     * @param result  the result of the batch operation
      */
     private FlowRuleBatchEvent(Type type, FlowRuleBatchRequest request, CompletedBatchOperation result) {
         super(type, request);
         this.result = result;
+        this.deviceId = result.deviceId();
+    }
+
+    /**
+     * Creates an event of a given type and for the specified flow rule batch.
+     *
+     * @param type      flow rule batch event type
+     * @param request   event flow rule batch subject
+     * @param deviceId  the device id for this batch
+     */
+    private FlowRuleBatchEvent(Type type, FlowRuleBatchRequest request, DeviceId deviceId) {
+        super(type, request);
+        this.result = null;
+        this.deviceId = deviceId;
     }
 }

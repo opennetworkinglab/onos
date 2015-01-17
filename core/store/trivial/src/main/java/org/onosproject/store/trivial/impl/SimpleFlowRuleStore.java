@@ -21,13 +21,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.FluentIterable;
-import com.google.common.util.concurrent.Futures;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.SettableFuture;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.NewConcurrentHashMap;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -46,7 +46,6 @@ import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.store.AbstractStore;
-import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -261,13 +259,14 @@ public class SimpleFlowRuleStore
     }
 
     @Override
-    public Future<CompletedBatchOperation> storeBatch(
-            FlowRuleBatchOperation batchOperation) {
+    public void storeBatch(
+            FlowRuleBatchOperation operation) {
         List<FlowRuleBatchEntry> toAdd = new ArrayList<>();
         List<FlowRuleBatchEntry> toRemove = new ArrayList<>();
-        for (FlowRuleBatchEntry entry : batchOperation.getOperations()) {
-            final FlowRule flowRule = entry.target();
-            if (entry.operator().equals(FlowRuleOperation.ADD)) {
+
+        for (FlowRuleBatchEntry entry : operation.getOperations()) {
+            final FlowRule flowRule = entry.getTarget();
+            if (entry.getOperator().equals(FlowRuleOperation.ADD)) {
                 if (!getFlowEntries(flowRule.deviceId(), flowRule.id()).contains(flowRule)) {
                     storeFlowRule(flowRule);
                     toAdd.add(entry);
@@ -283,21 +282,27 @@ public class SimpleFlowRuleStore
         }
 
         if (toAdd.isEmpty() && toRemove.isEmpty()) {
-            return Futures.immediateFuture(new CompletedBatchOperation(true, Collections.<FlowRule>emptySet()));
+            notifyDelegate(FlowRuleBatchEvent.completed(
+                    new FlowRuleBatchRequest(operation.id(), Collections.emptySet()),
+                    new CompletedBatchOperation(true, Collections.emptySet(),
+                                                operation.deviceId())));
+            return;
         }
 
         SettableFuture<CompletedBatchOperation> r = SettableFuture.create();
         final int batchId = localBatchIdGen.incrementAndGet();
 
         pendingFutures.put(batchId, r);
-        notifyDelegate(FlowRuleBatchEvent.requested(new FlowRuleBatchRequest(batchId, toAdd, toRemove)));
 
-        return r;
+        toAdd.addAll(toRemove);
+        notifyDelegate(FlowRuleBatchEvent.requested(
+                new FlowRuleBatchRequest(batchId, Sets.newHashSet(toAdd)), operation.deviceId()));
+
     }
 
     @Override
     public void batchOperationComplete(FlowRuleBatchEvent event) {
-        final Integer batchId = event.subject().batchId();
+        final Long batchId = event.subject().batchId();
         SettableFuture<CompletedBatchOperation> future
             = pendingFutures.getIfPresent(batchId);
         if (future != null) {

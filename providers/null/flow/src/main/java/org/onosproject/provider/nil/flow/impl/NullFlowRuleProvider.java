@@ -15,9 +15,7 @@
  */
 package org.onosproject.provider.nil.flow.impl;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.Futures;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,12 +27,12 @@ import org.jboss.netty.util.TimerTask;
 import org.onlab.util.Timer;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.BatchOperation;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
@@ -43,7 +41,9 @@ import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
 import java.util.Collections;
-import java.util.concurrent.Future;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -59,7 +59,7 @@ public class NullFlowRuleProvider extends AbstractProvider implements FlowRulePr
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleProviderRegistry providerRegistry;
 
-    private Multimap<DeviceId, FlowEntry> flowTable = HashMultimap.create();
+    private ConcurrentMap<DeviceId, Set<FlowEntry>> flowTable = new ConcurrentHashMap<>();
 
     private FlowRuleProviderService providerService;
 
@@ -88,18 +88,10 @@ public class NullFlowRuleProvider extends AbstractProvider implements FlowRulePr
     }
 
     @Override
-    public void applyFlowRule(FlowRule... flowRules) {
-        for (int i = 0; i < flowRules.length; i++) {
-            flowTable.put(flowRules[i].deviceId(), new DefaultFlowEntry(flowRules[i]));
-        }
-    }
+    public void applyFlowRule(FlowRule... flowRules) {}
 
     @Override
-    public void removeFlowRule(FlowRule... flowRules) {
-        for (int i = 0; i < flowRules.length; i++) {
-            flowTable.remove(flowRules[i].deviceId(), flowRules[i]);
-        }
-    }
+    public void removeFlowRule(FlowRule... flowRules) {}
 
     @Override
     public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
@@ -107,26 +99,32 @@ public class NullFlowRuleProvider extends AbstractProvider implements FlowRulePr
     }
 
     @Override
-    public Future<CompletedBatchOperation> executeBatch(
-            BatchOperation<FlowRuleBatchEntry> batch) {
+    public void executeBatch(
+            FlowRuleBatchOperation batch) {
+        Set<FlowEntry> flowRules = flowTable.getOrDefault(batch.deviceId(), Sets.newConcurrentHashSet());
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             switch (fbe.operator()) {
                 case ADD:
-                    applyFlowRule(fbe.target());
+                    flowRules.add(new DefaultFlowEntry(fbe.target()));
                     break;
                 case REMOVE:
-                    removeFlowRule(fbe.target());
+                    flowRules.remove(new DefaultFlowEntry(fbe.target()));
                     break;
                 case MODIFY:
-                    removeFlowRule(fbe.target());
-                    applyFlowRule(fbe.target());
+                    FlowEntry entry = new DefaultFlowEntry(fbe.target());
+                    flowRules.remove(entry);
+                    flowRules.add(entry);
                     break;
                 default:
                     log.error("Unknown flow operation: {}", fbe);
             }
         }
-        return Futures.immediateFuture(
-                new CompletedBatchOperation(true, Collections.emptySet()));
+        flowTable.put(batch.deviceId(), flowRules);
+        providerService.batchOperationCompleted(batch.id(),
+                                                new CompletedBatchOperation(
+                                                        true,
+                                                        Collections.emptySet(),
+                                                        batch.deviceId()));
     }
 
     private class StatisticTask implements TimerTask {
@@ -134,10 +132,11 @@ public class NullFlowRuleProvider extends AbstractProvider implements FlowRulePr
         @Override
         public void run(Timeout to) throws Exception {
             for (DeviceId devId : flowTable.keySet()) {
-                providerService.pushFlowMetrics(devId, flowTable.get(devId));
+                    providerService.pushFlowMetrics(devId,
+                                                    flowTable.getOrDefault(devId, Collections.emptySet()));
             }
-
             timeout = timer.newTimeout(to.getTask(), 5, TimeUnit.SECONDS);
+
         }
     }
 }

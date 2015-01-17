@@ -15,59 +15,43 @@
  */
 package org.onosproject.net.flow;
 
+import com.google.common.collect.Lists;
+import org.onosproject.net.DeviceId;
+
 import java.util.Collections;
 import java.util.List;
-
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-
-
-
-import com.google.common.collect.Lists;
+import java.util.Set;
 
 public class FlowRuleBatchRequest {
 
-    private final int batchId;
-    private final List<FlowRuleBatchEntry> toAdd;
-    private final List<FlowRuleBatchEntry> toRemove;
+    /**
+     * This id is used to cary to id of the original
+     * FlowOperations and track where this batch operation
+     * came from. The id is unique cluster wide.
+     */
+    private final long batchId;
 
-    public FlowRuleBatchRequest(int batchId, List<FlowRuleBatchEntry> toAdd,
-                                List<FlowRuleBatchEntry> toRemove) {
+    private final Set<FlowRuleBatchEntry> ops;
+
+
+    public FlowRuleBatchRequest(long batchId, Set<FlowRuleBatchEntry> ops) {
         this.batchId = batchId;
-        this.toAdd = Collections.unmodifiableList(toAdd);
-        this.toRemove = Collections.unmodifiableList(toRemove);
+        this.ops = Collections.unmodifiableSet(ops);
+
+
     }
 
-    public List<FlowRule> toAdd() {
-        return FluentIterable.from(toAdd).transform(
-                new Function<FlowRuleBatchEntry, FlowRule>() {
-
-            @Override
-            public FlowRule apply(FlowRuleBatchEntry input) {
-                return input.target();
-            }
-        }).toList();
+    public Set<FlowRuleBatchEntry> ops() {
+        return ops;
     }
 
-    public List<FlowRule> toRemove() {
-        return FluentIterable.from(toRemove).transform(
-                new Function<FlowRuleBatchEntry, FlowRule>() {
-
-                    @Override
-                    public FlowRule apply(FlowRuleBatchEntry input) {
-                        return input.target();
-                    }
-                }).toList();
-    }
-
-    public FlowRuleBatchOperation asBatchOperation() {
+    public FlowRuleBatchOperation asBatchOperation(DeviceId deviceId) {
         List<FlowRuleBatchEntry> entries = Lists.newArrayList();
-        entries.addAll(toAdd);
-        entries.addAll(toRemove);
-        return new FlowRuleBatchOperation(entries);
+        entries.addAll(ops);
+        return new FlowRuleBatchOperation(entries, deviceId, batchId);
     }
 
-    public int batchId() {
+    public long batchId() {
         return batchId;
     }
 }

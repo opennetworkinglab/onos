@@ -27,6 +27,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 
 import com.google.common.collect.ImmutableSet;
@@ -45,11 +46,11 @@ public class MockFlowRuleService implements FlowRuleService {
 
     public void setFuture(boolean success, long intentId) {
         if (success) {
-            future = Futures.immediateFuture(new CompletedBatchOperation(true, Collections.emptySet()));
+            future = Futures.immediateFuture(new CompletedBatchOperation(true, Collections.emptySet(), null));
         } else {
             final Set<Long> failedIds = ImmutableSet.of(intentId);
             future = Futures.immediateFuture(
-                    new CompletedBatchOperation(false, flows, failedIds));
+                    new CompletedBatchOperation(false, flows, failedIds, null));
         }
     }
 
@@ -71,6 +72,11 @@ public class MockFlowRuleService implements FlowRuleService {
             }
         }
         return future;
+    }
+
+    @Override
+    public void apply(FlowRuleOperations ops) {
+
     }
 
     @Override
