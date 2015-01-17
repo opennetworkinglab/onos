@@ -20,17 +20,70 @@
  @author Simon Hunt
  */
 describe('factory: fw/svg/icon.js', function() {
-    var is;
+    var is, d3Elem;
+
+    var viewBox = '0 0 50 50',
+        glyphSize = '50',
+        iconSize = '20';
+
 
     beforeEach(module('onosSvg'));
 
     beforeEach(inject(function (IconService) {
         is = IconService;
+        d3Elem = d3.select('body').append('div').attr('id', 'myDiv');
     }));
+
+    afterEach(function () {
+        d3.select('#myDiv').remove();
+    });
 
     it('should define IconService', function () {
         expect(is).toBeDefined();
     });
 
-    // TODO: unit tests for icon functions
+    function checkElemSize(elem, dim) {
+        expect(elem.attr('width')).toEqual(dim);
+        expect(elem.attr('height')).toEqual(dim);
+    }
+
+    function verifyIconStructure(iconClass, useHref, iSize, vBox, gSize) {
+        var isz = iSize || iconSize,
+            vbx = vBox || viewBox,
+            gsz = gSize || glyphSize;
+
+        var svg = d3Elem.selectAll('svg');
+        expect(svg.size()).toBe(1);
+        checkElemSize(svg, isz);
+        expect(svg.attr('viewBox')).toEqual(vbx);
+
+        var g = svg.selectAll('g');
+        expect(g.size()).toBe(1);
+        expect(g.classed('icon')).toBeTruthy();
+        expect(g.classed(iconClass)).toBeTruthy();
+
+        var rect = g.select('rect');
+        expect(rect.size()).toBe(1);
+        checkElemSize(rect, gsz);
+        expect(rect.attr('rx')).toEqual('4');
+
+        var use = g.select('use');
+        expect(use.classed('glyph')).toBeTruthy();
+        expect(use.attr('xlink:href')).toEqual(useHref);
+        checkElemSize(use, gsz);
+    }
+
+
+    it('should load an icon into a div', function () {
+        expect(d3Elem.html()).toEqual('');
+        is.loadIcon(d3Elem, 'deviceOnline');
+        verifyIconStructure('deviceOnline', '#checkMark');
+    });
+
+    it('should allow us to specify the icon size', function () {
+        expect(d3Elem.html()).toEqual('');
+        is.loadIcon(d3Elem, 'deviceOffline', 32);
+        verifyIconStructure('deviceOffline', '#xMark', '32');
+    });
+
 });

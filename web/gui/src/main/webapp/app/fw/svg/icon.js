@@ -22,14 +22,53 @@
 (function () {
     'use strict';
 
-    var $log;
+    var $log, fs;
+
+    var viewBoxDim = 50,
+        viewBox = '0 0 ' + viewBoxDim + ' ' + viewBoxDim;
+
+    // maps icon id to the glyph id it uses.
+    // note: icon id maps to a CSS class for styling that icon
+    var glyphMapping = {
+            deviceOnline: 'checkMark',
+            deviceOffline: 'xMark'
+        };
 
     angular.module('onosSvg')
-        .factory('IconService', ['$log', function (_$log_) {
+        .factory('IconService', ['$log', 'FnService', function (_$log_, _fs_) {
             $log = _$log_;
+            fs = _fs_;
+
+            // div is a D3 selection of the <DIV> element into which icon should load
+            // iconCls is the CSS class used to identify the icon
+            // size is dimension of icon in pixels. Defaults to 20.
+            function loadIcon(div, iconCls, size) {
+                var dim = size || 20,
+                    gid = glyphMapping[iconCls] || 'unknown';
+
+                var svg = div.append('svg').attr({
+                        width: dim,
+                        height: dim,
+                        viewBox: viewBox
+                    });
+                var g = svg.append('g').attr({
+                    'class': 'icon ' + iconCls
+                });
+                g.append('rect').attr({
+                    width: viewBoxDim,
+                    height: viewBoxDim,
+                    rx: 4
+                });
+                g.append('use').attr({
+                    width: viewBoxDim,
+                    height: viewBoxDim,
+                    'class': 'glyph',
+                    'xlink:href': '#' + gid
+                });
+            }
 
             return {
-                tbd: function () {}
+                loadIcon: loadIcon
             };
         }]);
 
