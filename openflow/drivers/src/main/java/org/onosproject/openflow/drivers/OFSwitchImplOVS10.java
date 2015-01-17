@@ -15,14 +15,15 @@
  */
 package org.onosproject.openflow.drivers;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
+import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Nicira, Inc. Make
@@ -30,6 +31,8 @@ import java.util.List;
  * 1.11.90 (or whatever version + build) Serial : None
  */
 public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
+
+    private static final int LOWEST_PRIORITY = 0;
 
     public OFSwitchImplOVS10(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
@@ -53,7 +56,11 @@ public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
     }
 
     @Override
-    public void startDriverHandshake() {}
+    public void startDriverHandshake() {
+        OFFlowAdd.Builder fmBuilder = factory().buildFlowAdd();
+        fmBuilder.setPriority(LOWEST_PRIORITY);
+        write(fmBuilder.build());
+    }
 
     @Override
     public boolean isDriverHandshakeComplete() {

@@ -25,6 +25,7 @@ import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriverFactory;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
+import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
@@ -38,6 +39,8 @@ import org.slf4j.LoggerFactory;
 public final class DriverManager implements OpenFlowSwitchDriverFactory {
 
     private static final Logger log = LoggerFactory.getLogger(DriverManager.class);
+
+    private static final int LOWEST_PRIORITY = 0;
 
     /**
      * Return an IOFSwitch object based on switch's manufacturer description
@@ -98,7 +101,13 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             }
 
             @Override
-            public void startDriverHandshake() {}
+            public void startDriverHandshake() {
+                if (factory().getVersion() == OFVersion.OF_10) {
+                    OFFlowAdd.Builder fmBuilder = factory().buildFlowAdd();
+                    fmBuilder.setPriority(LOWEST_PRIORITY);
+                    write(fmBuilder.build());
+                }
+            }
 
             @Override
             public void processDriverHandshakeMessage(OFMessage m) {}

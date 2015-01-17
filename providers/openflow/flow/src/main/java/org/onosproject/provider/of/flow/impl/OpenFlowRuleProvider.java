@@ -15,11 +15,24 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -71,24 +84,11 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyAct
 import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkState;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -98,6 +98,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class OpenFlowRuleProvider extends AbstractProvider implements FlowRuleProvider {
 
     enum BatchState { STARTED, FINISHED, CANCELLED };
+
+    private static final int LOWEST_PRIORITY = 0;
 
     private final Logger log = getLogger(getClass());
 
@@ -344,9 +346,12 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         }
 
         private boolean tableMissRule(Dpid dpid, OFFlowStatsEntry reply) {
-            if (reply.getVersion().equals(OFVersion.OF_10) ||
-                    reply.getMatch().getMatchFields().iterator().hasNext()) {
+            if (reply.getMatch().getMatchFields().iterator().hasNext()) {
                 return false;
+            }
+            if (reply.getVersion().equals(OFVersion.OF_10)) {
+                return reply.getPriority() == LOWEST_PRIORITY
+                        && reply.getActions().isEmpty();
             }
             for (OFInstruction ins : reply.getInstructions()) {
                 if (ins.getType() == OFInstructionType.APPLY_ACTIONS) {
