@@ -23,6 +23,7 @@
     'use strict';
 
     var $log,
+        fs,
         glyphs = d3.map(),
         msgGS = 'GlyphService.';
 
@@ -121,8 +122,9 @@
     // ----------------------------------------------------------------------
 
     angular.module('onosSvg')
-        .factory('GlyphService', ['$log', function (_$log_) {
+        .factory('GlyphService', ['$log', 'FnService', function (_$log_, _fs_) {
             $log = _$log_;
+            fs = _fs_;
 
             function clear() {
                 // start with a fresh map
@@ -166,15 +168,20 @@
             }
 
             // Note: defs should be a D3 selection of a single <defs> element
-            function loadDefs(defs) {
+            function loadDefs(defs, glyphIds) {
+                var list = fs.isA(glyphIds) || ids();
+
                 // remove all existing content
                 defs.html(null);
 
-                // load up the currently registered glyphs
-                glyphs.values().forEach(function (g) {
-                    defs.append('symbol')
-                        .attr({ id: g.id, viewBox: g.vb })
-                        .append('path').attr('d', g.d);
+                // load up the requested glyphs
+                list.forEach(function (id) {
+                    var g = glyph(id);
+                    if (g) {
+                        defs.append('symbol')
+                            .attr({ id: g.id, viewBox: g.vb })
+                            .append('path').attr('d', g.d);
+                    }
                 });
             }
 

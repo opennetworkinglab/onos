@@ -25,7 +25,24 @@ describe('factory: fw/svg/glyph.js', function() {
     var numBaseGlyphs = 11,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
-        vbBadge = '0 0 10 10';
+        vbBadge = '0 0 10 10',
+        prefixLookup = {
+            bird: 'M427.7,300.4',
+            unknown: 'M35,40a5',
+            node: 'M15,100a5',
+            switch: 'M10,20a10',
+            roadm: 'M10,35l25-',
+            endstation: 'M10,15a5,5',
+            router: 'M10,55A45,45',
+            bgpSpeaker: 'M10,40a45,35',
+            chain: 'M60.4,77.6c-',
+            crown: 'M99.5,21.6c0,',
+            uiAttached: 'M2,2.5a.5,.5',
+
+            // our test ones..
+            triangle: 'M.5,.2',
+            diamond: 'M.2,.5'
+        };
 
     beforeEach(module('onosUtil', 'onosSvg'));
 
@@ -47,7 +64,7 @@ describe('factory: fw/svg/glyph.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(gs, [
-            'init', 'register', 'ids', 'glyph', 'loadDefs'
+            'clear', 'init', 'register', 'ids', 'glyph', 'loadDefs'
         ])).toBeTruthy();
     });
 
@@ -55,20 +72,22 @@ describe('factory: fw/svg/glyph.js', function() {
         expect(gs.ids()).toEqual([]);
     });
 
-    it('should load the base set of glyphs', function () {
+    it('should load the base set of glyphs into the cache', function () {
         gs.init();
         expect(gs.ids().length).toEqual(numBaseGlyphs);
     });
 
-    it('should remove glyphs on clear', function () {
+    it('should remove glyphs from the cache on clear', function () {
         gs.init();
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         gs.clear();
         expect(gs.ids().length).toEqual(0);
     });
 
-    function verifyGlyphLoaded(id, vbox, prefix) {
-        var glyph = gs.glyph(id),
+    function verifyGlyphLoadedInCache(id, vbox, expPfxId) {
+        var pfxId = expPfxId || id,
+            glyph = gs.glyph(id),
+            prefix = prefixLookup[pfxId],
             plen = prefix.length;
         expect(fs.contains(gs.ids(), id)).toBeTruthy();
         expect(glyph).toBeDefined();
@@ -79,47 +98,47 @@ describe('factory: fw/svg/glyph.js', function() {
 
     it('should load the bird glyph', function() {
         gs.init();
-        verifyGlyphLoaded('bird', vbBird, 'M427.7,300.4');
+        verifyGlyphLoadedInCache('bird', vbBird);
     });
     it('should load the unknown glyph', function() {
         gs.init();
-        verifyGlyphLoaded('unknown', vbGlyph, 'M35,40a5');
+        verifyGlyphLoadedInCache('unknown', vbGlyph);
     });
     it('should load the node glyph', function() {
         gs.init();
-        verifyGlyphLoaded('node', vbGlyph, 'M15,100a5');
+        verifyGlyphLoadedInCache('node', vbGlyph);
     });
     it('should load the switch glyph', function() {
         gs.init();
-        verifyGlyphLoaded('switch', vbGlyph, 'M10,20a10');
+        verifyGlyphLoadedInCache('switch', vbGlyph);
     });
     it('should load the roadm glyph', function() {
         gs.init();
-        verifyGlyphLoaded('roadm', vbGlyph, 'M10,35l25-');
+        verifyGlyphLoadedInCache('roadm', vbGlyph);
     });
     it('should load the endstation glyph', function() {
         gs.init();
-        verifyGlyphLoaded('endstation', vbGlyph, 'M10,15a5,5');
+        verifyGlyphLoadedInCache('endstation', vbGlyph);
     });
     it('should load the router glyph', function() {
         gs.init();
-        verifyGlyphLoaded('router', vbGlyph, 'M10,55A45,45');
+        verifyGlyphLoadedInCache('router', vbGlyph);
     });
     it('should load the bgpSpeaker glyph', function() {
         gs.init();
-        verifyGlyphLoaded('bgpSpeaker', vbGlyph, 'M10,40a45,35');
+        verifyGlyphLoadedInCache('bgpSpeaker', vbGlyph);
     });
     it('should load the chain glyph', function() {
         gs.init();
-        verifyGlyphLoaded('chain', vbGlyph, 'M60.4,77.6c-');
+        verifyGlyphLoadedInCache('chain', vbGlyph);
     });
     it('should load the crown glyph', function() {
         gs.init();
-        verifyGlyphLoaded('crown', vbGlyph, 'M99.5,21.6c0');
+        verifyGlyphLoadedInCache('crown', vbGlyph);
     });
     it('should load the uiAttached glyph', function() {
         gs.init();
-        verifyGlyphLoaded('uiAttached', vbBadge, 'M2,2.5a.5,.5');
+        verifyGlyphLoadedInCache('uiAttached', vbBadge);
     });
 
     // define some glyphs that we want to install
@@ -147,8 +166,8 @@ describe('factory: fw/svg/glyph.js', function() {
         expect($log.warn).not.toHaveBeenCalled();
 
         expect(gs.ids().length).toEqual(numBaseGlyphs + 2);
-        verifyGlyphLoaded('triangle', testVbox, 'M.5,.2');
-        verifyGlyphLoaded('diamond', testVbox, 'M.2,.5');
+        verifyGlyphLoadedInCache('triangle', testVbox);
+        verifyGlyphLoadedInCache('diamond', testVbox);
     });
 
     it('should not overwrite glyphs with dup IDs', function () {
@@ -163,8 +182,8 @@ describe('factory: fw/svg/glyph.js', function() {
 
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         // verify original glyphs still exist...
-        verifyGlyphLoaded('router', vbGlyph, 'M10,55A45,45');
-        verifyGlyphLoaded('switch', vbGlyph, 'M10,20a10');
+        verifyGlyphLoadedInCache('router', vbGlyph);
+        verifyGlyphLoadedInCache('switch', vbGlyph);
     });
 
     it('should replace glyphs if asked nicely', function () {
@@ -178,8 +197,8 @@ describe('factory: fw/svg/glyph.js', function() {
 
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         // verify glyphs have been overwritten...
-        verifyGlyphLoaded('router', testVbox, 'M.5,.2');
-        verifyGlyphLoaded('switch', testVbox, 'M.2,.5');
+        verifyGlyphLoadedInCache('router', testVbox, 'triangle');
+        verifyGlyphLoadedInCache('switch', testVbox, 'diamond');
     });
 
     function verifyPathPrefix(elem, prefix) {
@@ -188,16 +207,19 @@ describe('factory: fw/svg/glyph.js', function() {
         expect(d.slice(0, plen)).toEqual(prefix);
     }
 
+    function verifyLoadedInDom(id, vb, expPfxId) {
+        var pfxId = expPfxId || id,
+            symbol = d3Elem.select('#' + id);
+        expect(symbol.size()).toEqual(1);
+        expect(symbol.attr('viewBox')).toEqual(vb);
+        verifyPathPrefix(symbol, prefixLookup[pfxId]);
+    }
+
     it('should load base glyphs into the DOM', function () {
         gs.init();
         gs.loadDefs(d3Elem);
         expect(d3Elem.selectAll('symbol').size()).toEqual(numBaseGlyphs);
-
-        // verify bgpSpeaker
-        var bs = d3Elem.select('#bgpSpeaker');
-        expect(bs.size()).toEqual(1);
-        expect(bs.attr('viewBox')).toEqual(vbGlyph);
-        verifyPathPrefix(bs, 'M10,40a45,35');
+        verifyLoadedInDom('bgpSpeaker', vbGlyph);
     });
 
     it('should load custom glyphs into the DOM', function () {
@@ -205,11 +227,15 @@ describe('factory: fw/svg/glyph.js', function() {
         gs.register(testVbox, newGlyphs);
         gs.loadDefs(d3Elem);
         expect(d3Elem.selectAll('symbol').size()).toEqual(numBaseGlyphs + 2);
+        verifyLoadedInDom('diamond', testVbox);
+    });
 
-        // verify diamond
-        var dia = d3Elem.select('#diamond');
-        expect(dia.size()).toEqual(1);
-        expect(dia.attr('viewBox')).toEqual(testVbox);
-        verifyPathPrefix(dia, 'M.2,.5l.3,-.3');
+    it('should load only specified glyphs into the DOM', function () {
+        gs.init();
+        gs.loadDefs(d3Elem, ['crown', 'chain', 'node']);
+        expect(d3Elem.selectAll('symbol').size()).toEqual(3);
+        verifyLoadedInDom('crown', vbGlyph);
+        verifyLoadedInDom('chain', vbGlyph);
+        verifyLoadedInDom('node', vbGlyph);
     });
 });
