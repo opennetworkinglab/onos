@@ -59,4 +59,23 @@ public class FlowRuleExtEntry {
    public void setClass(Class<?> classT) {
        this.classT = classT;
    }
+
+   @Override
+   public boolean equals(Object obj) {
+        if(obj  instanceof FlowRuleExtEntry) {
+        	FlowRuleExtEntry entry = (FlowRuleExtEntry)obj;
+	        String flowEntryExtension1 = new String(flowEntryExtension);
+	        String flowEntryExtension2 = new String(entry.getFlowEntryExt());
+            return flowEntryExtension1.equals(flowEntryExtension2);
+        }else{
+            return false;
+        }
+   }
+
+   @Override
+   public String toString() {
+        String obj = new String(flowEntryExtension);
+        return obj;
+   }
+   
 }
