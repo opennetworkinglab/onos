@@ -9,10 +9,8 @@ public class FlowRuleExtEntry {
 
    private DeviceId deviceId;
 
-   //Length of flowEntryExtension, used for serialization process.
-   private int length;
 
-   //classT is what class the flowEntryExtension can be decode to.
+   //classT is what class the flowEntryExtension can be decode to, used for GUI or CLI
    private Class<?> classT;
 
    /*
@@ -22,9 +20,9 @@ public class FlowRuleExtEntry {
     */
    private byte[] flowEntryExtension;
 
-   public FlowRuleExtEntry(DeviceId deviceId, byte[] data) {
+   public FlowRuleExtEntry(DeviceId deviceId, Class<?> classT, byte[] data) {
 	   this.setDeviceId(deviceId);
-	   this.setLength(data.length);
+	   this.setClass(classT);
 	   this.setFlowEntryExt(data);
    }
 
@@ -34,14 +32,6 @@ public class FlowRuleExtEntry {
 
    public void setDeviceId(DeviceId deviceId) {
 	   this.deviceId = deviceId;
-   }
-
-   public int getLength() {
-	  return length;
-   }
-
-   public void setLength(int length) {
-	  this.length = length;
    }
 
    public byte[] getFlowEntryExt() {
@@ -56,7 +46,7 @@ public class FlowRuleExtEntry {
        return classT;
    }
 
-   public void setClass(Class<?> classT) {
+   public void setClassT(Class<?> classT) {
        this.classT = classT;
    }
 
@@ -77,5 +67,4 @@ public class FlowRuleExtEntry {
         String obj = new String(flowEntryExtension);
         return obj;
    }
-   
 }

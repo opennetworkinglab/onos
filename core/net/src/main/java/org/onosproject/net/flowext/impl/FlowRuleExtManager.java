@@ -107,7 +107,6 @@ public class FlowRuleExtManager
     @Deactivate
     public void deactivate() {
         futureService.shutdownNow();
-
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(FlowRuleEvent.class);
         log.info("Stopped");
@@ -170,13 +169,11 @@ public class FlowRuleExtManager
     @Override
     public void addListener(FlowRuleExtListener listener) {
         // TODO Auto-generated method stub
-        
     }
 
     @Override
     public void removeListener(FlowRuleExtListener listener) {
         // TODO Auto-generated method stub
-        
     }
 
     @Override
@@ -243,7 +240,6 @@ public class FlowRuleExtManager
             if (isDone()) {
                 return overall;
             }
-
             boolean success = true;
             Set<FlowRuleExtEntry> failed = Sets.newHashSet();
             FlowExtCompletedOperation completed;
@@ -311,6 +307,7 @@ public class FlowRuleExtManager
         private void cleanUpBatch() {
         }
     }
+
     private class InternalFlowRuleProviderService extends AbstractProviderService<FlowRuleExtProvider>
     implements FlowRuleExtProviderService {
 
@@ -323,6 +320,6 @@ public class FlowRuleExtManager
     @Override
     public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
         // TODO Auto-generated method stub
-        
+        store.registerSerializer(classT, serializer);
     }
 }

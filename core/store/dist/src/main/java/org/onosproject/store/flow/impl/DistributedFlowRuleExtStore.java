@@ -306,6 +306,10 @@ public class DistributedFlowRuleExtStore extends
               // here should make some changes because all the collection belongs to one deviceId
              DeviceId deviceId = getBatchDeviceId(batchOperation);
 
+             if(deviceId == null) {
+                 log.error("This Batch exists more than two deviceId");
+                 return null;
+             }
              ReplicaInfo replicaInfo = replicaInfoManager
                             .getReplicaInfoFor(deviceId);
 
@@ -373,7 +377,11 @@ public class DistributedFlowRuleExtStore extends
                 break;
             }
         }
-        return sameId? DeviceId.deviceId(String.valueOf(headOp.getDeviceId())) : null;
+        return sameId? headOp.getDeviceId() : null;
+    }
+
+    pivate Class IntenalKryoSerializer implements StoreSerializer {
+        
     }
 
     @Override
