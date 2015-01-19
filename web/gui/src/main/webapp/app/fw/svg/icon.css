@@ -18,6 +18,10 @@
  ONOS GUI -- Icon Service -- CSS file
  */
 
+svg#IconLibDefs {
+  display: none;
+}
+
 svg.embeddedIcon .icon .glyph {
  stroke: none;
  fill: white;
