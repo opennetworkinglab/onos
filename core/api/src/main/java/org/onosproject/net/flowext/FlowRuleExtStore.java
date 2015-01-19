@@ -48,9 +48,10 @@ public interface FlowRuleExtStore extends Store<FlowRuleBatchExtEvent, FlowRuleE
 
     /**
      * @param deviceId the device ID
+     * @param classT the flowEntryExtension of which classT you want to get
      * @return message parsed from byte stream
      */
-    Iterable<?> getExtMessages(DeviceId deviceId);
+    Iterable<?> getExtMessages(DeviceId deviceId, Class<?> classT);
 
     /**
      * @param classT the class flowEntryExtension can be decoded to.

@@ -21,6 +21,9 @@ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_DEVIC
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,6 +67,7 @@ import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.DecodeTo;
 import org.onosproject.store.serializers.FlowRuleExtEntrySerializer;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
@@ -74,9 +78,11 @@ import org.projectfloodlight.openflow.protocol.OFMessageReader;
 import org.slf4j.Logger;
 
 import com.esotericsoftware.kryo.Serializer;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
@@ -87,6 +93,8 @@ import com.google.common.util.concurrent.SettableFuture;
  * Manages inventory of flow rules using a distributed state management
  * protocol.
  */
+
+
 @Component(immediate = true)
 @Service
 public class DistributedFlowRuleExtStore extends
@@ -129,17 +137,7 @@ public class DistributedFlowRuleExtStore extends
 			.newCachedThreadPool(namedThreads("flowstore-peer-responders"));
 
 
-	protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
-		@Override
-		protected void setupKryoPool() {
-			serializerPool = KryoNamespace
-					.newBuilder()
-					.register(DistributedStoreSerializers.STORE_COMMON)
-					.nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
-					.register(new FlowRuleExtEntrySerializer(),
-					              FlowRuleExtEntry.class).build();
-		}
-	};
+	private InternalKryoSerializer SERIALIZER = new InternalKryoSerializer();
 
 	private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
@@ -156,13 +154,10 @@ public class DistributedFlowRuleExtStore extends
             public void handle(ClusterMessage message) {
                 DeviceId deviceId = SERIALIZER.decode(message.payload());
                 log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
-                Set<FlowRuleExtEntry> ofmsgs = getInternalMessage(deviceId);
-                ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-                for (FlowRuleExtEntry ofm : ofmsgs){
-                	buf.writeBytes(SERIALIZER.encode(ofm));
-                }
+                Set<FlowRuleExtEntry> value = getInternalMessage(deviceId);
+                ImmutableList<FlowRuleExtEntry> flowmsgs = ImmutableList.copyOf(value);
                 try {
-                    message.respond(buf.array());
+                    message.respond(SERIALIZER.encode(flowmsgs));
                 } catch (IOException e) {
                     log.error("Failed to respond to peer's getFlowEntries request", e);
                 }
@@ -175,7 +170,7 @@ public class DistributedFlowRuleExtStore extends
             public void handle(ClusterMessage message) {
                 ChannelBuffer buf = ChannelBuffers.wrappedBuffer(message.payload());
                 //here should add a decode process
-                Collection<FlowRuleExtEntry> operation=SERIALIZER.decode(message.payload());
+                ImmutableList<FlowRuleExtEntry> operation=SERIALIZER.decode(message.payload());
                 log.info("received batch request {}",operation);
                 final ListenableFuture<FlowExtCompletedOperation> f = storeBatchInternal(operation);
                 
@@ -244,7 +239,7 @@ public class DistributedFlowRuleExtStore extends
 	}
 
 	@Override
-	public Iterable<?> getExtMessages(DeviceId deviceId) {
+	public Iterable<?> getExtMessages(DeviceId deviceId, Class<?> classT) {
 		
 		ReplicaInfo replicaInfo = replicaInfoManager
 				.getReplicaInfoFor(deviceId);
@@ -255,7 +250,6 @@ public class DistributedFlowRuleExtStore extends
 		}
 
 		if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-		    
 			return getInternalMessage(deviceId);
 		}
 
@@ -271,13 +265,14 @@ public class DistributedFlowRuleExtStore extends
 					.sendAndReceive(message, replicaInfo.master().get());
 			byte[] bytes = responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 			//make some change about buffer
-			ChannelBuffer cbf = ChannelBuffers.wrappedBuffer(bytes);
-			OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
+			ImmutableList<FlowRuleExtEntry> flows = SERIALIZER.decode(bytes);
+			//common method to decode to classT
+                        /*OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
 			Collection<OFMessage> rules = new ArrayList();
 			while(cbf.readerIndex()<cbf.capacity()) {
 				OFMessage ofmessage = reader.readFrom(cbf);
 				rules.add(ofmessage);
-			}
+			}*/
 			return ImmutableSet.copyOf(rules);
 		} catch (IOException| TimeoutException | ExecutionException | InterruptedException e) {
 			log.warn("Unable to fetch flow store contents from {}",replicaInfo.master().get());
@@ -291,7 +286,7 @@ public class DistributedFlowRuleExtStore extends
 		
 		Collection<FlowRuleExtEntry> rules = extendflowEntries.get(deviceId);
 		if (rules == null) {
-			return Collections.emptySet();
+		         return Collections.emptySet();
 		}
 		return ImmutableSet.copyOf(rules);
 	}
@@ -320,13 +315,10 @@ public class DistributedFlowRuleExtStore extends
              log.trace(
                    "Forwarding storeBatch to {}, which is the primary (master) for device {}",
                    replicaInfo.master().orNull(), deviceId);
-             
-             ChannelBuffer buf=ChannelBuffers.dynamicBuffer();
-             for (FlowRuleExtEntry op : batchOperation){
-                     buf.writeBytes(SERIALIZER.encode(op));;
-             }
+
+             ImmutableList<FlowRuleExtEntry> flowmsgs = ImmutableList.copyOf(batchOperation);
              ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), APPLY_EXTEND_FLOWS,
-                     buf.array());
+                                                         SERIALIZER.encode(flowmsgs));
 
             try {
               ListenableFuture<byte[]> responseFuture = clusterCommunicator
@@ -380,13 +372,89 @@ public class DistributedFlowRuleExtStore extends
         return sameId? headOp.getDeviceId() : null;
     }
 
-    pivate Class IntenalKryoSerializer implements StoreSerializer {
-        
-    }
-
     @Override
     public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
         // TODO Auto-generated method stub
+        SERIALIZER.setupKryoPool(classT, serializer);
+    }
+
+    private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
+        return null;
+    }
+    /** 
+     * Internal Serializer used for register self-defined serializer, this 
+     * serializer used for decoding byte Stream to object and use to show in GUI
+     * or CLI 
+     */
+    private  class InternalKryoSerializer implements StoreSerializer {
+
+        public KryoNamespace serializerPool;
+        public InternalKryoSerializer() {
+            setupKryoPool();
+        }
+
+        /**
+         * Sets up the common serializers pool.
+         */
+        protected void setupKryoPool() {
+            serializerPool = KryoNamespace
+                    .newBuilder()
+                    .register(DistributedStoreSerializers.STORE_COMMON)
+                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
+                    .register(new FlowRuleExtEntrySerializer(),
+                                  FlowRuleExtEntry.class).build();
+        }
         
+        
+        /**
+         * Sets up the special serializers pool.
+         */
+        protected void setupKryoPool(Class<?> classT, Serializer<?> serializer) {
+            serializerPool = KryoNamespace
+                    .newBuilder()
+                    .register(serializerPool)
+                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
+                    .register(serializer, classT).build();
+        }
+
+        @Override
+        public byte[] encode(final Object obj) {
+            return serializerPool.serialize(obj);
+        }
+
+        @Override
+        public <T> T decode(final byte[] bytes) {
+            if (bytes == null) {
+                return null;
+            }
+            return serializerPool.deserialize(bytes);
+        }
+
+        @Override
+        public void encode(Object obj, ByteBuffer buffer) {
+            serializerPool.serialize(obj, buffer);
+        }
+
+        @Override
+        public <T> T decode(ByteBuffer buffer) {
+            return serializerPool.deserialize(buffer);
+        }
+
+        @Override
+        public void encode(Object obj, OutputStream stream) {
+            serializerPool.serialize(obj, stream);
+        }
+
+        @Override
+        public <T> T decode(InputStream stream) {
+            return serializerPool.deserialize(stream);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("serializerPool", serializerPool)
+                    .toString();
+        }
     }
 }
