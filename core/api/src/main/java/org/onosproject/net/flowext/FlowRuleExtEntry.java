@@ -1,5 +1,7 @@
 package org.onosproject.net.flowext;
 
+import java.util.Objects;
+
 import org.onosproject.net.DeviceId;
 
 /**
@@ -23,7 +25,7 @@ public class FlowRuleExtEntry {
 
    public FlowRuleExtEntry(DeviceId deviceId, Class<?> classT, byte[] data) {
 	   this.setDeviceId(deviceId);
-	   this.setClass(classT);
+	   this.setClassT(classT);
 	   this.setFlowEntryExt(data);
    }
 
@@ -53,7 +55,7 @@ public class FlowRuleExtEntry {
 
    @Override
    public int hashCode() {
-        return super.hashCode();
+       return Objects.hash(deviceId, classT, toString());
    }
 
    @Override
