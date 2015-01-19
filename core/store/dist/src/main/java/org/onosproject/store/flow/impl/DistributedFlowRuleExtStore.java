@@ -77,7 +77,9 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMessageReader;
 import org.slf4j.Logger;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -239,7 +241,7 @@ public class DistributedFlowRuleExtStore extends
 	}
 
 	@Override
-	public Iterable<?> getExtMessages(DeviceId deviceId, Class<?> classT) {
+	public Iterable<?> getExtMessages(DeviceId deviceId) {
 		
 		ReplicaInfo replicaInfo = replicaInfoManager
 				.getReplicaInfoFor(deviceId);
@@ -267,17 +269,10 @@ public class DistributedFlowRuleExtStore extends
 			//make some change about buffer
 			ImmutableList<FlowRuleExtEntry> flows = SERIALIZER.decode(bytes);
 			//common method to decode to classT
-                        /*OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
-			Collection<OFMessage> rules = new ArrayList();
-			while(cbf.readerIndex()<cbf.capacity()) {
-				OFMessage ofmessage = reader.readFrom(cbf);
-				rules.add(ofmessage);
-			}*/
+			Iterable<?> rules = decodeFlowExt(flows);
 			return ImmutableSet.copyOf(rules);
 		} catch (IOException| TimeoutException | ExecutionException | InterruptedException e) {
 			log.warn("Unable to fetch flow store contents from {}",replicaInfo.master().get());
-		} catch (OFParseError e) {
-			log.warn("Unable to read OfMessage");
 		}
 		return null;
 	}
@@ -378,8 +373,24 @@ public class DistributedFlowRuleExtStore extends
         SERIALIZER.setupKryoPool(classT, serializer);
     }
 
+    /** 
+     * decode flowExt to any ClassT type user-defined 
+     * 
+     * @param batchOperation object to be decoded
+     * @return Collection of ClassT object
+     */
     private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
-        return null;
+        Collection<?> flowExtensions = new ArrayList();
+        ByteBufferOutput output = new ByteBufferOutput(10*1000, 4096);
+        Kryo kryo = new Kryo();
+        for(FlowRuleExtEntry entry : batchOperation) {
+            kryo.writeClass(output, entry.getClassT());
+            kryo.writeObject(output, entry.getFlowEntryExt());
+            flowExtensions.add(SERIALIZER.decode(output.getBuffer()));
+            output.clear();
+        }
+        output.close();
+        return flowExtensions;
     }
     /** 
      * Internal Serializer used for register self-defined serializer, this 

@@ -65,10 +65,9 @@ public interface FlowRuleExtService {
 
     /**
      * @param deviceId the device ID
-     * @param classT the flowEntryExtension of which classT you want to get
      * @return message parsed from byte[] -> the specific serializer , lost some info
      */
-    Iterable<?> getExtMessages(DeviceId deviceId, Class<?> classT);
+    Iterable<?> getExtMessages(DeviceId deviceId);
     
     /**
      * @param classT the class flowEntryExtension can be decoded to.
