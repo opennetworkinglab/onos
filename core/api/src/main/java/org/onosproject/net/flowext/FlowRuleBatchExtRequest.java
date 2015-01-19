@@ -21,8 +21,8 @@ public class FlowRuleBatchExtRequest {
     private final int batchId;
     /*
      * Concern all the entry as to add, because the bytes contains the information
-     * of to-add or to-delete, 
-     */   
+     * of to-add or to-delete,
+     */
     private final Collection<FlowRuleExtEntry> toAdd;
 
     public FlowRuleBatchExtRequest(int batchId, Collection<FlowRuleExtEntry> toAdd) {
@@ -30,7 +30,7 @@ public class FlowRuleBatchExtRequest {
         this.toAdd = toAdd;
     }
 
-    public Collection<FlowRuleExtEntry> getBatch(){
+    public Collection<FlowRuleExtEntry> getBatch() {
         return toAdd;
     }
     public int batchId() {
