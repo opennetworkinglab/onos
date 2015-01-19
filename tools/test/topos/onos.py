@@ -87,7 +87,7 @@ class ONOS( Controller ):
         # TODO 4. Update config/cluster.json : with all nodes
 
         # start onos
-        self.userCmd( self.instanceDir + 'bin/start' )
+        self.userCmd( '%sbin/instance start -d %s' % ( self.karafDir, self.name ) )
         #TODO we should wait for startup...
 
     def stop( self ):
