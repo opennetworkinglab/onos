@@ -11,7 +11,9 @@ import java.util.Collection;
 import org.junit.Test;
 import org.onosproject.net.DeviceId;
 
-/** junit for FlowRuleBatchExtRequest constructor */
+/**
+ * junit for FlowRuleBatchExtRequest constructor.
+ */
 public class FlowRuleBatchExtRequestTest {
 
     @Test

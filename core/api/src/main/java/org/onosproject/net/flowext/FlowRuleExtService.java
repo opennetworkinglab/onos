@@ -23,8 +23,8 @@ import org.onosproject.net.DeviceId;
 import com.esotericsoftware.kryo.Serializer;
 
 /**
- * Service for injecting extended flow rules into the environment. This implements
- * semantics of a distributed authoritative flow table where the master copy
+ * Service for injecting extended flow rules into the environment.
+ * This implements semantics of a distributed authoritative flow table where the master copy
  * of the flow rules lies with the controller and the devices hold only the
  * 'cached' copy.
  */
@@ -41,8 +41,8 @@ public interface FlowRuleExtService {
     Iterable<FlowRuleExtEntry> getFlowEntries(DeviceId deviceId);
 
     /**
-     * Applies a batch operation of FlowRules, this batch can be divided 
-     * into many sub-batch by deviceId
+     * Applies a batch operation of FlowRules.
+     * this batch can be divided into many sub-batch by deviceId
      *
      * @param batch batch operation to apply
      * @return future indicating the state of the batch operation
@@ -68,10 +68,10 @@ public interface FlowRuleExtService {
      * @return message parsed from byte[] -> the specific serializer , lost some info
      */
     Iterable<?> getExtMessages(DeviceId deviceId);
-    
+
     /**
      * @param classT the class flowEntryExtension can be decoded to.
      * @param serializer the serializer apps provide using to decode flowEntryExtension
-     */    
+     */
     void registerSerializer(Class<?> classT, Serializer<?> serializer);
 }

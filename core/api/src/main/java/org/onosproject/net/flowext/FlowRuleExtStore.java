@@ -55,6 +55,6 @@ public interface FlowRuleExtStore extends Store<FlowRuleBatchExtEvent, FlowRuleE
     /**
      * @param classT the class flowEntryExtension can be decoded to.
      * @param serializer the serializer apps provide using to decode flowEntryExtension
-     */    
+     */
     void registerSerializer(Class<?> classT, Serializer<?> serializer);
 }

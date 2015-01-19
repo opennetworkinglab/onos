@@ -45,7 +45,7 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, flowRule, time);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, flowRule, time);
-        
+
     }
 
     /**

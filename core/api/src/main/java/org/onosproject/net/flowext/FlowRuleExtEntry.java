@@ -18,38 +18,38 @@ public class FlowRuleExtEntry {
    /*
     * Not standard OpenFlow flowEntry, maybe privacy by any device vendor.
     * it maybe contains other information such as this entry is to-add or to-remove
-    * except the info of deviceId and flow entry. 
+    * except the info of deviceId and flow entry.
     */
    private byte[] flowEntryExtension;
 
    public FlowRuleExtEntry(DeviceId deviceId, byte[] data) {
-	   this.setDeviceId(deviceId);
-	   this.setLength(data.length);
-	   this.setFlowEntryExt(data);
+      this.setDeviceId(deviceId);
+      this.setLength(data.length);
+      this.setFlowEntryExt(data);
    }
 
    public DeviceId getDeviceId() {
-	   return deviceId;
+      return deviceId;
    }
 
    public void setDeviceId(DeviceId deviceId) {
-	   this.deviceId = deviceId;
+      this.deviceId = deviceId;
    }
 
    public int getLength() {
-	  return length;
+     return length;
    }
 
    public void setLength(int length) {
-	  this.length = length;
+     this.length = length;
    }
 
    public byte[] getFlowEntryExt() {
-	  return flowEntryExtension;
+     return flowEntryExtension;
    }
 
    public void setFlowEntryExt(byte[] flowEntryExtension) {
-	  this.flowEntryExtension = flowEntryExtension;
+     this.flowEntryExtension = flowEntryExtension;
    }
 
    public Class<?> getClassT() {
@@ -61,13 +61,18 @@ public class FlowRuleExtEntry {
    }
 
    @Override
+   public int hashCode() {
+        return super.hashCode();
+   }
+
+   @Override
    public boolean equals(Object obj) {
-        if(obj  instanceof FlowRuleExtEntry) {
-        	FlowRuleExtEntry entry = (FlowRuleExtEntry)obj;
-	        String flowEntryExtension1 = new String(flowEntryExtension);
-	        String flowEntryExtension2 = new String(entry.getFlowEntryExt());
+        if (obj instanceof FlowRuleExtEntry) {
+            FlowRuleExtEntry entry = (FlowRuleExtEntry) obj;
+            String flowEntryExtension1 = new String(flowEntryExtension);
+            String flowEntryExtension2 = new String(entry.getFlowEntryExt());
             return flowEntryExtension1.equals(flowEntryExtension2);
-        }else{
+        } else {
             return false;
         }
    }
@@ -77,5 +82,4 @@ public class FlowRuleExtEntry {
         String obj = new String(flowEntryExtension);
         return obj;
    }
-   
 }

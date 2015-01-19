@@ -19,7 +19,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flowext.FlowExtCompletedOperation;
 import org.onosproject.net.flowext.FlowRuleBatchExtEvent;
-import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
 import org.onosproject.net.flowext.FlowRuleExtStore;
 import org.onosproject.net.flowext.FlowRuleExtStoreDelegate;
@@ -30,8 +29,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 /**
- * Test for Managing inventory of flow rules using a distributed state management
- * protocol.
+ * Test for Managing inventory of flow rules using a distributed state management protocol.
  */
 @Component(immediate = true)
 @Service
@@ -48,51 +46,52 @@ public class SimpleFlowRuleExtStore extends
 
     @Deactivate
     public void deactivate() {
-    	flowRuleEntries.clear();
+        flowRuleEntries.clear();
         log.info("Stopped");
     }
 
     @Override
     public Future<FlowExtCompletedOperation> storeBatch(
             Collection<FlowRuleExtEntry> batchOperation) {
-    	Set<FlowRuleExtEntry> resultSet = new HashSet<FlowRuleExtEntry>();
-    	Collection<FlowRuleExtEntry> storeByDeviceId = null;
-    	FlowRuleExtEntry flowRuleExtEntry = null;
+        Set<FlowRuleExtEntry> resultSet = new HashSet<FlowRuleExtEntry>();
+        Collection<FlowRuleExtEntry> storeByDeviceId = null;
+        FlowRuleExtEntry flowRuleExtEntry = null;
         for (Iterator<FlowRuleExtEntry> iterator = batchOperation.iterator(); iterator.hasNext();) {
-        	flowRuleExtEntry = (FlowRuleExtEntry) iterator.next();
-            try{
+            flowRuleExtEntry = (FlowRuleExtEntry) iterator.next();
+            try {
                 storeByDeviceId = flowRuleEntries.get(flowRuleExtEntry.getDeviceId());
                 if (storeByDeviceId == null) {
-            	     storeByDeviceId = new ArrayList<FlowRuleExtEntry>();
+                     storeByDeviceId = new ArrayList<FlowRuleExtEntry>();
                 }
                 storeByDeviceId.add(flowRuleExtEntry);
                 flowRuleEntries.put(flowRuleExtEntry.getDeviceId(), storeByDeviceId);
-        	}catch (Exception e) {
-        		resultSet.add(flowRuleExtEntry);
-        	}
-		}
+            } catch (Exception e) {
+                resultSet.add(flowRuleExtEntry);
+            }
+        }
 //        int batchId = localBatchIdGen.getAndIncrement();
 //        delegate.notify(FlowRuleBatchExtEvent.requested(new FlowRuleBatchExtRequest(batchId, batchOperation)));
-        return resultSet.isEmpty()?Futures.immediateFuture(new FlowExtCompletedOperation(true, resultSet)):Futures.immediateFuture(new FlowExtCompletedOperation(false, resultSet));
+        boolean success = resultSet.isEmpty() ? true : false;
+        FlowExtCompletedOperation completed = new FlowExtCompletedOperation(success, resultSet);
+        return Futures.immediateFuture(completed);
     }
 
     @Override
     public void batchOperationComplete(FlowRuleBatchExtEvent event) {
-    	notifyDelegate(event);
+        notifyDelegate(event);
     }
 
     @Override
     public Iterable<FlowRuleExtEntry> getExtMessages(DeviceId deviceId) {
-    	Collection<FlowRuleExtEntry> storeByDeviceId = flowRuleEntries.get(deviceId);
+        Collection<FlowRuleExtEntry> storeByDeviceId = flowRuleEntries.get(deviceId);
         if (storeByDeviceId == null) {
-    	     storeByDeviceId = Collections.emptyList();
+              storeByDeviceId = Collections.emptyList();
         }
         return storeByDeviceId;
     }
 
     @Override
     public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
-    	
     }
 
 }

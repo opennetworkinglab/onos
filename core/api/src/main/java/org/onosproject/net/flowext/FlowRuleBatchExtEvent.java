@@ -7,7 +7,7 @@ public final class FlowRuleBatchExtEvent extends AbstractEvent<FlowRuleBatchExtE
 
     private final FlowExtCompletedOperation result;
 
-	/**
+    /**
      * Type of flow extension rule events.
      */
     public enum Type {
@@ -25,12 +25,11 @@ public final class FlowRuleBatchExtEvent extends AbstractEvent<FlowRuleBatchExtE
          */
         BATCH_OPERATION_COMPLETED,
     }
-	
-	public FlowRuleBatchExtEvent(Type type, FlowRuleBatchExtRequest request,
-			FlowExtCompletedOperation result) {
-		super(type, request);
-		this.result = result;
-	}
+
+    public FlowRuleBatchExtEvent(Type type, FlowRuleBatchExtRequest request, FlowExtCompletedOperation result) {
+        super(type, request);
+        this.result = result;
+    }
 
     /**
      * Constructs a new FlowRuleBatchEvent.
