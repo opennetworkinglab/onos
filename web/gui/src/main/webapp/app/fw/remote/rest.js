@@ -35,6 +35,7 @@
             "devices": [{
                 "id": "of:0000000000000001",
                 "available": true,
+                "_iconid_available": "deviceOnline",
                 "role": "MASTER",
                 "mfr": "Nicira, Inc.",
                 "hw": "Open vSwitch",
@@ -44,23 +45,38 @@
                     "protocol": "OF_10"
                 }
             },
-                {
-                    "id": "of:0000000000000004",
-                    "available": true,
-                    "role": "MASTER",
-                    "mfr": "Nicira, Inc.",
-                    "hw": "Open vSwitch",
-                    "sw": "2.0.1",
-                    "serial": "None",
-                    "annotations": {
-                        "protocol": "OF_10"
-                    }
-                }]
+            {
+                "id": "of:0000000000000004",
+                "available": false,
+                "_iconid_available": "deviceOffline",
+                "role": "MASTER",
+                "mfr": "Nicira, Inc.",
+                "hw": "Open vSwitch",
+                "sw": "2.0.1",
+                "serial": "None",
+                "annotations": {
+                    "protocol": "OF_10"
+                }
+            },
+            {
+                "id": "of:0000000000000092",
+                "available": false,
+                "_iconid_available": "deviceOffline",
+                "role": "MASTER",
+                "mfr": "Nicira, Inc.",
+                "hw": "Open vSwitch",
+                "sw": "2.0.1",
+                "serial": "None",
+                "annotations": {
+                    "protocol": "OF_10"
+                }
+            }]
         },
         '2': {
             "devices": [{
                 "id": "of:0000000000000002",
                 "available": true,
+                "_iconid_available": "deviceOnline",
                 "role": "MASTER",
                 "mfr": "Nicira, Inc.",
                 "hw": "Open vSwitch",
@@ -70,18 +86,19 @@
                     "protocol": "OF_10"
                 }
             },
-                {
-                    "id": "of:0000000000000006",
-                    "available": true,
-                    "role": "MASTER",
-                    "mfr": "Nicira, Inc.",
-                    "hw": "Open vSwitch",
-                    "sw": "2.1.1",
-                    "serial": "None",
-                    "annotations": {
-                        "protocol": "OF_10"
-                    }
-                }]
+            {
+                "id": "of:0000000000000006",
+                "available": true,
+                "_iconid_available": "deviceOnline",
+                "role": "MASTER",
+                "mfr": "Nicira, Inc.",
+                "hw": "Open vSwitch",
+                "sw": "2.1.1",
+                "serial": "None",
+                "annotations": {
+                    "protocol": "OF_10"
+                }
+            }]
         },
         'empty': {
             devices: []

@@ -168,16 +168,25 @@
             }
 
             // Note: defs should be a D3 selection of a single <defs> element
-            function loadDefs(defs, glyphIds) {
-                var list = fs.isA(glyphIds) || ids();
+            function loadDefs(defs, glyphIds, noClear) {
+                var list = fs.isA(glyphIds) || ids(),
+                    clearCache = !noClear;
 
-                // remove all existing content
-                defs.html(null);
+                if (clearCache) {
+                    // remove all existing content
+                    defs.html(null);
+                }
 
                 // load up the requested glyphs
                 list.forEach(function (id) {
                     var g = glyph(id);
                     if (g) {
+                        if (noClear) {
+                            // quick exit if symbol is already present
+                            if (defs.select('symbol#' + g.id).size() > 0) {
+                                return;
+                            }
+                        }
                         defs.append('symbol')
                             .attr({ id: g.id, viewBox: g.vb })
                             .append('path').attr('d', g.d);

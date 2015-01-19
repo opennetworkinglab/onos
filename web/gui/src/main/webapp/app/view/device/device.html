@@ -4,17 +4,19 @@
 
     <table class="summary-list">
         <tr>
+            <th></th>
             <th>ID</th>
             <th>Manufacturer</th>
             <th>Hardware Version</th>
             <th>Software Version</th>
         </tr>
         <tr ng-repeat="dev in ctrl.deviceData">
-            <!-- add more property fields for table from device data -->
+            <td><div icon icon-id="{{dev._iconid_available}}"></div></td>
             <td>{{dev.id}}</td>
             <td>{{dev.mfr}}</td>
             <td>{{dev.hw}}</td>
             <td>{{dev.sw}}</td>
+            <!-- add more property fields for table from device data -->
         </tr>
     </table>
 

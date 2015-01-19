@@ -59,20 +59,16 @@
 
         // create icon directive, so that we can inject icons into
         // HTML tables etc.
-        .directive('icon', ['GlyphService', function (gs) {
+        .directive('icon', ['IconService', function (is) {
             return {
-                templateUrl: 'toBeDecided-iconContext.html',
                 restrict: 'A',
+                scope: {
+                    iconId: '@'
+                },
                 link: function (scope, element, attrs) {
-                    // TODO: implement this
-                    // needs to pull out the parameters for the icon
-                    // from the attributes of the element, and use those
-                    // as arguments to the IconService.addIcon(...) call.
-
-
+                    is.loadEmbeddedIcon(d3.select(element[0]), scope.iconId);
                 }
             };
-
 
         }]);
 }());

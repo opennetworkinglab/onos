@@ -65,7 +65,7 @@ describe('factory: fw/svg/icon.js', function() {
         var rect = g.select('rect');
         expect(rect.size()).toBe(1);
         checkElemSize(rect, gsz);
-        expect(rect.attr('rx')).toEqual('4');
+        expect(rect.attr('rx')).toEqual('5');
 
         var use = g.select('use');
         expect(use.classed('glyph')).toBeTruthy();
