@@ -22,7 +22,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem;
 
-    var numBaseGlyphs = 11,
+    var numBaseGlyphs = 13,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -38,6 +38,8 @@ describe('factory: fw/svg/glyph.js', function() {
             chain: 'M60.4,77.6c-',
             crown: 'M99.5,21.6c0,',
             uiAttached: 'M2,2.5a.5,.5',
+            checkMark: 'M2.644,4.531c0',
+            xMark: 'M8.967,7.196C8.172',
 
             // our test ones..
             triangle: 'M.5,.2',
@@ -140,6 +142,14 @@ describe('factory: fw/svg/glyph.js', function() {
         gs.init();
         verifyGlyphLoadedInCache('uiAttached', vbBadge);
     });
+    it('should load the checkMark glyph', function() {
+        gs.init();
+        verifyGlyphLoadedInCache('checkMark', vbBadge);
+    });
+    it('should load the xMark glyph', function() {
+        gs.init();
+        verifyGlyphLoadedInCache('xMark', vbBadge);
+        });
 
     // define some glyphs that we want to install
 

@@ -18,6 +18,7 @@
  ONOS GUI -- SVG -- Icon Service
 
  @author Simon Hunt
+ @author Bri Prebilic Cole
  */
 (function () {
     'use strict';
@@ -31,10 +32,8 @@
     // maps icon id to the glyph id it uses.
     // note: icon id maps to a CSS class for styling that icon
     var glyphMapping = {
-            deviceOnline: 'crown',
-            deviceOffline: 'chain'
-            //deviceOnline: 'checkMark',
-            //deviceOffline: 'xMark'
+            deviceOnline: 'checkMark',
+            deviceOffline: 'xMark'
         };
 
     function ensureIconLibDefs() {
