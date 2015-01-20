@@ -4,6 +4,9 @@ import java.util.Set;
 
 import org.onosproject.net.flow.BatchOperationResult;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Representation of a completed flow rule batch operation.
  */
@@ -13,7 +16,7 @@ public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleE
 
     public FlowExtCompletedOperation(boolean success, Set<FlowRuleExtEntry> failures) {
         this.success = success;
-        this.failures = failures;
+        this.failures = ImmutableSet.copyOf(failures);
     }
 
     @Override
@@ -24,5 +27,13 @@ public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleE
     @Override
     public Set<FlowRuleExtEntry> failedItems() {
         return failures;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("success?", success)
+                .add("failedItems", failures)
+                .toString();
     }
 }
