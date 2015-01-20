@@ -56,9 +56,12 @@ public class ConnectivityIntentCodec extends JsonCodec<ConnectivityIntent> {
             final ArrayNode jsonConstraints = result.putArray("constraints");
 
             if (intent.constraints() != null) {
+                final JsonCodec<Constraint> constraintCodec =
+                        context.codec(Constraint.class);
                 for (final Constraint constraint : intent.constraints()) {
-                    // TODO: constraint should have its own codec
-                    jsonConstraints.add(constraint.toString());
+                    final ObjectNode constraintNode =
+                            constraintCodec.encode(constraint, context);
+                    jsonConstraints.add(constraintNode);
                 }
             }
         }

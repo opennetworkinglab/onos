@@ -15,6 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.junit.Test;
@@ -25,6 +26,7 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
@@ -36,8 +38,13 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.AnnotationConstraint;
+import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.intent.constraint.LatencyConstraint;
+import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.Lambda;
 
@@ -45,6 +52,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
 import static org.onosproject.codec.impl.IntentJsonMatcher.matchesIntent;
+import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.hid;
 
 
@@ -111,6 +119,9 @@ public class IntentCodecTest extends AbstractIntentTest {
     public void intentWithTreatmentSelectorAndConstraints() {
         ConnectPoint ingress = NetTestTools.connectPoint("ingress", 1);
         ConnectPoint egress = NetTestTools.connectPoint("egress", 2);
+        DeviceId did1 = did("device1");
+        DeviceId did2 = did("device2");
+        DeviceId did3 = did("device3");
         final TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchIPProtocol((byte) 3)
                 .matchMplsLabel(4)
@@ -125,9 +136,16 @@ public class IntentCodecTest extends AbstractIntentTest {
                 .setOutput(PortNumber.CONTROLLER)
                 .setEthDst(MacAddress.BROADCAST)
                 .build();
-        final Constraint constraint1 = new BandwidthConstraint(Bandwidth.valueOf(1.0));
-        final Constraint constraint2 = new LambdaConstraint(Lambda.valueOf(3));
-        final List<Constraint> constraints = ImmutableList.of(constraint1, constraint2);
+
+        final List<Constraint> constraints =
+                ImmutableList.of(
+                    new BandwidthConstraint(Bandwidth.valueOf(1.0)),
+                    new LambdaConstraint(Lambda.valueOf(3)),
+                    new AnnotationConstraint("key", 33.0),
+                    new AsymmetricPathConstraint(),
+                    new LatencyConstraint(Duration.ofSeconds(2)),
+                    new ObstacleConstraint(did1, did2),
+                    new WaypointConstraint(did3));
 
         final PointToPointIntent intent =
                 new PointToPointIntent(appId, selector, treatment,

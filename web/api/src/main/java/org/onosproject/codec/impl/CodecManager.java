@@ -15,7 +15,10 @@
  */
 package org.onosproject.codec.impl;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -36,15 +39,14 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Implementation of the JSON codec brokering service.
@@ -77,6 +79,7 @@ public class CodecManager implements CodecService {
         registerCodec(Instruction.class, new InstructionCodec());
         registerCodec(Criterion.class, new CriterionCodec());
         registerCodec(Ethernet.class, new EthernetCodec());
+        registerCodec(Constraint.class, new ConstraintCodec());
         log.info("Started");
     }
 
