@@ -15,15 +15,14 @@
  */
 package org.onosproject.sdnip.config;
 
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onlab.packet.IpAddress;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
  * Configuration details for a BGP peer.
@@ -40,7 +39,7 @@ public class BgpPeer {
      * @param ipAddress the IP address of the peer as a String
      */
     public BgpPeer(@JsonProperty("attachmentDpid") String dpid,
-                   @JsonProperty("attachmentPort") int port,
+                   @JsonProperty("attachmentPort") long port,
                    @JsonProperty("ipAddress") String ipAddress) {
         this.connectPoint = new ConnectPoint(
                 DeviceId.deviceId(SdnIpConfigurationReader.dpidToUri(dpid)),

@@ -15,17 +15,16 @@
  */
 package org.onosproject.sdnip.config;
 
-import java.util.List;
-import java.util.Objects;
-
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
-import org.onlab.packet.MacAddress;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a BGP daemon in SDN network.
@@ -58,7 +57,7 @@ public class BgpSpeaker {
     @JsonCreator
     public BgpSpeaker(@JsonProperty("name") String name,
             @JsonProperty("attachmentDpid") String attachmentDpid,
-            @JsonProperty("attachmentPort") int attachmentPort,
+            @JsonProperty("attachmentPort") long attachmentPort,
             @JsonProperty("macAddress") String macAddress) {
 
         this.name = name;
