@@ -15,8 +15,8 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
 
     @Test
     public void testEquals() {
-        final FlowRuleExtEntry flowRule1 = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), "of:123456".getBytes());
-        final FlowRuleExtEntry flowRule2 = new FlowRuleExtEntry(DeviceId.deviceId("of:234567"), "of:234567".getBytes());
+        final FlowRuleExtEntry flowRule1 = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), null, "of:123456".getBytes());
+        final FlowRuleExtEntry flowRule2 = new FlowRuleExtEntry(DeviceId.deviceId("of:234567"), null, "of:234567".getBytes());
         final long time = 123L;
         final FlowRuleExtEvent event1 =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADDED, flowRule1, time);
@@ -41,7 +41,7 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
     @Test
     public void testTimeConstructor() {
         final long time = 123L;
-        final FlowRuleExtEntry flowRule = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), "of:123456".getBytes());
+        final FlowRuleExtEntry flowRule = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), null, "of:123456".getBytes());
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, flowRule, time);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, flowRule, time);
@@ -54,7 +54,7 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
     @Test
     public void testConstructor() {
         final long time = System.currentTimeMillis();
-        final FlowRuleExtEntry flowRule = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), "of:123456".getBytes());
+        final FlowRuleExtEntry flowRule = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), null, "of:123456".getBytes());
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_UPDATED, flowRule);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_UPDATED, flowRule, time,
