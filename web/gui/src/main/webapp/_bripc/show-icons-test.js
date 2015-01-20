@@ -33,4 +33,4 @@
 
                 $log.log('OvShowIconsTest has been created');
             }]);
-})();
+}());

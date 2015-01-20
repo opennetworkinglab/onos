@@ -24,12 +24,19 @@
     <meta charset="UTF-8">
     <title>Show Icons Angular</title>
 
-    <script src="show-icons-test.js"></script>
+    <script type="text/javascript" src="../tp/angular.js"></script>
+    <script type="text/javascript" src="../tp/angular-route.js"></script>
 
-    <script src="../tp/angular.js"></script>
-    <script src="../tp/angular-route.js"></script>
+    <script type="text/javascript" src="../tp/d3.js"></script>
 
-    <script src="../tp/d3.js"></script>
+    <script type="text/javascript" src="../app/fw/util/util.js"></script>
+    <script type="text/javascript" src="../app/fw/util/fn.js"></script>
+    <script type="text/javascript" src="../app/fw/util/theme.js"></script>
+    <script type="text/javascript" src="../app/fw/util/keys.js"></script>
+    <script type="text/javascript" src="../app/fw/svg/svg.js"></script>
+    <script type="text/javascript" src="../app/fw/svg/glyph.js"></script>
+    <script type="text/javascript" src="../app/fw/svg/icon.js"></script>
+    <script type="text/javascript" src="show-icons-test.js"></script>
 
     <link rel="stylesheet" href="../app/common.css">
 
@@ -51,8 +58,8 @@
 <body class="light" ng-app="showIconsTest">
     <h2>Showing Icons with Icon Service Angular</h2>
     <div id="show-icons" ng-controller="OvShowIconsTest as ctrl">
-        {{ctrl.message}}
-        <!--{{a}} + {{b}} = {{a+b}}-->
+        <!--{{message}}-->
+        <p>{{ctrl.a}} + {{ctrl.b}} = {{ctrl.a+ctrl.b}}</p>
     </div>
 
 
