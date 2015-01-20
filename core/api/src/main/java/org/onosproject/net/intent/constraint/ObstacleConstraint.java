@@ -45,6 +45,15 @@ public class ObstacleConstraint extends BooleanConstraint {
         this.obstacles = Collections.emptySet();
     }
 
+    /**
+     * Returns the obstacle device ids.
+     *
+     * @return Set of obstacle device ids
+     */
+    public Set<DeviceId> obstacles() {
+        return obstacles;
+    }
+
     @Override
     public boolean isValid(Link link, LinkResourceService resourceService) {
         DeviceId src = link.src().deviceId();
