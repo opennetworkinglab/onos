@@ -99,7 +99,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 Set<Link> links,
                                 Set<ConnectPoint> egressPoints,
                                 List<Constraint> constraints) {
-        super(appId, resources(links), selector, treatment);
+        super(appId, resources(links), selector, treatment, constraints);
 
         this.links = links;
         this.egressPoints = ImmutableSet.copyOf(egressPoints);
