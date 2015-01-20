@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Scalable Vector Graphics Module
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

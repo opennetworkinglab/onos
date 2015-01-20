@@ -16,8 +16,6 @@
 
 /*
  Module template file for SVG based view.
-
- @author Simon Hunt
  */
 
 (function (onos) {

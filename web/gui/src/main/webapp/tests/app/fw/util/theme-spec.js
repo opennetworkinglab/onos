@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Util -- Theme Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/util/theme.js', function() {
     var ts, $log;

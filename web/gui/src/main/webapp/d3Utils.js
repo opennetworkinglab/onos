@@ -16,8 +16,6 @@
 
 /*
  Utility functions for D3 visualizations.
-
- @author Simon Hunt
  */
 
 (function (onos) {

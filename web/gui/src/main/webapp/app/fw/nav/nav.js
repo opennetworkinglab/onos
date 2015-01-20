@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- Navigation Module
-
- @author Simon Hunt
- @author Bri Prebilic Cole
  */
 (function () {
     'use strict';

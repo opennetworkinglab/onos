@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Map Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/svg/map.js', function() {
     var $log, $httpBackend, fs, ms, d3Elem, promise;

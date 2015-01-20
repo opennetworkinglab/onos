@@ -16,8 +16,6 @@
 
 /*
  Sample view to illustrate radio buttons.
-
- @author Simon Hunt
  */
 
 (function (onos) {

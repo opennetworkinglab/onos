@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Masthead Module
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

@@ -19,8 +19,6 @@
 
  Defines the masthead for the UI. Injects logo and title, as well as providing
  the placeholder for a set of radio buttons.
-
- @author Simon Hunt
  */
 
 (function (onos){

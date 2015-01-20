@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Base Framework
-
- @author Simon Hunt
  */
 
 (function ($) {

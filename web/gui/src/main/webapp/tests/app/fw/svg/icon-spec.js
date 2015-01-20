@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Icon Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/svg/icon.js', function() {
     var is, d3Elem;

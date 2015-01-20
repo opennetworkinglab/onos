@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- GeoData Service
-
- @author Simon Hunt
  */
 
 /*

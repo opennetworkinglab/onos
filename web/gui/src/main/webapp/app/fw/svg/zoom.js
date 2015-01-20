@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Zoom Service
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

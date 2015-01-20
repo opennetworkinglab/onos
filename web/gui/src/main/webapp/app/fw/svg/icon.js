@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Icon Service
-
- @author Simon Hunt
- @author Bri Prebilic Cole
  */
 (function () {
     'use strict';

@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Util -- Theme Service
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

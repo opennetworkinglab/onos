@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Zoom Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/svg/zoom.js', function() {
     var $log, fs, zs, svg, zoomLayer, zoomer;

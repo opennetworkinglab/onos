@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Util -- General Purpose Functions - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/util/fn.js', function() {
     var fs,

@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Masthead Controller - Unit Tests
-
- @author Simon Hunt
  */
 describe('Controller: MastCtrl', function () {
     // instantiate the masthead module

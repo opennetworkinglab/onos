@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Main App Controller - Unit Tests
-
- @author Simon Hunt
  */
 describe('Controller: OnosCtrl', function () {
     // instantiate the main module

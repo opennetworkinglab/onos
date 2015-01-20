@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Glyph Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem;

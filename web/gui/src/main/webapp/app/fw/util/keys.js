@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Util -- Key Handler Service
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

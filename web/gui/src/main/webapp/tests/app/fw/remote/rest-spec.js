@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- Remote -- REST Service - Unit Tests
-
- @author Bri Prebilic Cole
- @author Simon Hunt
  */
 describe('factory: fw/remote/rest.js', function() {
     var $log, $httpBackend, fs, rs, promise;

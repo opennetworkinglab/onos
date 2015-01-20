@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Util -- General Purpose Functions
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

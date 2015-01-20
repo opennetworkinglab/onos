@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Topology View Module
-
- @author Simon Hunt
  */
 
 (function () {

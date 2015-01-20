@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Showing Icons Test Module
-
- @author Bri Prebilic Cole
  */
 
 (function () {

@@ -19,8 +19,6 @@
 
  Defines the feedback layer for the UI. Used to give user visual feedback
  of choices, typically responding to keystrokes.
-
- @author Simon Hunt
  */
 
 (function (onos){

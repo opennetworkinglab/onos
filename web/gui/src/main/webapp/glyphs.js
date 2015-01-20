@@ -16,8 +16,6 @@
 
 /*
  ONOS -- SVG Glyphs Library.
-
- @author Simon Hunt
  */
 
 

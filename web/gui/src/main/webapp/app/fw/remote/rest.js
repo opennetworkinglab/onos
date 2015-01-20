@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- Remote Communications Module -- REST Service
-
- @author Bri Prebilic Cole
- @author Simon Hunt
  */
 (function () {
     'use strict';

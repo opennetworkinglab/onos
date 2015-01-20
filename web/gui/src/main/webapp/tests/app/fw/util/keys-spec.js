@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Key Handler Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/util/keys.js', function() {
     var $log, ks, fs,

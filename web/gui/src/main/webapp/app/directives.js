@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Our own Angular directives defined here.
-
- @author Simon Hunt
  */
 
 (function () {

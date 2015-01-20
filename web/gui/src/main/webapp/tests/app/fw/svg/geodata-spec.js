@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- GeoData Service - Unit Tests
-
- @author Simon Hunt
  */
 describe('factory: fw/svg/geodata.js', function() {
     var $log, $httpBackend, fs, gds, promise;

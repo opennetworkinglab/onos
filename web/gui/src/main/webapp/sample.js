@@ -16,8 +16,6 @@
 
 /*
  Sample module file to illustrate framework integration.
-
- @author Simon Hunt
  */
 
 (function (onos) {

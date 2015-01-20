@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Utilities Module
-
- @author Simon Hunt
  */
 (function () {
     'use strict';

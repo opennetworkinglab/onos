@@ -16,9 +16,6 @@
 
 /*
  ONOS network topology viewer - version 1.1
-
- @author Simon Hunt
- @author Thomas Vachuska
  */
 
 (function (onos) {

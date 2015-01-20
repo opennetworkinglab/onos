@@ -16,8 +16,6 @@
 
 /*
  Sample view to illustrate hash formats.
-
- @author Simon Hunt
  */
 
 (function (onos) {

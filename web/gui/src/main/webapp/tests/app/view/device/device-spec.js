@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Device Controller - Unit Tests
-
- @author Simon Hunt
  */
 describe('Controller: OvDeviceCtrl', function () {
     // instantiate the Device module

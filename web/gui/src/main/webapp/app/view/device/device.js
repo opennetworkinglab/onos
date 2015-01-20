@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- Sample View Module
-
- @author Simon Hunt
- @author Bri Prebilic Cole
  */
 
 (function () {

@@ -16,8 +16,6 @@
 
 /*
  Sample view to illustrate key bindings.
-
- @author Simon Hunt
  */
 
 (function (onos) {

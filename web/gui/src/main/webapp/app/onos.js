@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- Main Application Module
-
- @author Simon Hunt
  */
 
 (function () {

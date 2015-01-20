@@ -19,8 +19,6 @@
 
  Defines the key-map layer for the UI. Used to give user a list of
  key bindings; both global, and for the current view.
-
- @author Simon Hunt
  */
 
 (function (onos){

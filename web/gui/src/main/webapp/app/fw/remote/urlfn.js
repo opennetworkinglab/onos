@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- Remote -- General Purpose Functions
-
- @author Simon Hunt
- @author Bri Prebilic Cole
  */
 (function () {
     'use strict';

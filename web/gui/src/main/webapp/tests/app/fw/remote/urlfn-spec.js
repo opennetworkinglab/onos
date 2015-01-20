@@ -16,9 +16,6 @@
 
 /*
  ONOS GUI -- Remote -- General Functions - Unit Tests
-
- @author Bri Prebilic Cole
- @author Simon Hunt
  */
 describe('factory: fw/remote/urlfn.js', function () {
     var $log, $loc, ufs, fs;

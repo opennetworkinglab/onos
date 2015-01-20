@@ -16,8 +16,6 @@
 
 /*
  ONOS GUI -- SVG -- Map Service
-
- @author Simon Hunt
  */
 
 /*
