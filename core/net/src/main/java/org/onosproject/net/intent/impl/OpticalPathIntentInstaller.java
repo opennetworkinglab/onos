@@ -184,41 +184,4 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
     }
-
-    /*private Lambda assignWavelength(List<Link> links) {
-        // TODO More wavelength assignment algorithm
-        int wavenum = 0;
-        Iterator<Link> itrlink = links.iterator();
-        for (int i = 1; i <= WAVELENGTH; i++) {
-            wavenum = i;
-            boolean found = true;
-            while (itrlink.hasNext()) {
-                Link link = itrlink.next();
-                if (isWavelengthUsed(link, i)) {
-                    found = false;
-                    break;
-                }
-            }
-            // First-Fit wavelength assignment algorithm
-            if (found) {
-                break;
-            }
-        }
-
-        if (wavenum == 0) {
-            return null;
-        }
-
-        Lambda wave = Lambda.valueOf(wavenum);
-        return wave;
-    }
-
-    private boolean isWavelengthUsed(Link link, int i) {
-        Iterable<LinkResourceAllocations> wave = resourceService.getAllocations(link);
-        for (LinkResourceAllocations ir : wave) {
-            //if ir.resources().contains(i) {
-            //}
-        }
-        return false;
-    }*/
 }
