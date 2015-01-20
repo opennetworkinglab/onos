@@ -23,6 +23,14 @@ table.summary-list {
     font-size: 10pt;
 }
 
+/* TODO: uncomment following lines for scrollable table */
+/* Possible CSS style for creating a scrollable table */
+/*table.summary-list tbody {*/
+    /*height: 100px;*/
+    /*overflow: auto;*/
+    /*display: block;*/
+/*}*/
+
 table.summary-list th {
     padding: 5px;
 }

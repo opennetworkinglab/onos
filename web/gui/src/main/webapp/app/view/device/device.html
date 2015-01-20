@@ -1,8 +1,9 @@
 <!-- Device partial HTML -->
 <div id="ov-device">
     <h2>Device View</h2>
-
+<!-- TODO: uncomment and test the thead and tbody tags for CSS styling -->
     <table class="summary-list">
+        <!-- <thead> -->
         <tr>
             <th></th>
             <th>ID</th>
@@ -10,6 +11,9 @@
             <th>Hardware Version</th>
             <th>Software Version</th>
         </tr>
+        <!-- </thead> -->
+
+        <!-- <tbody> -->
         <tr ng-repeat="dev in ctrl.deviceData">
             <td><div icon icon-id="{{dev._iconid_available}}"></div></td>
             <td>{{dev.id}}</td>
@@ -18,6 +22,7 @@
             <td>{{dev.sw}}</td>
             <!-- add more property fields for table from device data -->
         </tr>
+        <!-- </tbody> -->
     </table>
 
 </div>

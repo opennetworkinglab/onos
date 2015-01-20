@@ -28,17 +28,24 @@
     <script type="text/javascript" src="../tp/angular-route.js"></script>
 
     <script type="text/javascript" src="../tp/d3.js"></script>
+    <script type="text/javascript" src="../tp/jquery-2.1.1.min.js"></script>
 
     <script type="text/javascript" src="../app/fw/util/util.js"></script>
     <script type="text/javascript" src="../app/fw/util/fn.js"></script>
     <script type="text/javascript" src="../app/fw/util/theme.js"></script>
     <script type="text/javascript" src="../app/fw/util/keys.js"></script>
+
     <script type="text/javascript" src="../app/fw/svg/svg.js"></script>
     <script type="text/javascript" src="../app/fw/svg/glyph.js"></script>
     <script type="text/javascript" src="../app/fw/svg/icon.js"></script>
+    <script type="text/javascript" src="../app/fw/svg/geodata.js"></script>
+    <script type="text/javascript" src="../app/fw/svg/map.js"></script>
+    <script type="text/javascript" src="../app/fw/svg/zoom.js"></script>
+
     <script type="text/javascript" src="show-icons-test.js"></script>
 
     <link rel="stylesheet" href="../app/common.css">
+    <link rel="stylesheet" href="../app/fw/svg/icon.css">
 
     <style>
         html,
@@ -51,15 +58,31 @@
         h2 {
             color: darkred;
         }
+
+        svg .glyph {
+            stroke: none;
+            fill: #123456;
+            fill-rule: evenodd;
+        }
+
+        svg.embeddedGlyph .glyph rect {
+            fill: #fff
+        }
+
     </style>
 
 </head>
 <!-- outline for using a controller in Angular -->
-<body class="light" ng-app="showIconsTest">
-    <h2>Showing Icons with Icon Service Angular</h2>
-    <div id="show-icons" ng-controller="OvShowIconsTest as ctrl">
-        <!--{{message}}-->
-        <p>{{ctrl.a}} + {{ctrl.b}} = {{ctrl.a+ctrl.b}}</p>
+<body class="light" ng-app="showIconsTest" ng-controller="OvShowIconsTest as ctrl">
+    <h2>Displaying Icons and Glyphs with Angular</h2>
+    <div id="showIcons">
+        <p>Show all icons in icon library:<br></p>
+    </div>
+    <hr>
+    <div id="showGlyphs">
+        <p>Show all glyphs in glyph library:</p>
+        <p>(Displays checkMark and xMark too, because icons are built on top
+            of glyphs.)</p>
     </div>
 
 

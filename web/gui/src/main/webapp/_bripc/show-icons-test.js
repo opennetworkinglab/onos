@@ -21,15 +21,75 @@
 (function () {
     'use strict';
 
+    // assuming the glyph is a square
+    // div is a D3 selection of the <DIV> element into which icon should load
+    // size is the size of the glyph
+    // id is the symbol id
+    // rer is the rectangle the glyph will be in's rounded corners
+    // svgClass is the class name for your glyph
+    function createGlyph(div, size, id, rer, svgClass) {
+        var dim = size || 20,
+            gid = id || 'unknown',
+            rx = rer || 4,
+            svgCls = svgClass || 'embeddedGlyph',
+            svg, g;
+
+        svg = div.append('svg').attr({
+            'class': svgCls,
+            width: dim,
+            height: dim,
+            viewBox: '0 0 ' + dim + ' ' + dim
+        });
+
+        g = svg.append('g').attr({
+            'class': 'glyph'
+        });
+
+        g.append('rect').attr({
+            width: dim,
+            height: dim,
+            rx: rx
+        });
+
+        g.append('use').attr({
+            width: dim,
+            height: dim,
+            'class': 'glyph',
+            'xlink:href': '#' + gid
+        });
+
+}
+
     angular.module('showIconsTest', ['onosSvg'])
 
         .controller('OvShowIconsTest', ['$log', 'GlyphService', 'IconService',
             function ($log, gs, icns) {
                 var self = this;
-                self.a = 1;
-                self.b = 2;
 
-                self.message = "Hi";
+                gs.init();
+
+                var div = d3.select('#showIcons');
+
+                // show device online and offline icons
+                icns.loadEmbeddedIcon(div, 'deviceOnline', 50);
+                div.append('br');
+                icns.loadEmbeddedIcon(div, 'deviceOffline', 50);
+
+                var defs = d3.select('defs');
+
+                // show all glyphs in glyph library
+                gs.loadDefs(defs, null, true);
+                var list = gs.ids(),
+                    gDiv = d3.select('#showGlyphs'),
+                    ctr = 0;
+                list.forEach(function (id) {
+                    createGlyph(gDiv, 50, id);
+                    ctr += 1;
+                    if(ctr/3 > 1) {
+                        ctr = 0;
+                        gDiv.append('p');
+                    }
+                });
 
                 $log.log('OvShowIconsTest has been created');
             }]);
