@@ -54,6 +54,7 @@ import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -394,6 +395,10 @@ public class HazelcastIntentStore
 
     @Override
     public List<Operation> batchWrite(BatchWrite batch) {
+        if (batch.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         // Hazelcast version will never fail for conditional failure now.
         List<Operation> failed = new ArrayList<>();
 

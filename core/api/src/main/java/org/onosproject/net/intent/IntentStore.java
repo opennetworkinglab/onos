@@ -112,6 +112,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
 
     /**
      * Execute writes in a batch.
+     * If the specified BatchWrite is empty, write will not be executed.
      *
      * @param batch BatchWrite to execute
      * @return failed operations

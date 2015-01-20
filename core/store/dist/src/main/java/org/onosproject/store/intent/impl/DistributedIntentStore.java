@@ -54,6 +54,7 @@ import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -416,6 +417,9 @@ public class DistributedIntentStore
 
     @Override
     public List<Operation> batchWrite(BatchWrite batch) {
+        if (batch.isEmpty()) {
+            return Collections.emptyList();
+        }
 
         List<Operation> failed = new ArrayList<>();
         final Builder builder = BatchWriteRequest.newBuilder();

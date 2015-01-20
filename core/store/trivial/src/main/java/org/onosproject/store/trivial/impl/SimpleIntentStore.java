@@ -33,6 +33,7 @@ import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -154,6 +155,10 @@ public class SimpleIntentStore
      */
     @Override
     public List<Operation> batchWrite(BatchWrite batch) {
+        if (batch.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<Operation> failed = Lists.newArrayList();
         for (Operation op : batch.operations()) {
             switch (op.type()) {
