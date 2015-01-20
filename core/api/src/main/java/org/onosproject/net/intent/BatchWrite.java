@@ -92,7 +92,7 @@ public final class BatchWrite {
                 .toString();
     }
 
-    public static class Operation {
+    public static final class Operation {
         final OpType type;
         final ImmutableList<Object> args;
 
@@ -100,8 +100,7 @@ public final class BatchWrite {
             return new Operation(type, args);
         }
 
-        // TODO: consider make it private
-        public Operation(OpType type, List<Object> args) {
+        private Operation(OpType type, List<Object> args) {
             this.type = checkNotNull(type);
             this.args = ImmutableList.copyOf(args);
         }
