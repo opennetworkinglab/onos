@@ -9,12 +9,14 @@ from mininet.node import Host, RemoteController, OVSSwitch
 QUAGGA_DIR = '/usr/lib/quagga'
 # Must exist and be owned by quagga user (quagga:quagga by default on Ubuntu)
 QUAGGA_RUN_DIR = '/var/run/quagga'
-CONFIG_DIR = 'configs'
+CONFIG_DIR = 'configs-ipv6'
 
 class SdnIpHost(Host):
     def __init__(self, name, ip, route, *args, **kwargs):
         Host.__init__(self, name, ip=ip, *args, **kwargs)
 
+        self.name = name
+        self.ip = ip
         self.route = route
 
     def config(self, **kwargs):
@@ -22,6 +24,7 @@ class SdnIpHost(Host):
 
         debug("configuring route %s" % self.route)
 
+        self.cmd('ip addr add %s dev %s-eth0' % (self.ip, self.name))
         self.cmd('ip route add default via %s' % self.route)
 
 class Router(Host):
@@ -84,8 +87,8 @@ class SdnIpTopo( Topo ):
             name = 'r%s' % i
 
             eth0 = { 'mac' : '00:00:00:00:0%s:01' % i,
-                     'ipAddrs' : ['10.0.%s.1/24' % i] }
-            eth1 = { 'ipAddrs' : ['192.168.%s.254/24' % i] }
+                     'ipAddrs' : ['2001:%s::1/48' % i] }
+            eth1 = { 'ipAddrs' : ['2001:10%s::101/48' % i] }
             intfs = { '%s-eth0' % name : eth0,
                       '%s-eth1' % name : eth1 }
 
@@ -94,19 +97,19 @@ class SdnIpTopo( Topo ):
             router = self.addHost(name, cls=Router, quaggaConfFile=quaggaConf,
                                   zebraConfFile=zebraConf, intfDict=intfs)
             
-            host = self.addHost('h%s' % i, cls=SdnIpHost, 
-                                ip='192.168.%s.1/24' % i,
-                                route='192.168.%s.254' % i)
+            host = self.addHost('h%s' % i, cls=SdnIpHost,
+                                ip='2001:10%s::1/48' % i,
+                                route='2001:10%s::101' % i)
             
             self.addLink(router, attachmentSwitches[i-1])
             self.addLink(router, host)
 
         # Set up the internal BGP speaker
         bgpEth0 = { 'mac':'00:00:00:00:00:01', 
-                    'ipAddrs' : ['10.0.1.101/24',
-                                 '10.0.2.101/24',
-                                 '10.0.3.101/24',
-                                 '10.0.4.101/24',] }
+                    'ipAddrs' : ['2001:1::101/48',
+                                 '2001:2::101/48',
+                                 '2001:3::101/48',
+                                 '2001:4::101/48',] }
         bgpEth1 = { 'ipAddrs' : ['10.10.10.1/24'] }
         bgpIntfs = { 'bgp-eth0' : bgpEth0,
                      'bgp-eth1' : bgpEth1 }

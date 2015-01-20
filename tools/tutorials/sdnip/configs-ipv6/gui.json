@@ -1,0 +1,9 @@
+{
+    "hosts" : [
+        { "mac": "00:00:00:00:00:01", "vlan": -1, "location": "of:00000000000000a3/1", "ip": "2001:1::101, 2001:2::101, 2001:3::101, 2001:4::101",                         "annotations": { "type": "bgpSpeaker" } },
+        { "mac": "00:00:00:00:01:01", "vlan": -1, "location": "of:00000000000000a1/1", "ip": "2001:1::1",                                   "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:02:01", "vlan": -1, "location": "of:00000000000000a2/1", "ip": "2001:2::1",                        "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:03:01", "vlan": -1, "location": "of:00000000000000a5/1", "ip": "2001:3::1",                        "annotations": { "type": "router" } },
+        { "mac": "00:00:00:00:04:01", "vlan": -1, "location": "of:00000000000000a6/1", "ip": "2001:4::1",                                   "annotations": { "type": "router" } }
+    ]
+}
