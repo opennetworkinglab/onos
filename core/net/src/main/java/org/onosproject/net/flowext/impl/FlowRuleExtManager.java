@@ -177,9 +177,9 @@ public class FlowRuleExtManager
     }
 
     @Override
-    public Iterable<?> getExtMessages(DeviceId deviceId, Class<?> classT) {
+    public Iterable<?> getExtMessages(DeviceId deviceId) {
         // TODO Auto-generated method stub
-        return store.getExtMessages(deviceId, classT);
+        return store.getExtMessages(deviceId);
     }
 
     @Override

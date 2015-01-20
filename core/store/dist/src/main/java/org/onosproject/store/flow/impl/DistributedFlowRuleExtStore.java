@@ -67,14 +67,8 @@ import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.DecodeTo;
 import org.onosproject.store.serializers.FlowRuleExtEntrySerializer;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
-import org.projectfloodlight.openflow.exceptions.OFParseError;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFMessageReader;
 import org.slf4j.Logger;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -392,6 +386,7 @@ public class DistributedFlowRuleExtStore extends
         output.close();
         return flowExtensions;
     }
+
     /** 
      * Internal Serializer used for register self-defined serializer, this 
      * serializer used for decoding byte Stream to object and use to show in GUI
