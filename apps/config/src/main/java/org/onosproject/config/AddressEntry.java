@@ -15,16 +15,16 @@
  */
 package org.onosproject.config;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Represents a set of addresses bound to a port.
  */
 public class AddressEntry {
     private String dpid;
-    private short portNumber;
+    private long portNumber;
     private List<String> ipAddresses;
     private String macAddress;
 
@@ -37,12 +37,12 @@ public class AddressEntry {
         this.dpid = strDpid;
     }
 
-    public short getPortNumber() {
+    public long getPortNumber() {
         return portNumber;
     }
 
     @JsonProperty("port")
-    public void setPortNumber(short portNumber) {
+    public void setPortNumber(long portNumber) {
         this.portNumber = portNumber;
     }
 
