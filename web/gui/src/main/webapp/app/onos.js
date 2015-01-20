@@ -21,25 +21,42 @@
 (function () {
     'use strict';
 
-    var moduleDependencies = [
-        // view modules...
-        // TODO: inject view dependencies server side
-        // {INJECTED-VIEW-MODULE-DEPENDENCIES}
-        // NOTE: 'ov' == 'Onos View'...
-        'ovSample',
-        'ovTopo',
-        'ovDevice',
-        // (end of view modules)
-
-        // core modules...
+    // define core module dependencies here...
+    var coreDependencies = [
         'ngRoute',
         'onosUtil',
         'onosSvg',
         'onosRemote',
-        'onosMast'
+        'onosMast',
+        'onosNav'
     ];
 
-    var $log;
+    // view IDs.. note the first view listed is loaded at startup
+    var viewIds = [
+        // TODO: inject view IDs server side
+        // {INJECTED-VIEW-IDS}
+        'sample',
+        'topo',
+        'device',
+        // (end of injected views)
+
+        // dummy entry
+        ''
+    ];
+
+    var viewDependencies = [];
+
+    viewIds.forEach(function (id) {
+        if (id) {
+            viewDependencies.push('ov' + capitalize(id));
+        }
+    });
+
+    var moduleDependencies = coreDependencies.concat(viewDependencies);
+
+    function capitalize(word) {
+        return word ? word[0].toUpperCase() + word.slice(1) : word;
+    }
 
     angular.module('onosApp', moduleDependencies)
 
@@ -47,10 +64,9 @@
             '$log', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService',
 
-        function (_$log_, $route, $routeParams, $location, ks, ts, gs) {
+        function ($log, $route, $routeParams, $location, ks, ts, gs) {
             var self = this;
 
-            $log = _$log_;
             self.$route = $route;
             self.$routeParams = $routeParams;
             self.$location = $location;
@@ -69,26 +85,28 @@
         }])
 
         .config(['$routeProvider', function ($routeProvider) {
-            // TODO: figure out a way of handling contributed views...
+            // If view ID not provided, route to the first view in the list.
             $routeProvider
-                .when('/', {
-                    controller: 'OvSampleCtrl',
-                    controllerAs: 'ctrl',
-                    templateUrl: 'view/sample/sample.html'
-                })
-                .when('/topo', {
-                    controller: 'OvTopoCtrl',
-                    controllerAs: 'ctrl',
-                    templateUrl: 'view/topo/topo.html'
-                })
-                .when('/device', {
-                    controller: 'OvDeviceCtrl',
-                    controllerAs: 'ctrl',
-                    templateUrl: 'view/device/device.html'
-                })
                 .otherwise({
-                    redirectTo: '/'
-                })
-        }]);
+                    redirectTo: '/' + viewIds[0]
+                });
 
+            function viewCtrlName(vid) {
+                return 'Ov' + capitalize(vid) + 'Ctrl';
+            }
+            function viewTemplateUrl(vid) {
+                return 'view/' + vid + '/' + vid + '.html';
+            }
+
+            // Add routes for each defined view.
+            viewIds.forEach(function (vid) {
+                if (vid) {
+                    $routeProvider.when('/' + vid, {
+                        controller: viewCtrlName(vid),
+                        controllerAs: 'ctrl',
+                        templateUrl: viewTemplateUrl(vid)
+                    });
+                }
+            });
+        }]);
 }());
