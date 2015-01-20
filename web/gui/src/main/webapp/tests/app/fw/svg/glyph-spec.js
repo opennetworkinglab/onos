@@ -36,8 +36,8 @@ describe('factory: fw/svg/glyph.js', function() {
             chain: 'M60.4,77.6c-',
             crown: 'M99.5,21.6c0,',
             uiAttached: 'M2,2.5a.5,.5',
-            checkMark: 'M2.644,4.531c0',
-            xMark: 'M8.967,7.196C8.172',
+            checkMark: 'M2.6,4.5c0',
+            xMark: 'M9.0,7.2C8.2',
 
             // our test ones..
             triangle: 'M.5,.2',

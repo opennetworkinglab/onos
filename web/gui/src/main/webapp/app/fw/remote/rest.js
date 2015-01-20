@@ -22,7 +22,7 @@
 
     var $log;
 
-    var urlSuffix = '/ui/rs/';
+    var urlSuffix = '/onos/ui/rs/';
 
 
 

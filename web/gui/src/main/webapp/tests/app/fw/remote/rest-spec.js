@@ -90,7 +90,8 @@ describe('factory: fw/remote/rest.js', function() {
         expect(called).toEqual(0);
         expect(capture).toBeNull();
         expect($log.warn).toHaveBeenCalledWith(
-            'Failed to retrieve JSON data: http://foo:80/ui/rs/bar', 404, 'Not Found');
+            'Failed to retrieve JSON data: http://foo:80/onos/ui/rs/bar',
+            404, 'Not Found');
     });
 
 });
