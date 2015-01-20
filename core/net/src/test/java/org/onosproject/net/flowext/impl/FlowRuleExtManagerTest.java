@@ -90,9 +90,9 @@ public class FlowRuleExtManagerTest {
     @Test
     public void testApplyBatch() {
 
-        FlowRuleExtEntry r1 = new FlowRuleExtEntry(DID, "of:123:01".getBytes());
-        FlowRuleExtEntry r2 = new FlowRuleExtEntry(DID, "of:123:02".getBytes());
-        FlowRuleExtEntry r3 = new FlowRuleExtEntry(DID, "of:123:03".getBytes());
+        FlowRuleExtEntry r1 = new FlowRuleExtEntry(DID, null, "of:123:01".getBytes());
+        FlowRuleExtEntry r2 = new FlowRuleExtEntry(DID, null, "of:123:02".getBytes());
+        FlowRuleExtEntry r3 = new FlowRuleExtEntry(DID, null, "of:123:03".getBytes());
 
         Collection<FlowRuleExtEntry> batchOperation = new ArrayList<FlowRuleExtEntry>();;
         assertTrue("store should be empty",

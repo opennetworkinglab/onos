@@ -19,9 +19,9 @@ public class FlowRuleBatchExtRequestTest {
     @Test
     public void testConstructor() {
         String deviceId1 = "of:123456";
-        FlowRuleExtEntry entry1 = new FlowRuleExtEntry(DeviceId.deviceId(deviceId1), deviceId1.getBytes());
+        FlowRuleExtEntry entry1 = new FlowRuleExtEntry(DeviceId.deviceId(deviceId1), null, deviceId1.getBytes());
         String deviceId2 = "of:234567";
-        FlowRuleExtEntry entry2 = new FlowRuleExtEntry(DeviceId.deviceId(deviceId2), deviceId2.getBytes());
+        FlowRuleExtEntry entry2 = new FlowRuleExtEntry(DeviceId.deviceId(deviceId2), null, deviceId2.getBytes());
         Collection<FlowRuleExtEntry> toAdd = new ArrayList<FlowRuleExtEntry>();
         toAdd.add(entry1);
         toAdd.add(entry2);
