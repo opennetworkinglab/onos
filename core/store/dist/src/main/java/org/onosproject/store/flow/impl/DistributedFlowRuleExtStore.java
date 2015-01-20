@@ -408,7 +408,8 @@ public class DistributedFlowRuleExtStore extends
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(new FlowRuleExtEntrySerializer(),
-                                  FlowRuleExtEntry.class).build();
+                                  FlowRuleExtEntry.class)
+                    .register(FlowExtCompletedOperation.class).build();
         }
         
         

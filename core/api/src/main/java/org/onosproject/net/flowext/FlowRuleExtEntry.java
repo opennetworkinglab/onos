@@ -24,9 +24,9 @@ public class FlowRuleExtEntry {
 
 
    public FlowRuleExtEntry(DeviceId deviceId, Class<?> classT, byte[] data) {
-	   this.setDeviceId(deviceId);
-	   this.setClassT(classT);
-	   this.setFlowEntryExt(data);
+           this.setDeviceId(deviceId);
+           this.setClassT(classT);
+           this.setFlowEntryExt(data);
    }
 
    public DeviceId getDeviceId() {
