@@ -20,16 +20,47 @@
 (function () {
     'use strict';
 
-    angular.module('onosRemote')
-    .factory('WebSocketService', ['$location', 'UrlFnService',
-        function ($loc, ufs) {
+    var fs;
 
-            // creates a web socket for the given path, returning a "handle"
-            function createWebSocket(path) {
-                return {
-                    path: ufs.wsUrl(path)
-                    // TODO: complete implementation...
-                };
+    angular.module('onosRemote')
+    .factory('WebSocketService', ['$location', 'UrlFnService', 'FnService',
+        function ($loc, ufs, _fs_) {
+            fs = _fs_;
+
+            // creates a web socket for the given path, returning a "handle".
+            // cb is the callbacks block.
+            function createWebSocket(path, cb) {
+                var fullUrl = ufs.wsUrl(path),
+                    ws = new WebSocket(fullUrl),
+                    api = {
+                        meta: { path: fullUrl, ws: ws },
+                        send: send,
+                        close: close
+                    };
+
+                ws.onopen = (cb && cb.onOpen) || null;
+                ws.onmessage = (cb && cb.onMessage) || null;
+                ws.onclose = (cb && cb.onClose) || null;
+
+                function send(msg) {
+                    if (msg) {
+                        if (ws) {
+                            ws.send(msg);
+                        } else {
+                            $log.warn('ws.send() no web socket open!',
+                                fullUrl, msg);
+                        }
+                    }
+                }
+
+                function close() {
+                    if (ws) {
+                        ws.close();
+                        ws = null;
+                    }
+                }
+
+                return api;
             }
 
             return {

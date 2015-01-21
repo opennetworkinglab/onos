@@ -131,10 +131,34 @@
 
     // --- Web Socket Connection -----------------------------------------
 
+    function onWsOpen() {
+        $log.log('web socket opened...');
+
+    }
+
+    function onWsMessage(msg) {
+        $log.log('web socket message...', msg);
+
+    }
+
+    function onWsClose(msg) {
+        $log.log('web socket closed...', msg);
+
+    }
+
     function setUpWebSocket() {
-        var wsHandle = wss.createWebSocket('topology');
+        var wsHandle = wss.createWebSocket('topology', {
+            onOpen: onWsOpen,
+            onMessage: onWsMessage,
+            onClose: onWsClose
+        });
+
+        // TODO: handle "guiSuccessor" functionality (replace host)
+        // TODO: implement retry on close functionality
+
+
         $log.log('created web socket', wsHandle);
-        // TODO: complete implementation
+        // TODO: complete implementation...
 
     }
 
@@ -143,11 +167,11 @@
     angular.module('ovTopo', moduleDependencies)
 
         .controller('OvTopoCtrl', [
-            '$log',
+            '$scope', '$log',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
             'WebSocketService',
 
-        function (_$log_, _ks_, _zs_, _gs_, _ms_, _wss_) {
+        function ($scope, _$log_, _ks_, _zs_, _gs_, _ms_, _wss_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
@@ -159,6 +183,13 @@
             self.notifyResize = function () {
                 svgResized(svg.style('width'), svg.style('height'));
             };
+
+            $scope.$on('$destroy', function () {
+                $log.log('OvTopoCtrl is saying Buh-Bye!');
+                // TODO: cleanup when the scope is destroyed...
+                //  for example, closing the web socket.
+
+            });
 
             // svg layer and initialization of components
             ovtopo = d3.select('#ov-topo');
