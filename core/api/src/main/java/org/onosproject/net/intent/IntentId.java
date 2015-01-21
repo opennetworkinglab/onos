@@ -15,13 +15,11 @@
  */
 package org.onosproject.net.intent;
 
-import org.onosproject.net.flow.BatchOperationTarget;
-
 /**
  * Intent identifier suitable as an external key.
  * <p>This class is immutable.</p>
  */
-public final class IntentId implements BatchOperationTarget {
+public final class IntentId {
 
     private final long value;
 
