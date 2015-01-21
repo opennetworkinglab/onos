@@ -65,8 +65,7 @@ public class SimpleIntentStore
         log.info("Stopped");
     }
 
-    @Override
-    public void createIntent(Intent intent) {
+    private void createIntent(Intent intent) {
         if (intents.containsKey(intent.id())) {
             return;
         }
@@ -74,8 +73,7 @@ public class SimpleIntentStore
         this.setState(intent, IntentState.INSTALL_REQ);
     }
 
-    @Override
-    public void removeIntent(IntentId intentId) {
+    private void removeIntent(IntentId intentId) {
         checkState(getIntentState(intentId) == WITHDRAWN,
                    "Intent state for {} is not WITHDRAWN.", intentId);
         intents.remove(intentId);

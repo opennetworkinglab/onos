@@ -22,7 +22,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -31,15 +30,16 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.core.MetricsHelper;
 import org.onosproject.net.intent.BatchWrite;
+import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
-import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
@@ -50,7 +50,6 @@ import org.onosproject.store.service.BatchWriteResult;
 import org.onosproject.store.service.DatabaseAdminService;
 import org.onosproject.store.service.DatabaseService;
 import org.onosproject.store.service.impl.CMap;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -63,10 +62,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onlab.metrics.MetricsUtil.startTimer;
+import static org.onlab.metrics.MetricsUtil.stopTimer;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onlab.metrics.MetricsUtil.*;
 
 @Component(immediate = true, enabled = false)
 @Service
@@ -114,8 +116,6 @@ public class DistributedIntentStore
     // TODO make this configurable
     private boolean onlyLogTransitionError = true;
 
-    private Timer createIntentTimer;
-    private Timer removeIntentTimer;
     private Timer setInstallableIntentsTimer;
     private Timer getInstallableIntentsTimer;
     private Timer removeInstalledIntentsTimer;
@@ -132,8 +132,6 @@ public class DistributedIntentStore
 
     @Activate
     public void activate() {
-        createIntentTimer = createResponseTimer("createIntent");
-        removeIntentTimer = createResponseTimer("removeIntent");
         setInstallableIntentsTimer = createResponseTimer("setInstallableIntents");
         getInstallableIntentsTimer = createResponseTimer("getInstallableIntents");
         removeInstalledIntentsTimer = createResponseTimer("removeInstalledIntents");
@@ -187,38 +185,6 @@ public class DistributedIntentStore
     @Override
     public MetricsService metricsService() {
         return metricsService;
-    }
-
-    @Override
-    public void createIntent(Intent intent) {
-        Context timer = startTimer(createIntentTimer);
-        try {
-            boolean absent = intents.putIfAbsent(intent.id(), intent);
-            if (!absent) {
-                // duplicate, ignore
-                return;
-            } else {
-                this.setState(intent, IntentState.INSTALL_REQ);
-                return;
-            }
-        } finally {
-            stopTimer(timer);
-        }
-    }
-
-    @Override
-    public void removeIntent(IntentId intentId) {
-        Context timer = startTimer(removeIntentTimer);
-        checkState(getIntentState(intentId) == WITHDRAWN,
-                   "Intent state for {} is not WITHDRAWN.", intentId);
-        try {
-            intents.remove(intentId);
-            states.remove(intentId);
-            transientStates.remove(intentId);
-            installable.remove(intentId);
-        } finally {
-            stopTimer(timer);
-        }
     }
 
     @Override
