@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -108,9 +109,6 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         providerService = providerRegistry.register(this);
         deviceService.addListener(linkProvider);
         modified(context);
-        if (flicker) {
-            linkDriver.submit(new LinkDriver());
-        }
         log.info("started");
     }
 
@@ -131,6 +129,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         log.info("stopped");
     }
 
+    @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
             log.info("No configs, using defaults: flicker={}, eventRate={}",
