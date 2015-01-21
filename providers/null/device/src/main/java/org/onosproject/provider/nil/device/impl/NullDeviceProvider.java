@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -52,13 +53,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which advertises fake/nonexistant devices to the core.
+ * nodeID is passed as part of the fake device id so that multiple nodes can run simultaneously.
  * To be used for benchmarking only.
  */
 @Component(immediate = true)
 public class NullDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private static final Logger log = getLogger(NullDeviceProvider.class);
-    private static final String SCHEME = "null";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
@@ -69,8 +73,8 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
                                                      namedThreads("null-device-creator"));
 
 
-
     //currently hardcoded. will be made configurable via rest/cli.
+    private static final String SCHEME = null;
     private static final int NUMDEVICES = 10;
     private static final int NUMPORTSPERDEVICE = 10;
 
@@ -156,7 +160,11 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
         private void advertiseDevices() {
             DeviceId did;
             ChassisId cid;
-            for (int i = 0; i < NUMDEVICES; i++) {
+
+            // nodeIdHash takes into account for nodeID to avoid collisions when running multi-node providers.
+            int nodeIdHash = (clusterService.getLocalNode().hashCode() % NUMDEVICES) * NUMDEVICES;
+
+            for (int i = nodeIdHash; i < nodeIdHash + NUMDEVICES; i++) {
                 did = DeviceId.deviceId(String.format("%s:%d", SCHEME, i));
                 cid = new ChassisId(i);
                 DeviceDescription desc =
