@@ -97,7 +97,7 @@ import com.google.common.collect.Sets;
 @Component(immediate = true)
 public class OpenFlowRuleProvider extends AbstractProvider implements FlowRuleProvider {
 
-    enum BatchState { STARTED, FINISHED, CANCELLED };
+    enum BatchState { STARTED, FINISHED, CANCELLED }
 
     private static final int LOWEST_PRIORITY = 0;
 
