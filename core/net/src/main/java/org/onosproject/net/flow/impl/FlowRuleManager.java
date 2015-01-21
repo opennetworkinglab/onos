@@ -449,7 +449,7 @@ public class FlowRuleManager
                 Multimap<DeviceId, FlowRuleBatchEntry> batches) {
             this.futures = futures;
             this.batches = batches;
-            state = new AtomicReference<FlowRuleManager.BatchState>();
+            state = new AtomicReference<>();
             state.set(BatchState.STARTED);
         }
 
