@@ -19,6 +19,8 @@ import java.util.Objects;
 
 import com.google.common.base.MoreObjects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * A super class for batch operation entry classes.
  * <p>
@@ -26,10 +28,9 @@ import com.google.common.base.MoreObjects;
  * its entries.
  */
 public class BatchOperationEntry<T extends Enum<?>, U extends BatchOperationTarget> {
+
     private final T operator;
     private final U target;
-
-
 
     /**
      * Constructs new instance for the entry of the BatchOperation.
@@ -38,8 +39,8 @@ public class BatchOperationEntry<T extends Enum<?>, U extends BatchOperationTarg
      * @param target the target object of this operation
      */
     public BatchOperationEntry(T operator, U target) {
-        this.operator = operator;
-        this.target = target;
+        this.operator = checkNotNull(operator);
+        this.target = checkNotNull(target);
     }
 
     /**
