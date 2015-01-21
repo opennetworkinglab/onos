@@ -51,7 +51,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "-t", aliases = "--ethType", description = "Ethernet Type",
             required = false, multiValued = false)
-    private String ethTypeString = "";
+    private String ethTypeString = null;
 
     @Option(name = "--ipProto", description = "IP Protocol",
             required = false, multiValued = false)
@@ -75,7 +75,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
             required = false, multiValued = false)
-    private String bandwidthString = "";
+    private String bandwidthString = null;
 
     @Option(name = "-l", aliases = "--lambda", description = "Lambda",
             required = false, multiValued = false)
