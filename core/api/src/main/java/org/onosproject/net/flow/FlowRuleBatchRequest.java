@@ -25,7 +25,7 @@ import java.util.Set;
 public class FlowRuleBatchRequest {
 
     /**
-     * This id is used to cary to id of the original
+     * This id is used to carry to id of the original
      * FlowOperations and track where this batch operation
      * came from. The id is unique cluster wide.
      */
@@ -37,8 +37,6 @@ public class FlowRuleBatchRequest {
     public FlowRuleBatchRequest(long batchId, Set<FlowRuleBatchEntry> ops) {
         this.batchId = batchId;
         this.ops = Collections.unmodifiableSet(ops);
-
-
     }
 
     public Set<FlowRuleBatchEntry> ops() {

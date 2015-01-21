@@ -172,7 +172,6 @@ public class DefaultFlowRule implements FlowRule {
         return treatment;
     }
 
-
     @Override
     /*
      * The priority and statistics can change on a given treatment and selector
