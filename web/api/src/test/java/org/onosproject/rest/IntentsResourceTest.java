@@ -16,6 +16,7 @@
 package org.onosproject.rest;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -300,7 +301,7 @@ public class IntentsResourceTest extends JerseyTest {
     public void testIntentsArray() {
         replay(mockIntentService);
 
-        final Intent intent1 = new MockIntent(null);
+        final Intent intent1 = new MockIntent(Collections.emptyList());
         final HashSet<NetworkResource> resources = new HashSet<>();
         resources.add(new MockResource(1));
         resources.add(new MockResource(2));

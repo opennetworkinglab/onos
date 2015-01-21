@@ -60,7 +60,7 @@ public abstract class Intent implements BatchOperationTarget {
         checkState(idGenerator != null, "Id generator is not bound.");
         this.id = IntentId.valueOf(idGenerator.getNewId());
         this.appId = checkNotNull(appId, "Application ID cannot be null");
-        this.resources = resources;
+        this.resources = checkNotNull(resources);
     }
 
     /**

@@ -328,7 +328,7 @@ public class IntentsListCommand extends AbstractShellCommand {
     }
 
     private void printDetails(IntentService service, Intent intent) {
-        if (intent.resources() != null && !intent.resources().isEmpty()) {
+        if (!intent.resources().isEmpty()) {
             print("    resources=%s", intent.resources());
         }
         if (intent instanceof ConnectivityIntent) {
@@ -392,7 +392,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             result.put("state", state.toString());
         }
 
-        if (intent.resources() != null && !intent.resources().isEmpty()) {
+        if (!intent.resources().isEmpty()) {
             ArrayNode rnode = mapper.createArrayNode();
             for (NetworkResource resource : intent.resources()) {
                 rnode.add(resource.toString());

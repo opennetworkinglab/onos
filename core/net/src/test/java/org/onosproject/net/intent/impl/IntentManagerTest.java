@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -154,7 +155,7 @@ public class IntentManagerTest {
         private final Long number;
         // Nothing new here
         public MockIntent(Long number) {
-            super(APPID, null);
+            super(APPID, Collections.emptyList());
             this.number = number;
         }
 
@@ -507,7 +508,7 @@ public class IntentManagerTest {
     public void intentWithoutCompiler() {
         class IntentNoCompiler extends Intent {
             IntentNoCompiler() {
-                super(APPID, null);
+                super(APPID, Collections.emptyList());
             }
         }
 

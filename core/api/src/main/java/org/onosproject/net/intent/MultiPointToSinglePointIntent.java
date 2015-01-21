@@ -80,7 +80,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                                          Set<ConnectPoint> ingressPoints,
                                          ConnectPoint egressPoint,
                                          List<Constraint> constraints) {
-        super(appId, null, selector, treatment, constraints);
+        super(appId, Collections.emptyList(), selector, treatment, constraints);
 
         checkNotNull(ingressPoints);
         checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");

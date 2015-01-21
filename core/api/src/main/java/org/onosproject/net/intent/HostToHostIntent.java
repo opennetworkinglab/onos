@@ -26,6 +26,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -86,7 +87,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
                             TrafficSelector selector,
                             TrafficTreatment treatment,
                             List<Constraint> constraints) {
-        super(appId, null, selector, treatment, constraints);
+        super(appId, Collections.emptyList(), selector, treatment, constraints);
 
         // TODO: consider whether the case one and two are same is allowed
         this.one = checkNotNull(one);

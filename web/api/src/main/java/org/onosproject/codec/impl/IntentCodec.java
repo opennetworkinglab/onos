@@ -41,10 +41,8 @@ public class IntentCodec extends JsonCodec<Intent> {
 
         final ArrayNode jsonResources = result.putArray("resources");
 
-        if (intent.resources() != null) {
-            for (final NetworkResource resource : intent.resources()) {
-                jsonResources.add(resource.toString());
-            }
+        for (final NetworkResource resource : intent.resources()) {
+            jsonResources.add(resource.toString());
         }
         return result;
     }

@@ -75,7 +75,7 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
             TrafficSelector selector, TrafficTreatment treatment,
             ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints,
             List<Constraint> constraints) {
-        super(appId, null, selector, treatment, constraints);
+        super(appId, Collections.emptyList(), selector, treatment, constraints);
         checkNotNull(egressPoints);
         checkNotNull(ingressPoint);
         checkArgument(!egressPoints.isEmpty(), "Egress point set cannot be empty");

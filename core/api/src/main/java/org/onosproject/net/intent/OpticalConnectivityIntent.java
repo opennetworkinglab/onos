@@ -18,6 +18,8 @@ package org.onosproject.net.intent;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 
+import java.util.Collections;
+
 /**
  * An optical layer intent for connectivity from one transponder port to another
  * transponder port. No traffic selector or traffic treatment are needed.
@@ -36,7 +38,7 @@ public class OpticalConnectivityIntent extends Intent {
      */
     public OpticalConnectivityIntent(ApplicationId appId,
                                      ConnectPoint src, ConnectPoint dst) {
-        super(appId, null);
+        super(appId, Collections.emptyList());
         this.src = src;
         this.dst = dst;
     }

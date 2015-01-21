@@ -24,6 +24,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -73,7 +74,7 @@ public class PointToPointIntent extends ConnectivityIntent {
                               ConnectPoint ingressPoint,
                               ConnectPoint egressPoint,
                               List<Constraint> constraints) {
-        super(appId, null, selector, treatment, constraints);
+        super(appId, Collections.emptyList(), selector, treatment, constraints);
 
         checkNotNull(ingressPoint);
         checkNotNull(egressPoint);

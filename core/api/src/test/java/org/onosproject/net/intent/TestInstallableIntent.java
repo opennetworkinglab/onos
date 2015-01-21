@@ -17,6 +17,8 @@ package org.onosproject.net.intent;
 
 import org.onosproject.TestApplicationId;
 
+import java.util.Collections;
+
 /**
  * An installable intent used in the unit test.
  */
@@ -30,7 +32,7 @@ public class TestInstallableIntent extends Intent {
      * @param value intent ID
      */
     public TestInstallableIntent(int value) { // FIXME
-        super(new TestApplicationId("foo"), null);
+        super(new TestApplicationId("foo"), Collections.emptyList());
         this.value = value;
     }
 
