@@ -60,7 +60,7 @@
             function createZoomer(opts) {
                 var cz = 'ZoomService.createZoomer(): ',
                     d3s = ' (D3 selection) property defined',
-                    settings = $.extend({}, defaultSettings, opts),
+                    settings = angular.extend({}, defaultSettings, opts),
                     zoom = d3.behavior.zoom()
                         .translate([0, 0])
                         .scale(1)

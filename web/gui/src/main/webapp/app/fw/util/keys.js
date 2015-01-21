@@ -92,7 +92,7 @@
     }
 
     function setupGlobalKeys() {
-        $.extend(keyHandler, {
+        angular.extend(keyHandler, {
             globalKeys: {
                 backSlash: [quickHelp, 'Show / hide Quick Help'],
                 slash: [quickHelp, 'Show / hide Quick Help'],

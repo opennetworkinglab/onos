@@ -21,7 +21,6 @@ module.exports = function(config) {
         '../tp/angular-route.js',
         '../tp/d3.js',
         '../tp/topojson.v1.min.js',
-        '../tp/jquery-2.1.1.min.js',
 
         // production code...
         // make sure modules are defined first...

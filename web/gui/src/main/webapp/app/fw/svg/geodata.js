@@ -130,7 +130,7 @@
             // converts given TopoJSON-format data into corresponding GeoJSON
             //  data, and creates a path generator for that data.
             function createPathGenerator(topoData, opts) {
-                var settings = $.extend({}, defaultGenSettings, opts),
+                var settings = angular.extend({}, defaultGenSettings, opts),
                     topoObject = topoData.objects[settings.objectTag],
                     geoData = topojson.feature(topoData, topoObject),
                     proj = settings.projection,

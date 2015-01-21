@@ -21,11 +21,12 @@
     'use strict';
 
     function isF(f) {
-        return $.isFunction(f) ? f : null;
+        return typeof f === 'function' ? f : null;
     }
 
     function isA(a) {
-        return $.isArray(a) ? a : null;
+        // NOTE: Array.isArray() is part of EMCAScript 5.1
+        return Array.isArray(a) ? a : null;
     }
 
     function isS(s) {
@@ -33,7 +34,7 @@
     }
 
     function isO(o) {
-        return $.isPlainObject(o) ? o : null;
+        return (o && typeof o === 'object' && o.constructor === Object) ? o : null;
     }
 
     function contains(a, x) {
