@@ -17,7 +17,7 @@ package org.onosproject.igp.controller;
 
 import java.util.List;
 
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 
 
 /**
@@ -30,14 +30,14 @@ public interface IgpSwitch {
      *
      * @param msg the message to write
      */
-    public void sendMsg(FlowRuleExtendEntry msg);
+    public void sendMsg(FlowRuleBatchExtRequest msg);
 
     /**
      * Writes to the OFMessage list to the driver.
      *
      * @param msgs the messages to be written
      */
-    public void sendMsg(List<FlowRuleExtendEntry> msgs);
+    public void sendMsg(List<FlowRuleBatchExtRequest> msgs);
 
     /**
      * Checks if the switch is still connected.

@@ -23,8 +23,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.igp.controller.IGPController;
+import org.onosproject.igp.controller.IgpDpid;
 import org.onosproject.igp.controller.IgpSwitch;
 import org.onosproject.igp.controller.IgpSwitchListener;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
 import org.onosproject.net.flowext.FlowRuleExtProvider;
 import org.onosproject.net.flowext.FlowRuleExtProviderRegistry;
@@ -80,34 +82,35 @@ public class IgpFlowRuleProvider extends AbstractProvider implements
 		log.info("Stopped");
 	}
 
-	private void applyRule(FlowRuleExtEntry flowRule) {
-		IgpSwitch sw = controller
-				.getSwitch(flowRule.getDeviceId());
-		sw.sendMsg(flowRule);
-	}
-
 	private class InternalFlowProvider implements IgpSwitchListener {
 
 		@Override
-		public void switchAdded(int dpid) {
+		public void switchAdded(IgpDpid dpid) {
 			log.info("switch added");
 		}
 
 		@Override
-		public void switchRemoved(int dpid) {
+		public void switchRemoved(IgpDpid dpid) {
 			// TODO Auto-generated method stub
 			log.info("switch deleted");
 		}
 	}
 
 	@Override
-	public void applyFlowRule(Collection<FlowRuleExtEntry> flowRules) {
+	public void applyFlowRule(FlowRuleBatchExtRequest flowRules) {
 		// TODO Auto-generated method stub
 		// TODO Auto-generated method stub
-		for (FlowRuleExtEntry flowRule : flowRules) {
-			applyRule(flowRule);
+		IgpDpid dpid = null;
+		Collection<FlowRuleExtEntry> toAdd = flowRules.getBatch();
+		for (FlowRuleExtEntry flowRule : toAdd) {
+			dpid =  IgpDpid.dpid((flowRule.getDeviceId().uri()));
 		}
-		
+		if (dpid == null) {
+			return;
+		}
+		IgpSwitch sw = controller
+				.getSwitch(dpid);
+		sw.sendMsg(flowRules);
 	}
 
 }

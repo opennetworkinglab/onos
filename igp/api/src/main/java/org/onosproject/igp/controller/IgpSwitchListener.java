@@ -25,13 +25,13 @@ public interface IgpSwitchListener {
      * Notify that the switch was added.
      * @param dpid the switch where the event occurred
      */
-    public void switchAdded(int dpid);
+    public void switchAdded(IgpDpid dpid);
 
     /**
      * Notify that the switch was removed.
      * @param dpid the switch where the event occurred.
      */
-    public void switchRemoved(int dpid);
+    public void switchRemoved(IgpDpid dpid);
 
 
 }

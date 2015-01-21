@@ -15,6 +15,8 @@
  */
 package org.onosproject.igp.controller.driver;
 
+import org.onosproject.igp.controller.IgpDpid;
+
 /**
  * Switch factory which returns concrete switch objects for the
  * physical openflow switch in use.
@@ -30,5 +32,5 @@ public interface IgpSwitchDriverFactory {
      * @param ofv the OF version in use
      * @return the openflow switch representation.
      */
-    public IgpSwitchDriver getOFSwitchImpl(int dpid);
+    public IgpSwitchDriver getOFSwitchImpl(IgpDpid dpid);
 }

@@ -17,8 +17,10 @@
 package org.onosproject.igp.controller.driver;
 
 import java.util.List;
+
 import org.jboss.netty.channel.Channel;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.igp.controller.IgpDpid;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ public abstract class AbstractIgpSwitch implements IgpSwitchDriver {
     protected Channel channel;
 
     private boolean connected;
-    private final int dpid;
+    private final IgpDpid dpid;
     private IgpAgent agent;
 
 
@@ -41,7 +43,7 @@ public abstract class AbstractIgpSwitch implements IgpSwitchDriver {
      * Given a dpid build this switch.
      * @param dp the dpid
      */
-    protected AbstractIgpSwitch(int dp) {
+    protected AbstractIgpSwitch(IgpDpid dp) {
         this.dpid = dp;
     }
 
@@ -55,20 +57,20 @@ public abstract class AbstractIgpSwitch implements IgpSwitchDriver {
     }
 
     @Override
-    public final void sendMsg(FlowRuleExtendEntry m) {
+    public final void sendMsg(FlowRuleBatchExtRequest m) {
         this.write(m);
     }
 
     @Override
-    public final void sendMsg(List<FlowRuleExtendEntry> msgs) {
+    public final void sendMsg(List<FlowRuleBatchExtRequest> msgs) {
         this.write(msgs);
     }
 
     @Override
-    public abstract void write(FlowRuleExtendEntry msg);
+    public abstract void write(FlowRuleBatchExtRequest msg);
 
     @Override
-    public abstract void write(List<FlowRuleExtendEntry> msgs);
+    public abstract void write(List<FlowRuleBatchExtRequest> msgs);
 
     @Override
     public final boolean isConnected() {

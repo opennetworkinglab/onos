@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.handler.codec.string.StringDecoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
@@ -55,7 +56,7 @@ public class IgpPipelineFactory
         IgpChannelHandler handler = new IgpChannelHandler(controller);
 
         ChannelPipeline pipeline = Channels.pipeline();
-        pipeline.addLast("ofmessagedecoder", new IgpMessageDecoder());
+        pipeline.addLast("ofmessagedecoder", new StringDecoder());
         pipeline.addLast("ofmessageencoder", new IgpMessageEncoder());
         pipeline.addLast("idle", idleHandler);
         pipeline.addLast("timeout", readTimeoutHandler);

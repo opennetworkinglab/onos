@@ -15,10 +15,11 @@
  */
 package org.onosproject.igp.drivers;
 
+import org.onosproject.igp.controller.IgpDpid;
 import org.onosproject.igp.controller.driver.AbstractIgpSwitch;
 import org.onosproject.igp.controller.driver.IgpSwitchDriver;
 import org.onosproject.igp.controller.driver.IgpSwitchDriverFactory;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +42,15 @@ public final class DriverManager implements IgpSwitchDriverFactory {
      *         the given description. Otherwise it returns OFSwitchImplBase
      */
     @Override
-    public AbstractIgpSwitch getOFSwitchImpl(int dpid){
+    public AbstractIgpSwitch getOFSwitchImpl(IgpDpid dpid){
         return new AbstractIgpSwitch(dpid) {
             @Override
-            public void write(List<FlowRuleExtendEntry> msgs) {
+            public void write(List<FlowRuleBatchExtRequest> msgs) {
                 channel.write(msgs);
             }
 
             @Override
-            public void write(FlowRuleExtendEntry msg) {
+            public void write(FlowRuleBatchExtRequest msg) {
                 channel.write(Collections.singletonList(msg));
 
             }
@@ -63,7 +64,7 @@ public final class DriverManager implements IgpSwitchDriverFactory {
     	log.info("IGP Driver");
     }
 
-    public static IgpSwitchDriver getSwitch(int dpid) {
+    public static IgpSwitchDriver getSwitch(IgpDpid dpid) {
         return new DriverManager().getOFSwitchImpl(dpid);
     }
 

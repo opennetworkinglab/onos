@@ -15,7 +15,7 @@
  */
 package org.onosproject.igp.controller;
 
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 
 
 /**
@@ -36,7 +36,7 @@ public interface IGPController {
      * @param dpid the switch to fetch
      * @return the interface to this switch
      */
-    public IgpSwitch getSwitch(int dpid);
+    public IgpSwitch getSwitch(IgpDpid dpid);
 
     /**
      * Register a listener for meta events that occur to OF
@@ -52,6 +52,6 @@ public interface IGPController {
      */
     public void removeListener(IgpSwitchListener listener);
 
-	void write(int dpid, FlowRuleExtendEntry msg);
+	void write(IgpDpid dpid, FlowRuleBatchExtRequest msg);
 
 }

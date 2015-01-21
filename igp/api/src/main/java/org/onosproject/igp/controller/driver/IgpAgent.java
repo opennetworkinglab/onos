@@ -15,6 +15,7 @@
  */
 package org.onosproject.igp.controller.driver;
 
+import org.onosproject.igp.controller.IgpDpid;
 import org.onosproject.igp.controller.IgpSwitch;
 
 /**
@@ -31,7 +32,7 @@ public interface IgpAgent {
      * @param sw the actual switch object.
      * @return true if added, false otherwise.
      */
-    public boolean addConnectedSwitch(int dpid, IgpSwitch sw);
+    public boolean addConnectedSwitch(IgpDpid dpid, IgpSwitch sw);
 
     /**
      * Clear all state in controller switch maps for a switch that has
@@ -39,6 +40,6 @@ public interface IgpAgent {
      * that switch from the global repository. Notify switch listeners.
      * @param dpid the dpid to remove.
      */
-    public void removeConnectedSwitch(int dpid);
+    public void removeConnectedSwitch(IgpDpid dpid);
 
 }

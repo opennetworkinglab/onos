@@ -25,8 +25,9 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
+import org.onosproject.igp.controller.IgpDpid;
 import org.onosproject.igp.controller.driver.IgpSwitchDriver;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ class IgpChannelHandler extends IdleStateAwareChannelHandler {
 			.getLogger(IgpChannelHandler.class);
 	private final Controller controller;
 	private IgpSwitchDriver sw;
-	private int thisdpid; // channelHandler cached value of connected switch id
+	private long thisdpid; // channelHandler cached value of connected switch id
 	private Channel channel;
 
 	/**
@@ -94,21 +95,22 @@ class IgpChannelHandler extends IdleStateAwareChannelHandler {
 			throws Exception {
 		if (e.getMessage() instanceof List) {
 			@SuppressWarnings("unchecked")
-			List<FlowRuleExtendEntry> msglist = (List<FlowRuleExtendEntry>) e
+			List<FlowRuleBatchExtRequest> msglist = (List<FlowRuleBatchExtRequest>) e
 					.getMessage();
 
-			for (FlowRuleExtendEntry ofm : msglist) {
+			for (FlowRuleBatchExtRequest ofm : msglist) {
 				// Do the actual packet processing
 				processIgpMessage(this, ofm);
 			}
 		} else {
-			processIgpMessage(this, (FlowRuleExtendEntry) e.getMessage());
+			processIgpMessage(this, (FlowRuleBatchExtRequest) e.getMessage());
 		}
 	}
 
-	void processIgpMessage(IgpChannelHandler h, FlowRuleExtendEntry m)
+	void processIgpMessage(IgpChannelHandler h, FlowRuleBatchExtRequest m)
 			throws IOException {
-		h.sw = h.controller.getOFSwitchInstance(h.thisdpid);
+		IgpDpid dpid = new IgpDpid(h.thisdpid);
+		h.sw = h.controller.getOFSwitchInstance(dpid);
 		h.sw.setConnected(true);
 		h.sw.setChannel(h.channel);
 		h.sw.connectSwitch();

@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.jboss.netty.channel.Channel;
 import org.onosproject.igp.controller.IgpSwitch;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 
 /**
  * Represents the driver side of an OpenFlow switch.
@@ -59,7 +59,7 @@ public interface IgpSwitchDriver extends IgpSwitch {
      *
      * @param msg the message to write
      */
-    public void write(FlowRuleExtendEntry  msg);
+    public void write(FlowRuleBatchExtRequest  msg);
 
     /**
      * Writes to the OFMessage list to the output stream
@@ -67,6 +67,6 @@ public interface IgpSwitchDriver extends IgpSwitch {
      *
      * @param msgs the messages to be written
      */
-    public void write(List<FlowRuleExtendEntry> msgs);
+    public void write(List<FlowRuleBatchExtRequest> msgs);
 }
 

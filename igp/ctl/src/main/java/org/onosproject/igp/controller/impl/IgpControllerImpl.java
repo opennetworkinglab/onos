@@ -23,10 +23,11 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.igp.controller.IGPController;
+import org.onosproject.igp.controller.IgpDpid;
 import org.onosproject.igp.controller.IgpSwitch;
 import org.onosproject.igp.controller.IgpSwitchListener;
 import org.onosproject.igp.controller.driver.IgpAgent;
-import org.onosproject.net.flowextend.FlowRuleExtendEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +62,8 @@ public class IgpControllerImpl implements IGPController {
     }
 
     @Override
-    public IgpSwitch getSwitch(int dpid) {
-    	IgpDpid idpid = new IgpDpid(dpid);
-        return connectedSwitches.get(idpid);
+    public IgpSwitch getSwitch(IgpDpid dpid) {
+        return connectedSwitches.get(dpid);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class IgpControllerImpl implements IGPController {
     }
 
     @Override
-    public void write(int dpid, FlowRuleExtendEntry msg) {
+    public void write(IgpDpid dpid, FlowRuleBatchExtRequest msg) {
         this.getSwitch(dpid).sendMsg(msg);
     }
 
@@ -93,16 +93,15 @@ public class IgpControllerImpl implements IGPController {
         private final Logger log = LoggerFactory.getLogger(IgpSwitchAgent.class);
 
         @Override
-        public boolean addConnectedSwitch(int dpid, IgpSwitch sw) {
+        public boolean addConnectedSwitch(IgpDpid dpid, IgpSwitch sw) {
 
-        	IgpDpid idpid = new IgpDpid(dpid);
-            if (connectedSwitches.get(idpid) != null) {
+            if (connectedSwitches.get(dpid) != null) {
                 log.error("Trying to add connectedSwitch but found a previous "
                         + "value for dpid: {}", dpid);
                 return false;
             } else {
                 log.info("Added switch {}", dpid);
-                connectedSwitches.put(idpid, sw);
+                connectedSwitches.put(dpid, sw);
                 for (IgpSwitchListener l : igpSwitchListener) {
                     l.switchAdded(dpid);
                 }
@@ -111,31 +110,13 @@ public class IgpControllerImpl implements IGPController {
         }
 
         @Override
-        public void removeConnectedSwitch(int dpid) {
-        	IgpDpid idpid = new IgpDpid(dpid);
-            connectedSwitches.remove(idpid);
+        public void removeConnectedSwitch(IgpDpid dpid) {
+            connectedSwitches.remove(dpid);
             for (IgpSwitchListener l : igpSwitchListener) {
                 log.warn("removal for {}", dpid);
                 l.switchRemoved(dpid);
             }
         }
     }
-    
-    public class IgpDpid {
-    	int dpid;
-
-		public IgpDpid(int dpid) {
-			super();
-			this.dpid = dpid;
-		}
-
-		public int getDpid() {
-			return dpid;
-		}
-
-		public void setDpid(int dpid) {
-			this.dpid = dpid;
-		}
-    }
-
+ 
 }

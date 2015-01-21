@@ -30,6 +30,7 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.onosproject.igp.controller.IgpDpid;
 import org.onosproject.igp.controller.driver.IgpAgent;
 import org.onosproject.igp.controller.driver.IgpSwitchDriver;
 import org.onosproject.igp.drivers.DriverManager;
@@ -164,7 +165,7 @@ public class Controller {
      * @param ofv OpenFlow version
      * @return switch instance
      */
-    protected IgpSwitchDriver getOFSwitchInstance(int dpid) {
+    protected IgpSwitchDriver getOFSwitchInstance(IgpDpid dpid) {
     	IgpSwitchDriver sw = DriverManager.getSwitch(dpid);
         sw.setAgent(agent);
         return sw;

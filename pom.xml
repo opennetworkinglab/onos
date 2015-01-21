@@ -317,6 +317,12 @@
 
             <dependency>
                 <groupId>org.onosproject</groupId>
+                <artifactId>onos-igp-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-thirdparty</artifactId>
                 <version>${project.version}</version>
             </dependency>
