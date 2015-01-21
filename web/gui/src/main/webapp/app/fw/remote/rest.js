@@ -22,9 +22,6 @@
 
     var $log;
 
-    var urlSuffix = '/onos/ui/rs/';
-
-
 
     // TODO: remove temporary test code
     var fakeData = {
@@ -119,7 +116,7 @@
                     callback(getFakeData(url));
                     return;
                 }
-                var fullUrl = ufs.urlPrefix() + urlSuffix + url;
+                var fullUrl = ufs.rsUrl(url);
 
                 $http.get(fullUrl).then(function (response) {
                     // success

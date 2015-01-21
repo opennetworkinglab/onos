@@ -20,14 +20,16 @@
 describe('factory: fw/remote/urlfn.js', function () {
     var $log, $loc, ufs, fs;
 
+    var protocol, host, port;
+
     beforeEach(module('onosRemote'));
 
     beforeEach(module(function($provide) {
        $provide.factory('$location', function (){
         return {
-            protocol: function () { return 'http'; },
-            host: function () { return 'foo'; },
-            port: function () { return '80'; }
+            protocol: function () { return protocol; },
+            host: function () { return host; },
+            port: function () { return port; }
         };
        })
     }));
@@ -39,17 +41,39 @@ describe('factory: fw/remote/urlfn.js', function () {
         fs = FnService;
     }));
 
+    function setLoc(prot, h, p) {
+        protocol = prot;
+        host = h;
+        port = p;
+    }
+
     it('should define UrlFnService', function () {
         expect(ufs).toBeDefined();
     });
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ufs, [
-            'urlPrefix'
+            'rsUrl', 'wsUrl'
         ])).toBeTruthy();
     });
 
-    it('should build the url prefix', function () {
-       expect(ufs.urlPrefix()).toEqual('http://foo:80');
+    it('should return the correct (http) RS url', function () {
+        setLoc('http', 'foo', '123');
+        expect(ufs.rsUrl('path')).toEqual('http://foo:123/onos/ui/rs/path');
+    });
+
+    it('should return the correct (https) RS url', function () {
+        setLoc('https', 'foo', '123');
+        expect(ufs.rsUrl('path')).toEqual('https://foo:123/onos/ui/rs/path');
+    });
+
+    it('should return the correct (ws) WS url', function () {
+        setLoc('http', 'foo', '123');
+        expect(ufs.wsUrl('path')).toEqual('ws://foo:123/onos/ui/ws/path');
+    });
+
+    it('should return the correct (wss) WS url', function () {
+        setLoc('https', 'foo', '123');
+        expect(ufs.wsUrl('path')).toEqual('wss://foo:123/onos/ui/ws/path');
     });
 });

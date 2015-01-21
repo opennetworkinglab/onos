@@ -20,15 +20,43 @@
 (function () {
     'use strict';
 
+    var uiContext = '/onos/ui/',
+        rsSuffix = uiContext + 'rs/',
+        wsSuffix = uiContext + 'ws/';
+
     angular.module('onosRemote')
         .factory('UrlFnService', ['$location', function ($loc) {
 
-            function urlPrefix() {
-                return $loc.protocol() + '://' + $loc.host() + ':' + $loc.port();
+            function matchSecure(protocol) {
+                var p = $loc.protocol(),
+                    secure = (p === 'https' || p === 'wss');
+                return secure ? protocol + 's' : protocol;
+            }
+
+            function urlBase(protocol) {
+                return matchSecure(protocol) + '://' +
+                    $loc.host() + ':' + $loc.port();
+            }
+
+            function httpPrefix(suffix) {
+                return urlBase('http') + suffix;
+            }
+
+            function wsPrefix(suffix) {
+                return urlBase('ws') + suffix;
+            }
+
+            function rsUrl(path) {
+                return httpPrefix(rsSuffix) + path;
+            }
+
+            function wsUrl(path) {
+                return wsPrefix(wsSuffix) + path;
             }
 
             return {
-               urlPrefix: urlPrefix
+                rsUrl: rsUrl,
+                wsUrl: wsUrl
             };
         }]);
 

@@ -23,11 +23,12 @@
 
     var moduleDependencies = [
         'onosUtil',
-        'onosSvg'
+        'onosSvg',
+        'onosRemote'
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms;
+    var $log, ks, zs, gs, ms, wss;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, map;
@@ -128,6 +129,15 @@
         //showCallibrationPoints();
     }
 
+    // --- Web Socket Connection -----------------------------------------
+
+    function setUpWebSocket() {
+        var wsHandle = wss.createWebSocket('topology');
+        $log.log('created web socket', wsHandle);
+        // TODO: complete implementation
+
+    }
+
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
@@ -135,14 +145,16 @@
         .controller('OvTopoCtrl', [
             '$log',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
+            'WebSocketService',
 
-        function (_$log_, _ks_, _zs_, _gs_, _ms_) {
+        function (_$log_, _ks_, _zs_, _gs_, _ms_, _wss_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
+            wss = _wss_;
 
             self.notifyResize = function () {
                 svgResized(svg.style('width'), svg.style('height'));
@@ -156,6 +168,7 @@
             setUpDefs();
             setUpZoom();
             setUpMap();
+            setUpWebSocket();
 
             $log.log('OvTopoCtrl has been created');
         }]);
