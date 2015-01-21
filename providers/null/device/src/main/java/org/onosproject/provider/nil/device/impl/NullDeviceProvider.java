@@ -41,6 +41,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -49,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.toHex;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -74,7 +77,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
 
     //currently hardcoded. will be made configurable via rest/cli.
-    private static final String SCHEME = null;
+    private static final String SCHEME = "null";
     private static final int NUMDEVICES = 10;
     private static final int NUMPORTSPERDEVICE = 10;
 
@@ -142,7 +145,11 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
         @Override
         public void run() {
             if (setup) {
-                advertiseDevices();
+                try {
+                    advertiseDevices();
+                } catch (URISyntaxException e) {
+                    log.warn("URI creation failed during device adverts {}", e.getMessage());
+                }
             } else {
                 removeDevices();
             }
@@ -157,7 +164,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             descriptions.clear();
         }
 
-        private void advertiseDevices() {
+        private void advertiseDevices() throws URISyntaxException {
             DeviceId did;
             ChassisId cid;
 
@@ -165,7 +172,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             int nodeIdHash = (clusterService.getLocalNode().hashCode() % NUMDEVICES) * NUMDEVICES;
 
             for (int i = nodeIdHash; i < nodeIdHash + NUMDEVICES; i++) {
-                did = DeviceId.deviceId(String.format("%s:%d", SCHEME, i));
+                did = DeviceId.deviceId(new URI(SCHEME, toHex(i), null));
                 cid = new ChassisId(i);
                 DeviceDescription desc =
                         new DefaultDeviceDescription(did.uri(), Device.Type.SWITCH,
