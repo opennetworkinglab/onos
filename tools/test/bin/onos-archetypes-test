@@ -6,6 +6,7 @@
 export AROOT=/tmp/foo
 export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -Dversion=1.0.0"
 
+mkdir -p $AROOT
 for an in api bundle cli; do
     cd $AROOT
     rm -fr $AROOT/foo-$an
