@@ -350,7 +350,7 @@ public class HazelcastLinkResourceStore
                     // requested lambda was not available
                     throw new ResourceAllocationException(
                             PositionalParameterStringFormatter.format(
-                                "Unable to allocate lambda for link {} lamdba is {}",
+                                "Unable to allocate lambda for link {} lambda is {}",
                                     link,
                                     lambdaAllocation.lambda().toInt()));
                 }
