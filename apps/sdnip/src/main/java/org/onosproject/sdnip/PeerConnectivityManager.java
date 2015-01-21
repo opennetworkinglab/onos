@@ -21,7 +21,9 @@ import java.util.List;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -164,13 +166,28 @@ public class PeerConnectivityManager {
         IpAddress bgpdPeerAddress = bgpPeer.ipAddress();
         ConnectPoint bgpdPeerConnectPoint = peerInterface.connectPoint();
 
+        if (bgpdAddress.version() != bgpdPeerAddress.version()) {
+            return intents;
+        }
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .build();
 
         TrafficSelector selector;
 
+        byte tcpProtocol;
+        byte icmpProtocol;
+
+        if (bgpdAddress.version() == Ip4Address.VERSION) {
+            tcpProtocol = IPv4.PROTOCOL_TCP;
+            icmpProtocol = IPv4.PROTOCOL_ICMP;
+        } else {
+            tcpProtocol = IPv6.PROTOCOL_TCP;
+            icmpProtocol = IPv6.PROTOCOL_ICMP6;
+        }
+
         // Path from BGP speaker to BGP peer matching destination TCP port 179
-        selector = buildSelector(IPv4.PROTOCOL_TCP,
+        selector = buildSelector(tcpProtocol,
                                  bgpdAddress,
                                  bgpdPeerAddress,
                                  null,
@@ -180,7 +197,7 @@ public class PeerConnectivityManager {
                                bgpdConnectPoint, bgpdPeerConnectPoint));
 
         // Path from BGP speaker to BGP peer matching source TCP port 179
-        selector = buildSelector(IPv4.PROTOCOL_TCP,
+        selector = buildSelector(tcpProtocol,
                                  bgpdAddress,
                                  bgpdPeerAddress,
                                  (short) BgpConstants.BGP_PORT,
@@ -190,7 +207,7 @@ public class PeerConnectivityManager {
                                bgpdConnectPoint, bgpdPeerConnectPoint));
 
         // Path from BGP peer to BGP speaker matching destination TCP port 179
-        selector = buildSelector(IPv4.PROTOCOL_TCP,
+        selector = buildSelector(tcpProtocol,
                                  bgpdPeerAddress,
                                  bgpdAddress,
                                  null,
@@ -200,7 +217,7 @@ public class PeerConnectivityManager {
                                bgpdPeerConnectPoint, bgpdConnectPoint));
 
         // Path from BGP peer to BGP speaker matching source TCP port 179
-        selector = buildSelector(IPv4.PROTOCOL_TCP,
+        selector = buildSelector(tcpProtocol,
                                  bgpdPeerAddress,
                                  bgpdAddress,
                                  (short) BgpConstants.BGP_PORT,
@@ -210,7 +227,7 @@ public class PeerConnectivityManager {
                                bgpdPeerConnectPoint, bgpdConnectPoint));
 
         // ICMP path from BGP speaker to BGP peer
-        selector = buildSelector(IPv4.PROTOCOL_ICMP,
+        selector = buildSelector(icmpProtocol,
                                  bgpdAddress,
                                  bgpdPeerAddress,
                                  null,
@@ -220,7 +237,7 @@ public class PeerConnectivityManager {
                                bgpdConnectPoint, bgpdPeerConnectPoint));
 
         // ICMP path from BGP peer to BGP speaker
-        selector = buildSelector(IPv4.PROTOCOL_ICMP,
+        selector = buildSelector(icmpProtocol,
                                  bgpdPeerAddress,
                                  bgpdAddress,
                                  null,
@@ -245,13 +262,25 @@ public class PeerConnectivityManager {
     private TrafficSelector buildSelector(byte ipProto, IpAddress srcIp,
                                           IpAddress dstIp, Short srcTcpPort,
                                           Short dstTcpPort) {
-        TrafficSelector.Builder builder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(ipProto)
-                .matchIPSrc(IpPrefix.valueOf(srcIp,
-                        IpPrefix.MAX_INET_MASK_LENGTH))
-                .matchIPDst(IpPrefix.valueOf(dstIp,
-                        IpPrefix.MAX_INET_MASK_LENGTH));
+        TrafficSelector.Builder builder = null;
+
+        if (dstIp.version() == Ip4Address.VERSION) {
+            builder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPProtocol(ipProto)
+                    .matchIPSrc(IpPrefix.valueOf(srcIp,
+                            IpPrefix.MAX_INET_MASK_LENGTH))
+                    .matchIPDst(IpPrefix.valueOf(dstIp,
+                            IpPrefix.MAX_INET_MASK_LENGTH));
+        } else {
+            builder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV6)
+                    .matchIPProtocol(ipProto)
+                    .matchIPv6Src(IpPrefix.valueOf(srcIp,
+                            IpPrefix.MAX_INET6_MASK_LENGTH))
+                    .matchIPv6Dst(IpPrefix.valueOf(dstIp,
+                            IpPrefix.MAX_INET6_MASK_LENGTH));
+        }
 
         if (srcTcpPort != null) {
             builder.matchTcpSrc(srcTcpPort);
