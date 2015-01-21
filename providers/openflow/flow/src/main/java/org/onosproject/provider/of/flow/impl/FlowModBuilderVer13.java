@@ -15,11 +15,7 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
+import org.onlab.packet.Ip4Address;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -29,13 +25,12 @@ import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
-import org.onlab.packet.Ip4Address;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -57,6 +52,11 @@ import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Flow mod builder for OpenFlow 1.3+.
@@ -139,8 +139,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     public OFFlowDelete buildFlowDel() {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
-        //OFInstruction writeActions =
-                //factory().instructions().writeActions(actions);
 
         long cookie = flowRule().id().value();
 

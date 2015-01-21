@@ -102,7 +102,6 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
 
         long cookie = flowRule().id().value();
 
-
         OFFlowMod fm = factory().buildFlowModify()
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
@@ -119,7 +118,6 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
     @Override
     public OFFlowDelete buildFlowDel() {
         Match match = buildMatch();
-        List<OFAction> actions = buildActions();
 
         long cookie = flowRule().id().value();
 
@@ -127,7 +125,6 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
