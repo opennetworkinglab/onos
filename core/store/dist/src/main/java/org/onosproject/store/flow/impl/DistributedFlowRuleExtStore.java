@@ -406,10 +406,10 @@ public class DistributedFlowRuleExtStore extends
             serializerPool = KryoNamespace
                     .newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
+                    .register(FlowExtCompletedOperation.class)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(new FlowRuleExtEntrySerializer(),
-                                  FlowRuleExtEntry.class)
-                    .register(FlowExtCompletedOperation.class).build();
+                                  FlowRuleExtEntry.class).build();
         }
         
         

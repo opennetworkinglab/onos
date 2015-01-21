@@ -48,5 +48,11 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
+    <dependency>
+         <!-- FIXME once experimenter gets merged to upstream -->
+         <groupId>org.onosproject</groupId>
+         <artifactId>openflowj</artifactId>
+         <version>${openflowj.version}</version>
+    </dependency>
   </dependencies>
 </project>

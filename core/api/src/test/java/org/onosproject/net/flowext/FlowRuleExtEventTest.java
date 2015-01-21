@@ -56,7 +56,8 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
     @Test
     public void testConstructor() {
         final long time = System.currentTimeMillis();
-        final FlowRuleExtEntry flowRule = new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), null, "of:123456".getBytes());
+        final FlowRuleExtEntry flowRule =
+                new FlowRuleExtEntry(DeviceId.deviceId("of:123456"), null, "of:123456".getBytes());
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_UPDATED, flowRule);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_UPDATED, flowRule, time,

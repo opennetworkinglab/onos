@@ -21,6 +21,7 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.ipran.serializers.impl.HuaweiFlowSerializer;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
 import org.onosproject.net.flowext.FlowRuleExtService;
 import org.onosproject.net.topology.TopologyEvent;
@@ -28,6 +29,7 @@ import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.store.serializers.DecodeTo;
 import org.onosproject.store.serializers.StoreSerializer;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.slf4j.Logger;
 
 import com.google.common.util.concurrent.Futures;
@@ -73,10 +75,10 @@ public class IpranAgent {
     
     @Activate
     protected void activate() {
-        log.info("SDN-IP started");
+        log.info("IpRan started");
 
         appId = coreService.registerApplication(IPRAN_APP);
-
+        flowService.registerSerializer(OFMessage.class, new HuaweiFlowSerializer());
         localControllerNode = clusterService.getLocalNode();
         flowUpdatesQueue = new LinkedBlockingQueue<>();
         ipranConnector = new IpranSession();

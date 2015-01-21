@@ -22,7 +22,6 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flowext.FlowRuleExtService;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFGroupMod;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 /**
  * Lists all flowruleexts.
@@ -42,8 +41,8 @@ public class FlowRuleListCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class); 
         Iterable<Device> devices = deviceService.getDevices();
         for (Device d: devices) {
-                Iterable<OFMessage> ofs = flowRuleService.getOFMessages(d.id());
-        	for (OFMessage msg : ofs) {
+                Iterable<?> ofs = flowRuleService.getExtMessages(d.id());
+        	for (Object msg : ofs) {
         		if (msg instanceof OFFlowMod) {
 	        		OFFlowMod ofMod = (OFFlowMod) msg;
 	        		String matches = "";

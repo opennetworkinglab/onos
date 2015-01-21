@@ -33,6 +33,7 @@
 
     <modules>
         <module>flow</module>
+        <module>device</module>
     </modules>
 
     <dependencies>
