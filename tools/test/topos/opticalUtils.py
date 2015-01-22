@@ -248,11 +248,11 @@ def startOE( net ):
         return False
 
     info ('*** Setting multiple controllers in sys.config...\n' )
-    searchStr = '{controllers,.*$'
+    searchStr = '\[{"Switch.*$'
     ctrlStr = ''
     for index in range(len(net.controllers)):
         ctrlStr += '{"Switch%d-Controller","%s",%d,tcp},' % (index, net.controllers[index].ip, net.controllers[index].port)
-    replaceStr = '{controllers,[%s]},' % ctrlStr[:-1]         # Cut off last comma
+    replaceStr = '[%s]},' % ctrlStr[:-1]         # Cut off last comma
     sedCmd = 'sed -i \'s/%s/%s/\' sys.config' % (searchStr, replaceStr)
     output = quietRun( sedCmd, shell=True )
 
