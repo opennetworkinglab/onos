@@ -560,11 +560,4 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     .toString();
         }
     }
-
-    @Override
-    public void applyRule(byte[] data) {
-        // TODO Auto-generated method stub
-        
-    }
-
 }

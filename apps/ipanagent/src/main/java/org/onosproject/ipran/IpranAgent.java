@@ -21,7 +21,7 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.ipran.serializers.impl.HuaweiFlowSerializer;
+import org.onosproject.ipran.serializers.HuaweiFlowSerializer;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
 import org.onosproject.net.flowext.FlowRuleExtService;
 import org.onosproject.net.topology.TopologyEvent;

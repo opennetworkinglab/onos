@@ -261,7 +261,8 @@ public class DistributedFlowRuleExtStore extends
 					.sendAndReceive(message, replicaInfo.master().get());
 			byte[] bytes = responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 			//make some change about buffer
-			ImmutableList<FlowRuleExtEntry> flows = SERIALIZER.decode(bytes);
+			ImmutableList<FlowRuleExtEntry> flows = ImmutableList.copyOf((Iterable<FlowRuleExtEntry>)
+			                                 SERIALIZER.decode(bytes));
 			//common method to decode to classT
 			Iterable<?> rules = decodeFlowExt(flows);
 			return ImmutableSet.copyOf(rules);

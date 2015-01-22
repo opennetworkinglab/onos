@@ -25,12 +25,11 @@ import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flowext.FlowExtCompletedOperation;
 import org.onosproject.net.flowext.FlowRuleBatchExtEvent;
 import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
+import org.onosproject.net.flowext.FlowRuleExtEvent;
 import org.onosproject.net.flowext.FlowRuleExtListener;
 import org.onosproject.net.flowext.FlowRuleExtProvider;
 import org.onosproject.net.flowext.FlowRuleExtProviderRegistry;
@@ -79,7 +78,7 @@ public class FlowRuleExtManager
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
+    private final AbstractListenerRegistry<FlowRuleExtEvent, FlowRuleExtListener>
             listenerRegistry = new AbstractListenerRegistry<>();
 
     private final FlowRuleExtStoreDelegate delegate = new InternalStoreDelegate();
@@ -100,7 +99,7 @@ public class FlowRuleExtManager
         futureService =
                 Executors.newFixedThreadPool(32, namedThreads("provider-future-listeners-%d"));
         store.setDelegate(delegate);
-        eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
+        eventDispatcher.addSink(FlowRuleExtEvent.class, listenerRegistry);
         log.info("Started");
     }
 
@@ -108,7 +107,7 @@ public class FlowRuleExtManager
     public void deactivate() {
         futureService.shutdownNow();
         store.unsetDelegate(delegate);
-        eventDispatcher.removeSink(FlowRuleEvent.class);
+        eventDispatcher.removeSink(FlowRuleExtEvent.class);
         log.info("Stopped");
     }
 
