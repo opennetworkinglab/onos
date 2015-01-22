@@ -28,12 +28,12 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
 
     @Override
     public Result<V, E> search(Graph<V, E> graph, V src, V dst,
-                               EdgeWeight<V, E> weight) {
+                               EdgeWeight<V, E> weight, int maxPaths) {
         checkArguments(graph, src, dst);
 
         // Use the default result to remember cumulative costs and parent
         // edges to each each respective vertex.
-        DefaultResult result = new DefaultResult(src, dst);
+        DefaultResult result = new DefaultResult(src, dst, maxPaths);
 
         // Cost to reach the source vertex is 0 of course.
         result.updateVertex(src, null, 0.0, false);

@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.topology;
 
-import org.onosproject.net.DeviceId;
-
 /**
  * Representation of an SCC (strongly-connected component) in a network topology.
  */
@@ -44,10 +42,10 @@ public interface TopologyCluster {
     int linkCount();
 
     /**
-     * Returns the device identifier of the cluster root device.
+     * Returns the cluster root vertex.
      *
-     * @return cluster root device identifier
+     * @return cluster root vertex
      */
-    DeviceId root();
+    TopologyVertex root();
 
 }

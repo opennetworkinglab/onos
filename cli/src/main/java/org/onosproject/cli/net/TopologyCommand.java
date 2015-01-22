@@ -31,7 +31,7 @@ import org.onosproject.net.topology.TopologyService;
 public class TopologyCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "time=%s, devices=%d, links=%d, clusters=%d, paths=%d";
+            "time=%s, devices=%d, links=%d, clusters=%d";
 
     @Option(name = "-r", aliases = "--recompute", description = "Trigger topology re-computation",
             required = false, multiValued = false)
@@ -59,11 +59,10 @@ public class TopologyCommand extends AbstractShellCommand {
                     .put("time", topology.time())
                     .put("deviceCount", topology.deviceCount())
                     .put("linkCount", topology.linkCount())
-                    .put("clusterCount", topology.clusterCount())
-                    .put("pathCount", topology.pathCount()));
+                    .put("clusterCount", topology.clusterCount()));
         } else {
             print(FMT, topology.time(), topology.deviceCount(), topology.linkCount(),
-                  topology.clusterCount(), topology.pathCount());
+                  topology.clusterCount());
         }
     }
 

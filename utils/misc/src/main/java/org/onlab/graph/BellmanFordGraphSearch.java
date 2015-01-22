@@ -24,11 +24,11 @@ public class BellmanFordGraphSearch<V extends Vertex, E extends Edge<V>>
 
     @Override
     public Result<V, E> search(Graph<V, E> graph, V src, V dst,
-                               EdgeWeight<V, E> weight) {
+                               EdgeWeight<V, E> weight, int maxPaths) {
         checkArguments(graph, src, dst);
 
         // Prepare the graph search result.
-        DefaultResult result = new DefaultResult(src, dst);
+        DefaultResult result = new DefaultResult(src, dst, maxPaths);
 
         // The source vertex has cost 0, of course.
         result.updateVertex(src, null, 0.0, true);

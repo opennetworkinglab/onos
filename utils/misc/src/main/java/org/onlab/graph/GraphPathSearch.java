@@ -26,6 +26,8 @@ import java.util.Set;
  */
 public interface GraphPathSearch<V extends Vertex, E extends Edge<V>> {
 
+    public static int ALL_PATHS = -1;
+
     /**
      * Abstraction of a path search result.
      */
@@ -68,16 +70,18 @@ public interface GraphPathSearch<V extends Vertex, E extends Edge<V>> {
     }
 
     /**
-     * Searches the specified graph.
+     * Searches the specified graph for paths between vertices.
      *
-     * @param graph  graph to be searched
-     * @param src    optional source vertex
-     * @param dst    optional destination vertex; if null paths to all vertex
-     *               destinations will be searched
-     * @param weight optional edge-weight; if null cost of each edge will be
-     *               assumed to be 1.0
+     * @param graph    graph to be searched
+     * @param src      optional source vertex
+     * @param dst      optional destination vertex; if null paths to all vertex
+     *                 destinations will be searched
+     * @param weight   optional edge-weight; if null cost of each edge will be
+     *                 assumed to be 1.0
+     * @param maxPaths limit on number of paths; {@link GraphPathSearch#ALL_PATHS} if no limit
      * @return search results
      */
-    Result<V, E> search(Graph<V, E> graph, V src, V dst, EdgeWeight<V, E> weight);
+    Result<V, E> search(Graph<V, E> graph, V src, V dst,
+                        EdgeWeight<V, E> weight, int maxPaths);
 
 }

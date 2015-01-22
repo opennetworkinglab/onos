@@ -36,19 +36,19 @@ public abstract class AbstractGraphPathSearchTest extends GraphTest {
     public void noSuchSourceArgument() {
         graphSearch().search(new AdjacencyListsGraph<>(of(B, C),
                                                        of(new TestEdge(B, C, 1))),
-                             A, H, weight);
+                             A, H, weight, 1);
     }
 
     @Test(expected = NullPointerException.class)
     public void nullGraphArgument() {
-        graphSearch().search(null, A, H, weight);
+        graphSearch().search(null, A, H, weight, 1);
     }
 
     @Test(expected = NullPointerException.class)
     public void nullSourceArgument() {
         graphSearch().search(new AdjacencyListsGraph<>(of(B, C),
                                                        of(new TestEdge(B, C, 1))),
-                             null, H, weight);
+                             null, H, weight, 1);
     }
 
     @Test

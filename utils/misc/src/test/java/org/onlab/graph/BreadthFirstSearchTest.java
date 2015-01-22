@@ -20,6 +20,7 @@ import org.junit.Test;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 
 /**
  * Test of the BFS and similar path search algorithms.
@@ -47,7 +48,8 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
 
         GraphPathSearch<TestVertex, TestEdge> search = graphSearch();
-        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, H, weight).paths();
+        Set<Path<TestVertex, TestEdge>> paths =
+                search.search(graph, A, H, weight, ALL_PATHS).paths();
         assertEquals("incorrect paths count", 1, paths.size());
 
         Path p = paths.iterator().next();
@@ -56,7 +58,7 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
         assertEquals("incorrect path length", pathLength, p.edges().size());
         assertEquals("incorrect path cost", pathCost, p.cost(), 0.1);
 
-        paths = search.search(graph, A, null, weight).paths();
+        paths = search.search(graph, A, null, weight, ALL_PATHS).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", pathCount, paths.size());
     }
@@ -68,10 +70,27 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
                                  EdgeWeight<TestVertex, TestEdge> weight,
                                  int pathCount, double pathCost) {
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                search.search(graph, src, dst, weight);
+                search.search(graph, src, dst, weight, ALL_PATHS);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         printPaths(paths);
         assertEquals("incorrect paths count", pathCount, paths.size());
+        if (pathCount > 0) {
+            Path<TestVertex, TestEdge> path = paths.iterator().next();
+            assertEquals("incorrect path cost", pathCost, path.cost(), 0.1);
+        }
+    }
+
+    // Executes the single-path search and validates its results.
+    protected void executeSinglePathSearch(GraphPathSearch<TestVertex, TestEdge> search,
+                                           Graph<TestVertex, TestEdge> graph,
+                                           TestVertex src, TestVertex dst,
+                                           EdgeWeight<TestVertex, TestEdge> weight,
+                                           int pathCount, double pathCost) {
+        GraphPathSearch.Result<TestVertex, TestEdge> result =
+                search.search(graph, src, dst, weight, 1);
+        Set<Path<TestVertex, TestEdge>> paths = result.paths();
+        printPaths(paths);
+        assertEquals("incorrect paths count", Math.min(pathCount, 1), paths.size());
         if (pathCount > 0) {
             Path<TestVertex, TestEdge> path = paths.iterator().next();
             assertEquals("incorrect path cost", pathCost, path.cost(), 0.1);

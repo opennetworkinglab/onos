@@ -65,17 +65,31 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
         protected final Set<Path<V, E>> paths = new HashSet<>();
         protected final Map<V, Double> costs = new HashMap<>();
         protected final Map<V, Set<E>> parents = new HashMap<>();
+        protected final int maxPaths;
 
         /**
-         * Creates the result of path search.
+         * Creates the result of a single-path search.
          *
          * @param src path source
          * @param dst optional path destination
          */
         public DefaultResult(V src, V dst) {
+            this(src, dst, 1);
+        }
+
+        /**
+         * Creates the result of path search.
+         *
+         * @param src      path source
+         * @param dst      optional path destination
+         * @param maxPaths optional limit of number of paths;
+         *                 {@link GraphPathSearch#ALL_PATHS} if no limit
+         */
+        public DefaultResult(V src, V dst, int maxPaths) {
             checkNotNull(src, "Source cannot be null");
             this.src = src;
             this.dst = dst;
+            this.maxPaths = maxPaths;
         }
 
         @Override
@@ -126,7 +140,8 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
 
         /**
          * Updates the cost of the vertex using its existing cost plus the
-         * cost to traverse the specified edge.
+         * cost to traverse the specified edge. If the search is in single
+         * path mode, only one path will be accrued.
          *
          * @param vertex  vertex to update
          * @param edge    edge through which vertex is reached
@@ -147,7 +162,9 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
                 if (replace) {
                     edges.clear();
                 }
-                edges.add(edge);
+                if (maxPaths == ALL_PATHS || edges.size() < maxPaths) {
+                    edges.add(edge);
+                }
             }
         }
 
@@ -203,7 +220,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
             for (V v : destinations) {
                 // Ignore the source, if it is among the destinations.
                 if (!v.equals(src)) {
-                    buildAllPaths(this, src, v);
+                    buildAllPaths(this, src, v, maxPaths);
                 }
             }
         }
@@ -215,18 +232,21 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
      * graph search result by applying breadth-first search through the parent
      * edges and vertex costs.
      *
-     * @param result graph search result
-     * @param src    source vertex
-     * @param dst    destination vertex
+     * @param result   graph search result
+     * @param src      source vertex
+     * @param dst      destination vertex
+     * @param maxPaths limit on the number of paths built;
+     *                 {@link GraphPathSearch#ALL_PATHS} if no limit
      */
-    private void buildAllPaths(DefaultResult result, V src, V dst) {
+    private void buildAllPaths(DefaultResult result, V src, V dst, int maxPaths) {
         DefaultMutablePath<V, E> basePath = new DefaultMutablePath<>();
         basePath.setCost(result.cost(dst));
 
         Set<DefaultMutablePath<V, E>> pendingPaths = new HashSet<>();
         pendingPaths.add(basePath);
 
-        while (!pendingPaths.isEmpty()) {
+        while (!pendingPaths.isEmpty() &&
+                (maxPaths == ALL_PATHS || result.paths.size() < maxPaths)) {
             Set<DefaultMutablePath<V, E>> frontier = new HashSet<>();
 
             for (DefaultMutablePath<V, E> path : pendingPaths) {

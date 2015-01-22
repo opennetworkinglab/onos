@@ -17,6 +17,7 @@ package org.onosproject.store.trivial.impl;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.ChassisId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultLink;
@@ -31,8 +32,6 @@ import org.onosproject.net.topology.DefaultGraphDescription;
 import org.onosproject.net.topology.GraphDescription;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.TopologyCluster;
-import org.onosproject.net.topology.TopologyEdge;
-import org.onlab.packet.ChassisId;
 
 import java.util.Set;
 
@@ -57,13 +56,9 @@ public class DefaultTopologyTest {
     public static final PortNumber P1 = portNumber(1);
     public static final PortNumber P2 = portNumber(2);
 
-    public static final LinkWeight WEIGHT = new LinkWeight() {
-        @Override
-        public double weight(TopologyEdge edge) {
-            return edge.src().deviceId().equals(D4) ||
-                    edge.dst().deviceId().equals(D4) ? 2.0 : 1.0;
-        }
-    };
+    public static final LinkWeight WEIGHT = edge ->
+            edge.src().deviceId().equals(D4) || edge.dst().deviceId().equals(D4)
+                    ? 2.0 : 1.0;
 
     private DefaultTopology dt;
 

@@ -55,16 +55,16 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
                                              new TestEdge(C, D, 1),
                                              new TestEdge(D, C, 1)));
         GraphPathSearch<TestVertex, TestEdge> gs = graphSearch();
-        Set<Path<TestVertex, TestEdge>> paths = gs.search(graph, A, B, weight).paths();
+        Set<Path<TestVertex, TestEdge>> paths = gs.search(graph, A, B, weight, 1).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", 1, paths.size());
         assertEquals("incorrect path cost", 1.0, paths.iterator().next().cost(), 0.1);
 
-        paths = gs.search(graph, A, D, weight).paths();
+        paths = gs.search(graph, A, D, weight, 1).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", 0, paths.size());
 
-        paths = gs.search(graph, A, null, weight).paths();
+        paths = gs.search(graph, A, null, weight, 1).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", 1, paths.size());
         assertEquals("incorrect path cost", 1.0, paths.iterator().next().cost(), 0.1);
@@ -78,6 +78,7 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
                                              new TestEdge(B, D, 1),
                                              new TestEdge(C, D, 1)));
         executeSearch(graphSearch(), graph, A, D, weight, 2, 2.0);
+        executeSinglePathSearch(graphSearch(), graph, A, D, weight, 1, 2.0);
     }
 
     @Test
@@ -93,6 +94,7 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
                                              new TestEdge(F, G, 1),
                                              new TestEdge(A, G, 4)));
         executeSearch(graphSearch(), graph, A, G, weight, 5, 4.0);
+        executeSinglePathSearch(graphSearch(), graph, A, G, weight, 1, 4.0);
     }
 
     @Test
@@ -106,6 +108,7 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
                                              new TestEdge(F, G, 1), new TestEdge(F, H, 1),
                                              new TestEdge(A, E, 3), new TestEdge(B, D, 1)));
         executeSearch(graphSearch(), graph, A, E, weight, 3, 3.0);
+        executeSinglePathSearch(graphSearch(), graph, A, E, weight, 1, 3.0);
     }
 
     @Test
@@ -123,6 +126,7 @@ public class DijkstraGraphSearchTest extends BreadthFirstSearchTest {
                                              new TestEdge(G, A, -5),
                                              new TestEdge(A, G, 4)));
         executeSearch(graphSearch(), graph, A, G, weight, 3, 4.0);
+        executeSinglePathSearch(graphSearch(), graph, A, G, weight, 1, 4.0);
     }
 
     @Test

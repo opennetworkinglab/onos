@@ -20,7 +20,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-
 import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
@@ -51,11 +50,13 @@ import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.collect.ImmutableSetMultimap.Builder;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.Link.State.INACTIVE;
 import static org.onosproject.net.Link.Type.INDIRECT;
 
+// FIXME: Move to onos-core-common when ready
 /**
  * Default implementation of the topology descriptor. This carries the
  * backing topology data.
@@ -71,10 +72,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private final long computeCost;
     private final TopologyGraph graph;
 
+    private final LinkWeight weight;
     private final Supplier<SCCResult<TopologyVertex, TopologyEdge>> clusterResults;
-    private final Supplier<ImmutableMap<DeviceId, Result<TopologyVertex, TopologyEdge>>> results;
-    private final Supplier<ImmutableSetMultimap<PathKey, Path>> paths;
-
     private final Supplier<ImmutableMap<ClusterId, TopologyCluster>> clusters;
     private final Supplier<ImmutableSet<ConnectPoint>> infrastructurePoints;
     private final Supplier<ImmutableSetMultimap<ClusterId, ConnectPoint>> broadcastSets;
@@ -95,15 +94,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
         this.graph = new DefaultTopologyGraph(description.vertexes(),
                                               description.edges());
 
-
-        this.results = Suppliers.memoize(() -> searchForShortestPaths());
-        this.paths = Suppliers.memoize(() -> buildPaths());
-
         this.clusterResults = Suppliers.memoize(() -> searchForClusters());
         this.clusters = Suppliers.memoize(() -> buildTopologyClusters());
 
         this.clusterIndexes = Suppliers.memoize(() -> buildIndexes());
 
+        this.weight = new HopCountLinkWeight(graph.getVertexes().size());
         this.broadcastSets = Suppliers.memoize(() -> buildBroadcastSets());
         this.infrastructurePoints = Suppliers.memoize(() -> findInfrastructurePoints());
         this.computeCost = Math.max(0, System.nanoTime() - time);
@@ -132,11 +128,6 @@ public class DefaultTopology extends AbstractModel implements Topology {
     @Override
     public int linkCount() {
         return graph.getEdges().size();
-    }
-
-    @Override
-    public int pathCount() {
-        return paths.get().size();
     }
 
     private ImmutableMap<DeviceId, TopologyCluster> clustersByDevice() {
@@ -262,7 +253,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest paths
      */
     Set<Path> getPaths(DeviceId src, DeviceId dst) {
-        return paths.get().get(new PathKey(src, dst));
+        return getPaths(src, dst, null);
     }
 
     /**
@@ -284,7 +275,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                DIJKSTRA.search(graph, srcV, dstV, weight);
+                DIJKSTRA.search(graph, srcV, dstV, weight, ALL_PATHS);
         ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             builder.add(networkPath(path));
@@ -292,31 +283,6 @@ public class DefaultTopology extends AbstractModel implements Topology {
         return builder.build();
     }
 
-
-    // Searches the graph for all shortest paths and returns the search results.
-    private ImmutableMap<DeviceId, Result<TopologyVertex, TopologyEdge>> searchForShortestPaths() {
-        ImmutableMap.Builder<DeviceId, Result<TopologyVertex, TopologyEdge>> builder = ImmutableMap.builder();
-
-        // Search graph paths for each source to all destinations.
-        LinkWeight weight = new HopCountLinkWeight(graph.getVertexes().size());
-        for (TopologyVertex src : graph.getVertexes()) {
-            builder.put(src.deviceId(), DIJKSTRA.search(graph, src, null, weight));
-        }
-        return builder.build();
-    }
-
-    // Builds network paths from the graph path search results
-    private ImmutableSetMultimap<PathKey, Path> buildPaths() {
-        Builder<PathKey, Path> builder = ImmutableSetMultimap.builder();
-        for (DeviceId deviceId : results.get().keySet()) {
-            Result<TopologyVertex, TopologyEdge> result = results.get().get(deviceId);
-            for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
-                builder.put(new PathKey(path.src().deviceId(), path.dst().deviceId()),
-                            networkPath(path));
-            }
-        }
-        return builder.build();
-    }
 
     // Converts graph path to a network path with the same cost.
     private Path networkPath(org.onlab.graph.Path<TopologyVertex, TopologyEdge> path) {
@@ -337,23 +303,21 @@ public class DefaultTopology extends AbstractModel implements Topology {
     // Builds the topology clusters and returns the id-cluster bindings.
     private ImmutableMap<ClusterId, TopologyCluster> buildTopologyClusters() {
         ImmutableMap.Builder<ClusterId, TopologyCluster> clusterBuilder = ImmutableMap.builder();
-        SCCResult<TopologyVertex, TopologyEdge> result =
-                TARJAN.search(graph, new NoIndirectLinksWeight());
-
+        SCCResult<TopologyVertex, TopologyEdge> results = clusterResults.get();
         // Extract both vertexes and edges from the results; the lists form
         // pairs along the same index.
-        List<Set<TopologyVertex>> clusterVertexes = result.clusterVertexes();
-        List<Set<TopologyEdge>> clusterEdges = result.clusterEdges();
+        List<Set<TopologyVertex>> clusterVertexes = results.clusterVertexes();
+        List<Set<TopologyEdge>> clusterEdges = results.clusterEdges();
 
         // Scan over the lists and create a cluster from the results.
-        for (int i = 0, n = result.clusterCount(); i < n; i++) {
+        for (int i = 0, n = results.clusterCount(); i < n; i++) {
             Set<TopologyVertex> vertexSet = clusterVertexes.get(i);
             Set<TopologyEdge> edgeSet = clusterEdges.get(i);
 
             ClusterId cid = ClusterId.clusterId(i);
             DefaultTopologyCluster cluster =
                     new DefaultTopologyCluster(cid, vertexSet.size(), edgeSet.size(),
-                                               findRoot(vertexSet).deviceId());
+                                               findRoot(vertexSet));
             clusterBuilder.put(cid, cluster);
         }
         return clusterBuilder.build();
@@ -388,7 +352,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private void addClusterBroadcastSet(TopologyCluster cluster,
                                         Builder<ClusterId, ConnectPoint> builder) {
         // Use the graph root search results to build the broadcast set.
-        Result<TopologyVertex, TopologyEdge> result = results.get().get(cluster.root());
+        Result<TopologyVertex, TopologyEdge> result =
+                DIJKSTRA.search(graph, cluster.root(), null, weight, 1);
         for (Map.Entry<TopologyVertex, Set<TopologyEdge>> entry : result.parents().entrySet()) {
             TopologyVertex vertex = entry.getKey();
 
@@ -498,7 +463,6 @@ public class DefaultTopology extends AbstractModel implements Topology {
                 .add("clusters", clusterCount())
                 .add("devices", deviceCount())
                 .add("links", linkCount())
-                .add("pathCount", pathCount())
                 .toString();
     }
 }

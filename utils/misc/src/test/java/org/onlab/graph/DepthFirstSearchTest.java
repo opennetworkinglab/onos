@@ -22,6 +22,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.graph.DepthFirstSearch.EdgeType;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 
 /**
  * Test of the DFS algorithm.
@@ -52,7 +53,7 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
         DepthFirstSearch<TestVertex, TestEdge> search = graphSearch();
 
         DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult result =
-                search.search(graph, A, H, weight);
+                search.search(graph, A, H, weight, 1);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         assertEquals("incorrect path count", 1, paths.size());
 
@@ -77,7 +78,7 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
 
         // Perform narrow path search to a specific destination.
         DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult result =
-                search.search(graph, A, null, weight);
+                search.search(graph, A, null, weight, ALL_PATHS);
         assertEquals("incorrect paths count", 7, result.paths().size());
 
         int[] types = new int[]{0, 0, 0, 0};

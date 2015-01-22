@@ -31,7 +31,6 @@ import org.onosproject.net.topology.GraphDescription;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
-import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyListener;
@@ -127,7 +126,6 @@ public class TopologyManagerTest {
         assertEquals("wrong cluster count", 2, topology.clusterCount());
         assertEquals("wrong device count", 6, topology.deviceCount());
         assertEquals("wrong link count", 10, topology.linkCount());
-        assertEquals("wrong path count", 18, topology.pathCount());
 
         assertEquals("wrong cluster count", 2, service.getClusters(topology).size());
 
@@ -148,12 +146,6 @@ public class TopologyManagerTest {
         assertFalse("should not be infrastructure point",
                     service.isInfrastructure(topology, new ConnectPoint(did("a"), portNumber(3))));
 
-        // One of these cannot be a broadcast point... or we have a loop...
-//        assertFalse("should not be broadcast point",
-//                    service.isBroadcastPoint(topology, new ConnectPoint(did("a"), portNumber(1))) &&
-//                            service.isBroadcastPoint(topology, new ConnectPoint(did("b"), portNumber(1))) &&
-//                            service.isBroadcastPoint(topology, new ConnectPoint(did("c"), portNumber(1))) &&
-//                            service.isBroadcastPoint(topology, new ConnectPoint(did("d"), portNumber(1))));
         assertTrue("should be broadcast point",
                    service.isBroadcastPoint(topology, new ConnectPoint(did("a"), portNumber(3))));
     }
@@ -182,12 +174,7 @@ public class TopologyManagerTest {
     public void onDemandPath() {
         submitTopologyGraph();
         Topology topology = service.currentTopology();
-        LinkWeight weight = new LinkWeight() {
-            @Override
-            public double weight(TopologyEdge edge) {
-                return 3.3;
-            }
-        };
+        LinkWeight weight = edge -> 3.3;
 
         Set<Path> paths = service.getPaths(topology, did("a"), did("c"), weight);
         assertEquals("wrong path count", 2, paths.size());

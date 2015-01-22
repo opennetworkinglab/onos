@@ -36,11 +36,11 @@ public class DepthFirstSearch<V extends Vertex, E extends Edge<V>>
 
     @Override
     public SpanningTreeResult search(Graph<V, E> graph, V src, V dst,
-                                     EdgeWeight<V, E> weight) {
+                                     EdgeWeight<V, E> weight, int maxPaths) {
         checkArguments(graph, src, dst);
 
         // Prepare the search result.
-        SpanningTreeResult result = new SpanningTreeResult(src, dst);
+        SpanningTreeResult result = new SpanningTreeResult(src, dst, maxPaths);
 
         // The source vertex has cost 0, of course.
         result.updateVertex(src, null, 0.0, true);
@@ -141,11 +141,12 @@ public class DepthFirstSearch<V extends Vertex, E extends Edge<V>>
         /**
          * Creates a new spanning tree result.
          *
-         * @param src search source
-         * @param dst optional search destination
+         * @param src      search source
+         * @param dst      optional search destination
+         * @param maxPaths limit on the number of paths
          */
-        public SpanningTreeResult(V src, V dst) {
-            super(src, dst);
+        public SpanningTreeResult(V src, V dst, int maxPaths) {
+            super(src, dst, maxPaths);
         }
 
         /**

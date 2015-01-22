@@ -61,13 +61,4 @@ public interface Topology extends Provided {
      */
     int linkCount();
 
-    /**
-     * Returns the number of infrastructure paths computed between devices
-     * in the topology. This means the number of all the shortest paths
-     * (hop-count) between all device pairs.
-     *
-     * @return number of paths
-     */
-    int pathCount();
-
 }

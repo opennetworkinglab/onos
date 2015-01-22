@@ -23,6 +23,8 @@ import java.util.List;
 //import java.util.PriorityQueue;
 import java.util.Set;
 
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
+
 /**
  * K-shortest-path graph search algorithm capable of finding not just one,
  * but K shortest paths with ascending order between the source and destinations.
@@ -137,7 +139,7 @@ public class KshortestPathSearch<V extends Vertex, E extends Edge<V>> {
     private List<E> searchShortestPath(Graph<V, E> graph, V src, V dst) {
         // Determine the shortest path from the source to the destination by using the Dijkstra algorithm.
         DijkstraGraphSearch dijkstraAlg = new DijkstraGraphSearch();
-        Set<Path> paths =  dijkstraAlg.search(graph, src, dst, weight).paths();
+        Set<Path> paths =  dijkstraAlg.search(graph, src, dst, weight, ALL_PATHS).paths();
         Iterator<Path> itr = paths.iterator();
         if (!itr.hasNext()) {
             return null;

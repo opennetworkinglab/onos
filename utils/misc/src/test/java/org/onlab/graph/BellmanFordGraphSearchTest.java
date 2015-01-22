@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 
 /**
  * Test of the Bellman-Ford algorithm.
@@ -56,7 +57,7 @@ public class BellmanFordGraphSearchTest extends BreadthFirstSearchTest {
         graph = new AdjacencyListsGraph<>(vertexes, edges);
 
         GraphPathSearch<TestVertex, TestEdge> search = graphSearch();
-        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, H, weight).paths();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, H, weight, ALL_PATHS).paths();
         assertEquals("incorrect paths count", 1, paths.size());
 
         Path p = paths.iterator().next();
@@ -65,10 +66,10 @@ public class BellmanFordGraphSearchTest extends BreadthFirstSearchTest {
         assertEquals("incorrect path length", 5, p.edges().size());
         assertEquals("incorrect path cost", 5.0, p.cost(), 0.1);
 
-        paths = search.search(graph, A, G, weight).paths();
+        paths = search.search(graph, A, G, weight, ALL_PATHS).paths();
         assertEquals("incorrect paths count", 0, paths.size());
 
-        paths = search.search(graph, A, null, weight).paths();
+        paths = search.search(graph, A, null, weight, ALL_PATHS).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", 6, paths.size());
     }

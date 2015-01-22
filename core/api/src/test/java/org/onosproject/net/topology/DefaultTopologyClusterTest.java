@@ -43,11 +43,12 @@ public class DefaultTopologyClusterTest {
         assertEquals("incorrect id", clusterId(6), cluster.id());
         assertEquals("incorrect id", 5, cluster.deviceCount());
         assertEquals("incorrect id", 4, cluster.linkCount());
-        assertEquals("incorrect id", deviceId("of:111"), cluster.root());
+        assertEquals("incorrect id", deviceId("of:111"), cluster.root().deviceId());
 
     }
 
     private TopologyCluster cluster(int id, int dc, int lc, String root) {
-        return new DefaultTopologyCluster(clusterId(id), dc, lc, deviceId(root));
+        return new DefaultTopologyCluster(clusterId(id), dc, lc,
+                                          new DefaultTopologyVertex(deviceId(root)));
     }
 }

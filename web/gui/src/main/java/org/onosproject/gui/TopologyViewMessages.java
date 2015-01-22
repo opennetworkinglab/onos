@@ -454,7 +454,6 @@ public abstract class TopologyViewMessages {
                              new Prop("Links", format(topology.linkCount())),
                              new Prop("Hosts", format(hostService.getHostCount())),
                              new Prop("Topology SCCs", format(topology.clusterCount())),
-                             new Prop("Paths", format(topology.pathCount())),
                              new Separator(),
                              new Prop("Intents", format(intentService.getIntentCount())),
                              new Prop("Flows", format(flowService.getFlowRuleCount())),

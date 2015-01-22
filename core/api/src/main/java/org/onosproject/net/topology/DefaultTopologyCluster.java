@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.topology;
 
-import org.onosproject.net.DeviceId;
-
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -29,7 +27,7 @@ public class DefaultTopologyCluster implements TopologyCluster {
     private final ClusterId id;
     private final int deviceCount;
     private final int linkCount;
-    private final DeviceId root;
+    private final TopologyVertex root;
 
     /**
      * Creates a new topology cluster descriptor with the specified attributes.
@@ -40,7 +38,7 @@ public class DefaultTopologyCluster implements TopologyCluster {
      * @param root        cluster root node
      */
     public DefaultTopologyCluster(ClusterId id, int deviceCount, int linkCount,
-                                  DeviceId root) {
+                                  TopologyVertex root) {
         this.id = id;
         this.deviceCount = deviceCount;
         this.linkCount = linkCount;
@@ -63,7 +61,7 @@ public class DefaultTopologyCluster implements TopologyCluster {
     }
 
     @Override
-    public DeviceId root() {
+    public TopologyVertex root() {
         return root;
     }
 

@@ -26,11 +26,11 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
 
     @Override
     public Result<V, E> search(Graph<V, E> graph, V src, V dst,
-                               EdgeWeight<V, E> weight) {
+                               EdgeWeight<V, E> weight, int maxPaths) {
         checkArguments(graph, src, dst);
 
         // Prepare the graph result.
-        DefaultResult result = new DefaultResult(src, dst);
+        DefaultResult result = new DefaultResult(src, dst, maxPaths);
 
         // Setup the starting frontier with the source as the sole vertex.
         Set<V> frontier = new HashSet<>();
