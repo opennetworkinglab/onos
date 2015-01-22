@@ -30,7 +30,8 @@
             // creates a web socket for the given path, returning a "handle".
             // cb is the callbacks block.
             function createWebSocket(path, cb) {
-                var fullUrl = ufs.wsUrl(path),
+                //var fullUrl = ufs.wsUrl(path),
+                var fullUrl = 'ws://localhost:8123/foo',
                     ws = new WebSocket(fullUrl),
                     api = {
                         meta: { path: fullUrl, ws: ws },
