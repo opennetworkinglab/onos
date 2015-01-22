@@ -27,6 +27,22 @@ public interface FlowRule {
     static final int MAX_TIMEOUT = 60;
     static final int MIN_PRIORITY = 0;
 
+    /**
+     * The FlowRule type is used to determine in which table the flow rule
+     * needs to be put for multi-table support switch.
+     * For single table switch, Default is used.
+     */
+    public static enum Type {
+        /* Default type - used in flow rule for single table switch */
+        DEFAULT,
+        /* Used in flow entry for IP table */
+        IP,
+        /* Used in flow entry for MPLS table */
+        MPLS,
+        /* Used in flow entry for ACL table */
+        ACL
+    }
+
     //TODO: build cookie value
     /**
      * Returns the ID of this flow.
@@ -92,5 +108,12 @@ public interface FlowRule {
      * @return true if the flow is permanent, otherwise false
      */
     boolean isPermanent();
+
+    /**
+     * Returns the flow rule type.
+     *
+     * @return flow rule type
+     */
+    Type type();
 
 }

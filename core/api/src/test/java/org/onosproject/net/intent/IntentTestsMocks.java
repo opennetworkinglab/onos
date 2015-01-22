@@ -296,8 +296,11 @@ public class IntentTestsMocks {
     public static class MockFlowRule implements FlowRule {
 
         int priority;
+        Type type;
+
         public MockFlowRule(int priority) {
             this.priority = priority;
+            this.type = Type.DEFAULT;
         }
 
         @Override
@@ -360,6 +363,11 @@ public class IntentTestsMocks {
             }
             final MockFlowRule other = (MockFlowRule) obj;
             return Objects.equals(this.priority, other.priority);
+        }
+
+        @Override
+        public Type type() {
+            return type;
         }
     }
 

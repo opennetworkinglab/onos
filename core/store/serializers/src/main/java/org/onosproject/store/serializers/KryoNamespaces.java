@@ -53,6 +53,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -214,6 +215,7 @@ public final class KryoNamespaces {
                     DefaultHostDescription.class,
                     DefaultFlowEntry.class,
                     StoredFlowEntry.class,
+                    FlowRule.Type.class,
                     DefaultFlowRule.class,
                     DefaultFlowEntry.class,
                     FlowEntry.FlowEntryState.class,

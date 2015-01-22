@@ -186,6 +186,10 @@ public class FlowsResourceTest extends ResourceTest {
         public boolean isPermanent() {
             return false;
         }
+
+        public Type type() {
+            return Type.DEFAULT;
+        }
     }
 
     /**

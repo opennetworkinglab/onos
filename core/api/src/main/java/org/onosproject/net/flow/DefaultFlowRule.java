@@ -40,6 +40,8 @@ public class DefaultFlowRule implements FlowRule {
     private final boolean permanent;
     private final GroupId groupId;
 
+    private final Type type;
+
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, long flowId,
@@ -55,12 +57,42 @@ public class DefaultFlowRule implements FlowRule {
         this.appId = (short) (flowId >>> 48);
         this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
+        this.type = Type.DEFAULT;
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            int timeout, boolean permanent) {
-        this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(0), timeout, permanent);
+        this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(0),
+                timeout, permanent);
+    }
+
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+                           TrafficTreatment treatment, int priority, ApplicationId appId,
+                           int timeout, boolean permanent, Type type) {
+
+        if (priority < FlowRule.MIN_PRIORITY) {
+            throw new IllegalArgumentException("Priority cannot be less than " + MIN_PRIORITY);
+        }
+
+        this.deviceId = deviceId;
+        this.priority = priority;
+        this.selector = selector;
+        this.treatment = treatment;
+        this.appId = appId.id();
+        this.groupId = new DefaultGroupId(0);
+        this.timeout = timeout;
+        this.permanent = permanent;
+        this.created = System.currentTimeMillis();
+        this.type = type;
+
+        /*
+         * id consists of the following.
+         * | appId (16 bits) | groupId (16 bits) | flowId (32 bits) |
+         */
+        this.id = FlowId.valueOf((((long) this.appId) << 48) | (((long) this.groupId.id()) << 32)
+                | (this.hash() & 0xffffffffL));
+
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
@@ -80,6 +112,7 @@ public class DefaultFlowRule implements FlowRule {
         this.timeout = timeout;
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
+        this.type = Type.DEFAULT;
 
         /*
          * id consists of the following.
@@ -100,9 +133,9 @@ public class DefaultFlowRule implements FlowRule {
         this.timeout = rule.timeout();
         this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
+        this.type = rule.type();
 
     }
-
 
     @Override
     public FlowId id() {
@@ -196,6 +229,11 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public boolean isPermanent() {
         return permanent;
+    }
+
+    @Override
+    public Type type() {
+        return type;
     }
 
 }

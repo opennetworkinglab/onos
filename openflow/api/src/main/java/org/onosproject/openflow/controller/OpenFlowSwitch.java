@@ -27,6 +27,22 @@ import org.projectfloodlight.openflow.protocol.OFPortDesc;
 public interface OpenFlowSwitch {
 
     /**
+     * The TableType is used to determine in which table (TableID) each flow rule
+     * needs to be put for multi-table support switch.
+     * It is used only for multi-table support switch.
+     */
+    public static enum TableType {
+        /* IP table */
+        IP,
+        /* MPLS table */
+        MPLS,
+        /* ACL table */
+        ACL,
+        /* Single table */
+        NONE,
+    }
+
+    /**
      * Writes the message to the driver.
      *
      * @param msg the message to write
@@ -39,6 +55,16 @@ public interface OpenFlowSwitch {
      * @param msgs the messages to be written
      */
     public void sendMsg(List<OFMessage> msgs);
+
+    /**
+     * Writes to the OFMessage list to the driver.
+     * TableType is used to determine the table ID for the OFMessage.
+     * The switch driver that supports multi-table should implement the function.
+     *
+     * @param msg the message to be written
+     * @param tableType the type of table in which the OFMessage needs to put
+     */
+    public void sendMsg(OFMessage msg, TableType tableType);
 
     /**
      * Handle a message from the switch.

@@ -111,6 +111,10 @@ public class RoleManagerTest {
         }
 
         @Override
+        public void sendMsg(OFMessage msg, TableType tableType) {
+        }
+
+        @Override
         public void handleMessage(OFMessage fromSwitch) {
         }
 

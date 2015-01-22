@@ -669,7 +669,6 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         }
         return subnetIps;
     }
-
     private static class RouteEntry {
         String prefix;
         String mask;
