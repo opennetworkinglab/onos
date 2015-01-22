@@ -158,13 +158,13 @@ public class DefaultTopologyProvider extends AbstractProvider
         int newMaxEvents, newMaxBatchMs, newMaxIdleMs;
         try {
             String s = (String) properties.get("maxEvents");
-            newMaxEvents = isNullOrEmpty(s) ? maxEvents : Integer.parseInt(s);
+            newMaxEvents = isNullOrEmpty(s) ? maxEvents : Integer.parseInt(s.trim());
 
             s = (String) properties.get("maxBatchMs");
-            newMaxBatchMs = isNullOrEmpty(s) ? maxBatchMs : Integer.parseInt(s);
+            newMaxBatchMs = isNullOrEmpty(s) ? maxBatchMs : Integer.parseInt(s.trim());
 
             s = (String) properties.get("maxIdleMs");
-            newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s);
+            newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s.trim());
 
         } catch (Exception e) {
             newMaxEvents = DEFAULT_MAX_EVENTS;

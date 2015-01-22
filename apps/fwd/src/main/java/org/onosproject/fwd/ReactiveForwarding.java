@@ -149,7 +149,7 @@ public class ReactiveForwarding {
         try {
             String flag = (String) properties.get(propertyName);
             if (flag != null) {
-                enabled = flag.equals("true");
+                enabled = flag.trim().equals("true");
             }
         } catch (ClassCastException e) {
             // No propertyName defined.

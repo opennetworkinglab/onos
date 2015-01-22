@@ -147,9 +147,9 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         int newRate;
         try {
             String s = (String) properties.get("flicker");
-            flickSetting = isNullOrEmpty(s) ? flicker : Boolean.valueOf(s);
+            flickSetting = isNullOrEmpty(s) ? flicker : Boolean.valueOf(s.trim());
             s = (String) properties.get("eventRate");
-            newRate = isNullOrEmpty(s) ? eventRate : Integer.valueOf(s);
+            newRate = isNullOrEmpty(s) ? eventRate : Integer.valueOf(s.trim());
         } catch (Exception e) {
             log.warn(e.getMessage());
             flickSetting = flicker;
