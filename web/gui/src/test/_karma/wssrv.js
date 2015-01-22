@@ -96,8 +96,14 @@ function doCli() {
     rl.prompt();
     rl.on('line', function (line) {
         var words = line.trim().split(' '),
-            cmd = words.shift() || lastcmd,
-            str = words.join(' ') || lastargs;
+            cmd = words.shift(),
+            str = words.join(' ');
+
+        if (!cmd) {
+            // repeat last command
+            cmd = lastcmd;
+            str = lastargs;
+        }
 
         switch(cmd) {
             case 'c': connStatus(); break;
