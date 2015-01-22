@@ -137,7 +137,8 @@
     }
 
     function onWsMessage(msg) {
-        $log.log('web socket message...', msg);
+        var ev = JSON.parse(msg.data);
+        $log.log('got event: ', ev);
 
     }
 

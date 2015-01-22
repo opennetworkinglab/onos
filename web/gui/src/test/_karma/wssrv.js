@@ -1,11 +1,26 @@
 #!/usr/bin/env node
-// === Mock Web Socket Server - for testing the topology view
-//
 
-var readline = require('readline');
-var WebSocketServer = require('websocket').server;
-var http = require('http');
-var port = 8123;
+// === Mock Web Socket Server - for testing the topology view
+
+var fs = require('fs'),
+    readline = require('readline'),
+    http = require('http'),
+    WebSocketServer = require('websocket').server,
+    port = 8123;
+
+var lastcmd,        // last command executed
+    lastargs,       // arguments to last command
+    connection,     // ws connection
+    origin,         // origin of connection
+    scenario,       // test scenario name
+    scdone,         // shows when scenario is over
+    evno,           // next event number
+    evdata;         // event data
+
+
+
+var rl = readline.createInterface(process.stdin, process.stdout);
+rl.setPrompt('ws> ');
 
 
 var server = http.createServer(function(request, response) {
@@ -37,8 +52,6 @@ function originIsAllowed(origin) {
     return true;
 }
 
-var connection;
-
 wsServer.on('request', function(request) {
     console.log(); // newline after prompt
     console.log("Origin: ", request.origin);
@@ -50,12 +63,12 @@ wsServer.on('request', function(request) {
         return;
     }
 
-    connection = request.accept(null, request.origin);
+    origin = request.origin;
+    connection = request.accept(null, origin);
 
 
     console.log((new Date()) + ' Connection accepted.');
     rl.prompt();
-
 
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
@@ -71,44 +84,141 @@ wsServer.on('request', function(request) {
     });
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        connection = null;
+        origin = null;
     });
 });
 
 
-var rl = readline.createInterface(process.stdin, process.stdout);
-rl.setPrompt('ws> ');
-
-setTimeout(doCli, 10);
+setTimeout(doCli, 10); // allow async processes to write to stdout first
 
 function doCli() {
     rl.prompt();
     rl.on('line', function (line) {
         var words = line.trim().split(' '),
-            cmd = words.shift(),
-            str = words.join(' ');
+            cmd = words.shift() || lastcmd,
+            str = words.join(' ') || lastargs;
 
         switch(cmd) {
-            case 'hello':
-                console.log('hello back: ' + str);
-                break;
+            case 'c': connStatus(); break;
+            case 'm': customMessage(str); break;
+            case 's': setScenario(str); break;
+            case 'n': nextEvent(); break;
+            case 'q': quit(); break;
+            case '?': showHelp(); break;
+            default: console.log('Say what?!  (? for help)'); break;
+        }
+        lastcmd = cmd;
+        lastargs = str;
+        rl.prompt();
 
-            case 'quit':
-                process.exit(0);
-                break;
+    }).on('close', function () {
+        quit();
+    });
+}
 
-            case 'm':
-                console.log('sending message: ' + str);
-                connection.sendUTF(str);
-                break;
+var helptext = '\n' +
+        'c        - show connection status\n' +
+        'm {text} - send custom message to client\n' +
+        's {id}   - set scenario\n' +
+        's        - show scenario staus\n' +
+        //'a        - auto-send events\n' +
+        'n        - send next event\n' +
+        'q        - exit the server\n' +
+        '?        - display this help text\n';
 
-            default:
-                console.log('Say what?! [' + line.trim() + ']');
-                break;
+function showHelp() {
+    console.log(helptext);
+}
+
+function connStatus() {
+    if (connection) {
+        console.log('Connection from ' + origin + ' established.');
+    } else {
+        console.log('No connection.');
+    }
+}
+
+function quit() {
+    console.log('quitting...');
+    process.exit(0);
+}
+
+function customMessage(m) {
+    if (connection) {
+        console.log('sending message: ' + m);
+        connection.sendUTF(m);
+    } else {
+        console.warn('No current connection.');
+    }
+}
+
+function showScenarioStatus() {
+    var msg;
+    if (!scenario) {
+        console.log('No scenario selected.');
+    } else {
+        msg = 'Scenario: "' + scenario + '", ' +
+                (scdone ? 'DONE' : 'next event: ' + evno);
+        console.log(msg);
+    }
+}
+
+function scenarioPath(evno) {
+    var file = evno ? ('/ev_' + evno + '_onos.json') : '/scenario.json';
+    return 'ev/' + scenario + file;
+}
+
+function setScenario(id) {
+    if (!id) {
+        return showScenarioStatus();
+    }
+
+    evdata = null;
+    scenario = id;
+    fs.readFile(scenarioPath(), 'utf8', function (err, data) {
+        if (err) {
+            console.warn('No scenario named "' + id + '"', err);
+            scenario = null;
+        } else {
+            evdata = JSON.parse(data);
+            console.log(); // get past prompt
+            console.log('setting scenario to "' + id + '"');
+            console.log(evdata.title);
+            evdata.description.forEach(function (d) {
+                console.log('  ' + d);
+            });
+            evno = 1;
+            scdone = false;
         }
         rl.prompt();
-    }).on('close', function () {
-        console.log('quitting...');
-        process.exit(0);
     });
+}
 
+function nextEvent() {
+    var path;
+
+    if (!scenario) {
+        console.log('No scenario selected.');
+        rl.prompt();
+    } else if (!connection) {
+        console.warn('No current connection.');
+        rl.prompt();
+    } else {
+        path = scenarioPath(evno);
+        fs.readFile(path, 'utf8', function (err, data) {
+            if (err) {
+                console.log('No event #' + evno);
+                scdone = true;
+                console.log('Scenario DONE');
+            } else {
+                evdata = JSON.parse(data);
+                console.log(); // get past prompt
+                console.log('sending event #' + evno + ' [' + evdata.event + ']');
+                connection.sendUTF(data);
+                evno++;
+            }
+            rl.prompt();
+        });
+    }
 }
