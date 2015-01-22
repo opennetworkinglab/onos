@@ -42,7 +42,12 @@ import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Bandwidth;
@@ -195,6 +200,22 @@ public class KryoSerializerTest {
         testSerializedEquals(ImmutableList.of(DID1, DID2));
         testSerializedEquals(ImmutableList.of(DID1));
         testSerializedEquals(ImmutableList.of());
+    }
+
+    @Test
+    public void testFlowRuleBatchEntry() {
+        final FlowRule rule1 =
+                new DefaultFlowRule(DID1, DefaultTrafficSelector.builder().build(),
+                        DefaultTrafficTreatment.builder().build(), 0, 0, 0, true);
+        final FlowRule rule2 =
+                new DefaultFlowRule(DID1, DefaultTrafficSelector.builder().build(),
+                        DefaultTrafficTreatment.builder().build(), 0, 0, 0, true);
+        final FlowRuleBatchEntry entry1 =
+                new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule1);
+        final FlowRuleBatchEntry entry2 =
+                new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule2);
+
+        testSerializedEquals(ImmutableList.of(entry1, entry2));
     }
 
     @Test

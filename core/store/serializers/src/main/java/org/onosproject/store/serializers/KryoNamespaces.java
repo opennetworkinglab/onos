@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Optional;
 
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -156,6 +157,7 @@ public final class KryoNamespaces {
             .register(Collections.singletonList(1).getClass())
             .register(Duration.class)
             .register(Collections.emptySet().getClass())
+            .register(Optional.class)
             .build();
 
     /**
