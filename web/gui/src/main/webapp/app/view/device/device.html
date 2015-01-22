@@ -3,26 +3,27 @@
     <h2>Device View</h2>
 <!-- TODO: uncomment and test the thead and tbody tags for CSS styling -->
     <table class="summary-list">
-        <!-- <thead> -->
-        <tr>
-            <th></th>
-            <th>ID</th>
-            <th>Manufacturer</th>
-            <th>Hardware Version</th>
-            <th>Software Version</th>
-        </tr>
-        <!-- </thead> -->
+        <tbody>
+            <tr>
+                <th></th>
+                <th>URI</th>
+                <th>Vendor</th>
+                <th>Hardware Version</th>
+                <th>Software Version</th>
+                <th>Serial Number</th>
+                <th>Protocol</th>
+            </tr>
 
-        <!-- <tbody> -->
-        <tr ng-repeat="dev in ctrl.deviceData">
-            <td><div icon icon-id="{{dev._iconid_available}}"></div></td>
-            <td>{{dev.id}}</td>
-            <td>{{dev.mfr}}</td>
-            <td>{{dev.hw}}</td>
-            <td>{{dev.sw}}</td>
-            <!-- add more property fields for table from device data -->
-        </tr>
-        <!-- </tbody> -->
+            <tr ng-repeat="dev in ctrl.deviceData">
+                <td><div icon icon-id="{{dev._iconid_available}}"></div></td>
+                <td>{{dev.id}}</td>
+                <td>{{dev.mfr}}</td>
+                <td>{{dev.hw}}</td>
+                <td>{{dev.sw}}</td>
+                <td>{{dev.serial}}</td>
+                <td>{{dev.annotations.protocol}}</td>
+            </tr>
+        </tbody>
     </table>
 
 </div>
