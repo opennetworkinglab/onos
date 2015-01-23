@@ -43,6 +43,8 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,8 @@ public class CodecManager implements CodecService {
         registerCodec(Criterion.class, new CriterionCodec());
         registerCodec(Ethernet.class, new EthernetCodec());
         registerCodec(Constraint.class, new ConstraintCodec());
+        registerCodec(Topology.class, new TopologyCodec());
+        registerCodec(TopologyCluster.class, new TopologyClusterCodec());
         log.info("Started");
     }
 
