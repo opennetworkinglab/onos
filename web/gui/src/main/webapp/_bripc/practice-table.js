@@ -21,7 +21,7 @@
 (function () {
     'use strict';
 
-    function setColWidth($log, t) {
+    function setColWidth(t) {
         var tHeaders, tdElement, colWidth;
 
         tHeaders = t.selectAll('th');
@@ -36,28 +36,20 @@
 
             thElement.style('width', colWidth);
             tdElement.style('width', colWidth);
-            //thElement.style('color', 'blue');
-            //tdElement.style('color', 'red');
-
         });
     }
 
-    function setCSS(thead, tbody) {
+    function setCSS(thead, tbody, height) {
         thead.style('display', 'block');
         tbody.style({'display': 'block',
-            'height': '100px',
+            'height': height || '500px',
             'overflow': 'auto'
         });
     }
 
-    function trimTable(tbody) {
-
-    }
-
-    function fixTable($log, t, th, tb) {
-        setColWidth($log, t);
-        setCSS(th, tb);
-        trimTable(tb);
+    function fixTable(t, th, tb, height) {
+        setColWidth(t);
+        setCSS(th, tb, height);
     }
 
     angular.module('practiceTable', [])
@@ -65,6 +57,9 @@
         .directive('fixedHeader', ['$log', '$timeout', function ($log, $timeout) {
             return {
                 restrict: 'A',
+                scope: {
+                    tableHeight: '@'
+                },
 
                 link: function (scope, element, attrs) {
                     var table = d3.select(element[0]),
@@ -76,19 +71,16 @@
                         function () { return (!(table.offsetParent === null)); },
                         function (newValue, oldValue) {
                             if (newValue === true) {
-                                $log.log('table is visible');
 
                                 // ensure thead and tbody have no display
                                 thead.style('display', null);
                                 tbody.style('display', null);
 
                                 $timeout(function() {
-                                    $log.log('timeout is over');
-                                    fixTable($log, table, thead, tbody);
+                                    fixTable(table, thead, tbody, scope.tableHeight);
                                 });
                             }
                         });
-                    $log.log('fixedHeader directive has been created');
                 }
             };
         }]);
