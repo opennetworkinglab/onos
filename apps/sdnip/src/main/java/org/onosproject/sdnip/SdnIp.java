@@ -32,6 +32,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.host.HostService;
@@ -67,6 +68,14 @@ public class SdnIp implements SdnIpService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
+
+    //
+    // NOTE: Unused reference - needed to guarentee that the
+    // NetworkConfigReader component is activated and the network configuration
+    // is read.
+    //
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
 
     private static final int DEFAULT_BGP_PORT = 2000;
     private int bgpPort;
