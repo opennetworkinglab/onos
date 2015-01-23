@@ -101,8 +101,7 @@ public class SimpleIntentStore
         return states.get(id);
     }
 
-    @Override
-    public void setState(Intent intent, IntentState state) {
+    private void setState(Intent intent, IntentState state) {
         IntentId id = intent.id();
         states.put(id, state);
         IntentEvent.Type type = null;
@@ -131,8 +130,7 @@ public class SimpleIntentStore
         }
     }
 
-    @Override
-    public void setInstallableIntents(IntentId intentId, List<Intent> result) {
+    private void setInstallableIntents(IntentId intentId, List<Intent> result) {
         installable.put(intentId, result);
     }
 
@@ -141,10 +139,10 @@ public class SimpleIntentStore
         return installable.get(intentId);
     }
 
-    @Override
-    public void removeInstalledIntents(IntentId intentId) {
+    private void removeInstalledIntents(IntentId intentId) {
         installable.remove(intentId);
     }
+
     /**
      * Execute writes in a batch.
      *

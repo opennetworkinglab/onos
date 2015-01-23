@@ -56,23 +56,6 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     IntentState getIntentState(IntentId intentId);
 
     /**
-     * Sets the state of the specified intent to the new state.
-     *
-     * @param intent   intent whose state is to be changed
-     * @param newState new state
-     */
-    void setState(Intent intent, IntentState newState);
-
-    /**
-     * Sets the installable intents which resulted from compilation of the
-     * specified original intent.
-     *
-     * @param intentId           original intent identifier
-     * @param installableIntents compiled installable intents
-     */
-    void setInstallableIntents(IntentId intentId, List<Intent> installableIntents);
-
-    /**
      * Returns the list of the installable events associated with the specified
      * original intent.
      *
@@ -80,14 +63,6 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return compiled installable intents
      */
     List<Intent> getInstallableIntents(IntentId intentId);
-
-    /**
-     * Removes any installable intents which resulted from compilation of the
-     * specified original intent.
-     *
-     * @param intentId original intent identifier
-     */
-    void removeInstalledIntents(IntentId intentId);
 
     /**
      * Execute writes in a batch.

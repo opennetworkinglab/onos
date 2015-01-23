@@ -116,10 +116,7 @@ public class DistributedIntentStore
     // TODO make this configurable
     private boolean onlyLogTransitionError = true;
 
-    private Timer setInstallableIntentsTimer;
     private Timer getInstallableIntentsTimer;
-    private Timer removeInstalledIntentsTimer;
-    private Timer setStateTimer;
     private Timer getIntentCountTimer;
     private Timer getIntentsTimer;
     private Timer getIntentTimer;
@@ -132,10 +129,7 @@ public class DistributedIntentStore
 
     @Activate
     public void activate() {
-        setInstallableIntentsTimer = createResponseTimer("setInstallableIntents");
         getInstallableIntentsTimer = createResponseTimer("getInstallableIntents");
-        removeInstalledIntentsTimer = createResponseTimer("removeInstalledIntents");
-        setStateTimer = createResponseTimer("setState");
         getIntentCountTimer = createResponseTimer("getIntentCount");
         getIntentsTimer = createResponseTimer("getIntents");
         getIntentTimer = createResponseTimer("getIntent");
@@ -242,108 +236,10 @@ public class DistributedIntentStore
     }
 
     @Override
-    public void setState(Intent intent, IntentState state) {
-        Context timer = startTimer(setStateTimer);
-        try {
-            final IntentId id = intent.id();
-            IntentEvent.Type evtType = null;
-            final IntentState prevParking;
-            boolean transitionedToParking = true;
-            boolean updated;
-
-            // parking state transition
-            switch (state) {
-            case INSTALL_REQ:
-                prevParking = states.get(id);
-                if (prevParking == null) {
-                    updated = states.putIfAbsent(id, INSTALL_REQ);
-                    verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALL_REQ);
-                } else {
-                    verify(prevParking == WITHDRAWN,
-                            "Illegal state transition attempted from %s to INSTALL_REQ",
-                            prevParking);
-                    updated = states.replace(id, prevParking, INSTALL_REQ);
-                    verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALL_REQ);
-                }
-                evtType = IntentEvent.Type.INSTALL_REQ;
-                break;
-
-            case INSTALLED:
-                prevParking = states.get(id);
-                verify(PRE_INSTALLED.contains(prevParking),
-                       "Illegal state transition attempted from %s to INSTALLED",
-                       prevParking);
-                updated = states.replace(id, prevParking, INSTALLED);
-                verify(updated, "Conditional replace %s => %s failed", prevParking, INSTALLED);
-                evtType = IntentEvent.Type.INSTALLED;
-                break;
-
-            case FAILED:
-                prevParking = states.get(id);
-                updated = states.replace(id, prevParking, FAILED);
-                verify(updated, "Conditional replace %s => %s failed", prevParking, FAILED);
-                evtType = IntentEvent.Type.FAILED;
-                break;
-
-            case WITHDRAWN:
-                prevParking = states.get(id);
-                verify(PRE_WITHDRAWN.contains(prevParking),
-                       "Illegal state transition attempted from %s to WITHDRAWN",
-                       prevParking);
-                updated = states.replace(id, prevParking, WITHDRAWN);
-                verify(updated, "Conditional replace %s => %s failed", prevParking, WITHDRAWN);
-                evtType = IntentEvent.Type.WITHDRAWN;
-                break;
-
-            default:
-                transitionedToParking = false;
-                prevParking = null;
-                break;
-            }
-            if (transitionedToParking) {
-                log.debug("Parking State change: {} {}=>{}",  id, prevParking, state);
-                // remove instance local state
-                transientStates.remove(id);
-            } else {
-                // Update instance local state, which includes non-parking state transition
-                final IntentState prevTransient = transientStates.put(id, state);
-                log.debug("Transient State change: {} {}=>{}", id, prevTransient, state);
-            }
-
-            if (evtType != null) {
-                notifyDelegate(new IntentEvent(evtType, intent));
-            }
-            return;
-        } finally {
-            stopTimer(timer);
-        }
-    }
-
-    @Override
-    public void setInstallableIntents(IntentId intentId, List<Intent> result) {
-        Context timer = startTimer(setInstallableIntentsTimer);
-        try {
-            installable.put(intentId, result);
-        } finally {
-            stopTimer(timer);
-        }
-    }
-
-    @Override
     public List<Intent> getInstallableIntents(IntentId intentId) {
         Context timer = startTimer(getInstallableIntentsTimer);
         try {
             return installable.get(intentId);
-        } finally {
-            stopTimer(timer);
-        }
-    }
-
-    @Override
-    public void removeInstalledIntents(IntentId intentId) {
-        Context timer = startTimer(removeInstalledIntentsTimer);
-        try {
-            installable.remove(intentId);
         } finally {
             stopTimer(timer);
         }

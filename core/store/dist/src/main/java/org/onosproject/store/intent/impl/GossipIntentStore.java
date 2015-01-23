@@ -186,11 +186,6 @@ public class GossipIntentStore
         return null;
     }
 
-    @Override
-    public void setState(Intent intent, IntentState newState) {
-        // TODO implement
-    }
-
     private IntentEvent setStateInternal(IntentId intentId, IntentState newState, Timestamp timestamp) {
         switch (newState) {
         case WITHDRAW_REQ:
@@ -225,12 +220,6 @@ public class GossipIntentStore
         }
     }
 
-    @Override
-    public void setInstallableIntents(IntentId intentId,
-                                      List<Intent> installableIntents) {
-        // TODO implement
-    }
-
     private void setInstallableIntentsInternal(IntentId intentId,
                                                List<Intent> installableIntents,
                                                Timestamp timestamp) {
@@ -250,11 +239,6 @@ public class GossipIntentStore
             return tInstallables.value();
         }
         return null;
-    }
-
-    @Override
-    public void removeInstalledIntents(IntentId intentId) {
-        // TODO implement
     }
 
     @Override
