@@ -1,0 +1,66 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.net.group;
+
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.core.GroupId;
+
+/* Group Bucket definition. A default group Bucket is collection of
+ * Instructions that can be performed on a traffic flow. A failover
+ * group bucket is associated with a specific port or group that
+ * controls its liveness. A select group bucket contains optional
+ * weight field to define the weights among the buckets in the group.
+ */
+public interface GroupBucket {
+    /**
+     * Return group type of the bucket.
+     *
+     * @return GroupType group type
+     */
+    public GroupDescription.Type type();
+
+    /**
+     * Return list of Traffic instructions that are part of the bucket.
+     *
+     * @return TrafficTreatment traffic instruction list
+     */
+    public TrafficTreatment treatment();
+
+    /**
+     * Return weight of select group bucket.
+     *
+     * @return short weight associated with a bucket
+     */
+    public short weight();
+
+    /**
+     * Return port number used for liveness detection for a
+     * failover bucket.
+     *
+     * @return PortNumber port number used for liveness detection
+     */
+    public PortNumber watchPort();
+
+    /**
+     * Return group identifier used for liveness detection for a
+     * failover bucket.
+     *
+     * @return GroupId group identifier to be used for liveness detection
+     */
+    public GroupId watchGroup();
+
+}

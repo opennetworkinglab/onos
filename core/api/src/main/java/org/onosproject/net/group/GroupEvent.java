@@ -1,0 +1,78 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.net.group;
+
+import org.onosproject.event.AbstractEvent;
+
+/**
+ * Describes flow rule event.
+ */
+public class GroupEvent extends AbstractEvent<GroupEvent.Type, Group> {
+
+    /**
+     * Type of flow rule events.
+     */
+    public enum Type {
+        /**
+         * Signifies that a new Group has been detected.
+         */
+        GROUP_ADDED,
+
+        /**
+         * Signifies that a Group has been removed.
+         */
+        GROUP_REMOVED,
+
+        /**
+         * Signifies that a Group has been updated.
+         */
+        GROUP_UPDATED,
+
+        // internal event between Manager <-> Store
+
+        /*
+         * Signifies that a request to create Group has been added to the store.
+         */
+        GROUP_ADD_REQUESTED,
+        /*
+         * Signifies that a request to delete Group has been added to the store.
+         */
+        GROUP_REMOVE_REQUESTED,
+    }
+
+    /**
+     * Creates an event of a given type and for the specified Group and the
+     * current time.
+     *
+     * @param type  Group event type
+     * @param group event subject
+     */
+    public GroupEvent(Type type, Group group) {
+        super(type, group);
+    }
+
+    /**
+     * Creates an event of a given type and for the specified Group and time.
+     *
+     * @param type  Group event type
+     * @param group event subject
+     * @param time  occurrence time
+     */
+    public GroupEvent(Type type, Group group, long time) {
+        super(type, group, time);
+    }
+
+}
