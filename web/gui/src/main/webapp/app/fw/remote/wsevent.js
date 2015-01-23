@@ -20,11 +20,28 @@
 (function () {
     'use strict';
 
+    var sid = 0;
+
     angular.module('onosRemote')
-        .factory('WsEventService', ['$location', function ($loc) {
-            
+        .factory('WsEventService', [function () {
+
+            function sendEvent(ws, evType, payload) {
+                var p = payload || {};
+
+                ws.send({
+                    event: evType,
+                    sid: ++sid,
+                    payload: p
+                });
+            }
+
+            function resetSid() {
+                sid = 0;
+            }
+
             return {
-               tbd: function () {}
+                sendEvent: sendEvent,
+                resetSid: resetSid
             };
         }]);
 
