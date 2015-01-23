@@ -207,15 +207,13 @@ public class KryoSerializerTest {
         final FlowRule rule1 =
                 new DefaultFlowRule(DID1, DefaultTrafficSelector.builder().build(),
                         DefaultTrafficTreatment.builder().build(), 0, 0, 0, true);
-        final FlowRule rule2 =
-                new DefaultFlowRule(DID1, DefaultTrafficSelector.builder().build(),
-                        DefaultTrafficTreatment.builder().build(), 0, 0, 0, true);
         final FlowRuleBatchEntry entry1 =
                 new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule1);
         final FlowRuleBatchEntry entry2 =
-                new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule2);
+                new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule1, 100L);
 
-        testSerializedEquals(ImmutableList.of(entry1, entry2));
+        testSerializedEquals(entry1);
+        testSerializedEquals(entry2);
     }
 
     @Test
