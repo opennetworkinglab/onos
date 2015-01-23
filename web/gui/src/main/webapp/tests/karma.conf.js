@@ -30,6 +30,7 @@ module.exports = function(config) {
         '../app/fw/svg/svg.js',
         '../app/fw/remote/remote.js',
         '../app/fw/widget/widget.js',
+        '../app/fw/layer/layer.js',
         // now load services etc. that augment the modules
         '../app/**/*.js',
 
