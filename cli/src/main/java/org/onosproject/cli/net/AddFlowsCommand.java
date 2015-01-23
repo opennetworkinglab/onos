@@ -47,7 +47,7 @@ import java.util.concurrent.Future;
  * Installs many many flows.
  */
 @Command(scope = "onos", name = "add-flows",
-         description = "Installs a flow rules")
+         description = "Installs a number of test flow rules - for testing only")
 public class AddFlowsCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "flowPerDevice", description = "Number of flows to add per device",
