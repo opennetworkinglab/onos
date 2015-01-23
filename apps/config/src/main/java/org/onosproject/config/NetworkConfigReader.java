@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -47,7 +48,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * from a file.
  */
 @Component(immediate = true)
-public class NetworkConfigReader {
+@Service
+public class NetworkConfigReader implements NetworkConfigService {
 
     private final Logger log = getLogger(getClass());
 
