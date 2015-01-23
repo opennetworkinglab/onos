@@ -144,6 +144,8 @@ public interface OpenFlowSwitch {
 
     /**
      * Identifies the channel used to communicate with the switch.
+     *
+     * @return string representation of the connection to the device
      */
     public String channelId();
 

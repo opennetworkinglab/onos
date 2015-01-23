@@ -80,6 +80,7 @@ public class TopologyWebResource extends AbstractWebResource {
     /**
      * Gets details for a topology cluster for a REST GET operation.
      *
+     * @param clusterId id of the cluster to query
      * @return topology cluster details
      */
     @GET
@@ -101,6 +102,7 @@ public class TopologyWebResource extends AbstractWebResource {
     /**
      * Gets devices for a topology cluster for a REST GET operation.
      *
+     * @param clusterId id of the cluster to query
      * @return topology cluster devices
      */
     @GET
@@ -131,6 +133,7 @@ public class TopologyWebResource extends AbstractWebResource {
     /**
      * Gets links for a topology cluster for a REST GET operation.
      *
+     * @param clusterId id of the cluster to query
      * @return topology cluster links
      */
     @GET
@@ -181,6 +184,8 @@ public class TopologyWebResource extends AbstractWebResource {
     /**
      * Gets the broadcast flag of a connect point for a REST GET operation.
      *
+     * @param connectPointString string representation of the connect point to query.
+     *                           Format is deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
      *         false otherwise
      */
@@ -202,6 +207,8 @@ public class TopologyWebResource extends AbstractWebResource {
     /**
      * Gets the infrastructure flag of a connect point for a REST GET operation.
      *
+     * @param connectPointString string representation of the connect point to query.
+     *                           Format is deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
      *         false otherwise
      */

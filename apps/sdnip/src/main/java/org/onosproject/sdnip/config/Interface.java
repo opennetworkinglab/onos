@@ -44,6 +44,7 @@ public class Interface {
      * @param connectPoint the connect point this interface is mapped to
      * @param ipAddresses the IP addresses for the interface
      * @param macAddress the MAC address of the interface
+     * @param vlan VLAN identifier
      */
     public Interface(ConnectPoint connectPoint,
                      Set<InterfaceIpAddress> ipAddresses,
