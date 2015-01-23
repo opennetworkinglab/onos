@@ -50,15 +50,58 @@ describe('factory: fw/remote/websocket.js', function () {
     });
 
     it('should use the appropriate URL', function () {
-        debugger;
         var ws = wss.createWebSocket('foo/path');
         expect(ws.meta.path).toEqual('ws://foo:80/onos/ui/ws/foo/path');
     });
 
+    it('should use the appropriate URL with modified port', function () {
+        var ws = wss.createWebSocket('foo/path', { wsport: 1243 });
+        expect(ws.meta.path).toEqual('ws://foo:1243/onos/ui/ws/foo/path');
+    });
+
+    var oCalled, mCalled, cCalled, json, reason;
+
+    function oo() {
+        oCalled++;
+    }
+    function om(j) {
+        mCalled++;
+        json = j;
+    }
+    function oc(r) {
+        cCalled++;
+        reason = r;
+    }
+
+    function resetCounters() {
+        oCalled = mCalled = cCalled = 0;
+        json = reason = null;
+    }
+
+    function validateCallbacks(ws, op, msg, cl) {
+        // we have to cheat a little, by digging into the websocket structure
+        var onO = fs.isF(ws.meta.ws.onopen),
+            onM = fs.isF(ws.meta.ws.onmessage),
+            onC = fs.isF(ws.meta.ws.onclose);
+
+        expect(!!onO).toEqual(op);
+        expect(!!onM).toEqual(msg);
+        expect(!!onC).toEqual(cl);
+
+        onO && onO({});
+        onM && onM({ data: '{ "item": "ivalue" }'});
+        onC && onC({ reason: 'rvalue' });
+
+        expect(oCalled).toEqual(op ? 1 : 0);
+        expect(mCalled).toEqual(msg ? 1 : 0);
+        expect(cCalled).toEqual(cl ? 1 : 0);
+
+        expect(json).toEqual(msg ? { item: 'ivalue' } : null);
+        expect(reason).toEqual(cl ? 'rvalue' : null);
+    }
+
     it('should install the appropriate callbacks', function () {
-        function oo() {}
-        function om() {}
-        function oc() {}
+        resetCounters();
 
         var ws = wss.createWebSocket('foo', {
             onOpen: oo,
@@ -66,27 +109,43 @@ describe('factory: fw/remote/websocket.js', function () {
             onClose: oc
         });
 
-        expect(ws.meta.ws.onopen).toBe(oo);
-        // TODO: om is wrapped - we can't test by reference
-        //expect(ws.meta.ws.onmessage).toBe(om);
-        expect(ws.meta.ws.onclose).toBe(oc);
+        validateCallbacks(ws, true, true, true);
     });
 
     it('should install partial callbacks', function () {
-        function oo() {}
-        function om() {}
+        resetCounters();
 
         var ws = wss.createWebSocket('foo', {
             onOpen: oo,
             onMessage: om
         });
 
-        expect(ws.meta.ws.onopen).toBe(oo);
-        // TODO: om is wrapped - we can't test by reference
-        //expect(ws.meta.ws.onmessage).toBe(om);
-        expect(ws.meta.ws.onclose).toBeNull();
+        validateCallbacks(ws, true, true, false);
     });
 
-    // TODO: more testing to be done.
+    it('should install no callbacks', function () {
+        resetCounters();
 
+        var ws = wss.createWebSocket('foo');
+
+        validateCallbacks(ws, false, false, false);
+    });
+
+    // can't really test send without faking out the WebSocket.
+/*
+    it('should stringify objects for sending', function () {
+        var ws = wss.createWebSocket('foo');
+        ws.send({ item: 'itemVal' });
+
+        // what to assert?
+    });
+*/
+
+    it('should remove websocket reference on close', function () {
+        var ws = wss.createWebSocket('foo');
+        expect(ws.meta.ws instanceof WebSocket).toBeTruthy();
+
+        ws.close();
+        expect(ws.meta.ws).toBeNull();
+    });
 });

@@ -141,8 +141,8 @@
 
     }
 
-    function onWsClose(closeEvent) {
-        $log.log('web socket closed...', closeEvent);
+    function onWsClose(reason) {
+        $log.log('web socket closed; reason=', reason);
 
     }
 

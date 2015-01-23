@@ -23,14 +23,21 @@
     var fs;
 
     function fnOpen(f) {
-        return fs.isF(f);
+        // wrap the onOpen function; we will handle any housekeeping here...
+        if (!fs.isF(f)) {
+            return null;
+        }
+
+        return function (openEvent) {
+            // NOTE: nothing worth passing to the caller?
+            f();
+        };
     }
 
     function fnMessage(f) {
         // wrap the onMessage function; we will attempt to decode the
         // message event payload as JSON and pass that in...
-        var fn = fs.isF(f);
-        if (!fn) {
+        if (!fs.isF(f)) {
             return null;
         }
 
@@ -44,12 +51,21 @@
                     e: e
                 };
             }
-            fn(ev);
-        }
+            f(ev);
+        };
     }
 
     function fnClose(f) {
-        return fs.isF(f);
+        // wrap the onClose function; we will handle any parameters to the
+        // close event here...
+        if (!fs.isF(f)) {
+            return null;
+        }
+
+        return function (closeEvent) {
+            // NOTE: only seen {reason == ""} so far, nevertheless...
+            f(closeEvent.reason);
+        };
     }
 
     angular.module('onosRemote')
@@ -60,7 +76,7 @@
             fs = _fs_;
 
             // creates a web socket for the given path, returning a "handle".
-            // opts contains the event handler callbacks.
+            // opts contains the event handler callbacks, etc.
             function createWebSocket(path, opts) {
                 var o = opts || {},
                     wsport = opts && opts.wsport,
@@ -86,13 +102,14 @@
                     ws.onclose = fnClose(o.onClose);
                 }
 
-                function send(msg) {
-                    if (msg) {
+                // messages are expected to be event objects..
+                function send(ev) {
+                    if (ev) {
                         if (ws) {
-                            ws.send(msg);
+                            ws.send(JSON.stringify(ev));
                         } else {
                             $log.warn('ws.send() no web socket open!',
-                                fullUrl, msg);
+                                fullUrl, ev);
                         }
                     }
                 }
