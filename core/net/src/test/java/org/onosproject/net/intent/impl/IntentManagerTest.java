@@ -74,7 +74,7 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
  *
  * TODO implement the following tests:
  *  - {submit, withdraw, update, replace} intent
- *  - {submit, update, recomiling} intent with failed compilation
+ *  - {submit, update, recompiling} intent with failed compilation
  *  - failed reservation
  *  - push timeout recovery
  *  - failed items recovery
