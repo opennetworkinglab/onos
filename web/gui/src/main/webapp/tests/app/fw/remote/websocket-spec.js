@@ -50,6 +50,7 @@ describe('factory: fw/remote/websocket.js', function () {
     });
 
     it('should use the appropriate URL', function () {
+        debugger;
         var ws = wss.createWebSocket('foo/path');
         expect(ws.meta.path).toEqual('ws://foo:80/onos/ui/ws/foo/path');
     });
@@ -66,7 +67,8 @@ describe('factory: fw/remote/websocket.js', function () {
         });
 
         expect(ws.meta.ws.onopen).toBe(oo);
-        expect(ws.meta.ws.onmessage).toBe(om);
+        // TODO: om is wrapped - we can't test by reference
+        //expect(ws.meta.ws.onmessage).toBe(om);
         expect(ws.meta.ws.onclose).toBe(oc);
     });
 
@@ -80,7 +82,8 @@ describe('factory: fw/remote/websocket.js', function () {
         });
 
         expect(ws.meta.ws.onopen).toBe(oo);
-        expect(ws.meta.ws.onmessage).toBe(om);
+        // TODO: om is wrapped - we can't test by reference
+        //expect(ws.meta.ws.onmessage).toBe(om);
         expect(ws.meta.ws.onclose).toBeNull();
     });
 

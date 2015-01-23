@@ -34,7 +34,7 @@
     var ovtopo, svg, defs, zoomLayer, map;
 
     // Internal state
-    var zoomer;
+    var zoomer, wsock;
 
     // Note: "exported" state should be properties on 'self' variable
 
@@ -136,21 +136,20 @@
 
     }
 
-    function onWsMessage(msg) {
-        var ev = JSON.parse(msg.data);
-        $log.log('got event: ', ev);
+    function onWsMessage(ev) {
+        $log.log('got JSON event: ', ev);
 
     }
 
-    function onWsClose(msg) {
-        $log.log('web socket closed...', msg);
+    function onWsClose(closeEvent) {
+        $log.log('web socket closed...', closeEvent);
 
     }
 
     // wsport indicates web-socket-server port other than the default.
     // Used for testing with the mock-web-socket-server.
     function setUpWebSocket(wsport) {
-        var wsHandle = wss.createWebSocket('topology', {
+        wsock = wss.createWebSocket('topology', {
             onOpen: onWsOpen,
             onMessage: onWsMessage,
             onClose: onWsClose,
@@ -161,7 +160,7 @@
         // TODO: implement retry on close functionality
 
 
-        $log.log('created web socket', wsHandle);
+        $log.log('created web socket', wsock);
         // TODO: complete implementation...
 
     }

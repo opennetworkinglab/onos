@@ -22,6 +22,36 @@
 
     var fs;
 
+    function fnOpen(f) {
+        return fs.isF(f);
+    }
+
+    function fnMessage(f) {
+        // wrap the onMessage function; we will attempt to decode the
+        // message event payload as JSON and pass that in...
+        var fn = fs.isF(f);
+        if (!fn) {
+            return null;
+        }
+
+        return function (msgEvent) {
+            var ev;
+            try {
+                ev = JSON.parse(msgEvent.data);
+            } catch (e) {
+                ev = {
+                    error: 'Failed to parse JSON',
+                    e: e
+                };
+            }
+            fn(ev);
+        }
+    }
+
+    function fnClose(f) {
+        return fs.isF(f);
+    }
+
     angular.module('onosRemote')
     .factory('WebSocketService',
             ['$log', '$location', 'UrlFnService', 'FnService',
@@ -32,20 +62,29 @@
             // creates a web socket for the given path, returning a "handle".
             // opts contains the event handler callbacks.
             function createWebSocket(path, opts) {
-                var wsport = opts && opts.wsport,
+                var o = opts || {},
+                    wsport = opts && opts.wsport,
                     fullUrl = ufs.wsUrl(path, wsport),
-                    ws = new WebSocket(fullUrl),
                     api = {
-                        meta: { path: fullUrl, ws: ws },
+                        meta: { path: fullUrl, ws: null },
                         send: send,
                         close: close
-                    };
+                    },
+                    ws;
+
+                try {
+                    ws = new WebSocket(fullUrl);
+                    api.meta.ws = ws;
+                } catch (e) {
+                }
 
                 $log.debug('Attempting to open websocket to: ' + fullUrl);
 
-                ws.onopen = (opts && opts.onOpen) || null;
-                ws.onmessage = (opts && opts.onMessage) || null;
-                ws.onclose = (opts && opts.onClose) || null;
+                if (ws) {
+                    ws.onopen = fnOpen(o.onOpen);
+                    ws.onmessage = fnMessage(o.onMessage);
+                    ws.onclose = fnClose(o.onClose);
+                }
 
                 function send(msg) {
                     if (msg) {
@@ -62,6 +101,7 @@
                     if (ws) {
                         ws.close();
                         ws = null;
+                        api.meta.ws = null;
                     }
                 }
 
