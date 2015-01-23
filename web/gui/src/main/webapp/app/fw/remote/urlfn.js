@@ -33,25 +33,25 @@
                 return secure ? protocol + 's' : protocol;
             }
 
-            function urlBase(protocol) {
+            function urlBase(protocol, port) {
                 return matchSecure(protocol) + '://' +
-                    $loc.host() + ':' + $loc.port();
+                    $loc.host() + ':' + (port || $loc.port());
             }
 
             function httpPrefix(suffix) {
                 return urlBase('http') + suffix;
             }
 
-            function wsPrefix(suffix) {
-                return urlBase('ws') + suffix;
+            function wsPrefix(suffix, wsport) {
+                return urlBase('ws', wsport) + suffix;
             }
 
             function rsUrl(path) {
                 return httpPrefix(rsSuffix) + path;
             }
 
-            function wsUrl(path) {
-                return wsPrefix(wsSuffix) + path;
+            function wsUrl(path, wsport) {
+                return wsPrefix(wsSuffix, wsport) + path;
             }
 
             return {

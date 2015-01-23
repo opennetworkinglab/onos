@@ -76,4 +76,9 @@ describe('factory: fw/remote/urlfn.js', function () {
         setLoc('https', 'foo', '123');
         expect(ufs.wsUrl('path')).toEqual('wss://foo:123/onos/ui/ws/path');
     });
+
+    it('should allow us to define an alternate WS port', function () {
+        setLoc('http', 'foo', '123');
+        expect(ufs.wsUrl('xyyzy', 456)).toEqual('ws://foo:456/onos/ui/ws/xyyzy');
+    });
 });

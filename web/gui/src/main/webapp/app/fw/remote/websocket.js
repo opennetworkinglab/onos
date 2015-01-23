@@ -23,15 +23,17 @@
     var fs;
 
     angular.module('onosRemote')
-    .factory('WebSocketService', ['$location', 'UrlFnService', 'FnService',
-        function ($loc, ufs, _fs_) {
+    .factory('WebSocketService',
+            ['$log', '$location', 'UrlFnService', 'FnService',
+
+        function ($log, $loc, ufs, _fs_) {
             fs = _fs_;
 
             // creates a web socket for the given path, returning a "handle".
-            // cb is the callbacks block.
-            function createWebSocket(path, cb) {
-                //var fullUrl = ufs.wsUrl(path),
-                var fullUrl = 'ws://localhost:8123/foo',
+            // opts contains the event handler callbacks.
+            function createWebSocket(path, opts) {
+                var wsport = opts && opts.wsport,
+                    fullUrl = ufs.wsUrl(path, wsport),
                     ws = new WebSocket(fullUrl),
                     api = {
                         meta: { path: fullUrl, ws: ws },
@@ -39,9 +41,11 @@
                         close: close
                     };
 
-                ws.onopen = (cb && cb.onOpen) || null;
-                ws.onmessage = (cb && cb.onMessage) || null;
-                ws.onclose = (cb && cb.onClose) || null;
+                $log.debug('Attempting to open websocket to: ' + fullUrl);
+
+                ws.onopen = (opts && opts.onOpen) || null;
+                ws.onmessage = (opts && opts.onMessage) || null;
+                ws.onclose = (opts && opts.onClose) || null;
 
                 function send(msg) {
                     if (msg) {

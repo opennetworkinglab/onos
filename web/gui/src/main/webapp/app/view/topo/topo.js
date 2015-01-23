@@ -147,11 +147,14 @@
 
     }
 
-    function setUpWebSocket() {
+    // wsport indicates web-socket-server port other than the default.
+    // Used for testing with the mock-web-socket-server.
+    function setUpWebSocket(wsport) {
         var wsHandle = wss.createWebSocket('topology', {
             onOpen: onWsOpen,
             onMessage: onWsMessage,
-            onClose: onWsClose
+            onClose: onWsClose,
+            wsport: wsport
         });
 
         // TODO: handle "guiSuccessor" functionality (replace host)
@@ -168,11 +171,11 @@
     angular.module('ovTopo', moduleDependencies)
 
         .controller('OvTopoCtrl', [
-            '$scope', '$log',
+            '$scope', '$log', '$location',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
             'WebSocketService',
 
-        function ($scope, _$log_, _ks_, _zs_, _gs_, _ms_, _wss_) {
+        function ($scope, _$log_, $loc, _ks_, _zs_, _gs_, _ms_, _wss_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
@@ -200,7 +203,7 @@
             setUpDefs();
             setUpZoom();
             setUpMap();
-            setUpWebSocket();
+            setUpWebSocket($loc.search().wsport);
 
             $log.log('OvTopoCtrl has been created');
         }]);
