@@ -116,7 +116,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final Constraint constraint = new BandwidthConstraint(Bandwidth.valueOf(100.0));
+        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
 
         final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
         assertThat(compiledIntents, notNullValue());
@@ -131,7 +131,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
-        final Constraint constraint = new BandwidthConstraint(Bandwidth.valueOf(100.0));
+        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
 
         try {
             compileIntent(constraint, resourceService);
@@ -186,7 +186,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
 
         final IntentTestsMocks.MockResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final Constraint constraint = new BandwidthConstraint(Bandwidth.valueOf(100.0));
+        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
 
         final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
         assertThat(compiledIntents, notNullValue());
@@ -208,7 +208,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
 
         final IntentTestsMocks.MockResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final Constraint constraint = new BandwidthConstraint(Bandwidth.valueOf(100.0));
+        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
 
         final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
         assertThat(compiledIntents, notNullValue());

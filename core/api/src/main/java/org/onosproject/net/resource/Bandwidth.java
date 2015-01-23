@@ -17,9 +17,8 @@ package org.onosproject.net.resource;
 
 import java.util.Objects;
 
-// FIXME: Document what is the unit? Mbps?
 /**
- * Representation of bandwidth resource.
+ * Representation of bandwidth resource in bps.
  */
 public final class Bandwidth extends LinkResource {
 
@@ -40,13 +39,54 @@ public final class Bandwidth extends LinkResource {
     }
 
     /**
-     * Creates a new instance with given bandwidth.
+     * Creates a new instance with given bandwidth in bps.
      *
      * @param bandwidth bandwidth value to be assigned
      * @return {@link Bandwidth} instance with given bandwidth
      */
+    @Deprecated
     public static Bandwidth valueOf(double bandwidth) {
+        return bps(bandwidth);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in bps.
+     *
+     * @param bandwidth bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    public static Bandwidth bps(double bandwidth) {
         return new Bandwidth(bandwidth);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in Kbps.
+     *
+     * @param bandwidth bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    public static Bandwidth kbps(double bandwidth) {
+        return new Bandwidth(bandwidth * 1_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in Mbps.
+     *
+     * @param bandwidth bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    public static Bandwidth mbps(double bandwidth) {
+        return new Bandwidth(bandwidth * 1_000_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in Gbps.
+     *
+     * @param bandwidth bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    public static Bandwidth gbps(double bandwidth) {
+        return new Bandwidth(bandwidth * 1_000_000_000L);
     }
 
     /**

@@ -78,9 +78,9 @@ public class HazelcastLinkResourceStore
 
     private final Logger log = getLogger(getClass());
 
-    private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.valueOf(1_000);
+    private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.mbps(1_000);
 
-    private static final Bandwidth EMPTY_BW = Bandwidth.valueOf(0);
+    private static final Bandwidth EMPTY_BW = Bandwidth.bps(0);
 
     // table to store current allocations
     /** LinkKey -> List<LinkResourceAllocations>. */
@@ -166,7 +166,7 @@ public class HazelcastLinkResourceStore
         String strBw = link.annotations().value(bandwidthAnnotation);
         if (strBw != null) {
             try {
-                bandwidth = Bandwidth.valueOf(Double.parseDouble(strBw));
+                bandwidth = Bandwidth.mbps(Double.parseDouble(strBw));
             } catch (NumberFormatException e) {
                 // do nothings
                 bandwidth = null;
@@ -243,7 +243,7 @@ public class HazelcastLinkResourceStore
                     }
                 }
 
-                free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(Bandwidth.valueOf(freeBw))));
+                free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(Bandwidth.bps(freeBw))));
                 break;
             }
 

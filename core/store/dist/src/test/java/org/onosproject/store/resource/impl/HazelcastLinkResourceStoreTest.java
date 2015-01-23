@@ -80,7 +80,7 @@ public class HazelcastLinkResourceStoreTest {
     private Link newLink(String dev1, int port1, String dev2, int port2) {
         Annotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.OPTICAL_WAVES, "80")
-                .set(AnnotationKeys.BANDWIDTH, "1000000")
+                .set(AnnotationKeys.BANDWIDTH, "1000")
                 .build();
         return new DefaultLink(
                 new ProviderId("of", "foo"),
@@ -175,7 +175,7 @@ public class HazelcastLinkResourceStoreTest {
         final BandwidthResourceAllocation alloc = getBandwidthObj(freeRes);
         assertNotNull(alloc);
 
-        assertEquals(Bandwidth.valueOf(1000000.0), alloc.bandwidth());
+        assertEquals(Bandwidth.mbps(1000.0), alloc.bandwidth());
     }
 
     /**
@@ -212,7 +212,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                 .build();
         final ResourceAllocation allocation =
-                new BandwidthResourceAllocation(Bandwidth.valueOf(900000.0));
+                new BandwidthResourceAllocation(Bandwidth.mbps(900.0));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =
@@ -233,7 +233,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                         .build();
         final ResourceAllocation allocation =
-                new BandwidthResourceAllocation(Bandwidth.valueOf(9000000.0));
+                new BandwidthResourceAllocation(Bandwidth.mbps(9000.0));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =
@@ -261,7 +261,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                         .build();
         final ResourceAllocation allocation =
-                new BandwidthResourceAllocation(Bandwidth.valueOf(900000.0));
+                new BandwidthResourceAllocation(Bandwidth.mbps(900.0));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =

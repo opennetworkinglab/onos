@@ -55,7 +55,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class SimpleLinkResourceStore implements LinkResourceStore {
-    private static final int DEFAULT_BANDWIDTH = 1_000;
+    private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.mbps(1_000);
     private final Logger log = getLogger(getClass());
 
     private Map<IntentId, LinkResourceAllocations> linkResourceAllocationsMap;
@@ -96,14 +96,14 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
             log.debug("No optical.wave annotation on link %s", link);
         }
 
-        int bandwidth = DEFAULT_BANDWIDTH;
+        Bandwidth bandwidth = DEFAULT_BANDWIDTH;
         try {
-            bandwidth = Integer.parseInt(annotations.value(AnnotationKeys.BANDWIDTH));
+            bandwidth = Bandwidth.mbps((Double.parseDouble(annotations.value(AnnotationKeys.BANDWIDTH))));
         } catch (NumberFormatException e) {
             log.debug("No bandwidth annotation on link %s", link);
         }
         allocations.add(
-                new BandwidthResourceAllocation(Bandwidth.valueOf(bandwidth)));
+                new BandwidthResourceAllocation(bandwidth));
         return allocations;
     }
 
@@ -123,7 +123,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 return (BandwidthResourceAllocation) res;
             }
         }
-        return new BandwidthResourceAllocation(Bandwidth.valueOf(0));
+        return new BandwidthResourceAllocation(Bandwidth.bps(0));
     }
 
     /**
@@ -156,7 +156,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 }
                 freeRes.remove(ba);
                 freeRes.add(new BandwidthResourceAllocation(
-                        Bandwidth.valueOf(newBandwidth)));
+                        Bandwidth.bps(newBandwidth)));
                 break;
             case LAMBDA:
                 final boolean lambdaAvailable = freeRes.remove(res);
@@ -198,7 +198,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 double newBandwidth = ba.bandwidth().toDouble() + requestedBandwidth;
                 freeRes.remove(ba);
                 freeRes.add(new BandwidthResourceAllocation(
-                        Bandwidth.valueOf(newBandwidth)));
+                        Bandwidth.bps(newBandwidth)));
                 break;
             case LAMBDA:
                 checkState(freeRes.add(res));

@@ -138,7 +138,7 @@ public class IntentCodecTest extends AbstractIntentTest {
 
         final List<Constraint> constraints =
                 ImmutableList.of(
-                    new BandwidthConstraint(Bandwidth.valueOf(1.0)),
+                    new BandwidthConstraint(Bandwidth.bps(1.0)),
                     new LambdaConstraint(Lambda.valueOf(3)),
                     new AnnotationConstraint("key", 33.0),
                     new AsymmetricPathConstraint(),

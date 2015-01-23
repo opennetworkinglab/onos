@@ -73,7 +73,7 @@ public class SimpleLinkResourceStoreTest {
     private static Link newLink(String dev1, int port1, String dev2, int port2) {
         Annotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.OPTICAL_WAVES, "80")
-                .set(AnnotationKeys.BANDWIDTH, "1000000")
+                .set(AnnotationKeys.BANDWIDTH, "1000")
                 .build();
         return new DefaultLink(
                 new ProviderId("of", "foo"),
@@ -159,7 +159,7 @@ public class SimpleLinkResourceStoreTest {
         final BandwidthResourceAllocation alloc = getBandwidthObj(freeRes);
         assertNotNull(alloc);
 
-        assertEquals(Bandwidth.valueOf(1000000.0), alloc.bandwidth());
+        assertEquals(Bandwidth.mbps(1000.0), alloc.bandwidth());
     }
 
     /**
@@ -184,7 +184,7 @@ public class SimpleLinkResourceStoreTest {
         @Override
         public Set<ResourceAllocation> getResourceAllocation(Link link) {
             final ResourceAllocation allocation =
-                    new BandwidthResourceAllocation(Bandwidth.valueOf(allocationAmount));
+                    new BandwidthResourceAllocation(Bandwidth.bps(allocationAmount));
             final Set<ResourceAllocation> allocations = new HashSet<>();
             allocations.add(allocation);
             return allocations;

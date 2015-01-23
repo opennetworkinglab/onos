@@ -169,7 +169,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         // Check for a bandwidth specification
         if (!isNullOrEmpty(bandwidthString)) {
             final double bandwidthValue = Double.parseDouble(bandwidthString);
-            constraints.add(new BandwidthConstraint(Bandwidth.valueOf(bandwidthValue)));
+            constraints.add(new BandwidthConstraint(Bandwidth.bps(bandwidthValue)));
         }
 
         // Check for a lambda specification

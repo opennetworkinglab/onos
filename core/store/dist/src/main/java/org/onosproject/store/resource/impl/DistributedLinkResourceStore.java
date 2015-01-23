@@ -80,7 +80,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
 
     private final Logger log = getLogger(getClass());
 
-    private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.valueOf(1_000);
+    private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.mbps(1_000);
 
     // table to store current allocations
     /** LinkKey -> List<LinkResourceAllocations>. */
@@ -89,7 +89,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     /** IntentId -> LinkResourceAllocations. */
     private static final String INTENT_ALLOCATIONS = "IntentAllocations";
 
-    private static final Bandwidth EMPTY_BW = Bandwidth.valueOf(0);
+    private static final Bandwidth EMPTY_BW = Bandwidth.bps(0);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DatabaseAdminService databaseAdminService;
@@ -100,7 +100,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
 
-    // Link annotation key name to use as bandwidth
+    // Link annotation key name to use as bandwidth in Mbps
     private String bandwidthAnnotation = AnnotationKeys.BANDWIDTH;
     // Link annotation key name to use as max lambda
     private String wavesAnnotation = AnnotationKeys.OPTICAL_WAVES;
@@ -175,7 +175,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
         String strBw = link.annotations().value(bandwidthAnnotation);
         if (strBw != null) {
             try {
-                bandwidth = Bandwidth.valueOf(Double.parseDouble(strBw));
+                bandwidth = Bandwidth.mbps(Double.parseDouble(strBw));
             } catch (NumberFormatException e) {
                 // do nothings
                 bandwidth = null;
@@ -242,7 +242,7 @@ public class DistributedLinkResourceStore implements LinkResourceStore {
                     }
                 }
 
-                free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(Bandwidth.valueOf(freeBw))));
+                free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(Bandwidth.bps(freeBw))));
                 break;
             }
 

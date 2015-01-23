@@ -35,11 +35,11 @@ public class ConstraintObjectsTest {
     // Bandwidth Constraint
 
     final BandwidthConstraint bandwidthConstraint1 =
-            new BandwidthConstraint(Bandwidth.valueOf(100.0));
+            new BandwidthConstraint(Bandwidth.bps(100.0));
     final BandwidthConstraint bandwidthConstraintSameAs1 =
-            new BandwidthConstraint(Bandwidth.valueOf(100.0));
+            new BandwidthConstraint(Bandwidth.bps(100.0));
     final BandwidthConstraint bandwidthConstraint2 =
-            new BandwidthConstraint(Bandwidth.valueOf(200.0));
+            new BandwidthConstraint(Bandwidth.bps(200.0));
 
     /**
      * Checks that the objects were created properly.

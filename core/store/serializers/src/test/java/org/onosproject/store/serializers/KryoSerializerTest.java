@@ -312,7 +312,7 @@ public class KryoSerializerTest {
                         .build();
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         allocations.put(new DefaultLink(PID, CP1, CP2, Type.DIRECT),
-                        ImmutableSet.of(new BandwidthResourceAllocation(Bandwidth.valueOf(10.0)),
+                        ImmutableSet.of(new BandwidthResourceAllocation(Bandwidth.bps(10.0)),
                                         new LambdaResourceAllocation(Lambda.valueOf(1))));
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
@@ -324,7 +324,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testBandwidthConstraint() {
-        testSerializable(new BandwidthConstraint(Bandwidth.valueOf(1000.0)));
+        testSerializable(new BandwidthConstraint(Bandwidth.bps(1000.0)));
     }
 
     @Test

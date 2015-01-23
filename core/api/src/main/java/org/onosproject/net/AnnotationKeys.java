@@ -61,6 +61,7 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for bandwidth.
+     * The value for this key is interpreted as Mbps.
      */
     public static final String BANDWIDTH = "bandwidth";
 

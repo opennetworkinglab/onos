@@ -38,6 +38,7 @@ public class BandwidthResourceRequest implements ResourceRequest {
      *
      * @param bandwidth bandwidth value to be requested
      */
+    @Deprecated
     public BandwidthResourceRequest(double bandwidth) {
         this.bandwidth = Bandwidth.valueOf(bandwidth);
     }
