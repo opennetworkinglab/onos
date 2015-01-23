@@ -3029,7 +3029,7 @@
         stopAntTimer();
     }
 
-    var geoJsonUrl = 'json/map/continental_us.json',
+    var geoJsonUrl = 'data/map/continental_us.json',
         geoJson;
 
     function loadGeoJsonData() {
