@@ -17,25 +17,23 @@ package org.onosproject.net.flow;
 
 import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 
-import java.util.Optional;
-
 
 public class FlowRuleBatchEntry
         extends BatchOperationEntry<FlowRuleOperation, FlowRule> {
 
-    private final Optional<Long> id;
+    private final Long id; // FIXME: consider using Optional<Long>
 
     public FlowRuleBatchEntry(FlowRuleOperation operator, FlowRule target) {
         super(operator, target);
-        this.id = Optional.empty();
+        this.id = null;
     }
 
-    public FlowRuleBatchEntry(FlowRuleOperation operator, FlowRule target, long id) {
+    public FlowRuleBatchEntry(FlowRuleOperation operator, FlowRule target, Long id) {
         super(operator, target);
-        this.id = Optional.of(id);
+        this.id = id;
     }
 
-    public Optional<Long> id() {
+    public Long id() {
         return id;
     }
 

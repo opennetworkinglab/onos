@@ -385,7 +385,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         private final Set<FlowEntry> offendingFlowMods = Sets.newHashSet();
         // Failed batch operation id
-        private Optional<Long> failedId;
+        private Long failedId;
 
         private final CountDownLatch countDownLatch;
         private BatchState state;
@@ -509,7 +509,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         public CompletedBatchOperation get() throws InterruptedException, ExecutionException {
             countDownLatch.await();
             this.state = BatchState.FINISHED;
-            Set<Long> failedIds = (failedId.isPresent()) ?  Sets.newHashSet(failedId.get()) : Collections.emptySet();
+            Set<Long> failedIds = (failedId != null) ?  Sets.newHashSet(failedId) : Collections.emptySet();
             CompletedBatchOperation result =
                     new CompletedBatchOperation(ok.get(), offendingFlowMods, failedIds);
             //FIXME do cleanup here (moved by BOC)
@@ -523,7 +523,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 TimeoutException {
             if (countDownLatch.await(timeout, unit)) {
                 this.state = BatchState.FINISHED;
-                Set<Long> failedIds = (failedId.isPresent()) ? Sets.newHashSet(failedId.get()) : Collections.emptySet();
+                Set<Long> failedIds = (failedId != null) ?  Sets.newHashSet(failedId) : Collections.emptySet();
                 CompletedBatchOperation result =
                         new CompletedBatchOperation(ok.get(), offendingFlowMods, failedIds);
                 // FIXME do cleanup here (moved by BOC)
