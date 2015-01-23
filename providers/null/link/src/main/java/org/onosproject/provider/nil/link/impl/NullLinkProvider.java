@@ -19,6 +19,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.net.MastershipRole.MASTER;
 
 import java.util.Dictionary;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -68,6 +70,9 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService roleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry providerRegistry;
 
     private LinkProviderService providerService;
@@ -98,7 +103,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     // For flicker = true, duration between events in msec.
     @Property(name = "eventRate", intValue = DEFAULT_RATE,
             label = "Duration between Link Event")
-    private int eventRate = 3000;
+    private int eventRate = DEFAULT_RATE;
 
     public NullLinkProvider() {
         super(new ProviderId("null", "org.onosproject.provider.nil"));
@@ -172,12 +177,16 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void event(DeviceEvent event) {
+            Device dev = event.subject();
+            if (!MASTER.equals(roleService.getLocalRole(dev.id()))) {
+                return;
+            }
             switch (event.type()) {
             case DEVICE_ADDED:
-                addLink(event.subject());
+                addLink(dev);
                 break;
             case DEVICE_REMOVED:
-                removeLink(event.subject());
+                removeLink(dev);
                 break;
             default:
                 break;
