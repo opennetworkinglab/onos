@@ -24,6 +24,7 @@
     // define core module dependencies here...
     var coreDependencies = [
         'ngRoute',
+        'onosWidget',
         'onosUtil',
         'onosSvg',
         'onosRemote',
