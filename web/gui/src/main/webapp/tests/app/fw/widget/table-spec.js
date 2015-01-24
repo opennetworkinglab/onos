@@ -37,8 +37,8 @@ describe('factory: fw/widget/table.js', function() {
                 "serial": "None",
                 "annotations": {
                     "protocol": "OF_10"
-                }
-            },
+                    }
+                },
                 {
                     "id": "of:0000000000000004",
                     "available": false,
@@ -79,7 +79,6 @@ describe('factory: fw/widget/table.js', function() {
         d3.select('#myDiv').remove();
     });
 
-
     it('should define TableService', function () {
         expect(ts).toBeDefined();
     });
@@ -88,7 +87,7 @@ describe('factory: fw/widget/table.js', function() {
         var table = div.select('table'),
             tableHeaders;
         expect(table).toBeTruthy();
-        expect(table.attr('fixed-header')).toBeTruthy();
+        expect(table.attr('fixed-header')).toBeFalsy();
         expect(table.select('thead')).toBeTruthy();
         expect(table.select('tbody')).toBeTruthy();
 

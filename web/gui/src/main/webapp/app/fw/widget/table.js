@@ -23,7 +23,7 @@
     var $log;
 
     function renderTable(div, config) {
-        var table = div.append('table').attr('fixed-header', true),
+        var table = div.append('table').attr('fixed-header', ''),
             thead, tr, numTableCols, i;
         table.append('thead');
         table.append('tbody');
@@ -50,23 +50,17 @@
         // let me know if you have suggestions for this function
 
         var numTableCols = colIds.length,
-            tbody, tr, td, i;
+            tbody, tr, i;
         tbody = div.select('tbody');
 
         // get the array associated with the first object, such as "devices"
-            // in fakeData
-            // (for some reason it doesn't like the data.keys() function, saying
-                // "undefined is not a function"
-                // Object.keys(data) works though)
-        // loop through every object in the array, and every property in the object
-        // put their property in the td of the table
+        // loop through every object in the array, and every colId in config
+        // put the appropriate property in the td of the table
         (data[Object.keys(data)[0]]).forEach(function (item) {
             tr = tbody.append('tr');
-            for(var key in item) {
-                for(i = 0; i < numTableCols; i += 1) {
-                    if(key === colIds[i]) {
-                        td = tr.append('td').html(item[key]);
-                    }
+            for(i = 0; i < numTableCols; i += 1) {
+                if(item.hasOwnProperty(colIds[i])) {
+                   tr.append('td').html(item[colIds[i]]);
                 }
             }
         });

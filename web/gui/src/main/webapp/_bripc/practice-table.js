@@ -23,8 +23,8 @@
 
     var config = {
         colIds: ['_iconid_available', 'id', 'mfr', 'hw', 'sw', 'serial',
-            'annotations.protocol'],
-        colText: ['', 'URI', 'Vendor', 'Hardware Version', 'Software Version',
+            'annotations'],
+        colText: ['Availability', 'URI', 'Vendor', 'Hardware Version', 'Software Version',
             'Serial Number', 'Protocol']
         },
         deviceData = {
@@ -39,10 +39,140 @@
                 "serial": "None",
                 "annotations": {
                     "protocol": "OF_10"
-                }
-            },
+                    }
+                },
                 {
                     "id": "of:0000000000000004",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
                     "available": false,
                     "_iconid_available": "deviceOffline",
                     "role": "MASTER",
@@ -90,7 +220,7 @@
     function setCSS(thead, tbody, height) {
         thead.style('display', 'block');
         tbody.style({'display': 'block',
-            'height': height || '500px',
+            'height': height || '100px',
             'overflow': 'auto'
         });
     }
@@ -100,7 +230,12 @@
         setCSS(th, tb, height);
     }
 
-    angular.module('practiceTable', [])
+    angular.module('practiceTable', ['onosWidget'])
+
+        .controller('showTableCtrl', ['$log', 'TableService',
+            function ($log, ts) {
+                ts.renderAndLoadTable(d3.select('#tableDiv'), config, deviceData);
+            }])
 
         .directive('fixedHeader', ['$log', '$timeout', function ($log, $timeout) {
             return {
@@ -113,6 +248,7 @@
                     var table = d3.select(element[0]),
                         thead = table.select('thead'),
                         tbody = table.select('tbody');
+                    $log.log('in directive function');
 
                     // wait until the table is visible
                     scope.$watch(
