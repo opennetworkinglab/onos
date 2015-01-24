@@ -127,7 +127,7 @@ public class TopologyWebResource extends AbstractWebResource {
         for (DeviceId deviceId : deviceIds) {
             devicesNode.add(deviceId.toString());
         }
-        return ok(root).build();
+        return ok(root.toString()).build();
     }
 
     /**
@@ -150,7 +150,7 @@ public class TopologyWebResource extends AbstractWebResource {
                 Lists.newArrayList(get(TopologyService.class)
                         .getClusterLinks(topology, cluster));
 
-        return ok(encodeArray(Link.class, "links", links)).build();
+        return ok(encodeArray(Link.class, "links", links).toString()).build();
     }
 
     /**
@@ -201,7 +201,11 @@ public class TopologyWebResource extends AbstractWebResource {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         boolean isBroadcast = get(TopologyService.class).isBroadcastPoint(topology, connectPoint);
 
-        return ok(mapper().createObjectNode().put("broadcast", isBroadcast)).build();
+        return ok(mapper()
+                .createObjectNode()
+                .put("broadcast", isBroadcast)
+                .toString())
+                .build();
     }
 
     /**
@@ -224,7 +228,10 @@ public class TopologyWebResource extends AbstractWebResource {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         boolean isInfrastructure = get(TopologyService.class).isInfrastructure(topology, connectPoint);
 
-        return ok(mapper().createObjectNode().put("infrastructure", isInfrastructure)).build();
+        return ok(mapper()
+                .createObjectNode()
+                .put("infrastructure", isInfrastructure).toString())
+                .build();
     }
 
 }
