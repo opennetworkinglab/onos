@@ -125,7 +125,7 @@ public class FlowRuleExtManager
                     //send it
                     FlowRuleBatchExtRequest flowrules = event.subject();
                     FlowRuleExtProvider flowRuleProvider =
-                                    getProvider(new ProviderId("igp","org.onosproject.provider.igp"));
+                                    getProvider(new ProviderId("igp", "org.onosproject.provider.igp"));
                     flowRuleProvider.applyFlowRule(flowrules);
                     //do not have transaction, assume it install success
                     FlowExtCompletedOperation result = new FlowExtCompletedOperation(true,
@@ -133,7 +133,7 @@ public class FlowRuleExtManager
                     store.batchOperationComplete(FlowRuleBatchExtEvent.completed(flowrules, result));
                     break;
             case BATCH_OPERATION_COMPLETED:
-                    
+
                     break;
             default:
                     break;
@@ -154,7 +154,7 @@ public class FlowRuleExtManager
                 ArrayListMultimap.create();
         List<Future<FlowExtCompletedOperation>> futures = Lists.newArrayList();
         for (FlowRuleExtEntry fbe : batch) {
-            perDeviceBatches.put(DeviceId.deviceId(String.valueOf(fbe.getDeviceId())), fbe);
+            perDeviceBatches.put(fbe.getDeviceId(), fbe);
         }
 
         for (DeviceId deviceId : perDeviceBatches.keySet()) {

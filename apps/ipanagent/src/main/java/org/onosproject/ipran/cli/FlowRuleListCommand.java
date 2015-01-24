@@ -26,8 +26,8 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 /**
  * Lists all flowruleexts.
  */
-@Command(scope = "onos", name = "ofmessages",
-         description = "Lists all FlowRules")
+@Command(scope = "onos", name = "igpflows",
+         description = "Lists all extended FlowRules")
 public class FlowRuleListCommand extends AbstractShellCommand {
 
     private static final String FMT_OMSG =

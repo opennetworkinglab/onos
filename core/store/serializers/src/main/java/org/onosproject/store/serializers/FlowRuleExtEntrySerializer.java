@@ -16,7 +16,7 @@ public class FlowRuleExtEntrySerializer extends Serializer<FlowRuleExtEntry> {
                // TODO Auto-generated constructor stub
         }
 
-	@Override
+        @Override
         public FlowRuleExtEntry read(Kryo kryo, Input input,
                          Class<FlowRuleExtEntry> object) {
                 // TODO Auto-generated method stub
@@ -24,10 +24,10 @@ public class FlowRuleExtEntrySerializer extends Serializer<FlowRuleExtEntry> {
                 Registration classT = kryo.readClass(input);
                 int length = input.readInt();
                 byte[] buf = input.readBytes(length);
-                return new FlowRuleExtEntry(deviceid, classT.getClass(), buf);
+                return new FlowRuleExtEntry(deviceid, classT.getType(), buf);
         }
 
-	@Override
+        @Override
         public void write(Kryo kyro, Output output, FlowRuleExtEntry object) {
                 // TODO Auto-generated method stub
                 kyro.writeClassAndObject(output, object.getDeviceId());

@@ -94,18 +94,18 @@ public class FlowRuleExtManagerTest {
         FlowRuleExtEntry r2 = new FlowRuleExtEntry(DID, null, "of:123:02".getBytes());
         FlowRuleExtEntry r3 = new FlowRuleExtEntry(DID, null, "of:123:03".getBytes());
 
-        Collection<FlowRuleExtEntry> batchOperation = new ArrayList<FlowRuleExtEntry>();;
+        Collection<FlowRuleExtEntry> batchOperation = new ArrayList<FlowRuleExtEntry>();
         assertTrue("store should be empty",
                    Sets.newHashSet(service.getExtMessages(DID)).isEmpty());
         batchOperation.add(r1);
         batchOperation.add(r2);
         batchOperation.add(r3);
         service.applyBatch(batchOperation);
-        Collection<FlowRuleExtEntry> store = (Collection<FlowRuleExtEntry>)service.getExtMessages(DID);
+        Collection<FlowRuleExtEntry> store = (Collection<FlowRuleExtEntry>) service.getExtMessages(DID);
         assertEquals("3 rules should exist", 3, store.size());
-        assertThat(store.toArray()[0],equalTo(r1));
-        assertThat(store.toArray()[1],equalTo(r2));
-        assertThat(store.toArray()[2],equalTo(r3));
+        assertThat(store.toArray()[0], equalTo(r1));
+        assertThat(store.toArray()[1], equalTo(r2));
+        assertThat(store.toArray()[2], equalTo(r3));
     }
 
     private static class TestListener implements FlowRuleExtListener {
@@ -170,12 +170,10 @@ public class FlowRuleExtManagerTest {
             super(PID);
         }
 
-		@Override
-		public void applyFlowRule(FlowRuleBatchExtRequest flowRules) {
-			// TODO Auto-generated method stub
-			
-		}
-
+        @Override
+       public void applyFlowRule(FlowRuleBatchExtRequest flowRules) {
+            // TODO Auto-generated method stub
+       }
     }
 
     public class TestApplicationId extends DefaultApplicationId {

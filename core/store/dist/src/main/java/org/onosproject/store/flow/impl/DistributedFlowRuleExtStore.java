@@ -44,8 +44,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -164,7 +162,6 @@ public class DistributedFlowRuleExtStore extends
 
             @Override
             public void handle(ClusterMessage message) {
-                ChannelBuffer buf = ChannelBuffers.wrappedBuffer(message.payload());
                 //here should add a decode process
                 ImmutableList<FlowRuleExtEntry> operation=SERIALIZER.decode(message.payload());
                 log.info("received batch request {}",operation);
@@ -246,11 +243,11 @@ public class DistributedFlowRuleExtStore extends
 		}
 
 		if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
-			return getInternalMessage(deviceId);
+		        Iterable<?> inrules = decodeFlowExt(getInternalMessage(deviceId));
+			return ImmutableSet.copyOf(inrules);
 		}
 
-		log.trace(
-				"Forwarding storeBatch to {}, which is the primary (master) for device {}",
+		log.trace("Forwarding storeBatch to {}, which is the primary (master) for device {}",
 				replicaInfo.master().orNull(), deviceId);
 
 		ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), GET_DEVICE_EXTENDFLOW_ENTRIES,
@@ -336,9 +333,8 @@ public class DistributedFlowRuleExtStore extends
     private ListenableFuture<FlowExtCompletedOperation> storeBatchInternal(
       Collection<FlowRuleExtEntry> batchOperation) {
         for(FlowRuleExtEntry operation : batchOperation) {
-             DeviceId deviceId = DeviceId.deviceId(String.valueOf(operation.getDeviceId()));
-             if (!extendflowEntries.containsEntry(deviceId, operation)) {
-                    extendflowEntries.put(deviceId, operation);
+             if (!extendflowEntries.containsEntry(operation.getDeviceId(), operation)) {
+                    extendflowEntries.put(operation.getDeviceId(), operation);
              }
         }
          SettableFuture<FlowExtCompletedOperation> r = SettableFuture.create();
@@ -377,7 +373,7 @@ public class DistributedFlowRuleExtStore extends
     private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
         Collection<?> flowExtensions = new ArrayList();
         ByteBufferOutput output = new ByteBufferOutput(10*1000, 4096);
-        Kryo kryo = new Kryo();
+        Kryo kryo = SERIALIZER.serializerPool.borrow();
         for(FlowRuleExtEntry entry : batchOperation) {
             kryo.writeClass(output, entry.getClassT());
             kryo.writeObject(output, entry.getFlowEntryExt());

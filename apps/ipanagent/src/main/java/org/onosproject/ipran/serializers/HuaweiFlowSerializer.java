@@ -29,13 +29,15 @@ public class HuaweiFlowSerializer extends Serializer<OFMessage>{
         // TODO Auto-generated method stub
         ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(input.getBuffer());
         OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
+        OFMessage message = null;
         try {
-            OFMessage message = reader.readFrom(buffer);
+            message = reader.readFrom(buffer);
         } catch (OFParseError e) {
             // TODO Auto-generated catch block
-            log.error(e.getMessage());
+            log.error(e.getMessage() + e.getCause());
+            e.printStackTrace();
         }
-        return null;
+        return message;
     }
 
 }
