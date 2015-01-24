@@ -131,7 +131,7 @@ public class DistributedFlowRuleExtStore extends
 			.newCachedThreadPool(namedThreads("flowstore-peer-responders"));
 
 
-	private InternalKryoSerializer SERIALIZER = new InternalKryoSerializer();
+	private InternalKryoSerializer storeSeialize = new InternalKryoSerializer();
 
 	private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
@@ -146,12 +146,12 @@ public class DistributedFlowRuleExtStore extends
 
             @Override
             public void handle(ClusterMessage message) {
-                DeviceId deviceId = SERIALIZER.decode(message.payload());
+                DeviceId deviceId = storeSeialize.decode(message.payload());
                 log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
                 Set<FlowRuleExtEntry> value = getInternalMessage(deviceId);
                 ImmutableList<FlowRuleExtEntry> flowmsgs = ImmutableList.copyOf(value);
                 try {
-                    message.respond(SERIALIZER.encode(flowmsgs));
+                    message.respond(storeSeialize.encode(flowmsgs));
                 } catch (IOException e) {
                     log.error("Failed to respond to peer's getFlowEntries request", e);
                 }
@@ -163,7 +163,7 @@ public class DistributedFlowRuleExtStore extends
             @Override
             public void handle(ClusterMessage message) {
                 //here should add a decode process
-                ImmutableList<FlowRuleExtEntry> operation=SERIALIZER.decode(message.payload());
+                ImmutableList<FlowRuleExtEntry> operation=storeSeialize.decode(message.payload());
                 log.info("received batch request {}",operation);
                 final ListenableFuture<FlowExtCompletedOperation> f = storeBatchInternal(operation);
                 
@@ -172,7 +172,7 @@ public class DistributedFlowRuleExtStore extends
                 	public void run(){
                 	    FlowExtCompletedOperation result = Futures.getUnchecked(f);
                 		try {
-                            message.respond(SERIALIZER.encode(result));
+                            message.respond(storeSeialize.encode(result));
                         } catch (IOException e) {
                             log.error("Failed to respond back", e);
                         }
@@ -250,8 +250,8 @@ public class DistributedFlowRuleExtStore extends
 		log.trace("Forwarding storeBatch to {}, which is the primary (master) for device {}",
 				replicaInfo.master().orNull(), deviceId);
 
-		ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), GET_DEVICE_EXTENDFLOW_ENTRIES,
-				SERIALIZER.encode(deviceId));
+		ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(),
+		                            GET_DEVICE_EXTENDFLOW_ENTRIES, storeSeialize.encode(deviceId));
 
 		try {
 			ListenableFuture<byte[]> responseFuture = clusterCommunicator
@@ -259,7 +259,7 @@ public class DistributedFlowRuleExtStore extends
 			byte[] bytes = responseFuture.get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 			//make some change about buffer
 			ImmutableList<FlowRuleExtEntry> flows = ImmutableList.copyOf((Iterable<FlowRuleExtEntry>)
-			                                 SERIALIZER.decode(bytes));
+			                                 storeSeialize.decode(bytes));
 			//common method to decode to classT
 			Iterable<?> rules = decodeFlowExt(flows);
 			return ImmutableSet.copyOf(rules);
@@ -305,14 +305,14 @@ public class DistributedFlowRuleExtStore extends
 
              ImmutableList<FlowRuleExtEntry> flowmsgs = ImmutableList.copyOf(batchOperation);
              ClusterMessage message = new ClusterMessage(clusterService.getLocalNode().id(), APPLY_EXTEND_FLOWS,
-                                                         SERIALIZER.encode(flowmsgs));
+                                                         storeSeialize.encode(flowmsgs));
 
             try {
               ListenableFuture<byte[]> responseFuture = clusterCommunicator
                             .sendAndReceive(message, replicaInfo.master().get());
               //here should add another decode process 
               return Futures.transform(responseFuture,
-                            new DecodeTo<FlowExtCompletedOperation>(SERIALIZER));
+                            new DecodeTo<FlowExtCompletedOperation>(storeSeialize));
             } catch (IOException e) {
               return Futures.immediateFailedFuture(e);
         }
@@ -361,7 +361,7 @@ public class DistributedFlowRuleExtStore extends
     @Override
     public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
         // TODO Auto-generated method stub
-        SERIALIZER.setupKryoPool(classT, serializer);
+        storeSeialize.setupKryoPool(classT, serializer);
     }
 
     /** 
@@ -373,11 +373,11 @@ public class DistributedFlowRuleExtStore extends
     private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
         Collection<?> flowExtensions = new ArrayList();
         ByteBufferOutput output = new ByteBufferOutput(10*1000, 4096);
-        Kryo kryo = SERIALIZER.serializerPool.borrow();
+        Kryo kryo = storeSeialize.serializerPool.borrow();
         for(FlowRuleExtEntry entry : batchOperation) {
             kryo.writeClass(output, entry.getClassT());
             kryo.writeObject(output, entry.getFlowEntryExt());
-            flowExtensions.add(SERIALIZER.decode(output.getBuffer()));
+            flowExtensions.add(storeSeialize.decode(output.toBytes()));
             output.clear();
         }
         output.close();
