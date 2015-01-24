@@ -21,6 +21,54 @@
 (function () {
     'use strict';
 
+    var config = {
+        colIds: ['_iconid_available', 'id', 'mfr', 'hw', 'sw', 'serial',
+            'annotations.protocol'],
+        colText: ['', 'URI', 'Vendor', 'Hardware Version', 'Software Version',
+            'Serial Number', 'Protocol']
+        },
+        deviceData = {
+            "devices": [{
+                "id": "of:0000000000000001",
+                "available": true,
+                "_iconid_available": "deviceOnline",
+                "role": "MASTER",
+                "mfr": "Nicira, Inc.",
+                "hw": "Open vSwitch",
+                "sw": "2.0.1",
+                "serial": "None",
+                "annotations": {
+                    "protocol": "OF_10"
+                }
+            },
+                {
+                    "id": "of:0000000000000004",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                },
+                {
+                    "id": "of:0000000000000092",
+                    "available": false,
+                    "_iconid_available": "deviceOffline",
+                    "role": "MASTER",
+                    "mfr": "Nicira, Inc.",
+                    "hw": "Open vSwitch",
+                    "sw": "2.0.1",
+                    "serial": "None",
+                    "annotations": {
+                        "protocol": "OF_10"
+                    }
+                }]
+        };
+
     function setColWidth(t) {
         var tHeaders, tdElement, colWidth;
 
