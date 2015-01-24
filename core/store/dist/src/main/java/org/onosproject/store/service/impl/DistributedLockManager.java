@@ -53,7 +53,7 @@ import com.google.common.collect.Multimaps;
 public class DistributedLockManager implements LockService {
 
     private static final ExecutorService THREAD_POOL =
-            Executors.newCachedThreadPool(namedThreads("lock-manager-%d"));
+            Executors.newCachedThreadPool(namedThreads("onos-lock-manager-%d"));
 
     private final Logger log = getLogger(getClass());
 

@@ -74,7 +74,7 @@ public class LeadershipManager implements LeadershipService {
 
     // TODO: Make Thread pool size configurable.
     private final ScheduledExecutorService threadPool =
-            Executors.newScheduledThreadPool(25, namedThreads("leadership-manager-%d"));
+            Executors.newScheduledThreadPool(25, namedThreads("onos-leadership-manager-%d"));
 
     private static final MessageSubject LEADERSHIP_UPDATES =
             new MessageSubject("leadership-contest-updates");

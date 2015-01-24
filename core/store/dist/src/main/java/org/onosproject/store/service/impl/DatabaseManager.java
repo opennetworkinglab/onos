@@ -218,7 +218,7 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
             copycat.start().get();
 
             executor =
-                    newSingleThreadScheduledExecutor(namedThreads("db-heartbeat-%d"));
+                    newSingleThreadScheduledExecutor(namedThreads("onos-db-heartbeat-%d"));
             executor.scheduleWithFixedDelay(new LeaderAdvertiser(), 5, 2, TimeUnit.SECONDS);
 
         }

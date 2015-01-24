@@ -93,7 +93,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     private final List<DeviceId> devices = Lists.newArrayList();
 
     private ExecutorService linkDriver = Executors.newFixedThreadPool(1,
-            namedThreads("null-link-driver"));
+            namedThreads("onos-null-link-driver"));
 
     // If true, 'flickers' links by alternating link up/down events at eventRate
     @Property(name = "flicker", boolValue = FLICKER,

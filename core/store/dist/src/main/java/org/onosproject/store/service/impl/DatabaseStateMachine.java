@@ -66,7 +66,7 @@ public class DatabaseStateMachine implements StateMachine {
     private final Logger log = getLogger(getClass());
 
     private final ExecutorService updatesExecutor =
-            Executors.newSingleThreadExecutor(namedThreads("database-statemachine-updates"));
+            Executors.newSingleThreadExecutor(namedThreads("onos-db-statemachine-updates"));
 
     // message subject for database update notifications.
     public static final MessageSubject DATABASE_UPDATE_EVENTS =

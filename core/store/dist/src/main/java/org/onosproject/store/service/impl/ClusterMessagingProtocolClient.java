@@ -103,7 +103,7 @@ public class ClusterMessagingProtocolClient implements ProtocolClient {
     public synchronized CompletableFuture<Void> connect() {
         if (pool == null || pool.isShutdown()) {
             // TODO include remote name?
-            pool = newCachedThreadPool(namedThreads("copycat-netty-messaging-client-%d"));
+            pool = newCachedThreadPool(namedThreads("onos-copycat-netty-messaging-client-%d"));
         }
         return CompletableFuture.completedFuture(null);
     }

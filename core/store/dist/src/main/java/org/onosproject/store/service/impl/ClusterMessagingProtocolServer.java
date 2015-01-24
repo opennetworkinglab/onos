@@ -62,7 +62,7 @@ public class ClusterMessagingProtocolServer implements ProtocolServer {
     @Override
     public CompletableFuture<Void> listen() {
         if (pool == null || pool.isShutdown()) {
-            pool = newCachedThreadPool(namedThreads("copycat-netty-messaging-server-%d"));
+            pool = newCachedThreadPool(namedThreads("onos-copycat-netty-messaging-server-%d"));
         }
 
         clusterCommunicator.addSubscriber(COPYCAT_PING, new PingHandler());

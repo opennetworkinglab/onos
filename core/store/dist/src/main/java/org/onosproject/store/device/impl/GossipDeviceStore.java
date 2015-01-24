@@ -187,10 +187,10 @@ public class GossipDeviceStore
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE, new InternalDeviceAdvertisementListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("device-fg-%d"));
+        executor = Executors.newCachedThreadPool(namedThreads("onos-device-fg-%d"));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("device-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-device-bg-%d")));
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),

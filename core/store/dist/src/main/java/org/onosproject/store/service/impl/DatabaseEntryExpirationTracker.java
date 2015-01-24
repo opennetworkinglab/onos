@@ -55,7 +55,7 @@ public class DatabaseEntryExpirationTracker implements
         DatabaseUpdateEventListener, EventHandler<LeaderElectEvent> {
 
     private static final ExecutorService THREAD_POOL =
-            Executors.newCachedThreadPool(namedThreads("database-stale-entry-expirer-%d"));
+            Executors.newCachedThreadPool(namedThreads("onos-db-stale-entry-expirer-%d"));
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

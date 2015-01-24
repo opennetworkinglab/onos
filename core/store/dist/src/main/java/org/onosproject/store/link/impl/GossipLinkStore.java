@@ -163,10 +163,10 @@ public class GossipLinkStore
                 GossipLinkStoreMessageSubjects.LINK_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalLinkAntiEntropyAdvertisementListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("link-fg-%d"));
+        executor = Executors.newCachedThreadPool(namedThreads("onos-link-fg-%d"));
 
         backgroundExecutors =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("link-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-link-bg-%d")));
 
         long initialDelaySec = 5;
         long periodSec = 5;

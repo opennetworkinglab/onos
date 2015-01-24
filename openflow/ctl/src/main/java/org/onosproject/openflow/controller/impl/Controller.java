@@ -137,13 +137,13 @@ public class Controller {
 
         if (workerThreads == 0) {
             execFactory =  new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(namedThreads("Controller-boss-%d")),
-                    Executors.newCachedThreadPool(namedThreads("Controller-worker-%d")));
+                    Executors.newCachedThreadPool(namedThreads("onos-of-boss-%d")),
+                    Executors.newCachedThreadPool(namedThreads("onos-of-worker-%d")));
             return new ServerBootstrap(execFactory);
         } else {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(namedThreads("Controller-boss-%d")),
-                    Executors.newCachedThreadPool(namedThreads("Controller-worker-%d")), workerThreads);
+                    Executors.newCachedThreadPool(namedThreads("onos-of-boss-%d")),
+                    Executors.newCachedThreadPool(namedThreads("onos-of-worker-%d")), workerThreads);
             return new ServerBootstrap(execFactory);
         }
     }

@@ -132,10 +132,10 @@ public class GossipIntentStore
                 INTENT_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalIntentAntiEntropyAdvertisementListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("intent-fg-%d"));
+        executor = Executors.newCachedThreadPool(namedThreads("onos-intent-fg-%d"));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("intent-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-intent-bg-%d")));
 
         // start anti-entropy thread
         //backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),

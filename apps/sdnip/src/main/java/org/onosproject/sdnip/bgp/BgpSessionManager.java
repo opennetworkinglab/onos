@@ -15,17 +15,6 @@
  */
 package org.onosproject.sdnip.bgp;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.namedThreads;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
@@ -37,33 +26,44 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.sdnip.RouteListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newCachedThreadPool;
+import static org.onlab.util.Tools.namedThreads;
 
 /**
  * BGP Session Manager class.
  */
 public class BgpSessionManager {
     private static final Logger log =
-        LoggerFactory.getLogger(BgpSessionManager.class);
+            LoggerFactory.getLogger(BgpSessionManager.class);
 
     boolean isShutdown = true;
     private Channel serverChannel;     // Listener for incoming BGP connections
     private ServerBootstrap serverBootstrap;
     private ChannelGroup allChannels = new DefaultChannelGroup();
     private ConcurrentMap<SocketAddress, BgpSession> bgpSessions =
-        new ConcurrentHashMap<>();
+            new ConcurrentHashMap<>();
     private Ip4Address myBgpId;        // Same BGP ID for all peers
 
     private BgpRouteSelector bgpRouteSelector = new BgpRouteSelector(this);
     private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRoutes4 =
-        new ConcurrentHashMap<>();
+            new ConcurrentHashMap<>();
     private ConcurrentMap<Ip6Prefix, BgpRouteEntry> bgpRoutes6 =
-        new ConcurrentHashMap<>();
+            new ConcurrentHashMap<>();
 
     private final RouteListener routeListener;
 
@@ -200,7 +200,7 @@ public class BgpSessionManager {
         //
         if (bgpSession.getLocalAddress() instanceof InetSocketAddress) {
             InetAddress inetAddr =
-                ((InetSocketAddress) bgpSession.getLocalAddress()).getAddress();
+                    ((InetSocketAddress) bgpSession.getLocalAddress()).getAddress();
             Ip4Address ip4Address = Ip4Address.valueOf(inetAddr.getAddress());
             updateMyBgpId(ip4Address);
         }
@@ -252,33 +252,33 @@ public class BgpSessionManager {
      * Starts up BGP Session Manager operation.
      *
      * @param listenPortNumber the port number to listen on. By default
-     * it should be BgpConstants.BGP_PORT (179)
+     *                         it should be BgpConstants.BGP_PORT (179)
      */
     public void start(int listenPortNumber) {
         log.debug("BGP Session Manager start.");
         isShutdown = false;
 
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(namedThreads("BGP-SM-boss-%d")),
-                Executors.newCachedThreadPool(namedThreads("BGP-SM-worker-%d")));
+                newCachedThreadPool(namedThreads("onos-bgp-sm-boss-%d")),
+                newCachedThreadPool(namedThreads("onos-bgp-sm-worker-%d")));
         ChannelPipelineFactory pipelineFactory = new ChannelPipelineFactory() {
-                @Override
-                public ChannelPipeline getPipeline() throws Exception {
-                    // Allocate a new session per connection
-                    BgpSession bgpSessionHandler =
+            @Override
+            public ChannelPipeline getPipeline() throws Exception {
+                // Allocate a new session per connection
+                BgpSession bgpSessionHandler =
                         new BgpSession(BgpSessionManager.this);
-                    BgpFrameDecoder bgpFrameDecoder =
+                BgpFrameDecoder bgpFrameDecoder =
                         new BgpFrameDecoder(bgpSessionHandler);
 
-                    // Setup the processing pipeline
-                    ChannelPipeline pipeline = Channels.pipeline();
-                    pipeline.addLast("BgpFrameDecoder", bgpFrameDecoder);
-                    pipeline.addLast("BgpSession", bgpSessionHandler);
-                    return pipeline;
-                }
-            };
+                // Setup the processing pipeline
+                ChannelPipeline pipeline = Channels.pipeline();
+                pipeline.addLast("BgpFrameDecoder", bgpFrameDecoder);
+                pipeline.addLast("BgpSession", bgpSessionHandler);
+                return pipeline;
+            }
+        };
         InetSocketAddress listenAddress =
-            new InetSocketAddress(listenPortNumber);
+                new InetSocketAddress(listenPortNumber);
 
         serverBootstrap = new ServerBootstrap(channelFactory);
         // serverBootstrap.setOptions("reuseAddr", true);

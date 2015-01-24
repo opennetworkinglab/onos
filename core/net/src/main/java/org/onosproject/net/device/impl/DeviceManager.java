@@ -111,7 +111,7 @@ public class DeviceManager
 
     @Activate
     public void activate() {
-        backgroundService = Executors.newSingleThreadScheduledExecutor(namedThreads("device-manager-background"));
+        backgroundService = Executors.newSingleThreadScheduledExecutor(namedThreads("onos-device-manager-background"));
 
         store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);

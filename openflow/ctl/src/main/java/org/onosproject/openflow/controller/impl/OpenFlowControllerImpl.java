@@ -69,11 +69,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     private final ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32,
-                                     namedThreads("of-event-stats-%d"));
+                                     namedThreads("onos-of-event-stats-%d"));
 
     private final ExecutorService executorBarrier =
         Executors.newFixedThreadPool(4,
-                                     namedThreads("of-event-barrier-%d"));
+                                     namedThreads("onos-of-event-barrier-%d"));
 
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<Dpid, OpenFlowSwitch>();

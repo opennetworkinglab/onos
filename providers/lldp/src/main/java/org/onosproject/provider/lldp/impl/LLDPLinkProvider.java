@@ -161,7 +161,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             }
         }
 
-        executor = newSingleThreadScheduledExecutor(namedThreads("device-sync-%d"));
+        executor = newSingleThreadScheduledExecutor(namedThreads("onos-device-sync-%d"));
         executor.scheduleAtFixedRate(new SyncDeviceInfoTask(), INIT_DELAY,
                 DELAY, TimeUnit.SECONDS);
 

@@ -45,7 +45,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private final Logger log = getLogger(getClass());
 
     private final ExecutorService executor =
-            newSingleThreadExecutor(namedThreads("event-dispatch-%d"));
+            newSingleThreadExecutor(namedThreads("onos-event-dispatch-%d"));
 
     @SuppressWarnings("unchecked")
     private static final Event KILL_PILL = new AbstractEvent(null, 0) {

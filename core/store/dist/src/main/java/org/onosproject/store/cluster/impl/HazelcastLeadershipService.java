@@ -266,7 +266,7 @@ public class HazelcastLeadershipService implements LeadershipService,
          */
         private void start() {
             isShutdown = false;
-            String threadPoolName = "leader-election-" + topicName + "-%d";
+            String threadPoolName = "onos-leader-election-" + topicName + "-%d";
             leaderElectionExecutor = Executors.newScheduledThreadPool(2,
                                         namedThreads(threadPoolName));
 

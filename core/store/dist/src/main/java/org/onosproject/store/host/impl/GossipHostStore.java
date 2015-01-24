@@ -165,10 +165,10 @@ public class GossipHostStore
                 HOST_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalHostAntiEntropyAdvertisementListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("host-fg-%d"));
+        executor = Executors.newCachedThreadPool(namedThreads("onos-host-fg-%d"));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("host-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-host-bg-%d")));
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),

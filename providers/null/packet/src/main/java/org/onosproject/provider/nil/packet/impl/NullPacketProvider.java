@@ -83,7 +83,7 @@ public class NullPacketProvider extends AbstractProvider implements
     private int pktRate = DEFAULT_RATE;
 
     private ExecutorService packetDriver = Executors.newFixedThreadPool(1,
-            namedThreads("null-packet-driver"));
+            namedThreads("onos-null-packet-driver"));
 
     public NullPacketProvider() {
         super(new ProviderId("null", "org.onosproject.provider.nil"));

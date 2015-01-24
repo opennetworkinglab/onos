@@ -104,7 +104,7 @@ public class FlowRuleManager
     @Activate
     public void activate() {
         futureService =
-                Executors.newFixedThreadPool(32, namedThreads("provider-future-listeners-%d"));
+                Executors.newFixedThreadPool(32, namedThreads("onos-provider-future-listeners-%d"));
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
         log.info("Started");

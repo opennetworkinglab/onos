@@ -73,7 +73,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     private DeviceProviderService providerService;
 
     private ExecutorService deviceBuilder = Executors.newFixedThreadPool(1,
-                                                     namedThreads("null-device-creator"));
+                                                     namedThreads("onos-null-device-creator"));
 
 
     //currently hardcoded. will be made configurable via rest/cli.

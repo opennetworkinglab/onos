@@ -116,7 +116,7 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     @Activate
     public synchronized void activate(ComponentContext context) {
-        executor = newFixedThreadPool(MAX_THREADS, namedThreads("topo-build-%d"));
+        executor = newFixedThreadPool(MAX_THREADS, namedThreads("onos-topo-build-%d"));
         accumulator = new TopologyChangeAccumulator();
         logConfig("Configured");
 

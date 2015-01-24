@@ -146,10 +146,10 @@ public class DistributedFlowRuleStore
 
 
     private final ExecutorService futureListeners =
-            Executors.newCachedThreadPool(namedThreads("flowstore-peer-responders"));
+            Executors.newCachedThreadPool(namedThreads("onos-flowstore-peer-responders"));
 
     private final ExecutorService backupExecutors =
-            Executors.newSingleThreadExecutor(namedThreads("async-backups"));
+            Executors.newSingleThreadExecutor(namedThreads("onos-async-backups"));
 
     private boolean syncBackup = false;
 
