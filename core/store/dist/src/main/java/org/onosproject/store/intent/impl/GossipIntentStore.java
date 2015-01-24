@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,6 +109,7 @@ public class GossipIntentStore
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(InternalIntentEvent.class)
                     .register(InternalSetInstallablesEvent.class)
+                    .register(Collections.emptyList().getClass())
                     //.register(InternalIntentAntiEntropyEvent.class)
                     //.register(IntentAntiEntropyAdvertisement.class)
                     .build();
@@ -247,6 +249,8 @@ public class GossipIntentStore
         List<IntentEvent> events = Lists.newArrayList();
         List<BatchWrite.Operation> failed = new ArrayList<>();
 
+        Timestamp timestamp = null;
+
         for (BatchWrite.Operation op : batch.operations()) {
             switch (op.type()) {
             case CREATE_INTENT:
@@ -254,9 +258,12 @@ public class GossipIntentStore
                               "CREATE_INTENT takes 1 argument. %s", op);
                 Intent intent = op.arg(0);
 
-                events.add(createIntentInternal(intent));
-                notifyPeers(new InternalIntentEvent(
-                        intent.id(), intent, INSTALL_REQ, null));
+                timestamp = intentClockService.getTimestamp(intent.id());
+                if (createIntentInternal(intent)) {
+                    events.add(setStateInternal(intent.id(), INSTALL_REQ, timestamp));
+                    notifyPeers(new InternalIntentEvent(intent.id(), intent,
+                                                        INSTALL_REQ, timestamp));
+                }
 
                 break;
             case REMOVE_INTENT:
@@ -272,8 +279,7 @@ public class GossipIntentStore
                 intent = op.arg(0);
                 IntentState newState = op.arg(1);
 
-                Timestamp timestamp = intentClockService.getTimestamp(
-                        intent.id());
+                timestamp = intentClockService.getTimestamp(intent.id());
                 IntentEvent externalEvent = setStateInternal(intent.id(), newState, timestamp);
                 events.add(externalEvent);
                 notifyPeers(new InternalIntentEvent(intent.id(), null, newState, timestamp));
@@ -285,11 +291,11 @@ public class GossipIntentStore
                 intentId = op.arg(0);
                 List<Intent> installableIntents = op.arg(1);
 
-                Timestamp timestamp1 = intentClockService.getTimestamp(intentId);
+                timestamp = intentClockService.getTimestamp(intentId);
                 setInstallableIntentsInternal(
-                        intentId, installableIntents, timestamp1);
+                        intentId, installableIntents, timestamp);
 
-                notifyPeers(new InternalSetInstallablesEvent(intentId, installableIntents, timestamp1));
+                notifyPeers(new InternalSetInstallablesEvent(intentId, installableIntents, timestamp));
 
                 break;
             case REMOVE_INSTALLED:
@@ -309,15 +315,15 @@ public class GossipIntentStore
         return failed;
     }
 
-    private IntentEvent createIntentInternal(Intent intent) {
+    private boolean createIntentInternal(Intent intent) {
         Intent oldValue = intents.putIfAbsent(intent.id(), intent);
         if (oldValue == null) {
-            return IntentEvent.getEvent(INSTALL_REQ, intent);
+            return true;
         }
 
         log.warn("Intent ID {} already in store, throwing new update away",
                  intent.id());
-        return null;
+        return false;
     }
 
     private void notifyPeers(InternalIntentEvent event) {
@@ -380,8 +386,8 @@ public class GossipIntentStore
                 try {
                     switch (state) {
                     case INSTALL_REQ:
-                        notifyDelegateIfNotNull(createIntentInternal(intent));
-                        break;
+                        createIntentInternal(intent);
+                        // Fallthrough to setStateInternal for INSTALL_REQ
                     default:
                         notifyDelegateIfNotNull(setStateInternal(intentId, state, timestamp));
                         break;
