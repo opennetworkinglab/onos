@@ -39,7 +39,7 @@ public class GreetResource extends BaseResource {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root = mapper.createObjectNode();
         root.put("greeting", "Yo!!!!");
-        return Response.ok(root.toString()).build();
+        return Response.ok(root).build();
     }
 
 }

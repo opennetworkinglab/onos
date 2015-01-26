@@ -48,7 +48,7 @@ public class IntentsWebResource extends AbstractWebResource {
     public Response getIntents() {
         final Iterable<Intent> intents = get(IntentService.class).getIntents();
         final ObjectNode root = encodeArray(Intent.class, "intents", intents);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -72,6 +72,6 @@ public class IntentsWebResource extends AbstractWebResource {
         } else {
             root = codec(Intent.class).encode(intent, this);
         }
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 }

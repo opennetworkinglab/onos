@@ -42,7 +42,7 @@ public class HostsWebResource extends AbstractWebResource {
     public Response getHosts() {
         final Iterable<Host> hosts = get(HostService.class).getHosts();
         final ObjectNode root = encodeArray(Host.class, "hosts", hosts);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     @GET
@@ -52,7 +52,7 @@ public class HostsWebResource extends AbstractWebResource {
         final Host host = nullIsNotFound(get(HostService.class).getHost(hostId(id)),
                 HOST_NOT_FOUND);
         final ObjectNode root = codec(Host.class).encode(host, this);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     @GET
@@ -63,7 +63,7 @@ public class HostsWebResource extends AbstractWebResource {
         final Host host = nullIsNotFound(get(HostService.class).getHost(hostId(mac + "/" + vlan)),
                 HOST_NOT_FOUND);
         final ObjectNode root = codec(Host.class).encode(host, this);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 }
 

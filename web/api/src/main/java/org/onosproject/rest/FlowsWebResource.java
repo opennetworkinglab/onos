@@ -65,7 +65,7 @@ public class FlowsWebResource extends AbstractWebResource {
             }
         }
 
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -87,7 +87,7 @@ public class FlowsWebResource extends AbstractWebResource {
         for (final FlowEntry entry : deviceEntries) {
             flowsNode.add(flowEntryCodec.encode(entry, this));
         }
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -113,6 +113,6 @@ public class FlowsWebResource extends AbstractWebResource {
                 flowsNode.add(flowEntryCodec.encode(entry, this));
             }
         }
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 }

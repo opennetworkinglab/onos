@@ -57,7 +57,7 @@ public class TopologyWebResource extends AbstractWebResource {
         Topology topology = get(TopologyService.class).currentTopology();
         ObjectNode root =
                 codec(Topology.class).encode(topology, this);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -74,7 +74,7 @@ public class TopologyWebResource extends AbstractWebResource {
                 get(TopologyService.class).getClusters(topology);
         ObjectNode root =
                 encodeArray(TopologyCluster.class, "clusters", clusters);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -96,7 +96,7 @@ public class TopologyWebResource extends AbstractWebResource {
                         CLUSTER_NOT_FOUND);
         ObjectNode root =
                 codec(TopologyCluster.class).encode(cluster, this);
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -127,7 +127,7 @@ public class TopologyWebResource extends AbstractWebResource {
         for (DeviceId deviceId : deviceIds) {
             devicesNode.add(deviceId.toString());
         }
-        return ok(root.toString()).build();
+        return ok(root).build();
     }
 
     /**
@@ -150,7 +150,7 @@ public class TopologyWebResource extends AbstractWebResource {
                 Lists.newArrayList(get(TopologyService.class)
                         .getClusterLinks(topology, cluster));
 
-        return ok(encodeArray(Link.class, "links", links).toString()).build();
+        return ok(encodeArray(Link.class, "links", links)).build();
     }
 
     /**
@@ -203,8 +203,7 @@ public class TopologyWebResource extends AbstractWebResource {
 
         return ok(mapper()
                 .createObjectNode()
-                .put("broadcast", isBroadcast)
-                .toString())
+                .put("broadcast", isBroadcast))
                 .build();
     }
 
@@ -230,7 +229,7 @@ public class TopologyWebResource extends AbstractWebResource {
 
         return ok(mapper()
                 .createObjectNode()
-                .put("infrastructure", isInfrastructure).toString())
+                .put("infrastructure", isInfrastructure))
                 .build();
     }
 
