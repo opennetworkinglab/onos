@@ -39,7 +39,6 @@ import org.onosproject.net.flowext.FlowRuleExtStore;
 import org.onosproject.net.flowext.FlowRuleExtStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
-import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
 import com.esotericsoftware.kryo.Serializer;
@@ -65,7 +64,7 @@ import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Provides implementation of the flow NB &amp; SB APIs.
+ * Provides implementation of the flow-extension NB &amp; SB APIs.
  */
 @Component(immediate = true)
 @Service
@@ -113,19 +112,21 @@ public class FlowRuleExtManager
 
  // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements FlowRuleExtStoreDelegate {
-
-        // FIXME set appropriate default and make it configurable
-        private static final int TIMEOUT_PER_OP = 500; // ms
-
+        // TODO: We assume all the batch install success when they are send to provider.
+        // It will be using transaction tactics Later.
         @Override
         public void notify(FlowRuleBatchExtEvent event) {
             // TODO Auto-generated method stub
             switch (event.type()) {
             case BATCH_OPERATION_REQUESTED:
+                   // Request has been forwarded to MASTER Node, and was
+                    for (FlowRuleExtEntry entry : event.subject().getBatch()) {
+                           eventDispatcher.post(new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADD_REQUESTED, entry));
+                    }
                     //send it
                     FlowRuleBatchExtRequest flowrules = event.subject();
                     FlowRuleExtProvider flowRuleProvider =
-                                    getProvider(new ProviderId("igp", "org.onosproject.provider.igp"));
+                                    getProvider(event.subject().getBatch().iterator().next().getDeviceId());
                     flowRuleProvider.applyFlowRule(flowrules);
                     //do not have transaction, assume it install success
                     FlowExtCompletedOperation result = new FlowExtCompletedOperation(true,

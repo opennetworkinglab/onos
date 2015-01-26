@@ -9,8 +9,14 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+/**
+* FlowRuleExtEntry Serializer for {@link FlowRuleExtEntry}.
+*/
 public class FlowRuleExtEntrySerializer extends Serializer<FlowRuleExtEntry> {
-
+    
+        /**
+         * Creates {@link FlowRuleExtEntry} serializer instance.
+         */
         public FlowRuleExtEntrySerializer() {
                 super(false, true);
                // TODO Auto-generated constructor stub

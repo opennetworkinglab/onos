@@ -84,11 +84,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
 /**
- * Manages inventory of flow rules using a distributed state management
- * protocol.
+ * Manages inventory of extended flow rules using a distributed state management
+ * protocol. This store does'nt support backing-up flow-rule data for now, but it
+ * will be stronger in future.  
  */
-
-
 @Component(immediate = true)
 @Service
 public class DistributedFlowRuleExtStore extends
@@ -102,7 +101,7 @@ public class DistributedFlowRuleExtStore extends
         private final ReentrantReadWriteLock flowEntriesLock = new ReentrantReadWriteLock();
 
         // store entries as a pile of rules, no info about device tables
-        private final Multimap<DeviceId, FlowRuleExtEntry> extendflowEntries = ArrayListMultimap
+        private final Multimap<DeviceId, FlowRuleExtEntry> extendFlowEntries = ArrayListMultimap
                            .<DeviceId, FlowRuleExtEntry>create();
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -124,7 +123,7 @@ public class DistributedFlowRuleExtStore extends
         private Cache<Integer, SettableFuture<FlowExtCompletedOperation>> pendingExtendFutures = CacheBuilder
                         .newBuilder()
                         .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
-                        // .removalListener(new TimeoutFuture())
+                        //.removalListener(new TimeoutFuture())
                         .build();
 
         private final ExecutorService futureListeners = Executors
@@ -200,7 +199,7 @@ public class DistributedFlowRuleExtStore extends
                 Collection<FlowRuleExtEntry> removed = null;
                 flowEntriesLock.writeLock().lock();
                 try {
-                   removed = extendflowEntries.removeAll(did);
+                   removed = extendFlowEntries.removeAll(did);
                 } finally {
                    flowEntriesLock.writeLock().unlock();
                 }
@@ -269,11 +268,16 @@ public class DistributedFlowRuleExtStore extends
         }
 
         public Set<FlowRuleExtEntry> getInternalMessage(DeviceId deviceId) {
-            Collection<FlowRuleExtEntry> rules = extendflowEntries.get(deviceId);
-            if (rules == null) {
-                return Collections.emptySet();
+            flowEntriesLock.readLock().lock();
+            try {
+                Collection<FlowRuleExtEntry> rules = extendFlowEntries.get(deviceId);
+                if (rules == null) {
+                       return Collections.emptySet();
+                }
+                return ImmutableSet.copyOf(rules);
+            } finally {
+                flowEntriesLock.readLock().unlock();
             }
-            return ImmutableSet.copyOf(rules);
         }
 
         @Override
@@ -283,7 +287,7 @@ public class DistributedFlowRuleExtStore extends
                 return Futures.immediateFuture(new FlowExtCompletedOperation(true,
                             Collections.<FlowRuleExtEntry>emptySet()));
            }
-           // here should make some changes because all the collection belongs to one deviceId
+           // get the deviceId all the collection belongs to
            DeviceId deviceId = getBatchDeviceId(batchOperation);
 
            if (deviceId == null) {
@@ -330,10 +334,15 @@ public class DistributedFlowRuleExtStore extends
 
     private ListenableFuture<FlowExtCompletedOperation> storeBatchInternal(
       Collection<FlowRuleExtEntry> batchOperation) {
-        for (FlowRuleExtEntry operation : batchOperation) {
-             if (!extendflowEntries.containsEntry(operation.getDeviceId(), operation)) {
-                extendflowEntries.put(operation.getDeviceId(), operation);
-             }
+        flowEntriesLock.writeLock().lock();
+        try {
+            for (FlowRuleExtEntry operation : batchOperation) {
+                if (!extendFlowEntries.containsEntry(operation.getDeviceId(), operation)) {
+                    extendFlowEntries.put(operation.getDeviceId(), operation);
+                }
+            }
+        } finally {
+                flowEntriesLock.writeLock().unlock();
         }
         SettableFuture<FlowExtCompletedOperation> r = SettableFuture.create();
         final int batchId = localBatchIdGen.incrementAndGet();
@@ -410,6 +419,9 @@ public class DistributedFlowRuleExtStore extends
 
         /**
          * Sets up the special serializers pool.
+         *
+         * @param classT is what the byte stream can be decoded to
+         * @param serializer is the decoder provided by vendor
          */
         protected void setupKryoPool(Class<?> classT, Serializer<?> serializer) {
             serializerPool = KryoNamespace
