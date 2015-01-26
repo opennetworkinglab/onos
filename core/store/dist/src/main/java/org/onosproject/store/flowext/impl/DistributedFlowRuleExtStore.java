@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.flow.impl;
+package org.onosproject.store.flowext.impl;
 
 import static org.onlab.util.Tools.namedThreads;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.APPLY_EXTEND_FLOWS;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_DEVICE_EXTENDFLOW_ENTRIES;
+import static org.onosproject.store.flowext.impl.FlowExtStoreMessageSubjects.APPLY_EXTEND_FLOWS;
+import static org.onosproject.store.flowext.impl.FlowExtStoreMessageSubjects.GET_DEVICE_EXTENDFLOW_ENTRIES;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
